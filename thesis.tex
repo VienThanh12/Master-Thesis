@@ -1,0 +1,491 @@
+%% Final edits by Jussi Kangasharju and Pirjo Moen
+%% This file is modified by Veli Mäkinen from HY_fysiikka_LuKtemplate.tex authored by Roope Halonen ja Tomi Vainio.
+%% Some text is also inherited from engl_malli.tex by Kutvonen, Erkiö, Mäkelä, Verkamo, Kurhila, and Nykänen.
+
+
+% STEP 1: Choose oneside or twoside
+\documentclass[english,twoside,openright]{UH_DS_MSc}
+%finnish,swedish
+
+%\usepackage[utf8]{inputenc} % For UTF8 support. Use UTF8 when saving your file.
+\usepackage{lmodern} % Font package
+\usepackage{textcomp} % Package for special symbols
+\usepackage[pdftex]{color, graphicx} % For pdf output and jpg/png graphics
+\usepackage[pdftex, plainpages=false]{hyperref} % For hyperlinks and pdf metadata
+\usepackage{fancyhdr} % For nicer page headers
+\usepackage{tikz} % For making vector graphics (hard to learn but powerful)
+%\usepackage{wrapfig} % For nice text-wrapping figures (use at own discretion)
+\usepackage{amsmath, amssymb} % For better math
+%\usepackage[square]{natbib} % For bibliography
+\usepackage[footnotesize,bf]{caption} % For more control over figure captions
+\usepackage{blindtext}
+\usepackage{titlesec}
+\usepackage[titletoc]{appendix}
+
+\onehalfspacing %line spacing
+%\singlespacing
+%\doublespacing
+
+%\fussy 
+\sloppy % sloppy and fussy commands can be used to avoid overlong text lines
+
+% STEP 2:
+% Set up all the information for the title page and the abstract form.
+% Replace parameters with your information.
+\title{Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia RAN Control-Plane Systems}
+\author{Ha Vien}
+\date{\today}
+\prof{Christoph Luneburg, Petteri Kotimaa}
+\censors{}{}{}
+\keywords{Rust, C++, RAN control plane, tail latency, memory safety, fault injection, FFI}
+\depositeplace{Helsinki University Library}
+\additionalinformation{Software study track}
+
+
+\classification{\protect{\ \\
+\  Software and its engineering $\rightarrow$ Software notations and tools $\rightarrow$ General programming languages\  \\
+\  Computer systems organization $\rightarrow$ Real-time systems $\rightarrow$ Real-time system specification\\
+\  Networks $\rightarrow$ Network types $\rightarrow$ Mobile networks\\
+}}
+
+% if you want to quote someone special. You can comment this line and there will be nothing on the document.
+%\quoting{Bachelor's degrees make pretty good placemats if you get them laminated.}{Jeph Jacques} 
+
+
+% OPTIONAL STEP: Set up properties and metadata for the pdf file that pdfLaTeX makes.
+% But you don't really need to do this unless you want to.
+\hypersetup{
+    %bookmarks=true,         % show bookmarks bar first?
+    unicode=true,           % to show non-Latin characters in Acrobat’s bookmarks
+    pdftoolbar=true,        % show Acrobat’s toolbar?
+    pdfmenubar=true,        % show Acrobat’s menu?
+    pdffitwindow=false,     % window fit to page when opened
+    pdfstartview={FitH},    % fits the width of the page to the window
+    pdftitle={Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia RAN Control-Plane Systems},
+    pdfauthor={Ha Vien},
+    pdfsubject={Master's thesis, Computer Science},
+    pdfcreator={Ha Vien},
+    pdfproducer={pdfLaTeX}, % producer of the document
+    pdfkeywords={Rust} {C++} {RAN control plane} {tail latency} {memory safety},
+    pdfnewwindow=true,      % links in new window
+    colorlinks=true,        % false: boxed links; true: colored links
+    linkcolor=black,        % color of internal links
+    citecolor=black,        % color of links to bibliography
+    filecolor=magenta,      % color of file links
+    urlcolor=cyan           % color of external links
+}
+
+\begin{document}
+
+% Generate title page.
+\maketitle
+
+% STEP 3:
+% Write your abstract (of course you really do this last).
+% You can make several abstract pages (if you want it in different languages),
+% but you should also then redefine some of the above parameters in the proper
+% language as well, in between the abstract definitions.
+
+\begin{abstract}
+\noindent\textbf{Context.}
+Radio Access Network (RAN) control-plane software (e.g.\ the L3 of a gNB) is written
+mostly in C++ for performance, but C++ carries well-known memory-safety and concurrency
+risks. Rust offers comparable performance with safety guaranteed at compile time, yet its
+fit for latency-critical telecom control planes is unproven. The work is done at Nokia on
+a subsystem modeled on a real Nokia gNB-CU-CP component.
+
+\medskip\noindent\textbf{Objective.}
+The thesis compares modern C++ and Rust on a UE Context Management service. As similar
+average throughput is already known, it targets four less-explored dimensions: tail
+latency and jitter under overload; which C++ defect classes Rust prevents at compile time;
+the overhead of Rust's safety model; and the cost of incremental adoption in a C++ codebase.
+
+\medskip\noindent\textbf{Methods.}
+A language-agnostic specification is frozen first; two functionally equivalent
+implementations are then built in C++ and Rust with identical algorithms, concurrency
+model, allocator, and build settings. A synthetic, spec-justified workload is swept to
+overload, both versions pass the same parity tests, and evaluation adds a fault-injection
+study and a small FFI interoperability prototype.
+
+\medskip\noindent\textbf{Results (expected).}
+Similar mean throughput is anticipated, with differences mainly in tail latency and
+jitter under overload, plus a defect-class taxonomy (compile-time-prevented / runtime-only
+/ undetected) and a quantified FFI migration cost.
+
+\medskip\noindent\textbf{Conclusions (expected).}
+The thesis aims to deliver a reproducible benchmarking framework and evidence-based
+guidelines for when Rust is a viable alternative or complement to C++ in RAN control
+planes.
+\end{abstract}
+
+% Place ToC
+\mytableofcontents
+
+\mynomenclature
+
+% -----------------------------------------------------------------------------------
+% STEP 4: Write the thesis.
+% Your actual text starts here. You shouldn't mess with the code above the line except
+% to change the parameters. Removing the abstract and ToC commands will mess up stuff.
+\chapter{Introduction}
+
+Modern RAN control-plane systems (e.g.\ the L3 components of a gNB) are primarily
+implemented in C++, a language that delivers high performance but carries well-known
+memory-safety and concurrency risks. Rust promises compile-time memory and thread safety
+with comparable performance, yet its suitability for telecom-grade, latency-critical
+control-plane systems is not well understood. This thesis, carried out at Nokia, develops
+two functionally equivalent implementations of a representative RAN subsystem, a UE
+Context Management service modeled on a real Nokia gNB-CU-CP component, in modern C++ and
+in Rust, and compares them under a realistic synthetic signaling workload.
+
+\section{Challenges in RAN control-plane software engineering}
+Modern RAN control-plane systems must be fast, predictable, highly concurrent, and
+long-lived, and they are overwhelmingly written in C++. This combination creates three
+standing challenges. First, manual memory and concurrency management in C++ exposes the
+software to defects such as use-after-free, double-free, data races, and iterator
+invalidation, which are costly to find and fix at telecom scale. Second, what matters for
+meeting RAN deadlines is not average throughput but worst-case and tail behaviour under
+load and overload, a property that is easy to regress and hard to measure correctly.
+Third, although Rust promises compile-time memory and thread safety with comparable
+performance, the prevailing view that ``Rust performs roughly like C++'' rests mostly on
+general-purpose benchmarks rather than on stateful, concurrent, latency-critical telecom
+workloads, and the cost of adopting Rust inside a large existing C++ codebase is largely
+unquantified. This thesis addresses these gaps for a representative subsystem.
+
+\section{Research questions}
+The thesis is organised around four research questions, ordered to put predictability and
+migration ahead of raw average performance:
+
+\begin{description}
+  \item[RQ1] How do Rust and modern C++ compare in latency predictability (mean, p99,
+        p99.9 tail latency, and jitter) for a RAN control-plane workload under increasing
+        load and overload?
+  \item[RQ2] Which classes of memory-safety and concurrency defects that occur in C++ are
+        eliminated at compile time in the Rust implementation, and at what stage and cost
+        are the remaining ones detected?
+  \item[RQ3] What is the overhead, if any, of Rust's safety model (bounds checks,
+        ownership-driven copies, abstraction cost) on throughput, CPU utilisation, and
+        memory behaviour?
+  \item[RQ4] What are the practical implications (effort, FFI interoperability, and risk)
+        of adopting Rust incrementally within an existing C++ RAN software ecosystem?
+\end{description}
+
+\section{Contributions, results, and limitations}
+The thesis contributes (i) a reproducible, telecom-relevant benchmarking framework for
+control-plane workloads; (ii) a frozen shared specification and two parity-tested
+implementations of a RAN control-plane subsystem in C++ and Rust; (iii) a quantitative
+comparison emphasising tail latency and predictability alongside average throughput;
+(iv) a defect-class taxonomy obtained through controlled fault injection; and (v)
+evidence-based engineering and migration guidelines for language selection in cloud-native
+RAN evolution. The expected results are that the two implementations achieve similar mean
+throughput while differing mainly in tail latency and jitter under overload, and that Rust
+prevents a well-defined subset of the injected C++ defects at compile time. The main
+limitations are the use of a synthetic workload, a single simplified subsystem, and
+single-author implementation bias; these are treated in detail in
+Chapter~\ref{chapter:discussion}.
+
+\section{Thesis outline}
+Chapter~\ref{chapter:background} gives the background on RAN control-plane software, C++,
+and the Rust safety model. Chapter~\ref{chapter:methodology} states the research approach.
+Chapter~\ref{chapter:context} describes the problem context: the UE Context Management
+subsystem, the relevant defect classes, and tail-latency predictability.
+Chapter~\ref{chapter:objectives} sets the objectives, scope, and boundaries.
+Chapter~\ref{chapter:design} presents the design and implementation of both versions.
+Chapter~\ref{chapter:eval} describes the experimental setup and reports the evaluation.
+Chapter~\ref{chapter:discussion} discusses the findings, related work, and threats to
+validity. Chapter~\ref{chapter:conclusions} concludes and outlines future work.
+
+\chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
+
+\section{RAN control-plane systems and the gNB-CU-CP}
+The NG-RAN architecture splits the gNB into a central unit (gNB-CU) and distributed units,
+with the control plane (gNB-CU-CP) handling RRC and connection management for each
+UE~\cite{3gpp38401,3gpp38300}. Such control-plane systems must satisfy demanding
+non-functional requirements: very high event rates (UE mobility, signaling storms), strict
+and predictable latency bounds, long-lived software with continuously evolving complexity,
+and heavily concurrent workloads. In these systems the worst-case and tail behaviour,
+rather than the average, determines whether deadlines are met, which motivates the
+predictability focus of this thesis.
+
+\section{C++ and its memory and concurrency challenges}
+Large C++ codebases face long-standing engineering challenges: memory-safety defects
+(use-after-free, buffer overflow, double-free), concurrency defects (data races, deadlocks,
+iterator invalidation), and a high maintenance and review burden. The prevalence of these
+defects is well documented in industry: memory-safety issues account for roughly 70\,\% of
+the security vulnerabilities reported at Microsoft~\cite{msrc2019memory}, and Google reports
+a sharp drop in such vulnerabilities as memory-safe languages are adopted in
+Android~\cite{google2022android}. These defect classes are detailed in
+Chapter~\ref{chapter:context} and form the basis for the fault-injection study in
+Chapter~\ref{chapter:eval}.
+
+\section{The Rust ownership and safety model}
+Rust offers memory safety and data-race freedom enforced at compile time through its
+ownership and borrowing model~\cite{klabnik2023rust}, together with a strong concurrency
+story and modern tooling (Cargo, integrated testing). The soundness of the safe fragment of
+the language, including the role of \texttt{unsafe} as an explicitly delimited escape hatch,
+has been established formally by the RustBelt project~\cite{jung2018rustbelt}, and empirical
+studies show that \texttt{unsafe} is used sparingly and in localised ways in real
+codebases~\cite{astrauskas2020unsafe}. Safety is enforced by the type system and borrow
+checker rather than by runtime instrumentation, which is the property this thesis evaluates
+for a latency-critical workload.
+
+\chapter{Research Methodology\label{chapter:methodology}}
+
+\section{Research approach}
+The thesis follows an empirical, experimental research approach with a constructive
+(design-science) element. A software artifact, two functionally equivalent implementations
+of the subsystem together with a benchmarking framework, is built against a single frozen
+specification and then evaluated under controlled experiments. Evidence is triangulated from
+three complementary methods: quantitative performance measurement under a swept load
+(addressing RQ1 and RQ3), a controlled fault-injection study of defect detection (RQ2), and
+a qualitative-plus-quantitative FFI migration case study (RQ4). Fairness is treated as a
+first-class concern: because the goal is to isolate language effects, the study fixes the
+specification, algorithms, concurrency model, allocator, and build settings across both
+implementations, and reports variance over many repeated runs.
+
+\chapter{Problem Context: UE Context Management and Predictability\label{chapter:context}}
+
+\section{The UE Context Management subsystem}
+The subsystem under study is a UE Context Management service, modeled on a real Nokia
+gNB-CU-CP service domain that owns the UE context lifecycle, RRC procedure execution, and
+mobility/handover. It is a good representative because it is core RAN L3 functionality,
+performance- and latency-sensitive, inherently stateful and concurrent, and self-contained
+enough to specify precisely and benchmark fairly. The modeled functionality includes UE
+context creation and deletion, state transitions (e.g.\ idle to connected), signaling
+message handling, and concurrent context lookup under load.
+
+\section{Memory-safety and concurrency defect classes}
+The C++ defects relevant to this subsystem fall into well-known classes: use-after-free,
+buffer overflow, and double-free (memory safety); and data races, deadlocks, and iterator
+invalidation (concurrency). These classes form the catalogue that is deliberately injected
+in the fault-injection study (Chapter~\ref{chapter:eval}) and against which the Rust
+compiler's guarantees are assessed.
+
+\section{Tail latency and predictability in RAN}
+For deadline-driven RAN procedures, the meaningful performance question is how bad the slow
+cases are, not how good the average is. The study therefore characterises the full latency
+distribution, focusing on high percentiles (p99, p99.9, p99.99), the maximum, and jitter,
+and on how these degrade as the system approaches and exceeds saturation. Measuring these
+correctly requires care to avoid coordinated-omission bias, which naive timing loops
+introduce when the system stalls~\cite{tene_hdrhistogram}.
+
+\chapter{Objectives\label{chapter:objectives}}
+
+\section{Deficiencies in existing comparisons}
+Cross-language studies report that compiled systems languages such as C, C++, and Rust
+achieve broadly similar time and energy efficiency, well ahead of managed and interpreted
+languages~\cite{pereira2017energy}. However, these comparisons are established mostly on
+general-purpose benchmarks; they emphasise average performance, rarely examine tail latency
+under overload for stateful concurrent workloads, do not isolate the defect classes that a
+language prevents, and seldom quantify the cost of incremental migration into an existing
+C++ codebase. These are the gaps this thesis targets.
+
+\section{Solution objectives}
+The objective is a fair, reproducible comparison of modern C++ and Rust for a RAN
+control-plane subsystem along four dimensions, latency predictability, compile-time defect
+prevention, safety-model overhead, and incremental-adoption cost, together with the delivery
+of a benchmarking framework and evidence-based guidelines that practitioners can reuse.
+
+\section{Scope and boundaries}
+The work focuses on a single representative subsystem. Explicitly out of scope are the full
+gNB system, PHY/L2 processing, real captured traffic traces, and production deployment and
+operational constraints; these are revisited as limitations in
+Chapter~\ref{chapter:discussion}.
+
+\chapter{Design and Implementation\label{chapter:design}}
+
+\section{Shared specification: the fairness baseline}
+\label{sec:fairness}
+Before any code is written, a single language-agnostic specification is frozen: the public
+API, the UE state machine, the data structures and their algorithmic strategy (e.g.\ a
+sharded hash map keyed by UE identifier), the locking and sharding granularity, and the
+concurrency model. Both implementations conform to this specification so that the comparison
+measures language differences rather than design or skill asymmetry. The specification is
+itself a deliverable and is the primary control against implementation bias.
+
+\section{Conceptual model and concurrency design}
+Two functionally equivalent implementations are developed against the shared specification:
+a modern C++ version (C++17/20, STL, RAII, standard threading) and a Rust version
+(ownership-based memory model, safe concurrency). A single concurrency model is used for
+both, a shared-nothing / sharded worker-thread model that mirrors how real RAN L3 partitions
+UE state, and mixing of async and thread-based models is intentionally avoided.
+
+\section{Architectural choices and technology stack}
+The C++ side uses CMake, the standard library, and standard threading; the Rust side uses
+Cargo and the stable toolchain. Both link the same memory allocator (e.g.\ jemalloc) to
+isolate language effects from allocator effects, and both record latency through a shared
+high-dynamic-range histogram library~\cite{tene_hdrhistogram}. Build optimisation is matched
+as closely as the two toolchains allow (\texttt{-O2}/\texttt{-O3} for C++; \texttt{release}
+for Rust with comparable codegen settings).
+
+\section{Implementation details}
+This section documents the concrete data structures (the sharded context store and its
+keying), the locking and ownership strategy on each side, the realisation of the UE state
+machine, and, for Rust, the location and justification of any \texttt{unsafe} blocks. Where
+the two languages force different idioms for the same specification item, the deviation is
+recorded so it can be weighed in the discussion. \emph{(Details to be completed during
+implementation.)}
+
+\chapter{Experimental Setup and Evaluation\label{chapter:eval}}
+
+\section{Testbed configuration}
+Experiments run on a Linux system with identical hardware for both implementations. CPUs are
+pinned, frequency scaling and turbo are disabled, and warm-up runs are discarded. The full
+configuration and scripts are published for reproducibility.
+
+\section{Workload and evaluation measurements}
+A synthetic but spec-justified telecom workload is generated, with an event mix and rates
+anchored to published 3GPP/RAN load characteristics and the subsystem's procedure set rather
+than chosen arbitrarily: UE creation bursts, mobility and handover events, context updates
+and state transitions, and concurrent signaling events. The control parameters are the
+target event rate and the number of active UEs, swept from nominal load through saturation
+and overload. Three measurement campaigns are run: a load sweep for performance, a set of
+fault-injection runs, and an FFI migration prototype.
+
+\section{Data collection and metrics}
+The study records latency predictability (per-event mean, median, p99/p99.9/p99.99, and
+maximum latency, plus jitter), throughput (sustained events/sec and throughput at a fixed
+latency SLO), resource use (CPU utilisation, memory over time, allocation patterns),
+concurrency robustness, safety (defect classes prevented at compile time vs runtime), and
+software-quality proxies (lines of code, cyclomatic complexity, and the count and scope of
+Rust \texttt{unsafe} blocks). Many runs are performed and variance and confidence intervals
+are reported. Only synthetic data is used, so no personal, subscriber, or confidential data
+is processed.
+
+\section{Evaluation data}
+The collected dataset consists of per-event latency histograms, throughput and resource-use
+time series for each load level and language, the per-defect outcomes of the fault-injection
+runs, and the interop measurements of the FFI prototype. \emph{(Datasets to be populated
+once experiments are run.)}
+
+\section{Evaluation results}
+The expected results are stated as hypotheses to be tested.
+
+\subsection{Performance (RQ1, RQ3)}
+The hypothesis is that Rust and C++ achieve similar mean throughput but may differ
+measurably in tail latency and jitter under overload, and that any safety-model overhead in
+Rust is small in realistic workloads. The evaluation reports where, if anywhere, each
+language wins and by how much, across the load sweep up to and beyond saturation. Latency
+percentiles are summarised as in Table~\ref{tab:latency}, and the latency-versus-load
+behaviour is plotted per language so that the onset of overload is visible.
+
+\begin{table}
+\centering
+\caption{Latency percentiles at a representative load (placeholder; to be filled with
+measured data).\label{tab:latency}}
+\begin{tabular}{l r r r r r}
+\hline\hline
+Language & mean & p99 & p99.9 & p99.99 & max \\
+\hline
+C++  & --- & --- & --- & --- & --- \\
+Rust & --- & --- & --- & --- & --- \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Safety via fault injection (RQ2)}
+Instead of claiming that Rust has no bugs, a catalogue of classic C++ defects is
+deliberately injected into the C++ implementation (use-after-free, data race, double-free,
+iterator invalidation, unguarded shared mutation). For each defect the study records whether
+the analogous construct is rejected at compile time by Rust's borrow checker or type system,
+whether C++ detects it only at runtime via sanitizers (ASan/TSan) and at what performance
+cost, and whether it can escape detection entirely. The output is the defect-class taxonomy
+shown in Table~\ref{tab:taxonomy}.
+
+\begin{table}
+\centering
+\caption{Defect-class taxonomy (placeholder; outcome per defect to be filled
+in).\label{tab:taxonomy}}
+\begin{tabular}{l l l}
+\hline\hline
+Defect class & C++ detection & Rust outcome \\
+\hline
+Use-after-free        & runtime (ASan) & compile-time-prevented \\
+Data race             & runtime (TSan) & compile-time-prevented \\
+Double-free           & runtime (ASan) & compile-time-prevented \\
+Iterator invalidation & runtime/undetected & compile-time-prevented \\
+Unguarded shared mutation & undetected & compile-time-prevented \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Migration (RQ4)}
+A qualitative-plus-quantitative assessment of incremental adoption builds a small Rust
+module that interoperates with the C++ implementation via FFI, measuring the interop
+boilerplate, the safety boundary at the FFI seam, and the engineering effort. The
+deliverable is a set of concrete guidelines for when and how Rust adoption is worthwhile in
+an existing C++ RAN ecosystem.
+
+\chapter{Discussion\label{chapter:discussion}}
+
+\section{Summary of findings}
+This section summarises, once the experiments are complete, where each language wins on
+predictability and throughput, which injected defects Rust prevents at compile time, and
+what incremental Rust adoption costs at the FFI seam. \emph{(To be completed with results.)}
+
+\section{Discussion on the research questions}
+Each research question is revisited in turn: RQ1 and RQ3 against the measured latency,
+throughput, and resource data; RQ2 against the defect-class taxonomy; and RQ4 against the
+FFI migration prototype. The discussion makes explicit where a telecom control-plane
+workload behaves differently from the general-purpose benchmarks on which earlier
+conclusions rest.
+
+\section{Related work}
+Prior Rust-versus-C/C++ comparisons focus on general-purpose performance and
+energy~\cite{pereira2017energy}; formal and empirical work establishes the soundness of
+Rust's safe fragment and the limited use of
+\texttt{unsafe}~\cite{jung2018rustbelt,astrauskas2020unsafe}; and industry reports motivate
+memory safety from a security standpoint~\cite{msrc2019memory,google2022android}. This
+thesis complements that body of work by targeting tail-latency predictability and migration
+cost for a telecom control-plane workload.
+
+\section{Threats to validity and mitigations}
+The central threat is implementation bias between the two versions; it is mitigated by the
+frozen shared specification (Section~\ref{sec:fairness}), identical algorithms, data
+structures, and concurrency model, identical allocator and build optimisation, and
+independent functional parity testing. Reliability of the quantitative results rests on
+repeated runs with reported confidence intervals and histogram-based latency capture that
+avoids coordinated-omission bias~\cite{tene_hdrhistogram}. Remaining threats include
+single-author skill asymmetry, the use of a synthetic workload rather than captured
+production traces, a single simplified subsystem (limiting generalisation to PHY/L2 or other
+hardware), and the question of whether the chosen metrics faithfully capture predictability
+and error-proneness; qualitative findings are reported as such.
+
+\chapter{Conclusion and Future Work\label{chapter:conclusions}}
+
+The thesis will conclude by drawing together the measured differences in predictability, the
+defect-class taxonomy, and the migration assessment into evidence-based guidelines for when
+Rust is a viable alternative or complement to C++ in cloud-native RAN control-plane
+evolution. Several directions extend the work: replaying captured (anonymised) production
+traces instead of a synthetic workload; scaling the comparison to additional control-plane
+subsystems or to the data-heavy L2/PHY path; evaluating Rust async runtimes against the
+thread-per-shard model used here; and a longer-term migration case study that tracks defect
+density and review effort as Rust is adopted incrementally in a production RAN codebase.
+
+% STEP 5:
+% Uncomment the following lines and set your .bib file and desired bibliography style
+% to make a bibliography with BibTeX.
+% Alternatively you can use the thebibliography environment if you want to add all
+% references by hand.
+
+\cleardoublepage %fixes the position of bibliography in bookmarks
+\phantomsection
+
+\addcontentsline{toc}{chapter}{\bibname} % This lines adds the bibliography to the ToC
+\bibliographystyle{abbrv} % numbering alphabetic order
+\bibliography{bibliography}
+
+\begin{appendices}
+\myappendixtitle
+
+\chapter{Code example\label{appendix:code}}
+Program code can be added as appendix:
+\begin{verbatim}
+#!/bin/bash          
+text="Hello World!"
+echo $text
+\end{verbatim}
+
+\end{appendices}
+
+\end{document}
