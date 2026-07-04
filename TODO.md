@@ -11,12 +11,21 @@ primary control against implementation bias.
 ---
 
 ## Phase 0 - Environment & repository setup
-- [ ] Install LaTeX toolchain (TeX Live: `pdflatex`, `bibtex`, `latexmk`)
-- [ ] Obtain the `UH_DS_MSc.cls` University of Helsinki thesis class file
-- [ ] Create `bibliography.bib` with all cited references (see Phase 7)
-- [ ] Verify `thesis.tex` compiles to PDF end-to-end
-- [ ] Initialize git repository; add `.gitignore` (build artifacts, LaTeX aux files)
+- [x] Install LaTeX toolchain (TinyTeX in ~/.TinyTeX; `pdflatex`, `bibtex`, `latexmk` on PATH)
+- [x] Obtain the `UH_DS_MSc.cls` class file (local reconstruction from UH_*_MSc family; see note)
+- [x] Create `bibliography.bib` with all cited references (9 entries; see Phase 7)
+- [x] Verify `thesis.tex` compiles to PDF end-to-end (31 pages, all refs/citations resolve)
+- [x] Initialize git repository; add `.gitignore` (build artifacts, LaTeX aux files)
+- [ ] (Optional) Replace reconstructed `UH_DS_MSc.cls` with the official one from Overleaf/Moodle
+- [ ] Confirm the cover-page programme label ("Master's Programme in Computer Science") is correct
 - [ ] Decide repo layout: `spec/`, `cpp/`, `rust/`, `bench/`, `experiments/`, `analysis/`, `thesis/`
+
+### Build instructions
+```bash
+# Toolchain is TinyTeX; PATH set in ~/.bashrc (open a new terminal or `source ~/.bashrc`)
+latexmk -pdf thesis.tex      # build -> thesis.pdf
+latexmk -C                   # clean build artifacts
+```
 
 ## Phase 1 - Literature & background solidification
 - [ ] Collect and read the core references (3GPP 38.401/38.300, RustBelt, MSRC, Google Android, Pereira energy study, HdrHistogram/coordinated omission)
@@ -96,6 +105,15 @@ primary control against implementation bias.
 ---
 
 ### Notes / open questions
-- Deadline / target submission date: TBD
-- Current code status: none written yet (workspace has only thesis.tex)
-- Source of `UH_DS_MSc.cls` and existing `.bib`: TBD (Overleaf? university?)
+- Timeline: 3-6 months.
+- Current code status: none written yet (thesis.tex + build environment now in place).
+- `UH_DS_MSc.cls` is a LOCAL RECONSTRUCTION adapted from `UH_TCM_MSc.cls` (which states it
+  is "based heavily on the UH_DS_MSc.cls"). It defines every command thesis.tex uses
+  (`\prof`, `\censors`, `\mytableofcontents`, `\mynomenclature`, `\myappendixtitle`,
+  `\depositeplace`, `\additionalinformation`, `\quoting`, `\keywords`, `\classification`).
+  The genuine class lives behind the UH Overleaf/Moodle login; swap it in for final submission.
+- `\mynomenclature` is a no-op here (the `nomencl` package clashes with hyperref/report in
+  this class family and is disabled upstream too); it just switches page numbering to arabic.
+- Cover/abstract programme is set to "Master's Programme in Computer Science" (English),
+  inferred from `\additionalinformation{Software study track}`. Verify this is right.
+- Logo `UH-logo.png` is the official UH logo taken from the UH CS thesis-template repo.
