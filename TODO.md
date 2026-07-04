@@ -33,20 +33,25 @@ latexmk -C                   # clean build artifacts
 - [ ] Note any Nokia-internal constraints (what can/cannot be published)
 
 ## Phase 2 - Shared specification (FAIRNESS BASELINE - freeze first)
-- [ ] Define the public API of the UE Context Management service
-- [ ] Define the UE state machine (states + transitions, e.g. idle -> connected)
-- [ ] Define data structures & algorithmic strategy (sharded hash map keyed by UE id)
-- [ ] Define locking/sharding granularity and the concurrency model (thread-per-shard)
-- [ ] Define the message/signaling set to handle
-- [ ] Define parity-test contract (behaviour both implementations must match)
-- [ ] Review spec with supervisors and FREEZE it (tag/version it)
+- [x] Define the public API of the UE Context Management service  (spec/SPECIFICATION.md §6)
+- [x] Define the UE state machine (states + transitions)            (§5)
+- [x] Define data structures & algorithmic strategy (sharded map, pinned hash) (§8)
+- [x] Define locking/sharding granularity and the concurrency model (thread-per-shard) (§7)
+- [x] Define the message/signaling set to handle                    (§6)
+- [x] Define parity-test contract (behaviour both implementations must match) (§11)
+- [ ] Seed an initial conformance suite in spec/conformance/
+- [ ] Review spec DRAFT v0.1 with supervisors; resolve Appendix A open decisions
+- [ ] On approval: bump to v1.0 and tag `spec-v1.0` (FREEZE)
 
 ## Phase 3 - C++ implementation
-- [ ] Scaffold CMake project (C++17/20, STL, standard threading)
-- [ ] Wire jemalloc allocator + HdrHistogram latency capture
-- [ ] Implement sharded context store + UE state machine per spec
-- [ ] Implement signaling/message handling + concurrent lookup
-- [ ] Unit tests + run against parity-test contract
+- [x] Scaffold CMake project (C++23, STL, standard threading) + smoke tests (2/2 pass)
+- [x] Implement pinned types, hash/shard functions, error model (spec §4,§6,§8)
+- [x] Implement ShardCore: sharded context store + UE state machine per spec (single-threaded)
+- [x] Implement threaded service: bounded MPSC queue per shard + worker threads + completions (spec §7)
+- [x] Implement signaling/message handling + concurrent lookup at service level
+- [x] Verify data-race freedom under ThreadSanitizer (0 races; use `setarch -m -R` on WSL2)
+- [ ] Wire jemalloc allocator (CMake option ready) + HdrHistogram latency capture
+- [ ] Run against shared parity-test contract (spec §11)
 
 ## Phase 4 - Rust implementation
 - [ ] Scaffold Cargo project (stable toolchain, matched release/codegen settings)
