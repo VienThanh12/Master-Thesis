@@ -449,6 +449,30 @@ during implementation, with the requirement id and the reason. Examples that wil
 - Optimisation parity: `[profile.release] opt-level = 2` pinned in `Cargo.toml` to match the
   C++ `-O2` build (§3).
 
+**Benchmark harness (recorded 2026-07, `bench/`):**
+- Latency capture: C++ uses a from-scratch, header-only HDR histogram
+  (`cpp/bench/hdr.hpp`, a port of the canonical HdrHistogram bucketing algorithm);
+  Rust uses the canonical `hdrhistogram` crate. Both configured identically:
+  range `[1 ns, 3.6 s]`, 3 significant figures. This is a *recorded deviation* (no
+  system HdrHistogram_c was available); the C++ port was validated against a known
+  uniform distribution (p50/p90/p99 within 3-sig-fig tolerance).
+- Matched allocator: C++ links the system `libjemalloc.so.2` via
+  `-DUECM_USE_JEMALLOC=ON`; Rust sets a `#[global_allocator]` from `tikv-jemallocator`
+  behind the `jemalloc` feature (built from source by `tikv-jemalloc-sys`). Default
+  builds use each language's system allocator.
+- The workload and CLI are identical across languages; see `bench/README.md`. Two
+  workloads: `signal` (preload + `handle_signaling` hot path) and `mixed` (a pinned RAN
+  lifecycle generator: attach → signaling → bearer setup → handover → release). The
+  mixed generator keeps a per-slot expected-state model so emitted ops are valid, and
+  advances it optimistically with a fixed SplitMix64 draw order, so the per-op-kind
+  counts are **identical** in C++ and Rust for a given `(active_ues, seed)` — verified
+  equal, an extra parity signal beyond §11.
+- Coordinated omission is handled by an optional `--rate` (fixed send schedule + HDR
+  correction from intended send time).
+- Dependency hygiene: the Rust core library stays dependency-free — `hdrhistogram`
+  is a `dev-dependency` and the bench lives under `examples/` so only the benchmark,
+  not the library, pulls it in.
+
 ---
 
 ## 13. Freeze checklist

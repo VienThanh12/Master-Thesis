@@ -41,6 +41,16 @@ endif()
 add_executable(conformance_runner tools/conformance_runner.cpp)
 target_link_libraries(conformance_runner PRIVATE uecm)
 
+# --- Benchmark (spec §3/§10) --------------------------------------------------
+add_executable(bench bench/bench.cpp)
+target_include_directories(bench PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/bench)
+target_link_libraries(bench PRIVATE uecm)
+if(UECM_USE_JEMALLOC AND JEMALLOC_LIB)
+  target_compile_definitions(bench PRIVATE UECM_ALLOC_NAME="jemalloc")
+else()
+  target_compile_definitions(bench PRIVATE UECM_ALLOC_NAME="system")
+endif()
+
 # --- Tests --------------------------------------------------------------------
 option(UECM_BUILD_TESTS "Build the C++ conformance/smoke tests" ON)
 if(UECM_BUILD_TESTS)

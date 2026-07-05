@@ -18,6 +18,9 @@ cpp/
   src/
     shard_core.cpp    ShardCore implementation
     service.cpp       Service implementation (workers, dispatch, lifecycle)
+  bench/
+    hdr.hpp                 vendored HDR histogram (latency percentiles)
+    bench.cpp               latency/throughput benchmark driver (spec §3/§10)
   tools/
     conformance_runner.cpp  shared parity-vector runner (spec §11)
   tests/
@@ -37,8 +40,17 @@ ctest --test-dir build --output-on-failure
 ```
 
 Options:
-- `-DUECM_USE_JEMALLOC=ON` — link jemalloc (spec §3, matched allocator).
+- `-DUECM_USE_JEMALLOC=ON` — link jemalloc (spec §3, matched allocator); the `bench`
+  target then reports `alloc=jemalloc`.
 - `-DUECM_BUILD_TESTS=OFF` — skip tests.
+
+## Benchmark (spec §3/§10)
+```bash
+cmake --build build --target bench
+./build/bench --shards 8 --producers 8 --preload 10000 --ops 200000   # add --json
+```
+See [`../bench/README.md`](../bench/README.md) for the full workload description and the
+`run_bench.sh` harness that compares all four language × allocator variants.
 
 ## Conformance / parity (spec §11)
 The `conformance_runner` executable runs a language-neutral vector file against the threaded

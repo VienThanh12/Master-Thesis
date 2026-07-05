@@ -43,7 +43,21 @@ cargo fmt --check
   compile time (`Send`/`Sync`), so no ThreadSanitizer run is needed. Optionally, run Miri
   (`cargo +nightly miri test`) as an extra UB/data-race check once a nightly toolchain is added.
 
-## Not yet wired (next steps)
-- Custom global allocator (e.g. jemalloc via `tikv-jemallocator`) behind a Cargo feature, to
-  match the C++ allocator study (spec §3, RQ3).
-- HdrHistogram latency capture and the shared parity-test harness (spec §11).
+## Benchmark (spec §3/§10)
+The benchmark lives as an example (so the library stays dependency-free) and uses the
+`hdrhistogram` crate; the matched allocator is enabled with the `jemalloc` feature.
+
+```bash
+cargo build --release --example bench                    # system allocator
+cargo build --release --example bench --features jemalloc # tikv-jemallocator
+./target/release/examples/bench --shards 8 --ops 200000  # add --json
+```
+
+See [`../bench/README.md`](../bench/README.md) for the full workload and the `run_bench.sh`
+harness comparing all four language × allocator variants.
+
+## Conformance / parity (spec §11)
+```bash
+cargo build --release --bin conformance_runner
+../spec/conformance/run.sh    # runs C++ and Rust runners, diffs transcripts
+```

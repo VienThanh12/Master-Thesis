@@ -50,7 +50,7 @@ latexmk -C                   # clean build artifacts
 - [x] Implement threaded service: bounded MPSC queue per shard + worker threads + completions (spec §7)
 - [x] Implement signaling/message handling + concurrent lookup at service level
 - [x] Verify data-race freedom under ThreadSanitizer (0 races; use `setarch -m -R` on WSL2)
-- [ ] Wire jemalloc allocator (CMake option ready) + HdrHistogram latency capture
+- [x] Wire jemalloc allocator (`-DUECM_USE_JEMALLOC=ON`, links `libjemalloc.so.2`) + HDR latency capture (`cpp/bench/hdr.hpp`, validated) in `cpp/bench/bench.cpp`
 - [x] Run against shared parity-test contract (spec §11) — `conformance_runner` passes `basic.vec`, `shards.vec`
 
 ## Phase 4 - Rust implementation
@@ -61,21 +61,20 @@ latexmk -C                   # clean build artifacts
 - [x] Implement signaling/message handling + concurrent lookup at service level
 - [x] Record location + justification of any `unsafe` blocks (result: **zero `unsafe`** — safe Rust is data-race-free by construction)
 - [x] Unit/conformance tests green (5/5); `cargo clippy -D warnings` clean; `cargo fmt` applied
-- [ ] Wire jemalloc allocator + HdrHistogram (Rust bindings)
+- [x] Wire jemalloc allocator (`--features jemalloc`, `tikv-jemallocator` global allocator) + HdrHistogram (`hdrhistogram` crate) in `rust/examples/bench.rs`
 - [ ] (Optional) Miri UB/data-race pass once a nightly toolchain is available
 - [x] Run against shared parity-test contract (spec §11) — `conformance_runner` passes `basic.vec`, `shards.vec`; transcript matches C++ byte-for-byte
 
 ## Phase 5 - Parity verification
-- [ ] Confirm both implementations pass identical functional parity tests
-- [ ] Diff behaviour on edge cases; document forced-idiom deviations
+- [x] Confirm both implementations pass identical functional parity tests (shared `conformance_runner`; op-for-op transcript match on `basic.vec`/`shards.vec` — expand vector coverage later)
+- [~] Diff behaviour on edge cases; document forced-idiom deviations (deviations logged in spec §12; add more adversarial vectors)
 
 ## Phase 6 - Benchmarking framework & workload generator
-- [ ] Build synthetic workload generator (UE creation bursts, mobility/handover,
-      context updates, concurrent signaling), rates anchored to 3GPP/RAN characteristics
-- [ ] Parameterize by target event rate and number of active UEs (sweep to overload)
-- [ ] Ensure histogram-based capture avoids coordinated-omission bias
-- [ ] Define testbed config (CPU pinning, disable turbo/freq scaling, warm-up discard)
-- [ ] Make runs scriptable + reproducible (publish scripts)
+- [x] Build synthetic workload generator (UE lifecycle: attach, signaling, bearer setup, handover begin/complete/abort, release) — pinned deterministic model, identical op-stream in C++/Rust (`--workload mixed`)
+- [x] Parameterize by number of active UEs (`--active-ues`) and target event rate (`--rate`, open-loop w/ CO correction) — 3GPP-anchored rate calibration still TODO
+- [x] Ensure histogram-based capture avoids coordinated-omission bias (HDR histograms both sides; `--rate` fixed schedule + HDR correction from intended send time)
+- [ ] Define testbed config (CPU pinning, disable turbo/freq scaling, warm-up discard) — warm-up discard done (`--warmup`); pinning/turbo TBD
+- [~] Make runs scriptable + reproducible (`bench/run_bench.sh` runs all 4 variants; full workload generator still TODO)
 
 ## Phase 7 - Experiment campaigns
 ### 7a. Load sweep (RQ1 latency predictability, RQ3 overhead)
