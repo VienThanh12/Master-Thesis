@@ -248,11 +248,11 @@ int main(int argc, char** argv) {
   if (a.json) {
     std::printf(
         "{\"lang\":\"cpp\",\"alloc\":\"%s\",\"workload\":\"%s\",\"shards\":%llu,\"producers\":%llu,"
-        "\"ops_total\":%lld,\"errors\":%llu,\"wall_s\":%.6f,\"throughput_ops_s\":%.1f,"
+        "\"rate\":%.1f,\"ops_total\":%lld,\"errors\":%llu,\"wall_s\":%.6f,\"throughput_ops_s\":%.1f,"
         "\"lat_ns\":{\"p50\":%lld,\"p90\":%lld,\"p99\":%lld,\"p999\":%lld,\"max\":%lld,"
         "\"mean\":%.1f},\"kinds\":{",
         alloc, a.workload.c_str(), (unsigned long long)a.shards, (unsigned long long)a.producers,
-        (long long)total_ops, (unsigned long long)errors.load(), wall_s, thr,
+        a.rate, (long long)total_ops, (unsigned long long)errors.load(), wall_s, thr,
         (long long)merged.value_at_percentile(50), (long long)merged.value_at_percentile(90),
         (long long)merged.value_at_percentile(99), (long long)merged.value_at_percentile(99.9),
         (long long)merged.max(), merged.mean());

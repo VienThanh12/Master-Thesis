@@ -58,6 +58,31 @@ This builds C++ (system + jemalloc) and Rust (system + jemalloc), runs the same
 workload through each, appends JSON lines to `bench/results/latest.jsonl`, and
 prints a comparison table.
 
+## Load sweep (latency vs offered load, RQ1/RQ3)
+
+`load_sweep.sh` runs every variant across a range of target rates open-loop
+(coordinated-omission-corrected) for a fixed duration, and writes a tidy CSV of the
+latency-vs-load curve to `bench/results/sweep-<timestamp>.csv`.
+
+```bash
+bench/load_sweep.sh                               # defaults (mixed workload)
+bench/load_sweep.sh --workload mixed --producers 8 --active-ues 5000 \
+    --duration 3 --warmup-s 1 --rates "1000 2000 4000 6000 8000 10000 12000 16000"
+```
+
+- Rate is **per producer**; offered total = `rate * producers`. Each cell runs
+  `ops = rate * duration`, so wall time ≈ `duration` until the service saturates —
+  past saturation the loop can't keep up and both wall time and tail latency grow
+  (the overload signal). Very high post-saturation rates therefore take longer to run.
+- CSV columns: `lang,alloc,workload,shards,producers,rate_per_prod,offered_ops_s,`
+  `achieved_ops_s,errors,p50_ns,p90_ns,p99_ns,p999_ns,max_ns,mean_ns,wall_s`.
+
+Plot it (optional; needs matplotlib):
+```bash
+python3 bench/plot_sweep.py            # newest sweep CSV -> PNG (p99 by default)
+python3 bench/plot_sweep.py results/sweep-XXXX.csv --metric p999_ns
+```
+
 ## Run one variant directly
 
 ```bash

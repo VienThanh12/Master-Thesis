@@ -78,8 +78,8 @@ latexmk -C                   # clean build artifacts
 
 ## Phase 7 - Experiment campaigns
 ### 7a. Load sweep (RQ1 latency predictability, RQ3 overhead)
-- [ ] Run load sweep nominal -> saturation -> overload, many repeats
-- [ ] Collect latency (mean/p99/p99.9/p99.99/max/jitter), throughput, CPU, memory
+- [~] Run load sweep nominal -> saturation -> overload (`bench/load_sweep.sh` sweeps rates x 4 variants, CO-corrected, writes CSV + `plot_sweep.py`); still need many repeats + testbed hygiene
+- [~] Collect latency (mean/p50/p90/p99/p99.9/max), throughput per offered load (CSV) — add CPU/memory (RSS) capture + jitter, p99.99
 ### 7b. Fault-injection study (RQ2 safety)
 - [ ] Inject C++ defect catalogue (use-after-free, data race, double-free,
       iterator invalidation, unguarded shared mutation)

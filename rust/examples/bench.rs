@@ -442,9 +442,9 @@ fn main() {
             .collect();
         println!(
             "{{\"lang\":\"rust\",\"alloc\":\"{}\",\"workload\":\"{}\",\"shards\":{},\"producers\":{},\
-\"ops_total\":{},\"errors\":{},\"wall_s\":{:.6},\"throughput_ops_s\":{:.1},\
+\"rate\":{:.1},\"ops_total\":{},\"errors\":{},\"wall_s\":{:.6},\"throughput_ops_s\":{:.1},\
 \"lat_ns\":{{\"p50\":{},\"p90\":{},\"p99\":{},\"p999\":{},\"max\":{},\"mean\":{:.1}}},\"kinds\":{{{}}}}}",
-            ALLOC_NAME, a.workload, a.shards, a.producers, total_ops, errs, wall_s, thr,
+            ALLOC_NAME, a.workload, a.shards, a.producers, a.rate, total_ops, errs, wall_s, thr,
             h.value_at_quantile(0.50), h.value_at_quantile(0.90), h.value_at_quantile(0.99),
             h.value_at_quantile(0.999), h.max(), h.mean(), kinds,
         );
