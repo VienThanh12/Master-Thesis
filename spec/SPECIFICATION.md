@@ -392,6 +392,15 @@ count               => 0
 ```
 A shared runner feeds vectors to each implementation and diffs actual vs expected.
 
+**Status (2026-07):** implemented. Vectors live in `spec/conformance/vectors/*.vec`; the exact
+grammar is in `spec/conformance/README.md`. Each language ships a `conformance_runner`
+(`cpp/tools/conformance_runner.cpp`, `rust/src/bin/conformance_runner.rs`) that executes a vector
+against the threaded `Service` and emits a canonical transcript. `spec/conformance/run.sh` runs
+every vector through both runners, checks each against the expected results, **and** diffs the C++
+vs. Rust transcripts so op-for-op agreement (§11.1) is enforced. Seeded suite: `basic.vec` (the
+§11.3 example + full error model + DRB fill/overflow + reconfigure begin/complete/abort) and
+`shards.vec` (shard-assignment parity, §11.1.3). Both implementations currently pass and agree.
+
 ---
 
 ## 12. Recorded deviations (forced-idiom log)
@@ -421,7 +430,24 @@ during implementation, with the requirement id and the reason. Examples that wil
 - `unsafe`-equivalent: none (no manual memory management beyond STL containers).
 - Verified data-race free under ThreadSanitizer.
 
-*(Rust entries to be added when `rust/` is built.)*
+**Rust implementation (recorded 2026-07, `rust/`):**
+- Result type: `OpResult<T> = Result<T, OpError>` (idiomatic; no wrapper needed).
+- Request: a `Request` enum with one variant per operation, each carrying a typed one-shot
+  `Sender` of its precise result type (`src/message.rs`) — replaces the C++ `std::variant`
+  `Response`; no runtime variant dispatch on the caller side.
+- One-shot completion: a fresh `std::sync::mpsc::channel()` per request; caller blocks on
+  `recv()` (the analog of `std::future::get`).
+- Bounded blocking queue: `std::sync::mpsc::sync_channel(capacity)` (blocking `send` gives
+  the same backpressure as the C++ hand-written queue).
+- Intra-shard map: `std::collections::HashMap<UeId, UeContext, FnvBuildHasher>`, where
+  `FnvBuildHasher` hashes the key as 8 little-endian bytes so the digest is bit-identical to
+  the pinned FNV-1a (verified by a test against `fnv1a_64`).
+- `unsafe`: none (`#![forbid]`-clean; verified by grep). Safe Rust guarantees data-race
+  freedom at compile time via `Send`/`Sync`, so no runtime sanitizer is required (stronger than
+  the C++ TSan check). Miri (UB/data-race interpreter) can be run as an optional extra once a
+  nightly toolchain is available.
+- Optimisation parity: `[profile.release] opt-level = 2` pinned in `Cargo.toml` to match the
+  C++ `-O2` build (§3).
 
 ---
 
@@ -430,7 +456,7 @@ during implementation, with the requirement id and the reason. Examples that wil
 - [ ] Supervisor review of data model, state machine, and API.
 - [ ] Confirm concurrency model (thread-per-shard + bounded blocking queue) is acceptable.
 - [ ] Confirm default parameters and sweep ranges with the evaluation plan.
-- [ ] Confirm the conformance-vector format and seed an initial suite.
+- [x] Confirm the conformance-vector format and seed an initial suite. *(Format + `basic.vec`/`shards.vec` seeded; shared runner passes for both implementations. Supervisor sign-off on the format still pending.)*
 - [ ] On approval: set Version 1.0, tag `spec-v1.0`, and treat changes as versioned amendments.
 
 ---

@@ -37,6 +37,10 @@ if(UECM_USE_JEMALLOC)
   endif()
 endif()
 
+# --- Conformance/parity runner (spec §11) -------------------------------------
+add_executable(conformance_runner tools/conformance_runner.cpp)
+target_link_libraries(conformance_runner PRIVATE uecm)
+
 # --- Tests --------------------------------------------------------------------
 option(UECM_BUILD_TESTS "Build the C++ conformance/smoke tests" ON)
 if(UECM_BUILD_TESTS)

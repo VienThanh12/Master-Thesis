@@ -12,15 +12,19 @@ cpp/
     hash.hpp          pinned shard_index + FNV-1a (spec §8)
     types.hpp         UE context data model + state enum (spec §4, §5)
     shard_core.hpp    single-threaded per-shard op processor (spec §5, §6)
+    bounded_queue.hpp bounded blocking MPSC queue (spec §7)
+    message.hpp       Request/Response message types (spec §7.3)
+    service.hpp       threaded service: thread-per-shard + queues (spec §7)
   src/
     shard_core.cpp    ShardCore implementation
+    service.cpp       Service implementation (workers, dispatch, lifecycle)
+  tools/
+    conformance_runner.cpp  shared parity-vector runner (spec §11)
   tests/
     test_hash.cpp        hash/shard determinism + distribution
     test_shard_core.cpp  state machine + error model (spec §11.3 vector)
+    test_service.cpp     threaded service: functional + concurrent load
 ```
-
-Not yet implemented (next steps, spec §7): the threaded service wrapper — bounded MPSC
-queue per shard, one worker thread per shard, one-shot completions, `start()`/`shutdown()`.
 
 ## Build & test
 Requires a C++23 compiler (g++ 13+ / clang 17+) and CMake 3.20+.
@@ -35,3 +39,12 @@ ctest --test-dir build --output-on-failure
 Options:
 - `-DUECM_USE_JEMALLOC=ON` — link jemalloc (spec §3, matched allocator).
 - `-DUECM_BUILD_TESTS=OFF` — skip tests.
+
+## Conformance / parity (spec §11)
+The `conformance_runner` executable runs a language-neutral vector file against the threaded
+service and emits a canonical transcript. To check both implementations agree, run the shared
+harness (builds C++ and Rust runners, runs every vector through each, diffs the transcripts):
+
+```bash
+../spec/conformance/run.sh
+```

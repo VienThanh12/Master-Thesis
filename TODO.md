@@ -39,7 +39,7 @@ latexmk -C                   # clean build artifacts
 - [x] Define locking/sharding granularity and the concurrency model (thread-per-shard) (§7)
 - [x] Define the message/signaling set to handle                    (§6)
 - [x] Define parity-test contract (behaviour both implementations must match) (§11)
-- [ ] Seed an initial conformance suite in spec/conformance/
+- [x] Seed an initial conformance suite in spec/conformance/ (format README + `basic.vec`, `shards.vec` + shared runners + `run.sh`; both impls agree)
 - [ ] Review spec DRAFT v0.1 with supervisors; resolve Appendix A open decisions
 - [ ] On approval: bump to v1.0 and tag `spec-v1.0` (FREEZE)
 
@@ -51,15 +51,19 @@ latexmk -C                   # clean build artifacts
 - [x] Implement signaling/message handling + concurrent lookup at service level
 - [x] Verify data-race freedom under ThreadSanitizer (0 races; use `setarch -m -R` on WSL2)
 - [ ] Wire jemalloc allocator (CMake option ready) + HdrHistogram latency capture
-- [ ] Run against shared parity-test contract (spec §11)
+- [x] Run against shared parity-test contract (spec §11) — `conformance_runner` passes `basic.vec`, `shards.vec`
 
 ## Phase 4 - Rust implementation
-- [ ] Scaffold Cargo project (stable toolchain, matched release/codegen settings)
+- [x] Scaffold Cargo project (stable toolchain 1.96; release opt-level=2 to match C++ -O2)
+- [x] Implement pinned types, hash/shard functions (LE-byte FNV BuildHasher == fnv1a_64), error model (spec §4,§6,§8)
+- [x] Implement ShardCore: sharded context store + UE state machine per spec (single-threaded)
+- [x] Implement threaded service: thread-per-shard + bounded `sync_channel` backpressure + typed one-shot completions (spec §7)
+- [x] Implement signaling/message handling + concurrent lookup at service level
+- [x] Record location + justification of any `unsafe` blocks (result: **zero `unsafe`** — safe Rust is data-race-free by construction)
+- [x] Unit/conformance tests green (5/5); `cargo clippy -D warnings` clean; `cargo fmt` applied
 - [ ] Wire jemalloc allocator + HdrHistogram (Rust bindings)
-- [ ] Implement sharded context store + UE state machine per spec
-- [ ] Implement signaling/message handling + concurrent lookup
-- [ ] Record location + justification of any `unsafe` blocks
-- [ ] Unit tests + run against parity-test contract
+- [ ] (Optional) Miri UB/data-race pass once a nightly toolchain is available
+- [x] Run against shared parity-test contract (spec §11) — `conformance_runner` passes `basic.vec`, `shards.vec`; transcript matches C++ byte-for-byte
 
 ## Phase 5 - Parity verification
 - [ ] Confirm both implementations pass identical functional parity tests

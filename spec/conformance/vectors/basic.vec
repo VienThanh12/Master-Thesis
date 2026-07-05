@@ -1,0 +1,49 @@
+# Basic conformance vector: §11.3 example + error model + DRBs + reconfiguration.
+config n_shards=8 queue_capacity=1024 max_contexts_per_shard=200000
+
+# --- §11.3 example vector ---------------------------------------------------
+create 1001 cell=7                 => Ok
+setup 1001                         => Ok
+signal 1001 kind=3 len=10          => Ok(accepted=true,handled=1)
+setup 1001                         => Err(InvalidState)
+lookup 1001                        => Ok(state=Connected,cell=7,drbs=0,messages_handled=1)
+release 1001                       => Ok
+release 1001                       => Err(NotFound)
+count                              => 0
+
+# --- Error model ------------------------------------------------------------
+create 0 cell=0                    => Err(InvalidArgument)
+setup 42                           => Err(NotFound)
+create 2002 cell=0                 => Ok
+create 2002 cell=0                 => Err(AlreadyExists)
+signal 2002 kind=1 len=0           => Err(InvalidState)
+setup 2002                         => Ok
+signal 2002 kind=1 len=65          => Err(InvalidArgument)
+
+# --- DRBs (fill to MAX_DRBS = 8, then overflow) -----------------------------
+adddrb 2002 id=1 qfi=9 teid=100    => Ok
+adddrb 2002 id=1 qfi=9 teid=101    => Err(AlreadyExists)
+adddrb 2002 id=2 qfi=0 teid=2      => Ok
+adddrb 2002 id=3 qfi=0 teid=3      => Ok
+adddrb 2002 id=4 qfi=0 teid=4      => Ok
+adddrb 2002 id=5 qfi=0 teid=5      => Ok
+adddrb 2002 id=6 qfi=0 teid=6      => Ok
+adddrb 2002 id=7 qfi=0 teid=7      => Ok
+adddrb 2002 id=8 qfi=0 teid=8      => Ok
+adddrb 2002 id=99 qfi=0 teid=0     => Err(CapacityExceeded)
+
+# --- Reconfiguration flow ---------------------------------------------------
+begin_reconf 2002 cell=55          => Ok
+signal 2002 kind=1 len=0           => Err(InvalidState)
+complete_reconf 2002               => Ok
+lookup 2002                        => Ok(state=Connected,cell=55,drbs=8,messages_handled=0)
+
+# abort path on a fresh UE
+create 3003 cell=1                 => Ok
+setup 3003                         => Ok
+begin_reconf 3003 cell=9           => Ok
+abort_reconf 3003                  => Ok
+lookup 3003                        => Ok(state=Connected,cell=9,drbs=0,messages_handled=0)
+complete_reconf 3003               => Err(InvalidState)
+
+count                              => 2

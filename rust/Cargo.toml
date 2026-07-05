@@ -1,0 +1,15 @@
+[package]
+name = "uecm"
+version = "0.1.0"
+edition = "2021"
+description = "UE Context Management service (Rust implementation), per ../spec/SPECIFICATION.md"
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "uecm"
+path = "src/lib.rs"
+
+# Match the C++ build's optimisation level (-O2) for a fair comparison (spec §3).
+# Cargo's default release opt-level is 3; pinned to 2 here for parity.
+[profile.release]
+opt-level = 2
