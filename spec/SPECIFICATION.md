@@ -469,6 +469,12 @@ during implementation, with the requirement id and the reason. Examples that wil
   equal, an extra parity signal beyond §11.
 - Coordinated omission is handled by an optional `--rate` (fixed send schedule + HDR
   correction from intended send time).
+- Resource capture (RQ3): each run reports peak RSS and total CPU via `getrusage`
+  (`ru_maxrss`, `ru_utime`+`ru_stime`), emitted in JSON/CSV. The Rust side's single
+  `unsafe` `getrusage` FFI call lives only in the benchmark example (`libc`
+  dev-dependency); the library remains `unsafe`-free and dependency-free.
+- Load sweep: `bench/load_sweep.sh` sweeps offered rate × the four variants and writes a
+  latency/throughput/RSS/CPU-vs-load CSV (`bench/plot_sweep.py` renders it).
 - Dependency hygiene: the Rust core library stays dependency-free — `hdrhistogram`
   is a `dev-dependency` and the bench lives under `examples/` so only the benchmark,
   not the library, pulls it in.

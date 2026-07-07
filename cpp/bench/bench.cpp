@@ -23,6 +23,8 @@
 #include <thread>
 #include <vector>
 
+#include <sys/resource.h>
+
 #include "hdr.hpp"
 #include "uecm/service.hpp"
 #include "workload.hpp"
@@ -245,17 +247,26 @@ int main(int argc, char** argv) {
   const double thr = wall_s > 0 ? total_ops / wall_s : 0.0;
   const char* alloc = UECM_ALLOC_NAME;
 
+  // Process resource usage (RQ3): peak RSS + total CPU across all threads.
+  struct rusage ru{};
+  getrusage(RUSAGE_SELF, &ru);
+  const long rss_peak_kb = ru.ru_maxrss;  // Linux: kilobytes
+  const double cpu_user_s = ru.ru_utime.tv_sec + ru.ru_utime.tv_usec / 1e6;
+  const double cpu_sys_s = ru.ru_stime.tv_sec + ru.ru_stime.tv_usec / 1e6;
+  const double cpu_pct = wall_s > 0 ? (cpu_user_s + cpu_sys_s) / wall_s * 100.0 : 0.0;
+
   if (a.json) {
     std::printf(
         "{\"lang\":\"cpp\",\"alloc\":\"%s\",\"workload\":\"%s\",\"shards\":%llu,\"producers\":%llu,"
         "\"rate\":%.1f,\"ops_total\":%lld,\"errors\":%llu,\"wall_s\":%.6f,\"throughput_ops_s\":%.1f,"
         "\"lat_ns\":{\"p50\":%lld,\"p90\":%lld,\"p99\":%lld,\"p999\":%lld,\"max\":%lld,"
-        "\"mean\":%.1f},\"kinds\":{",
+        "\"mean\":%.1f},\"rss_peak_kb\":%ld,\"cpu_user_s\":%.3f,\"cpu_sys_s\":%.3f,"
+        "\"cpu_pct\":%.1f,\"kinds\":{",
         alloc, a.workload.c_str(), (unsigned long long)a.shards, (unsigned long long)a.producers,
         a.rate, (long long)total_ops, (unsigned long long)errors.load(), wall_s, thr,
         (long long)merged.value_at_percentile(50), (long long)merged.value_at_percentile(90),
         (long long)merged.value_at_percentile(99), (long long)merged.value_at_percentile(99.9),
-        (long long)merged.max(), merged.mean());
+        (long long)merged.max(), merged.mean(), rss_peak_kb, cpu_user_s, cpu_sys_s, cpu_pct);
     for (int k = 0; k < bench::kWKindCount; ++k)
       std::printf("%s\"%s\":%llu", k ? "," : "", kind_name(k),
                   (unsigned long long)merged_counts[static_cast<std::size_t>(k)]);
@@ -274,6 +285,8 @@ int main(int argc, char** argv) {
                 (long long)merged.value_at_percentile(99),
                 (long long)merged.value_at_percentile(99.9), (long long)merged.max(),
                 merged.mean());
+    std::printf("  resource: peak_rss=%.1f MB  cpu=%.2fs (user %.2f + sys %.2f)  cpu%%=%.0f\n",
+                rss_peak_kb / 1024.0, cpu_user_s + cpu_sys_s, cpu_user_s, cpu_sys_s, cpu_pct);
     if (a.workload == "mixed") {
       std::printf("  op kinds:");
       for (int k = 0; k < bench::kWKindCount; ++k)

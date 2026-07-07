@@ -305,26 +305,93 @@ itself a deliverable and is the primary control against implementation bias.
 
 \section{Conceptual model and concurrency design}
 Two functionally equivalent implementations are developed against the shared specification:
-a modern C++ version (C++17/20, STL, RAII, standard threading) and a Rust version
-(ownership-based memory model, safe concurrency). A single concurrency model is used for
-both, a shared-nothing / sharded worker-thread model that mirrors how real RAN L3 partitions
-UE state, and mixing of async and thread-based models is intentionally avoided.
+a modern C++ version (C++23, STL, RAII, standard threading) and a Rust version (stable
+toolchain, ownership-based memory model, safe concurrency). A single concurrency model is
+used for both: a \emph{shared-nothing, thread-per-shard} model that mirrors how real RAN L3
+partitions UE state, and mixing of async and thread-based models is intentionally avoided.
+
+The UE-identifier space is partitioned into $N_{\text{shards}}$ shards (eight by default),
+each owned by exactly one worker thread. Only that worker reads or mutates its shard's
+contexts, so there is no shared mutable state between workers and no locks on context data.
+Callers (load-generator threads) never touch context state directly; they submit request
+messages to a shard's bounded multi-producer, single-consumer (MPSC) queue and wait on a
+single-use completion handle to which the worker writes the result. The queue is
+\emph{bounded and blocking}: when a shard's queue is full, submission blocks until space
+frees up, which produces realistic queueing latency under overload and makes tail latency
+the observable of the study (a non-blocking drop policy would hide overload). Requests to
+the same shard are processed strictly first-in-first-out. This structure is what makes the
+safe-concurrency comparison meaningful: the interesting machinery is the queue, the
+completion handoff, and the ownership transfer of requests, rather than lock contention. The
+only shared mutable state permitted is a single atomic counter used to stamp a per-context
+activity sequence number, which is write-only bookkeeping that does not affect control flow.
 
 \section{Architectural choices and technology stack}
-The C++ side uses CMake, the standard library, and standard threading; the Rust side uses
-Cargo and the stable toolchain. Both link the same memory allocator (e.g.\ jemalloc) to
-isolate language effects from allocator effects, and both record latency through a shared
-high-dynamic-range histogram library~\cite{tene_hdrhistogram}. Build optimisation is matched
-as closely as the two toolchains allow (\texttt{-O2}/\texttt{-O3} for C++; \texttt{release}
-for Rust with comparable codegen settings).
+The C++ side uses CMake with Ninja, the standard library, and \texttt{std::thread}; the Rust
+side uses Cargo and the stable toolchain. To keep the comparison a language comparison
+rather than an allocator comparison, both link the same memory allocator: C++ links the
+system \texttt{jemalloc} and Rust installs a \texttt{jemalloc} global allocator (from
+\texttt{tikv-jemallocator}), with a system-allocator build retained on each side as a
+control. Both record latency through the same high-dynamic-range (HDR) histogram
+algorithm~\cite{tene_hdrhistogram}, configured identically (range $[1\,\text{ns},
+3.6\,\text{s}]$, three significant figures); Rust uses the canonical \texttt{hdrhistogram}
+crate and C++ uses a header-only port of the same bucketing algorithm, validated against a
+known distribution. Build optimisation is matched as closely as the two toolchains allow:
+the Rust release profile is pinned to \texttt{opt-level~=~2} to match the C++ \texttt{-O2}
+build.
 
 \section{Implementation details}
-This section documents the concrete data structures (the sharded context store and its
-keying), the locking and ownership strategy on each side, the realisation of the UE state
-machine, and, for Rust, the location and justification of any \texttt{unsafe} blocks. Where
-the two languages force different idioms for the same specification item, the deviation is
-recorded so it can be weighed in the discussion. \emph{(Details to be completed during
-implementation.)}
+Both implementations follow the frozen specification field-for-field. Each UE context stores
+its identifier, lifecycle state (a four-value enumeration \texttt{Idle}, \texttt{Connected},
+\texttt{Reconfiguring}, \texttt{Released}), serving cell, RRC transaction id, a fixed 32-byte
+dummy security context, a dynamic list of up to eight data radio bearers, and two counters.
+The data radio bearer list is deliberately a growable container (\texttt{std::vector} /
+\texttt{Vec}) rather than a fixed array, so that the allocator study (RQ3) observes realistic
+per-context allocation. Reads return an immutable snapshot (a \texttt{UeContextView}) copied
+out of the worker rather than a reference into live shard state, which preserves the
+shared-nothing guarantee and keeps the two implementations semantically identical.
+
+\paragraph{Shard selection and the intra-shard store.}
+To prevent the standard library hashers from becoming an accidental language advantage, both
+sides pin their hashing. Shard assignment applies the SplitMix64 finalizer to the
+\texttt{ue\_id} before reducing modulo the shard count, avoiding skew for sequential
+identifiers. The per-shard container is each language's standard hash map
+(\texttt{std::unordered\_map} / \texttt{std::collections::HashMap}) but keyed through a
+pinned FNV-1a 64-bit hash over the eight little-endian bytes of the identifier; a test checks
+that the Rust \texttt{BuildHasher} produces a digest bit-identical to the reference
+\texttt{fnv1a\_64}. Both maps reserve an initial capacity at start-up so that steady-state
+measurements are not perturbed by rehashing.
+
+\paragraph{Language-forced idioms.}
+Where the two languages must diverge to satisfy the same requirement, the deviation is
+recorded in the specification's forced-idiom log so it can be weighed in the discussion. The
+result type is \texttt{std::expected<T, OpError>} in C++23 and the idiomatic
+\texttt{Result<T, OpError>} in Rust. A request is a move-only tagged struct carrying a
+\texttt{std::promise} completion in C++, and an \texttt{enum} whose variants each carry a
+typed one-shot sender in Rust, so the Rust caller needs no runtime variant dispatch on the
+response. The bounded blocking queue is a hand-written \texttt{mutex}-plus-condition-variable
+structure in C++ and a \texttt{sync\_channel} in Rust; the one-shot completion is
+\texttt{std::promise}/\texttt{std::future} in C++ and a per-request channel in Rust.
+
+\paragraph{Safety story.}
+The Rust library contains \emph{no} \texttt{unsafe} code: safe Rust guarantees data-race
+freedom at compile time through the \texttt{Send}/\texttt{Sync} traits, so no runtime
+sanitizer is needed to establish it. The C++ implementation performs no manual memory
+management beyond STL containers and was verified data-race free under ThreadSanitizer. This
+asymmetry, a compile-time guarantee on one side versus an instrumented test on the other, is
+exactly what the fault-injection study of Chapter~\ref{chapter:eval} quantifies.
+
+\section{Parity verification}
+\label{sec:parity}
+Because the whole comparison rests on the two versions being functionally identical, parity
+is tested rather than assumed. A language-neutral conformance suite expresses test vectors as
+sequences of operations with their expected results and an expected post-state summary; a
+runner in each language executes the vectors and emits a canonical transcript, and the two
+transcripts are diffed for op-for-op agreement. The seeded suite covers the full error model,
+the reconfiguration begin/complete/abort paths, data-radio-bearer fill and overflow, and
+shard-assignment determinism; both implementations currently pass and agree. The benchmark
+workloads add a second, independent parity signal: the mixed workload's per-operation-kind
+counts are verified to be identical across languages for a given seed and active-UE
+population, confirming that both implementations are driven along exactly the same code paths.
 
 \chapter{Experimental Setup and Evaluation\label{chapter:eval}}
 
@@ -334,13 +401,21 @@ pinned, frequency scaling and turbo are disabled, and warm-up runs are discarded
 configuration and scripts are published for reproducibility.
 
 \section{Workload and evaluation measurements}
-A synthetic but spec-justified telecom workload is generated, with an event mix and rates
-anchored to published 3GPP/RAN load characteristics and the subsystem's procedure set rather
-than chosen arbitrarily: UE creation bursts, mobility and handover events, context updates
-and state transitions, and concurrent signaling events. The control parameters are the
-target event rate and the number of active UEs, swept from nominal load through saturation
-and overload. Three measurement campaigns are run: a load sweep for performance, a set of
-fault-injection runs, and an FFI migration prototype.
+A synthetic but spec-justified telecom workload is generated by a deterministic driver shared
+in structure by both implementations, so that the two versions are exercised along identical
+code paths. Two workloads are provided. The \emph{signal} workload preloads a population of
+connected UEs and then hammers the \texttt{handle\_signaling} hot path, isolating steady-state
+per-message latency. The \emph{mixed} workload is a pinned RAN lifecycle generator that walks
+each UE through a realistic procedure sequence, context creation, connection setup, signaling,
+bearer setup, reconfiguration/handover (begin/complete/abort), and release, using a fixed
+SplitMix64 draw order and a per-slot expected-state model so that every emitted operation is
+valid. Because the draw order is fixed, the per-operation-kind counts are identical in C++ and
+Rust for a given active-UE population and seed, which doubles as the parity signal described in
+Section~\ref{sec:parity}. The control parameters are the target event rate and the number of
+active UEs, swept from nominal load through saturation and overload; a fixed send schedule with
+histogram correction is used so that coordinated-omission bias is avoided when the system
+stalls~\cite{tene_hdrhistogram}. Three measurement campaigns are run: a load sweep for
+performance, the fault-injection study, and an FFI migration prototype.
 
 \section{Data collection and metrics}
 The study records latency predictability (per-event mean, median, p99/p99.9/p99.99, and
@@ -384,27 +459,46 @@ Rust & --- & --- & --- & --- & --- \\
 \end{table}
 
 \subsection{Safety via fault injection (RQ2)}
-Instead of claiming that Rust has no bugs, a catalogue of classic C++ defects is
-deliberately injected into the C++ implementation (use-after-free, data race, double-free,
-iterator invalidation, unguarded shared mutation). For each defect the study records whether
-the analogous construct is rejected at compile time by Rust's borrow checker or type system,
-whether C++ detects it only at runtime via sanitizers (ASan/TSan) and at what performance
-cost, and whether it can escape detection entirely. The output is the defect-class taxonomy
-shown in Table~\ref{tab:taxonomy}.
+Instead of claiming that Rust has no bugs, a catalogue of five classic C++ defects is
+deliberately injected: use-after-free, double-free, iterator invalidation, data race, and
+unguarded shared mutation. Each defect is a small, self-contained program flavoured with the
+subsystem's domain (a stale pointer into the context map, releasing a context twice, mutating
+a bearer list while iterating it, two workers updating a context field without
+synchronisation), so that it maps onto a plausible bug in the UE Context Management service.
+For each C++ defect the study builds and runs the program under both AddressSanitizer (ASan)
+and ThreadSanitizer (TSan) and records which tool, if any, detects it; for each defect the
+analogous construct is written in safe Rust and compiled, and the compiler's outcome is
+recorded. The catalogue, the runner, and the raw tool logs are published with the thesis.
+
+The results are shown in Table~\ref{tab:taxonomy}, measured with \texttt{g++~13.3}
+(\texttt{-std=c++23}, \texttt{-O0} so the optimizer cannot elide an injected defect) and
+\texttt{rustc~1.96} (edition~2021). The central finding is unambiguous: \emph{every} injected
+defect is a compile error in safe Rust, so none can be written at all, whereas in C++ each is
+valid code whose defect manifests only at runtime, and only if a test actually exercises the
+buggy path. The memory-safety defects are caught by ASan; the two concurrency defects are
+caught only by TSan and are invisible to ASan, underlining that no single C++ sanitizer covers
+the whole catalogue. Runtime detection further requires building a dedicated instrumented
+binary and paying the sanitizer's time and memory overhead, whereas the Rust errors are
+reported on every ordinary build regardless of test coverage. The parenthesised codes in the
+last column are the \texttt{rustc} diagnostics that fire (for example \texttt{E0499}, conflicting
+mutable borrows; \texttt{E0502}, a mutable borrow while a shared borrow is live; \texttt{E0382},
+use of a moved value; \texttt{E0373}, a closure outliving borrowed data as it escapes to another
+thread).
 
 \begin{table}
 \centering
-\caption{Defect-class taxonomy (placeholder; outcome per defect to be filled
-in).\label{tab:taxonomy}}
-\begin{tabular}{l l l}
+\caption{Defect-class taxonomy: measured outcomes for the injected catalogue. C++ under
+\texttt{g++~13.3} with ASan/TSan; Rust under \texttt{rustc~1.96}, edition~2021. ``Compile-time
+prevented'' means the safe-Rust program does not compile.\label{tab:taxonomy}}
+\begin{tabular}{l l l l}
 \hline\hline
-Defect class & C++ detection & Rust outcome \\
+Defect class & ASan & TSan & Rust outcome \\
 \hline
-Use-after-free        & runtime (ASan) & compile-time-prevented \\
-Data race             & runtime (TSan) & compile-time-prevented \\
-Double-free           & runtime (ASan) & compile-time-prevented \\
-Iterator invalidation & runtime/undetected & compile-time-prevented \\
-Unguarded shared mutation & undetected & compile-time-prevented \\
+Use-after-free            & detected & detected & compile-time prevented (E0499) \\
+Double-free               & detected & ---      & compile-time prevented (E0382) \\
+Iterator invalidation     & detected & detected & compile-time prevented (E0502) \\
+Data race                 & ---      & detected & compile-time prevented (E0373) \\
+Unguarded shared mutation & ---      & detected & compile-time prevented (E0502) \\
 \hline
 \end{tabular}
 \end{table}
@@ -443,7 +537,7 @@ cost for a telecom control-plane workload.
 The central threat is implementation bias between the two versions; it is mitigated by the
 frozen shared specification (Section~\ref{sec:fairness}), identical algorithms, data
 structures, and concurrency model, identical allocator and build optimisation, and
-independent functional parity testing. Reliability of the quantitative results rests on
+independent functional parity testing (Section~\ref{sec:parity}). Reliability of the quantitative results rests on
 repeated runs with reported confidence intervals and histogram-based latency capture that
 avoids coordinated-omission bias~\cite{tene_hdrhistogram}. Remaining threats include
 single-author skill asymmetry, the use of a synthetic workload rather than captured
@@ -478,12 +572,30 @@ density and review effort as Rust is adopted incrementally in a production RAN c
 \begin{appendices}
 \myappendixtitle
 
-\chapter{Code example\label{appendix:code}}
-Program code can be added as appendix:
+\chapter{Fault-injection example\label{appendix:code}}
+As an illustration of the fault-injection study (Section~\ref{chapter:eval}, RQ2), the
+use-after-free defect is shown in both languages. In C++ the alias into the context map
+survives the \texttt{erase} that frees it, so the following program compiles cleanly and is
+flagged only at runtime by AddressSanitizer:
+
 \begin{verbatim}
-#!/bin/bash          
-text="Hello World!"
-echo $text
+std::unordered_map<unsigned long, UeContext> ctxs;
+ctxs[1001] = UeContext{1001, 0};
+UeContext* p = &ctxs.at(1001);  // alias into the container
+ctxs.erase(1001);               // frees the node that p refers to
+p->messages_handled += 1;       // use-after-free
+\end{verbatim}
+
+The analogous safe-Rust program does not compile: the borrow checker forbids mutating the map
+(\texttt{remove}) while the reference \texttt{p} into it is still live, so the defect cannot be
+written in the first place (error \texttt{E0499}):
+
+\begin{verbatim}
+let mut ctxs: HashMap<u64, UeContext> = HashMap::new();
+ctxs.insert(1001, UeContext { messages_handled: 0 });
+let p = ctxs.get_mut(&1001).unwrap(); // mutable borrow starts
+ctxs.remove(&1001);                   // borrow while p live -> rejected
+p.messages_handled += 1;              // p used after the remove
 \end{verbatim}
 
 \end{appendices}

@@ -234,6 +234,22 @@ fn new_hist() -> Histogram<u64> {
     Histogram::new_with_bounds(HDR_LOW, HDR_HIGH, HDR_SIG).expect("valid hdr bounds")
 }
 
+/// Process resource usage (RQ3): (peak RSS kB, user CPU s, sys CPU s), via getrusage.
+/// The one `unsafe` FFI call is confined to this benchmark tool; the UECM library
+/// itself contains zero `unsafe`.
+fn resource_usage() -> (i64, f64, f64) {
+    use std::mem::MaybeUninit;
+    // SAFETY: getrusage writes a fully-initialised rusage into the provided pointer.
+    unsafe {
+        let mut ru = MaybeUninit::<libc::rusage>::zeroed();
+        libc::getrusage(libc::RUSAGE_SELF, ru.as_mut_ptr());
+        let ru = ru.assume_init();
+        let user = ru.ru_utime.tv_sec as f64 + ru.ru_utime.tv_usec as f64 / 1e6;
+        let sys = ru.ru_stime.tv_sec as f64 + ru.ru_stime.tv_usec as f64 / 1e6;
+        (ru.ru_maxrss, user, sys)
+    }
+}
+
 fn exec_op(svc: &Service, op: &WOp, id: UeId) -> bool {
     match op.kind {
         WKind::Create => svc
@@ -427,6 +443,13 @@ fn main() {
     };
     let errs = errors.load(Ordering::Relaxed);
 
+    let (rss_peak_kb, cpu_user_s, cpu_sys_s) = resource_usage();
+    let cpu_pct = if wall_s > 0.0 {
+        (cpu_user_s + cpu_sys_s) / wall_s * 100.0
+    } else {
+        0.0
+    };
+
     if a.json {
         let kinds: String = KIND_NAMES
             .iter()
@@ -443,10 +466,12 @@ fn main() {
         println!(
             "{{\"lang\":\"rust\",\"alloc\":\"{}\",\"workload\":\"{}\",\"shards\":{},\"producers\":{},\
 \"rate\":{:.1},\"ops_total\":{},\"errors\":{},\"wall_s\":{:.6},\"throughput_ops_s\":{:.1},\
-\"lat_ns\":{{\"p50\":{},\"p90\":{},\"p99\":{},\"p999\":{},\"max\":{},\"mean\":{:.1}}},\"kinds\":{{{}}}}}",
+\"lat_ns\":{{\"p50\":{},\"p90\":{},\"p99\":{},\"p999\":{},\"max\":{},\"mean\":{:.1}}},\
+\"rss_peak_kb\":{},\"cpu_user_s\":{:.3},\"cpu_sys_s\":{:.3},\"cpu_pct\":{:.1},\"kinds\":{{{}}}}}",
             ALLOC_NAME, a.workload, a.shards, a.producers, a.rate, total_ops, errs, wall_s, thr,
             h.value_at_quantile(0.50), h.value_at_quantile(0.90), h.value_at_quantile(0.99),
-            h.value_at_quantile(0.999), h.max(), h.mean(), kinds,
+            h.value_at_quantile(0.999), h.max(), h.mean(),
+            rss_peak_kb, cpu_user_s, cpu_sys_s, cpu_pct, kinds,
         );
     } else {
         println!(
@@ -477,6 +502,14 @@ fn main() {
             h.value_at_quantile(0.999),
             h.max(),
             h.mean(),
+        );
+        println!(
+            "  resource: peak_rss={:.1} MB  cpu={:.2}s (user {:.2} + sys {:.2})  cpu%={:.0}",
+            rss_peak_kb as f64 / 1024.0,
+            cpu_user_s + cpu_sys_s,
+            cpu_user_s,
+            cpu_sys_s,
+            cpu_pct
         );
         if a.workload == "mixed" {
             print!("  op kinds:");

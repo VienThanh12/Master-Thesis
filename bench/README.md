@@ -75,7 +75,15 @@ bench/load_sweep.sh --workload mixed --producers 8 --active-ues 5000 \
   past saturation the loop can't keep up and both wall time and tail latency grow
   (the overload signal). Very high post-saturation rates therefore take longer to run.
 - CSV columns: `lang,alloc,workload,shards,producers,rate_per_prod,offered_ops_s,`
-  `achieved_ops_s,errors,p50_ns,p90_ns,p99_ns,p999_ns,max_ns,mean_ns,wall_s`.
+  `achieved_ops_s,errors,p50_ns,p90_ns,p99_ns,p999_ns,max_ns,mean_ns,rss_peak_kb,cpu_pct,wall_s`.
+
+Every run also reports **peak RSS** and **CPU** (via `getrusage`: `ru_maxrss` peak
+resident set, `ru_utime`+`ru_stime` total CPU across all threads; `cpu%` =
+CPU/wall·100, so >100% means multiple busy cores). These land in the JSON
+(`rss_peak_kb`, `cpu_user_s`, `cpu_sys_s`, `cpu_pct`), the sweep CSV, and the
+`run_bench.sh` table — the RQ3 memory/overhead signal. The Rust bench's one `unsafe`
+FFI call for `getrusage` is confined to the benchmark tool; the UECM library stays
+`unsafe`-free.
 
 Plot it (optional; needs matplotlib):
 ```bash

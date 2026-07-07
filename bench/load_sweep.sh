@@ -90,7 +90,8 @@ import json, sys
 rows = [json.loads(l) for l in open(sys.argv[1]) if l.strip()]
 cols = ["lang","alloc","workload","shards","producers","rate_per_prod",
         "offered_ops_s","achieved_ops_s","errors",
-        "p50_ns","p90_ns","p99_ns","p999_ns","max_ns","mean_ns","wall_s"]
+        "p50_ns","p90_ns","p99_ns","p999_ns","max_ns","mean_ns",
+        "rss_peak_kb","cpu_pct","wall_s"]
 with open(sys.argv[2], "w") as f:
     f.write(",".join(cols) + "\n")
     for r in rows:
@@ -100,6 +101,7 @@ with open(sys.argv[2], "w") as f:
         vals = [r["lang"], r["alloc"], r["workload"], r["shards"], r["producers"],
                 f'{rate:.0f}', f'{offered:.0f}', f'{r["throughput_ops_s"]:.0f}', r["errors"],
                 L["p50"], L["p90"], L["p99"], L["p999"], L["max"], f'{L["mean"]:.0f}',
+                r.get("rss_peak_kb", 0), f'{r.get("cpu_pct", 0.0):.1f}',
                 f'{r["wall_s"]:.3f}']
         f.write(",".join(str(v) for v in vals) + "\n")
 

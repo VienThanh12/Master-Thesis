@@ -79,12 +79,15 @@ latexmk -C                   # clean build artifacts
 ## Phase 7 - Experiment campaigns
 ### 7a. Load sweep (RQ1 latency predictability, RQ3 overhead)
 - [~] Run load sweep nominal -> saturation -> overload (`bench/load_sweep.sh` sweeps rates x 4 variants, CO-corrected, writes CSV + `plot_sweep.py`); still need many repeats + testbed hygiene
-- [~] Collect latency (mean/p50/p90/p99/p99.9/max), throughput per offered load (CSV) — add CPU/memory (RSS) capture + jitter, p99.99
+- [~] Collect latency (mean/p50/p90/p99/p99.9/max), throughput, peak RSS + CPU% per offered load (CSV via getrusage) — still add jitter + p99.99
 ### 7b. Fault-injection study (RQ2 safety)
-- [ ] Inject C++ defect catalogue (use-after-free, data race, double-free,
-      iterator invalidation, unguarded shared mutation)
-- [ ] Record per defect: Rust compile-time rejection? C++ runtime (ASan/TSan) cost? undetected?
-- [ ] Produce defect-class taxonomy table
+- [x] Inject C++ defect catalogue (use-after-free, double-free, iterator invalidation,
+      data race, unguarded shared mutation) — `faults/cpp/*.cpp`, domain-flavoured
+- [x] Rust counterparts, each rejected at compile time (`faults/rust/*.rs`); runner
+      `faults/run_faults.sh` builds C++ under ASan+TSan (`-O0`, `setarch -R`) and compiles Rust
+- [x] Record per defect: Rust compile-time rejection (E-code) vs C++ ASan/TSan detection —
+      `faults/results/taxonomy.{md,csv}` + per-case logs; every defect is compile-error in Rust
+- [x] Produce defect-class taxonomy table (filled into thesis §6.2, Table `tab:taxonomy`)
 ### 7c. FFI migration prototype (RQ4 adoption cost)
 - [ ] Build a small Rust module interoperating with C++ via FFI
 - [ ] Measure interop boilerplate, FFI safety boundary, engineering effort
@@ -96,11 +99,17 @@ latexmk -C                   # clean build artifacts
 - [ ] Draft evidence-based migration/language-selection guidelines
 
 ## Phase 9 - Writing (fill placeholders in thesis.tex)
-- [ ] Build `bibliography.bib` (3gpp38401, 3gpp38300, msrc2019memory, google2022android,
+- [x] Build `bibliography.bib` (3gpp38401, 3gpp38300, msrc2019memory, google2022android,
       klabnik2023rust, jung2018rustbelt, astrauskas2020unsafe, tene_hdrhistogram, pereira2017energy)
-- [ ] Complete "Implementation details" section with concrete data structures/locking
-- [ ] Populate "Evaluation data" and "Evaluation results" with measured data
-- [ ] Complete Discussion: summary of findings, per-RQ discussion
+- [x] Complete "Implementation details" section with concrete data structures/locking
+      (§5.4: pinned SplitMix64/FNV hashing, thread-per-shard, std::expected vs Result,
+      forced-idiom log, zero-`unsafe` safety story) + new §5.5 Parity verification
+- [x] Fill fault-injection results + defect taxonomy from real runs (§6.2, Table `tab:taxonomy`);
+      appendix code example now the real UAF C++/Rust pair
+- [x] Describe implemented signal/mixed workloads + CO correction in §6.1
+- [ ] Populate "Evaluation data" and performance results (Table `tab:latency`) with measured
+      load-sweep data (needs testbed hygiene + repeats — Phase 7a/8)
+- [ ] Complete Discussion: summary of findings, per-RQ discussion (after performance data)
 - [ ] Finalize conclusion + future work
 - [ ] Polish abstract to reflect actual (not expected) results
 

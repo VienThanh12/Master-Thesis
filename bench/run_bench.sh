@@ -51,15 +51,17 @@ echo
 python3 - "$out" <<'PY'
 import json, sys
 rows = [json.loads(l) for l in open(sys.argv[1]) if l.strip()]
-hdr = ("lang","alloc","workload","thr(ops/s)","p50","p90","p99","p99.9","max","mean")
-w   = (6, 9, 9, 12, 9, 9, 9, 9, 10, 10)
+hdr = ("lang","alloc","workload","thr(ops/s)","p50","p90","p99","p99.9","max","mean","rss(MB)","cpu%")
+w   = (6, 9, 9, 12, 9, 9, 9, 9, 10, 10, 9, 6)
 def fmt(vals):
     return "  ".join(str(v).rjust(width) for v,width in zip(vals,w))
 print(fmt(hdr))
 print(fmt(tuple("-"*wi for wi in w)))
 for r in rows:
     L = r["lat_ns"]
+    rss_mb = f'{r.get("rss_peak_kb",0)/1024:.1f}'
     print(fmt((r["lang"], r["alloc"], r.get("workload","-"), f'{r["throughput_ops_s"]:.0f}',
-               L["p50"], L["p90"], L["p99"], L["p999"], L["max"], f'{L["mean"]:.0f}')))
+               L["p50"], L["p90"], L["p99"], L["p999"], L["max"], f'{L["mean"]:.0f}',
+               rss_mb, f'{r.get("cpu_pct",0):.0f}')))
 print("\nlatency in ns; wrote", sys.argv[1])
 PY
