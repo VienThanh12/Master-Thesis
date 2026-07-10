@@ -1,0 +1,23 @@
+# RQ4 FFI prototype: a thin C-ABI seam that exposes the Rust `uecm` service to a
+# C or C++ host. This is the "introduce a Rust component into a C++ codebase"
+# direction of incremental adoption.
+[package]
+name = "uecm_ffi"
+version = "0.1.0"
+edition = "2021"
+description = "C-ABI wrapper over the Rust UECM service (RQ4 migration prototype)"
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "uecm_ffi"
+# staticlib: link into a C++ binary at build time; cdylib: shared object.
+crate-type = ["staticlib", "cdylib"]
+
+# Match the rest of the study's optimisation level (-O2) for a fair comparison.
+[profile.release]
+opt-level = 2
+
+[dependencies]
+# Path dependency on the unmodified Rust implementation. The core library is not
+# touched to add FFI; the seam lives entirely in this separate crate.
+uecm = { path = "../../rust" }

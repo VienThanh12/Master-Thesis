@@ -91,6 +91,38 @@ python3 bench/plot_sweep.py            # newest sweep CSV -> PNG (p99 by default
 python3 bench/plot_sweep.py results/sweep-XXXX.csv --metric p999_ns
 ```
 
+## Measurement campaign (repeats + stats + figures, RQ1/RQ3)
+
+`load_sweep.sh` runs each point **once**; for thesis-grade numbers use
+`campaign.sh`, which is the turnkey pipeline: capture the environment, build all
+variants, sweep offered rate × variant with `--repeats` repetitions using the
+**interleaving** discipline from `TESTBED.md` (outer loop = repeat, then rate, then
+variant, so drift hits all variants equally), then aggregate and plot.
+
+```bash
+# Bare metal (recommended): pin to isolated cores, 20 repeats.
+taskset -c 2-17 bench/campaign.sh --repeats 20 --pin 2-17 \
+    --workload mixed --producers 8 --active-ues 5000 --duration 3 --warmup-s 1 \
+    --rates "1000 2000 4000 6000 8000 10000 12000 16000"
+```
+
+Outputs under `bench/results/`:
+- `campaign-<stamp>.jsonl` — every individual run (raw).
+- `campaign-<stamp>.agg.csv` — one row per `(variant, offered load)` with, for each
+  metric, `<metric>_median`, `<metric>_lo`, `<metric>_hi` where the CI is a **95%
+  nonparametric bootstrap CI of the median** across repeats (seeded, dependency-free).
+  Metrics: `p50/p90/p99/p999/max/mean` (ns), `achieved_ops_s`, `rss_peak_kb`, `cpu_pct`.
+- `campaign-<stamp>.latency.tex` — a ready-to-paste `tab:latency` LaTeX table at an
+  auto-selected representative load (the highest offered load still tracking the
+  offer, i.e. just before saturation; override with `aggregate.py --rep-load`).
+
+```bash
+# Aggregate / plot a campaign manually (also runs automatically at the end):
+python3 bench/aggregate.py results/campaign-XXXX.jsonl --out agg.csv --tex tab.tex --producers 8
+python3 bench/plot_campaign.py results/campaign-XXXX.agg.csv --metric p99_ns   # median + CI band
+python3 bench/plot_campaign.py results/campaign-XXXX.agg.csv --metric p999_ns
+```
+
 ## Run one variant directly
 
 ```bash
@@ -128,6 +160,7 @@ rust/target/release/examples/bench --shards 8 --ops 200000 [--json]
 - These are microbenchmark numbers for a shared-nothing, blocking request/response
   design; every op is a full cross-thread round trip (queue + worker + one-shot
   completion), so absolute throughput is dominated by handoff cost, not the map.
-- For thesis-grade results: pin CPU frequency/governor, isolate cores, repeat runs,
-  and report medians across repetitions (Phase 6). `run.sh` here is for quick
-  comparative smoke runs, not final measurement.
+- For thesis-grade results: follow `TESTBED.md` (pin CPU frequency/governor, isolate
+  cores) and use `campaign.sh` (repeats + bootstrap median/CI + figures). `run_bench.sh`
+  and a single `load_sweep.sh` pass are for quick comparative smoke runs, not final
+  measurement.

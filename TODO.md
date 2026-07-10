@@ -73,13 +73,18 @@ latexmk -C                   # clean build artifacts
 - [x] Build synthetic workload generator (UE lifecycle: attach, signaling, bearer setup, handover begin/complete/abort, release) — pinned deterministic model, identical op-stream in C++/Rust (`--workload mixed`)
 - [x] Parameterize by number of active UEs (`--active-ues`) and target event rate (`--rate`, open-loop w/ CO correction) — 3GPP-anchored rate calibration still TODO
 - [x] Ensure histogram-based capture avoids coordinated-omission bias (HDR histograms both sides; `--rate` fixed schedule + HDR correction from intended send time)
-- [ ] Define testbed config (CPU pinning, disable turbo/freq scaling, warm-up discard) — warm-up discard done (`--warmup`); pinning/turbo TBD
+- [x] Define testbed config (CPU pinning, disable turbo/freq scaling, warm-up discard) — protocol
+      in `bench/TESTBED.md` (taskset pinning, performance governor, no-turbo, SMT off, repeats,
+      interleaving) + `bench/capture_env.sh` (env capture, flags WSL2); execution on bare-metal TBD
 - [~] Make runs scriptable + reproducible (`bench/run_bench.sh` runs all 4 variants; full workload generator still TODO)
 
 ## Phase 7 - Experiment campaigns
 ### 7a. Load sweep (RQ1 latency predictability, RQ3 overhead)
-- [~] Run load sweep nominal -> saturation -> overload (`bench/load_sweep.sh` sweeps rates x 4 variants, CO-corrected, writes CSV + `plot_sweep.py`); still need many repeats + testbed hygiene
-- [~] Collect latency (mean/p50/p90/p99/p99.9/max), throughput, peak RSS + CPU% per offered load (CSV via getrusage) — still add jitter + p99.99
+- [~] Run load sweep nominal -> saturation -> overload — driver ready (`bench/campaign.sh`:
+      rates x 4 variants, CO-corrected, repeats + interleaving + bootstrap median/CI + plots);
+      needs execution on a bare-metal testbed (WSL2 not testbed-grade)
+- [~] Collect latency (mean/p50/p90/p99/p99.9/max), throughput, peak RSS + CPU% per offered load
+      (getrusage; aggregated with 95% CI by `bench/aggregate.py`) — still add jitter + p99.99
 ### 7b. Fault-injection study (RQ2 safety)
 - [x] Inject C++ defect catalogue (use-after-free, double-free, iterator invalidation,
       data race, unguarded shared mutation) — `faults/cpp/*.cpp`, domain-flavoured
@@ -89,14 +94,23 @@ latexmk -C                   # clean build artifacts
       `faults/results/taxonomy.{md,csv}` + per-case logs; every defect is compile-error in Rust
 - [x] Produce defect-class taxonomy table (filled into thesis §6.2, Table `tab:taxonomy`)
 ### 7c. FFI migration prototype (RQ4 adoption cost)
-- [ ] Build a small Rust module interoperating with C++ via FFI
-- [ ] Measure interop boilerplate, FFI safety boundary, engineering effort
+- [x] Build a small Rust component behind a C ABI, driven by a C++ host (`ffi/`): seam crate
+      `rust-uecm-ffi` (staticlib+cdylib, path-dep on unmodified `rust/`) + hand-written
+      `uecm_ffi.h` + `cpp-host/main.cpp`; `ffi/build.sh` builds/links/runs (host PASSes)
+- [x] Measure interop cost: 11 C-ABI entry points (~223 LOC Rust + 66 LOC header), 0 `unsafe`
+      in core lib (confined to seam), raw crossing ~1 ns/call, op cost = service round-trip
+      (not FFI-induced); clippy clean. Findings filled into thesis §6.2 (RQ4 Migration)
 
 ## Phase 8 - Analysis & figures
-- [ ] Compute variance + confidence intervals across runs
-- [ ] Generate latency-vs-load plots per language
-- [ ] Fill Table (latency percentiles) and Table (defect taxonomy)
-- [ ] Draft evidence-based migration/language-selection guidelines
+- [x] Tooling: `bench/campaign.sh` (repeats + interleaving + env capture + pinning) ->
+      `bench/aggregate.py` (bootstrap median + 95% CI per metric, tidy CSV + auto `tab:latency`
+      LaTeX) -> `bench/plot_campaign.py` (median + CI-band latency-vs-load). Pipeline smoke-tested.
+- [ ] Execute the campaign on a bare-metal testbed (WSL2 numbers are not testbed-grade)
+- [ ] Compute variance + confidence intervals across runs (produced by `aggregate.py` once run)
+- [ ] Generate latency-vs-load plots per language (`plot_campaign.py`; needs matplotlib)
+- [x] Fill Table (defect taxonomy) — thesis §6.2 `tab:taxonomy` from real fault-injection runs
+- [ ] Fill Table (latency percentiles) — paste generated `campaign-*.latency.tex` into `tab:latency`
+- [ ] Draft evidence-based migration/language-selection guidelines (RQ4 inputs ready; §7 discussion)
 
 ## Phase 9 - Writing (fill placeholders in thesis.tex)
 - [x] Build `bibliography.bib` (3gpp38401, 3gpp38300, msrc2019memory, google2022android,
