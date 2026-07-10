@@ -105,7 +105,8 @@ latexmk -C                   # clean build artifacts
 - [x] Tooling: `bench/campaign.sh` (repeats + interleaving + env capture + pinning) ->
       `bench/aggregate.py` (bootstrap median + 95% CI per metric, tidy CSV + auto `tab:latency`
       LaTeX) -> `bench/plot_campaign.py` (median + CI-band latency-vs-load). Pipeline smoke-tested.
-- [ ] Execute the campaign on a bare-metal testbed (WSL2 numbers are not testbed-grade)
+- [ ] Execute the campaign on a bare-metal testbed (WSL2 numbers are not testbed-grade) —
+      provision with `bench/setup_testbed.sh` (toolchain + CPU hygiene + GREEN/RED readiness check)
 - [ ] Compute variance + confidence intervals across runs (produced by `aggregate.py` once run)
 - [ ] Generate latency-vs-load plots per language (`plot_campaign.py`; needs matplotlib)
 - [x] Fill Table (defect taxonomy) — thesis §6.2 `tab:taxonomy` from real fault-injection runs

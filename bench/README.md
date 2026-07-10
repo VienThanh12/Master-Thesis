@@ -93,6 +93,14 @@ python3 bench/plot_sweep.py results/sweep-XXXX.csv --metric p999_ns
 
 ## Measurement campaign (repeats + stats + figures, RQ1/RQ3)
 
+**Provision a fresh testbed first** with `setup_testbed.sh` (installs the toolchain,
+applies the CPU hygiene from `TESTBED.md`, and prints a GREEN/RED readiness check):
+
+```bash
+bench/setup_testbed.sh          # install toolchain + apply hygiene + verify
+bench/setup_testbed.sh --check  # verify readiness only (no changes)
+```
+
 `load_sweep.sh` runs each point **once**; for thesis-grade numbers use
 `campaign.sh`, which is the turnkey pipeline: capture the environment, build all
 variants, sweep offered rate × variant with `--repeats` repetitions using the

@@ -19,8 +19,18 @@ in p99/p99.9.
 
 ## 2. CPU and frequency hygiene (bare-metal Linux)
 
-Run these once per session (they require `sudo` and a real Linux host; they are
-**not** available under WSL2 — see §5):
+**Quick start:** `bench/setup_testbed.sh` does everything in this section
+automatically — it installs the toolchain, applies the hygiene below, and prints a
+GREEN/RED readiness check:
+
+```bash
+bench/setup_testbed.sh          # install toolchain + apply hygiene + verify
+bench/setup_testbed.sh --check  # verify readiness only (no changes)
+```
+
+The manual steps it runs are documented here for reference. Run these once per
+session (they require `sudo` and a real Linux host; they are **not** available
+under WSL2 — see §5):
 
 ```bash
 # 1. Pin the frequency governor to 'performance' (no on-demand scaling).
