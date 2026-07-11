@@ -129,14 +129,61 @@ planes.
 % to change the parameters. Removing the abstract and ToC commands will mess up stuff.
 \chapter{Introduction}
 
-Modern RAN control-plane systems (e.g.\ the L3 components of a gNB) are primarily
-implemented in C++, a language that delivers high performance but carries well-known
-memory-safety and concurrency risks. Rust promises compile-time memory and thread safety
-with comparable performance, yet its suitability for telecom-grade, latency-critical
-control-plane systems is not well understood. This thesis, carried out at Nokia, develops
-two functionally equivalent implementations of a representative RAN subsystem, a UE
-Context Management service modeled on a real Nokia gNB-CU-CP component, in modern C++ and
-in Rust, and compares them under a realistic synthetic signaling workload.
+The mobile network is undergoing a profound softwarization. Functions that were once
+delivered by fixed-function, vertically integrated hardware are being re-implemented as
+software running on commodity servers, and the Radio Access Network (RAN), long the most
+specialised part of the system, is no longer an exception. In the 5G NG-RAN architecture the
+base station (gNB) is disaggregated into a central unit and one or more distributed units,
+and the central unit is split again into control- and user-plane
+functions~\cite{3gpp38401,3gpp38300}. Open-RAN initiatives push this disaggregation further,
+turning the RAN into virtualised, multi-vendor software connected by open
+interfaces~\cite{polese2023oran}. The resulting control plane, the gNB-CU-CP, is a large,
+stateful, highly concurrent software system: it manages the lifecycle of every connected
+device, drives the RRC signaling procedures, and coordinates mobility and handovers, all
+under strict latency budgets and at very high event rates. As the RAN moves to cloud-native,
+disaggregated deployments, the correctness, reliability, and timing behaviour of this
+software increasingly determine the quality of the network as a whole.
+
+This control-plane software is, today, written predominantly in C++. The choice is a
+rational one: C++ offers the low-level control, mature tooling, and performance that
+latency-critical systems demand. But that performance comes with a well-known cost. C++
+places the burden of memory and concurrency management on the programmer, and decades of
+experience show that this burden is routinely mishandled, producing use-after-free errors,
+double-frees, data races, and related defects that are expensive to find, dangerous in
+production, and responsible for a large share of security vulnerabilities in industry
+practice~\cite{msrc2019memory,google2022android}. Rust has emerged as the first mainstream
+systems language to promise an escape from this trade-off: memory safety and data-race
+freedom enforced at compile time, with performance intended to be competitive with
+C++~\cite{klabnik2023rust,jung2018rustbelt}. Whether that promise holds for a
+telecom-grade, latency-critical control plane, where predictability under overload matters
+as much as raw speed, is not well understood. This thesis, carried out at Nokia, addresses
+the question directly: it develops two functionally equivalent implementations of a
+representative RAN subsystem, a UE Context Management service modeled on a real Nokia
+gNB-CU-CP component, in modern C++ and in Rust, and compares them under a realistic
+synthetic signaling workload.
+
+\section{Motivation and industrial context}
+Two trends make this comparison timely. The first is the cloud-native evolution of the RAN
+itself. Moving control-plane functions onto general-purpose servers raises, rather than
+lowers, the premium on software quality: the software is longer-lived, evolves continuously,
+runs at higher concurrency, and must meet its deadlines without the determinism that
+purpose-built hardware once provided. In this setting a latency regression or a
+memory-corruption defect is not a localised bug but a network-wide reliability and security
+risk. The second trend is an industry-wide shift toward memory-safe languages. Large
+software organisations report that the majority of their serious security vulnerabilities
+stem from memory-safety errors, and that adopting memory-safe languages measurably reduces
+them~\cite{msrc2019memory,google2022android}. This concern has risen to the level of national
+policy: cybersecurity agencies now urge software manufacturers to publish ``memory-safe
+roadmaps'' and to migrate away from memory-unsafe languages such as C and
+C++~\cite{cisa2023memorysafe,oncd2024building}. Rust in particular has moved from a niche
+language into operating-system kernels, cloud infrastructure, and increasingly into
+telecommunications. Yet the evidence base for Rust's suitability rests largely on
+general-purpose software and on average-case performance benchmarks. The specific question a
+telecom vendor must answer, whether Rust can meet the tail-latency and predictability
+requirements of a RAN control plane, whether it genuinely prevents the defect classes that
+plague the existing C++ code, and what it costs to adopt it incrementally inside a large C++
+codebase, has not been answered with direct, controlled evidence. Providing such evidence
+for a representative subsystem is the motivation for this work.
 
 \section{Challenges in RAN control-plane software engineering}
 Modern RAN control-plane systems must be fast, predictable, highly concurrent, and
@@ -221,13 +268,23 @@ Chapter~\ref{chapter:eval}.
 \section{The Rust ownership and safety model}
 Rust offers memory safety and data-race freedom enforced at compile time through its
 ownership and borrowing model~\cite{klabnik2023rust}, together with a strong concurrency
-story and modern tooling (Cargo, integrated testing). The soundness of the safe fragment of
-the language, including the role of \texttt{unsafe} as an explicitly delimited escape hatch,
-has been established formally by the RustBelt project~\cite{jung2018rustbelt}, and empirical
-studies show that \texttt{unsafe} is used sparingly and in localised ways in real
-codebases~\cite{astrauskas2020unsafe}. Safety is enforced by the type system and borrow
-checker rather than by runtime instrumentation, which is the property this thesis evaluates
-for a latency-critical workload.
+story and modern tooling (Cargo, integrated testing). It is the first industry-supported
+language to overcome the traditional trade-off between the safety of high-level languages and
+the low-level control of C and C++, achieving this with a type system based on ownership and
+borrowing that statically forbids the mutation of shared state, while confining the
+unavoidable exceptions to \texttt{unsafe} code encapsulated behind safe
+APIs~\cite{jung2021safe}. The soundness of the safe fragment of the language, including the
+role of \texttt{unsafe} as an explicitly delimited escape hatch, has been established formally
+by the RustBelt project~\cite{jung2018rustbelt}. Empirical evidence supports the model in
+practice: \texttt{unsafe} is used sparingly and in localised ways in real
+codebases~\cite{astrauskas2020unsafe,qin2020rust}, and a study of all Rust memory-safety CVEs
+found that every one of them involved \texttt{unsafe} code, confirming that safe Rust keeps
+its promise~\cite{xu2021rustcve}. Crucially for a latency-critical setting, this safety is
+enforced by the type system and borrow checker rather than by runtime instrumentation, and is
+intended to be \emph{zero-cost}: systems research argues Rust attains safety without the
+overhead of garbage collection or runtime checks, and even enables efficiency techniques that
+are impractical in C~\cite{balasubramanian2017rust}. Whether that zero-cost claim holds for a
+telecom control-plane workload is precisely the property this thesis evaluates.
 
 \chapter{Research Methodology\label{chapter:methodology}}
 
@@ -263,11 +320,14 @@ compiler's guarantees are assessed.
 
 \section{Tail latency and predictability in RAN}
 For deadline-driven RAN procedures, the meaningful performance question is how bad the slow
-cases are, not how good the average is. The study therefore characterises the full latency
-distribution, focusing on high percentiles (p99, p99.9, p99.99), the maximum, and jitter,
-and on how these degrade as the system approaches and exceeds saturation. Measuring these
-correctly requires care to avoid coordinated-omission bias, which naive timing loops
-introduce when the system stalls~\cite{tene_hdrhistogram}.
+cases are, not how good the average is. This is the classic ``tail at scale'' problem: in a
+system where a user-visible action fans out into many dependent operations, the slowest
+component dominates the end-to-end experience, so the tail of the latency distribution, not
+its mean, governs whether deadlines are met~\cite{dean2013tail}. The study therefore
+characterises the full latency distribution, focusing on high percentiles (p99, p99.9,
+p99.99), the maximum, and jitter, and on how these degrade as the system approaches and
+exceeds saturation. Measuring these correctly requires care to avoid coordinated-omission
+bias, which naive timing loops introduce when the system stalls~\cite{tene_hdrhistogram}.
 
 \chapter{Objectives\label{chapter:objectives}}
 
@@ -556,12 +616,24 @@ conclusions rest.
 
 \section{Related work}
 Prior Rust-versus-C/C++ comparisons focus on general-purpose performance and
-energy~\cite{pereira2017energy}; formal and empirical work establishes the soundness of
-Rust's safe fragment and the limited use of
-\texttt{unsafe}~\cite{jung2018rustbelt,astrauskas2020unsafe}; and industry reports motivate
-memory safety from a security standpoint~\cite{msrc2019memory,google2022android}. This
-thesis complements that body of work by targeting tail-latency predictability and migration
-cost for a telecom control-plane workload.
+energy~\cite{pereira2017energy}. Formal and empirical work establishes the soundness of
+Rust's safe fragment and the disciplined use of \texttt{unsafe}: RustBelt provides
+machine-checked foundations for the safety claims~\cite{jung2018rustbelt,jung2021safe}, while
+empirical studies of real-world code and of all known memory-safety CVEs show that
+\texttt{unsafe} is used sparingly and that memory-safety defects invariably trace back to it
+~\cite{astrauskas2020unsafe,qin2020rust,xu2021rustcve}. Industry and government reports
+motivate memory safety from a security standpoint and now call for migration to memory-safe
+languages~\cite{msrc2019memory,google2022android,cisa2023memorysafe,oncd2024building}. On the
+performance side, systems-oriented studies argue that Rust delivers safety at essentially zero
+runtime cost and is viable in demanding low-level domains: Rust enforces safety without
+garbage-collection overhead and enables efficiency techniques impractical in
+C~\cite{balasubramanian2017rust}, and embedded/real-time systems such as a Rust hypervisor
+have been shown to gain memory safety without sacrificing performance~\cite{mo2023rustshyper}.
+The predictability angle draws on the tail-latency literature~\cite{dean2013tail}, and the RAN
+context on the O-RAN disaggregation trend~\cite{polese2023oran}. This thesis complements that
+body of work by targeting tail-latency predictability and migration cost for a telecom
+control-plane workload under overload, an application domain and operating regime the prior
+comparisons do not cover.
 
 \section{Threats to validity and mitigations}
 The central threat is implementation bias between the two versions; it is mitigated by the
