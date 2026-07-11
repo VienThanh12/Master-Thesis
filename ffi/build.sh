@@ -28,8 +28,8 @@ echo "  built: $here/host"
 
 echo
 echo "== [3/3] Running the C++ host =="
-"$here/host"
-host_rc=$?
+"$here/host" | tee "$here/host_run.log"
+host_rc=${PIPESTATUS[0]}
 
 echo
 echo "== Interop-cost metrics (RQ4) =="
@@ -43,5 +43,23 @@ echo "  C-ABI entry points (extern \"C\" fns) : $seam_rs"
 echo "  seam size: lib.rs = $loc_rs LOC, header = $loc_h LOC"
 echo "  'unsafe' occurrences: core Rust library = $unsafe_lib, FFI seam = $unsafe_seam"
 echo "  (core library was NOT modified to add FFI; all interop is in the seam crate)"
+
+# Persist machine-readable metrics so the thesis figure/table is reproducible.
+noop_ns=$(grep -oE 'raw FFI crossing: [0-9.]+' "$here/host_run.log" | grep -oE '[0-9.]+' || echo 0)
+op_ns=$(grep -oE 'end-to-end signaling op: [0-9]+ calls, [0-9.]+' "$here/host_run.log" | grep -oE '[0-9.]+$' || echo 0)
+mkdir -p "$here/results"
+cat > "$here/results/metrics.json" <<JSON
+{
+  "ffi_crossing_ns": ${noop_ns:-0},
+  "op_roundtrip_ns": ${op_ns:-0},
+  "entry_points": ${seam_rs:-0},
+  "seam_loc_rust": ${loc_rs:-0},
+  "header_loc": ${loc_h:-0},
+  "unsafe_core": ${unsafe_lib:-0},
+  "unsafe_seam": ${unsafe_seam:-0}
+}
+JSON
+echo "  wrote $here/results/metrics.json"
+rm -f "$here/host_run.log"
 
 exit "$host_rc"

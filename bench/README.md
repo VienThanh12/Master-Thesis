@@ -131,6 +131,33 @@ python3 bench/plot_campaign.py results/campaign-XXXX.agg.csv --metric p99_ns   #
 python3 bench/plot_campaign.py results/campaign-XXXX.agg.csv --metric p999_ns
 ```
 
+## Thesis figures + tables (one command, RQ1/RQ2/RQ3)
+
+`plot_figures.py` regenerates every figure and LaTeX table the thesis `\input`s /
+`\includegraphics`, straight from the raw logs, into `../figures/`:
+
+```bash
+python3 bench/plot_figures.py            # newest campaign + taxonomy -> ../figures/
+python3 bench/plot_figures.py --campaign results/campaign-XXXX.jsonl \
+    --taxonomy ../faults/results/taxonomy.csv --load 16000
+```
+
+Produces (vector PDF, embedded by `thesis.tex`):
+- `fig_latency_vs_load.pdf` — p99 latency vs offered load, median + bootstrap 95% CI band.
+- `fig_throughput_vs_load.pdf` — achieved vs offered throughput (saturation knee).
+- `fig_tail_percentiles.pdf` — latency-by-percentile at the representative load.
+- `fig_resources.pdf` — peak RSS + CPU utilisation per variant (RQ3).
+- `fig_taxonomy.pdf` — fault-injection outcome matrix from `taxonomy.csv` (RQ2).
+- `fig_ffi_cost.pdf` — FFI crossing vs end-to-end op cost from `../ffi/results/metrics.json` (RQ4).
+- `tab_latency.tex`, `tab_resource.tex`, `tab_ffi.tex` — table bodies `\input` by the thesis.
+
+The representative load is auto-selected (highest offered rate with every variant still
+below 5 ms p99) unless `--load` is given. The RQ2 taxonomy and RQ4 FFI inputs come from
+`../faults/results/taxonomy.csv` (produced by `faults/run_faults.sh`) and
+`../ffi/results/metrics.json` (produced by `ffi/build.sh`); override with `--taxonomy` /
+`--ffi`. Rerun after the bare-metal campaign to refresh the whole thesis with testbed-grade
+numbers — no manual copy-paste.
+
 ## Run one variant directly
 
 ```bash
