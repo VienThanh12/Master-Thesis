@@ -95,20 +95,20 @@ risks. Rust offers comparable performance with safety guaranteed at compile time
 fit for latency-critical telecom control planes is unproven. The work is done at Nokia on
 a subsystem modeled on a real Nokia gNB-CU-CP component.
 
-\medskip\noindent\textbf{Objective.}
+\noindent\textbf{Objective.}
 The thesis compares modern C++ and Rust on a UE Context Management service. As similar
 average throughput is already known, it targets four less-explored dimensions: tail
 latency and jitter under overload; which C++ defect classes Rust prevents at compile time;
 the overhead of Rust's safety model; and the cost of incremental adoption in a C++ codebase.
 
-\medskip\noindent\textbf{Methods.}
+\noindent\textbf{Methods.}
 A language-agnostic specification is frozen first; two functionally equivalent
 implementations are then built in C++ and Rust with identical algorithms, concurrency
 model, allocator, and build settings. A synthetic, spec-justified workload is swept to
 overload, both versions pass the same parity tests, and evaluation adds a fault-injection
 study and a small FFI interoperability prototype.
 
-\medskip\noindent\textbf{Results.}
+\noindent\textbf{Results.}
 Safety and migration results are final. Every one of five injected C++ defect classes
 (use-after-free, double-free, iterator invalidation, data race, unguarded shared mutation) is
 prevented at compile time in safe Rust, while in C++ each compiles and is caught, if at all,
@@ -118,7 +118,7 @@ Preliminary performance measurements show the two languages tracking each other 
 saturation, with differences confined to the far tail; testbed-grade latency figures are the
 remaining step.
 
-\medskip\noindent\textbf{Conclusions.}
+\noindent\textbf{Conclusions.}
 The thesis delivers a reproducible benchmarking framework, a parity-tested pair of
 implementations, a defect-class taxonomy, and a quantified migration cost, and it argues that
 for this class of subsystem the barrier to adopting Rust is engineering effort and the learning
@@ -147,9 +147,14 @@ turning the RAN into virtualised, multi-vendor software connected by open
 interfaces~\cite{polese2023oran}. The resulting control plane, the gNB-CU-CP, is a large,
 stateful, highly concurrent software system: it manages the lifecycle of every connected
 device, drives the RRC signaling procedures, and coordinates mobility and handovers, all
-under strict latency budgets and at very high event rates. As the RAN moves to cloud-native,
+under strict latency budgets and at very high event rates: a single busy site can drive on
+the order of thousands of connection-management and mobility procedures per second, each
+bounded by a budget measured in milliseconds, and a deployed control plane coordinates
+millions of simultaneously connected devices. As the RAN moves to cloud-native,
 disaggregated deployments, the correctness, reliability, and timing behaviour of this
-software increasingly determine the quality of the network as a whole.
+software increasingly determine the quality of the network as a whole. An outage or a
+tail-latency regression here is not a localised defect; it is a degradation felt across every
+device the site serves~\cite{dean2013tail,barroso2017microseconds}.
 
 This control-plane software is, today, written predominantly in C++. The choice is a
 rational one: C++ offers the low-level control, mature tooling, and performance that
@@ -168,6 +173,39 @@ the question directly: it develops two functionally equivalent implementations o
 representative RAN subsystem, a UE Context Management service modeled on a real Nokia
 gNB-CU-CP component, in modern C++ and in Rust, and compares them under a realistic
 synthetic signaling workload.
+
+\section{Key terms and abbreviations}
+For readers outside the telecom domain, Table~\ref{tab:abbrev} fixes the abbreviations and terms
+used throughout the thesis. Three of them recur constantly: the \emph{gNB-CU-CP} is the
+control-plane software this work is about; \emph{UE Context Management (UECM)} is the specific
+subsystem reimplemented and measured; and \emph{tail latency} (the p99/p99.9 percentiles rather
+than the mean) is the property that, more than average speed, decides whether such a system
+meets its deadlines~\cite{dean2013tail,barroso2017microseconds}.
+
+\begin{table}
+\centering
+\caption{Abbreviations and key terms used throughout the thesis.\label{tab:abbrev}}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{0.17\linewidth} p{0.75\linewidth}@{}}
+\hline\hline
+Term & Meaning \\
+\hline
+RAN & Radio Access Network; the part of the mobile network connecting devices to the core \\
+NG-RAN & Next-Generation RAN, the 5G radio-access-network architecture \\
+gNB & 5G base station (``next-generation NodeB'') \\
+gNB-CU / DU & Central Unit / Distributed Unit; the disaggregated halves of a gNB \\
+gNB-CU-CP & Control-plane part of the central unit; the system class studied here \\
+UE & User Equipment; an end device (phone, modem) attached to the network \\
+UECM & UE Context Management; the per-UE state-management subsystem reimplemented here \\
+RRC & Radio Resource Control; the control-plane signaling protocol between UE and gNB \\
+DRB & Data Radio Bearer; a per-UE user-plane data channel set up during a session \\
+Control plane & The signaling and management path, as opposed to the user-plane data path \\
+Tail latency & High-percentile latency (p99, p99.9), the worst-case-oriented timing metric \\
+FFI & Foreign Function Interface; calling Rust from C++ across a C ABI \\
+HDR histogram & High-Dynamic-Range histogram, used for accurate latency capture \\
+\hline
+\end{tabular}
+\end{table}
 
 \section{Motivation and industrial context}
 Two trends make this comparison timely. The first is the cloud-native evolution of the RAN
@@ -192,6 +230,30 @@ plague the existing C++ code, and what it costs to adopt it incrementally inside
 codebase, has not been answered with direct, controlled evidence. Providing such evidence
 for a representative subsystem is the motivation for this work.
 
+\paragraph{Industrial setting.}
+This thesis is carried out at Nokia, a vendor of production gNB-CU-CP software, and the
+subsystem it studies, UE Context Management (UECM), is modeled on a real control-plane
+component rather than a textbook example. UECM is a deliberate choice of study object: it is
+small enough to reimplement faithfully and to reason about in full, yet it exercises exactly
+the properties that make RAN control-plane code hard: per-UE mutable state, a strict
+operation lifecycle, high concurrency across many UEs, and hard tail-latency expectations.
+Conclusions drawn from it therefore transfer to the broader class of stateful, concurrent
+control-plane services, while remaining reproducible by readers outside Nokia because the
+implementation is driven entirely by a public, frozen specification rather than by
+proprietary code.
+
+\paragraph{A concrete failure mode.}
+To make the stakes concrete, consider a mobility storm in which many UEs hand over at once. A
+single mishandled pointer, a UE context freed on release while an in-flight signaling message
+still references it, produces a use-after-free. In C++ this compiles cleanly and may pass
+ordinary testing, only to corrupt an unrelated UE's state or crash the worker thread under
+precisely the high-concurrency conditions the system exists to handle; the same latent race
+can equally manifest as an unpredictable tail-latency spike rather than an outright crash. In
+safe Rust the same design does not compile: ownership and borrowing reject the dangling
+reference at build time. This one scenario captures why the thesis measures both
+\emph{safety} (which defects are prevented, and when) and \emph{predictability} (tail
+latency under overload) rather than average throughput alone.
+
 \section{Challenges in RAN control-plane software engineering}
 Modern RAN control-plane systems must be fast, predictable, highly concurrent, and
 long-lived, and they are overwhelmingly written in C++. This combination creates three
@@ -205,6 +267,20 @@ performance, the prevailing view that ``Rust performs roughly like C++'' rests m
 general-purpose benchmarks rather than on stateful, concurrent, latency-critical telecom
 workloads, and the cost of adopting Rust inside a large existing C++ codebase is largely
 unquantified. This thesis addresses these gaps for a representative subsystem.
+
+\section{Problem statement}
+Bringing these threads together, the concrete problem this thesis addresses is the following.
+Telecom vendors are under growing pressure, both technical and increasingly regulatory, to adopt
+memory-safe languages, yet for the RAN control plane they lack \emph{direct, controlled}
+evidence on which to base that decision. It is not established whether a Rust implementation of
+a stateful, concurrent control-plane subsystem can match modern C++ in \emph{tail latency and
+predictability under overload} (as opposed to average throughput), whether Rust's compile-time
+guarantees actually eliminate the specific defect classes that afflict the existing C++ code,
+and what incremental adoption \emph{costs} inside a large C++ codebase. The available evidence
+is largely general-purpose and average-case~\cite{balasubramanian2017rust,qin2020rust}, leaving
+these three questions (predictability, prevented-defect scope, and migration cost) open for a
+representative subsystem. Answering them under controlled, reproducible conditions is the
+problem this thesis sets out to solve.
 
 \section{Research questions}
 The thesis is organised around four research questions, ordered to put predictability and
@@ -224,6 +300,22 @@ migration ahead of raw average performance:
         of adopting Rust incrementally within an existing C++ RAN software ecosystem?
 \end{description}
 
+\section{Research approach at a glance}
+The four questions are answered constructively rather than by literature synthesis. The core
+artifact is a pair of functionally equivalent UECM implementations, one in modern C++ and one in
+Rust, built from a single frozen specification, so that any measured difference is attributable
+to the language and its idioms rather than to divergent designs. RQ1 and RQ3 are answered by
+driving both implementations with an identical, deterministic synthetic signaling workload in a
+load sweep from light load through saturation, capturing latency with matched high-dynamic-range
+histograms and resource use through the operating system, and comparing them with nonparametric
+confidence intervals~\cite{georges2007rigorous}. RQ2 is answered by controlled fault injection:
+a catalogue of representative C++ defects is written deliberately and each is confronted with its
+Rust counterpart to record whether it is rejected at compile time, caught only at runtime, or
+missed entirely. RQ4 is answered by building a working C++-to-Rust FFI prototype and measuring
+the size of the interoperability seam, the scope of \texttt{unsafe}, and the per-call crossing
+cost. The full protocol (testbed, workloads, and statistical treatment) is given in
+Chapter~\ref{chapter:methodology}.
+
 \section{Contributions, results, and limitations}
 The thesis contributes (i) a reproducible, telecom-relevant benchmarking framework for
 control-plane workloads; (ii) a frozen shared specification and two parity-tested
@@ -231,12 +323,33 @@ implementations of a RAN control-plane subsystem in C++ and Rust; (iii) a quanti
 comparison emphasising tail latency and predictability alongside average throughput;
 (iv) a defect-class taxonomy obtained through controlled fault injection; and (v)
 evidence-based engineering and migration guidelines for language selection in cloud-native
-RAN evolution. The expected results are that the two implementations achieve similar mean
-throughput while differing mainly in tail latency and jitter under overload, and that Rust
-prevents a well-defined subset of the injected C++ defects at compile time. The main
+RAN evolution. The headline findings are as follows. On \emph{safety} (RQ2), every one of the
+injected C++ defect classes is prevented at compile time in safe Rust, whereas in C++ each
+compiles and is caught, if at all, only at runtime and only with the right sanitiser; this
+result is final. On \emph{migration} (RQ4), the FFI seam is small, keeps the core free of
+\texttt{unsafe}, and adds no measurable per-call cost, a sub-nanosecond crossing against an
+operation three-to-four orders of magnitude larger, so the real adoption cost is API design,
+not run-time overhead; this result is also final. On \emph{performance} (RQ1, RQ3), preliminary
+measurements collected on a development environment show the two implementations tracking each
+other closely up to saturation, with differences confined to the far tail where the memory
+allocator matters as much as the language; these numbers are preliminary because tail-latency
+claims require the bare-metal testbed described in Chapter~\ref{chapter:methodology}. The main
 limitations are the use of a synthetic workload, a single simplified subsystem, and
 single-author implementation bias; these are treated in detail in
 Chapter~\ref{chapter:discussion}.
+
+\section{Significance and beneficiaries}
+The results are intended to be directly actionable. For RAN vendors and cloud-native network
+operators, the thesis supplies controlled evidence on the question that gates any language
+decision. That question is not ``is Rust fast on average?'' but ``does Rust hold its tail latency and
+predictability under overload, and what does incremental adoption cost?'', answered for a subsystem
+representative of production control-plane code. For the standards and policy discussion around
+memory-safe roadmaps~\cite{cisa2023memorysafe,oncd2024building}, it grounds a general mandate in
+a concrete telecom data point. For the research community, the frozen specification, the
+parity-tested implementations, the reproducible benchmarking framework, and the defect-class
+taxonomy form a reusable baseline for further language and systems studies. And for practising
+engineers, the fault catalogue and the migration prototype double as worked examples of what
+Rust's guarantees do and do not buy in this domain.
 
 \section{Thesis outline}
 Chapter~\ref{chapter:background} gives the background on RAN control-plane software, C++,
@@ -248,6 +361,50 @@ Chapter~\ref{chapter:design} presents the design and implementation of both vers
 Chapter~\ref{chapter:eval} describes the experimental setup and reports the evaluation.
 Chapter~\ref{chapter:discussion} discusses the findings, related work, and threats to
 validity. Chapter~\ref{chapter:conclusions} concludes and outlines future work.
+Figure~\ref{fig:roadmap} summarises this structure at a glance.
+
+\begin{figure}
+\centering
+\begin{tikzpicture}[
+    font=\small,
+    stage/.style={draw, rounded corners, align=center, minimum width=2.2cm,
+                  minimum height=0.9cm, fill=blue!6},
+    grp/.style={draw, dashed, rounded corners, inner sep=8pt},
+    >={Stealth[length=2.4mm]}
+  ]
+  \node[stage] (c1) at (0,0.75)  {Ch.~1\\ Introduction};
+  \node[stage] (c2) at (0,-0.75) {Ch.~2\\ Background};
+
+  \node[stage] (c3) at (4,1.5)   {Ch.~3\\ Methodology};
+  \node[stage] (c4) at (4,0.0)   {Ch.~4\\ Context};
+  \node[stage] (c5) at (4,-1.5)  {Ch.~5\\ Objectives};
+
+  \node[stage] (c6) at (8,0.75)  {Ch.~6\\ Design \& Impl.};
+  \node[stage] (c7) at (8,-0.75) {Ch.~7\\ Evaluation};
+
+  \node[stage] (c8) at (12,0.75) {Ch.~8\\ Discussion};
+  \node[stage] (c9) at (12,-0.75){Ch.~9\\ Conclusions};
+
+  \begin{scope}[on background layer]
+    \node[grp, fill=blue!3,   fit=(c1)(c2)]      (g1) {};
+    \node[grp, fill=green!4,  fit=(c3)(c4)(c5)]  (g2) {};
+    \node[grp, fill=red!4,    fit=(c6)(c7)]      (g3) {};
+    \node[grp, fill=orange!5, fit=(c8)(c9)]      (g4) {};
+  \end{scope}
+
+  \node[font=\scriptsize, above] at (g1.north) {Framing};
+  \node[font=\scriptsize, above] at (g2.north) {Problem \& method};
+  \node[font=\scriptsize, above] at (g3.north) {Build \& measure};
+  \node[font=\scriptsize, above] at (g4.north) {Interpret};
+
+  \draw[->, thick] (g1.east) -- (g2.west);
+  \draw[->, thick] (g2.east) -- (g3.west);
+  \draw[->, thick] (g3.east) -- (g4.west);
+\end{tikzpicture}
+\caption{Roadmap of the thesis. The chapters progress from framing the problem, through the
+research method and problem context, to the constructed artifacts and their evaluation, and
+finally to interpretation and conclusions.\label{fig:roadmap}}
+\end{figure}
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
 
@@ -791,11 +948,11 @@ prevented'' means the safe-Rust program does not compile.\label{tab:taxonomy}}
 \hline\hline
 Defect class & ASan & TSan & Rust outcome \\
 \hline
-Use-after-free            & detected & detected & compile-time prevented (E0499) \\
-Double-free               & detected & ---      & compile-time prevented (E0382) \\
-Iterator invalidation     & detected & detected & compile-time prevented (E0502) \\
-Data race                 & ---      & detected & compile-time prevented (E0373) \\
-Unguarded shared mutation & ---      & detected & compile-time prevented (E0502) \\
+Use-after-free            & detected     & detected     & compile-time prevented (E0499) \\
+Double-free               & detected     & not detected & compile-time prevented (E0382) \\
+Iterator invalidation     & detected     & detected     & compile-time prevented (E0502) \\
+Data race                 & not detected & detected     & compile-time prevented (E0373) \\
+Unguarded shared mutation & not detected & detected     & compile-time prevented (E0502) \\
 \hline
 \end{tabular}
 \end{table}
@@ -905,7 +1062,7 @@ run-to-run noise, and the tail only separates once the blocking-backpressure des
 system into overload. This is consistent with the wider evidence that Rust's safety checks are
 largely absorbed by modern CPUs~\cite{emmerich2019drivers,balasubramanian2017rust}, and it
 shifts the practical question from ``is Rust fast enough?'' to ``how does each language behave
-at the overload cliff?''\ --- a question the bare-metal campaign is designed to answer with the
+at the overload cliff?'', a question the bare-metal campaign is designed to answer with the
 frequency and scheduling controls WSL2 cannot provide.
 
 \paragraph{RQ2 (safety).} The result is unambiguous and does not depend on the environment:
@@ -915,7 +1072,7 @@ right sanitiser and a test that exercises the buggy path. This is a qualitative,
 kind-of-guarantee difference rather than a quantitative one, and it aligns with the CVE
 evidence that Rust memory-safety bugs invariably involve \texttt{unsafe}~\cite{xu2021rustcve}
 and with the caution that unsafety can still propagate through
-dependencies~\cite{evans2020rust} --- which is why keeping the core \texttt{unsafe}-free (as
+dependencies~\cite{evans2020rust}, which is why keeping the core \texttt{unsafe}-free (as
 done here) matters.
 
 \paragraph{RQ3 (overhead).} No systematic memory or CPU penalty for Rust's safety model is
@@ -927,8 +1084,8 @@ is expected to be robust.
 \paragraph{RQ4 (migration).} The prototype shows that incremental adoption is technically
 cheap: a C++ host can call an unmodified Rust core across a thin C-ABI seam with a
 sub-nanosecond per-call cost, confining all \texttt{unsafe} to the seam. The dominant cost is
-therefore human, not machine --- designing a C-compatible surface and, per adoption
-studies~\cite{fulton2021adopting}, climbing Rust's learning curve --- which reframes migration
+therefore human, not machine: designing a C-compatible surface and, per adoption
+studies~\cite{fulton2021adopting}, climbing Rust's learning curve. This reframes migration
 risk as an organisational rather than a performance concern.
 
 \section{Related work}
