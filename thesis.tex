@@ -467,45 +467,50 @@ Figure~\ref{fig:arch} shows this data flow.
 \centering
 \begin{tikzpicture}[
     font=\small,
-    prod/.style={draw, rounded corners, minimum width=1.9cm, minimum height=0.7cm, fill=blue!8},
-    queue/.style={draw, minimum width=1.6cm, minimum height=0.6cm, fill=gray!12},
-    worker/.style={draw, rounded corners, minimum width=1.9cm, minimum height=0.7cm, fill=red!8},
-    store/.style={draw, cylinder, shape border rotate=90, aspect=0.25, minimum width=1.7cm, minimum height=0.8cm, fill=green!8},
-    >={Stealth[length=2mm]}
+    prod/.style={draw, rounded corners, minimum width=2.0cm, minimum height=0.66cm, fill=blue!8},
+    queue/.style={draw, minimum width=1.7cm, minimum height=0.66cm, fill=gray!12},
+    worker/.style={draw, rounded corners, minimum width=1.7cm, minimum height=0.66cm, fill=red!8},
+    store/.style={draw, cylinder, shape border rotate=90, aspect=0.25, minimum width=1.5cm, minimum height=0.85cm, fill=green!8},
+    lane/.style={draw, dotted, rounded corners, inner sep=7pt},
+    >={Stealth[length=2.4mm]}
   ]
-  % producers
-  \node[prod] (p1) at (0,1.4) {Producer 1};
-  \node[prod] (p2) at (0,0.0) {Producer 2};
-  \node[prod] (p3) at (0,-1.4) {Producer $m$};
-  \node at (0,-2.3) {\footnotesize (load generators)};
-
-  % shard 1
-  \node[queue] (q1) at (3.2,0.9) {MPSC queue};
-  \node[worker] (w1) at (6.0,0.9) {Worker 1};
-  \node[store]  (s1) at (8.7,0.9) {Shard 1};
-  % shard N
-  \node[queue] (qn) at (3.2,-1.1) {MPSC queue};
-  \node[worker] (wn) at (6.0,-1.1) {Worker $N$};
-  \node[store]  (sn) at (8.7,-1.1) {Shard $N$};
-
-  % submit arrows (many-to-one into each queue)
-  \foreach \p in {p1,p2,p3} {
-    \draw[->] (\p.east) -- (q1.west);
-    \draw[->] (\p.east) -- (qn.west);
-  }
-  % queue -> worker -> store
-  \draw[->] (q1) -- node[above,font=\scriptsize]{FIFO} (w1);
-  \draw[->] (qn) -- node[above,font=\scriptsize]{FIFO} (wn);
-  \draw[<->] (w1) -- node[above,font=\scriptsize]{owns} (s1);
-  \draw[<->] (wn) -- node[above,font=\scriptsize]{owns} (sn);
-
-  % completion handle (dashed back)
-  \draw[->,dashed] (w1.south) to[out=-90,in=0] (2.0,-2.8) node[below,font=\scriptsize]{one-shot completion} to[out=180,in=-90] (p3.south);
-
+  % producers, grouped in one box to avoid a tangle of crossing arrows
+  \node[prod] (p1) at (0,1.3)  {Producer 1};
+  \node[prod] (p2) at (0,0.0)  {Producer 2};
+  \node[prod] (p3) at (0,-1.3) {Producer $m$};
   \begin{scope}[on background layer]
-    \node[draw, dotted, rounded corners, fit=(q1)(w1)(s1), inner sep=6pt, label=above:{\scriptsize shard-owning thread (no shared mutable state)}] {};
-    \node[draw, dotted, rounded corners, fit=(qn)(wn)(sn), inner sep=6pt] {};
+    \node[draw, dashed, rounded corners, fill=blue!3, fit=(p1)(p2)(p3), inner sep=6pt] (pg) {};
   \end{scope}
+  \node[font=\scriptsize] at (0,-2.15) {load generators};
+
+  % two representative shard lanes
+  \node[queue] (q1) at (5.0,1.3)  {MPSC queue};
+  \node[worker](w1) at (7.4,1.3)  {Worker 1};
+  \node[store] (s1) at (9.7,1.3)  {Shard 1};
+  \node[queue] (qn) at (5.0,-1.3) {MPSC queue};
+  \node[worker](wn) at (7.4,-1.3) {Worker $N$};
+  \node[store] (sn) at (9.7,-1.3) {Shard $N$};
+  \begin{scope}[on background layer]
+    \node[lane, fit=(q1)(s1)] (lane1) {};
+    \node[lane, fit=(qn)(sn)] (lanen) {};
+  \end{scope}
+  \node[font=\scriptsize] at (7.35,2.35) {shard-owning threads: no shared mutable state, no locks};
+
+  % submit: producer group -> each shard queue, routed by hash
+  \node[font=\scriptsize, align=center] at (2.75,0) {route by\\ hash(\texttt{ue\_id})};
+  \draw[->] (pg.east) -- (q1.west) node[midway, above, sloped, font=\scriptsize]{submit};
+  \draw[->] (pg.east) -- (qn.west) node[midway, below, sloped, font=\scriptsize]{submit};
+
+  % within-lane flow
+  \draw[->]  (q1) -- node[above, font=\scriptsize]{FIFO} (w1);
+  \draw[->]  (qn) -- node[above, font=\scriptsize]{FIFO} (wn);
+  \draw[<->] (w1) -- node[above, font=\scriptsize]{owns} (s1);
+  \draw[<->] (wn) -- node[above, font=\scriptsize]{owns} (sn);
+
+  % one-shot completion: clean orthogonal return path below everything
+  \draw[->, dashed, rounded corners=4pt]
+      (wn.south) -- ++(0,-0.75) -- (1.4,-2.9) -- ($(pg.south east)+(-0.4,0)$);
+  \node[font=\scriptsize] at (5.4,-3.05) {one-shot completion (result $\rightarrow$ waiting producer)};
 \end{tikzpicture}
 \caption{Shared-nothing, thread-per-shard architecture. Producers submit request messages to a
 shard's bounded, blocking MPSC queue (selected by a pinned hash of the \texttt{ue\_id}) and wait
