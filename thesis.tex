@@ -14,6 +14,7 @@
 \usepackage[pdftex, plainpages=false]{hyperref} % For hyperlinks and pdf metadata
 \usepackage{fancyhdr} % For nicer page headers
 \usepackage{tikz} % For making vector graphics (hard to learn but powerful)
+\usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
 %\usepackage{wrapfig} % For nice text-wrapping figures (use at own discretion)
 \usepackage{amsmath, amssymb} % For better math
 %\usepackage[square]{natbib} % For bibliography
@@ -107,15 +108,21 @@ model, allocator, and build settings. A synthetic, spec-justified workload is sw
 overload, both versions pass the same parity tests, and evaluation adds a fault-injection
 study and a small FFI interoperability prototype.
 
-\medskip\noindent\textbf{Results (expected).}
-Similar mean throughput is anticipated, with differences mainly in tail latency and
-jitter under overload, plus a defect-class taxonomy (compile-time-prevented / runtime-only
-/ undetected) and a quantified FFI migration cost.
+\medskip\noindent\textbf{Results.}
+Safety and migration results are final. Every one of five injected C++ defect classes
+(use-after-free, double-free, iterator invalidation, data race, unguarded shared mutation) is
+prevented at compile time in safe Rust, while in C++ each compiles and is caught, if at all,
+only at runtime and only under the right sanitiser. The FFI migration prototype shows a small
+seam that keeps the Rust core free of \texttt{unsafe} and adds no measurable per-call cost.
+Preliminary performance measurements show the two languages tracking each other closely up to
+saturation, with differences confined to the far tail; testbed-grade latency figures are the
+remaining step.
 
-\medskip\noindent\textbf{Conclusions (expected).}
-The thesis aims to deliver a reproducible benchmarking framework and evidence-based
-guidelines for when Rust is a viable alternative or complement to C++ in RAN control
-planes.
+\medskip\noindent\textbf{Conclusions.}
+The thesis delivers a reproducible benchmarking framework, a parity-tested pair of
+implementations, a defect-class taxonomy, and a quantified migration cost, and it argues that
+for this class of subsystem the barrier to adopting Rust is engineering effort and the learning
+curve rather than run-time performance.
 \end{abstract}
 
 % Place ToC
@@ -279,7 +286,11 @@ by the RustBelt project~\cite{jung2018rustbelt}. Empirical evidence supports the
 practice: \texttt{unsafe} is used sparingly and in localised ways in real
 codebases~\cite{astrauskas2020unsafe,qin2020rust}, and a study of all Rust memory-safety CVEs
 found that every one of them involved \texttt{unsafe} code, confirming that safe Rust keeps
-its promise~\cite{xu2021rustcve}. Crucially for a latency-critical setting, this safety is
+its promise~\cite{xu2021rustcve}. The caveat is that unsafety propagates through dependencies:
+although fewer than a third of libraries use \texttt{unsafe} directly, a much larger fraction
+cannot be fully statically checked because \texttt{unsafe} hides somewhere in their call
+chain~\cite{evans2020rust}, which is a further argument for keeping the safety-critical core of
+a subsystem \texttt{unsafe}-free, as this thesis does. Crucially for a latency-critical setting, this safety is
 enforced by the type system and borrow checker rather than by runtime instrumentation, and is
 intended to be \emph{zero-cost}: systems research argues Rust attains safety without the
 overhead of garbage collection or runtime checks, and even enables efficiency techniques that
@@ -300,6 +311,31 @@ first-class concern: because the goal is to isolate language effects, the study 
 specification, algorithms, concurrency model, allocator, and build settings across both
 implementations, and reports variance over many repeated runs.
 
+Table~\ref{tab:design} maps each research question to the method, artifact, data, and metric
+used to answer it, making the chain from question to evidence explicit and traceable.
+
+\begin{table}
+\centering
+\caption{Research design: how each research question is answered. Every question is tied to a
+concrete method, a published artifact, the data it produces, and the metric on which the
+conclusion rests.\label{tab:design}}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}p{0.06\linewidth} p{0.24\linewidth} p{0.24\linewidth} p{0.32\linewidth}@{}}
+\hline\hline
+RQ & Method & Artifact / data & Primary metric \\
+\hline
+RQ1 & Load sweep to overload, interleaved repeats & Benchmark harness; latency histograms &
+p99/p99.9 tail latency and jitter vs.\ offered load \\
+RQ3 & Same sweep, resource capture & \texttt{getrusage} samples per run &
+peak RSS, CPU utilisation, throughput \\
+RQ2 & Controlled fault injection & Defect catalogue; ASan/TSan and \texttt{rustc} logs &
+defect-class taxonomy (compile-time / runtime / undetected) \\
+RQ4 & FFI migration prototype & C++ host $+$ Rust C-ABI seam &
+seam size, \texttt{unsafe} scope, per-call interop cost \\
+\hline
+\end{tabular}
+\end{table}
+
 \chapter{Problem Context: UE Context Management and Predictability\label{chapter:context}}
 
 \section{The UE Context Management subsystem}
@@ -309,7 +345,38 @@ mobility/handover. It is a good representative because it is core RAN L3 functio
 performance- and latency-sensitive, inherently stateful and concurrent, and self-contained
 enough to specify precisely and benchmark fairly. The modeled functionality includes UE
 context creation and deletion, state transitions (e.g.\ idle to connected), signaling
-message handling, and concurrent context lookup under load.
+message handling, and concurrent context lookup under load. Figure~\ref{fig:fsm} shows the
+UE-context lifecycle state machine that both implementations encode identically; illegal
+transitions (for example signaling an \texttt{Idle} context) return a typed error rather than
+mutating state, and this state machine is exactly what the mixed workload of
+Section~\ref{sec:workload} walks each UE through.
+
+\begin{figure}
+\centering
+\begin{tikzpicture}[
+    ->, >=Stealth, node distance=3.2cm, font=\small,
+    every state/.style={draw, minimum size=1.5cm, fill=blue!6, thick},
+    every edge/.style={draw, thick}
+  ]
+  \node[state, initial, initial text=\scriptsize create] (idle) {Idle};
+  \node[state, right=of idle] (conn) {Connected};
+  \node[state, right=of conn] (reconf) {Reconf.};
+  \node[state, below=1.9cm of conn, fill=gray!10] (rel) {Released};
+
+  \path (idle)  edge node[above,font=\scriptsize]{setup} (conn)
+        (conn)  edge[bend left=18] node[above,font=\scriptsize]{begin} (reconf)
+        (reconf) edge[bend left=18] node[below,font=\scriptsize]{complete / abort} (conn)
+        (conn)  edge node[right,font=\scriptsize,pos=0.45]{release} (rel)
+        (idle)  edge[bend right=32] node[below,font=\scriptsize,pos=0.6]{release} (rel);
+  \path (conn) edge[loop above] node[font=\scriptsize]{signal / add\_drb} (conn);
+\end{tikzpicture}
+\caption{UE-context lifecycle state machine. \texttt{create} allocates a context in
+\texttt{Idle}; \texttt{setup} connects it; \texttt{signal} and \texttt{add\_drb} are handled
+in place while \texttt{Connected}; a reconfiguration/handover moves through
+\texttt{Reconfiguring} and back on \texttt{complete} or \texttt{abort}; \texttt{release}
+tears the context down. Operations invalid for the current state return an \texttt{OpError}
+instead of changing state.\label{fig:fsm}}
+\end{figure}
 
 \section{Memory-safety and concurrency defect classes}
 The C++ defects relevant to this subsystem fall into well-known classes: use-after-free,
@@ -323,22 +390,32 @@ For deadline-driven RAN procedures, the meaningful performance question is how b
 cases are, not how good the average is. This is the classic ``tail at scale'' problem: in a
 system where a user-visible action fans out into many dependent operations, the slowest
 component dominates the end-to-end experience, so the tail of the latency distribution, not
-its mean, governs whether deadlines are met~\cite{dean2013tail}. The study therefore
-characterises the full latency distribution, focusing on high percentiles (p99, p99.9,
-p99.99), the maximum, and jitter, and on how these degrade as the system approaches and
-exceeds saturation. Measuring these correctly requires care to avoid coordinated-omission
-bias, which naive timing loops introduce when the system stalls~\cite{tene_hdrhistogram}.
+its mean, governs whether deadlines are met~\cite{dean2013tail}. The relevant time scale is
+the microsecond: modern low-latency I/O and in-memory request handling operate in a regime
+that existing systems, tuned for nanosecond and millisecond events, support
+poorly~\cite{barroso2017microseconds}, which makes disciplined microsecond-level measurement
+essential. The study therefore characterises the full latency distribution, focusing on high
+percentiles (p99, p99.9, p99.99), the maximum, and jitter, and on how these degrade as the
+system approaches and exceeds saturation. Measuring these correctly requires care to avoid
+coordinated-omission bias, which naive timing loops introduce when the system
+stalls~\cite{tene_hdrhistogram}.
 
 \chapter{Objectives\label{chapter:objectives}}
 
 \section{Deficiencies in existing comparisons}
 Cross-language studies report that compiled systems languages such as C, C++, and Rust
 achieve broadly similar time and energy efficiency, well ahead of managed and interpreted
-languages~\cite{pereira2017energy}. However, these comparisons are established mostly on
-general-purpose benchmarks; they emphasise average performance, rarely examine tail latency
-under overload for stateful concurrent workloads, do not isolate the defect classes that a
-language prevents, and seldom quantify the cost of incremental migration into an existing
-C++ codebase. These are the gaps this thesis targets.
+languages~\cite{pereira2017energy}. The closest evidence in a networking context comes from
+user-space packet processing: an idiomatic Rust 10~Gbit/s network driver executes many more
+instructions per packet than its C reference yet runs only about $4\%$
+slower~\cite{emmerich2019drivers}, suggesting Rust's safety checks are largely absorbed by
+modern out-of-order CPUs. However, these comparisons are established mostly on general-purpose
+or packet-forwarding benchmarks; they emphasise average performance or throughput, rarely
+examine tail latency under overload for stateful concurrent control-plane workloads, do not
+isolate the defect classes that a language prevents, and seldom quantify the cost of
+incremental migration into an existing C++ codebase, a cost that qualitative adoption studies
+report is dominated by the learning curve rather than by run-time
+overhead~\cite{fulton2021adopting}. These are the gaps this thesis targets.
 
 \section{Solution objectives}
 The objective is a fair, reproducible comparison of modern C++ and Rust for a RAN
@@ -384,6 +461,58 @@ safe-concurrency comparison meaningful: the interesting machinery is the queue, 
 completion handoff, and the ownership transfer of requests, rather than lock contention. The
 only shared mutable state permitted is a single atomic counter used to stamp a per-context
 activity sequence number, which is write-only bookkeeping that does not affect control flow.
+Figure~\ref{fig:arch} shows this data flow.
+
+\begin{figure}
+\centering
+\begin{tikzpicture}[
+    font=\small,
+    prod/.style={draw, rounded corners, minimum width=1.9cm, minimum height=0.7cm, fill=blue!8},
+    queue/.style={draw, minimum width=1.6cm, minimum height=0.6cm, fill=gray!12},
+    worker/.style={draw, rounded corners, minimum width=1.9cm, minimum height=0.7cm, fill=red!8},
+    store/.style={draw, cylinder, shape border rotate=90, aspect=0.25, minimum width=1.7cm, minimum height=0.8cm, fill=green!8},
+    >={Stealth[length=2mm]}
+  ]
+  % producers
+  \node[prod] (p1) at (0,1.4) {Producer 1};
+  \node[prod] (p2) at (0,0.0) {Producer 2};
+  \node[prod] (p3) at (0,-1.4) {Producer $m$};
+  \node at (0,-2.3) {\footnotesize (load generators)};
+
+  % shard 1
+  \node[queue] (q1) at (3.2,0.9) {MPSC queue};
+  \node[worker] (w1) at (6.0,0.9) {Worker 1};
+  \node[store]  (s1) at (8.7,0.9) {Shard 1};
+  % shard N
+  \node[queue] (qn) at (3.2,-1.1) {MPSC queue};
+  \node[worker] (wn) at (6.0,-1.1) {Worker $N$};
+  \node[store]  (sn) at (8.7,-1.1) {Shard $N$};
+
+  % submit arrows (many-to-one into each queue)
+  \foreach \p in {p1,p2,p3} {
+    \draw[->] (\p.east) -- (q1.west);
+    \draw[->] (\p.east) -- (qn.west);
+  }
+  % queue -> worker -> store
+  \draw[->] (q1) -- node[above,font=\scriptsize]{FIFO} (w1);
+  \draw[->] (qn) -- node[above,font=\scriptsize]{FIFO} (wn);
+  \draw[<->] (w1) -- node[above,font=\scriptsize]{owns} (s1);
+  \draw[<->] (wn) -- node[above,font=\scriptsize]{owns} (sn);
+
+  % completion handle (dashed back)
+  \draw[->,dashed] (w1.south) to[out=-90,in=0] (2.0,-2.8) node[below,font=\scriptsize]{one-shot completion} to[out=180,in=-90] (p3.south);
+
+  \begin{scope}[on background layer]
+    \node[draw, dotted, rounded corners, fit=(q1)(w1)(s1), inner sep=6pt, label=above:{\scriptsize shard-owning thread (no shared mutable state)}] {};
+    \node[draw, dotted, rounded corners, fit=(qn)(wn)(sn), inner sep=6pt] {};
+  \end{scope}
+\end{tikzpicture}
+\caption{Shared-nothing, thread-per-shard architecture. Producers submit request messages to a
+shard's bounded, blocking MPSC queue (selected by a pinned hash of the \texttt{ue\_id}) and wait
+on a single-use completion handle; each shard is read and written by exactly one worker thread,
+so there are no locks on context state. Blocking on a full queue is what makes overload
+observable as tail latency.\label{fig:arch}}
+\end{figure}
 
 \section{Architectural choices and technology stack}
 The C++ side uses CMake with Ninja, the standard library, and \texttt{std::thread}; the Rust
@@ -472,7 +601,7 @@ prototype) is environment-insensitive and was carried out on a WSL2 development 
 the headline latency and resource figures are produced only on the bare-metal testbed, since
 WSL2 does not expose the frequency and scheduling controls the protocol requires.
 
-\section{Workload and evaluation measurements}
+\section{Workload and evaluation measurements\label{sec:workload}}
 A synthetic but spec-justified telecom workload is generated by a deterministic driver shared
 in structure by both implementations, so that the two versions are exercised along identical
 code paths. Two workloads are provided. The \emph{signal} workload preloads a population of
@@ -495,9 +624,12 @@ maximum latency, plus jitter), throughput (sustained events/sec and throughput a
 latency SLO), resource use (CPU utilisation, memory over time, allocation patterns),
 concurrency robustness, safety (defect classes prevented at compile time vs runtime), and
 software-quality proxies (lines of code, cyclomatic complexity, and the count and scope of
-Rust \texttt{unsafe} blocks). Many runs are performed and variance and confidence intervals
-are reported. Only synthetic data is used, so no personal, subscriber, or confidential data
-is processed.
+Rust \texttt{unsafe} blocks). Following established guidance on statistically rigorous
+performance evaluation, each configuration is measured over many independent, interleaved
+repeats and reported as a median with a bootstrap $95\%$ confidence interval rather than as a
+single number, so that run-to-run non-determinism does not lead to unsupported
+conclusions~\cite{georges2007rigorous}. Only synthetic data is used, so no personal,
+subscriber, or confidential data is processed.
 
 \section{Evaluation data}
 The collected dataset consists of per-event latency histograms, throughput and resource-use
@@ -730,16 +862,69 @@ crossing is negligible next to the service's cross-thread round-trip.\label{fig:
 \chapter{Discussion\label{chapter:discussion}}
 
 \section{Summary of findings}
-This section summarises, once the experiments are complete, where each language wins on
-predictability and throughput, which injected defects Rust prevents at compile time, and
-what incremental Rust adoption costs at the FFI seam. \emph{(To be completed with results.)}
+Table~\ref{tab:findings} collects the headline finding for each research question together
+with the strength of the current evidence. The safety and migration results (RQ2, RQ4) are
+final, because they do not depend on the measurement environment; the performance and resource
+results (RQ1, RQ3) are reported from the development-environment campaign and are expected to
+hold on the bare-metal testbed, but are labelled preliminary until that campaign is run.
+
+\begin{table}
+\centering
+\caption{Summary of findings per research question and the current strength of evidence.
+\label{tab:findings}}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}p{0.06\linewidth} p{0.62\linewidth} p{0.22\linewidth}@{}}
+\hline\hline
+RQ & Headline finding & Evidence status \\
+\hline
+RQ1 & Rust and C++ track each other closely up to saturation (medians within a few
+microseconds, p99 within $\sim$20\%); differences appear only in the far tail, where the
+allocator matters as much as the language. & Preliminary (WSL2) \\
+RQ2 & Every one of the five injected C++ defect classes is prevented at compile time in safe
+Rust; in C++ each compiles and is caught, if at all, only at runtime, and no single sanitiser
+covers the whole catalogue. & Final \\
+RQ3 & Peak RSS and CPU utilisation are comparable across languages; \texttt{jemalloc} trades a
+few MiB of RSS for a shorter tail. & Preliminary (WSL2) \\
+RQ4 & The FFI seam is small, keeps the core \texttt{unsafe}-free, and imposes no measurable
+per-call tax (sub-nanosecond crossing vs.\ a $\sim$$80\,\mu$s operation); the real cost is
+API design, not run-time overhead. & Final \\
+\hline
+\end{tabular}
+\end{table}
 
 \section{Discussion on the research questions}
-Each research question is revisited in turn: RQ1 and RQ3 against the measured latency,
-throughput, and resource data; RQ2 against the defect-class taxonomy; and RQ4 against the
-FFI migration prototype. The discussion makes explicit where a telecom control-plane
-workload behaves differently from the general-purpose benchmarks on which earlier
-conclusions rest.
+\paragraph{RQ1 (predictability).} The preliminary sweep supports the hypothesis that the two
+languages are, for this workload, performance-equivalent in the region that matters
+operationally: below saturation their median and p99 latencies are indistinguishable within
+run-to-run noise, and the tail only separates once the blocking-backpressure design pushes the
+system into overload. This is consistent with the wider evidence that Rust's safety checks are
+largely absorbed by modern CPUs~\cite{emmerich2019drivers,balasubramanian2017rust}, and it
+shifts the practical question from ``is Rust fast enough?'' to ``how does each language behave
+at the overload cliff?''\ --- a question the bare-metal campaign is designed to answer with the
+frequency and scheduling controls WSL2 cannot provide.
+
+\paragraph{RQ2 (safety).} The result is unambiguous and does not depend on the environment:
+the borrow checker rejects all five defect classes at compile time, so they cannot be written
+in safe Rust, whereas in C++ each is valid code detected only at runtime and only under the
+right sanitiser and a test that exercises the buggy path. This is a qualitative,
+kind-of-guarantee difference rather than a quantitative one, and it aligns with the CVE
+evidence that Rust memory-safety bugs invariably involve \texttt{unsafe}~\cite{xu2021rustcve}
+and with the caution that unsafety can still propagate through
+dependencies~\cite{evans2020rust} --- which is why keeping the core \texttt{unsafe}-free (as
+done here) matters.
+
+\paragraph{RQ3 (overhead).} No systematic memory or CPU penalty for Rust's safety model is
+observed at the tested loads; resource use is dominated by the shared design rather than by the
+language, and allocator choice is a larger lever than language choice. As with RQ1, the
+absolute numbers await the testbed, but the \emph{relative} picture (no language-level penalty)
+is expected to be robust.
+
+\paragraph{RQ4 (migration).} The prototype shows that incremental adoption is technically
+cheap: a C++ host can call an unmodified Rust core across a thin C-ABI seam with a
+sub-nanosecond per-call cost, confining all \texttt{unsafe} to the seam. The dominant cost is
+therefore human, not machine --- designing a C-compatible surface and, per adoption
+studies~\cite{fulton2021adopting}, climbing Rust's learning curve --- which reframes migration
+risk as an organisational rather than a performance concern.
 
 \section{Related work}
 Prior Rust-versus-C/C++ comparisons focus on general-purpose performance and
@@ -748,19 +933,26 @@ Rust's safe fragment and the disciplined use of \texttt{unsafe}: RustBelt provid
 machine-checked foundations for the safety claims~\cite{jung2018rustbelt,jung2021safe}, while
 empirical studies of real-world code and of all known memory-safety CVEs show that
 \texttt{unsafe} is used sparingly and that memory-safety defects invariably trace back to it
-~\cite{astrauskas2020unsafe,qin2020rust,xu2021rustcve}. Industry and government reports
-motivate memory safety from a security standpoint and now call for migration to memory-safe
+~\cite{astrauskas2020unsafe,qin2020rust,xu2021rustcve}; a complementary study cautions that
+unsafety nonetheless propagates through dependency call chains, so most libraries cannot be
+fully statically checked~\cite{evans2020rust}. Industry and government reports motivate memory
+safety from a security standpoint and now call for migration to memory-safe
 languages~\cite{msrc2019memory,google2022android,cisa2023memorysafe,oncd2024building}. On the
 performance side, systems-oriented studies argue that Rust delivers safety at essentially zero
 runtime cost and is viable in demanding low-level domains: Rust enforces safety without
 garbage-collection overhead and enables efficiency techniques impractical in
-C~\cite{balasubramanian2017rust}, and embedded/real-time systems such as a Rust hypervisor
-have been shown to gain memory safety without sacrificing performance~\cite{mo2023rustshyper}.
-The predictability angle draws on the tail-latency literature~\cite{dean2013tail}, and the RAN
-context on the O-RAN disaggregation trend~\cite{polese2023oran}. This thesis complements that
-body of work by targeting tail-latency predictability and migration cost for a telecom
-control-plane workload under overload, an application domain and operating regime the prior
-comparisons do not cover.
+C~\cite{balasubramanian2017rust}, embedded/real-time systems such as a Rust hypervisor have
+been shown to gain memory safety without sacrificing performance~\cite{mo2023rustshyper}, and
+in the networking domain an idiomatic Rust user-space driver runs within a few percent of its
+C reference~\cite{emmerich2019drivers}. The predictability angle draws on the tail-latency and
+microsecond-scale latency literature~\cite{dean2013tail,barroso2017microseconds}, the RAN
+context on the O-RAN disaggregation trend~\cite{polese2023oran}, and the adoption angle on
+qualitative studies reporting that the main barrier to Rust is its learning curve rather than
+run-time cost~\cite{fulton2021adopting}. Measurement methodology follows established guidance
+on statistically rigorous, repeat-based performance evaluation~\cite{georges2007rigorous}.
+This thesis complements that body of work by targeting tail-latency predictability and
+migration cost for a telecom control-plane workload under overload, an application domain and
+operating regime the prior comparisons do not cover.
 
 \section{Threats to validity and mitigations}
 The central threat is implementation bias between the two versions; it is mitigated by the
@@ -776,14 +968,28 @@ and error-proneness; qualitative findings are reported as such.
 
 \chapter{Conclusion and Future Work\label{chapter:conclusions}}
 
-The thesis will conclude by drawing together the measured differences in predictability, the
-defect-class taxonomy, and the migration assessment into evidence-based guidelines for when
-Rust is a viable alternative or complement to C++ in cloud-native RAN control-plane
-evolution. Several directions extend the work: replaying captured (anonymised) production
-traces instead of a synthetic workload; scaling the comparison to additional control-plane
-subsystems or to the data-heavy L2/PHY path; evaluating Rust async runtimes against the
-thread-per-shard model used here; and a longer-term migration case study that tracks defect
-density and review effort as Rust is adopted incrementally in a production RAN codebase.
+This thesis compared modern C++ and Rust on a UE Context Management service modeled on a real
+Nokia gNB-CU-CP component, along four dimensions: tail-latency predictability, compile-time
+defect prevention, safety-model overhead, and incremental-adoption cost. Built against a single
+frozen specification and driven through identical code paths, the two implementations let
+language effects be isolated from design and skill differences.
+
+Three conclusions follow from the evidence. First, on safety the difference is one of
+\emph{kind}: safe Rust rejects all five injected defect classes at compile time, turning a class
+of runtime hazards that C++ can only hope to catch with sanitiser-instrumented tests into
+errors that cannot be written at all. Second, on migration the cost is dominated by API design
+and the learning curve rather than by any run-time tax: an unmodified Rust core can be driven
+from C++ across a thin, \texttt{unsafe}-isolated seam at sub-nanosecond per-call cost. Third, on
+performance the preliminary evidence is that the two languages are equivalent in the
+operationally relevant region below saturation, with differences confined to the far tail;
+confirming this on a bare-metal testbed is the single most important remaining step, and the
+published scripts regenerate every figure and table once that data is captured.
+
+Several directions extend the work: replaying captured (anonymised) production traces instead
+of a synthetic workload; scaling the comparison to additional control-plane subsystems or to
+the data-heavy L2/PHY path; evaluating Rust async runtimes against the thread-per-shard model
+used here; and a longer-term migration case study that tracks defect density and review effort
+as Rust is adopted incrementally in a production RAN codebase.
 
 % STEP 5:
 % Uncomment the following lines and set your .bib file and desired bibliography style
