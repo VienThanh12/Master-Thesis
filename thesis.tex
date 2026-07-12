@@ -418,16 +418,126 @@ and heavily concurrent workloads. In these systems the worst-case and tail behav
 rather than the average, determines whether deadlines are met, which motivates the
 predictability focus of this thesis.
 
-\section{C++ and its memory and concurrency challenges}
-Large C++ codebases face long-standing engineering challenges: memory-safety defects
-(use-after-free, buffer overflow, double-free), concurrency defects (data races, deadlocks,
-iterator invalidation), and a high maintenance and review burden. The prevalence of these
-defects is well documented in industry: memory-safety issues account for roughly 70\,\% of
-the security vulnerabilities reported at Microsoft~\cite{msrc2019memory}, and Google reports
-a sharp drop in such vulnerabilities as memory-safe languages are adopted in
-Android~\cite{google2022android}. These defect classes are detailed in
-Chapter~\ref{chapter:context} and form the basis for the fault-injection study in
+Functionally, the gNB is disaggregated along two orthogonal axes. The first is a
+\emph{central/distributed} split: a central unit (gNB-CU) hosts the higher layers of the
+protocol stack, while one or more distributed units (gNB-DU) host the lower, more
+time-critical layers close to the radio. The second is a \emph{control/user-plane} split
+inside the central unit, separating the control-plane function (gNB-CU-CP) from the
+user-plane function (gNB-CU-UP). These parts communicate over standardised
+interfaces---NG towards the 5G core, F1 between the CU and the DU, and E1 between the CU-CP and
+the CU-UP~\cite{3gpp38401,3gpp38300}. Open-RAN initiatives standardise these interfaces
+further so that each part can be supplied by a different vendor and run as software on
+commodity hardware~\cite{polese2023oran}. Figure~\ref{fig:ngran} places the subsystem studied
+in this thesis, UE Context Management (UECM), inside the gNB-CU-CP: it owns the per-UE
+control-plane state and mediates the RRC signaling and mobility procedures, which is why its
+correctness and timing behaviour are representative of the control plane as a whole.
+
+\begin{figure}
+\centering
+\begin{tikzpicture}[
+    font=\small, >={Stealth[length=2.4mm]},
+    box/.style={draw, rounded corners, minimum height=0.95cm, minimum width=1.6cm,
+                align=center, fill=gray!8},
+    sub/.style={draw, rounded corners, minimum width=2.6cm, minimum height=0.8cm, align=center},
+    uecm/.style={draw, rounded corners, minimum width=2.4cm, minimum height=0.62cm,
+                 fill=red!14, align=center}
+  ]
+  \node[box] (ue) at (0,0) {UE};
+  \node[box] (du) at (2.3,0) {gNB-DU};
+
+  \node[sub, fill=blue!8]  (cucp) at (6.6,1.15) {gNB-CU-CP};
+  \node[uecm]              (uecm) at (6.6,0.35) {UE Context\\ Management};
+  \node[sub, fill=green!8] (cuup) at (6.6,-1.15){gNB-CU-UP};
+  \begin{scope}[on background layer]
+    \node[draw, dashed, rounded corners, fill=gray!4,
+          fit=(cucp)(uecm)(cuup), inner sep=9pt, label=above:{gNB-CU}] (cu) {};
+  \end{scope}
+
+  \node[box] (core) at (10.7,0) {5GC};
+
+  \draw[<->] (ue) -- node[above,font=\scriptsize]{Uu} (du);
+  \draw[<->] (du) -- node[above,font=\scriptsize]{F1} (cu.west |- du);
+  \draw[<->] (cucp.east) to[bend left=12] node[right,font=\scriptsize]{E1} (cuup.east);
+  \draw[<->] (cu.east |- core) -- node[above,font=\scriptsize]{NG} (core);
+\end{tikzpicture}
+\caption{Where the studied subsystem sits in the 5G NG-RAN. The gNB is split into a
+distributed unit (gNB-DU) and a central unit (gNB-CU), and the central unit is split again
+into control-plane (gNB-CU-CP) and user-plane (gNB-CU-UP) functions, connected by the
+standardised F1, E1, and NG interfaces. UE Context Management (highlighted) is the per-UE
+control-plane state manager inside the gNB-CU-CP that this thesis reimplements and
+measures.\label{fig:ngran}}
+\end{figure}
+
+\section{Latency, throughput, and predictability in real-time software}
+Latency-critical systems are judged less by how much work they do on average than by how
+\emph{predictably} they do it. Three metrics must be distinguished. \emph{Throughput} is the
+sustained rate of completed operations; \emph{latency} is the time an individual operation
+takes; and \emph{jitter} is the variability of that latency. Because a system can have
+excellent mean latency and still miss deadlines often, the meaningful figures are the
+high-percentile \emph{tail} latencies---the 99th (p99) and 99.9th (p99.9) percentiles---rather
+than the mean. At the scale of a network, tail latency dominates user-visible behaviour: when
+a single user action fans out into many internal operations, the slowest of them sets the
+response time, so rare per-operation delays become common per-request delays~\cite{dean2013tail}.
+Modern data-centre and networking software increasingly operates in a regime where the
+relevant latencies are measured in microseconds, a range in which conventional
+operating-system and software overheads are no longer negligible~\cite{barroso2017microseconds}.
+
+Real-time systems are conventionally graded by the consequence of a missed deadline: in
+\emph{hard} real-time a miss is a failure, in \emph{firm} real-time a late result is useless
+but not catastrophic, and in \emph{soft} real-time a miss merely degrades quality. A RAN
+control plane is best seen as soft-to-firm real-time: an occasional late signaling response
+degrades service rather than endangering it, but at fleet scale and under signaling storms
+such degradations accumulate into a network-wide reliability problem. This is compounded by
+queueing behaviour: as offered load approaches service capacity, queueing delay grows
+sharply and the latency tail explodes near saturation. Characterising a system therefore
+requires driving it not just at nominal load but \emph{into overload}, which is why the
+evaluation in this thesis sweeps load up to and beyond the saturation point.
+
+Measuring tail latency correctly is itself a pitfall. A naive closed-loop load generator
+that waits for each response before issuing the next request suffers \emph{coordinated
+omission}: when the system stalls, the generator stalls with it and simply fails to record
+the many requests that would have arrived during the stall, systematically hiding the very
+tail it is meant to expose. Sound measurement therefore requires an open-loop model with an
+intended schedule, correction for coordinated omission, high-dynamic-range latency histograms
+that retain resolution across many orders of magnitude, and statistically rigorous reporting
+with repeated runs and confidence intervals rather than single point
+estimates~\cite{georges2007rigorous}. These techniques are applied in
 Chapter~\ref{chapter:eval}.
+
+\section{C++ for latency-critical systems}
+C++ is the default language for RAN control-plane software for good reasons. It offers
+zero-overhead abstractions, direct control over memory layout and allocation, deterministic
+destruction through the Resource Acquisition Is Initialization (RAII) idiom, and mature
+compilers, libraries, and profiling tools, all without a garbage collector that could inject
+unpredictable pauses. Modern C++ (C++11 and later) adds smart pointers
+(\texttt{std::unique\_ptr}, \texttt{std::shared\_ptr}) that automate ownership, move semantics
+that avoid needless copies, and a formal memory model with \texttt{std::atomic} for
+lock-based and lock-free concurrency. These features make it possible to write fast and, with
+discipline, reasonably safe systems code.
+
+The difficulty is that safety in C++ remains the programmer's responsibility rather than a
+property the compiler enforces. RAII and smart pointers reduce but do not eliminate temporal
+errors: raw pointers and references can outlive the objects they point to, iterators can be
+invalidated by container mutation, objects can be used after a move, and nothing in the type
+system prevents a mutable object from being aliased and mutated concurrently from several
+threads. The result is a well-known catalogue of defects---use-after-free, double-free,
+buffer overflow, data races, deadlocks, and iterator invalidation---that are easy to
+introduce and expensive to find at telecom scale. Their prevalence is well documented in
+industry: memory-safety issues account for roughly 70\,\% of the security vulnerabilities
+reported at Microsoft~\cite{msrc2019memory}, and Google reports a sharp drop in such
+vulnerabilities as memory-safe languages are adopted in Android~\cite{google2022android}. This
+specific catalogue is developed in detail in Chapter~\ref{chapter:context} and forms the basis
+for the fault-injection study in Chapter~\ref{chapter:eval}.
+
+C++ practice mitigates these defects with tooling rather than with language guarantees, and
+the tooling is inherently partial. Dynamic sanitizers such as AddressSanitizer (ASan),
+ThreadSanitizer (TSan), and UndefinedBehaviorSanitizer detect many errors, but only on the
+code paths that a given test actually executes with the right inputs, and they impose runtime
+and memory overheads that make them unsuitable for production; TSan in particular reports only
+those data races that happen to occur during a run, so a race that manifests only under a rare
+interleaving can pass unnoticed. Static analysers help but suffer false negatives and cannot
+reason about the whole program. Detection is therefore best-effort and after the fact, which
+is precisely the situation a language with compile-time guarantees is meant to change.
 
 \section{The Rust ownership and safety model}
 Rust offers memory safety and data-race freedom enforced at compile time through its
@@ -453,6 +563,92 @@ intended to be \emph{zero-cost}: systems research argues Rust attains safety wit
 overhead of garbage collection or runtime checks, and even enables efficiency techniques that
 are impractical in C~\cite{balasubramanian2017rust}. Whether that zero-cost claim holds for a
 telecom control-plane workload is precisely the property this thesis evaluates.
+
+Concretely, the borrow checker rejects at compile time the very use-after-free sketched in the
+introduction. The following program does not build, because \texttt{ctx} is moved (dropped)
+while a reference to it is still live:
+
+\begin{verbatim}
+    let ctx = UeContext::new(42);
+    let r = &ctx;      // immutable borrow of ctx
+    drop(ctx);         // move/free ctx ...
+    use_ctx(r);        // error[E0505]: cannot move out of `ctx`
+                       //              because it is borrowed
+\end{verbatim}
+
+\noindent The same discipline extends to concurrency. Rust encodes thread-safety in the type
+system through the \texttt{Send} and \texttt{Sync} marker traits: a value may cross a thread
+boundary only if its type is \texttt{Send}, and may be shared by reference across threads only
+if it is \texttt{Sync}. Sharing a value that permits unsynchronised mutation is therefore a
+compile error, not a latent race---the property Rust markets as ``fearless concurrency.''
+Error handling is likewise explicit: fallible operations return a \texttt{Result} value that
+the caller must handle, rather than raising an exception that unwinds through hidden control
+flow, which keeps the cost and the control flow of the failure path visible---an advantage in
+latency-sensitive code where surprises in the tail are what matter.
+
+\section{The systems-language landscape}
+Rust is not the only memory-safe language, but it occupies a distinctive position for this
+problem. Managed languages such as Java, C\#, and Go achieve memory safety through a runtime
+and garbage collection. That is an excellent trade for much software, but it is a poor fit for
+a tail-latency-critical control plane: garbage collection introduces pauses and timing
+variability that are a recognised source of tail latency in large systems~\cite{dean2013tail},
+and a managed runtime also cedes the low-level control over memory layout and scheduling that
+this domain relies on. At the other extreme, C is as memory-unsafe as C++ while offering fewer
+abstractions for building large systems. Rust is the first widely supported language to
+combine memory and thread safety, enforced at compile time, with the absence of a garbage
+collector and performance intended to be competitive with C++~\cite{jung2021safe,
+balasubramanian2017rust}. That combination is exactly why the meaningful comparison for RAN
+control-plane software is C++ against Rust, and why managed languages are out of scope here.
+
+\section{Concurrency models for control-plane software}
+How concurrency is structured shapes both correctness and tail latency. The dominant model is
+\emph{shared-memory} concurrency, in which threads mutate common state guarded by mutexes and
+atomics; it is flexible but is the source of races, deadlocks, lock contention, and priority
+inversion, and its worst-case timing is hard to reason about. The alternative is
+\emph{message-passing} or \emph{shared-nothing} concurrency, in which state is partitioned so
+that each piece is owned by a single thread and all interaction happens through messages, as
+in the actor model and in sharded designs. Shared-nothing trades some flexibility for
+scalability and far simpler reasoning, and it maps naturally onto per-UE partitioning in a
+control plane, where each UE's state is largely independent.
+
+A second, orthogonal choice is how work is queued between producers and consumers. Unbounded
+queues mask overload and let latency and memory grow without limit; \emph{bounded} queues with
+either blocking (backpressure) or shedding bound worst-case memory and make overload visible,
+which is essential for predictable tail latency. Lock-free structures can reduce contention
+but are notoriously difficult to implement correctly. These considerations directly motivate
+the architecture adopted for both implementations in Chapter~\ref{chapter:design}: a
+shared-nothing, thread-per-shard design with bounded multi-producer/single-consumer queues and
+blocking backpressure, chosen so that any measured latency difference reflects the language
+rather than a divergent concurrency strategy.
+
+\section{Interoperability between C++ and Rust}
+Adopting a new language in a large existing system is necessarily incremental: a Rust
+component must coexist with, and be callable from, a substantial C++ codebase. The common
+denominator for such interoperability is the C application binary interface (ABI). Rust can
+expose functions with \texttt{extern "C"} linkage and hand out \emph{opaque handles} to
+Rust-owned objects, which C++ then calls through a C header; tooling automates parts of this,
+including \texttt{bindgen} (generating Rust bindings from C headers), \texttt{cbindgen}
+(generating C headers from Rust), and the \texttt{cxx} crate (a safer bidirectional bridge).
+Interoperability is not free: crossing the boundary steps outside the checked language, so the
+seam must contain \texttt{unsafe} code; passing anything beyond simple values requires
+marshalling; and the shape of the foreign interface has to be designed deliberately. The size
+of that seam, how much \texttt{unsafe} it concentrates, and the per-call crossing cost are
+exactly the quantities measured for RQ4 in Chapter~\ref{chapter:eval}.
+
+\section{Research gap}
+The preceding sections establish three things. First, the RAN control plane is a
+soft-to-firm real-time, highly concurrent, latency-critical domain in which tail behaviour
+under overload, not average throughput, governs the quality experienced by the network.
+Second, C++ supplies the control and performance this domain demands but leaves whole classes
+of memory and concurrency defects to best-effort, after-the-fact detection. Third, Rust
+promises to prevent those classes at compile time at no runtime cost, with a credible
+incremental adoption path through C-ABI interoperability. What is missing from the literature
+is \emph{direct, controlled} evidence for a representative control-plane subsystem: whether
+Rust actually holds its tail latency and predictability under overload against modern C++,
+exactly which defect classes it eliminates and at what stage the remainder are caught, what
+its safety model costs in throughput and resources, and what incremental adoption costs in
+practice. Closing this gap is the purpose of the four research questions, pursued with the
+methodology set out in Chapter~\ref{chapter:methodology}.
 
 \chapter{Research Methodology\label{chapter:methodology}}
 
