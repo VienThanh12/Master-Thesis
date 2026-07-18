@@ -135,6 +135,52 @@ def add_arrow(slide, x1, y1, x2, y2, color=GRAY800, width=1.75):
     return cn
 
 
+def add_data_table(slide, rows, col_widths_cm, left=Cm(1.3), top=Cm(4.1),
+                   height=Cm(6.8), aligns=None, header_fill=BLUE,
+                   header_size=14, body_size=13, cell_fill=None):
+    """Generic table helper. `rows` is a list of tuples (row 0 = header).
+
+    `col_widths_cm` is a list of column widths in cm (their sum is the table
+    width). `aligns` is an optional per-column PP_ALIGN list applied to every
+    row. `cell_fill(r, c, val)` may return an RGBColor to override the default
+    zebra striping for a body cell (return None to fall back to striping).
+    """
+    ncols = len(col_widths_cm)
+    total_w = Cm(sum(col_widths_cm))
+    gtbl = slide.shapes.add_table(len(rows), ncols, _emu(left), _emu(top),
+                                  _emu(total_w), _emu(height))
+    tbl = gtbl.table
+    tbl.first_row = False
+    tbl.horz_banding = False
+    for c, w in enumerate(col_widths_cm):
+        tbl.columns[c].width = _emu(Cm(w))
+    for r, row in enumerate(rows):
+        for c, val in enumerate(row):
+            cell = tbl.cell(r, c)
+            cell.margin_left = Cm(0.2)
+            cell.margin_right = Cm(0.15)
+            cell.margin_top = Cm(0.06)
+            cell.margin_bottom = Cm(0.06)
+            cell.vertical_anchor = MSO_ANCHOR.MIDDLE
+            para = cell.text_frame.paragraphs[0]
+            para.text = str(val)
+            para.font.name = BODY_FONT
+            para.alignment = aligns[c] if aligns else PP_ALIGN.LEFT
+            if r == 0:
+                para.font.bold = True
+                para.font.size = Pt(header_size)
+                para.font.color.rgb = WHITE
+                cell.fill.solid(); cell.fill.fore_color.rgb = header_fill
+            else:
+                para.font.size = Pt(body_size)
+                para.font.color.rgb = BLACKBLUE
+                fill = cell_fill(r, c, val) if cell_fill else None
+                if fill is None:
+                    fill = WHITE if (r % 2 == 1) else GRAY300
+                cell.fill.solid(); cell.fill.fore_color.rgb = fill
+    return gtbl
+
+
 # =====================================================================
 # Slide 1 — Front cover
 # =====================================================================
@@ -195,26 +241,51 @@ set_body_bullets(s, 15, [
 ])
 
 # =====================================================================
-# Slide 5 — Research questions (2 columns)
+# Slide 5 — Key terms and abbreviations (table)
 # =====================================================================
-s = prs.slides.add_slide(L(4))  # 2 col bullets
-s.shapes.title.text = "Four research questions"
-fill_placeholder(s, 10, "Ordered to put predictability and migration ahead of raw average speed")
-set_body_bullets(s, 15, [
-    "RQ1 - Predictability",
-    "Mean, p99, p99.9 tail latency and jitter under increasing load and overload",
-    "RQ2 - Safety",
-    "Which C++ defect classes are eliminated at compile time, and how are the rest caught?",
-], size=16)
-set_body_bullets(s, 16, [
-    "RQ3 - Overhead",
-    "Cost of Rust's safety model on throughput, CPU utilisation, and memory behaviour",
-    "RQ4 - Migration",
-    "Effort, FFI interoperability, and risk of adopting Rust incrementally within C++",
-], size=16)
+s = prs.slides.add_slide(L(1))
+s.shapes.title.text = "Key terms for readers outside telecom"
+fill_placeholder(s, 10, "The vocabulary that recurs throughout the talk")
+add_data_table(
+    s,
+    [
+        ("Term", "Meaning"),
+        ("gNB-CU-CP", "Control-plane part of the 5G base-station central unit"),
+        ("UECM", "UE Context Management: the per-UE state subsystem studied here"),
+        ("Tail latency", "High-percentile latency (p99, p99.9), the worst-case metric"),
+        ("RRC", "Radio Resource Control, the UE-to-gNB signaling protocol"),
+        ("DRB", "Data Radio Bearer, a per-UE user-plane data channel"),
+        ("FFI", "Foreign Function Interface: calling Rust from C++ over a C ABI"),
+        ("HDR histogram", "High-Dynamic-Range histogram for accurate latency capture"),
+    ],
+    col_widths_cm=[5.0, 18.0],
+    aligns=[PP_ALIGN.LEFT, PP_ALIGN.LEFT],
+    height=Cm(7.6),
+)
 
 # =====================================================================
-# Slide 6 — Methodology
+# Slide 6 — Four research questions (table)
+# =====================================================================
+s = prs.slides.add_slide(L(1))
+s.shapes.title.text = "Four research questions"
+fill_placeholder(s, 10, "Ordered to put predictability and migration ahead of raw average speed")
+add_data_table(
+    s,
+    [
+        ("RQ", "Focus", "Question"),
+        ("RQ1", "Predictability", "Mean, p99, p99.9 tail latency and jitter under load and overload"),
+        ("RQ2", "Safety", "Which C++ defect classes are eliminated at compile time, and how are the rest caught?"),
+        ("RQ3", "Overhead", "Cost of Rust's safety model on throughput, CPU utilisation, and memory"),
+        ("RQ4", "Migration", "Effort, FFI interoperability, and risk of adopting Rust incrementally within C++"),
+    ],
+    col_widths_cm=[2.4, 5.0, 15.6],
+    aligns=[PP_ALIGN.CENTER, PP_ALIGN.LEFT, PP_ALIGN.LEFT],
+    height=Cm(6.8),
+    cell_fill=lambda r, c, v: LIGHTBLUE if c == 0 else None,
+)
+
+# =====================================================================
+# Slide 7 — Methodology
 # =====================================================================
 s = prs.slides.add_slide(L(3))
 s.shapes.title.text = "One frozen spec, two implementations, three methods"
@@ -229,7 +300,29 @@ set_body_bullets(s, 15, [
 ])
 
 # =====================================================================
-# Slide 7 — UE lifecycle state machine (figure only)
+# Slide 8 — Research design (table)
+# =====================================================================
+s = prs.slides.add_slide(L(1))
+s.shapes.title.text = "How each research question is answered"
+fill_placeholder(s, 10, "Every question is tied to a method, an artifact, and a primary metric")
+add_data_table(
+    s,
+    [
+        ("RQ", "Method", "Artifact / data", "Primary metric"),
+        ("RQ1", "Load sweep to overload, interleaved repeats", "Benchmark harness; latency histograms", "p99/p99.9 tail latency and jitter vs. load"),
+        ("RQ3", "Same sweep, resource capture", "getrusage samples per run", "peak RSS, CPU utilisation, throughput"),
+        ("RQ2", "Controlled fault injection", "Defect catalogue; ASan/TSan and rustc logs", "defect-class taxonomy"),
+        ("RQ4", "FFI migration prototype", "C++ host + Rust C-ABI seam", "seam size, unsafe scope, per-call cost"),
+    ],
+    col_widths_cm=[1.9, 6.6, 6.6, 7.9],
+    aligns=[PP_ALIGN.CENTER, PP_ALIGN.LEFT, PP_ALIGN.LEFT, PP_ALIGN.LEFT],
+    height=Cm(7.2),
+    body_size=12,
+    cell_fill=lambda r, c, v: LIGHTBLUE if c == 0 else None,
+)
+
+# =====================================================================
+# Slide 9 — UE lifecycle state machine (figure only)
 # =====================================================================
 s = prs.slides.add_slide(L(1))  # figure/table headline
 s.shapes.title.text = "The UE context lifecycle both versions encode identically"
@@ -271,7 +364,7 @@ add_textbox(s, Cm(7.0), Cm(3.5), Cm(7.0), Cm(0.7), "signal / add_drb handled in 
 add_arrow(s, Cm(10.5), Cm(4.3), Cm(10.5), Cm(5.15), color=BLACKBLUE, width=1.25)
 
 # =====================================================================
-# Slide 8 — Architecture (figure only)
+# Slide 10 — Architecture (figure only)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "Shared-nothing, thread-per-shard architecture"
@@ -310,73 +403,156 @@ add_textbox(s, Cm(1.4), Cm(11.4), Cm(20.0), Cm(0.8),
             size=11, color=BLUE, bold=True, align=PP_ALIGN.CENTER)
 
 # =====================================================================
-# Slide 9 — Fairness baseline and implementation
+# Slide 11 — Fairness controls (table)
 # =====================================================================
-s = prs.slides.add_slide(L(3))
-s.shapes.title.text = "Fairness by construction, then parity by testing"
+s = prs.slides.add_slide(L(1))
+s.shapes.title.text = "Fairness by construction: what is held identical"
 fill_placeholder(s, 10, "Any measured difference should be the language, not the design")
-set_body_bullets(s, 15, [
-    "Frozen spec fixes the API, UE state machine, data structures, sharding, locking, and concurrency model",
-    "Both link the same jemalloc allocator; Rust release is pinned to opt-level 2 to match C++ -O2",
-    "Identical HDR histogram configuration and pinned SplitMix64 / FNV-1a hashing on both sides",
-    "The Rust core contains no unsafe code; the C++ version is verified data-race free under ThreadSanitizer",
-    "A language-neutral conformance suite diffs op-for-op transcripts; both implementations pass and agree",
-])
+add_data_table(
+    s,
+    [
+        ("Level", "Held identical across C++ and Rust"),
+        ("Specification", "API, UE state machine, data structures, sharding, locking, concurrency model"),
+        ("Runtime substrate", "Same jemalloc allocator; Rust opt-level 2 matched to C++ -O2"),
+        ("Hashing", "Pinned SplitMix64 shard split and FNV-1a keying, bit-verified equal"),
+        ("Measurement", "Identical HDR histogram config; interleaved, repeated runs"),
+        ("Deviations", "Unavoidable language differences logged in a forced-idiom record"),
+    ],
+    col_widths_cm=[5.0, 18.0],
+    aligns=[PP_ALIGN.LEFT, PP_ALIGN.LEFT],
+    height=Cm(7.4),
+)
 
 # =====================================================================
-# Slide 10 — Safety results (table)
+# Slide 12 — Language-forced idioms (table)
+# =====================================================================
+s = prs.slides.add_slide(L(1))
+s.shapes.title.text = "Where the two languages must diverge"
+fill_placeholder(s, 10, "The forced-idiom log: same requirement, idiomatic in each language")
+add_data_table(
+    s,
+    [
+        ("Concern", "Modern C++ (C++23)", "Rust (stable)"),
+        ("Result type", "std::expected<T, OpError>", "Result<T, OpError>"),
+        ("Request", "move-only struct + std::promise", "enum variants + typed one-shot sender"),
+        ("Bounded queue", "mutex + condition variable", "sync_channel"),
+        ("One-shot completion", "std::promise / std::future", "per-request channel"),
+        ("Allocator binding", "system jemalloc", "tikv-jemallocator global allocator"),
+        ("Safety story", "verified via ThreadSanitizer", "no unsafe: compile-time guarantee"),
+    ],
+    col_widths_cm=[4.6, 9.0, 9.4],
+    aligns=[PP_ALIGN.LEFT, PP_ALIGN.LEFT, PP_ALIGN.LEFT],
+    height=Cm(7.4),
+    body_size=12,
+)
+
+# =====================================================================
+# Slide 13 — Defect classes in UECM (table)
+# =====================================================================
+s = prs.slides.add_slide(L(1))
+s.shapes.title.text = "The five defect classes, as they arise in UECM"
+fill_placeholder(s, 10, "Each is a plausible bug in the UE Context Management service")
+add_data_table(
+    s,
+    [
+        ("Defect class", "Incarnation in UE Context Management"),
+        ("Use-after-free", "A signaling message dereferences a context a concurrent release already erased"),
+        ("Double-free", "A non-idempotent release runs twice for the same UE"),
+        ("Iterator invalidation", "A data-radio-bearer list is mutated while being iterated"),
+        ("Data race", "Two workers update the same context field without synchronisation"),
+        ("Unguarded shared mutation", "A context shared across threads is mutated without a lock"),
+    ],
+    col_widths_cm=[5.8, 17.2],
+    aligns=[PP_ALIGN.LEFT, PP_ALIGN.LEFT],
+    height=Cm(7.2),
+)
+
+# =====================================================================
+# Slide 14 — Safety results (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "RQ2: every injected defect is a compile error in safe Rust"
 fill_placeholder(s, 10, "g++ 13.3 with ASan/TSan versus rustc 1.96 (edition 2021)")
 
-rows = [
-    ("Defect class", "ASan", "TSan", "Rust outcome"),
-    ("Use-after-free", "detected", "detected", "prevented (E0499)"),
-    ("Double-free", "detected", "-", "prevented (E0382)"),
-    ("Iterator invalidation", "detected", "detected", "prevented (E0502)"),
-    ("Data race", "-", "detected", "prevented (E0373)"),
-    ("Unguarded shared mutation", "-", "detected", "prevented (E0502)"),
-]
-tleft, ttop, twidth, theight = Cm(1.6), Cm(4.3), Cm(22.2), Cm(7.4)
-gtbl = s.shapes.add_table(len(rows), 4, _emu(tleft), _emu(ttop), _emu(twidth), _emu(theight))
-tbl = gtbl.table
-tbl.columns[0].width = _emu(Cm(7.2))
-tbl.columns[1].width = _emu(Cm(4.0))
-tbl.columns[2].width = _emu(Cm(4.0))
-tbl.columns[3].width = _emu(Cm(7.0))
-for r, row in enumerate(rows):
-    for c, val in enumerate(row):
-        cell = tbl.cell(r, c)
-        cell.margin_left = Cm(0.2)
-        cell.margin_right = Cm(0.2)
-        cell.margin_top = Cm(0.08)
-        cell.margin_bottom = Cm(0.08)
-        cell.vertical_anchor = MSO_ANCHOR.MIDDLE
-        para = cell.text_frame.paragraphs[0]
-        para.text = val
-        para.font.name = BODY_FONT
-        para.alignment = PP_ALIGN.LEFT if c in (0, 3) else PP_ALIGN.CENTER
-        if r == 0:
-            para.font.bold = True
-            para.font.size = Pt(15)
-            para.font.color.rgb = WHITE
-            cell.fill.solid(); cell.fill.fore_color.rgb = BLUE
-        else:
-            para.font.size = Pt(14)
-            para.font.color.rgb = BLACKBLUE
-            if c == 3:
-                cell.fill.solid(); cell.fill.fore_color.rgb = LIGHTGREEN
-            elif c in (1, 2):
-                if val == "detected":
-                    cell.fill.solid(); cell.fill.fore_color.rgb = LIGHTAMBER
-                else:
-                    cell.fill.solid(); cell.fill.fore_color.rgb = GRAY300
-            else:
-                cell.fill.solid(); cell.fill.fore_color.rgb = WHITE
+
+def _taxonomy_fill(r, c, v):
+    if c == 3:
+        return LIGHTGREEN
+    if c in (1, 2):
+        return LIGHTAMBER if v == "detected" else GRAY300
+    return WHITE
+
+
+add_data_table(
+    s,
+    [
+        ("Defect class", "ASan", "TSan", "Rust outcome"),
+        ("Use-after-free", "detected", "detected", "prevented (E0499)"),
+        ("Double-free", "detected", "-", "prevented (E0382)"),
+        ("Iterator invalidation", "detected", "detected", "prevented (E0502)"),
+        ("Data race", "-", "detected", "prevented (E0373)"),
+        ("Unguarded shared mutation", "-", "detected", "prevented (E0502)"),
+    ],
+    col_widths_cm=[7.2, 4.0, 4.0, 7.0],
+    aligns=[PP_ALIGN.LEFT, PP_ALIGN.CENTER, PP_ALIGN.CENTER, PP_ALIGN.LEFT],
+    height=Cm(7.2),
+    header_size=15,
+    body_size=14,
+    cell_fill=_taxonomy_fill,
+)
 
 # =====================================================================
-# Slide 11 — Performance results
+# Slide 15 — Latency distribution (table)
+# =====================================================================
+s = prs.slides.add_slide(L(1))
+s.shapes.title.text = "RQ1: latency at 16 kops/s, below the overload cliff"
+fill_placeholder(s, 10, "Microseconds, medians over four repeats. Preliminary (WSL2) measurements")
+add_data_table(
+    s,
+    [
+        ("Variant", "mean", "p50", "p90", "p99", "p99.9", "max"),
+        ("C++ (system alloc)", "166.3", "161.2", "206.1", "293.5", "523.1", "1200.1"),
+        ("C++ (jemalloc)", "154.7", "151.4", "192.2", "274.7", "546.2", "1782.5"),
+        ("Rust (system alloc)", "151.9", "145.0", "190.0", "295.4", "1234.7", "3338.2"),
+        ("Rust (jemalloc)", "193.7", "150.3", "223.7", "324.4", "837.6", "1947.1"),
+    ],
+    col_widths_cm=[5.4, 2.94, 2.94, 2.94, 2.94, 2.94, 2.94],
+    aligns=[PP_ALIGN.LEFT] + [PP_ALIGN.CENTER] * 6,
+    height=Cm(5.8),
+    body_size=13,
+)
+add_textbox(s, Cm(1.3), Cm(10.4), Cm(23.0), Cm(1.4),
+            "Medians (p50) agree within a few microseconds and p99 within ~20%; the languages "
+            "diverge only in the far tail (p99.9 and max), where allocator choice matters as much "
+            "as language.", size=13, color=GRAY800)
+
+# =====================================================================
+# Slide 16 — Resource use (table)
+# =====================================================================
+s = prs.slides.add_slide(L(1))
+s.shapes.title.text = "RQ3: resource use is comparable across languages"
+fill_placeholder(s, 10, "At 16 kops/s sustained load; medians over four repeats. Preliminary (WSL2)")
+add_data_table(
+    s,
+    [
+        ("Variant", "throughput (kops/s)", "peak RSS (MiB)", "CPU (%)"),
+        ("C++ (system alloc)", "12.0", "9.6", "114.3"),
+        ("C++ (jemalloc)", "12.0", "12.4", "109.2"),
+        ("Rust (system alloc)", "12.0", "11.8", "99.2"),
+        ("Rust (jemalloc)", "12.0", "14.6", "106.5"),
+    ],
+    col_widths_cm=[7.0, 5.4, 5.4, 5.2],
+    aligns=[PP_ALIGN.LEFT, PP_ALIGN.CENTER, PP_ALIGN.CENTER, PP_ALIGN.CENTER],
+    height=Cm(5.8),
+    body_size=14,
+)
+add_textbox(s, Cm(1.3), Cm(10.4), Cm(23.0), Cm(1.4),
+            "Peak RSS is single-digit to low-double-digit MiB; the system-allocator C++ build is "
+            "the leanest, and jemalloc trades a few MiB of RSS for its shorter tail. CPU is "
+            "comparable, consistent with the shared thread-per-shard design.", size=13, color=GRAY800)
+
+# =====================================================================
+# Slide 17 — Performance takeaways
 # =====================================================================
 s = prs.slides.add_slide(L(3))
 s.shapes.title.text = "RQ1/RQ3: the two languages track each other up to saturation"
@@ -391,97 +567,100 @@ set_body_bullets(s, 15, [
 ])
 
 # =====================================================================
-# Slide 12 — Migration results (table)
+# Slide 18 — Migration results (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "RQ4: incremental adoption is technically cheap"
 fill_placeholder(s, 10, "A C++ host drives an unmodified Rust core across a thin C-ABI seam")
-
-frows = [
-    ("Metric", "Value"),
-    ("C-ABI entry points", "12 (~230 lines of Rust)"),
-    ("C header", "66 lines, no generated bindings"),
-    ("unsafe in the core library", "none (confined to the seam crate)"),
-    ("Per-call crossing cost", "sub-nanosecond (an indirect call)"),
-    ("Relative to one signaling op", "about 5 orders of magnitude smaller"),
-    ("Dominant adoption cost", "API design and the learning curve"),
-]
-tleft, ttop, twidth, theight = Cm(2.4), Cm(4.3), Cm(20.6), Cm(7.2)
-gtbl = s.shapes.add_table(len(frows), 2, _emu(tleft), _emu(ttop), _emu(twidth), _emu(theight))
-tbl = gtbl.table
-tbl.columns[0].width = _emu(Cm(9.6))
-tbl.columns[1].width = _emu(Cm(11.0))
-for r, row in enumerate(frows):
-    for c, val in enumerate(row):
-        cell = tbl.cell(r, c)
-        cell.margin_left = Cm(0.25)
-        cell.margin_right = Cm(0.2)
-        cell.margin_top = Cm(0.08)
-        cell.margin_bottom = Cm(0.08)
-        cell.vertical_anchor = MSO_ANCHOR.MIDDLE
-        para = cell.text_frame.paragraphs[0]
-        para.text = val
-        para.font.name = BODY_FONT
-        para.alignment = PP_ALIGN.LEFT
-        if r == 0:
-            para.font.bold = True
-            para.font.size = Pt(15)
-            para.font.color.rgb = WHITE
-            cell.fill.solid(); cell.fill.fore_color.rgb = BLUE
-        else:
-            para.font.size = Pt(14)
-            para.font.color.rgb = BLACKBLUE
-            cell.fill.solid()
-            cell.fill.fore_color.rgb = WHITE if r % 2 else GRAY300
+add_data_table(
+    s,
+    [
+        ("Metric", "Value"),
+        ("C-ABI entry points", "12"),
+        ("Seam size (Rust lib.rs)", "231 LOC"),
+        ("Hand-written C header", "66 LOC (no generated bindings)"),
+        ("unsafe in core library", "0"),
+        ("unsafe in FFI seam", "12 (one documented safety contract)"),
+        ("Raw FFI crossing", "0.64 ns/call (an indirect call)"),
+        ("End-to-end signaling op", "82.4 \u00b5s/call"),
+        ("Dominant adoption cost", "API design and the learning curve"),
+    ],
+    col_widths_cm=[9.0, 14.0],
+    aligns=[PP_ALIGN.LEFT, PP_ALIGN.LEFT],
+    height=Cm(8.0),
+    body_size=13,
+    cell_fill=lambda r, c, v: (LIGHTGREEN if c == 1 else None) if r in (4, 6) else None,
+)
 
 # =====================================================================
-# Slide 13 — Summary of findings (table)
+# Slide 19 — Summary of findings (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "Summary of findings and evidence strength"
 fill_placeholder(s, 10, "Safety and migration are final; performance is preliminary until the testbed run")
-
-srows = [
-    ("RQ", "Headline finding", "Evidence"),
-    ("RQ1", "Rust and C++ track closely up to saturation; differences only in the far tail", "Preliminary"),
-    ("RQ2", "All five injected C++ defect classes are prevented at compile time in safe Rust", "Final"),
-    ("RQ3", "Peak RSS and CPU are comparable; allocator is a bigger lever than language", "Preliminary"),
-    ("RQ4", "Thin, unsafe-isolated FFI seam with no measurable per-call tax", "Final"),
-]
-tleft, ttop, twidth, theight = Cm(1.6), Cm(4.3), Cm(22.2), Cm(7.0)
-gtbl = s.shapes.add_table(len(srows), 3, _emu(tleft), _emu(ttop), _emu(twidth), _emu(theight))
-tbl = gtbl.table
-tbl.columns[0].width = _emu(Cm(2.4))
-tbl.columns[1].width = _emu(Cm(15.6))
-tbl.columns[2].width = _emu(Cm(4.2))
-for r, row in enumerate(srows):
-    for c, val in enumerate(row):
-        cell = tbl.cell(r, c)
-        cell.margin_left = Cm(0.25)
-        cell.margin_right = Cm(0.2)
-        cell.margin_top = Cm(0.1)
-        cell.margin_bottom = Cm(0.1)
-        cell.vertical_anchor = MSO_ANCHOR.MIDDLE
-        para = cell.text_frame.paragraphs[0]
-        para.text = val
-        para.font.name = BODY_FONT
-        para.alignment = PP_ALIGN.LEFT if c == 1 else PP_ALIGN.CENTER
-        if r == 0:
-            para.font.bold = True
-            para.font.size = Pt(15)
-            para.font.color.rgb = WHITE
-            cell.fill.solid(); cell.fill.fore_color.rgb = BLUE
-        else:
-            para.font.size = Pt(14)
-            para.font.color.rgb = BLACKBLUE
-            cell.fill.solid()
-            if c == 2:
-                cell.fill.fore_color.rgb = LIGHTGREEN if val == "Final" else LIGHTAMBER
-            else:
-                cell.fill.fore_color.rgb = WHITE if r % 2 else GRAY300
+add_data_table(
+    s,
+    [
+        ("RQ", "Headline finding", "Evidence"),
+        ("RQ1", "Rust and C++ track closely up to saturation; differences only in the far tail", "Preliminary"),
+        ("RQ2", "All five injected C++ defect classes are prevented at compile time in safe Rust", "Final"),
+        ("RQ3", "Peak RSS and CPU are comparable; allocator is a bigger lever than language", "Preliminary"),
+        ("RQ4", "Thin, unsafe-isolated FFI seam with no measurable per-call tax", "Final"),
+    ],
+    col_widths_cm=[2.2, 16.6, 4.2],
+    aligns=[PP_ALIGN.CENTER, PP_ALIGN.LEFT, PP_ALIGN.CENTER],
+    height=Cm(6.8),
+    header_size=15,
+    body_size=14,
+    cell_fill=lambda r, c, v: (LIGHTGREEN if v == "Final" else LIGHTAMBER) if c == 2 else None,
+)
 
 # =====================================================================
-# Slide 14 — Conclusions
+# Slide 20 — Hypotheses versus verdict (table)
+# =====================================================================
+s = prs.slides.add_slide(L(1))
+s.shapes.title.text = "The three prior hypotheses against the evidence"
+fill_placeholder(s, 10, "Stated up front so the evaluation can confirm or refute them")
+add_data_table(
+    s,
+    [
+        ("Hypothesis", "Statement", "Verdict"),
+        ("H1", "Languages performance-equivalent below saturation; differences only in the far tail", "Supported (preliminary)"),
+        ("H2", "Safe Rust prevents the memory/concurrency defect classes C++ leaves to detection", "Confirmed"),
+        ("H3", "FFI run-time cost is negligible; the real cost is engineering effort", "Confirmed"),
+    ],
+    col_widths_cm=[2.6, 15.4, 5.0],
+    aligns=[PP_ALIGN.CENTER, PP_ALIGN.LEFT, PP_ALIGN.CENTER],
+    height=Cm(6.2),
+    body_size=14,
+    cell_fill=lambda r, c, v: (LIGHTGREEN if v == "Confirmed" else LIGHTAMBER) if c == 2 else None,
+)
+
+# =====================================================================
+# Slide 21 — Scope and boundaries (table)
+# =====================================================================
+s = prs.slides.add_slide(L(1))
+s.shapes.title.text = "Scope and boundaries"
+fill_placeholder(s, 10, "Boundaries drawn to protect the internal validity of the comparison")
+add_data_table(
+    s,
+    [
+        ("In scope", "Out of scope"),
+        ("UE Context Management subsystem", "Full gNB and other control-plane domains"),
+        ("Shared-nothing concurrency design", "PHY/L2 and the user-plane data path"),
+        ("Load sweep to overload", "Real captured production traffic traces"),
+        ("Five-defect fault-injection catalogue", "Managed-language alternatives (GC pauses)"),
+        ("C++-to-Rust FFI migration prototype", "Production deployment and operations"),
+    ],
+    col_widths_cm=[11.5, 11.5],
+    aligns=[PP_ALIGN.LEFT, PP_ALIGN.LEFT],
+    height=Cm(7.2),
+    body_size=13,
+    cell_fill=lambda r, c, v: LIGHTGREEN if c == 0 else LIGHTAMBER,
+)
+
+# =====================================================================
+# Slide 22 — Conclusions
 # =====================================================================
 s = prs.slides.add_slide(L(3))
 s.shapes.title.text = "The barrier to Rust here is people, not performance"
@@ -495,7 +674,7 @@ set_body_bullets(s, 15, [
 ])
 
 # =====================================================================
-# Slide 15 — Future work
+# Slide 23 — Future work
 # =====================================================================
 s = prs.slides.add_slide(L(3))
 s.shapes.title.text = "Future work"
@@ -508,7 +687,7 @@ set_body_bullets(s, 15, [
 ])
 
 # =====================================================================
-# Slide 16 — End slide
+# Slide 24 — End slide
 # =====================================================================
 prs.slides.add_slide(L(71))  # End slide Blue
 
