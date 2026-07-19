@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 500" width="960" height="500" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#33475b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="960" height="500" fill="#ffffff"/>
+  <text x="480" y="34" text-anchor="middle" font-size="22" font-weight="700" fill="#12233a">C++ &#8594; Rust FFI migration seam (RQ4)</text>
+  <text x="480" y="56" text-anchor="middle" font-size="13" fill="#5b6b7b">A C++ host drives an unmodified Rust core across a thin C ABI; all unsafe is confined to the seam crate</text>
+
+  <!-- C++ host -->
+  <rect x="36" y="96" width="238" height="230" rx="11" fill="#dce8f7" stroke="#2f6db3" stroke-width="2"/>
+  <text x="155" y="122" text-anchor="middle" font-size="15.5" font-weight="700" fill="#1c4e86">C++ host</text>
+  <line x1="52" y1="132" x2="258" y2="132" stroke="#2f6db3" stroke-width="1"/>
+  <text x="54" y="156" font-size="12" fill="#243447">sees only:</text>
+  <text x="54" y="178" font-size="12" fill="#243447">&#8226; opaque handle <tspan font-family="monospace">UecmService*</tspan></text>
+  <text x="54" y="200" font-size="12" fill="#243447">&#8226; 12 plain-C entry points</text>
+  <text x="54" y="222" font-size="12" fill="#243447">&#8226; a status-code convention</text>
+  <text x="54" y="252" font-size="11" fill="#5b6b7b">status: 0 = Ok,</text>
+  <text x="54" y="270" font-size="11" fill="#5b6b7b">1..5 = 1 + OpError,</text>
+  <text x="54" y="288" font-size="11" fill="#5b6b7b">-1 = null handle / misuse</text>
+  <text x="54" y="312" font-size="11" fill="#8794a3">never sees a Rust type</text>
+
+  <!-- boundary -->
+  <line x1="316" y1="86" x2="316" y2="340" stroke="#c0392b" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="316" y="360" text-anchor="middle" font-size="12" font-weight="700" fill="#c0392b">C ABI boundary</text>
+  <text x="316" y="376" text-anchor="middle" font-size="10.5" fill="#a5281b">extern "C", hand-written header (66 LOC)</text>
+
+  <!-- seam crate -->
+  <rect x="360" y="96" width="256" height="230" rx="11" fill="#fbe0cb" stroke="#d35400" stroke-width="2"/>
+  <text x="488" y="122" text-anchor="middle" font-size="15" font-weight="700" fill="#a04000">uecm-ffi seam crate</text>
+  <line x1="376" y1="132" x2="600" y2="132" stroke="#d35400" stroke-width="1"/>
+  <text x="376" y="156" font-size="12" fill="#243447">&#8226; 12 <tspan font-family="monospace">extern "C"</tspan> entry points</text>
+  <text x="376" y="178" font-size="12" fill="#243447">&#8226; ~231 lines of Rust</text>
+  <text x="376" y="200" font-size="12" fill="#a5281b" font-weight="700">&#8226; 12 unsafe sites (raw ptrs)</text>
+  <text x="376" y="222" font-size="12" fill="#243447">&#8226; one documented safety</text>
+  <text x="396" y="240" font-size="12" fill="#243447">contract</text>
+  <text x="376" y="270" font-size="11" fill="#5b6b7b">converts handle + scalars &#8596;</text>
+  <text x="376" y="288" font-size="11" fill="#5b6b7b">typed Rust API; maps</text>
+  <text x="376" y="306" font-size="11" fill="#5b6b7b">OpError &#8594; status code</text>
+
+  <!-- core lib -->
+  <rect x="700" y="96" width="222" height="230" rx="11" fill="#d9f0dd" stroke="#2e8b57" stroke-width="2"/>
+  <text x="811" y="122" text-anchor="middle" font-size="15" font-weight="700" fill="#1f6b41">uecm core library</text>
+  <text x="811" y="140" text-anchor="middle" font-size="12" fill="#2e8b57">(unmodified)</text>
+  <line x1="716" y1="150" x2="906" y2="150" stroke="#2e8b57" stroke-width="1"/>
+  <text x="716" y="176" font-size="13" font-weight="700" fill="#1f6b41">0 unsafe blocks</text>
+  <text x="716" y="200" font-size="12" fill="#243447">100% safe Rust</text>
+  <text x="716" y="224" font-size="12" fill="#243447">thread-per-shard service</text>
+  <text x="716" y="256" font-size="11" fill="#5b6b7b">adopting the component</text>
+  <text x="716" y="274" font-size="11" fill="#5b6b7b">requires no change to</text>
+  <text x="716" y="292" font-size="11" fill="#5b6b7b">the core itself</text>
+
+  <!-- arrows -->
+  <line x1="274" y1="200" x2="356" y2="200" stroke="#33475b" stroke-width="2.4" marker-end="url(#a)"/>
+  <line x1="616" y1="200" x2="696" y2="200" stroke="#33475b" stroke-width="2.4" marker-end="url(#a)"/>
+  <text x="656" y="192" text-anchor="middle" font-size="11" fill="#33475b">safe call</text>
+
+  <!-- cost comparison -->
+  <rect x="36" y="404" width="886" height="80" rx="10" fill="#fbfcfd" stroke="#d7dde3"/>
+  <text x="54" y="428" font-size="13" font-weight="700" fill="#12233a">Per-call cost: the crossing is negligible next to the operation it invokes</text>
+  <!-- tiny bar -->
+  <rect x="54" y="444" width="6" height="20" fill="#d35400"/>
+  <text x="70" y="459" font-size="12" fill="#a04000">FFI crossing (do-nothing extern "C"): <tspan font-weight="700">0.637 ns</tspan></text>
+  <rect x="470" y="444" width="360" height="20" fill="#2f6db3"/>
+  <text x="470" y="438" font-size="12" fill="#1c4e86">signaling op round-trip: <tspan font-weight="700">82 375 ns</tspan>  (&#8776; 5 orders of magnitude larger)</text>
+</svg>

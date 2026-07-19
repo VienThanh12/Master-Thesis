@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 480" width="940" height="480" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#33475b"/></marker>
+    <marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c0392b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="940" height="480" fill="#ffffff"/>
+  <text x="470" y="34" text-anchor="middle" font-size="22" font-weight="700" fill="#12233a">Why tail latency, not the mean, governs RAN deadlines</text>
+
+  <!-- LEFT: distribution -->
+  <text x="250" y="72" text-anchor="middle" font-size="14" font-weight="700" fill="#33475b">The latency distribution is heavy-tailed</text>
+  <!-- axes -->
+  <line x1="70" y1="380" x2="460" y2="380" stroke="#33475b" stroke-width="1.8" marker-end="url(#a)"/>
+  <line x1="70" y1="380" x2="70" y2="110" stroke="#33475b" stroke-width="1.8" marker-end="url(#a)"/>
+  <text x="265" y="410" text-anchor="middle" font-size="12" fill="#5b6b7b">latency</text>
+  <text x="52" y="240" text-anchor="middle" font-size="12" fill="#5b6b7b" transform="rotate(-90 52 240)">frequency</text>
+
+  <!-- tail shading -->
+  <path d="M300 380 C 360 372 410 377 452 379 L452 380 Z" fill="none"/>
+  <path d="M300 340 C 360 370 410 376 452 379 L452 380 L300 380 Z" fill="#fdecc8"/>
+  <!-- main curve fill -->
+  <path d="M70 380 C 100 380 122 168 152 168 C 205 168 245 300 300 340 C 360 370 410 376 452 379 L452 380 L70 380 Z" fill="#dce8f7" opacity="0.75"/>
+  <path d="M70 380 C 100 380 122 168 152 168 C 205 168 245 300 300 340 C 360 370 410 376 452 379" fill="none" stroke="#2f6db3" stroke-width="2.4"/>
+
+  <!-- markers -->
+  <line x1="152" y1="168" x2="152" y2="380" stroke="#2e8b57" stroke-width="1.6" stroke-dasharray="4 3"/>
+  <text x="152" y="150" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1f6b41">p50</text>
+  <line x1="322" y1="322" x2="322" y2="380" stroke="#d99413" stroke-width="1.8" stroke-dasharray="4 3"/>
+  <text x="322" y="306" text-anchor="middle" font-size="11.5" font-weight="700" fill="#a5700c">p99</text>
+  <line x1="398" y1="360" x2="398" y2="380" stroke="#c0392b" stroke-width="1.8" stroke-dasharray="4 3"/>
+  <text x="405" y="348" text-anchor="middle" font-size="11.5" font-weight="700" fill="#c0392b">p99.9</text>
+  <text x="380" y="432" text-anchor="middle" font-size="11" font-style="italic" fill="#a5700c">the tail (rare, but decisive)</text>
+
+  <!-- RIGHT: fan-out -->
+  <text x="710" y="72" text-anchor="middle" font-size="14" font-weight="700" fill="#33475b">Fan-out turns a rare delay into a common one</text>
+  <rect x="520" y="100" width="160" height="52" rx="9" fill="#dce8f7" stroke="#2f6db3" stroke-width="2"/>
+  <text x="600" y="126" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1c4e86">one procedure</text>
+  <text x="600" y="142" text-anchor="middle" font-size="10.5" fill="#5b6b7b">(call setup / handover)</text>
+
+  <!-- ops -->
+  <g font-size="11">
+    <rect x="500" y="210" width="80" height="40" rx="7" fill="#eef1f4" stroke="#6b7b8c"/><text x="540" y="234" text-anchor="middle" fill="#33475b">op 1</text>
+    <rect x="595" y="210" width="80" height="40" rx="7" fill="#eef1f4" stroke="#6b7b8c"/><text x="635" y="234" text-anchor="middle" fill="#33475b">op 2</text>
+    <rect x="690" y="210" width="80" height="40" rx="7" fill="#eef1f4" stroke="#6b7b8c"/><text x="730" y="234" text-anchor="middle" fill="#33475b">op 3</text>
+    <rect x="785" y="210" width="95" height="40" rx="7" fill="#f8d7d5" stroke="#c0392b" stroke-width="2"/><text x="832" y="230" text-anchor="middle" font-weight="700" fill="#a5281b">op 4</text><text x="832" y="244" text-anchor="middle" font-size="9.5" fill="#a5281b">(slow / tail)</text>
+  </g>
+  <g stroke="#33475b" stroke-width="1.6">
+    <line x1="560" y1="152" x2="540" y2="208" marker-end="url(#a)"/>
+    <line x1="585" y1="152" x2="635" y2="208" marker-end="url(#a)"/>
+    <line x1="618" y1="152" x2="730" y2="208" marker-end="url(#a)"/>
+    <line x1="640" y1="152" x2="832" y2="208" stroke="#c0392b" marker-end="url(#ar)"/>
+  </g>
+  <!-- gather -->
+  <rect x="600" y="316" width="220" height="56" rx="9" fill="#fff6f5" stroke="#c0392b" stroke-width="2"/>
+  <text x="710" y="340" text-anchor="middle" font-size="12.5" font-weight="700" fill="#a5281b">response time = slowest op</text>
+  <text x="710" y="358" text-anchor="middle" font-size="10.5" fill="#8a3227">so a p99 per-op delay becomes a p99 per-procedure delay</text>
+  <line x1="832" y1="250" x2="770" y2="314" stroke="#c0392b" stroke-width="1.8" marker-end="url(#ar)"/>
+  <line x1="540" y1="250" x2="640" y2="314" stroke="#9fb0c0" stroke-width="1.4" marker-end="url(#a)"/>
+  <line x1="635" y1="250" x2="675" y2="314" stroke="#9fb0c0" stroke-width="1.4" marker-end="url(#a)"/>
+  <line x1="730" y1="250" x2="720" y2="314" stroke="#9fb0c0" stroke-width="1.4" marker-end="url(#a)"/>
+
+  <text x="470" y="466" text-anchor="middle" font-size="11.5" fill="#5b6b7b">At fleet scale (thousands of procedures/s across millions of devices) a 1-in-1000 tail event is routine somewhere at every instant.</text>
+</svg>

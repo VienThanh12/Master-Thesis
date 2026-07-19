@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <rect x="0" y="0" width="900" height="520" fill="#ffffff"/>
+  <text x="450" y="34" text-anchor="middle" font-size="22" font-weight="700" fill="#12233a">Defect-class outcome matrix (RQ2)</text>
+  <text x="450" y="56" text-anchor="middle" font-size="13" fill="#5b6b7b">Every injected defect is a compile error in safe Rust; in C++ each compiles and is caught, if at all, only at runtime</text>
+
+  <!-- header -->
+  <g font-weight="700" font-size="13.5">
+    <rect x="60" y="86" width="260" height="46" fill="#12233a"/>
+    <text x="76" y="114" fill="#ffffff">Defect class</text>
+    <rect x="320" y="86" width="150" height="46" fill="#12233a"/>
+    <text x="395" y="114" text-anchor="middle" fill="#ffffff">C++ &#183; ASan</text>
+    <rect x="470" y="86" width="150" height="46" fill="#12233a"/>
+    <text x="545" y="114" text-anchor="middle" fill="#ffffff">C++ &#183; TSan</text>
+    <rect x="620" y="86" width="220" height="46" fill="#12233a"/>
+    <text x="730" y="114" text-anchor="middle" fill="#ffffff">Safe Rust (rustc)</text>
+  </g>
+
+  <!-- helper styles: green #d9f0dd/#2e8b57, amber #fdecc8/#d99413, red #f8d7d5/#c0392b -->
+  <!-- Row 1 UAF -->
+  <g font-size="12.5">
+    <rect x="60" y="132" width="260" height="70" fill="#f7f9fb" stroke="#ffffff" stroke-width="2"/>
+    <text x="76" y="168" font-weight="600" fill="#243447">Use-after-free</text>
+    <text x="76" y="187" font-size="10.5" fill="#8794a3">stale ptr into context map</text>
+    <rect x="320" y="132" width="150" height="70" fill="#fdecc8" stroke="#ffffff" stroke-width="2"/>
+    <text x="395" y="164" text-anchor="middle" fill="#a5700c" font-weight="600">detected</text>
+    <text x="395" y="182" text-anchor="middle" font-size="10.5" fill="#a5700c">at runtime</text>
+    <rect x="470" y="132" width="150" height="70" fill="#fdecc8" stroke="#ffffff" stroke-width="2"/>
+    <text x="545" y="164" text-anchor="middle" fill="#a5700c" font-weight="600">detected</text>
+    <text x="545" y="182" text-anchor="middle" font-size="10.5" fill="#a5700c">at runtime</text>
+    <rect x="620" y="132" width="220" height="70" fill="#d9f0dd" stroke="#ffffff" stroke-width="2"/>
+    <text x="730" y="164" text-anchor="middle" fill="#1f6b41" font-weight="700">prevented</text>
+    <text x="730" y="184" text-anchor="middle" font-size="11" fill="#2e8b57">compile-time &#183; E0499</text>
+  </g>
+  <!-- Row 2 double-free -->
+  <g font-size="12.5">
+    <rect x="60" y="204" width="260" height="70" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+    <text x="76" y="240" font-weight="600" fill="#243447">Double-free</text>
+    <text x="76" y="259" font-size="10.5" fill="#8794a3">context released twice</text>
+    <rect x="320" y="204" width="150" height="70" fill="#fdecc8" stroke="#ffffff" stroke-width="2"/>
+    <text x="395" y="236" text-anchor="middle" fill="#a5700c" font-weight="600">detected</text>
+    <text x="395" y="254" text-anchor="middle" font-size="10.5" fill="#a5700c">at runtime</text>
+    <rect x="470" y="204" width="150" height="70" fill="#f8d7d5" stroke="#ffffff" stroke-width="2"/>
+    <text x="545" y="236" text-anchor="middle" fill="#a5281b" font-weight="600">not detected</text>
+    <text x="545" y="254" text-anchor="middle" font-size="10.5" fill="#a5281b">(clean)</text>
+    <rect x="620" y="204" width="220" height="70" fill="#d9f0dd" stroke="#ffffff" stroke-width="2"/>
+    <text x="730" y="236" text-anchor="middle" fill="#1f6b41" font-weight="700">prevented</text>
+    <text x="730" y="256" text-anchor="middle" font-size="11" fill="#2e8b57">compile-time &#183; E0382</text>
+  </g>
+  <!-- Row 3 iterator invalidation -->
+  <g font-size="12.5">
+    <rect x="60" y="276" width="260" height="70" fill="#f7f9fb" stroke="#ffffff" stroke-width="2"/>
+    <text x="76" y="312" font-weight="600" fill="#243447">Iterator invalidation</text>
+    <text x="76" y="331" font-size="10.5" fill="#8794a3">mutate DRB list while iterating</text>
+    <rect x="320" y="276" width="150" height="70" fill="#fdecc8" stroke="#ffffff" stroke-width="2"/>
+    <text x="395" y="308" text-anchor="middle" fill="#a5700c" font-weight="600">detected</text>
+    <text x="395" y="326" text-anchor="middle" font-size="10.5" fill="#a5700c">at runtime</text>
+    <rect x="470" y="276" width="150" height="70" fill="#fdecc8" stroke="#ffffff" stroke-width="2"/>
+    <text x="545" y="308" text-anchor="middle" fill="#a5700c" font-weight="600">detected</text>
+    <text x="545" y="326" text-anchor="middle" font-size="10.5" fill="#a5700c">at runtime</text>
+    <rect x="620" y="276" width="220" height="70" fill="#d9f0dd" stroke="#ffffff" stroke-width="2"/>
+    <text x="730" y="308" text-anchor="middle" fill="#1f6b41" font-weight="700">prevented</text>
+    <text x="730" y="328" text-anchor="middle" font-size="11" fill="#2e8b57">compile-time &#183; E0502</text>
+  </g>
+  <!-- Row 4 data race -->
+  <g font-size="12.5">
+    <rect x="60" y="348" width="260" height="70" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+    <text x="76" y="384" font-weight="600" fill="#243447">Data race</text>
+    <text x="76" y="403" font-size="10.5" fill="#8794a3">unsynchronised field update</text>
+    <rect x="320" y="348" width="150" height="70" fill="#f8d7d5" stroke="#ffffff" stroke-width="2"/>
+    <text x="395" y="380" text-anchor="middle" fill="#a5281b" font-weight="600">not detected</text>
+    <text x="395" y="398" text-anchor="middle" font-size="10.5" fill="#a5281b">(clean)</text>
+    <rect x="470" y="348" width="150" height="70" fill="#fdecc8" stroke="#ffffff" stroke-width="2"/>
+    <text x="545" y="380" text-anchor="middle" fill="#a5700c" font-weight="600">detected</text>
+    <text x="545" y="398" text-anchor="middle" font-size="10.5" fill="#a5700c">at runtime</text>
+    <rect x="620" y="348" width="220" height="70" fill="#d9f0dd" stroke="#ffffff" stroke-width="2"/>
+    <text x="730" y="380" text-anchor="middle" fill="#1f6b41" font-weight="700">prevented</text>
+    <text x="730" y="400" text-anchor="middle" font-size="11" fill="#2e8b57">compile-time &#183; E0373</text>
+  </g>
+  <!-- Row 5 unguarded -->
+  <g font-size="12.5">
+    <rect x="60" y="420" width="260" height="70" fill="#f7f9fb" stroke="#ffffff" stroke-width="2"/>
+    <text x="76" y="456" font-weight="600" fill="#243447">Unguarded shared mutation</text>
+    <text x="76" y="475" font-size="10.5" fill="#8794a3">ctx shared &amp; mutated, no lock</text>
+    <rect x="320" y="420" width="150" height="70" fill="#f8d7d5" stroke="#ffffff" stroke-width="2"/>
+    <text x="395" y="452" text-anchor="middle" fill="#a5281b" font-weight="600">not detected</text>
+    <text x="395" y="470" text-anchor="middle" font-size="10.5" fill="#a5281b">(clean)</text>
+    <rect x="470" y="420" width="150" height="70" fill="#fdecc8" stroke="#ffffff" stroke-width="2"/>
+    <text x="545" y="452" text-anchor="middle" fill="#a5700c" font-weight="600">detected</text>
+    <text x="545" y="470" text-anchor="middle" font-size="10.5" fill="#a5700c">at runtime</text>
+    <rect x="620" y="420" width="220" height="70" fill="#d9f0dd" stroke="#ffffff" stroke-width="2"/>
+    <text x="730" y="452" text-anchor="middle" fill="#1f6b41" font-weight="700">prevented</text>
+    <text x="730" y="472" text-anchor="middle" font-size="11" fill="#2e8b57">compile-time &#183; E0502</text>
+  </g>
+
+  <!-- legend -->
+  <g font-size="11.5">
+    <rect x="60" y="500" width="16" height="14" fill="#d9f0dd" stroke="#2e8b57"/>
+    <text x="82" y="512" fill="#4a5b6b">prevented at compile time (safe Rust)</text>
+    <rect x="330" y="500" width="16" height="14" fill="#fdecc8" stroke="#d99413"/>
+    <text x="352" y="512" fill="#4a5b6b">compiles in C++, caught at runtime</text>
+    <rect x="620" y="500" width="16" height="14" fill="#f8d7d5" stroke="#c0392b"/>
+    <text x="642" y="512" fill="#4a5b6b">sanitiser does not detect it</text>
+  </g>
+</svg>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 540" width="980" height="540" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <rect x="0" y="0" width="980" height="540" fill="#ffffff"/>
+  <text x="490" y="34" text-anchor="middle" font-size="22" font-weight="700" fill="#12233a">Same use-after-free, two languages</text>
+  <text x="490" y="56" text-anchor="middle" font-size="13" fill="#5b6b7b">A stale alias into the context map survives the erase that frees it (fault-injection catalogue, RQ2)</text>
+
+  <!-- C++ panel -->
+  <rect x="30" y="80" width="450" height="300" rx="10" fill="#ffffff" stroke="#2f6db3" stroke-width="2"/>
+  <rect x="30" y="80" width="450" height="36" rx="10" fill="#dce8f7" stroke="#2f6db3" stroke-width="2"/>
+  <text x="255" y="105" text-anchor="middle" font-size="15" font-weight="700" fill="#1c4e86">C++  &#8212;  compiles cleanly</text>
+  <rect x="46" y="128" width="418" height="196" rx="7" fill="#1c2733"/>
+  <g font-family="monospace" font-size="12.5" fill="#e6edf3">
+    <text x="60" y="152">std::unordered_map&lt;uint64_t, UeContext&gt; ctxs;</text>
+    <text x="60" y="174">ctxs[1001] = UeContext{1001, 0};</text>
+    <text x="60" y="196">UeContext* p = &amp;ctxs.at(1001);<tspan fill="#8fb7d9">  // alias</tspan></text>
+    <text x="60" y="218">ctxs.erase(1001);<tspan fill="#f0a58c">   // frees node p points to</tspan></text>
+    <text x="60" y="240">p-&gt;messages_handled += 1;</text>
+    <text x="60" y="262" fill="#ff8b7a" font-weight="700">   ^^ use-after-free (freed storage)</text>
+  </g>
+  <text x="46" y="348" font-size="12" fill="#a5700c" font-weight="600">&#8594; Detected only at runtime, by AddressSanitizer,</text>
+  <text x="46" y="366" font-size="12" fill="#a5700c" font-weight="600">   and only if a test exercises this path.</text>
+
+  <!-- Rust panel -->
+  <rect x="500" y="80" width="450" height="300" rx="10" fill="#ffffff" stroke="#d35400" stroke-width="2"/>
+  <rect x="500" y="80" width="450" height="36" rx="10" fill="#fbe0cb" stroke="#d35400" stroke-width="2"/>
+  <text x="725" y="105" text-anchor="middle" font-size="15" font-weight="700" fill="#a04000">Safe Rust  &#8212;  does not compile</text>
+  <rect x="516" y="128" width="418" height="196" rx="7" fill="#1c2733"/>
+  <g font-family="monospace" font-size="12.5" fill="#e6edf3">
+    <text x="530" y="152">let mut ctxs: HashMap&lt;u64, UeContext&gt;</text>
+    <text x="530" y="174">    = HashMap::new();</text>
+    <text x="530" y="196">ctxs.insert(1001, UeContext { .. });</text>
+    <text x="530" y="218">let p = ctxs.get_mut(&amp;1001).unwrap();<tspan fill="#8fd9a5">  // borrow</tspan></text>
+    <text x="530" y="240">ctxs.remove(&amp;1001);<tspan fill="#ff8b7a"> // borrow still live</tspan></text>
+    <text x="530" y="262">p.messages_handled += 1;</text>
+    <text x="530" y="290" fill="#8fd9a5" font-weight="700">error[E0499]: cannot borrow `ctxs` as</text>
+    <text x="530" y="308" fill="#8fd9a5" font-weight="700">mutable more than once at a time</text>
+  </g>
+  <text x="516" y="348" font-size="12" fill="#1f6b41" font-weight="600">&#8594; Rejected at compile time by the borrow checker.</text>
+  <text x="516" y="366" font-size="12" fill="#1f6b41" font-weight="600">   The defect cannot be written in the first place.</text>
+
+  <!-- outcome banner -->
+  <rect x="30" y="404" width="920" height="110" rx="10" fill="#fbfcfd" stroke="#d7dde3"/>
+  <text x="490" y="430" text-anchor="middle" font-size="14" font-weight="700" fill="#12233a">The difference is one of kind, not degree</text>
+  <rect x="52" y="446" width="150" height="52" rx="7" fill="#dce8f7" stroke="#2f6db3"/>
+  <text x="127" y="468" text-anchor="middle" font-size="11.5" fill="#1c4e86">C++: valid program</text>
+  <text x="127" y="486" text-anchor="middle" font-size="10.5" fill="#5b6b7b">latent hazard</text>
+  <text x="220" y="478" font-size="18" fill="#8794a3">&#8594;</text>
+  <rect x="248" y="446" width="170" height="52" rx="7" fill="#fdecc8" stroke="#d99413"/>
+  <text x="333" y="468" text-anchor="middle" font-size="11.5" fill="#a5700c">runtime crash / corruption /</text>
+  <text x="333" y="486" text-anchor="middle" font-size="11.5" fill="#a5700c">tail-latency spike</text>
+
+  <rect x="560" y="446" width="150" height="52" rx="7" fill="#fbe0cb" stroke="#d35400"/>
+  <text x="635" y="468" text-anchor="middle" font-size="11.5" fill="#a04000">Rust: build fails</text>
+  <text x="635" y="486" text-anchor="middle" font-size="10.5" fill="#8a4b16">on every ordinary build</text>
+  <text x="728" y="478" font-size="18" fill="#8794a3">&#8594;</text>
+  <rect x="756" y="446" width="170" height="52" rx="7" fill="#d9f0dd" stroke="#2e8b57"/>
+  <text x="841" y="468" text-anchor="middle" font-size="11.5" fill="#1f6b41">shipped code cannot</text>
+  <text x="841" y="486" text-anchor="middle" font-size="11.5" fill="#1f6b41">contain this defect</text>
+</svg>

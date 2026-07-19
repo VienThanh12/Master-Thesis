@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 470" width="900" height="470" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#33475b"/>
+    </marker>
+    <marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c0392b"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="900" height="470" fill="#ffffff"/>
+  <text x="450" y="36" text-anchor="middle" font-size="23" font-weight="700" fill="#12233a">UE-context lifecycle state machine</text>
+  <text x="450" y="59" text-anchor="middle" font-size="13.5" fill="#5b6b7b">Both implementations encode this identically; an op illegal for the current state returns OpError::InvalidState and leaves state unchanged</text>
+
+  <!-- create entry -->
+  <line x1="40" y1="205" x2="112" y2="205" stroke="#33475b" stroke-width="2.2" marker-end="url(#a)"/>
+  <text x="76" y="195" text-anchor="middle" font-size="12.5" font-style="italic" fill="#33475b">create_context</text>
+
+  <!-- Idle -->
+  <ellipse cx="175" cy="205" rx="63" ry="46" fill="#dce8f7" stroke="#2f6db3" stroke-width="2.4"/>
+  <text x="175" y="200" text-anchor="middle" font-size="17" font-weight="700" fill="#1c4e86">Idle</text>
+  <text x="175" y="220" text-anchor="middle" font-size="11" fill="#5b6b7b">state = 0</text>
+
+  <!-- Connected -->
+  <ellipse cx="450" cy="205" rx="72" ry="49" fill="#dce8f7" stroke="#2f6db3" stroke-width="2.4"/>
+  <text x="450" y="200" text-anchor="middle" font-size="17" font-weight="700" fill="#1c4e86">Connected</text>
+  <text x="450" y="220" text-anchor="middle" font-size="11" fill="#5b6b7b">state = 1</text>
+
+  <!-- Reconfiguring -->
+  <ellipse cx="748" cy="205" rx="80" ry="49" fill="#dce8f7" stroke="#2f6db3" stroke-width="2.4"/>
+  <text x="748" y="200" text-anchor="middle" font-size="16" font-weight="700" fill="#1c4e86">Reconfiguring</text>
+  <text x="748" y="220" text-anchor="middle" font-size="11" fill="#5b6b7b">state = 2</text>
+
+  <!-- Released -->
+  <ellipse cx="450" cy="408" rx="72" ry="42" fill="#eceff1" stroke="#8794a3" stroke-width="2.2" stroke-dasharray="6 4"/>
+  <text x="450" y="404" text-anchor="middle" font-size="15" font-weight="700" fill="#4a5b6b">Released</text>
+  <text x="450" y="423" text-anchor="middle" font-size="10.5" fill="#7a8a99">state = 3 &#8594; removed</text>
+
+  <!-- Idle -> Connected setup -->
+  <line x1="238" y1="205" x2="376" y2="205" stroke="#33475b" stroke-width="2.2" marker-end="url(#a)"/>
+  <text x="307" y="195" text-anchor="middle" font-size="12.5" font-style="italic" fill="#33475b">setup_connection</text>
+
+  <!-- Connected self loop signal/add_drb -->
+  <path d="M410 162 C 400 108, 500 108, 490 162" fill="none" stroke="#33475b" stroke-width="2.2" marker-end="url(#a)"/>
+  <text x="450" y="106" text-anchor="middle" font-size="12.5" font-style="italic" fill="#33475b">handle_signaling / add_drb</text>
+
+  <!-- Connected -> Reconfiguring begin -->
+  <path d="M520 188 C 590 168, 620 168, 672 186" fill="none" stroke="#33475b" stroke-width="2.2" marker-end="url(#a)"/>
+  <text x="596" y="160" text-anchor="middle" font-size="12.5" font-style="italic" fill="#33475b">begin_reconfigure</text>
+
+  <!-- Reconfiguring -> Connected complete/abort -->
+  <path d="M672 224 C 620 246, 590 246, 522 226" fill="none" stroke="#33475b" stroke-width="2.2" marker-end="url(#a)"/>
+  <text x="596" y="262" text-anchor="middle" font-size="12.5" font-style="italic" fill="#33475b">complete_reconfigure / abort_reconfigure</text>
+
+  <!-- release edges (red) -->
+  <line x1="180" y1="250" x2="392" y2="386" stroke="#c0392b" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+  <line x1="450" y1="254" x2="450" y2="362" stroke="#c0392b" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+  <line x1="742" y1="252" x2="512" y2="388" stroke="#c0392b" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+  <text x="450" y="312" text-anchor="middle" font-size="12.5" font-style="italic" font-weight="600" fill="#c0392b">release_context  (from Idle / Connected / Reconfiguring)</text>
+
+  <!-- legend -->
+  <rect x="620" y="392" width="255" height="60" rx="8" fill="#fbfcfd" stroke="#d7dde3"/>
+  <line x1="636" y1="410" x2="668" y2="410" stroke="#33475b" stroke-width="2.2" marker-end="url(#a)"/>
+  <text x="676" y="414" font-size="11.5" fill="#4a5b6b">legal transition (API op)</text>
+  <line x1="636" y1="434" x2="668" y2="434" stroke="#c0392b" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+  <text x="676" y="438" font-size="11.5" fill="#4a5b6b">teardown &#8594; context removed</text>
+</svg>

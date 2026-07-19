@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" width="900" height="480" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#33475b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="900" height="480" fill="#ffffff"/>
+  <text x="450" y="34" text-anchor="middle" font-size="22" font-weight="700" fill="#12233a">Coordinated omission: the trap a naive load generator falls into</text>
+  <text x="450" y="56" text-anchor="middle" font-size="13" fill="#5b6b7b">When the system stalls, a closed-loop generator stalls with it &#8212; and silently fails to record the very requests that expose the tail</text>
+
+  <!-- stall band spanning both -->
+  <rect x="360" y="96" width="150" height="330" fill="#fdf1f0"/>
+  <text x="435" y="112" text-anchor="middle" font-size="11.5" font-weight="700" fill="#a5281b">system stall</text>
+
+  <!-- TOP: open-loop -->
+  <text x="80" y="150" font-size="14" font-weight="700" fill="#1f6b41">Open-loop (correct)</text>
+  <text x="80" y="168" font-size="11" fill="#2e8b57">latency measured against a fixed intended send time</text>
+  <line x1="80" y1="210" x2="840" y2="210" stroke="#33475b" stroke-width="1.8" marker-end="url(#a)"/>
+  <text x="846" y="214" font-size="11" fill="#5b6b7b"></text>
+  <!-- intended send ticks (even) -->
+  <g stroke="#2e8b57" stroke-width="2.4">
+    <line x1="110" y1="200" x2="110" y2="220"/><line x1="160" y1="200" x2="160" y2="220"/>
+    <line x1="210" y1="200" x2="210" y2="220"/><line x1="260" y1="200" x2="260" y2="220"/>
+    <line x1="310" y1="200" x2="310" y2="220"/>
+    <line x1="370" y1="200" x2="370" y2="220"/><line x1="410" y1="200" x2="410" y2="220"/>
+    <line x1="450" y1="200" x2="450" y2="220"/><line x1="490" y1="200" x2="490" y2="220"/>
+    <line x1="560" y1="200" x2="560" y2="220"/><line x1="610" y1="200" x2="610" y2="220"/>
+    <line x1="660" y1="200" x2="660" y2="220"/><line x1="710" y1="200" x2="710" y2="220"/>
+    <line x1="760" y1="200" x2="760" y2="220"/>
+  </g>
+  <!-- long latency bars during stall (measured from intended time) -->
+  <g fill="#c0392b" opacity="0.8">
+    <rect x="370" y="176" width="150" height="6"/>
+    <rect x="410" y="186" width="120" height="6"/>
+    <rect x="450" y="196" width="90" height="6"/>
+  </g>
+  <text x="840" y="184" text-anchor="end" font-size="11" fill="#a5281b" font-weight="600">long latencies ARE recorded &#8594; tail captured</text>
+  <text x="130" y="244" font-size="10.5" fill="#2e8b57">requests sent on schedule regardless of system state</text>
+
+  <!-- BOTTOM: closed-loop -->
+  <text x="80" y="300" font-size="14" font-weight="700" fill="#a5281b">Naive closed-loop (biased)</text>
+  <text x="80" y="318" font-size="11" fill="#8a3227">generator waits for each response before sending the next</text>
+  <line x1="80" y1="360" x2="840" y2="360" stroke="#33475b" stroke-width="1.8" marker-end="url(#a)"/>
+  <!-- sends before stall -->
+  <g stroke="#2f6db3" stroke-width="2.4">
+    <line x1="110" y1="350" x2="110" y2="370"/><line x1="160" y1="350" x2="160" y2="370"/>
+    <line x1="210" y1="350" x2="210" y2="370"/><line x1="260" y1="350" x2="260" y2="370"/>
+    <line x1="310" y1="350" x2="310" y2="370"/>
+  </g>
+  <!-- gap during stall: no sends -->
+  <text x="435" y="356" text-anchor="middle" font-size="11" font-weight="700" fill="#a5281b">(no requests sent)</text>
+  <!-- resume after stall -->
+  <g stroke="#2f6db3" stroke-width="2.4">
+    <line x1="560" y1="350" x2="560" y2="370"/><line x1="610" y1="350" x2="610" y2="370"/>
+    <line x1="660" y1="350" x2="660" y2="370"/><line x1="710" y1="350" x2="710" y2="370"/>
+    <line x1="760" y1="350" x2="760" y2="370"/>
+  </g>
+  <!-- missing markers -->
+  <g stroke="#c0392b" stroke-width="1.6" stroke-dasharray="3 3">
+    <line x1="370" y1="352" x2="370" y2="368"/><line x1="410" y1="352" x2="410" y2="368"/>
+    <line x1="450" y1="352" x2="450" y2="368"/><line x1="490" y1="352" x2="490" y2="368"/>
+  </g>
+  <text x="435" y="394" text-anchor="middle" font-size="11" fill="#a5281b" font-weight="600">missing samples &#8594; the tail is hidden</text>
+
+  <!-- legend -->
+  <rect x="80" y="420" width="760" height="44" rx="9" fill="#fbfcfd" stroke="#d7dde3"/>
+  <line x1="100" y1="442" x2="120" y2="442" stroke="#2e8b57" stroke-width="2.4"/>
+  <text x="128" y="446" font-size="11" fill="#4a5b6b">intended/actual send</text>
+  <line x1="290" y1="442" x2="310" y2="442" stroke="#c0392b" stroke-width="1.6" stroke-dasharray="3 3"/>
+  <text x="318" y="446" font-size="11" fill="#4a5b6b">omitted request (never recorded)</text>
+  <text x="500" y="446" font-size="10.5" fill="#4a5b6b">Fix: open-loop schedule + coordinated-omission correction.</text>
+</svg>

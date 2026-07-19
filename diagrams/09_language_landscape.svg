@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 640" width="820" height="640" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#33475b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="820" height="640" fill="#ffffff"/>
+  <text x="410" y="36" text-anchor="middle" font-size="22" font-weight="700" fill="#12233a">The systems-language landscape</text>
+  <text x="410" y="58" text-anchor="middle" font-size="13" fill="#5b6b7b">Why the meaningful comparison for a RAN control plane is C++ vs Rust</text>
+
+  <!-- quadrant background -->
+  <rect x="110" y="90" width="620" height="480" fill="#fbfcfd" stroke="#d7dde3"/>
+  <line x1="420" y1="90" x2="420" y2="570" stroke="#c3ccd5" stroke-width="1.4" stroke-dasharray="4 4"/>
+  <line x1="110" y1="330" x2="730" y2="330" stroke="#c3ccd5" stroke-width="1.4" stroke-dasharray="4 4"/>
+
+  <!-- axes labels -->
+  <line x1="110" y1="588" x2="730" y2="588" stroke="#33475b" stroke-width="2" marker-end="url(#a)"/>
+  <text x="420" y="612" text-anchor="middle" font-size="13" font-weight="600" fill="#33475b">low-level control over memory &amp; scheduling  &#8594;</text>
+  <text x="150" y="605" font-size="11" fill="#8794a3">managed runtime / GC</text>
+  <text x="640" y="605" font-size="11" fill="#8794a3">bare-metal control</text>
+
+  <line x1="92" y1="570" x2="92" y2="90" stroke="#33475b" stroke-width="2" marker-end="url(#a)"/>
+  <text x="70" y="330" text-anchor="middle" font-size="13" font-weight="600" fill="#33475b" transform="rotate(-90 70 330)">memory &amp; thread safety  &#8594;</text>
+  <text x="86" y="556" font-size="11" fill="#8794a3" transform="rotate(-90 86 556)">manual / unsafe</text>
+  <text x="86" y="180" font-size="11" fill="#8794a3" transform="rotate(-90 86 180)">compile-time enforced</text>
+
+  <!-- quadrant captions -->
+  <text x="265" y="112" text-anchor="middle" font-size="11.5" font-style="italic" fill="#9aa7b3">safe, but GC pauses hurt tail latency</text>
+  <text x="575" y="112" text-anchor="middle" font-size="11.5" font-style="italic" fill="#9aa7b3">safe AND no GC: the sweet spot</text>
+  <text x="575" y="556" text-anchor="middle" font-size="11.5" font-style="italic" fill="#9aa7b3">fast, but safety is the programmer's job</text>
+
+  <!-- language markers -->
+  <!-- Java/C# -->
+  <circle cx="235" cy="185" r="30" fill="#eceff1" stroke="#6b7b8c" stroke-width="2"/>
+  <text x="235" y="182" text-anchor="middle" font-size="12.5" font-weight="700" fill="#33475b">Java</text>
+  <text x="235" y="198" text-anchor="middle" font-size="12.5" font-weight="700" fill="#33475b">C#</text>
+  <!-- Go -->
+  <circle cx="330" cy="250" r="28" fill="#eceff1" stroke="#6b7b8c" stroke-width="2"/>
+  <text x="330" y="255" text-anchor="middle" font-size="12.5" font-weight="700" fill="#33475b">Go</text>
+  <!-- Python -->
+  <circle cx="185" cy="270" r="28" fill="#eceff1" stroke="#6b7b8c" stroke-width="2"/>
+  <text x="185" y="275" text-anchor="middle" font-size="12" font-weight="700" fill="#33475b">Python</text>
+
+  <!-- Rust (highlight) -->
+  <circle cx="590" cy="175" r="44" fill="#fbe0cb" stroke="#d35400" stroke-width="3"/>
+  <text x="590" y="182" text-anchor="middle" font-size="18" font-weight="700" fill="#a04000">Rust</text>
+  <text x="590" y="240" text-anchor="middle" font-size="11" fill="#a04000">compile-time safety,</text>
+  <text x="590" y="255" text-anchor="middle" font-size="11" fill="#a04000">no GC, C++-class speed</text>
+
+  <!-- C++ -->
+  <circle cx="560" cy="440" r="34" fill="#dce8f7" stroke="#2f6db3" stroke-width="2.4"/>
+  <text x="560" y="445" text-anchor="middle" font-size="15" font-weight="700" fill="#1c4e86">C++</text>
+  <text x="560" y="492" text-anchor="middle" font-size="10.5" fill="#5b6b7b">RAII/smart ptrs help,</text>
+  <text x="560" y="506" text-anchor="middle" font-size="10.5" fill="#5b6b7b">but safety not enforced</text>
+  <!-- C -->
+  <circle cx="670" cy="500" r="28" fill="#dce8f7" stroke="#2f6db3" stroke-width="2"/>
+  <text x="670" y="505" text-anchor="middle" font-size="14" font-weight="700" fill="#1c4e86">C</text>
+
+  <text x="410" y="636" text-anchor="middle" font-size="11" fill="#8794a3">Managed languages are out of scope: GC-induced pauses are a recognised source of tail latency in large systems.</text>
+</svg>

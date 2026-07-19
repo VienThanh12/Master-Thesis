@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 520" width="940" height="520" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#33475b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="940" height="520" fill="#ffffff"/>
+  <text x="470" y="34" text-anchor="middle" font-size="22" font-weight="700" fill="#12233a">Controlled fault-injection method (RQ2)</text>
+  <text x="470" y="56" text-anchor="middle" font-size="13" fill="#5b6b7b">The independent variable is only the language; the injected fault is held fixed, so the outcome is attributable to the language</text>
+
+  <!-- catalogue -->
+  <rect x="296" y="80" width="348" height="56" rx="10" fill="#12233a"/>
+  <text x="470" y="104" text-anchor="middle" font-size="12.5" font-weight="700" fill="#ffffff">Catalogue: 5 representative defect classes</text>
+  <text x="470" y="123" text-anchor="middle" font-size="10.5" fill="#c3ccd5">each a small program flavoured with the UECM domain</text>
+
+  <!-- split -->
+  <line x1="400" y1="136" x2="250" y2="176" stroke="#33475b" stroke-width="1.8" marker-end="url(#a)"/>
+  <line x1="540" y1="136" x2="690" y2="176" stroke="#33475b" stroke-width="1.8" marker-end="url(#a)"/>
+
+  <!-- C++ path -->
+  <rect x="70" y="178" width="360" height="250" rx="12" fill="#f4f8fc" stroke="#2f6db3" stroke-width="1.6" stroke-dasharray="6 4"/>
+  <text x="250" y="200" text-anchor="middle" font-size="14" font-weight="700" fill="#1c4e86">C++ path</text>
+
+  <rect x="100" y="214" width="300" height="46" rx="8" fill="#dce8f7" stroke="#2f6db3" stroke-width="1.8"/>
+  <text x="250" y="242" text-anchor="middle" font-size="12" fill="#1c4e86">write deliberate C++ defect (g++ 13.3, -O0)</text>
+
+  <rect x="100" y="278" width="142" height="52" rx="8" fill="#ffffff" stroke="#d99413" stroke-width="1.8"/>
+  <text x="171" y="300" text-anchor="middle" font-size="12" font-weight="600" fill="#a5700c">run under ASan</text>
+  <text x="171" y="316" text-anchor="middle" font-size="10" fill="#a5700c">memory errors</text>
+  <rect x="258" y="278" width="142" height="52" rx="8" fill="#ffffff" stroke="#d99413" stroke-width="1.8"/>
+  <text x="329" y="300" text-anchor="middle" font-size="12" font-weight="600" fill="#a5700c">run under TSan</text>
+  <text x="329" y="316" text-anchor="middle" font-size="10" fill="#a5700c">data races</text>
+
+  <rect x="100" y="350" width="300" height="52" rx="8" fill="#fdf6e9" stroke="#d99413" stroke-width="1.8"/>
+  <text x="250" y="372" text-anchor="middle" font-size="12" font-weight="600" fill="#a5700c">record detection stage per tool</text>
+  <text x="250" y="390" text-anchor="middle" font-size="10.5" fill="#a5700c">detected at runtime, or not at all (clean)</text>
+
+  <line x1="250" y1="260" x2="250" y2="276" stroke="#33475b" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="171" y1="330" x2="210" y2="348" stroke="#33475b" stroke-width="1.4" marker-end="url(#a)"/>
+  <line x1="329" y1="330" x2="290" y2="348" stroke="#33475b" stroke-width="1.4" marker-end="url(#a)"/>
+
+  <!-- Rust path -->
+  <rect x="510" y="178" width="360" height="250" rx="12" fill="#fdf6f0" stroke="#d35400" stroke-width="1.6" stroke-dasharray="6 4"/>
+  <text x="690" y="200" text-anchor="middle" font-size="14" font-weight="700" fill="#a04000">Safe-Rust path</text>
+
+  <rect x="540" y="214" width="300" height="46" rx="8" fill="#fbe0cb" stroke="#d35400" stroke-width="1.8"/>
+  <text x="690" y="242" text-anchor="middle" font-size="12" fill="#a04000">write analogous safe-Rust construct</text>
+
+  <rect x="540" y="290" width="300" height="46" rx="8" fill="#ffffff" stroke="#d35400" stroke-width="1.8"/>
+  <text x="690" y="312" text-anchor="middle" font-size="12" fill="#a04000">compile with rustc 1.96 (edition 2021)</text>
+
+  <rect x="540" y="356" width="300" height="46" rx="8" fill="#eef8f1" stroke="#2e8b57" stroke-width="1.8"/>
+  <text x="690" y="378" text-anchor="middle" font-size="12" font-weight="600" fill="#1f6b41">record compiler outcome (E0499, E0382, ...)</text>
+  <text x="690" y="394" text-anchor="middle" font-size="10.5" fill="#1f6b41">every one: compile error (cannot be written)</text>
+
+  <line x1="690" y1="260" x2="690" y2="288" stroke="#33475b" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="690" y1="336" x2="690" y2="354" stroke="#33475b" stroke-width="1.6" marker-end="url(#a)"/>
+
+  <!-- combine -->
+  <line x1="250" y1="402" x2="360" y2="452" stroke="#33475b" stroke-width="1.8" marker-end="url(#a)"/>
+  <line x1="690" y1="402" x2="580" y2="452" stroke="#33475b" stroke-width="1.8" marker-end="url(#a)"/>
+  <rect x="300" y="454" width="340" height="50" rx="10" fill="#d9f0dd" stroke="#2e8b57" stroke-width="2"/>
+  <text x="470" y="476" text-anchor="middle" font-size="13" font-weight="700" fill="#1f6b41">taxonomy.csv &#8594; outcome matrix</text>
+  <text x="470" y="494" text-anchor="middle" font-size="10.5" fill="#1f6b41">compile-time prevented vs runtime-detected vs missed</text>
+</svg>
