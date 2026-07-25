@@ -914,8 +914,12 @@ concerns, and the resulting artifacts can be released openly for reproduction.
 
 \section{The UE Context Management subsystem}
 The subsystem under study is a UE Context Management service, modeled on a real Nokia
-gNB-CU-CP service domain that owns the UE context lifecycle, RRC procedure execution, and
-mobility/handover. It is a good representative because it is core RAN L3 functionality,
+gNB-CU-CP service domain that owns the UE context lifecycle, RRC procedure
+execution~\cite{3gpp38331}, and mobility/handover---the very functions the 3GPP architecture
+assigns to the control-plane part of a disaggregated gNB, where the CU-CP hosts the RRC and the
+control-plane part of PDCP and manages the UE context, delegating user-plane bearer handling to
+the CU-UP over the E1 interface~\cite{3gpp38401,3gpp38300,3gpp38463}. It is a good representative
+because it is core RAN L3 functionality,
 performance- and latency-sensitive, inherently stateful and concurrent, and self-contained
 enough to specify precisely and benchmark fairly. The modeled functionality includes UE
 context creation and deletion, state transitions (e.g.\ idle to connected), signaling
@@ -955,7 +959,8 @@ instead of changing state.\label{fig:fsm}}
 \paragraph{Representativeness and tractability.}
 Two properties make UECM a good study object for a language comparison. It is
 \emph{representative}: per-UE mutable state, a strict operation lifecycle, high inter-UE
-concurrency, and hard tail-latency expectations are exactly the properties that make production
+concurrency, and the hard latency and reliability targets the 5G system places on control-plane
+procedures~\cite{3gpp22261} are exactly the properties that make production
 RAN control-plane code difficult, so conclusions about how a language handles them transfer to
 the broader class of stateful, concurrent control-plane services. It is also \emph{tractable}:
 the subsystem is small enough to specify precisely, implement faithfully in two languages, and
