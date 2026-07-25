@@ -212,9 +212,12 @@ Two trends make this comparison timely. The first is the cloud-native evolution 
 itself. Moving control-plane functions onto general-purpose servers raises, rather than
 lowers, the premium on software quality: the software is longer-lived, evolves continuously,
 runs at higher concurrency, and must meet its deadlines without the determinism that
-purpose-built hardware once provided. In this setting a latency regression or a
-memory-corruption defect is not a localised bug but a network-wide reliability and security
-risk. The second trend is an industry-wide shift toward memory-safe languages. Large
+purpose-built hardware once provided. This shift is accelerated by Open-RAN disaggregation,
+which turns the base station into virtualised, multi-vendor software connected by open
+interfaces~\cite{polese2023oran}, so that the control plane a vendor ships increasingly
+competes on software-engineering quality rather than on bespoke hardware. In this setting a
+latency regression or a memory-corruption defect is not a localised bug but a network-wide
+reliability and security risk. The second trend is an industry-wide shift toward memory-safe languages. Large
 software organisations report that the majority of their serious security vulnerabilities
 stem from memory-safety errors, and that adopting memory-safe languages measurably reduces
 them~\cite{msrc2019memory,google2022android,google2024securebydesign}. This concern has risen to the level of national
@@ -232,16 +235,24 @@ codebase, has not been answered with direct, controlled evidence. Providing such
 for a representative subsystem is the motivation for this work.
 
 \paragraph{Industrial setting.}
-This thesis is carried out at Nokia, a vendor of production gNB-CU-CP software, and the
-subsystem it studies, UE Context Management (UECM), is modeled on a real control-plane
-component rather than a textbook example. UECM is a deliberate choice of study object: it is
-small enough to reimplement faithfully and to reason about in full, yet it exercises exactly
-the properties that make RAN control-plane code hard: per-UE mutable state, a strict
-operation lifecycle, high concurrency across many UEs, and hard tail-latency expectations.
-Conclusions drawn from it therefore transfer to the broader class of stateful, concurrent
-control-plane services, while remaining reproducible by readers outside Nokia because the
-implementation is driven entirely by a public, frozen specification rather than by
-proprietary code.
+This thesis is carried out at Nokia, one of the small number of vendors that build, maintain,
+and evolve production RAN software end to end, and the subsystem it studies, UE Context
+Management (UECM), is modeled on a real gNB-CU-CP control-plane component rather than a
+textbook example. The gNB-CU-CP is not a peripheral module: in the 3GPP disaggregated
+architecture it is the control-plane half of the central unit, hosting RRC and managing the
+UE context lifecycle while delegating user-plane bearer handling to the CU-UP over the E1
+interface~\cite{3gpp38401,3gpp38300,3gpp38463,3gpp38331}, all under the millisecond-scale
+procedure budgets the 5G system places on control signalling~\cite{3gpp22261}. Software of
+this class is shipped, evolved, and operated across live operator networks, so a
+language-selection decision here is a concrete production concern rather than a hypothetical
+one, which is what makes a controlled comparison on a representative subsystem valuable to a
+vendor. UECM is a deliberate choice of study object within that setting: it is small enough to
+reimplement faithfully and to reason about in full, yet it exercises exactly the properties
+that make RAN control-plane code hard: per-UE mutable state, a strict operation lifecycle,
+high concurrency across many UEs, and hard tail-latency expectations. Conclusions drawn from
+it therefore transfer to the broader class of stateful, concurrent control-plane services,
+while remaining reproducible by readers outside Nokia because the implementation is driven
+entirely by a public, frozen specification rather than by proprietary code.
 
 \paragraph{A concrete failure mode.}
 To make the stakes concrete, consider a mobility storm in which many UEs hand over at once. A
@@ -254,6 +265,33 @@ safe Rust the same design does not compile: ownership and borrowing reject the d
 reference at build time. This one scenario captures why the thesis measures both
 \emph{safety} (which defects are prevented, and when) and \emph{predictability} (tail
 latency under overload) rather than average throughput alone.
+
+\section{Nokia and the RAN control plane}
+Nokia is one of the principal global suppliers of radio-access-network equipment and software,
+competing to provide the gNB software that operators deploy at scale. The industry-wide
+softwarization of the RAN---cloud-native deployment on commodity servers and Open-RAN's
+disaggregation into virtualised, multi-vendor functions connected by open
+interfaces~\cite{polese2023oran}---turns what was once embedded, hardware-bound functionality
+into large, long-lived, continuously evolving software. For a vendor this reframes competitive
+advantage around software qualities: reliability, predictable timing, security, and the pace at
+which a large codebase can be evolved safely. It is in this context that a language-selection
+question stops being academic and becomes a concrete engineering decision.
+
+Within the gNB, the control-plane software (gNB-CU-CP) is among the most demanding parts of that
+codebase. In the 3GPP architecture it hosts RRC and owns the UE-context lifecycle and mobility,
+delegating user-plane bearers to the CU-UP over the E1
+interface~\cite{3gpp38401,3gpp38300,3gpp38463,3gpp38331}, all under the millisecond-scale
+procedure budgets the 5G system imposes~\cite{3gpp22261} and at the very high event rates and
+connected-device counts a deployed network sustains. Because it is written in C++, it inherits
+both that language's performance and its memory-safety and concurrency hazards. This is exactly
+where the two pressures a RAN vendor now faces converge: the regulatory and security momentum
+toward memory-safe languages~\cite{cisa2023memorysafe,oncd2024building,msrc2019memory}, and the
+operational reality that tail latency under overload, rather than average throughput, governs
+service quality~\cite{dean2013tail}. The UE Context Management subsystem studied in this thesis
+is a faithful, self-contained proxy for that control-plane code, which is what lets a controlled
+C++/Rust comparison on it speak directly to a decision a vendor such as Nokia must actually make,
+while remaining reproducible outside the company because it is driven by a public specification
+rather than by proprietary code.
 
 \section{Challenges in RAN control-plane software engineering}
 Modern RAN control-plane systems must be fast, predictable, highly concurrent, and

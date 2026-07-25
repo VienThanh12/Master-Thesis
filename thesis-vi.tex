@@ -192,9 +192,12 @@ Hai xu hướng khiến phép so sánh này trở nên đúng lúc. Thứ nhất
 chính RAN. Việc đưa các chức năng mặt điều khiển lên các máy chủ đa dụng làm \emph{tăng} chứ không
 giảm mức đòi hỏi về chất lượng phần mềm: phần mềm tồn tại lâu hơn, tiến hoá liên tục, chạy ở mức
 tương tranh cao hơn, và phải đáp ứng các hạn chót mà không có sự tất định (determinism) mà phần
-cứng chuyên dụng từng cung cấp. Trong bối cảnh này, một sự thoái lui về độ trễ hay một khiếm
-khuyết hỏng bộ nhớ không phải là một lỗi cục bộ mà là một rủi ro về độ tin cậy và bảo mật trên
-phạm vi toàn mạng. Xu hướng thứ hai là sự chuyển dịch toàn ngành hướng tới các ngôn ngữ an toàn
+cứng chuyên dụng từng cung cấp. Sự chuyển dịch này được thúc đẩy nhanh hơn bởi sự phân rã Open-RAN,
+vốn biến trạm gốc thành phần mềm ảo hoá, đa nhà cung cấp, kết nối bằng các giao diện
+mở~\cite{polese2023oran}, khiến cho mặt điều khiển mà một nhà cung cấp bàn giao ngày càng cạnh tranh
+dựa trên chất lượng kỹ nghệ phần mềm chứ không phải trên phần cứng chuyên biệt. Trong bối cảnh này,
+một sự thoái lui về độ trễ hay một khiếm khuyết hỏng bộ nhớ không phải là một lỗi cục bộ mà là một
+rủi ro về độ tin cậy và bảo mật trên phạm vi toàn mạng. Xu hướng thứ hai là sự chuyển dịch toàn ngành hướng tới các ngôn ngữ an toàn
 bộ nhớ. Các tổ chức phần mềm lớn báo cáo rằng phần lớn các lỗ hổng bảo mật nghiêm trọng của họ bắt
 nguồn từ các lỗi an toàn bộ nhớ, và rằng việc áp dụng ngôn ngữ an toàn bộ nhớ giảm chúng một cách
 đo được~\cite{msrc2019memory,google2022android,google2024securebydesign}. Mối lo ngại này đã dâng
@@ -212,16 +215,24 @@ hại cho mã C++ hiện có, và chi phí áp dụng nó tăng dần bên trong
 một phân hệ tiêu biểu chính là động lực của công trình này.
 
 \paragraph{Bối cảnh công nghiệp.}
-Luận văn này được thực hiện tại Nokia, một nhà cung cấp phần mềm gNB-CU-CP thương mại, và phân hệ
-mà nó nghiên cứu --- Quản lý Ngữ cảnh UE (UECM) --- được mô hình hoá theo một thành phần mặt điều
-khiển thực tế chứ không phải một ví dụ sách giáo khoa. UECM là một lựa chọn có chủ đích làm đối
-tượng nghiên cứu: nó đủ nhỏ để hiện thực lại một cách trung thực và để lập luận đầy đủ, nhưng lại
-thể hiện đúng những thuộc tính khiến mã mặt điều khiển RAN trở nên khó: trạng thái khả biến theo
-từng UE, một vòng đời thao tác nghiêm ngặt, mức tương tranh cao trên nhiều UE, và những kỳ vọng
-ngặt nghèo về độ trễ đuôi. Do đó, các kết luận rút ra từ nó có thể chuyển sang lớp rộng hơn gồm
-các dịch vụ mặt điều khiển có trạng thái, tương tranh, đồng thời vẫn tái lập được đối với độc giả
-bên ngoài Nokia vì bản hiện thực được điều khiển hoàn toàn bởi một đặc tả công khai, đã đóng băng,
-chứ không phải bởi mã độc quyền.
+Luận văn này được thực hiện tại Nokia, một trong số ít nhà cung cấp xây dựng, bảo trì và phát triển
+phần mềm RAN sản xuất một cách toàn trình (end-to-end), và phân hệ mà nó nghiên cứu --- Quản lý Ngữ
+cảnh UE (UECM) --- được mô hình hoá theo một thành phần mặt điều khiển gNB-CU-CP thực tế chứ không
+phải một ví dụ sách giáo khoa. gNB-CU-CP không phải là một mô-đun ngoại vi: trong kiến trúc phân rã
+của 3GPP, nó là nửa mặt điều khiển của đơn vị trung tâm, chứa RRC và quản lý vòng đời ngữ cảnh UE
+trong khi uỷ thác việc xử lý mang (bearer) mặt người dùng cho CU-UP qua giao diện
+E1~\cite{3gpp38401,3gpp38300,3gpp38463,3gpp38331}, tất cả dưới các ngân sách thủ tục cỡ mili-giây mà
+hệ thống 5G đặt lên báo hiệu mặt điều khiển~\cite{3gpp22261}. Phần mềm thuộc lớp này được bàn giao,
+tiến hoá và vận hành trên các mạng nhà khai thác đang hoạt động, nên một quyết định lựa chọn ngôn
+ngữ ở đây là một mối quan tâm sản xuất cụ thể chứ không phải giả định, và đó chính là điều làm cho
+một phép so sánh có kiểm soát trên một phân hệ tiêu biểu trở nên có giá trị đối với một nhà cung cấp.
+UECM là một lựa chọn có chủ đích làm đối tượng nghiên cứu trong bối cảnh đó: nó đủ nhỏ để hiện thực
+lại một cách trung thực và để lập luận đầy đủ, nhưng lại thể hiện đúng những thuộc tính khiến mã mặt
+điều khiển RAN trở nên khó: trạng thái khả biến theo từng UE, một vòng đời thao tác nghiêm ngặt, mức
+tương tranh cao trên nhiều UE, và những kỳ vọng ngặt nghèo về độ trễ đuôi. Do đó, các kết luận rút
+ra từ nó có thể chuyển sang lớp rộng hơn gồm các dịch vụ mặt điều khiển có trạng thái, tương tranh,
+đồng thời vẫn tái lập được đối với độc giả bên ngoài Nokia vì bản hiện thực được điều khiển hoàn toàn
+bởi một đặc tả công khai, đã đóng băng, chứ không phải bởi mã độc quyền.
 
 \paragraph{Một chế độ hỏng cụ thể.}
 Để làm rõ mức độ hệ trọng, hãy xét một ``cơn bão di động'' trong đó nhiều UE chuyển giao cùng lúc.
