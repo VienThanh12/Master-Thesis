@@ -1,3 +1,5 @@
+My Master Thesis
+
 # Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia RAN Control-Plane Systems
 
 Master's thesis (University of Helsinki, Software study track) by **Ha Vien**.
@@ -15,12 +17,12 @@ performance with safety guaranteed at compile time. Using a **UE Context Managem
 service modeled on a Nokia gNB-CU-CP component, the thesis compares the two languages along
 four research questions:
 
-| RQ | Question | Evidence in |
-|----|----------|-------------|
-| **RQ1** | Tail latency and jitter under overload | [`bench/`](bench/) |
-| **RQ2** | Which C++ defect classes does safe Rust prevent at compile time? | [`faults/`](faults/) |
-| **RQ3** | What is the overhead (memory / CPU) of Rust's safety model? | [`bench/`](bench/) |
-| **RQ4** | What is the cost of incrementally adopting Rust in a C++ codebase? | [`ffi/`](ffi/) |
+| RQ      | Question                                                           | Evidence in          |
+| ------- | ------------------------------------------------------------------ | -------------------- |
+| **RQ1** | Tail latency and jitter under overload                             | [`bench/`](bench/)   |
+| **RQ2** | Which C++ defect classes does safe Rust prevent at compile time?   | [`faults/`](faults/) |
+| **RQ3** | What is the overhead (memory / CPU) of Rust's safety model?        | [`bench/`](bench/)   |
+| **RQ4** | What is the cost of incrementally adopting Rust in a C++ codebase? | [`ffi/`](ffi/)       |
 
 The methodological control against implementation bias is a **frozen, language-neutral
 specification**: both implementations must conform to it exactly, and any forced idiomatic
