@@ -11,6 +11,7 @@
 // and records latency from the intended send time with HDR correction; otherwise the
 // loop is closed.
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -173,6 +174,13 @@ int main(int argc, char** argv) {
       a.rate > 0.0 ? static_cast<std::int64_t>(1e9 / a.rate) : 0;
 
   const auto wall_start = clock_type::now();
+  // Throughput must be counted over the measured phase only. `total_ops` excludes
+  // the warm-up iterations, so dividing it by the whole run's wall time would
+  // understate achieved throughput by exactly the warm-up fraction. Each producer
+  // stamps the instant its measured phase starts and ends; the measured window is
+  // the union of those intervals. Distinct indices, so no synchronisation needed.
+  std::vector<clock_type::time_point> meas_start(a.producers, clock_type::time_point::max());
+  std::vector<clock_type::time_point> meas_end(a.producers, clock_type::time_point::min());
   {
     std::vector<std::thread> ts;
     for (std::uint64_t p = 0; p < a.producers; ++p) {
@@ -189,6 +197,7 @@ int main(int argc, char** argv) {
         const std::uint64_t total_iters = a.warmup + a.ops;
         for (std::uint64_t n = 0; n < total_iters; ++n) {
           const bool measured = n >= a.warmup;
+          if (n == a.warmup) meas_start[p] = clock_type::now();
 
           // Select the op for this step.
           WOp op{WKind::Signal, 0, 0};
@@ -229,6 +238,7 @@ int main(int argc, char** argv) {
             else hist.record(lat);
           }
         }
+        meas_end[p] = clock_type::now();
         errors.fetch_add(local_errors, std::memory_order_relaxed);
         std::lock_guard<std::mutex> lk(merge_mtx);
         merged.add(hist);
@@ -243,8 +253,14 @@ int main(int argc, char** argv) {
   const double wall_ns =
       std::chrono::duration_cast<std::chrono::nanoseconds>(wall_end - wall_start).count();
   const double wall_s = wall_ns / 1e9;
+  const auto meas_lo = *std::min_element(meas_start.begin(), meas_start.end());
+  const auto meas_hi = *std::max_element(meas_end.begin(), meas_end.end());
+  const double measured_wall_s =
+      meas_hi > meas_lo
+          ? std::chrono::duration_cast<std::chrono::nanoseconds>(meas_hi - meas_lo).count() / 1e9
+          : wall_s;
   const std::int64_t total_ops = static_cast<std::int64_t>(a.ops * a.producers);
-  const double thr = wall_s > 0 ? total_ops / wall_s : 0.0;
+  const double thr = measured_wall_s > 0 ? total_ops / measured_wall_s : 0.0;
   const char* alloc = UECM_ALLOC_NAME;
 
   // Process resource usage (RQ3): peak RSS + total CPU across all threads.
@@ -258,12 +274,14 @@ int main(int argc, char** argv) {
   if (a.json) {
     std::printf(
         "{\"lang\":\"cpp\",\"alloc\":\"%s\",\"workload\":\"%s\",\"shards\":%llu,\"producers\":%llu,"
-        "\"rate\":%.1f,\"ops_total\":%lld,\"errors\":%llu,\"wall_s\":%.6f,\"throughput_ops_s\":%.1f,"
+        "\"rate\":%.1f,\"ops_total\":%lld,\"errors\":%llu,\"wall_s\":%.6f,"
+        "\"measured_wall_s\":%.6f,\"throughput_ops_s\":%.1f,"
         "\"lat_ns\":{\"p50\":%lld,\"p90\":%lld,\"p99\":%lld,\"p999\":%lld,\"max\":%lld,"
         "\"mean\":%.1f},\"rss_peak_kb\":%ld,\"cpu_user_s\":%.3f,\"cpu_sys_s\":%.3f,"
         "\"cpu_pct\":%.1f,\"kinds\":{",
         alloc, a.workload.c_str(), (unsigned long long)a.shards, (unsigned long long)a.producers,
-        a.rate, (long long)total_ops, (unsigned long long)errors.load(), wall_s, thr,
+        a.rate, (long long)total_ops, (unsigned long long)errors.load(), wall_s, measured_wall_s,
+        thr,
         (long long)merged.value_at_percentile(50), (long long)merged.value_at_percentile(90),
         (long long)merged.value_at_percentile(99), (long long)merged.value_at_percentile(99.9),
         (long long)merged.max(), merged.mean(), rss_peak_kb, cpu_user_s, cpu_sys_s, cpu_pct);
@@ -277,8 +295,9 @@ int main(int argc, char** argv) {
                 (unsigned long long)a.shards, (unsigned long long)a.producers,
                 (unsigned long long)(a.workload == "mixed" ? a.active_ues : a.preload),
                 (unsigned long long)a.ops, a.rate);
-    std::printf("  ops_total=%lld errors=%llu wall=%.3fs throughput=%.0f ops/s\n",
-                (long long)total_ops, (unsigned long long)errors.load(), wall_s, thr);
+    std::printf("  ops_total=%lld errors=%llu wall=%.3fs (measured %.3fs) throughput=%.0f ops/s\n",
+                (long long)total_ops, (unsigned long long)errors.load(), wall_s, measured_wall_s,
+                thr);
     std::printf("  latency ns: p50=%lld p90=%lld p99=%lld p99.9=%lld max=%lld mean=%.1f\n",
                 (long long)merged.value_at_percentile(50),
                 (long long)merged.value_at_percentile(90),

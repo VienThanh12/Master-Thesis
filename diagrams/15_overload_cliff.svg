@@ -38,12 +38,13 @@
   <line x1="490" y1="90" x2="490" y2="430" stroke="#d99413" stroke-width="1.6" stroke-dasharray="5 4"/>
   <text x="490" y="448" text-anchor="middle" font-size="10.5" fill="#a5700c">~40-45 (saturation)</text>
 
-  <!-- annotation -->
-  <rect x="560" y="300" width="270" height="86" rx="9" fill="#ffffff" stroke="#d7dde3"/>
-  <text x="575" y="322" font-size="11.5" font-weight="700" fill="#12233a">Near capacity:</text>
-  <text x="575" y="342" font-size="11" fill="#4a5b6b">queueing delay grows super-linearly;</text>
-  <text x="575" y="360" font-size="11" fill="#4a5b6b">bounded blocking queues make overload</text>
-  <text x="575" y="378" font-size="11" fill="#4a5b6b">observable as tail latency (not silent drops).</text>
+  <!-- annotation, placed clear of the curve with a leader to the knee -->
+  <path d="M395 240 L 480 318" fill="none" stroke="#c3ccd5" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <rect x="105" y="182" width="290" height="86" rx="9" fill="#ffffff" stroke="#d7dde3"/>
+  <text x="120" y="204" font-size="11.5" font-weight="700" fill="#12233a">Near capacity:</text>
+  <text x="120" y="224" font-size="11" fill="#4a5b6b">queueing delay grows super-linearly;</text>
+  <text x="120" y="242" font-size="11" fill="#4a5b6b">bounded blocking queues make overload</text>
+  <text x="120" y="260" font-size="11" fill="#4a5b6b">observable as tail latency (not silent drops).</text>
 
   <text x="430" y="490" text-anchor="middle" font-size="11" fill="#8794a3">Schematic (not to scale). Both C++ and Rust track this shape closely; differences appear only in the far tail.</text>
 </svg>

@@ -20,9 +20,13 @@ four research questions:
 | RQ      | Question                                                           | Evidence in          |
 | ------- | ------------------------------------------------------------------ | -------------------- |
 | **RQ1** | Tail latency and jitter under overload                             | [`bench/`](bench/)   |
-| **RQ2** | Which C++ defect classes does safe Rust prevent at compile time?   | [`faults/`](faults/) |
+| **RQ2** | Which C++ defect classes does safe Rust prevent at compile time — and which does it not? | [`faults/`](faults/) |
 | **RQ3** | What is the overhead (memory / CPU) of Rust's safety model?        | [`bench/`](bench/)   |
 | **RQ4** | What is the cost of incrementally adopting Rust in a C++ codebase? | [`ffi/`](ffi/)       |
+
+The RQ2 catalogue deliberately spans both sides of the guarantee: five defect classes safe Rust
+prevents at compile time, and two (lock-order deadlock, lost update) it does not, so the study
+measures where the guarantee *stops* rather than only confirming that it holds.
 
 The methodological control against implementation bias is a **frozen, language-neutral
 specification**: both implementations must conform to it exactly, and any forced idiomatic
@@ -105,3 +109,15 @@ Figures and tables are regenerated from raw measurement logs with
 Safety (RQ2) and migration (RQ4) results are final; performance work (RQ1, RQ3) is complete
 in tooling with testbed-grade latency figures as the remaining step. The specification is
 implemented and both languages pass and agree on the shared conformance suite.
+
+Every campaign summary number quoted in the thesis prose (representative load, saturation
+knee, repeat count, p99 spread) is generated into `figures/gen_macros.tex` by
+`bench/plot_figures.py` alongside the figures and tables, so re-running the campaign on a
+bare-metal testbed and then
+
+```bash
+python3 bench/plot_figures.py
+latexmk -pdf thesis.tex
+```
+
+refreshes the narrative and the data together. There are no hand-copied numbers to go stale.

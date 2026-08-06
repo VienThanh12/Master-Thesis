@@ -77,6 +77,17 @@ bench/load_sweep.sh --workload mixed --producers 8 --active-ues 5000 \
 - CSV columns: `lang,alloc,workload,shards,producers,rate_per_prod,offered_ops_s,`
   `achieved_ops_s,errors,p50_ns,p90_ns,p99_ns,p999_ns,max_ns,mean_ns,rss_peak_kb,cpu_pct,wall_s`.
 
+**Throughput accounting.** `throughput_ops_s` is measured operations divided by the
+duration of the *measured phase*, not by total wall time. Each producer stamps the
+instant its warm-up ends and the instant it finishes; the measured window is the union
+of those intervals, reported as `measured_wall_s`. This matters: dividing measured ops
+by total wall time understates achieved throughput by exactly the warm-up fraction
+(25% at the campaign defaults of `--duration 3 --warmup-s 1`), which makes every point
+sit below the offered-equals-achieved line even at trivial load and misplaces the
+saturation knee. Both language harnesses use the identical convention, so the bias was
+symmetric, but it was still a bias. `cpu_pct` is deliberately left on the full wall
+clock, since `getrusage` accounting includes the warm-up.
+
 Every run also reports **peak RSS** and **CPU** (via `getrusage`: `ru_maxrss` peak
 resident set, `ru_utime`+`ru_stime` total CPU across all threads; `cpu%` =
 CPU/wall·100, so >100% means multiple busy cores). These land in the JSON

@@ -1,6 +1,8 @@
-defect,cpp_asan,cpp_tsan,cpp_detection,rust_compile
-use_after_free,detected,detected,"runtime (ASan+TSan)","compile-time prevented (E0499)"
-double_free,detected,clean,"runtime (ASan)","compile-time prevented (E0382)"
-iterator_invalidation,detected,detected,"runtime (ASan+TSan)","compile-time prevented (E0502)"
-data_race,clean,detected,"runtime (TSan)","compile-time prevented (E0373,E0382,E0502)"
-unguarded_shared_mutation,clean,detected,"runtime (TSan)","compile-time prevented (E0502,E0524,E0597)"
+defect,cpp_asan,cpp_tsan,cpp_detection,rust_compile,rust_expected
+use_after_free,detected,detected,"runtime (ASan+TSan)","compile-time prevented (E0499)",prevented
+double_free,detected,clean,"runtime (ASan)","compile-time prevented (E0382)",prevented
+iterator_invalidation,detected,detected,"runtime (ASan+TSan)","compile-time prevented (E0502)",prevented
+data_race,clean,detected,"runtime (TSan)","compile-time prevented (E0373,E0382,E0502)",prevented
+unguarded_shared_mutation,clean,detected,"runtime (TSan)","compile-time prevented (E0502,E0524,E0597)",prevented
+lock_order_deadlock,hung,detected,"runtime (TSan)","not prevented (compiles; deadlocks)",not-prevented
+lost_update,clean,clean,"undetected","not prevented (compiles; wrong result)",not-prevented

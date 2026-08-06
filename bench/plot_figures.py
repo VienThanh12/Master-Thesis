@@ -73,6 +73,28 @@ def load_campaign(path):
     return rows
 
 
+def balance_repeats(rows):
+    """Truncate every (lang, alloc, load) cell to the same number of repeats.
+
+    A campaign interrupted part-way through a repeat leaves some cells with one
+    more run than others. Comparing cells of unequal size would let the variant
+    that happened to be measured first in the final repeat carry extra weight, and
+    it would make "measured over N repeats" ambiguous. Keeping the first N runs of
+    each cell, N the smallest cell count, restores the balanced factorial design
+    the interleaving discipline assumes. The raw log is never modified.
+    """
+    by_cell = defaultdict(list)
+    for r in rows:
+        by_cell[(r["lang"], r["alloc"], offered_load(r))].append(r)
+    n = min(len(v) for v in by_cell.values())
+    kept = {id(r) for v in by_cell.values() for r in v[:n]}
+    dropped = len(rows) - len(kept)
+    if dropped:
+        print(f"balancing: {dropped} run(s) from an incomplete repeat dropped; "
+              f"using {n} repeats per cell")
+    return [r for r in rows if id(r) in kept]
+
+
 def offered_load(row):
     prod = row.get("producers", PRODUCERS_DEFAULT)
     return row["rate"] * prod
@@ -277,43 +299,65 @@ def fig_taxonomy(taxonomy_csv, outdir):
     if not os.path.exists(taxonomy_csv):
         return None
     rows = list(csv.DictReader(open(taxonomy_csv)))
+    # Cases Rust prevents first, then the boundary cases it does not, so the figure
+    # reads as a map of where the guarantee stops rather than as a scoreboard.
+    prevented = [r for r in rows if "compile-time" in r["rust_compile"]]
+    boundary = [r for r in rows if "compile-time" not in r["rust_compile"]]
+    rows = prevented + boundary
     defects = [r["defect"].replace("_", " ") for r in rows]
     cols = ["C++ ASan", "C++ TSan", "Safe Rust"]
 
     # code: 2 = prevented at compile time (best), 1 = detected at runtime, 0 = missed.
-    grid = []
+    grid, labels = [], []
     for r in rows:
-        asan = 1 if r["cpp_asan"].strip() == "detected" else 0
-        tsan = 1 if r["cpp_tsan"].strip() == "detected" else 0
-        rust = 2 if "compile-time" in r["rust_compile"] else 0
-        grid.append([asan, tsan, rust])
+        asan_hit = r["cpp_asan"].strip() == "detected"
+        tsan_hit = r["cpp_tsan"].strip() == "detected"
+        rust_prevented = "compile-time" in r["rust_compile"]
+        grid.append([1 if asan_hit else 0, 1 if tsan_hit else 0, 2 if rust_prevented else 0])
+        labels.append([
+            "runtime" if asan_hit else "missed",
+            "runtime" if tsan_hit else "missed",
+            "compile" if rust_prevented else "none",
+        ])
 
     cmap = matplotlib.colors.ListedColormap(["#c0392b", "#e6b800", "#1e8449"])
     norm = matplotlib.colors.BoundaryNorm([-0.5, 0.5, 1.5, 2.5], cmap.N)
 
-    fig, ax = plt.subplots(figsize=(6.4, 3.8))
+    fig, ax = plt.subplots(figsize=(6.6, 0.46 * len(defects) + 1.7))
     ax.imshow(grid, cmap=cmap, norm=norm, aspect="auto")
     ax.set_xticks(range(len(cols)))
-    ax.set_xticklabels(cols)
+    ax.set_xticklabels(cols, fontsize=9)
     ax.set_yticks(range(len(defects)))
-    ax.set_yticklabels(defects)
-    text = {0: "missed", 1: "runtime", 2: "compile"}
+    ax.set_yticklabels(defects, fontsize=9)
     for i in range(len(defects)):
         for j in range(len(cols)):
             ax.text(
-                j, i, text[grid[i][j]], ha="center", va="center",
+                j, i, labels[i][j], ha="center", va="center",
                 color="white", fontsize=8, fontweight="bold",
             )
     ax.set_xticks([x - 0.5 for x in range(1, len(cols))], minor=True)
     ax.set_yticks([y - 0.5 for y in range(1, len(defects))], minor=True)
     ax.grid(which="minor", color="white", linewidth=2)
     ax.tick_params(which="minor", length=0)
+
+    # Mark where the compile-time guarantee stops. The label goes inside the axes
+    # so it cannot widen the saved bounding box and squeeze the cells.
+    if prevented and boundary:
+        split = len(prevented) - 0.5
+        ax.axhline(split, color="black", linewidth=2.0)
+        ax.text(
+            -0.5, split - 0.06, " boundary of the guarantee ",
+            ha="left", va="bottom", fontsize=7.5, style="italic",
+            bbox=dict(boxstyle="square,pad=0.15", facecolor="white",
+                      edgecolor="black", linewidth=0.8),
+        )
+
     legend = [
         Patch(facecolor="#1e8449", label="prevented at compile time"),
         Patch(facecolor="#e6b800", label="detected at runtime only"),
-        Patch(facecolor="#c0392b", label="not detected"),
+        Patch(facecolor="#c0392b", label="not detected / not prevented"),
     ]
-    ax.legend(handles=legend, loc="upper center", bbox_to_anchor=(0.5, -0.12),
+    ax.legend(handles=legend, loc="upper center", bbox_to_anchor=(0.5, -0.14),
               ncol=3, fontsize=7, framealpha=0.9)
     fig.tight_layout()
     out = os.path.join(outdir, "fig_taxonomy.pdf")
@@ -383,24 +427,48 @@ def fmt_us(ns):
     return f"{ns / NS_PER_US:.1f}"
 
 
+def med_ci_cell(values, decimals=None):
+    """Format a metric as `median $\\pm$ h`, h the half-width of the bootstrap 95% CI.
+
+    The methodology commits to reporting a median with a nonparametric CI rather
+    than a bare point estimate, so every numeric cell in the result tables carries
+    its dispersion. A half-width is used instead of an explicit [lo, hi] interval
+    only to keep the tables inside the text block; it is symmetrised as the larger
+    of the two one-sided distances, so it never understates the interval.
+
+    Precision adapts to magnitude: quoting a 20 ms latency to a tenth of a
+    microsecond would be false precision, and it is also what pushes the LaTeX
+    table past the text width once the sweep reaches overload.
+    """
+    med, lo, hi = bootstrap_ci(values)
+    half = max(med - lo, hi - med)
+    if decimals is None:
+        decimals = 1 if abs(med) < 1000 else 0
+    return f"{med:.{decimals}f}\\,$\\pm$\\,{half:.{decimals}f}"
+
+
+def _subset(rows, key, load):
+    return [
+        r
+        for r in rows
+        if r["lang"] == key[0] and r["alloc"] == key[1] and offered_load(r) == load
+    ]
+
+
 def write_latency_table(rows, outdir, load):
     """Emit the body of tab:latency at the representative load (values in \u00b5s)."""
     lines = []
     for key in variants_present(rows):
         label = VARIANT_STYLE[key][0]
-        sub = [
-            r
-            for r in rows
-            if r["lang"] == key[0] and r["alloc"] == key[1] and offered_load(r) == load
-        ]
+        sub = _subset(rows, key, load)
         if not sub:
             continue
-        def med(field):
-            return statistics.median([r["lat_ns"][field] for r in sub])
+
+        def cell(field):
+            return med_ci_cell([r["lat_ns"][field] / NS_PER_US for r in sub])
+
         lines.append(
-            f"{label} & {fmt_us(med('mean'))} & {fmt_us(med('p50'))} & "
-            f"{fmt_us(med('p90'))} & {fmt_us(med('p99'))} & {fmt_us(med('p999'))} & "
-            f"{fmt_us(med('max'))}"
+            f"{label} & {cell('p50')} & {cell('p99')} & {cell('p999')} & {cell('max')}"
         )
     out = os.path.join(outdir, "tab_latency.tex")
     with open(out, "w") as f:
@@ -410,21 +478,83 @@ def write_latency_table(rows, outdir, load):
     return out, load
 
 
+def write_generated_macros(rows, outdir, load):
+    """Emit the campaign's summary numbers as LaTeX macros.
+
+    Every quantity the prose quotes about the campaign is defined here and used by
+    name in the text, so a rerun on different hardware updates the narrative
+    together with the figures instead of leaving stale literals behind.
+    """
+    variants = variants_present(rows)
+    loads = loads_present(rows)
+    repeats = min(len(_subset(rows, k, l)) for k in variants for l in loads)
+
+    def med_at(key, load_, fn):
+        sub = _subset(rows, key, load_)
+        return statistics.median([fn(r) for r in sub]) if sub else float("nan")
+
+    thr_kops = lambda r: r["throughput_ops_s"] / 1000.0
+    p99_us = lambda r: r["lat_ns"]["p99"] / NS_PER_US
+
+    p50_us = lambda r: r["lat_ns"]["p50"] / NS_PER_US
+    ach = [med_at(k, load, thr_kops) for k in variants]
+    p99 = [med_at(k, load, p99_us) for k in variants]
+    p50 = [med_at(k, load, p50_us) for k in variants]
+    # Widest 95% CI half-width on any single variant's p99 at the representative
+    # load, against the spread between variants. When the former exceeds the
+    # latter the measurement cannot order the variants at all, which is a finding
+    # about the environment rather than about the languages.
+    p99_ci = []
+    for k in variants:
+        sub = _subset(rows, k, load)
+        if sub:
+            m, lo, hi = bootstrap_ci([p99_us(r) for r in sub])
+            p99_ci.append(max(m - lo, hi - m))
+    # Saturation knee: highest achieved throughput anywhere in the sweep, taken as
+    # the minimum across variants so the quoted knee holds for all four.
+    knee = min(max(med_at(k, l, thr_kops) for l in loads) for k in variants)
+    # Highest offered load at which every variant still tracks the ideal line to 5%.
+    tracking = [
+        l for l in loads
+        if all(med_at(k, l, thr_kops) >= 0.95 * l / 1000.0 for k in variants)
+    ]
+
+    macros = {
+        "ReprLoad": f"{load / 1000.0:.0f}",
+        "ReprLoadAch": f"{statistics.median(ach):.1f}",
+        "ReprLoadShortfall": f"{100.0 * (1 - statistics.median(ach) / (load / 1000.0)):.1f}",
+        "SatKnee": f"{knee:.0f}",
+        "TrackingLoad": f"{max(tracking) / 1000.0:.0f}" if tracking else "0",
+        "NRepeats": str(repeats),
+        "NLoadLevels": str(len(loads)),
+        "NVariants": str(len(variants)),
+        "NRuns": str(len(rows)),
+        "PNineNineSpread": f"{100.0 * (max(p99) / min(p99) - 1):.0f}",
+        "PFiftySpread": f"{100.0 * (max(p50) / min(p50) - 1):.1f}",
+        "PFiftyRange": f"{max(p50) - min(p50):.0f}",
+        "PNineNineRange": f"{max(p99) - min(p99):.0f}",
+        "PNineNineMaxCI": f"{max(p99_ci):.0f}" if p99_ci else "0",
+        "MaxOfferedLoad": f"{max(loads) / 1000.0:.0f}",
+    }
+    out = os.path.join(outdir, "gen_macros.tex")
+    with open(out, "w") as f:
+        f.write("% Generated by bench/plot_figures.py -- do not edit by hand.\n")
+        for k, v in macros.items():
+            f.write(f"\\newcommand{{\\{k}}}{{{v}}}\n")
+    return out
+
+
 def write_resource_table(rows, outdir, load):
     lines = []
     for key in variants_present(rows):
         label = VARIANT_STYLE[key][0]
-        sub = [
-            r
-            for r in rows
-            if r["lang"] == key[0] and r["alloc"] == key[1] and offered_load(r) == load
-        ]
+        sub = _subset(rows, key, load)
         if not sub:
             continue
-        rss = statistics.median([r["rss_peak_kb"] / 1024.0 for r in sub])
-        cpu = statistics.median([r["cpu_pct"] for r in sub])
-        thr = statistics.median([r["throughput_ops_s"] / 1000.0 for r in sub])
-        lines.append(f"{label} & {thr:.1f} & {rss:.1f} & {cpu:.1f}")
+        thr = med_ci_cell([r["throughput_ops_s"] / 1000.0 for r in sub], decimals=2)
+        rss = med_ci_cell([r["rss_peak_kb"] / 1024.0 for r in sub])
+        cpu = med_ci_cell([r["cpu_pct"] for r in sub])
+        lines.append(f"{label} & {thr} & {rss} & {cpu}")
     out = os.path.join(outdir, "tab_resource.tex")
     with open(out, "w") as f:
         f.write(" \\\\\n".join(lines) + "\n")
@@ -450,7 +580,7 @@ def main():
     if campaign is None:
         cands = sorted(glob.glob(os.path.join(here, "results", "campaign-*.jsonl")))
         campaign = cands[-1] if cands else os.path.join(here, "results", "latest.jsonl")
-    rows = load_campaign(campaign)
+    rows = balance_repeats(load_campaign(campaign))
 
     load = args.load if args.load is not None else pick_representative_load(rows)
     print(f"campaign: {campaign}  rows={len(rows)}  representative load={load:.0f} ops/s")
@@ -474,7 +604,8 @@ def main():
 
     lat_tab, _ = write_latency_table(rows, outdir, load)
     res_tab = write_resource_table(rows, outdir, load)
-    produced.extend([lat_tab, res_tab])
+    macros = write_generated_macros(rows, outdir, load)
+    produced.extend([lat_tab, res_tab, macros])
 
     for p in produced:
         print("wrote", os.path.relpath(p, here))

@@ -348,6 +348,13 @@ fn main() {
     };
 
     let wall_start = Instant::now();
+    // Throughput must be counted over the measured phase only. `total_ops` excludes
+    // the warm-up iterations, so dividing it by the whole run's wall time would
+    // understate achieved throughput by exactly the warm-up fraction. Each producer
+    // reports the nanosecond offsets at which its measured phase starts and ends;
+    // the measured window is the union of those intervals.
+    let meas_lo_ns = AtomicU64::new(u64::MAX);
+    let meas_hi_ns = AtomicU64::new(0);
     thread::scope(|s| {
         for p in 0..a.producers {
             let svc = &svc;
@@ -355,6 +362,8 @@ fn main() {
             let merged_counts = &merged_counts;
             let errors = &errors;
             let args = &a;
+            let meas_lo_ns = &meas_lo_ns;
+            let meas_hi_ns = &meas_hi_ns;
             s.spawn(move || {
                 let mut hist = new_hist();
                 let mut counts = [0u64; KIND_COUNT];
@@ -374,6 +383,10 @@ fn main() {
                 let total_iters = args.warmup + args.ops;
                 for n in 0..total_iters {
                     let measured = n >= args.warmup;
+                    if n == args.warmup {
+                        let off = wall_start.elapsed().as_nanos() as u64;
+                        meas_lo_ns.fetch_min(off, Ordering::Relaxed);
+                    }
 
                     let (op, id) = if args.workload == "mixed" {
                         let op = wl.next();
@@ -420,6 +433,7 @@ fn main() {
                         }
                     }
                 }
+                meas_hi_ns.fetch_max(wall_start.elapsed().as_nanos() as u64, Ordering::Relaxed);
                 errors.fetch_add(local_errors, Ordering::Relaxed);
                 merged.lock().unwrap().add(&hist).expect("compatible hists");
                 let mut mc = merged_counts.lock().unwrap();
@@ -435,9 +449,16 @@ fn main() {
     let h = merged.into_inner().unwrap();
     let counts = merged_counts.into_inner().unwrap();
     let wall_s = wall.as_secs_f64();
+    let lo = meas_lo_ns.load(Ordering::Relaxed);
+    let hi = meas_hi_ns.load(Ordering::Relaxed);
+    let measured_wall_s = if hi > lo && lo != u64::MAX {
+        (hi - lo) as f64 / 1e9
+    } else {
+        wall_s
+    };
     let total_ops = a.ops * a.producers;
-    let thr = if wall_s > 0.0 {
-        total_ops as f64 / wall_s
+    let thr = if measured_wall_s > 0.0 {
+        total_ops as f64 / measured_wall_s
     } else {
         0.0
     };
@@ -465,10 +486,12 @@ fn main() {
             .collect();
         println!(
             "{{\"lang\":\"rust\",\"alloc\":\"{}\",\"workload\":\"{}\",\"shards\":{},\"producers\":{},\
-\"rate\":{:.1},\"ops_total\":{},\"errors\":{},\"wall_s\":{:.6},\"throughput_ops_s\":{:.1},\
+\"rate\":{:.1},\"ops_total\":{},\"errors\":{},\"wall_s\":{:.6},\"measured_wall_s\":{:.6},\
+\"throughput_ops_s\":{:.1},\
 \"lat_ns\":{{\"p50\":{},\"p90\":{},\"p99\":{},\"p999\":{},\"max\":{},\"mean\":{:.1}}},\
 \"rss_peak_kb\":{},\"cpu_user_s\":{:.3},\"cpu_sys_s\":{:.3},\"cpu_pct\":{:.1},\"kinds\":{{{}}}}}",
-            ALLOC_NAME, a.workload, a.shards, a.producers, a.rate, total_ops, errs, wall_s, thr,
+            ALLOC_NAME, a.workload, a.shards, a.producers, a.rate, total_ops, errs, wall_s,
+            measured_wall_s, thr,
             h.value_at_quantile(0.50), h.value_at_quantile(0.90), h.value_at_quantile(0.99),
             h.value_at_quantile(0.999), h.max(), h.mean(),
             rss_peak_kb, cpu_user_s, cpu_sys_s, cpu_pct, kinds,
@@ -491,8 +514,8 @@ fn main() {
             a.rate
         );
         println!(
-            "  ops_total={} errors={} wall={:.3}s throughput={:.0} ops/s",
-            total_ops, errs, wall_s, thr
+            "  ops_total={} errors={} wall={:.3}s (measured {:.3}s) throughput={:.0} ops/s",
+            total_ops, errs, wall_s, measured_wall_s, thr
         );
         println!(
             "  latency ns: p50={} p90={} p99={} p99.9={} max={} mean={:.1}",
