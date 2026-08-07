@@ -397,9 +397,29 @@ grammar is in `spec/conformance/README.md`. Each language ships a `conformance_r
 (`cpp/tools/conformance_runner.cpp`, `rust/src/bin/conformance_runner.rs`) that executes a vector
 against the threaded `Service` and emits a canonical transcript. `spec/conformance/run.sh` runs
 every vector through both runners, checks each against the expected results, **and** diffs the C++
-vs. Rust transcripts so op-for-op agreement (§11.1) is enforced. Seeded suite: `basic.vec` (the
-§11.3 example + full error model + DRB fill/overflow + reconfigure begin/complete/abort) and
-`shards.vec` (shard-assignment parity, §11.1.3). Both implementations currently pass and agree.
+vs. Rust transcripts so op-for-op agreement (§11.1) is enforced.
+
+Suite as of 2026-08 (223 checked operations across seven vectors; both implementations pass all of
+them and produce byte-identical transcripts): `basic.vec` (the §11.3 example + error model + DRB
+fill/overflow + reconfigure begin/complete/abort), `states.vec` (the full §5.2 transition matrix
+plus the §6.1 no-mutation-on-error rule), `errors.vec` (every §6.6 code on every operation that can
+raise it, `ue_id == 0` on all ten operations, the payload boundary, and the precedence between
+competing errors), `capacity.vec` (`CapacityExceeded` on `create`, and that §9's limit is per shard
+rather than service-wide), `routing.vec` (§10.1 I1: state stays private to its own shard),
+`shards.vec` and `shards13.vec` (shard assignment for a power-of-two and a non-power-of-two shard
+count; the latter is what distinguishes the specified modulo from a bitmask). Per-vector detail is
+in `spec/conformance/README.md`.
+
+Properties a sequential transcript cannot express are covered by mirrored per-language suites
+rather than by vectors: the §7 queue and completion machinery, FIFO execution (§10.2 O1), the
+fields `lookup` does not print (`security_key`, `rrc_transaction_id`, per-DRB contents), and the
+activity-sequence discipline of §10.3/§11.2. See `cpp/tests/test_{invariants,concurrency}.cpp` and
+`rust/tests/{invariants,concurrency}.rs`.
+
+One consequence worth recording for §11.1: the vectors now pin several error-precedence decisions
+that §6 leaves unordered (argument validation before key lookup; capacity before duplicate
+detection, both for `create` and for `add_drb`). Both implementations already agreed on all of
+them, so nothing had to change; the vectors exist so the agreement cannot regress unnoticed.
 
 ---
 

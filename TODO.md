@@ -42,6 +42,11 @@ latexmk -C                   # clean build artifacts
 - [x] Define the message/signaling set to handle                    (§6)
 - [x] Define parity-test contract (behaviour both implementations must match) (§11)
 - [x] Seed an initial conformance suite in spec/conformance/ (format README + `basic.vec`, `shards.vec` + shared runners + `run.sh`; both impls agree)
+- [x] Expand the conformance suite to 7 vectors / 223 checked ops: `states.vec` (full §5.2
+      transition matrix + §6.1 no-mutation-on-error), `errors.vec` (every §6.6 code on every
+      op, `ue_id==0` on all ten ops, payload boundary, error precedence), `capacity.vec`
+      (per-shard `CapacityExceeded`), `routing.vec` (§10.1 I1), `shards13.vec`
+      (non-power-of-two shard count). Both impls pass all seven and agree byte-for-byte.
 - [ ] Review spec DRAFT v0.1 with supervisors; resolve Appendix A open decisions
 - [ ] On approval: bump to v1.0 and tag `spec-v1.0` (FREEZE)
 
@@ -53,7 +58,7 @@ latexmk -C                   # clean build artifacts
 - [x] Implement signaling/message handling + concurrent lookup at service level
 - [x] Verify data-race freedom under ThreadSanitizer (0 races; use `setarch -m -R` on WSL2)
 - [x] Wire jemalloc allocator (`-DUECM_USE_JEMALLOC=ON`, links `libjemalloc.so.2`) + HDR latency capture (`cpp/bench/hdr.hpp`, validated) in `cpp/bench/bench.cpp`
-- [x] Run against shared parity-test contract (spec §11): `conformance_runner` passes `basic.vec`, `shards.vec`
+- [x] Run against shared parity-test contract (spec §11): `conformance_runner` passes all 7 vectors
 
 ## Phase 4 - Rust implementation
 - [x] Scaffold Cargo project (stable toolchain 1.97; release opt-level=2 to match C++ -O2)
@@ -68,8 +73,26 @@ latexmk -C                   # clean build artifacts
 - [x] Run against shared parity-test contract (spec §11): `conformance_runner` passes `basic.vec`, `shards.vec`; transcript matches C++ byte-for-byte
 
 ## Phase 5 - Parity verification
-- [x] Confirm both implementations pass identical functional parity tests (shared `conformance_runner`; op-for-op transcript match on `basic.vec`/`shards.vec`, expand vector coverage later)
-- [~] Diff behaviour on edge cases; document forced-idiom deviations (deviations logged in spec §12; add more adversarial vectors)
+- [x] Confirm both implementations pass identical functional parity tests (shared
+      `conformance_runner`; op-for-op transcript match on all 7 vectors, 223 ops)
+- [x] Diff behaviour on edge cases; document forced-idiom deviations (deviations logged in
+      spec §12). Adversarial vectors added for the full state matrix, the whole error model,
+      per-shard capacity, cross-shard isolation, and a non-power-of-two shard count. **No
+      divergence found**: every expectation was derived from the spec by hand and both
+      implementations matched it on the first run, including the error-precedence cases
+      §6 leaves unordered (now pinned so they cannot drift).
+- [x] Mirrored per-language suites for the properties a sequential `.vec` transcript cannot
+      express: `test_invariants`/`invariants.rs` (§6.1 no mutation on error, §10.3/§11.2
+      activity-sequence discipline, `security_key`/`rrc_transaction_id`/per-DRB round-trip,
+      §10.1 I1 and I4) and `test_concurrency`/`concurrency.rs` (§7 blocking backpressure at
+      `queue_capacity=1`, §10.2 O1 FIFO per shard, concurrent lookup consistency, §7.1
+      lifecycle + shard-count edge cases). C++ 5 binaries / ~13.7k checks, Rust 16 tests.
+- [x] Known-answer tests for the pinned §8 functions on both sides. The previous tests only
+      checked self-consistency, so an implementation that was internally consistent but not
+      actually SplitMix64/FNV-1a would have passed. Verified by mutation: replacing the
+      specified `x mod n_shards` with `x & (n_shards-1)` passes `basic.vec`, `shards.vec`,
+      `test_shard_core` and `test_service` unchanged, and is caught only by the new
+      `shards13.vec` and the new KAT.
 
 ## Phase 6 - Benchmarking framework & workload generator
 - [x] Build synthetic workload generator (UE lifecycle: attach, signaling, bearer setup, handover begin/complete/abort, release), pinned deterministic model, identical op-stream in C++/Rust (`--workload mixed`)
