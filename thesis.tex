@@ -192,6 +192,19 @@ concurrency defects generally.
 
 \mytableofcontents
 
+% \cleardoublepage has to come before \addcontentsline: the \chapter* inside \listoffigures
+% opens a new page itself, so the contents entry must record the page after that, not before.
+% The entries themselves are the short forms of the captions, \caption[short]{full}.
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{\listfigurename}
+\listoffigures
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{\listtablename}
+\listoftables
+
 \mynomenclature
 
 % -----------------------------------------------------------------------------------
@@ -248,7 +261,7 @@ meets its deadlines~\cite{dean2013tail,barroso2017microseconds}.
 
 \begin{table}
 \centering
-\caption{Abbreviations and key terms used throughout the thesis.\label{tab:abbrev}}
+\caption[Abbreviations and key terms]{Abbreviations and key terms used throughout the thesis.\label{tab:abbrev}}
 \renewcommand{\arraystretch}{1.2}
 \begin{tabular}{@{}p{0.17\linewidth} p{0.75\linewidth}@{}}
 \hline\hline
@@ -489,7 +502,7 @@ Figure~\ref{fig:roadmap} summarises this structure at a glance.
   \draw[->, thick] (g2.east) -- (g3.west);
   \draw[->, thick] (g3.east) -- (g4.west);
 \end{tikzpicture}
-\caption{Roadmap of the thesis. The chapters progress from framing the problem, through the
+\caption[Roadmap of the thesis]{Roadmap of the thesis. The chapters progress from framing the problem, through the
 problem context, the objectives it sets, and the method by which they are pursued, to the
 constructed artifacts and their evaluation, and finally to interpretation and
 conclusions.\label{fig:roadmap}}
@@ -558,7 +571,7 @@ correctness and timing behaviour are representative of the control plane as a wh
   \draw[<->] (cu.east |- core) -- node[above,font=\scriptsize]{NG} (core.west);
   \draw[<->] (cp.south) -- node[right,font=\scriptsize]{E1} (up.north);
 \end{tikzpicture}
-\caption{Where the studied subsystem sits in the 5G NG-RAN. The gNB is split into a
+\caption[Where the studied subsystem sits in the 5G NG-RAN]{Where the studied subsystem sits in the 5G NG-RAN. The gNB is split into a
 distributed unit (gNB-DU) and a central unit (gNB-CU), and the central unit is split again
 into control-plane (gNB-CU-CP) and user-plane (gNB-CU-UP) functions, connected by the
 standardised F1, E1, and NG interfaces. UE Context Management (highlighted) is the per-UE
@@ -586,7 +599,7 @@ power-saving states inflate the tail far beyond what queueing models predict~\ci
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/11_tail_latency_concept.pdf}
-\caption{Why the tail, not the mean, governs RAN deadlines. The latency distribution is
+\caption[Why the tail, not the mean, governs RAN deadlines]{Why the tail, not the mean, governs RAN deadlines. The latency distribution is
 heavy-tailed (left), so the p99/p99.9 percentiles lie far from the median. Because a single
 procedure fans out into many dependent operations whose slowest member gates completion (right),
 a delay that is rare per operation becomes common per procedure; at fleet scale a one-in-a-thousand
@@ -618,7 +631,7 @@ Chapter~\ref{chapter:eval}.
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/16_coordinated_omission.pdf}
-\caption{Coordinated omission. An open-loop generator (top) sends on a fixed intended schedule
+\caption[Coordinated omission under open- and closed-loop load]{Coordinated omission. An open-loop generator (top) sends on a fixed intended schedule
 regardless of system state, so requests issued during a stall are recorded with their full
 latency and the tail is captured. A naive closed-loop generator (bottom) waits for each response
 before sending the next, so when the system stalls it stalls too and never issues the delayed
@@ -714,7 +727,7 @@ an advantage in latency-sensitive code where surprises in the tail are what matt
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/08_borrow_checker_uaf.pdf}
-\caption{The same use-after-free defect in C++ and in safe Rust. The stale alias into the
+\caption[The same use-after-free in C++ and in safe Rust]{The same use-after-free defect in C++ and in safe Rust. The stale alias into the
 context map survives the \texttt{erase}/\texttt{remove} that frees it: in C++ this compiles and
 is caught only at runtime (and only under AddressSanitizer, on a path a test exercises), whereas
 in safe Rust the borrow checker rejects it at compile time (\texttt{E0499}), so the defect
@@ -740,7 +753,7 @@ control-plane software is C++ against Rust, and why managed languages are out of
 \begin{figure}
 \centering
 \includegraphics[width=0.82\linewidth]{diagrams/pdf/09_language_landscape.pdf}
-\caption{The systems-language landscape along two axes: low-level control over memory and
+\caption[The systems-language landscape: control against safety]{The systems-language landscape along two axes: low-level control over memory and
 scheduling (horizontal) and memory/thread safety (vertical). Managed languages (Java, C\#, Go,
 Python) are safe but pay a garbage-collection cost that hurts tail latency; C and C++ give
 bare-metal control but leave safety to the programmer. Rust occupies the sweet spot of
@@ -776,7 +789,7 @@ rather than a divergent concurrency strategy.
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/12_concurrency_models.pdf}
-\caption{Two concurrency models for control-plane state. Shared-memory concurrency (left) lets
+\caption[Two concurrency models for control-plane state]{Two concurrency models for control-plane state. Shared-memory concurrency (left) lets
 threads mutate common state behind locks and is the source of data races, deadlock, and lock
 contention, with a worst case that is hard to bound. Shared-nothing message-passing (right)
 partitions state so each shard is owned by a single worker and all interaction happens through
@@ -880,7 +893,7 @@ Section~\ref{sec:workload} walks each UE through.
         (idle)  edge[bend right=32] node[below,font=\scriptsize,pos=0.6]{release} (rel);
   \path (conn) edge[loop above] node[font=\scriptsize]{signal / add\_drb} (conn);
 \end{tikzpicture}
-\caption{UE-context lifecycle state machine. \texttt{create} allocates a context in
+\caption[UE-context lifecycle state machine]{UE-context lifecycle state machine. \texttt{create} allocates a context in
 \texttt{Idle}; \texttt{setup} connects it; \texttt{signal} and \texttt{add\_drb} are handled
 in place while \texttt{Connected}; a reconfiguration/handover moves through
 \texttt{Reconfiguring} and back on \texttt{complete} or \texttt{abort}; \texttt{release}
@@ -975,7 +988,7 @@ would be an artificial construct rather than a plausible bug in this subsystem.
 \begin{figure}
 \centering
 \includegraphics[width=0.92\linewidth]{diagrams/pdf/13_defect_families_tree.pdf}
-\caption{The defect classes that afflict C++ control-plane code, split into a memory-safety
+\caption[Defect classes afflicting C++ control-plane code]{The defect classes that afflict C++ control-plane code, split into a memory-safety
 family (object lifetime and bounds) and a concurrency family (unsynchronised or ill-ordered
 access). Starred classes are the five injected from inside Rust's guarantee; the two
 diamond-marked classes, lock-order deadlock and lost update, are injected precisely because they
@@ -1011,7 +1024,7 @@ implementations of one design, if there is one, has room to become visible.
 \begin{figure}
 \centering
 \includegraphics[width=0.9\linewidth]{diagrams/pdf/15_overload_cliff.pdf}
-\caption{The overload cliff. Tail latency stays low and flat while offered load is below
+\caption[The overload cliff]{The overload cliff. Tail latency stays low and flat while offered load is below
 service capacity, then climbs steeply once the system is driven past saturation and requests
 queue behind the bounded, blocking queues. The operationally decisive behaviour is the onset and
 shape of this cliff, which is why the load sweep is pushed beyond the saturation point rather
@@ -1137,7 +1150,7 @@ used to answer it, making the chain from question to evidence explicit and trace
 
 \begin{table}
 \centering
-\caption{Research design: how each research question is answered. Every question is tied to a
+\caption[Research design: how each research question is answered]{Research design: how each research question is answered. Every question is tied to a
 concrete method, a published artifact, the data it produces, and the metric on which the
 conclusion rests.\label{tab:design}}
 \renewcommand{\arraystretch}{1.25}
@@ -1160,7 +1173,7 @@ seam size, \texttt{unsafe} scope, per-call interop cost \\
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/10_rq_method_map.pdf}
-\caption{The research design as a flow, showing for each research question the method, the
+\caption[The research design as a flow]{The research design as a flow, showing for each research question the method, the
 artifact and data it produces, and the primary metric its conclusion rests on. All four questions
 are answered from one matched pair of C++/Rust implementations built from a single frozen
 specification; RQ2 and RQ4 are environment-insensitive and reported as final, while RQ1 and RQ3
@@ -1247,7 +1260,7 @@ needs.
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/14_fault_injection_method.pdf}
-\caption{The controlled fault-injection method for RQ2. A fixed catalogue of representative
+\caption[The controlled fault-injection method for RQ2]{The controlled fault-injection method for RQ2. A fixed catalogue of representative
 defect classes is confronted in two languages: each C++ defect is built and run under
 AddressSanitizer and ThreadSanitizer to record the detection stage, while the analogous safe-Rust
 construct is compiled to record the compiler's outcome and, where it compiles, run to record its
@@ -1467,7 +1480,7 @@ Figure~\ref{fig:arch} shows this data flow.
       (wn.south) -- ++(0,-0.75) -- (1.4,-2.9) -- ($(pg.south east)+(-0.4,0)$);
   \node[font=\scriptsize] at (5.9,-3.05) {one-shot completion (result $\rightarrow$ waiting producer)};
 \end{tikzpicture}
-\caption{Shared-nothing, thread-per-shard architecture. Producers submit request messages to a
+\caption[Shared-nothing, thread-per-shard architecture]{Shared-nothing, thread-per-shard architecture. Producers submit request messages to a
 shard's bounded, blocking MPSC queue (selected by a pinned hash of the \texttt{ue\_id}) and wait
 on a single-use completion handle; each shard is read and written by exactly one worker thread,
 so there are no locks on context state. Blocking on a full queue is what makes overload
@@ -1531,7 +1544,7 @@ set sizes measured in megabytes, so it is immaterial to the RQ3 comparison.
 \begin{figure}
 \centering
 \includegraphics[width=0.92\linewidth]{diagrams/pdf/05_data_model.pdf}
-\caption{The UE-context data model shared by both implementations. Field widths are fixed so that
+\caption[The shared UE-context data model]{The UE-context data model shared by both implementations. Field widths are fixed so that
 memory footprint and copy cost are comparable across languages; the data-radio-bearer list is a
 dynamic \texttt{Vec}/\texttt{std::vector} on purpose, to exercise the allocator for RQ3.
 \texttt{lookup} returns an immutable \texttt{UeContextView} copied out by value rather than an
@@ -1562,7 +1575,7 @@ identically, which is what the parity suite of Section~\ref{sec:parity} checks.
 \begin{table}
 \centering
 \small
-\caption{The implemented state-transition table, identical in both languages. Every operation
+\caption[The implemented state-transition table]{The implemented state-transition table, identical in both languages. Every operation
 additionally returns \texttt{InvalidArgument} for a zero \texttt{ue\_id}, and a rejected
 operation leaves the context unmodified. \texttt{Released} is never stored: release erases
 the entry.\label{tab:transitions}}
@@ -1668,7 +1681,7 @@ let (tx, rx) =
 // rx.recv()    blocks when empty
 \end{lstlisting}
 \end{minipage}
-\caption{The bounded blocking MPSC queue in both languages (C++ abridged only by the omission
+\caption[The bounded blocking MPSC queue in both languages]{The bounded blocking MPSC queue in both languages (C++ abridged only by the omission
 of the constructor). The semantics are identical; the C++ standard library simply does not
 supply the primitive, so it is assembled by hand from a mutex and two condition variables,
 and its correctness is argued rather than
@@ -1748,7 +1761,7 @@ pub enum Request {
 }
 \end{lstlisting}
 \end{minipage}
-\caption{The request message in both languages (abridged: C++ elides four \texttt{OpKind}
+\caption[The request message in both languages]{The request message in both languages (abridged: C++ elides four \texttt{OpKind}
 values, Rust seven variants). The C++ tagged struct carries every argument field on every
 request and returns a union that the caller must unwrap; the Rust enum carries only the
 arguments of the operation in flight and a sender already typed to that operation's
@@ -1792,7 +1805,7 @@ preceding subsections have already quantified the two entries with measurable co
 \begin{table}
 \centering
 \small
-\caption{The forced-idiom log: every point at which the two implementations diverge in order
+\caption[The forced-idiom log]{The forced-idiom log: every point at which the two implementations diverge in order
 to satisfy the same specification requirement, with the measured consequence where there is
 one.\label{tab:idioms}}
 \begin{tabular}{@{}R{0.20\linewidth} R{0.36\linewidth} R{0.36\linewidth}@{}}
@@ -1869,7 +1882,7 @@ precisely the function this measurement flags.
 \begin{table}
 \centering
 \small
-\caption{Size and cyclomatic-complexity proxies for the two cores, measured with
+\caption[Size and cyclomatic-complexity proxies for the two cores]{Size and cyclomatic-complexity proxies for the two cores, measured with
 \texttt{lizard}~\cite{lizard} applied identically to both languages. Benchmark drivers, tests,
 conformance runners, and the FFI seam are excluded; only the code the parity contract
 constrains is counted. Complexity is one plus the number of decision points in a function.
@@ -1889,7 +1902,7 @@ Measure & C++ & Rust \\
 \begin{table}
 \centering
 \small
-\caption{Where the $87$-line difference between the two cores comes from, by concern (raw
+\caption[Where the line-count difference between the cores comes from]{Where the $87$-line difference between the two cores comes from, by concern (raw
 lines, including comments; C++ figures merge header and translation unit). Rust is shorter
 only where its standard library supplies a primitive C++ lacks.\label{tab:loc}}
 \begin{tabular}{@{}R{0.38\linewidth} r r r@{}}
@@ -1966,7 +1979,7 @@ cross-thread round-trip on both sides.
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/04_request_lifecycle_sequence.pdf}
-\caption{The end-to-end path of a single operation and the completion handoff. The caller builds
+\caption[The end-to-end path of a single operation]{The end-to-end path of a single operation and the completion handoff. The caller builds
 a request with a single-use completion handle, routes it by \texttt{shard\_index(ue\_id)} to the
 owning shard's bounded queue (blocking if it is full), and waits; the shard's single worker
 dequeues in FIFO order, executes the operation against its exclusively owned store, and writes the
@@ -2129,7 +2142,7 @@ magnitude below the one this measurement resolves.
 \begin{table}
 \centering
 \small
-\caption{Per-operation latency at a sustained offered load of $\ReprLoad$~kops/s (mixed
+\caption[Per-operation latency at the representative load]{Per-operation latency at a sustained offered load of $\ReprLoad$~kops/s (mixed
 RAN-lifecycle workload, $8$ shards). Values in microseconds: the median over \NRepeats{}
 repeats above its nonparametric bootstrap $95\%$ confidence interval. The interval is printed
 in full rather than as a symmetric half-width because it is strongly asymmetric at these
@@ -2177,7 +2190,7 @@ the final column uninformative.
 \begin{table}
 \centering
 \small
-\caption{Exact paired permutation test of C++ against Rust at $\ReprLoad$~kops/s, with the
+\caption[Exact paired permutation test of C++ against Rust]{Exact paired permutation test of C++ against Rust at $\ReprLoad$~kops/s, with the
 allocator held fixed. The effect is the median of the \NRepeats{} paired differences
 (Rust~$-$~C++), shown above its bootstrap $95\%$ confidence interval; the test statistic is
 their mean. $p$ is exact over all $2^{\NRepeats}$ sign assignments, and the final column
@@ -2254,7 +2267,7 @@ Table~\ref{tab:budget} gives the result, and it reframes the whole performance c
 \begin{table}
 \centering
 \small
-\caption{Where an end-to-end operation's cost actually goes, measured at $8$ shards and
+\caption[Where an end-to-end operation's cost actually goes]{Where an end-to-end operation's cost actually goes, measured at $8$ shards and
 $5\,000$ active UEs with a single uncontended caller. Each row is the median over
 \BudgetRepeats{} interleaved repeats above its bootstrap $95\%$ confidence interval, in the
 unit its own magnitude calls for: the two terms differ by more than three orders of magnitude,
@@ -2336,7 +2349,7 @@ bare-metal campaign is designed to pin down.
 \begin{figure}
 \centering
 \includegraphics[width=0.82\linewidth]{figures/fig_latency_vs_load.pdf}
-\caption{Tail latency (p99) versus offered load for the four build variants. Lines are medians
+\caption[Tail latency versus offered load]{Tail latency (p99) versus offered load for the four build variants. Lines are medians
 over \NRepeats{} repeats; shaded bands are bootstrap $95\%$ CIs. Log-scaled $y$-axis.
 Preliminary (WSL2) data.\label{fig:latency-load}}
 \end{figure}
@@ -2356,7 +2369,7 @@ offered, so the latencies reported there are not those of an already-queueing sy
 \begin{figure}
 \centering
 \includegraphics[width=0.82\linewidth]{figures/fig_throughput_vs_load.pdf}
-\caption{Achieved throughput versus offered load. The dotted line marks the ideal
+\caption[Achieved throughput versus offered load]{Achieved throughput versus offered load. The dotted line marks the ideal
 offered-equals-achieved regime. Throughput is counted over the measured phase only, so the
 warm-up iterations bias neither the numerator nor the denominator. Preliminary (WSL2)
 data.\label{fig:throughput-load}}
@@ -2374,7 +2387,7 @@ resolution rather than where the languages differ.
 \begin{figure}
 \centering
 \includegraphics[width=0.82\linewidth]{figures/fig_tail_percentiles.pdf}
-\caption{Latency by percentile at $\ReprLoad$~kops/s sustained load; log-scaled $y$-axis. The
+\caption[Latency by percentile at the representative load]{Latency by percentile at $\ReprLoad$~kops/s sustained load; log-scaled $y$-axis. The
 four variants coincide at the median and separate as the percentile rises; on this host the
 separation is within run-to-run dispersion and is therefore not attributable to language or
 allocator. Preliminary (WSL2) data.\label{fig:tail}}
@@ -2426,7 +2439,7 @@ operation of Section~\ref{sec:budget}, it is the faster of the two.
 \begin{table}
 \centering
 \small
-\caption{Resource use at a sustained offered load of $\ReprLoad$~kops/s: achieved throughput,
+\caption[Resource use at the representative load]{Resource use at a sustained offered load of $\ReprLoad$~kops/s: achieved throughput,
 peak RSS, and total CPU utilisation. The median over \NRepeats{} repeats above its bootstrap
 $95\%$ confidence interval. Peak RSS is the one metric here whose intervals separate the four
 variants cleanly. Preliminary, development-environment (WSL2)
@@ -2443,7 +2456,7 @@ Variant & throughput (kops/s) & peak RSS (MiB) & CPU (\%) \\
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{figures/fig_resources.pdf}
-\caption{Peak resident set size (left) and CPU utilisation (right) per build variant at
+\caption[Peak resident set size and CPU utilisation per variant]{Peak resident set size (left) and CPU utilisation (right) per build variant at
 $\ReprLoad$~kops/s. Preliminary (WSL2) data.\label{fig:resources}}
 \end{figure}
 
@@ -2517,7 +2530,7 @@ consequence for practice is developed in Chapter~\ref{chapter:discussion}.
 \begin{table}
 \centering
 \small
-\caption{Defect-class taxonomy: measured outcomes for the injected catalogue. C++ under
+\caption[Defect-class taxonomy: measured outcomes]{Defect-class taxonomy: measured outcomes for the injected catalogue. C++ under
 \texttt{g++~13.3} with ASan/TSan; Rust under \texttt{rustc~1.97}, edition~2021. ``Compile
 error'' means the safe-Rust program does not build, so the defect cannot be written. The lower
 block is the boundary group: defect classes chosen because safe Rust is \emph{not} expected to
@@ -2558,7 +2571,7 @@ them.
 \begin{figure}
 \centering
 \includegraphics[width=0.9\linewidth]{figures/fig_taxonomy.pdf}
-\caption{Defect-class outcome matrix, with the boundary group below the rule. Green cells are
+\caption[Defect-class outcome matrix]{Defect-class outcome matrix, with the boundary group below the rule. Green cells are
 defects prevented at compile time (safe Rust); amber cells are defects that compile but are
 caught at runtime by the given sanitiser; red cells are defects the sanitiser does not detect
 or, in the right-hand column, that safe Rust does not prevent. Generated from the
@@ -2578,7 +2591,7 @@ setup returns \texttt{InvalidState} through the seam).
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/07_ffi_seam.pdf}
-\caption{The C++-to-Rust FFI migration seam. The C++ host sees only an opaque handle, twelve
+\caption[The C++-to-Rust FFI migration seam]{The C++-to-Rust FFI migration seam. The C++ host sees only an opaque handle, twelve
 plain-C entry points, and a status-code convention; a thin \texttt{extern "C"} seam crate
 concentrates all of the raw-pointer \texttt{unsafe} (twelve sites) and calls the unmodified Rust
 core, which remains free of \texttt{unsafe}. The do-nothing crossing costs a fraction of a
@@ -2621,7 +2634,7 @@ guidelines of Chapter~\ref{chapter:discussion}.
 
 \begin{table}
 \centering
-\caption{FFI migration prototype: seam size, safety boundary, and per-call interop cost
+\caption[FFI migration prototype: seam size, safety, and cost]{FFI migration prototype: seam size, safety boundary, and per-call interop cost
 (C++ host calling the Rust component across a C ABI, \texttt{-O2}). The core library is
 unmodified and \texttt{unsafe}-free; all interop is confined to the seam crate. The last
 three rows are the direct comparison: one signaling operation on the same service
@@ -2640,7 +2653,7 @@ Metric & Value \\
 \begin{figure}
 \centering
 \includegraphics[width=0.78\linewidth]{figures/fig_ffi_cost.pdf}
-\caption{Per-call cost of crossing the C ABI (a do-nothing \texttt{extern "C"} call) versus
+\caption[Per-call FFI crossing cost against one whole operation]{Per-call cost of crossing the C ABI (a do-nothing \texttt{extern "C"} call) versus
 the end-to-end cost of one signaling operation through the seam. Log-scaled $y$-axis: the FFI
 crossing is negligible next to the service's cross-thread round-trip.\label{fig:ffi-cost}}
 \end{figure}
@@ -2656,7 +2669,7 @@ hold on the bare-metal testbed, but are labelled preliminary until that campaign
 
 \begin{table}
 \centering
-\caption{Summary of findings per research question and the current strength of evidence.
+\caption[Summary of findings per research question]{Summary of findings per research question and the current strength of evidence.
 \label{tab:findings}}
 \renewcommand{\arraystretch}{1.25}
 \begin{tabular}{@{}p{0.06\linewidth} p{0.62\linewidth} p{0.22\linewidth}@{}}
@@ -3079,7 +3092,7 @@ concurrent control-plane workload, which is the narrower gap this work occupies.
 \begin{table}
 \centering
 \small
-\caption{Positioning against the closest prior work. ``Matched pair'' means both systems are
+\caption[Positioning against the closest prior work]{Positioning against the closest prior work. ``Matched pair'' means both systems are
 built from one specification so that the language is the only systematic difference; ``tail
 under overload'' means high percentiles are reported past the saturation point rather than
 average or nominal-load performance; ``adoption cost'' means the cost of incremental migration
