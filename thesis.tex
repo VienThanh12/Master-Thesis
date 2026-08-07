@@ -132,6 +132,15 @@
 % bench/complexity.py with one tool applied identically to both languages.
 \input{figures/gen_complexity.tex}
 
+% Keep the contents page to chapters, sections, and subsections. The \paragraph
+% headings inside sections are running signposts, often a full sentence long,
+% and listing all of them turns the contents into a second outline that competes
+% with the real one. titlesec ignores \setcounter{tocdepth} for these levels, so
+% they are dropped where they are typeset instead.
+\makeatletter
+\renewcommand*\l@paragraph[2]{}
+\makeatother
+
 \begin{document}
 
 % Generate title page.
@@ -181,10 +190,6 @@ run-time performance, and what is gained is freedom from data races rather than 
 concurrency defects generally.
 \end{abstract}
 
-% Place ToC. Depth 2 lists chapters, sections, and subsections; the \paragraph
-% headings used inside sections are running signposts rather than structure, and
-% listing them turns the contents page into a second, sentence-length outline.
-\setcounter{tocdepth}{2}
 \mytableofcontents
 
 \mynomenclature
@@ -2714,14 +2719,13 @@ Prior Rust-versus-C/C++ comparisons focus on general-purpose performance and
 energy~\cite{pereira2017energy}, and cross-language benchmark surveys report that Rust matches
 C and C++ on performance while adding safety~\cite{bugden2022rust}. Formal and empirical work establishes the soundness of
 Rust's safe fragment and the disciplined use of \texttt{unsafe}: RustBelt provides
-machine-checked foundations for the safety claims~\cite{jung2018rustbelt,jung2021safe} and the
+machine-checked foundations for the safety claims~\cite{jung2018rustbelt,jung2021safe}, and the
 Stacked Borrows model formalises the aliasing rules that \texttt{unsafe} code must
-respect~\cite{jung2020stacked}, while
-empirical studies of real-world code and of all known memory-safety CVEs show that
-\texttt{unsafe} is used sparingly and that memory-safety defects invariably trace back to it
-~\cite{astrauskas2020unsafe,qin2020rust,xu2021rustcve}; a complementary study cautions that
-unsafety nonetheless propagates through dependency call chains, so most libraries cannot be
-fully statically checked~\cite{evans2020rust}. Ecosystem-scale evidence has since sharpened
+respect~\cite{jung2020stacked}. Empirical studies of real-world code and of all known
+memory-safety CVEs show that \texttt{unsafe} is used sparingly and that memory-safety defects
+invariably trace back to it~\cite{astrauskas2020unsafe,qin2020rust,xu2021rustcve}. A
+complementary study cautions that unsafety nonetheless propagates through dependency call
+chains, so most libraries cannot be fully statically checked~\cite{evans2020rust}. Ecosystem-scale evidence has since sharpened
 this picture: automated auditing of the crate registry finds memory-safety defects at
 scale~\cite{bae2021rudra}, a study of the advisory database attributes the bulk of reported
 problems to memory-safety and concurrency issues~\cite{zheng2024security}, and the real-world
@@ -2733,16 +2737,16 @@ the long-standing difficulty of containing memory-corruption attacks in C/C++ wi
 mitigations alone is the security backdrop to this shift~\cite{szekeres2013sok}.
 
 On the performance side, systems-oriented studies argue that Rust delivers safety at
-essentially zero runtime cost and is viable in demanding low-level domains: Rust enforces
+essentially zero runtime cost and is viable in demanding low-level domains. Rust enforces
 safety without garbage-collection overhead and enables efficiency techniques impractical in
-C~\cite{balasubramanian2017rust}, a Rust kernel achieves competitive resource efficiency on
-constrained hardware~\cite{levy2017kernel}, embedded and real-time systems such as a Rust
-hypervisor have been shown to gain memory safety without sacrificing
-performance~\cite{mo2023rustshyper}, production cloud infrastructure such as AWS Firecracker is
-built in Rust~\cite{agache2020firecracker}, and in the networking domain an idiomatic Rust
-user-space driver runs within a few percent of its C reference~\cite{emmerich2019drivers},
-with more recent Rust packet-processing libraries reporting similar
-results~\cite{xiao2024rpkt}. Where that literature reports a cost, it has begun to localise
+C~\cite{balasubramanian2017rust}, and a Rust kernel achieves competitive resource efficiency on
+constrained hardware~\cite{levy2017kernel}. The claim also holds where timing is tightest:
+embedded and real-time systems such as a Rust hypervisor gain memory safety without sacrificing
+performance~\cite{mo2023rustshyper}, and production cloud infrastructure such as AWS Firecracker
+is built in Rust~\cite{agache2020firecracker}. Closest to this domain, an idiomatic Rust
+user-space network driver runs within a few percent of its C
+reference~\cite{emmerich2019drivers}, with more recent Rust packet-processing libraries
+reporting similar results~\cite{xiao2024rpkt}. Where that literature reports a cost, it has begun to localise
 it: Rust's overhead has been attributed to specific mechanisms, chiefly bounds, overflow, and
 division checks~\cite{zhang2022runtime}, the bounds-check component in particular has been
 isolated by comparing software checks against hardware-enforced
@@ -3028,22 +3032,32 @@ instrument: a frozen specification, a parity-tested pair of implementations, a r
 measurement framework, and a defect catalogue that maps both what the guarantee covers and
 where it stops.
 
-Several directions extend the work. The most immediate is executing the bare-metal campaign
-that turns the RQ1 and RQ3 results from preliminary into final. Beyond that: replaying captured
-(anonymised) production traces instead of a synthetic workload; scaling the comparison to
-additional control-plane subsystems or to the data-heavy L2/PHY path, where shared mutable
-state and allocation churn would test the languages differently than a shared-nothing design
-does; instrumenting the comparison with hardware performance counters so that resource
-differences can be explained rather than only observed; extending the fault catalogue further
-along the boundary mapped here, towards leaks, panics, and misuse of \texttt{unsafe};
-evaluating Rust async runtimes against the thread-per-shard model used here, which would let
-the tail divergence Arvidsson and Kaller attribute to stackless
-\texttt{async}/\texttt{await}~\cite{arvidsson2025async} be separated from the language under
-the controls this study imposes; measuring what in-process isolation of the two heaps costs at
-the seam, since that is what an \texttt{unsafe}-free core would need to be protected as well as
-verified~\cite{rivera2021galeed,kirth2022pkrusafe}; and a longer-term
-migration case study that tracks defect density and review effort as Rust is adopted
-incrementally in a production RAN codebase.
+Several directions extend the work, each of them the direct remedy to a limitation named above.
+The most immediate is executing the bare-metal campaign that turns the RQ1 and RQ3 results from
+preliminary into final, with a larger repeat count so the paired tests are no longer bounded by
+their own resolving power. Beyond that:
+
+\begin{itemize}
+\item Replay captured, anonymised production traces in place of the synthetic workload, so that
+  the operation mix is validated rather than merely spec-justified.
+\item Scale the comparison to further control-plane subsystems, or to the data-heavy L2/PHY
+  path, where shared mutable state and allocation churn would exercise the two languages
+  differently than a shared-nothing design does.
+\item Instrument the comparison with hardware performance counters and allocation profiles. This
+  is what would turn the memory result of Section~\ref{sec:perfresults} from an observation into
+  an explanation, and it is the clearest instrumentation gap in the study as it stands.
+\item Extend the fault catalogue further along the boundary mapped here, towards leaks, panics,
+  and misuse of \texttt{unsafe}.
+\item Evaluate Rust async runtimes against the thread-per-shard model used here. That would
+  separate the tail divergence Arvidsson and Kaller attribute to stackless
+  \texttt{async}/\texttt{await}~\cite{arvidsson2025async} from the language itself, under the
+  controls this study imposes.
+\item Measure what in-process isolation of the two heaps costs at the seam, since that is what
+  an \texttt{unsafe}-free core would need in order to be protected as well as
+  verified~\cite{rivera2021galeed,kirth2022pkrusafe}.
+\item Track defect density and review effort in a longer-term case study, as Rust is adopted
+  incrementally in a production RAN codebase.
+\end{itemize}
 
 % STEP 5:
 % Uncomment the following lines and set your .bib file and desired bibliography style

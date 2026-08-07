@@ -105,13 +105,25 @@ latexmk -C                   # clean build artifacts
 - [x] Tooling: `bench/campaign.sh` (repeats + interleaving + env capture + pinning) ->
       `bench/aggregate.py` (bootstrap median + 95% CI per metric, tidy CSV + auto `tab:latency`
       LaTeX) -> `bench/plot_campaign.py` (median + CI-band latency-vs-load). Pipeline smoke-tested.
-- [ ] Execute the campaign on a bare-metal testbed (WSL2 numbers are not testbed-grade),
-      provision with `bench/setup_testbed.sh` (toolchain + CPU hygiene + GREEN/RED readiness check)
-- [ ] Compute variance + confidence intervals across runs (produced by `aggregate.py` once run)
-- [ ] Generate latency-vs-load plots per language (`plot_campaign.py`; needs matplotlib)
+- [ ] **Execute the campaign on a bare-metal testbed** (WSL2 numbers are not testbed-grade),
+      provision with `bench/setup_testbed.sh` (toolchain + CPU hygiene + GREEN/RED readiness check).
+      Use **more than 7 repeats**: the exact paired test cannot return p < 2/2^n, so at 7 repeats
+      no result can survive the Holm correction however large the effect. 15+ repeats lifts the
+      floor below 0.05 after correction.
+- [x] Compute variance + confidence intervals across runs (`plot_figures.py`; reported as explicit
+      asymmetric [lo, hi] bootstrap intervals, not symmetric half-widths, which at these
+      dispersions implied negative latencies)
+- [x] Formal significance testing: exact two-sided **paired permutation test** on the interleaved
+      repeats (language compared with allocator held fixed), Holm-corrected across the family.
+      Emits `figures/tab_significance.tex` + macros. Enumerates all 2^n sign assignments up to
+      18 repeats, Monte Carlo above that.
+- [x] Generate latency-vs-load plots per language (`plot_figures.py`)
 - [x] Fill Table (defect taxonomy): thesis §6.2 `tab:taxonomy` from real fault-injection runs
-- [ ] Fill Table (latency percentiles): paste generated `campaign-*.latency.tex` into `tab:latency`
-- [ ] Draft evidence-based migration/language-selection guidelines (RQ4 inputs ready; §7 discussion)
+- [x] Fill Table (latency percentiles): generated into `figures/tab_latency.tex`
+- [x] Software-quality proxies: `bench/complexity.py` measures LOC + cyclomatic complexity with
+      `lizard` over both cores (one tool, both languages) -> `tab_complexity.tex`. Result: Rust is
+      19% longer but 15% lower in total complexity; C++ `worker_loop` is CCN 13 vs Rust's max of 6.
+- [x] Draft evidence-based migration/language-selection guidelines (RQ4 inputs ready; §8.4)
 
 ## Phase 9 - Writing (fill placeholders in thesis.tex)
 - [x] Build `bibliography.bib` (3gpp38401, 3gpp38300, msrc2019memory, google2022android,
@@ -122,17 +134,32 @@ latexmk -C                   # clean build artifacts
 - [x] Fill fault-injection results + defect taxonomy from real runs (§6.2, Table `tab:taxonomy`);
       appendix code example now the real UAF C++/Rust pair
 - [x] Describe implemented signal/mixed workloads + CO correction in §6.1
-- [ ] Populate "Evaluation data" and performance results (Table `tab:latency`) with measured
-      load-sweep data (needs testbed hygiene + repeats, Phase 7a/8)
-- [ ] Complete Discussion: summary of findings, per-RQ discussion (after performance data)
-- [ ] Finalize conclusion + future work
-- [ ] Polish abstract to reflect actual (not expected) results
+- [x] Populate "Evaluation data" and performance results (Table `tab:latency`) with measured
+      load-sweep data (labelled preliminary until the bare-metal campaign, Phase 7a/8)
+- [x] Complete Discussion: summary of findings, per-RQ discussion
+- [x] Finalize conclusion + future work
+- [x] Polish abstract to reflect actual (not expected) results.
+      NOTE: the abstract box is full to the line. Any addition pushes the CCS block into the
+      Keywords row; check page 3 visually after editing it.
 
 ## Phase 10 - Finalization
 - [ ] Full proofread + supervisor review round(s)
-- [ ] Verify all cross-references, citations, tables, figures resolve
-- [ ] Reproducibility check: clean clone -> build -> run -> compile PDF
+- [x] Verify all cross-references, citations, tables, figures resolve (0 errors, 0 undefined)
+- [x] Reproducibility check: `bench/refresh_thesis.sh` regenerates every figure, table, and
+      quoted number from the raw logs and rebuilds the PDF in one command
+- [ ] Fill `\censors{}{}{}` on the title page once the faculty assigns examiners
+- [ ] Swap the reconstructed `UH_DS_MSc.cls` for the official one (see Notes)
 - [ ] Final PDF + submission
+
+### After the bare-metal campaign, re-check these
+The prose is generated from the data, so most of it updates itself. These are the claims that
+are currently shaped by *this* dataset and should be reread once the numbers change:
+- §7.5.1 "the tail is not yet measurable" -- becomes a real finding or a bounded null result.
+- §7.5.1/§8.2 the peak-RSS language effect. Currently ~3.4 MiB with identical sign in all 7
+  repeats but Holm p = 0.188 purely because of the repeat floor. With more repeats it either
+  becomes significant (state it plainly) or fails to reproduce (retract it).
+- Table 8.1 evidence-status column, and the RQ1/RQ3 "preliminary" labels throughout.
+- H1 in §8.3, currently recorded as half-answered.
 
 ---
 
