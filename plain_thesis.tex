@@ -212,6 +212,10 @@ marking where the guarantee ends.
 \addcontentsline{toc}{chapter}{\listtablename}
 \listoftables
 
+% Flush the last roman-numbered page before \mynomenclature switches to arabic, or the
+% reset lands on the still-open List of Tables page and the body starts at 3 instead of 1.
+\cleardoublepage
+
 \mynomenclature
 
 % -----------------------------------------------------------------------------------
