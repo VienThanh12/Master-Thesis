@@ -21,6 +21,7 @@ import argparse
 import csv
 import glob
 import json
+import math
 import os
 import random
 import statistics
@@ -34,6 +35,11 @@ from matplotlib.patches import Patch
 
 PRODUCERS_DEFAULT = 8
 NS_PER_US = 1000.0
+
+# Paired permutation test: enumerate all 2**n sign assignments up to this many
+# repeats, and fall back to a seeded Monte Carlo sample above it.
+EXACT_MAX = 18
+PERM_SAMPLES = 200000
 
 # Consistent per-variant styling across every figure.
 VARIANT_STYLE = {
@@ -61,6 +67,78 @@ def bootstrap_ci(values, n_boot=2000, alpha=0.05, seed=12345):
     lo = meds[int((alpha / 2) * n_boot)]
     hi = meds[int((1 - alpha / 2) * n_boot)]
     return (statistics.median(vals), lo, hi)
+
+
+def paired_permutation_test(a, b):
+    """Exact two-sided paired permutation test. Returns (median_diff, p, n_pairs).
+
+    The campaign interleaves the four variants inside every repeat, so run i of
+    one variant and run i of another were measured back to back under the same
+    ambient conditions. That makes the repeats a matched design rather than two
+    independent samples, and it is what lets the noise common to a repeat cancel
+    in the pairwise difference instead of inflating both variances.
+
+    Under the null hypothesis that a pair differs only by run-to-run noise, the
+    sign of each paired difference is exchangeable. With n repeats there are
+    exactly 2**n sign assignments, so for the repeat counts used here the test is
+    enumerated in full rather than sampled: the p-value is exact, and no
+    distributional assumption is imposed on a latency sample that is known to be
+    skewed. The statistic is the mean of the paired differences; the effect size
+    reported alongside it is their median, to stay consistent with the
+    median-based reporting used everywhere else.
+
+    Note the resolving power this buys is bounded by n: the smallest attainable
+    two-sided p-value is 2 / 2**n, so a campaign of 7 repeats cannot report a
+    p below about 0.016 no matter how large the effect.
+
+    Beyond EXACT_MAX pairs the enumeration is replaced by a seeded Monte Carlo
+    sample over sign assignments, which keeps a larger bare-metal campaign
+    tractable at the cost of making the p-value an estimate rather than exact.
+    """
+    pairs = [(x, y) for x, y in zip(a, b) if x is not None and y is not None]
+    n = len(pairs)
+    if n == 0:
+        return (float("nan"), float("nan"), 0)
+    diffs = [y - x for x, y in pairs]
+    observed = abs(sum(diffs))
+    at_least_as_extreme = 0
+    if n <= EXACT_MAX:
+        # Enumerate every sign assignment via the bits of an n-bit counter.
+        total_assignments = 1 << n
+        for mask in range(total_assignments):
+            total = 0.0
+            for i, d in enumerate(diffs):
+                total += -d if (mask >> i) & 1 else d
+            if abs(total) >= observed - 1e-12:
+                at_least_as_extreme += 1
+    else:
+        rng = random.Random(20260807)
+        total_assignments = PERM_SAMPLES
+        for _ in range(total_assignments):
+            total = sum(d if rng.getrandbits(1) else -d for d in diffs)
+            if abs(total) >= observed - 1e-12:
+                at_least_as_extreme += 1
+    return (statistics.median(diffs), at_least_as_extreme / float(total_assignments), n)
+
+
+def holm_adjust(pvalues):
+    """Holm-Bonferroni step-down adjustment for a family of p-values.
+
+    Every metric in the result tables is tested for both allocators, so the
+    family-wise error rate has to be controlled or the chance of one spurious
+    "significant" difference grows with the number of comparisons. Holm is used
+    rather than plain Bonferroni because it is uniformly more powerful while
+    making no assumption about dependence between the tests.
+    """
+    m = len(pvalues)
+    order = sorted(range(m), key=lambda i: pvalues[i])
+    adjusted = [0.0] * m
+    running = 0.0
+    for rank, idx in enumerate(order):
+        val = (m - rank) * pvalues[idx]
+        running = max(running, val)
+        adjusted[idx] = min(1.0, running)
+    return adjusted
 
 
 def load_campaign(path):
@@ -393,9 +471,14 @@ def fig_ffi(metrics_json, outdir):
         txt = f"{v:.2f} ns" if v < 100 else f"{v/1000.0:.1f} \u00b5s"
         ax.text(b.get_x() + b.get_width() / 2, v * 1.15, txt,
                 ha="center", va="bottom", fontsize=9, fontweight="bold")
-    ratio = roundtrip / crossing
-    ax.set_title(f"FFI crossing is ~{ratio:,.0f}\u00d7 cheaper than one service op",
-                 fontsize=9)
+    # Quoted as an order of magnitude rather than a bare ratio: both terms are
+    # microbenchmarks with their own dispersion, so a six-figure ratio would be
+    # precision the measurement does not have. This also keeps the figure and
+    # the prose stating the same thing.
+    orders = round(math.log10(roundtrip / crossing))
+    ax.set_title(
+        f"FFI crossing is ~{orders} orders of magnitude below one service op",
+        fontsize=9)
     ax.set_ylim(top=roundtrip * 4)
     fig.tight_layout()
     out = os.path.join(outdir, "fig_ffi_cost.pdf")
@@ -428,23 +511,26 @@ def fmt_us(ns):
 
 
 def med_ci_cell(values, decimals=None):
-    """Format a metric as `median $\\pm$ h`, h the half-width of the bootstrap 95% CI.
+    """Format a metric as a median above its explicit bootstrap 95% [lo, hi] interval.
 
-    The methodology commits to reporting a median with a nonparametric CI rather
-    than a bare point estimate, so every numeric cell in the result tables carries
-    its dispersion. A half-width is used instead of an explicit [lo, hi] interval
-    only to keep the tables inside the text block; it is symmetrised as the larger
-    of the two one-sided distances, so it never understates the interval.
+    The interval is reported in full rather than as a symmetric half-width. A
+    bootstrap interval on the median of a heavy-tailed latency sample is strongly
+    asymmetric, so collapsing it to a single `median +/- h` understates the upper
+    tail, overstates the lower one, and at these dispersions produces a nominal
+    lower bound below zero -- an impossible latency, and an artefact of the
+    notation rather than of the data.
 
     Precision adapts to magnitude: quoting a 20 ms latency to a tenth of a
     microsecond would be false precision, and it is also what pushes the LaTeX
     table past the text width once the sweep reaches overload.
     """
     med, lo, hi = bootstrap_ci(values)
-    half = max(med - lo, hi - med)
     if decimals is None:
         decimals = 1 if abs(med) < 1000 else 0
-    return f"{med:.{decimals}f}\\,$\\pm$\\,{half:.{decimals}f}"
+    return (
+        f"\\mci{{{med:.{decimals}f}}}"
+        f"{{{lo:.{decimals}f}}}{{{hi:.{decimals}f}}}"
+    )
 
 
 def _subset(rows, key, load):
@@ -478,7 +564,7 @@ def write_latency_table(rows, outdir, load):
     return out, load
 
 
-def write_generated_macros(rows, outdir, load):
+def write_generated_macros(rows, outdir, load, sig_results=()):
     """Emit the campaign's summary numbers as LaTeX macros.
 
     Every quantity the prose quotes about the campaign is defined here and used by
@@ -500,16 +586,17 @@ def write_generated_macros(rows, outdir, load):
     ach = [med_at(k, load, thr_kops) for k in variants]
     p99 = [med_at(k, load, p99_us) for k in variants]
     p50 = [med_at(k, load, p50_us) for k in variants]
-    # Widest 95% CI half-width on any single variant's p99 at the representative
-    # load, against the spread between variants. When the former exceeds the
-    # latter the measurement cannot order the variants at all, which is a finding
-    # about the environment rather than about the languages.
+    # Widest 95% CI on any single variant's p99 at the representative load,
+    # measured as the full width of the interval, against the spread between
+    # variants. When the former exceeds the latter the measurement cannot order
+    # the variants at all, which is a finding about the environment rather than
+    # about the languages.
     p99_ci = []
     for k in variants:
         sub = _subset(rows, k, load)
         if sub:
-            m, lo, hi = bootstrap_ci([p99_us(r) for r in sub])
-            p99_ci.append(max(m - lo, hi - m))
+            _, lo, hi = bootstrap_ci([p99_us(r) for r in sub])
+            p99_ci.append(hi - lo)
     # Saturation knee: highest achieved throughput anywhere in the sweep, taken as
     # the minimum across variants so the quoted knee holds for all four.
     knee = min(max(med_at(k, l, thr_kops) for l in loads) for k in variants)
@@ -536,11 +623,122 @@ def write_generated_macros(rows, outdir, load):
         "PNineNineMaxCI": f"{max(p99_ci):.0f}" if p99_ci else "0",
         "MaxOfferedLoad": f"{max(loads) / 1000.0:.0f}",
     }
+
+    if sig_results:
+        # The exact paired test cannot report a p below 2 / 2**n, so the floor is
+        # quoted alongside the results: a null finding at 7 repeats is a
+        # statement about the design's resolving power as much as about the data.
+        n_pairs = max(r["n"] for r in sig_results)
+        pick = lambda pre: [r for r in sig_results if r["metric"].startswith(pre)]
+        p50_rows, rss_rows, cpu_rows = pick("p50"), pick("Peak RSS"), pick("CPU")
+        macros.update({
+            "NTests": str(len(sig_results)),
+            "MinAttainableP": f"{2.0 / (1 << n_pairs):.3f}",
+            "NSignificant": str(sum(1 for r in sig_results if r["holm"] < 0.05)),
+            "SmallestHolm": f"{min(r['holm'] for r in sig_results):.3f}",
+            "PFiftyDiffAbsMax": (
+                f"{max(abs(r['diff']) for r in p50_rows):.1f}" if p50_rows else "0"
+            ),
+            "PFiftyDiffCIMax": (
+                f"{max(max(abs(r['lo']), abs(r['hi'])) for r in p50_rows):.0f}"
+                if p50_rows else "0"
+            ),
+        })
+        if rss_rows:
+            macros.update({
+                "RssLangDiffLo": f"{min(r['diff'] for r in rss_rows):.1f}",
+                "RssLangDiffHi": f"{max(r['diff'] for r in rss_rows):.1f}",
+                "RssLangCILo": f"{min(r['lo'] for r in rss_rows):.1f}",
+                "RssLangCIHi": f"{max(r['hi'] for r in rss_rows):.1f}",
+            })
+        if cpu_rows:
+            macros["CpuDiffAbsMax"] = f"{max(abs(r['diff']) for r in cpu_rows):.1f}"
+
+    # The allocator effect on peak RSS, held against the language effect above:
+    # jemalloc minus the system allocator, with the language held fixed.
+    rss_mib = lambda r: r["rss_peak_kb"] / 1024.0
+    alloc_diffs = []
+    for lang in ("cpp", "rust"):
+        sys_runs = [rss_mib(r) for r in _subset(rows, (lang, "system"), load)]
+        jem_runs = [rss_mib(r) for r in _subset(rows, (lang, "jemalloc"), load)]
+        if sys_runs and jem_runs:
+            alloc_diffs.append(paired_permutation_test(sys_runs, jem_runs)[0])
+    if alloc_diffs:
+        macros["RssAllocDiffLo"] = f"{min(alloc_diffs):.1f}"
+        macros["RssAllocDiffHi"] = f"{max(alloc_diffs):.1f}"
     out = os.path.join(outdir, "gen_macros.tex")
     with open(out, "w") as f:
         f.write("% Generated by bench/plot_figures.py -- do not edit by hand.\n")
         for k, v in macros.items():
             f.write(f"\\newcommand{{\\{k}}}{{{v}}}\n")
+    return out
+
+
+#: Metrics carried into the paired significance test, in table order.
+TESTED_METRICS = [
+    ("p50 latency (\\textmu s)", lambda r: r["lat_ns"]["p50"] / NS_PER_US, 1),
+    ("p99 latency (\\textmu s)", lambda r: r["lat_ns"]["p99"] / NS_PER_US, 0),
+    ("p99.9 latency (\\textmu s)", lambda r: r["lat_ns"]["p999"] / NS_PER_US, 0),
+    ("Throughput (kops/s)", lambda r: r["throughput_ops_s"] / 1000.0, 2),
+    ("Peak RSS (MiB)", lambda r: r["rss_peak_kb"] / 1024.0, 1),
+    ("CPU utilisation (\\%)", lambda r: r["cpu_pct"], 1),
+]
+
+
+def significance_results(rows, load):
+    """Paired C++-vs-Rust tests at the representative load, one per metric x allocator.
+
+    The allocator is held fixed inside each comparison so that the only thing
+    varying is the language, which is the independent variable the whole study is
+    built around. Pairing is by repeat index: the campaign's outer loop is the
+    repeat, so the i-th run of each variant at a given load belongs to the same
+    interleaved block.
+    """
+    results = []
+    allocs = [a for a in ("system", "jemalloc")
+              if ("cpp", a) in VARIANT_STYLE and _subset(rows, ("cpp", a), load)]
+    for label, fn, decimals in TESTED_METRICS:
+        for alloc in allocs:
+            cpp = [fn(r) for r in _subset(rows, ("cpp", alloc), load)]
+            rust = [fn(r) for r in _subset(rows, ("rust", alloc), load)]
+            if not cpp or not rust:
+                continue
+            diff, p, n = paired_permutation_test(cpp, rust)
+            paired = [y - x for x, y in zip(cpp, rust)]
+            _, lo, hi = bootstrap_ci(paired)
+            results.append({
+                "metric": label, "alloc": alloc, "decimals": decimals,
+                "diff": diff, "lo": lo, "hi": hi, "p": p, "n": n,
+            })
+    for res, adj in zip(results, holm_adjust([r["p"] for r in results])):
+        res["holm"] = adj
+    return results
+
+
+def write_significance_table(results, outdir):
+    """Emit the body of tab:significance."""
+    if not results:
+        return None
+    def signed(value, decimals):
+        # A value that rounds to zero prints as a bare 0, never as "-0.00":
+        # a sign on a quantity the measurement resolves as zero reads as a
+        # direction the data does not actually support.
+        if abs(round(value, decimals)) < 10 ** -decimals / 2:
+            return f"{0:.{decimals}f}"
+        return f"{value:+.{decimals}f}"
+
+    lines = []
+    for r in results:
+        d = r["decimals"]
+        cell = (f"\\mci{{{signed(r['diff'], d)}}}"
+                f"{{{signed(r['lo'], d)}}}{{{signed(r['hi'], d)}}}")
+        lines.append(
+            f"{r['metric']} & {r['alloc']} & {cell} & "
+            f"{r['p']:.3f} & {r['holm']:.3f}"
+        )
+    out = os.path.join(outdir, "tab_significance.tex")
+    with open(out, "w") as f:
+        f.write(" \\\\\n".join(lines) + "\n")
     return out
 
 
@@ -602,10 +800,16 @@ def main():
     if ffi_tab:
         produced.append(ffi_tab)
 
-    lat_tab, _ = write_latency_table(rows, outdir, load)
+    sig = significance_results(rows, load)
+    lat_tab = write_latency_table(rows, outdir, load)[0]
     res_tab = write_resource_table(rows, outdir, load)
-    macros = write_generated_macros(rows, outdir, load)
+    macros = write_generated_macros(rows, outdir, load, sig)
     produced.extend([lat_tab, res_tab, macros])
+    sig_tab = write_significance_table(sig, outdir)
+    if sig_tab:
+        produced.append(sig_tab)
+        n_sig = sum(1 for r in sig if r["holm"] < 0.05)
+        print(f"significance: {len(sig)} paired tests, {n_sig} significant after Holm")
 
     for p in produced:
         print("wrote", os.path.relpath(p, here))

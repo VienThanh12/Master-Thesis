@@ -74,7 +74,7 @@
 \author{Ha Vien}
 \date{\today}
 \prof{Christoph Luneburg, Petteri Kotimaa}
-\censors{}{}{}
+\censors{}{}{} % TODO before submission: fill in once the faculty assigns examiners.
 \keywords{Rust, C++, RAN control plane, tail latency, memory safety, fault injection, FFI}
 \depositeplace{Helsinki University Library}
 \additionalinformation{Software study track}
@@ -118,6 +118,20 @@
 % prose cannot drift out of step with the data it describes.
 \input{figures/gen_macros.tex}
 
+% A measured value above its bootstrap 95% confidence interval. The interval is
+% printed in full rather than as a symmetric half-width because a bootstrap
+% interval on the median of a heavy-tailed latency sample is markedly asymmetric.
+% [t] so the median's baseline lines up with the row label and the interval
+% hangs beneath it, rather than the pair straddling the label.
+\newcommand{\mci}[3]{%
+  \begin{tabular}[t]{@{}r@{}}%
+    $#1$\\[-2pt]{\scriptsize$[#2,\,#3]$}%
+  \end{tabular}}
+
+% Size and cyclomatic-complexity proxies for the two cores, measured by
+% bench/complexity.py with one tool applied identically to both languages.
+\input{figures/gen_complexity.tex}
+
 \begin{document}
 
 % Generate title page.
@@ -155,8 +169,9 @@ classes are prevented at compile time in safe Rust, whereas in C++ each compiles
 if at all, only at runtime and only under the right sanitiser. Two further classes chosen to
 probe the boundary, a lock-order deadlock and a lost update, compile and misbehave in both
 languages. The FFI seam keeps the Rust core free of \texttt{unsafe} at no measurable per-call
-cost. On performance the two languages are indistinguishable at the median; resolving their
-tail behaviour requires the bare-metal testbed the thesis specifies, and is the remaining step.
+cost. On performance, paired testing finds no difference in median latency, CPU, or
+throughput, but a small consistent memory cost for Rust; the tail awaits the bare-metal
+testbed the thesis specifies.
 
 \noindent\textbf{Conclusions.}
 The thesis delivers a reproducible benchmarking framework, a parity-tested pair of
@@ -391,10 +406,11 @@ language; this result is final. On \emph{migration} (RQ4), the FFI seam is small
 operation roughly five orders of magnitude larger, so the real adoption cost is API design,
 not run-time overhead; this result is also final. On \emph{performance} (RQ1, RQ3), measurements
 collected on a shared development environment show the two implementations indistinguishable at
-the median and comparable in resource use, but they cannot resolve the tail: the uncertainty on
-any one variant's p99 exceeds the spread between all of them, so the tail comparison is reported
-as not yet measurable rather than as equal, pending the bare-metal testbed described in
-Chapter~\ref{chapter:methodology}. The main
+the median, equal in CPU and throughput, and separated by a small but consistent memory
+difference of a few MiB in Rust's disfavour, but they cannot resolve the tail: the uncertainty
+on any one variant's p99 exceeds the spread between all of them, so the tail comparison is
+reported as not yet measurable rather than as equal, pending the bare-metal testbed described
+in Chapter~\ref{chapter:methodology}. The main
 limitations are the use of a synthetic workload, a single simplified subsystem, and
 single-author implementation bias; these are treated in detail in
 Chapter~\ref{chapter:discussion}.
@@ -540,7 +556,7 @@ control-plane state manager inside the gNB-CU-CP that this thesis reimplements a
 measures.\label{fig:ngran}}
 \end{figure}
 
-\section{Latency, throughput, and predictability in real-time software}
+\section{Latency, throughput, and predictability in real-time software}\label{sec:predictability}
 Latency-critical systems are judged less by how much work they do on average than by how
 \emph{predictably} they do it. Three metrics must be distinguished. \emph{Throughput} is the
 sustained rate of completed operations; \emph{latency} is the time an individual operation
@@ -786,7 +802,7 @@ bugs~\cite{cai2026interop}. The consequence for this thesis is stated once here 
 throughout: an \texttt{unsafe}-free core means the core's own defects are ruled out at compile
 time, and it does not mean the core is protected from its host.
 
-\section{Research gap}
+\section{Research gap}\label{sec:gap}
 The preceding sections establish three things. First, the RAN control plane is a
 soft-to-firm real-time, highly concurrent, latency-critical domain in which tail behaviour
 under overload, not average throughput, governs the quality experienced by the network.
@@ -951,58 +967,55 @@ would be an artificial construct rather than a plausible bug in this subsystem.
 \includegraphics[width=0.92\linewidth]{diagrams/pdf/13_defect_families_tree.pdf}
 \caption{The defect classes that afflict C++ control-plane code, split into a memory-safety
 family (object lifetime and bounds) and a concurrency family (unsynchronised or ill-ordered
-access). The starred classes are injected in the RQ2 fault-injection study, which additionally
-covers two classes outside Rust's guarantee (lock-order deadlock and lost update) in order to
-locate its boundary; buffer overflow is described for completeness but is not injected. All are
+access). Starred classes are the five injected from inside Rust's guarantee; the two
+diamond-marked classes, lock-order deadlock and lost update, are injected precisely because they
+lie outside it, so the catalogue locates the boundary of the guarantee rather than only
+confirming it. Buffer overflow is described for completeness but is not injected. All are
 silent in C++, surfacing only later as corruption, a crash, a hang, or a latency
 spike.\label{fig:defectfamilies}}
 \end{figure}
 
 \section{Tail latency and predictability in RAN}
-For deadline-driven RAN procedures, the meaningful performance question is how bad the slow
-cases are, not how good the average is. This is the classic ``tail at scale'' problem: in a
-system where a user-visible action fans out into many dependent operations, the slowest
-component dominates the end-to-end experience, so the tail of the latency distribution, not
-its mean, governs whether deadlines are met~\cite{dean2013tail}. The relevant time scale is
-the microsecond: modern low-latency I/O and in-memory request handling operate in a regime
-that existing systems, tuned for nanosecond and millisecond events, support
-poorly~\cite{barroso2017microseconds}, which makes disciplined microsecond-level measurement
-essential, all the more so because much of the tail originates below the application, in hardware,
-operating-system, and scheduling effects~\cite{li2014tales}. The study therefore characterises the full latency distribution, focusing on high
-percentiles (p99, p99.9, p99.99), the maximum, and jitter, and on how these degrade as the
-system approaches and exceeds saturation. Measuring these correctly requires care to avoid
-coordinated-omission bias, which naive timing loops introduce when the system
-stalls~\cite{tene_hdrhistogram}.
+Section~\ref{sec:predictability} set out why the tail rather than the mean governs a
+latency-critical system, and what measuring it correctly demands. What that section left
+general, this one makes specific, because two properties of the RAN setting are what turn a
+methodological preference into the governing metric.
 
-\paragraph{Deadlines, fan-out, and overload.}
-Two features of the RAN setting turn tail latency from an academic nicety into the governing
-metric. The first is \emph{fan-out}: a single user-visible action, a call setup or a handover,
+The first is \emph{fan-out}: a single user-visible action, a call setup or a handover,
 decomposes into many dependent control-plane operations, and because the slowest of them gates
-completion, a latency that is rare per operation becomes common per procedure~\cite{dean2013tail}.
-The second is \emph{scale}: a busy site drives thousands of such procedures per second across
-millions of connected devices, so a tail event that occurs once in a thousand operations is not
-an edge case but a routine occurrence somewhere in the fleet at every instant. Compounding both
-is queueing behaviour near capacity: as offered load approaches the service rate, queueing delay
-grows super-linearly and the tail explodes, which is why a characterisation that stops at nominal
-load misses the regime that actually decides service quality. This is the reasoning behind
-sweeping the workload into overload and reporting the full latency distribution rather than the
-mean (Chapter~\ref{chapter:eval}).
+completion, a latency that is rare per operation becomes common per
+procedure~\cite{dean2013tail}. The second is \emph{scale}: a busy site drives thousands of such
+procedures per second across millions of connected devices, so a tail event occurring once in a
+thousand operations is not an edge case but a routine occurrence somewhere in the fleet at
+every instant. Taken together, the p99.9 of a single UE Context Management operation is not a
+curiosity at the margin of a distribution; it is a rate of degraded procedures the network
+sustains continuously.
+
+The study therefore characterises the full latency distribution, focusing on the high
+percentiles (p99, p99.9, p99.99), the maximum, and jitter, and on how these degrade as offered
+load approaches and then exceeds saturation (Chapter~\ref{chapter:eval}). Stopping at nominal
+load would miss the regime that decides service quality, since queueing delay grows
+super-linearly near capacity; it is also the regime in which a difference between two
+implementations of one design, if there is one, has room to become visible.
 
 \begin{figure}
 \centering
 \includegraphics[width=0.9\linewidth]{diagrams/pdf/15_overload_cliff.pdf}
-\caption{The overload cliff (schematic). Tail latency stays low and flat while offered load is
-below service capacity, then climbs steeply once the system is driven past saturation and requests
+\caption{The overload cliff. Tail latency stays low and flat while offered load is below
+service capacity, then climbs steeply once the system is driven past saturation and requests
 queue behind the bounded, blocking queues. The operationally decisive behaviour is the onset and
-shape of this cliff, which is why the load sweep is pushed beyond the saturation point rather than
-stopping at nominal load.\label{fig:cliff}}
+shape of this cliff, which is why the load sweep is pushed beyond the saturation point rather
+than stopping at nominal load. The figure is a schematic of the phenomenon and not a plot of
+this study's data: whether the two languages differ in where the cliff begins or how steeply it
+rises is exactly what RQ1 asks, and Section~\ref{sec:perfresults} reports that the development
+host cannot resolve it.\label{fig:cliff}}
 \end{figure}
 
 \chapter{Objectives\label{chapter:objectives}}
 
 \section{Deficiencies in existing comparisons}
-The claim that a gap exists is only as good as the search that looked for it, so the search is
-stated before the conclusion is drawn. Candidate literature was gathered from the ACM Digital
+The gap argued in Section~\ref{sec:gap} is only as good as the search that looked for it, so
+the search is stated rather than assumed. Candidate literature was gathered from the ACM Digital
 Library, IEEE Xplore, USENIX, and Google Scholar using combinations of the terms \emph{Rust},
 \emph{C++}, \emph{memory safety}, \emph{tail latency}, \emph{systems programming},
 \emph{performance comparison}, and \emph{RAN} / \emph{5G control plane}, restricted to
@@ -1012,23 +1025,20 @@ extended by backward and forward citation chaining from the core Rust-safety pap
 filtered to work that either measures a systems language empirically, formalises Rust's
 guarantees, or reports adoption experience. The domain literature (3GPP specifications and the
 O-RAN survey) was added separately to fix the architectural context. The search returned no
-study that measures tail-latency behaviour of a Rust and a C++ implementation of the same
-stateful, concurrent control-plane subsystem under overload, which is the gap the following
-paragraph characterises and the thesis addresses.
+study that measures the tail-latency behaviour of a Rust and a C++ implementation of the same
+stateful, concurrent control-plane subsystem under overload.
 
-Cross-language studies report that compiled systems languages such as C, C++, and Rust
-achieve broadly similar time and energy efficiency, well ahead of managed and interpreted
-languages~\cite{pereira2017energy}. The closest evidence in a networking context comes from
-user-space packet processing: an idiomatic Rust 10~Gbit/s network driver executes many more
+What it did return is the baseline this thesis works against, and two results deserve naming
+because they are the strongest evidence that the answer may simply be ``no difference''.
+Cross-language studies report that compiled systems languages achieve broadly similar time and
+energy efficiency, well ahead of managed and interpreted ones~\cite{pereira2017energy}. Closer
+to this domain, an idiomatic Rust 10~Gbit/s user-space network driver executes many more
 instructions per packet than its C reference yet runs only about $4\%$
-slower~\cite{emmerich2019drivers}, suggesting Rust's safety checks are largely absorbed by
-modern out-of-order CPUs. However, these comparisons are established mostly on general-purpose
-or packet-forwarding benchmarks; they emphasise average performance or throughput, rarely
-examine tail latency under overload for stateful concurrent control-plane workloads, do not
-isolate the defect classes that a language prevents, and seldom quantify the cost of
-incremental migration into an existing C++ codebase, a cost that qualitative adoption studies
-report is dominated by the learning curve rather than by run-time
-overhead~\cite{fulton2021adopting}. These are the gaps this thesis targets.
+slower~\cite{emmerich2019drivers}, which suggests Rust's safety checks are largely absorbed by
+out-of-order execution rather than being literally free. Both are average-case results on
+general-purpose or packet-forwarding workloads, so neither addresses the four questions
+Section~\ref{sec:gap} left open. They establish that this comparison is worth making under
+controlled conditions, not that it has been made.
 
 \section{Solution objectives}
 The overarching objective is a fair, reproducible comparison of modern C++ and Rust for a RAN
@@ -1269,7 +1279,7 @@ discussion. What remains uncontrolled, principally single-author skill asymmetry
 acknowledged as a threat to validity (Chapter~\ref{chapter:discussion}) rather than claimed to
 be eliminated.
 
-\section{Statistical treatment of measurements}
+\section{Statistical treatment of measurements}\label{sec:stats}
 Performance measurements are non-deterministic, so single-run numbers are avoided throughout.
 Each configuration (language $\times$ allocator $\times$ load level) is measured over many
 independent repeats, and the four variants are \emph{interleaved} within each repeat so that
@@ -1281,7 +1291,32 @@ assumption. This follows established guidance on statistically rigorous performa
 which warns that reporting a single number invites conclusions that run-to-run variation does
 not support~\cite{georges2007rigorous}. Tail percentiles (p99, p99.9, p99.99) are read from the
 HDR histograms, whose logarithmic bucketing retains three significant figures of resolution
-across the whole range so that high percentiles are not quantised away.
+across the whole range so that high percentiles are not quantised away. Intervals are reported
+in full rather than as a symmetric half-width, because a bootstrap interval on the median of a
+heavy-tailed sample is markedly asymmetric and a half-width wide enough to cover its upper
+bound would place the lower bound below zero.
+
+Interval estimates alone, however, are a weak basis for a comparison. Two intervals can overlap
+while one variant is ahead in every single repeat, and they can separate on a difference that
+does not reproduce. The study therefore also tests the comparison directly, and the interleaved
+design is what makes this possible: because the four variants are measured back to back inside
+each repeat, the runs form a matched design in which the interference common to a block cancels
+in the pairwise difference. Language is compared against language with the allocator held
+fixed, using an exact two-sided paired permutation test on the repeat-wise differences. The
+null hypothesis is that a pair differs only by run-to-run noise, under which the sign of each
+paired difference is exchangeable; for the repeat counts used here every one of the $2^{n}$
+sign assignments is enumerated rather than sampled, so the resulting $p$-value is exact and,
+like the bootstrap, assumes nothing about the shape of the distribution. Because the same
+comparison is made for several metrics and both allocators, the family of tests is corrected
+with the Holm step-down procedure, which controls the family-wise error rate without assuming
+independence between the tests.
+
+The resolving power this design can reach is bounded by the number of repeats and is stated
+rather than left implicit: an exact test on $n$ pairs cannot return a two-sided $p$ below
+$2/2^{n}$, so a small campaign cannot demonstrate significance however large the effect. The
+consequence, developed with the results in Section~\ref{sec:perfresults}, is that the paired
+\emph{intervals} carry more of the evidence than the $p$-values do, and that increasing the
+repeat count is as much a part of the bare-metal protocol as controlling the clock.
 
 \section{Reproducibility and research artifacts}
 The study is designed so that its results can be regenerated by a third party without access to
@@ -1408,7 +1443,7 @@ known distribution. Build optimisation is matched as closely as the two toolchai
 the Rust release profile is pinned to \texttt{opt-level~=~2} to match the C++ \texttt{-O2}
 build.
 
-\section{Implementation details}
+\section{Implementation details}\label{sec:impldetails}
 \label{sec:impl}
 Both implementations follow the frozen specification field-for-field, and both are small
 enough to be read end to end: the C++ core is $649$ lines across eight headers and two
@@ -1422,7 +1457,7 @@ decomposes file by file. The remainder of this section works outward from the da
 the concurrency machinery, and reports the measured consequences of each language-forced
 divergence as it arises.
 
-\subsection{The UE context and its memory layout}
+\subsection{The UE context and its memory layout}\label{sec:uecontext}
 Each UE context stores its identifier, lifecycle state (a four-value enumeration
 \texttt{Idle}, \texttt{Connected}, \texttt{Reconfiguring}, \texttt{Released}), serving cell,
 RRC transaction id, a fixed 32-byte dummy security context, a dynamic list of up to eight data
@@ -1595,7 +1630,7 @@ and its correctness is argued rather than
 guaranteed.\label{lst:queue}}
 \end{figure}
 
-\subsection{Requests, responses, and the cost of a tagged struct}
+\subsection{Requests, responses, and the cost of a tagged struct}\label{sec:tagged}
 \label{sec:request}
 The message type carried through that queue is the second forced divergence, shown in
 Listing~\ref{lst:request}. Rust models a request as an \texttt{enum} with one variant per
@@ -1760,6 +1795,51 @@ It is exactly the kind of engineering cost the forced-idiom log exists to surfac
 source lines on trait machinery and call-site repetition to obtain guarantees the compiler can
 check, and recovers a large part of that spend wherever its standard library happens to
 provide a primitive that C++'s does not.
+
+Counting lines, however, answers only half the question a reviewer of either codebase would
+ask, because it treats a line of boilerplate and a line of branching as the same thing.
+Table~\ref{tab:complexity} therefore adds cyclomatic complexity, measured by
+\texttt{lizard}~\cite{lizard} over both cores. Applying one tool to both languages is what makes
+the figures comparable: it applies the same definition of a decision point on both sides,
+whereas each language's native tooling would count somewhat different things. The two measures
+point in opposite directions. Rust is $\NlocRise\%$ longer than C++ by code lines, but its
+total cyclomatic complexity is $\CcnTotalDrop\%$ \emph{lower}, $\RustCcnTotal$ against
+$\CppCcnTotal$, spread over slightly more functions ($\RustFuncs$ against $\CppFuncs$). Both
+cores are undemanding by the usual thresholds and both have a median per-function complexity
+of one, so the aggregate is carried by a small number of functions at the top.
+
+That is where the difference sits, and it traces to a divergence already described rather than
+to anything diffuse. The most complex function in the C++ core is
+$\CppCcnMaxFn$ at $\CppCcnMax$, more than twice its Rust counterpart's $\RustCcnMax$: it
+switches on the \texttt{OpKind} discriminant and then stores the matching alternative into the
+response \texttt{variant}, so the tagged-struct design of Section~\ref{sec:tagged} concentrates
+the whole dispatch, and the correctness argument that goes with it, into one branch-heavy
+function. Rust's per-variant typed sender removes the return-path dispatch entirely, which is
+why its worker has nothing comparable to unwrap. The trade is therefore sharper than the line
+count alone suggested: the extra lines Rust spends buy back branching in the one place where
+branching is hardest to review, and the \texttt{std::bad\_variant\_access} invariant that
+Section~\ref{sec:tagged} noted is maintained by inspection across two files lives inside
+precisely the function this measurement flags.
+
+\begin{table}
+\centering
+\small
+\caption{Size and cyclomatic-complexity proxies for the two cores, measured with
+\texttt{lizard}~\cite{lizard} applied identically to both languages. Benchmark drivers, tests,
+conformance runners, and the FFI seam are excluded; only the code the parity contract
+constrains is counted. Complexity is one plus the number of decision points in a function.
+The line count is NLOC as \texttt{lizard} defines it, which also discounts brace-only and
+preprocessor lines and therefore runs eight below the non-blank count quoted at the head of
+Section~\ref{sec:impldetails} for C++; the Rust figure agrees
+exactly.\label{tab:complexity}}
+\begin{tabular}{@{}l r r@{}}
+\hline\hline
+Measure & C++ & Rust \\
+\hline
+\input{figures/tab_complexity.tex}\\
+\hline
+\end{tabular}
+\end{table}
 
 \begin{table}
 \centering
@@ -1930,12 +2010,16 @@ The study records latency predictability (per-event mean, median, p99/p99.9/p99.
 maximum latency, plus jitter), throughput (sustained events/sec and throughput at a fixed
 latency service-level objective (SLO)), resource use (CPU utilisation, memory over time, allocation patterns),
 concurrency robustness, safety (defect classes prevented at compile time vs runtime), and
-software-quality proxies (lines of code, cyclomatic complexity, and the count and scope of
-Rust \texttt{unsafe} blocks). Following established guidance on statistically rigorous
+software-quality proxies. The last of these are reported where they are most legible rather
+than gathered into this chapter: lines of code and cyclomatic complexity alongside the
+forced-idiom log they explain (Table~\ref{tab:complexity}), and the count and scope of Rust
+\texttt{unsafe} blocks alongside the FFI seam that is the only place either implementation
+contains any (Table~\ref{tab:ffi}). Following established guidance on statistically rigorous
 performance evaluation, each configuration is measured over \NRepeats{} independent,
 interleaved repeats and reported as a median with a bootstrap $95\%$ confidence interval rather
 than as a single number, so that run-to-run non-determinism does not lead to unsupported
-conclusions~\cite{georges2007rigorous}. Only synthetic data is used, so no personal,
+conclusions~\cite{georges2007rigorous}; differences between languages are additionally tested
+on the paired repeats (Section~\ref{sec:stats}). Only synthetic data is used, so no personal,
 subscriber, or confidential data is processed.
 
 \section{Evaluation data}
@@ -1952,7 +2036,7 @@ replace these numbers with testbed-grade ones without any change to the analysis
 The performance and resource results below are preliminary (development-environment)
 measurements; the safety and migration results do not depend on testbed hygiene and are final.
 
-\subsection{Performance (RQ1, RQ3)}
+\subsection{Performance (RQ1, RQ3)}\label{sec:perfresults}
 The hypothesis is that Rust and C++ achieve similar mean throughput but may differ
 measurably in tail latency and jitter under overload, and that any safety-model overhead in
 Rust is small in realistic workloads. The evaluation reports where, if anywhere, each
@@ -1980,7 +2064,7 @@ interval contains the others' point estimates. Language and allocator are both i
 which is a real result and the one H1 predicted. \emph{Above} the median the picture is not
 that the languages differ but that this host cannot say whether they do. The p99 values differ
 by $\PNineNineRange\,\mu$s across variants, while the widest $95\%$ confidence interval on a
-single variant's own p99 is $\PNineNineMaxCI\,\mu$s, several times the between-variant
+single variant's own p99 spans $\PNineNineMaxCI\,\mu$s, several times the between-variant
 difference. When the uncertainty about one variant exceeds the gap between all of them, no
 ordering can be read off, and reporting one would be reporting the scheduler. The same holds
 with greater force at p99.9 and at the maximum.
@@ -1998,9 +2082,12 @@ interference rather than sampling noise.
 \centering
 \small
 \caption{Per-operation latency at a sustained offered load of $\ReprLoad$~kops/s (mixed
-RAN-lifecycle workload, $8$ shards). Values in microseconds: median over \NRepeats{} repeats
-$\pm$ the half-width of the bootstrap $95\%$ confidence interval on that median. Preliminary,
-development-environment (WSL2) measurements.\label{tab:latency}}
+RAN-lifecycle workload, $8$ shards). Values in microseconds: the median over \NRepeats{}
+repeats above its nonparametric bootstrap $95\%$ confidence interval. The interval is printed
+in full rather than as a symmetric half-width because it is strongly asymmetric at these
+percentiles, and a half-width wide enough to cover the upper bound would place the lower one
+below zero. Preliminary, development-environment (WSL2)
+measurements.\label{tab:latency}}
 \begin{tabular}{@{}l r r r r@{}}
 \hline\hline
 Variant & p50 & p99 & p99.9 & max \\
@@ -2009,6 +2096,66 @@ Variant & p50 & p99 & p99.9 & max \\
 \hline
 \end{tabular}
 \end{table}
+
+\paragraph{Testing the comparison rather than eyeballing it.}
+Reading a conclusion off overlapping confidence intervals is a weak instrument in both
+directions: intervals can overlap while a small difference is present in every single repeat,
+and they can separate without the difference being reliable. The comparison is therefore also
+tested directly. Because the campaign interleaves the four variants inside every repeat
+(Section~\ref{sec:testbed}), the runs form a matched design rather than two independent
+samples: the $i$-th run of each variant at a given load was measured in the same block, under
+the same ambient conditions, so whatever interference that block carried is common to the pair
+and cancels in their difference. This is the second thing the interleaving discipline buys,
+beyond the fairness argument it was adopted for.
+
+Table~\ref{tab:significance} reports an exact two-sided paired permutation test of C++ against
+Rust for each metric, with the allocator held fixed so that language remains the only variable.
+With \NRepeats{} repeats the $2^{\NRepeats}$ sign assignments admitted by the null hypothesis
+are enumerated in full rather than sampled, so the $p$-values are exact and no distributional
+assumption is imposed on a sample already known to be skewed. The family of \NTests{} tests is
+corrected with the Holm step-down procedure.
+
+One property of the design has to be stated before the table is read, because it governs what
+the test can and cannot show. The smallest two-sided $p$-value an exact test on \NRepeats{}
+pairs can return is $\MinAttainableP$, since the observed sign assignment and its complete
+negation are always at least as extreme as themselves. Before any correction this campaign
+therefore cannot demonstrate significance at the $1\%$ level however large the effect, and
+after correcting for \NTests{} comparisons it cannot reach $5\%$ at all. The test functions
+here as a check on the consistency of sign and as a source of interval estimates on the
+differences, not as a significance filter; raising the repeat count is part of what the
+bare-metal campaign buys, and it is a stronger reason to raise it than tightening the
+individual variants' intervals.
+
+\begin{table}
+\centering
+\small
+\caption{Exact paired permutation test of C++ against Rust at $\ReprLoad$~kops/s, with the
+allocator held fixed. The effect is the median of the \NRepeats{} paired differences
+(Rust~$-$~C++), shown above its bootstrap $95\%$ confidence interval; the test statistic is
+their mean. $p$ is exact over all $2^{\NRepeats}$ sign assignments, and the final column
+applies the Holm correction across the whole family of \NTests{} tests. Note the attainable
+floor of $\MinAttainableP$ on any single uncorrected $p$. Preliminary,
+development-environment (WSL2) measurements.\label{tab:significance}}
+\begin{tabular}{@{}l l r r r@{}}
+\hline\hline
+Metric & Allocator & Effect (Rust $-$ C++) & $p$ & Holm \\
+\hline
+\input{figures/tab_significance.tex}\\
+\hline
+\end{tabular}
+\end{table}
+
+Three things follow. First, no test survives the Holm correction, the smallest adjusted value
+being $\SmallestHolm$, which given the floor just described is the expected outcome rather than
+an informative one. Second, the paired intervals rather than the $p$-values are what carry the
+information, and at the median they \emph{bound} the language effect instead of merely failing
+to detect it: the median paired difference is at most $\PFiftyDiffAbsMax\,\mu$s under either
+allocator, and the interval on it reaches at most $\PFiftyDiffCIMax\,\mu$s against a median of
+roughly $170\,\mu$s. That is a bound of about a fifth of the median. It comfortably excludes
+any language effect large enough to matter operationally, but it is a weaker statement than the
+$\PFiftySpread\%$ spread between the point estimates on its own would suggest, and the
+difference between those two readings is exactly the sort of thing an interval-overlap argument
+hides. Third, one metric behaves unlike all the others, and the next section takes it up.
 
 Figure~\ref{fig:latency-load} plots p99 latency against offered load. All four variants climb
 together across the sweep, by roughly three orders of magnitude between the lightest load and
@@ -2071,23 +2218,43 @@ allocator. Preliminary (WSL2) data.\label{fig:tail}}
 \end{figure}
 
 For RQ3, Table~\ref{tab:resource} and Figure~\ref{fig:resources} report resource use at the
-same sustained load. Peak resident set size is modest and of the same order across all four
-variants, in the single-digit to low-double-digit megabytes; within that band the ordering
-follows the allocator rather than the language, with the system-allocator builds the leaner
-pair and \texttt{jemalloc} trading a few extra megabytes for its tail behaviour. Achieved
-throughput is by construction equal across variants at this point, since it is below
-saturation, and CPU utilisation is comparable across all four, consistent with the shared
-thread-per-shard design doing the same work in each language. The absence of a language-level
-resource penalty is the RQ3 finding; what the measurement cannot do is explain it, because no
-hardware counters or allocation profiles were collected, a limitation revisited in
-Chapter~\ref{chapter:discussion}.
+same sustained load, and here the paired test changes the reading. Peak resident set size is
+modest in absolute terms across all four variants, in the single-digit to low-double-digit
+megabytes, but it is the one metric in the whole campaign whose confidence intervals are narrow
+enough to separate the variants cleanly, and two effects are present in it rather than one.
+They are close to additive. Linking \texttt{jemalloc} costs about
+$\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB in either language, and the Rust build costs
+$\RssLangDiffLo$--$\RssLangDiffHi$~MiB more than the C++ build under either allocator. The
+language effect is the larger of the two; its sign is the same in every one of the \NRepeats{}
+repeats, which is why its uncorrected $p$ sits exactly at the $\MinAttainableP$ floor; and the
+bootstrap interval on the paired difference, $\RssLangCILo$ to $\RssLangCIHi$~MiB, is nowhere
+near zero. Describing this as ``resource use follows the allocator rather than the language''
+would therefore have been wrong. It follows both, and the language slightly more.
+
+Two qualifications keep the finding the size it actually is. It is a difference in fixed cost
+rather than in cost per context: at the $5\,000$ active UEs used in the sweep, the eight-byte
+layout difference measured in Section~\ref{sec:uecontext} accounts for roughly $40$~kB, three
+orders of magnitude short of the gap, so the bulk of it is runtime and allocator-arena overhead
+that does not scale with the workload and would matter proportionally less, not more, in a
+larger deployment. And the measurement can establish the difference without explaining it: no
+hardware counters or allocation profiles were collected, so the split between arena
+pre-reservation, per-thread caches, and static footprint is not resolved here. Both points are
+revisited in Chapter~\ref{chapter:discussion}.
+
+Achieved throughput is by construction equal across variants at this point, since it is below
+saturation. CPU utilisation is comparable across all four, with paired differences of at most
+$\CpuDiffAbsMax$ percentage points and intervals spanning zero, consistent with the shared
+thread-per-shard design doing the same work in each language. So the RQ3 finding is not the
+flat ``no resource penalty'' the earlier reading suggested: there is no CPU or throughput
+penalty, and there is a small, consistent, and reproducibly measurable memory penalty.
 
 \begin{table}
 \centering
 \small
 \caption{Resource use at a sustained offered load of $\ReprLoad$~kops/s: achieved throughput,
-peak RSS, and total CPU utilisation. Median over \NRepeats{} repeats $\pm$ the half-width of
-the bootstrap $95\%$ confidence interval. Preliminary, development-environment (WSL2)
+peak RSS, and total CPU utilisation. The median over \NRepeats{} repeats above its bootstrap
+$95\%$ confidence interval. Peak RSS is the one metric here whose intervals separate the four
+variants cleanly. Preliminary, development-environment (WSL2)
 measurements.\label{tab:resource}}
 \begin{tabular}{@{}l r r r@{}}
 \hline\hline
@@ -2309,8 +2476,11 @@ RQ2 & All five injected memory-safety and data-race defect classes are prevented
 time in safe Rust, where in C++ each compiles and is caught, if at all, only at runtime and no
 single sanitiser covers the whole catalogue. The guarantee stops there: the two boundary
 classes (lock-order deadlock, lost update) compile in both languages. & Final \\
-RQ3 & Peak RSS and CPU utilisation are comparable across languages; \texttt{jemalloc} trades a
-few MiB of RSS for a shorter tail. & Preliminary (WSL2) \\
+RQ3 & No CPU or throughput penalty: paired differences are within
+$\CpuDiffAbsMax$ percentage points with intervals spanning zero. There is a memory penalty: the
+Rust build carries $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak RSS under either allocator,
+same sign in every repeat, a larger effect than the allocator's own. & CPU/throughput:
+preliminary (WSL2). Memory: preliminary but cleanly resolved \\
 RQ4 & The FFI seam is small, keeps the core \texttt{unsafe}-free at compile time, and imposes
 no measurable per-call tax (sub-nanosecond crossing vs.\ a $\sim$$80\,\mu$s operation); the
 real cost is API design, not run-time overhead. The core remains exposed at run time to memory
@@ -2387,11 +2557,30 @@ decision rather than crashing. A migration plan that treats ``memory-safe'' as `
 would therefore mis-budget its review and testing effort, which is why this boundary is
 reported as a first-class result rather than a caveat.
 
-\paragraph{RQ3 (overhead).} No systematic memory or CPU penalty for Rust's safety model is
-observed at the tested loads; resource use is dominated by the shared design rather than by the
-language, and allocator choice is a larger lever than language choice. As with RQ1, the
-absolute numbers await the testbed, but the \emph{relative} picture (no language-level penalty)
-is expected to be robust.
+\paragraph{RQ3 (overhead).} The answer splits by resource. On throughput and CPU there is no
+detectable penalty: the paired differences are within a percentage point and their intervals
+span zero, which is what the shared thread-per-shard design predicts when both languages are
+made to do the same work. On memory there is a penalty, and it is the one quantitative result
+in the performance campaign that the environment does not obscure. The Rust build carries
+$\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak resident set than the C++ build under either
+allocator, with the same sign in every repeat and a paired interval of $\RssLangCILo$ to
+$\RssLangCIHi$~MiB, making it a larger effect than the allocator's own
+$\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB. Peak RSS survives here precisely because it is not a
+tail statistic: it is a run-level maximum, insensitive to the scheduling jitter that destroys
+the p99, so a shared host degrades it far less.
+
+Three things bound what that result licenses. It is small in absolute terms and, more
+importantly, it is fixed rather than per-context, so its share of a deployment's footprint
+falls as the deployment grows; the measured layout difference between the two
+\texttt{UeContext} types contributes almost none of it. It is unexplained: attributing it
+between allocator arena reservation, per-thread caches, and static footprint needs allocation
+profiles and hardware counters this study did not collect, which is the single clearest gap in
+the RQ3 instrumentation. And it should not be generalised into a claim about Rust's safety
+model, since nothing here isolates bounds checking or ownership-driven copying as the cause;
+the mechanisms that the literature has localised~\cite{zhang2022runtime,harris2023morello}
+are candidates to test, not conclusions to import. What can be said is narrower and still
+useful to a vendor sizing a control-plane node: adopting Rust here costs a few megabytes per
+process and no measurable CPU.
 
 \paragraph{RQ4 (migration).} The prototype shows that incremental adoption is technically
 cheap: a C++ host can call an unmodified Rust core across a thin C-ABI seam with a
@@ -2733,13 +2922,27 @@ Every configuration is measured over \NRepeats{} interleaved repeats and reporte
 with a nonparametric bootstrap $95\%$ confidence interval rather than a point estimate, in
 line with established guidance~\cite{georges2007rigorous}, and latency is captured in
 high-dynamic-range histograms against an intended send schedule so that coordinated omission
-does not hide the tail~\cite{tene_hdrhistogram}. Two limitations remain. First, no formal
-significance test is applied; conclusions are drawn from interval overlap, which is a weaker
-instrument. Second, and more seriously, the measurements were taken under a virtualised
-scheduler that does not expose frequency or core-isolation control, so the far tail contains a
-contribution from the hypervisor that cannot be separated from the software under test. This
-is why the RQ1 and RQ3 conclusions are labelled preliminary throughout rather than qualified
-in a footnote.
+does not hide the tail~\cite{tene_hdrhistogram}. Comparisons are not left to interval overlap:
+the interleaved design is exploited as a matched one and tested with an exact paired
+permutation test, Holm-corrected across the family
+(Section~\ref{sec:stats}, Table~\ref{tab:significance}).
+
+Two limitations remain, and the first is a limitation of the design rather than of the
+analysis. With \NRepeats{} repeats the exact test cannot return a two-sided $p$ below
+$\MinAttainableP$, so after correcting for \NTests{} comparisons no result can reach the
+conventional $5\%$ threshold whatever its size. Statements about differences therefore rest on
+the paired interval estimates and on consistency of sign, which is why the peak-RSS result is
+reported as established (identical sign in every repeat, interval far from zero) even though
+its Holm-adjusted $p$ is $\SmallestHolm$. A reader who requires a corrected $p$-value below
+$0.05$ should treat that result as unconfirmed; the campaign is not powered to supply one, and
+raising the repeat count is the remedy. Second, and more seriously, the measurements were taken
+under a virtualised scheduler that does not expose frequency or core-isolation control, so the
+far tail contains a contribution from the hypervisor that cannot be separated from the software
+under test. This is why the RQ1 and RQ3 conclusions are labelled preliminary throughout rather
+than qualified in a footnote. The two limitations interact in a way worth naming: pairing
+removes the interference that is \emph{common} to a repeat, which is why run-level statistics
+such as peak RSS come through cleanly, but it cannot remove interference that lands on one run
+and not its partner, which is exactly the regime the tail percentiles live in.
 
 \paragraph{External validity: how far do the results travel?}
 The study covers one subsystem, one workload, one concurrency structure, and one machine, and
@@ -2800,9 +3003,13 @@ they do in C++. The guarantee is therefore best described precisely: Rust elimin
 races, not race conditions, and aliasing errors, not lock-ordering errors. Second, on migration
 the cost is dominated by API design and the learning curve rather than by any run-time tax: an
 unmodified Rust core can be driven from C++ across a thin, \texttt{unsafe}-isolated seam at
-sub-nanosecond per-call cost. Third, on performance the evidence divides. At the median the two
-languages are equivalent, agreeing to a few microseconds across both allocators, so no
-language-level cost appears in the common case. In the tail the campaign resolves nothing:
+sub-nanosecond per-call cost. Third, on performance the evidence divides three ways rather than
+two. At the median the two languages are equivalent, agreeing to a few microseconds across both
+allocators, and they are equal in CPU and throughput, so no language-level time cost appears in
+the common case. On memory there is a cost, small in absolute terms but present in every
+repeat: the Rust build carries a few MiB more peak resident set under either allocator, which
+is a larger effect than the allocator's own and the one performance result this environment
+resolves cleanly. In the tail the campaign resolves nothing:
 measured on a shared development host, the uncertainty on any one variant's p99 exceeds the
 spread between all four, so the honest report is that the tail is not yet measurable rather
 than that it is equal. Running the specified bare-metal protocol is therefore the single most

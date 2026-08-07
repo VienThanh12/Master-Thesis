@@ -18,6 +18,18 @@ root="$(cd "$here/.." && pwd)"
 echo "== regenerating figures, tables, and generated macros =="
 python3 "$here/plot_figures.py" "$@"
 
+# Source-level proxies come from the code rather than from a campaign log, so
+# they are regenerated here too and are the one part of this script that stays
+# valid without a fresh measurement run.
+echo "== regenerating size and complexity proxies =="
+if "$root/.venv-pptx/bin/python" -c 'import lizard' 2>/dev/null; then
+  "$root/.venv-pptx/bin/python" "$here/complexity.py"
+elif python3 -c 'import lizard' 2>/dev/null; then
+  python3 "$here/complexity.py"
+else
+  echo "  SKIP: lizard not installed (pip install lizard); keeping existing figures/tab_complexity.tex"
+fi
+
 echo "== rebuilding thesis.pdf =="
 cd "$root"
 latexmk -pdf -interaction=nonstopmode thesis.tex >/dev/null 2>&1 || true

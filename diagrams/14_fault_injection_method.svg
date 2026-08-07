@@ -9,8 +9,8 @@
 
   <!-- catalogue -->
   <rect x="296" y="80" width="348" height="56" rx="10" fill="#12233a"/>
-  <text x="470" y="104" text-anchor="middle" font-size="12.5" font-weight="700" fill="#ffffff">Catalogue: 5 representative defect classes</text>
-  <text x="470" y="123" text-anchor="middle" font-size="10.5" fill="#c3ccd5">each a small program flavoured with the UECM domain</text>
+  <text x="470" y="104" text-anchor="middle" font-size="12.5" font-weight="700" fill="#ffffff">Catalogue: 7 defect classes, in two groups</text>
+  <text x="470" y="123" text-anchor="middle" font-size="10.5" fill="#c3ccd5">5 inside Rust&#8217;s guarantee + 2 chosen from outside it</text>
 
   <!-- split -->
   <line x1="400" y1="136" x2="250" y2="176" stroke="#33475b" stroke-width="1.8" marker-end="url(#a)"/>
@@ -46,11 +46,11 @@
   <text x="690" y="242" text-anchor="middle" font-size="12" fill="#a04000">write analogous safe-Rust construct</text>
 
   <rect x="540" y="290" width="300" height="46" rx="8" fill="#ffffff" stroke="#d35400" stroke-width="1.8"/>
-  <text x="690" y="312" text-anchor="middle" font-size="12" fill="#a04000">compile with rustc 1.96 (edition 2021)</text>
+  <text x="690" y="312" text-anchor="middle" font-size="12" fill="#a04000">compile with rustc 1.97 (edition 2021)</text>
 
-  <rect x="540" y="356" width="300" height="46" rx="8" fill="#eef8f1" stroke="#2e8b57" stroke-width="1.8"/>
-  <text x="690" y="378" text-anchor="middle" font-size="12" font-weight="600" fill="#1f6b41">record compiler outcome (E0499, E0382, ...)</text>
-  <text x="690" y="394" text-anchor="middle" font-size="10.5" fill="#1f6b41">every one: compile error (cannot be written)</text>
+  <rect x="540" y="356" width="300" height="46" rx="8" fill="#f4f8fc" stroke="#33475b" stroke-width="1.8"/>
+  <text x="690" y="378" text-anchor="middle" font-size="12" font-weight="600" fill="#12233a">record compiler outcome (E0499, E0382, ...)</text>
+  <text x="690" y="394" text-anchor="middle" font-size="10.5" fill="#33475b">5 rejected at compile time; the 2 boundary cases build</text>
 
   <line x1="690" y1="260" x2="690" y2="288" stroke="#33475b" stroke-width="1.6" marker-end="url(#a)"/>
   <line x1="690" y1="336" x2="690" y2="354" stroke="#33475b" stroke-width="1.6" marker-end="url(#a)"/>
