@@ -160,7 +160,7 @@ Requires the slide toolkit under `create-pptx-master-thesis/` (see `.gitignore`)
 
 | Area | State |
 | ---- | ----- |
-| Specification + parity | Implemented; both languages pass and agree on the shared conformance suite (spec v0.1 draft, pending supervisor freeze) |
+| Specification + parity | Implemented; both languages pass and agree byte-for-byte on the shared conformance suite (7 vectors, 223 checked operations), plus mirrored per-language invariant and concurrency suites (spec v0.1 draft, pending supervisor freeze) |
 | RQ2 (safety) | Final: fault-injection taxonomy complete |
 | RQ4 (migration) | Final: FFI prototype + interop metrics complete |
 | RQ1/RQ3 (performance) | Tooling complete; latency figures in the thesis are **preliminary** until a bare-metal campaign with 15+ repeats |
