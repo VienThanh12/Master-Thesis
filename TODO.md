@@ -67,10 +67,11 @@ latexmk -C                   # clean build artifacts
 - [x] Implement threaded service: thread-per-shard + bounded `sync_channel` backpressure + typed one-shot completions (spec §7)
 - [x] Implement signaling/message handling + concurrent lookup at service level
 - [x] Record location + justification of any `unsafe` blocks (result: **zero `unsafe`**, safe Rust is data-race-free by construction)
-- [x] Unit/conformance tests green (5/5); `cargo clippy -D warnings` clean; `cargo fmt` applied
+- [x] Unit/conformance tests green (16/16 across `conformance.rs`, `invariants.rs`,
+      `concurrency.rs`); `cargo clippy --all-targets -D warnings` clean; `cargo fmt` applied
 - [x] Wire jemalloc allocator (`--features jemalloc`, `tikv-jemallocator` global allocator) + HdrHistogram (`hdrhistogram` crate) in `rust/examples/bench.rs`
 - [ ] (Optional) Miri UB/data-race pass once a nightly toolchain is available
-- [x] Run against shared parity-test contract (spec §11): `conformance_runner` passes `basic.vec`, `shards.vec`; transcript matches C++ byte-for-byte
+- [x] Run against shared parity-test contract (spec §11): `conformance_runner` passes all 7 vectors; transcript matches C++ byte-for-byte
 
 ## Phase 5 - Parity verification
 - [x] Confirm both implementations pass identical functional parity tests (shared
