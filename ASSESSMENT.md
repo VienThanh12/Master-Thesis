@@ -1,0 +1,325 @@
+# Thesis assessment and refinement record
+
+Assessment of **Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia
+RAN Control-Plane Systems** against the six-criterion assessment matrix (simplified from the
+data science master's thesis matrix), on the Finnish 1–5 scale.
+
+Two states are recorded per criterion: the grade on first reading, and the grade after a
+refinement pass. Source material was `thesis.pdf` and the supporting artefacts in `spec/`,
+`bench/`, `faults/`, `ffi/`, and `diagrams/`.
+
+An interactive version of this document exists as a Cursor canvas at
+`~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grading.canvas.tsx`. This file is
+the durable copy; keep the two in step if you revise either.
+
+---
+
+## Summary
+
+| Criterion | Before | After |
+| --- | --- | --- |
+| 1. Thesis objective and research questions | 5 | 5 |
+| 2. Scholarly framework and use of sources | 5 | 5 |
+| 3. Research data and method | 4 | 4.5 |
+| 4. Presentation of thesis results | 4 | 4.5 |
+| 5. Discussion and conclusions | 5 | 5 |
+| 6. Academic text | 4 | 5 |
+| **Overall (unweighted mean)** | **4.5** | **4.8** |
+
+Criteria 3 and 4 are held at 4.5 by one thing, and it is not a writing problem. RQ1's
+tail-latency result still rests on WSL2 measurements that the thesis itself argues are not
+adequate for the claim. Executing the bare-metal protocol in `bench/TESTBED.md` lifts both at
+once. Everything that analysis, presentation, or prose could contribute has been done.
+
+The half-grades are deliberate. The distinction they encode — between work that is unfinished
+and work that *cannot* be finished by editing — is the point of this record, so do not round
+them without also revising the reasoning below.
+
+---
+
+## Criterion 1 — Thesis objective and research questions
+
+**Grade 5, unchanged.**
+
+The topic is justified on three independent axes at once: industrial (a Nokia gNB-CU-CP
+component), regulatory (the CISA and ONCD memory-safe roadmap mandates), and scientific (Rust's
+fit for latency-critical telecom is genuinely unproven).
+
+The research gap is identified with unusual precision. It is not the generic "compare Rust and
+C++" but the specific observation that in both closest prior works — Karlbäck and Orö, and
+Arvidsson and Kaller — the language co-varies with the runtime and concurrency model, so no
+measured difference can be attributed to the language. The entire study design follows from
+that critique.
+
+RQ2 is constructed so that it can refute itself: five defect classes from inside Rust's
+guarantee and two chosen from outside it. Building in cases that can disturb the expected answer
+is a graduate-level instinct.
+
+Traceability is complete: RQ1–RQ4 map to objectives O1–O5, to hypotheses H1–H3, to stated
+success criteria, to explicit scope boundaries, and finally to Table 5.1, which pairs each
+question with its method, artefact, and primary metric.
+
+*Nothing outstanding.* Four research questions is ambitious, and the breadth shows in RQ3
+receiving the least depth, but this does not cost the grade.
+
+---
+
+## Criterion 2 — Scholarly framework and use of sources
+
+**Grade 5, unchanged.**
+
+Sixty-four references concentrated in top venues: POPL for RustBelt and Stacked Borrows, plus
+PLDI, OSDI, SOSP, NSDI, OOPSLA, ICSE, CCS, EuroSys, USENIX ATC, IEEE S&P, CACM, TOSEM, and TSE.
+Domain grounding comes from five 3GPP technical specifications rather than secondary summaries.
+
+The literature search is stated explicitly in Section 4.1 — databases, search terms, inclusion
+criteria, backward and forward citation chaining — which makes the gap claim auditable rather
+than rhetorical.
+
+Critical maturity is the standout. Section 8.5 opens with "Not all of this evidence points the
+same way" and means it. Arvidsson and Kaller's tail result contradicts H1; the thesis reports
+it, says omitting it "would be dishonest", and converts the disagreement into a falsifiable
+prediction about what the bare-metal campaign should find. Emmerich's Rust driver is
+acknowledged as genuinely slower, and the "zero-cost" framing is re-read as workload-dependent
+rather than universal.
+
+Concepts are defined and then held to. The data race versus race condition distinction, and the
+distinction between what the compiler verifies and what is protected at run time, are stated
+once in Chapter 2 and honoured consistently through 7.5.3, 8.2, 8.4, and 8.6. Most theses lose
+that consistency by the discussion chapter.
+
+**Changed in the refinement pass.** Section 4.1 no longer re-enumerates the four gaps that
+Section 2.8 has just stated. It keeps what was genuinely its own contribution — the search
+protocol — and reframes the two contrary results as the baseline the thesis works against.
+
+**Outstanding (optional).** Two load-bearing citations are arXiv preprints rather than
+peer-reviewed work: Bugden and Alahmar carries the claim that Rust matches C and C++ on
+performance, and Zhang et al. carries the deadlock-detection claim. Replacing either with a
+peer-reviewed equivalent would remove the last soft spot in an otherwise very strong
+bibliography.
+
+---
+
+## Criterion 3 — Research data and method
+
+**Grade 4 → 4.5.** The method is now unambiguously at 5. The data is not.
+
+### What was already strong
+
+The frozen-specification matched-pair design is the correct control, and it is enforced
+concretely rather than declared. Shard selection is pinned to SplitMix64 and intra-shard hashing
+to FNV-1a, with a test asserting the Rust `BuildHasher` is bit-identical to the reference, so
+neither standard library's hasher becomes an accidental advantage. Both sides link jemalloc with
+a system-allocator control retained, and optimisation levels are matched.
+
+Functional equivalence is tested, not assumed: a language-neutral conformance suite emits
+canonical transcripts from both implementations and diffs them op-for-op, with the workload's
+per-operation-kind counts as a second independent parity signal.
+
+Methods are grounded in method literature rather than improvised — Georges et al. for
+statistics, Natella et al. for fault injection, Tene for coordinated omission, design science
+for the constructive element. Ethics are correctly handled and then extended past compliance in
+Section 8.7.
+
+### Changed in the refinement pass
+
+- **Added an exact two-sided paired permutation test**, Holm-corrected across the family of
+  twelve comparisons. This answers the criticism that conclusions rested on interval overlap.
+  It exploits something the design already had but was not using: because the four variants are
+  interleaved inside each repeat, the runs form a matched design, so interference common to a
+  block cancels in the pairwise difference. With seven repeats all 2⁷ sign assignments are
+  enumerated rather than sampled, so the *p*-values are exact and no distributional assumption
+  is imposed on a sample known to be skewed. Implemented in `bench/plot_figures.py`; falls back
+  to seeded Monte Carlo above eighteen repeats.
+- **Replaced symmetric confidence half-widths with explicit asymmetric intervals.** The old form
+  produced entries like `582.7 ± 11852.8` µs, implying a lower bound of −11270 µs — an
+  impossible latency, and an artefact of the notation rather than of the data.
+- **Measured and reported cyclomatic complexity**, which Section 7.3 promised and never
+  delivered. `bench/complexity.py` uses `lizard` applied identically to both languages, so the
+  comparison is not confounded by each language's native tooling counting different things.
+- **Section 5.5 now states the test's resolving power**: an exact test on *n* pairs cannot
+  return a two-sided *p* below 2/2ⁿ, so a seven-repeat campaign cannot reach significance after
+  correction whatever the effect size. Stating that floor is what keeps the null results honest
+  rather than merely convenient.
+
+### What still blocks a 5
+
+- **The blocker.** RQ1 and RQ3 still rest on WSL2 data. No amount of analysis fixes this; the
+  measurement has to be retaken on bare metal.
+- **Raise the repeat count above seven.** This matters more now than before, because the exact
+  test's floor is set by the repeat count: at seven, nothing survives Holm correction; at
+  fifteen, it comfortably can.
+- **No hardware counters or allocation profiles.** Now the clearest instrumentation gap, because
+  the campaign has found a real memory difference that it cannot explain.
+
+---
+
+## Criterion 4 — Presentation of thesis results
+
+**Grade 4 → 4.5.** Every presentation defect is fixed and RQ3 now has a positive finding
+instead of a null. RQ1 still does not.
+
+### What was already strong
+
+Chapter 7 is organised research question by research question, each with hypothesis, procedure,
+and result. Illustration is a genuine strength: around twenty figures, most of them
+purpose-drawn conceptual diagrams that carry argument rather than decorate, with self-contained
+captions. Table 7.1 instructs the reader to read it "at two different levels of confidence" and
+then separates them, which is a model of honest presentation.
+
+Reproducibility is excellent and rare at this level: every figure, table, and quoted summary
+number regenerates from the raw logs through one script into `figures/gen_macros.tex`, so prose
+and data cannot drift apart.
+
+### Changed in the refinement pass
+
+- **Three stale figures that contradicted the results tables are corrected and re-rendered.**
+  Figure 3.2 now shows both boundary classes with their own marker, rather than labelling
+  lock-order deadlock as not injected while Table 7.3 injects it. Figure 5.2 says seven defect
+  classes and `rustc 1.97`, not five and `1.96`.
+- **A genuine new result.** The paired test found a language effect on peak resident set size
+  that the eyeball reading had missed — see the section below.
+- **Cyclomatic complexity gives Section 6.4.7 quantitative backing.** Rust is 19% longer in code
+  lines but 15% lower in total complexity, and the C++ `worker_loop` scores 13 against Rust's
+  worst of 6. That is the tagged-struct dispatch of Section 6.4.5 showing up as a number, in the
+  one function where branching is hardest to review.
+- **Figure 3.3 no longer asserts a finding the study did not obtain.** It previously claimed
+  both languages track the overload cliff closely with differences only in the far tail. It is
+  now labelled a schematic and framed as the open question of RQ1.
+- **Figure 7.7's "129,318× cheaper" is now "roughly five orders of magnitude"**, matching the
+  prose and dropping precision that two noisy microbenchmarks cannot support.
+
+### What still blocks a 5
+
+RQ1 still has no positive result, and Figures 7.1 and 7.3 still report that the curves cannot be
+separated. Same blocker as criterion 3, and it lifts with the same campaign.
+
+---
+
+## Criterion 5 — Discussion and conclusions
+
+**Grade 5, unchanged.** The strongest chapter in the thesis.
+
+Section 8.6 is a full four-way validity analysis — internal, construct, conclusion, external —
+each with named threats, stated mitigations, and an explicit account of residual risk. On
+single-author skill asymmetry it concludes "the honest statement is that it is mitigated, not
+eliminated", which is the right register.
+
+The refusal to over-read the data is the single best thing in the thesis: *"The correct
+conclusion is therefore not 'the languages are equivalent in the tail' but 'this measurement
+cannot tell'."* Most theses in this position would have claimed equivalence and been wrong.
+
+H2 is partially refuted by the author's own evidence — accepted for memory safety and data-race
+freedom, rejected for concurrency correctness at large, with the observation that the loose
+reading "is the reading practitioners tend to assume".
+
+The central conclusion is a genuine reframing rather than a restatement: *"Rust eliminates data
+races, not race conditions, and aliasing errors, not lock-ordering errors."* Section 8.7 goes
+past data-protection compliance into professional responsibility, noting that migration cost
+"was relocated from run time to human effort rather than removed".
+
+**Changed in the refinement pass.** Section 8.6 no longer says no formal significance test is
+applied. It now explains something more sophisticated: the peak-RSS effect has an uncorrected
+*p* pinned at the 0.016 floor and a Holm-adjusted *p* of 0.188, yet its interval sits far from
+zero, so the two instruments disagree. The chapter says which to trust and why. It also names
+how the two limitations interact: pairing removes interference common to a repeat, which is why
+a run-level statistic like peak RSS survives a shared host, but it cannot remove interference
+landing on one run and not its partner — which is exactly where the tail percentiles live.
+
+---
+
+## Criterion 6 — Academic text
+
+**Grade 4 → 5.**
+
+The prose is precise, unhedged, and free of padding, with argumentation that is explicit and
+consistently signposted. Referencing is consistent and correctly formatted throughout, including
+proper institutional attribution of the two Ericsson master's theses.
+
+### Changed in the refinement pass
+
+- **The figure-versus-text contradictions are resolved.** These were the concrete thing costing
+  this criterion, because a figure that contradicts a results table invites doubt about
+  everything around it.
+- **Section 3.3 no longer restates Section 2.2.** It points back for the general argument and
+  contributes only what is specific to the RAN, cutting about half the section and removing a
+  duplicated paragraph heading.
+- **The contents page is down from 100 entries to 75.** It was listing 25 paragraph headings,
+  several of them full sentences such as "Do not generalise these performance results past their
+  evidence", turning the contents into a second outline competing with the real one. Note that
+  `titlesec` ignores `\setcounter{tocdepth}` in this document, so the entries are suppressed
+  where they are typeset, via `\l@paragraph`.
+- **Broke up the worst sentences.** The future-work paragraph was one 204-word sentence chaining
+  seven directions with semicolons, and is now an itemised list. Two related-work citation chains
+  of 110 and 87 words are now two or three sentences each.
+
+### Housekeeping left
+
+- Fill `\censors{}{}{}` on the title page once the faculty assigns examiners. A `TODO` marker is
+  in the source.
+- Swap the reconstructed `UH_DS_MSc.cls` for the official one before submission.
+
+---
+
+## The result the new analysis turned up
+
+Adding the paired test was meant to close a methodological gap, but it also found something.
+Peak resident set size is the one metric in the campaign whose intervals separate the four
+variants cleanly, and two effects are present in it rather than one. They are close to additive,
+and the language effect is the larger.
+
+| Variant | Peak RSS (MiB) | 95% CI | Decomposition |
+| --- | ---: | --- | --- |
+| C++ (system alloc) | 8.4 | [8.2, 8.6] | baseline |
+| C++ (jemalloc) | 11.2 | [11.1, 11.4] | +2.9 allocator |
+| Rust (system alloc) | 11.8 | [11.6, 11.9] | +3.4 language |
+| Rust (jemalloc) | 14.6 | [14.5, 14.9] | +2.9 allocator, +3.4 language |
+
+The sign is identical in all seven repeats, which is why the uncorrected *p* sits exactly at the
+0.016 floor the design allows. The thesis previously reported that resource use "follows the
+allocator rather than the language"; that has been corrected throughout Chapters 7, 8, and 9 and
+in the abstract. It follows both, and the language slightly more.
+
+The finding is bounded three ways in the text so it is not oversold: it is fixed cost rather
+than per-context (the measured `UeContext` layout difference accounts for roughly 40 kB at 5000
+active UEs, three orders of magnitude short of the gap); it is unexplained without counters; and
+it must not be read as isolating Rust's safety model.
+
+Whether it survives more repeats is a named item to re-check after the bare-metal run.
+
+---
+
+## Files changed in the refinement pass
+
+| File | What changed |
+| --- | --- |
+| `bench/plot_figures.py` | Exact paired permutation test, Holm correction, asymmetric bootstrap intervals, order-of-magnitude FFI ratio, new significance table and macros. |
+| `bench/complexity.py` | New. Measures lines of code and cyclomatic complexity over both cores with one tool; emits `tab_complexity.tex` and `gen_complexity.tex`. |
+| `bench/refresh_thesis.sh` | Runs the complexity pass too, so one command still regenerates everything. |
+| `diagrams/13_defect_families_tree.svg` | Both boundary classes added with their own marker; legend corrected from five classes to five plus two. |
+| `diagrams/14_fault_injection_method.svg` | Seven classes not five, `rustc 1.97` not `1.96`, and the outcome box no longer claims every case is a compile error. |
+| `diagrams/15_overload_cliff.svg` | Dropped the unsupported claim that both languages track the cliff; stale load annotations replaced with qualitative labels. |
+| `thesis.tex` | New significance and complexity tables with their discussion; corrected RQ3 finding in Chapters 7, 8, 9 and the abstract; Section 5.5 rewritten; 3.3 and 4.1 de-duplicated; contents trimmed; long sentences broken up. |
+| `bibliography.bib` | Added the `lizard` tool entry. |
+
+Verified by full rebuild: 105 pages, zero LaTeX errors, zero undefined references or citations,
+and `bench/refresh_thesis.sh` completing end to end. The one remaining overfull box is on the
+abstract page and is present in the pre-refinement build as well.
+
+---
+
+## Remaining checklist
+
+1. **Run the bare-metal campaign** (`bench/TESTBED.md`, provisioned by `bench/setup_testbed.sh`).
+   The only real blocker. Use more than seven repeats: the exact paired test cannot return a *p*
+   below 2/2ⁿ, so at seven nothing survives Holm correction however large the effect, while at
+   fifteen it comfortably can. Then run `bench/refresh_thesis.sh`.
+2. **Add hardware counters and allocation profiles** on the same testbed visit. Now the clearest
+   instrumentation gap, because the study has found a memory difference it cannot explain.
+3. **Re-check the four claims shaped by this dataset** (also listed at the end of `TODO.md`): the
+   "not yet measurable" tail verdict, the peak-RSS effect, the evidence-status column in
+   Table 8.1, and H1's half-answered disposition in Section 8.3.
+4. **Two submission items**: fill the examiner field, and swap in the official `UH_DS_MSc.cls`.
+
+> The abstract box is full to the line. Any addition pushes the ACM CCS block into the Keywords
+> row, so check page 3 visually if you edit it.
