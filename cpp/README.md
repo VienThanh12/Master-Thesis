@@ -24,10 +24,20 @@ cpp/
   tools/
     conformance_runner.cpp  shared parity-vector runner (spec §11)
   tests/
-    test_hash.cpp        hash/shard determinism + distribution
+    test_hash.cpp        hash/shard determinism, distribution, and known-answer
+                         values for the pinned §8 functions
     test_shard_core.cpp  state machine + error model (spec §11.3 vector)
     test_service.cpp     threaded service: functional + concurrent load
+    test_invariants.cpp  spec invariants the .vec transcript cannot express:
+                         no mutation on error (§6.1), activity-sequence
+                         discipline (§10.3/§11.2), field round-trips, §10.1 I1/I4
+    test_concurrency.cpp §7 queue/completion model: blocking backpressure,
+                         FIFO per shard (§10.2 O1), concurrent lookup, lifecycle
 ```
+
+Each `tests/*.cpp` file is a standalone `main()` using the `CHECK` macro from
+`tests/test_util.hpp`; new files are registered by adding their name to the
+`foreach` list in `CMakeLists.txt`. `rust/tests/` mirrors these case for case.
 
 ## Build & test
 Requires a C++23 compiler (g++ 13+ / clang 17+) and CMake 3.20+.

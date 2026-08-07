@@ -19,8 +19,18 @@ rust/
     message.rs        Request enum with typed one-shot senders (spec §7.3)
     service.rs        threaded service: thread-per-shard + bounded sync_channel (spec §7)
   tests/
-    conformance.rs    hash checks, state machine (§11.3 vector), threaded + concurrent tests
+    conformance.rs    hash checks incl. known-answer values for the pinned §8
+                      functions, state machine (§11.3 vector), threaded tests
+    invariants.rs     spec invariants the .vec transcript cannot express: no
+                      mutation on error (§6.1), activity-sequence discipline
+                      (§10.3/§11.2), field round-trips, §10.1 I1/I4
+    concurrency.rs    §7 queue/completion model: blocking backpressure, FIFO per
+                      shard (§10.2 O1), concurrent lookup, lifecycle
 ```
+
+`tests/invariants.rs` and `tests/concurrency.rs` mirror `cpp/tests/test_invariants.cpp`
+and `cpp/tests/test_concurrency.cpp` case for case, so the two suites check the same
+stated properties and any divergence is a real one rather than a coverage difference.
 
 ## Build & test
 Requires a stable Rust toolchain (1.75+; developed on 1.96).

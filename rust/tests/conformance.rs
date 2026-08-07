@@ -26,7 +26,81 @@ fn sig(kind: u8, len: u16) -> SignalingMsg {
     }
 }
 
+// Known-answer values for the two functions the specification pins in §8. They
+// were computed from the §8 pseudocode by a separate reference implementation,
+// not read back out of either language, so these are the checks that hold both
+// implementations to the *specified* algorithm rather than merely to each other:
+// a self-consistent but wrong hash passes every other test in the suite, and
+// would silently change the intra-shard probe sequence and the shard balance
+// that the performance comparison depends on.
+
+/// SplitMix64 finalizer output, before the modulo (§8.1).
+const MIX_KAT: [(u64, u64); 5] = [
+    (0, 0x0000000000000000),
+    (1, 0x5692161D100B05E5),
+    (2, 0xDBD238973A2B148A),
+    (1001, 0x7139BB2427627383),
+    (u64::MAX, 0xB4D055FCF2CBBD7B),
+];
+
+/// FNV-1a over the 8 little-endian bytes of the key (§8.2).
+const FNV_KAT: [(u64, u64); 7] = [
+    (0, 0xA8C7F832281A39C5),
+    (1, 0x89CD31291D2AEFA4),
+    (2, 0xE6BD86443DF8CE07),
+    (255, 0x9016B196E349A31A),
+    (256, 0xE3757CA7D64666EA),
+    (1001, 0x2E5741B73FAF0DDD),
+    (u64::MAX, 0x8CF51A8BFCA3883D),
+];
+
 // --- Pinned hashing (§8) ----------------------------------------------------
+#[test]
+fn hash_fnv1a_known_answers() {
+    use std::hash::BuildHasher;
+    let bh = FnvBuildHasher;
+    for (key, digest) in FNV_KAT {
+        assert_eq!(fnv1a_64(key), digest, "fnv1a_64({key}) != spec §8.2 digest");
+        // The map's hasher must be the same function.
+        assert_eq!(bh.hash_one(key), digest, "map hasher != spec §8.2 digest");
+    }
+}
+
+#[test]
+fn hash_shard_index_known_answers() {
+    // Checking against the pre-modulo constant for several divisors pins the
+    // finalizer at full 64-bit width, including the wrapping multiplies, which
+    // a range-and-determinism check cannot do.
+    for (id, mixed) in MIX_KAT {
+        for n in [1u64, 2, 3, 8, 13, 64, 1000] {
+            assert_eq!(
+                shard_index(id, n),
+                mixed % n,
+                "shard_index({id}, {n}) != spec §8.1 value"
+            );
+        }
+    }
+
+    // A non-power-of-two shard count must use the specified modulo, not the
+    // bitmask that agrees with it only when n is a power of two. Asserting that
+    // the two candidate reductions disagree is what proves the case above is
+    // actually discriminating.
+    let n = 13u64;
+    assert!(
+        MIX_KAT
+            .iter()
+            .any(|&(_, mixed)| mixed % n != mixed & (n - 1)),
+        "n=13 must distinguish modulo from bitmask"
+    );
+
+    // Every bucket of a non-power-of-two shard count is reachable.
+    let mut used = [false; 13];
+    for id in 1u64..=2000 {
+        used[shard_index(id, 13) as usize] = true;
+    }
+    assert!(used.iter().all(|&b| b), "some shard never selected");
+}
+
 #[test]
 fn hash_shard_index_range_and_determinism() {
     for &n in &[1u64, 2, 8, 13, 64] {

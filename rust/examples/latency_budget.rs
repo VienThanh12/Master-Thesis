@@ -182,7 +182,10 @@ fn main() {
             100.0 * core_ns / svc_ns,
         );
     } else {
-        println!("Rust latency budget ({} shards, {} active UEs)", a.shards, a.active_ues);
+        println!(
+            "Rust latency budget ({} shards, {} active UEs)",
+            a.shards, a.active_ues
+        );
         println!("  core operation (no queue)   : {core_ns:>12.1} ns/call");
         println!("  full service round-trip     : {svc_ns:>12.1} ns/call");
         println!("  cross-thread handoff        : {handoff_ns:>12.1} ns/call");
