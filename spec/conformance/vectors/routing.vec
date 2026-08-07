@@ -1,0 +1,56 @@
+# Cross-shard routing vector (spec §10.1 I1, §11.1.2).
+#
+# shards.vec checks the shard function in isolation; this vector checks that the
+# service actually routes by it. The four ids below land on four different shards
+# under n_shards=4, so every operation here is executed by a different worker
+# thread, and the interleaved lookups assert that per-context state stays private
+# to its own shard: no operation on one UE may be observable on another.
+config n_shards=4 queue_capacity=1024 max_contexts_per_shard=200000
+
+# One UE per shard (spec §8.1).
+shard 3                            => 0
+shard 1                            => 1
+shard 2                            => 2
+shard 9                            => 3
+
+create 3 cell=30                   => Ok
+create 1 cell=10                   => Ok
+create 2 cell=20                   => Ok
+create 9 cell=90                   => Ok
+count                              => 4
+
+setup 3                            => Ok
+setup 1                            => Ok
+setup 2                            => Ok
+setup 9                            => Ok
+
+# Drive each UE a different number of steps.
+signal 3 kind=1 len=1              => Ok(accepted=true,handled=1)
+signal 3 kind=1 len=1              => Ok(accepted=true,handled=2)
+signal 1 kind=1 len=1              => Ok(accepted=true,handled=1)
+adddrb 2 id=1 qfi=1 teid=7         => Ok
+
+# Each context carries only its own history.
+lookup 3                           => Ok(state=Connected,cell=30,drbs=0,messages_handled=2)
+lookup 1                           => Ok(state=Connected,cell=10,drbs=0,messages_handled=1)
+lookup 2                           => Ok(state=Connected,cell=20,drbs=1,messages_handled=0)
+lookup 9                           => Ok(state=Connected,cell=90,drbs=0,messages_handled=0)
+
+# A state change on one shard is invisible on the others.
+begin_reconf 9 cell=91             => Ok
+lookup 9                           => Ok(state=Reconfiguring,cell=91,drbs=0,messages_handled=0)
+lookup 3                           => Ok(state=Connected,cell=30,drbs=0,messages_handled=2)
+lookup 1                           => Ok(state=Connected,cell=10,drbs=0,messages_handled=1)
+
+# Removing a context frees only its own shard's entry.
+release 3                          => Ok
+lookup 3                           => Err(NotFound)
+count                              => 3
+lookup 1                           => Ok(state=Connected,cell=10,drbs=0,messages_handled=1)
+lookup 2                           => Ok(state=Connected,cell=20,drbs=1,messages_handled=0)
+lookup 9                           => Ok(state=Reconfiguring,cell=91,drbs=0,messages_handled=0)
+
+# The id can be recreated afterwards, starting from a clean context.
+create 3 cell=31                   => Ok
+lookup 3                           => Ok(state=Idle,cell=31,drbs=0,messages_handled=0)
+count                              => 4

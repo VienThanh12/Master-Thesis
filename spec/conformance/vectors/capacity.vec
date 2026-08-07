@@ -1,0 +1,54 @@
+# Per-shard capacity vector (spec §9 MAX_CONTEXTS_PER_SHARD, §6.2).
+#
+# MAX_CONTEXTS_PER_SHARD bounds each shard independently, not the service as a
+# whole. With two shards holding two contexts each, that distinction is directly
+# observable: one shard can be full while the other still accepts creates, and the
+# service-wide count keeps growing past the per-shard limit. Nothing in the seeded
+# suite exercised the create-side CapacityExceeded path at all.
+config n_shards=2 queue_capacity=64 max_contexts_per_shard=2
+
+# Shard assignments under n_shards=2 (spec §8.1), stated up front so the capacity
+# expectations below are readable.
+shard 2                            => 0
+shard 3                            => 0
+shard 4                            => 0
+shard 1                            => 1
+shard 9                            => 1
+shard 10                           => 1
+
+# --- Fill shard 0 to its limit ----------------------------------------------
+create 2 cell=20                   => Ok
+create 3 cell=30                   => Ok
+create 4 cell=40                   => Err(CapacityExceeded)
+
+# --- Shard 1 is unaffected: the limit is per shard --------------------------
+create 1 cell=10                   => Ok
+create 9 cell=90                   => Ok
+count                              => 4
+
+# --- Precedence: a full shard reports CapacityExceeded even for a key that -----
+# already exists, because §6.2's capacity check runs before the duplicate check.
+create 2 cell=99                   => Err(CapacityExceeded)
+# The rejected create must not have disturbed the existing context.
+lookup 2                           => Ok(state=Idle,cell=20,drbs=0,messages_handled=0)
+
+# Shard 1 is full too.
+create 10 cell=100                 => Err(CapacityExceeded)
+count                              => 4
+
+# --- Releasing a context frees capacity on that shard only ------------------
+release 3                          => Ok
+count                              => 3
+create 4 cell=40                   => Ok
+lookup 4                           => Ok(state=Idle,cell=40,drbs=0,messages_handled=0)
+lookup 3                           => Err(NotFound)
+count                              => 4
+
+# Shard 1 had no release, so it is still full.
+create 10 cell=100                 => Err(CapacityExceeded)
+
+# --- A context that exists near the limit still works normally --------------
+setup 4                            => Ok
+signal 4 kind=1 len=8              => Ok(accepted=true,handled=1)
+lookup 4                           => Ok(state=Connected,cell=40,drbs=0,messages_handled=1)
+count                              => 4

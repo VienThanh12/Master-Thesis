@@ -1,0 +1,36 @@
+# Shard-assignment parity for a NON-power-of-two shard count (spec §8.1).
+#
+# shards.vec pins n_shards=8. A power of two is the one case where the specified
+# `x mod n_shards` and the common `x & (n_shards - 1)` optimisation agree, so it
+# cannot detect an implementation that quietly substitutes a bitmask. At
+# n_shards=13 the two disagree for almost every id, which makes this vector the
+# one that actually holds both sides to the specified reduction. The ids below
+# cover all 13 residues and include the u64 extremes, so the wrapping-multiply
+# arithmetic of the SplitMix64 finaliser is exercised at full width.
+#
+# Expected values were derived independently from the §8.1 pseudocode, not read
+# back out of either implementation.
+config n_shards=13 queue_capacity=1024 max_contexts_per_shard=200000
+
+shard 1001                         => 0
+shard 2                            => 1
+shard 3                            => 2
+shard 10                           => 3
+shard 13                           => 4
+shard 42                           => 5
+shard 1000001                      => 6
+shard 255                          => 7
+shard 4294967296                   => 8
+shard 5000000                      => 9
+shard 1                            => 10
+shard 7                            => 11
+shard 6                            => 12
+
+# Boundary ids: 0, the 32-bit limit, and the full u64 range.
+shard 0                            => 0
+shard 256                          => 7
+shard 2002                         => 1
+shard 65535                        => 1
+shard 9999999                      => 6
+shard 4294967295                   => 2
+shard 18446744073709551615         => 6

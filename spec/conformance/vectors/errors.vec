@@ -1,0 +1,75 @@
+# Error-model conformance vector (spec §6.6): every error code on every operation
+# that can raise it, plus the precedence rules between competing errors. The
+# precedence cases are the ones most likely to drift apart between two independent
+# implementations, because the spec lists the errors per operation without ordering
+# them; they are pinned here so any future divergence is caught.
+config n_shards=8 queue_capacity=1024 max_contexts_per_shard=200000
+
+# --- §6.1: ue_id == 0 is rejected by *every* operation ----------------------
+create 0 cell=1                    => Err(InvalidArgument)
+setup 0                            => Err(InvalidArgument)
+signal 0 kind=1 len=0              => Err(InvalidArgument)
+adddrb 0 id=1 qfi=1 teid=1         => Err(InvalidArgument)
+begin_reconf 0 cell=1              => Err(InvalidArgument)
+complete_reconf 0                  => Err(InvalidArgument)
+abort_reconf 0                     => Err(InvalidArgument)
+release 0                          => Err(InvalidArgument)
+lookup 0                           => Err(InvalidArgument)
+count                              => 0
+
+# --- NotFound on every operation that requires an existing key --------------
+setup 777                          => Err(NotFound)
+signal 777 kind=1 len=0            => Err(NotFound)
+adddrb 777 id=1 qfi=1 teid=1       => Err(NotFound)
+begin_reconf 777 cell=1            => Err(NotFound)
+complete_reconf 777                => Err(NotFound)
+abort_reconf 777                   => Err(NotFound)
+release 777                        => Err(NotFound)
+lookup 777                         => Err(NotFound)
+
+# --- Precedence: argument validation happens before the key lookup ----------
+# An oversized payload on an absent key is InvalidArgument, not NotFound.
+signal 777 kind=1 len=65           => Err(InvalidArgument)
+
+# --- Signaling payload boundary (§6.4: payload_len MUST be <= 64) -----------
+create 500 cell=5                  => Ok
+setup 500                          => Ok
+signal 500 kind=1 len=64           => Ok(accepted=true,handled=1)
+signal 500 kind=1 len=65           => Err(InvalidArgument)
+signal 500 kind=1 len=65535        => Err(InvalidArgument)
+# The two rejected messages must not have been counted.
+lookup 500                         => Ok(state=Connected,cell=5,drbs=0,messages_handled=1)
+
+# --- Precedence: argument validation also beats the state check -------------
+# UE 501 is Idle, so an oversized signal could plausibly return either
+# InvalidArgument or InvalidState; the payload check runs first.
+create 501 cell=5                  => Ok
+signal 501 kind=1 len=65           => Err(InvalidArgument)
+release 501                        => Ok
+
+# --- DRB errors and their precedence (§6.4) ---------------------------------
+create 600 cell=6                  => Ok
+setup 600                          => Ok
+adddrb 600 id=1 qfi=1 teid=1       => Ok
+# Duplicate drb_id while the list still has room.
+adddrb 600 id=1 qfi=9 teid=9       => Err(AlreadyExists)
+adddrb 600 id=2 qfi=0 teid=2       => Ok
+adddrb 600 id=3 qfi=0 teid=3       => Ok
+adddrb 600 id=4 qfi=0 teid=4       => Ok
+adddrb 600 id=5 qfi=0 teid=5       => Ok
+adddrb 600 id=6 qfi=0 teid=6       => Ok
+adddrb 600 id=7 qfi=0 teid=7       => Ok
+adddrb 600 id=8 qfi=0 teid=8       => Ok
+lookup 600                         => Ok(state=Connected,cell=6,drbs=8,messages_handled=0)
+# The list is now full (MAX_DRBS = 8).
+adddrb 600 id=9 qfi=0 teid=9       => Err(CapacityExceeded)
+# A duplicate drb_id on a *full* list reports CapacityExceeded: the capacity check
+# precedes the duplicate check.
+adddrb 600 id=1 qfi=0 teid=1       => Err(CapacityExceeded)
+lookup 600                         => Ok(state=Connected,cell=6,drbs=8,messages_handled=0)
+
+# --- A rejected create leaves the existing context untouched ----------------
+create 600 cell=99                 => Err(AlreadyExists)
+lookup 600                         => Ok(state=Connected,cell=6,drbs=8,messages_handled=0)
+
+count                              => 2

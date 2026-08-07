@@ -12,7 +12,7 @@ the measurement harnesses that produce every figure and table in the thesis.
 RAN control-plane software (the L3 of a gNB) is written mostly in C++ for performance, but
 C++ carries well-known memory-safety and concurrency risks. Rust promises comparable
 performance with safety guaranteed at compile time. Using a **UE Context Management (UECM)**
-service modeled on a Nokia gNB-CU-CP component, the thesis compares the two languages along
+service modelled on a Nokia gNB-CU-CP component, the thesis compares the two languages along
 four research questions:
 
 | RQ      | Question                                                           | Evidence in          |
@@ -39,6 +39,7 @@ divergence is logged. See [`spec/SPECIFICATION.md`](spec/SPECIFICATION.md).
 ├── rust/              Rust implementation (bit-for-bit parity with cpp/)
 ├── bench/             Latency/throughput/resource benchmark harness + plotting (RQ1, RQ3)
 │   ├── campaign.sh    Full measurement campaign (repeats, interleaving, bootstrap CI)
+│   ├── latency_budget.sh  Split the end-to-end op into work vs. cross-thread handoff
 │   └── refresh_thesis.sh  Regenerate all figures/tables and rebuild thesis.pdf
 ├── faults/            Fault-injection taxonomy: injected C++ defects vs. Rust compile errors (RQ2)
 ├── ffi/               Incremental-adoption prototype: C++ host over a Rust component via a C ABI (RQ4)
@@ -89,11 +90,16 @@ spec/conformance/run.sh
 # Fault-injection taxonomy (RQ2)
 faults/run_faults.sh
 
-# FFI migration prototype (RQ4)
+# FFI migration prototype (RQ4). Also runs the same signaling op natively, so the
+# reported seam cost is a direct A/B rather than an empty crossing against a full op.
 ffi/build.sh
 
 # Benchmark comparison across both languages × both allocators (RQ1, RQ3)
 bench/run_bench.sh
+
+# What the end-to-end latency is actually made of: the operation's own work versus
+# the cross-thread submit-and-complete handoff, in both languages. Needs a quiet host.
+bench/latency_budget.sh
 ```
 
 ### 3. Rebuild the thesis from measured data

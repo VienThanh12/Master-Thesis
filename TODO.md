@@ -133,6 +133,18 @@ latexmk -C                   # clean build artifacts
       repeats (language compared with allocator held fixed), Holm-corrected across the family.
       Emits `figures/tab_significance.tex` + macros. Enumerates all 2^n sign assignments up to
       18 repeats, Monte Carlo above that.
+- [x] Drop achieved throughput from the tested family (12 tests -> 10). At a below-saturation
+      operating point it is pinned to the offered load by construction, so the comparison
+      re-measures the operating point rather than the code, while still consuming two slots of
+      the Holm budget and making the correction harsher on the tests that can resolve. It stays
+      in `tab_resource.tex`, where confirming the load is sustained is its actual job.
+- [x] Pre-commit the rule for reading an interval against a p-value, in §5.5 rather than after
+      the results. Pairing cancels what an interleaved block shared, not interference landing on
+      one run of a pair; so it rescues run-level and central statistics (peak RSS, CPU, p50) and
+      not high percentiles, which are computed from exactly the disturbed operations.
+      `tab_significance.tex` is now blocked by that criterion, and `plot_figures.py` emits
+      `\NExclZero` / `\NTailExclZero` / `\TailExclZeroRows` so the text names every interval that
+      excludes zero instead of only the ones that suit the argument.
 - [x] Generate latency-vs-load plots per language (`plot_figures.py`)
 - [x] Fill Table (defect taxonomy): thesis §6.2 `tab:taxonomy` from real fault-injection runs
 - [x] Fill Table (latency percentiles): generated into `figures/tab_latency.tex`
