@@ -263,24 +263,20 @@
 \begin{itemize}
   \item The findings are reported with an evidence status per research question: safety and
         migration are final because they do not depend on the measurement environment, while
-        performance and resource results are preliminary~\cite{georges2007rigorous}.
+        performance and resource results are preliminary.
   \item On performance the honest reading is that the median question is settled and the tail
-        question is open~\cite{dean2013tail}, which keeps the eventual bare-metal result a
-        finding rather than a confirmation; the memory penalty is bounded but unexplained
-        without hardware counters~\cite{zhang2022runtime,harris2023morello}.
+        question is open, which keeps the eventual bare-metal result a finding rather than a
+        confirmation; the memory penalty is bounded but unexplained without hardware counters.
   \item On safety the difference is one of kind rather than degree, and it has a definite
         edge: Rust eliminates data races, not race conditions, and aliasing errors, not
-        lock-ordering errors~\cite{jung2021safe,qin2024safety,zhang2024deadlock}; ecosystem
-        studies place the residual risk in \texttt{unsafe} code and
-        dependencies~\cite{bae2021rudra,zheng2024security}.
+        lock-ordering errors~\cite{jung2021safe}.
   \item On migration, an \texttt{unsafe}-free core is a statement about what the compiler
         checks and not about what the C++ host sharing its address space can
-        corrupt~\cite{rivera2021galeed,kirth2022pkrusafe}, so the gain is that the component
-        stops contributing new defects~\cite{google2022android}.
+        corrupt~\cite{li2022crosslang}, so the gain is that the component stops contributing
+        new defects.
   \item The hypotheses are revisited (H1 half-answered, H2 supported precisely and refuted in
-        its loose reading, H3 supported), engineering guidelines are derived, and related
-        work~\cite{bugden2022rust,xiao2024rpkt,mccormack2026unsafe}, threats to validity, and
-        the professional obligation not to over-claim are addressed~\cite{fulton2021adopting}.
+        its loose reading, H3 supported), engineering guidelines are derived, and related work,
+        threats to validity, and the professional obligation not to over-claim are addressed.
 \end{itemize}
 
 \chapter{Conclusion and Future Work\label{chapter:conclusions}}
@@ -288,23 +284,19 @@
 \begin{itemize}
   \item The thesis compared modern C++ and Rust on one UE Context Management service built
         from a single frozen specification, isolating language effects from design and skill
-        differences along four dimensions~\cite{li2021ipc}.
+        differences along four dimensions.
   \item Safety: safe Rust rejects all five injected memory-safety and data-race classes at
-        compile time~\cite{jung2018rustbelt,jung2021safe}, while the two boundary classes
-        compile and misbehave exactly as they do in C++~\cite{qin2024safety}.
+        compile time, while the two boundary classes compile and misbehave exactly as they do
+        in C++.
   \item Migration: an unmodified Rust core can be driven from C++ across a thin,
-        \texttt{unsafe}-isolated seam at sub-nanosecond per-call
-        cost~\cite{li2022crosslang,schuermann2023encapsulated}, so the cost is API design and
-        the learning curve~\cite{fulton2021adopting,crichton2024learning}.
-  \item Performance: the languages are equivalent at the median and in CPU and
-        throughput~\cite{emmerich2019drivers}, the Rust build carries a few MiB more peak
-        RSS~\cite{zhang2022runtime}, and the tail is not yet measurable on a shared
-        host~\cite{li2014tales}.
+        \texttt{unsafe}-isolated seam at sub-nanosecond per-call cost, so the cost is API
+        design and the learning curve~\cite{fulton2021adopting}.
+  \item Performance: the languages are equivalent at the median and in CPU and throughput,
+        the Rust build carries a few MiB more peak RSS, and the tail is not yet measurable on
+        a shared host.
   \item Future work runs the specified bare-metal campaign first, then extends to production
-        traces, further subsystems~\cite{emre2023aliasing,sharma2024embedded}, hardware
-        counters, async runtimes~\cite{arvidsson2025async}, in-process heap
-        isolation~\cite{kirth2022pkrusafe}, and a longitudinal migration case
-        study~\cite{li2024rustforlinux,fan2026android}.
+        traces, further subsystems, hardware counters, async runtimes, in-process heap
+        isolation, and a longitudinal migration case study.
 \end{itemize}
 
 % STEP 5:
@@ -327,16 +319,15 @@
 
 \begin{itemize}
   \item Illustrates one case from the RQ2 catalogue, the use-after-free, in both languages
-        side by side~\cite{szekeres2013sok}.
+        side by side.
   \item In C++ an alias into the context map survives the \texttt{erase} that frees it, and
         the program compiles cleanly.
   \item It is flagged only at runtime, and only by AddressSanitizer on a path a test actually
-        exercises~\cite{natella2016fault}.
+        exercises.
   \item The analogous safe-Rust program does not compile: the borrow checker forbids mutating
-        the map while a reference into it is live
-        (\texttt{E0499})~\cite{klabnik2023rust,jung2020stacked}.
+        the map while a reference into it is live (\texttt{E0499})~\cite{klabnik2023rust}.
   \item The pair makes the kind-of-guarantee difference concrete rather than argued from
-        language semantics~\cite{jung2021safe}.
+        language semantics.
 \end{itemize}
 
 \end{appendices}
