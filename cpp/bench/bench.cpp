@@ -3,7 +3,7 @@
 // Two workloads (both identical to the Rust bench for fairness):
 //   --workload signal (default): preload `preload` contexts per producer, then issue
 //     `ops` handle_signaling calls to random ids. Isolates the hot signaling path.
-//   --workload mixed: pinned RAN lifecycle generator (see bench/workload.hpp) —
+//   --workload mixed: pinned RAN lifecycle generator (see bench/workload.hpp),
 //     attach/signaling/bearer/handover/release over `--active-ues` UEs per producer.
 //
 // Each measured op's service latency is recorded into a per-thread HDR histogram.

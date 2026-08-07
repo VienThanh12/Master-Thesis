@@ -3,7 +3,7 @@
 //! Mirrors `cpp/bench/bench.cpp` exactly for fairness. Two workloads:
 //!   --workload signal (default): preload contexts, then hammer handle_signaling.
 //!   --workload mixed: pinned RAN lifecycle generator (see bench/README.md and the
-//!     `workload` module below) — attach/signaling/bearer/handover/release.
+//!     `workload` module below), attach/signaling/bearer/handover/release.
 //!
 //! The mixed generator is a pure deterministic function of (active_ues, seed) using
 //! the same SplitMix64 draws and the same per-slot state machine as the C++ side, so

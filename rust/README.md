@@ -1,4 +1,4 @@
-# UECM — Rust implementation
+# UECM: Rust implementation
 
 Rust implementation of the UE Context Management service defined in
 [`../spec/SPECIFICATION.md`](../spec/SPECIFICATION.md). Structurally mirrors the C++

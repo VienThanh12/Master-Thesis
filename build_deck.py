@@ -182,7 +182,7 @@ def add_data_table(slide, rows, col_widths_cm, left=Cm(1.3), top=Cm(4.1),
 
 
 # =====================================================================
-# Slide 1 — Front cover
+# Slide 1: Front cover
 # =====================================================================
 s = prs.slides.add_slide(L(27))  # 3 N Blue green cover
 s.shapes.title.text = "Rust vs. C++ for Nokia RAN control plane"
@@ -197,7 +197,7 @@ if sz is not None:
     p2.font.size = sz
 
 # =====================================================================
-# Slide 2 — Agenda
+# Slide 2: Agenda
 # =====================================================================
 s = prs.slides.add_slide(L(3))
 s.shapes.title.text = "What this talk covers"
@@ -212,7 +212,7 @@ set_body_bullets(s, 15, [
 ])
 
 # =====================================================================
-# Slide 3 — Motivation and industrial context
+# Slide 3: Motivation and industrial context
 # =====================================================================
 s = prs.slides.add_slide(L(3))
 s.shapes.title.text = "Cloud-native RAN raises the premium on software quality"
@@ -227,7 +227,7 @@ set_body_bullets(s, 15, [
 ])
 
 # =====================================================================
-# Slide 4 — Problem statement
+# Slide 4: Problem statement
 # =====================================================================
 s = prs.slides.add_slide(L(3))
 s.shapes.title.text = "The gap: no controlled evidence for the RAN control plane"
@@ -241,7 +241,7 @@ set_body_bullets(s, 15, [
 ])
 
 # =====================================================================
-# Slide 5 — Key terms and abbreviations (table)
+# Slide 5: Key terms and abbreviations (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "Key terms for readers outside telecom"
@@ -264,7 +264,7 @@ add_data_table(
 )
 
 # =====================================================================
-# Slide 6 — Four research questions (table)
+# Slide 6: Four research questions (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "Four research questions"
@@ -285,7 +285,7 @@ add_data_table(
 )
 
 # =====================================================================
-# Slide 7 — Methodology
+# Slide 7: Methodology
 # =====================================================================
 s = prs.slides.add_slide(L(3))
 s.shapes.title.text = "One frozen spec, two implementations, three methods"
@@ -300,7 +300,7 @@ set_body_bullets(s, 15, [
 ])
 
 # =====================================================================
-# Slide 8 — Research design (table)
+# Slide 8: Research design (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "How each research question is answered"
@@ -322,7 +322,7 @@ add_data_table(
 )
 
 # =====================================================================
-# Slide 9 — UE lifecycle state machine (figure only)
+# Slide 9: UE lifecycle state machine (figure only)
 # =====================================================================
 s = prs.slides.add_slide(L(1))  # figure/table headline
 s.shapes.title.text = "The UE context lifecycle both versions encode identically"
@@ -364,7 +364,7 @@ add_textbox(s, Cm(7.0), Cm(3.5), Cm(7.0), Cm(0.7), "signal / add_drb handled in 
 add_arrow(s, Cm(10.5), Cm(4.3), Cm(10.5), Cm(5.15), color=BLACKBLUE, width=1.25)
 
 # =====================================================================
-# Slide 10 — Architecture (figure only)
+# Slide 10: Architecture (figure only)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "Shared-nothing, thread-per-shard architecture"
@@ -403,7 +403,7 @@ add_textbox(s, Cm(1.4), Cm(11.4), Cm(20.0), Cm(0.8),
             size=11, color=BLUE, bold=True, align=PP_ALIGN.CENTER)
 
 # =====================================================================
-# Slide 11 — Fairness controls (table)
+# Slide 11: Fairness controls (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "Fairness by construction: what is held identical"
@@ -424,7 +424,7 @@ add_data_table(
 )
 
 # =====================================================================
-# Slide 12 — Language-forced idioms (table)
+# Slide 12: Language-forced idioms (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "Where the two languages must diverge"
@@ -447,7 +447,7 @@ add_data_table(
 )
 
 # =====================================================================
-# Slide 13 — Defect classes in UECM (table)
+# Slide 13: Defect classes in UECM (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "The five defect classes, as they arise in UECM"
@@ -468,7 +468,7 @@ add_data_table(
 )
 
 # =====================================================================
-# Slide 14 — Safety results (table)
+# Slide 14: Safety results (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "RQ2: every injected defect is a compile error in safe Rust"
@@ -502,7 +502,7 @@ add_data_table(
 )
 
 # =====================================================================
-# Slide 15 — Latency distribution (table)
+# Slide 15: Latency distribution (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "RQ1: latency at 16 kops/s, below the overload cliff"
@@ -527,7 +527,7 @@ add_textbox(s, Cm(1.3), Cm(10.4), Cm(23.0), Cm(1.4),
             "as language.", size=13, color=GRAY800)
 
 # =====================================================================
-# Slide 16 — Resource use (table)
+# Slide 16: Resource use (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "RQ3: resource use is comparable across languages"
@@ -552,7 +552,7 @@ add_textbox(s, Cm(1.3), Cm(10.4), Cm(23.0), Cm(1.4),
             "comparable, consistent with the shared thread-per-shard design.", size=13, color=GRAY800)
 
 # =====================================================================
-# Slide 17 — Performance takeaways
+# Slide 17: Performance takeaways
 # =====================================================================
 s = prs.slides.add_slide(L(3))
 s.shapes.title.text = "RQ1/RQ3: the two languages track each other up to saturation"
@@ -567,7 +567,7 @@ set_body_bullets(s, 15, [
 ])
 
 # =====================================================================
-# Slide 18 — Migration results (table)
+# Slide 18: Migration results (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "RQ4: incremental adoption is technically cheap"
@@ -593,7 +593,7 @@ add_data_table(
 )
 
 # =====================================================================
-# Slide 19 — Summary of findings (table)
+# Slide 19: Summary of findings (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "Summary of findings and evidence strength"
@@ -616,7 +616,7 @@ add_data_table(
 )
 
 # =====================================================================
-# Slide 20 — Hypotheses versus verdict (table)
+# Slide 20: Hypotheses versus verdict (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "The three prior hypotheses against the evidence"
@@ -637,7 +637,7 @@ add_data_table(
 )
 
 # =====================================================================
-# Slide 21 — Scope and boundaries (table)
+# Slide 21: Scope and boundaries (table)
 # =====================================================================
 s = prs.slides.add_slide(L(1))
 s.shapes.title.text = "Scope and boundaries"
@@ -660,7 +660,7 @@ add_data_table(
 )
 
 # =====================================================================
-# Slide 22 — Conclusions
+# Slide 22: Conclusions
 # =====================================================================
 s = prs.slides.add_slide(L(3))
 s.shapes.title.text = "The barrier to Rust here is people, not performance"
@@ -674,7 +674,7 @@ set_body_bullets(s, 15, [
 ])
 
 # =====================================================================
-# Slide 23 — Future work
+# Slide 23: Future work
 # =====================================================================
 s = prs.slides.add_slide(L(3))
 s.shapes.title.text = "Future work"
@@ -687,7 +687,7 @@ set_body_bullets(s, 15, [
 ])
 
 # =====================================================================
-# Slide 24 — End slide
+# Slide 24: End slide
 # =====================================================================
 prs.slides.add_slide(L(71))  # End slide Blue
 

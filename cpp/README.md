@@ -1,4 +1,4 @@
-# UECM — C++ implementation
+# UECM: C++ implementation
 
 Modern C++ (C++23) implementation of the UE Context Management service defined in
 [`../spec/SPECIFICATION.md`](../spec/SPECIFICATION.md).
@@ -40,9 +40,9 @@ ctest --test-dir build --output-on-failure
 ```
 
 Options:
-- `-DUECM_USE_JEMALLOC=ON` — link jemalloc (spec §3, matched allocator); the `bench`
+- `-DUECM_USE_JEMALLOC=ON`: link jemalloc (spec §3, matched allocator); the `bench`
   target then reports `alloc=jemalloc`.
-- `-DUECM_BUILD_TESTS=OFF` — skip tests.
+- `-DUECM_BUILD_TESTS=OFF`: skip tests.
 
 ## Benchmark (spec §3/§10)
 ```bash

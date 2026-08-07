@@ -1,6 +1,6 @@
 //! RQ4 FFI seam: a C-ABI wrapper over the Rust `uecm` service.
 //!
-//! This crate demonstrates *incremental adoption* — dropping a Rust component
+//! This crate demonstrates *incremental adoption*, dropping a Rust component
 //! into a C++ codebase behind a C ABI. Key properties for the migration study:
 //!
 //! * The core Rust library (`../../rust`) is **not modified** to be callable from

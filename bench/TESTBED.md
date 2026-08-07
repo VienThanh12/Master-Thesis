@@ -20,7 +20,7 @@ in p99/p99.9.
 ## 2. CPU and frequency hygiene (bare-metal Linux)
 
 **Quick start:** `bench/setup_testbed.sh` does everything in this section
-automatically — it installs the toolchain, applies the hygiene below, and prints a
+automatically, it installs the toolchain, applies the hygiene below, and prints a
 GREEN/RED readiness check:
 
 ```bash
@@ -30,7 +30,7 @@ bench/setup_testbed.sh --check  # verify readiness only (no changes)
 
 The manual steps it runs are documented here for reference. Run these once per
 session (they require `sudo` and a real Linux host; they are **not** available
-under WSL2 — see §5):
+under WSL2, see §5):
 
 ```bash
 # 1. Pin the frequency governor to 'performance' (no on-demand scaling).
@@ -52,7 +52,7 @@ tails (optional, kernel cmdline): `isolcpus=2-9 nohz_full=2-9 rcu_nocbs=2-9`.
 
 ## 3. Running the benchmark pinned
 
-The turnkey campaign driver applies all of the guidelines below automatically —
+The turnkey campaign driver applies all of the guidelines below automatically,
 prefer it over hand-running the sweep:
 
 ```bash
@@ -64,7 +64,7 @@ taskset -c 2-17 bench/campaign.sh --repeats 20 --pin 2-17 \
 
 `campaign.sh` captures the environment (`capture_env.sh`), builds all variants,
 runs the sweep with repeats and interleaving, then aggregates (bootstrap median +
-95 % CI) and plots — see `bench/README.md`. With `N_SHARDS + producers` threads,
+95 % CI) and plots, see `bench/README.md`. With `N_SHARDS + producers` threads,
 reserve at least that many cores in `--pin`.
 
 Guidelines (all handled by `campaign.sh`):

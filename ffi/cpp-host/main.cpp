@@ -1,4 +1,4 @@
-// RQ4 FFI prototype — C++ host driving the Rust UECM component.
+// RQ4 FFI prototype: C++ host driving the Rust UECM component.
 //
 // This models the incremental-adoption scenario: an existing C++ application
 // keeps a Rust component behind a C ABI. The host only ever sees an opaque

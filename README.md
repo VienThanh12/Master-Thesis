@@ -20,7 +20,7 @@ four research questions:
 | RQ      | Question                                                           | Evidence in          |
 | ------- | ------------------------------------------------------------------ | -------------------- |
 | **RQ1** | Tail latency and jitter under overload                             | [`bench/`](bench/)   |
-| **RQ2** | Which C++ defect classes does safe Rust prevent at compile time — and which does it not? | [`faults/`](faults/) |
+| **RQ2** | Which C++ defect classes does safe Rust prevent at compile time, and which does it not? | [`faults/`](faults/) |
 | **RQ3** | What is the overhead (memory / CPU) of Rust's safety model?        | [`bench/`](bench/)   |
 | **RQ4** | What is the cost of incrementally adopting Rust in a C++ codebase? | [`ffi/`](ffi/)       |
 
@@ -76,7 +76,7 @@ bench/run_bench.sh
 ```
 
 For thesis-grade performance numbers, provision a clean testbed and run the full
-measurement campaign — see [`bench/README.md`](bench/README.md) and
+measurement campaign, see [`bench/README.md`](bench/README.md) and
 [`bench/TESTBED.md`](bench/TESTBED.md).
 
 ## The subsystem under study

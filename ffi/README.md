@@ -4,8 +4,8 @@ This directory implements the RQ4 study: *what are the practical implications
 (effort, FFI interoperability, and risk) of adopting Rust incrementally within an
 existing C++ RAN software ecosystem?*
 
-It models the realistic incremental-adoption direction — **an existing C++ host
-keeps a Rust component behind a C ABI** — and measures the concrete cost of the
+It models the realistic incremental-adoption direction, **an existing C++ host
+keeps a Rust component behind a C ABI**, and measures the concrete cost of the
 interop seam.
 
 ## Layout
@@ -60,14 +60,14 @@ interop-cost metrics.
   `InvalidState`).
 - **Seam size:** 11 C-ABI entry points; ~223 LOC of Rust wrapper + ~66 LOC of C
   header. No generated bindings, no third-party FFI dependency.
-- **Safety boundary:** `unsafe` occurrences — **0 in the core library**, confined
+- **Safety boundary:** `unsafe` occurrences: **0 in the core library**, confined
   to the seam crate. The C++ side sees only an opaque handle.
 - **Raw FFI crossing cost:** sub-nanosecond per call (`uecm_abi_noop`, ~0.7–1.3
-  ns/call) — i.e. a normal indirect function call; the boundary itself is
+  ns/call), i.e. a normal indirect function call; the boundary itself is
   effectively free.
 - **End-to-end op latency** (`handle_signaling` through the seam) is tens of
   microseconds, but this is the service's cross-thread submit+complete round-trip
-  that a *native* caller pays identically — it is architectural, not FFI-induced.
+  that a *native* caller pays identically; it is architectural, not FFI-induced.
 
 **Takeaway for RQ4:** for a component with a small, scalar-typed API, introducing
 Rust behind a C ABI is cheap and low-risk: the boundary adds no measurable

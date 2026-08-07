@@ -19,7 +19,7 @@ service round-trip time of each measured op, recorded into a per-thread HDR hist
 A deterministic generator (`cpp/bench/workload.hpp` and the `workload` module in
 `rust/examples/bench.rs`) models the full UE lifecycle a gNB-CU-CP performs. It keeps a
 lightweight per-slot **expected-state** model so every emitted op is valid by
-construction, and advances that model optimistically — so the *sequence of op kinds is
+construction, and advances that model optimistically, so the *sequence of op kinds is
 identical in C++ and Rust* for the same `(active_ues, seed)`. The per-kind op counts are
 therefore a cross-language parity signal (verified equal).
 
@@ -71,7 +71,7 @@ bench/load_sweep.sh --workload mixed --producers 8 --active-ues 5000 \
 ```
 
 - Rate is **per producer**; offered total = `rate * producers`. Each cell runs
-  `ops = rate * duration`, so wall time ≈ `duration` until the service saturates —
+  `ops = rate * duration`, so wall time ≈ `duration` until the service saturates,
   past saturation the loop can't keep up and both wall time and tail latency grow
   (the overload signal). Very high post-saturation rates therefore take longer to run.
 - CSV columns: `lang,alloc,workload,shards,producers,rate_per_prod,offered_ops_s,`
@@ -92,7 +92,7 @@ Every run also reports **peak RSS** and **CPU** (via `getrusage`: `ru_maxrss` pe
 resident set, `ru_utime`+`ru_stime` total CPU across all threads; `cpu%` =
 CPU/wall·100, so >100% means multiple busy cores). These land in the JSON
 (`rss_peak_kb`, `cpu_user_s`, `cpu_sys_s`, `cpu_pct`), the sweep CSV, and the
-`run_bench.sh` table — the RQ3 memory/overhead signal. The Rust bench's one `unsafe`
+`run_bench.sh` table, the RQ3 memory/overhead signal. The Rust bench's one `unsafe`
 FFI call for `getrusage` is confined to the benchmark tool; the UECM library stays
 `unsafe`-free.
 
@@ -126,12 +126,12 @@ taskset -c 2-17 bench/campaign.sh --repeats 20 --pin 2-17 \
 ```
 
 Outputs under `bench/results/`:
-- `campaign-<stamp>.jsonl` — every individual run (raw).
-- `campaign-<stamp>.agg.csv` — one row per `(variant, offered load)` with, for each
+- `campaign-<stamp>.jsonl`: every individual run (raw).
+- `campaign-<stamp>.agg.csv`: one row per `(variant, offered load)` with, for each
   metric, `<metric>_median`, `<metric>_lo`, `<metric>_hi` where the CI is a **95%
   nonparametric bootstrap CI of the median** across repeats (seeded, dependency-free).
   Metrics: `p50/p90/p99/p999/max/mean` (ns), `achieved_ops_s`, `rss_peak_kb`, `cpu_pct`.
-- `campaign-<stamp>.latency.tex` — a ready-to-paste `tab:latency` LaTeX table at an
+- `campaign-<stamp>.latency.tex`: a ready-to-paste `tab:latency` LaTeX table at an
   auto-selected representative load (the highest offered load still tracking the
   offer, i.e. just before saturation; override with `aggregate.py --rep-load`).
 
@@ -154,20 +154,20 @@ python3 bench/plot_figures.py --campaign results/campaign-XXXX.jsonl \
 ```
 
 Produces (vector PDF, embedded by `thesis.tex`):
-- `fig_latency_vs_load.pdf` — p99 latency vs offered load, median + bootstrap 95% CI band.
-- `fig_throughput_vs_load.pdf` — achieved vs offered throughput (saturation knee).
-- `fig_tail_percentiles.pdf` — latency-by-percentile at the representative load.
-- `fig_resources.pdf` — peak RSS + CPU utilisation per variant (RQ3).
-- `fig_taxonomy.pdf` — fault-injection outcome matrix from `taxonomy.csv` (RQ2).
-- `fig_ffi_cost.pdf` — FFI crossing vs end-to-end op cost from `../ffi/results/metrics.json` (RQ4).
-- `tab_latency.tex`, `tab_resource.tex`, `tab_ffi.tex` — table bodies `\input` by the thesis.
+- `fig_latency_vs_load.pdf`: p99 latency vs offered load, median + bootstrap 95% CI band.
+- `fig_throughput_vs_load.pdf`: achieved vs offered throughput (saturation knee).
+- `fig_tail_percentiles.pdf`: latency-by-percentile at the representative load.
+- `fig_resources.pdf`: peak RSS + CPU utilisation per variant (RQ3).
+- `fig_taxonomy.pdf`: fault-injection outcome matrix from `taxonomy.csv` (RQ2).
+- `fig_ffi_cost.pdf`: FFI crossing vs end-to-end op cost from `../ffi/results/metrics.json` (RQ4).
+- `tab_latency.tex`, `tab_resource.tex`, `tab_ffi.tex`: table bodies `\input` by the thesis.
 
 The representative load is auto-selected (highest offered rate with every variant still
 below 5 ms p99) unless `--load` is given. The RQ2 taxonomy and RQ4 FFI inputs come from
 `../faults/results/taxonomy.csv` (produced by `faults/run_faults.sh`) and
 `../ffi/results/metrics.json` (produced by `ffi/build.sh`); override with `--taxonomy` /
 `--ffi`. Rerun after the bare-metal campaign to refresh the whole thesis with testbed-grade
-numbers — no manual copy-paste.
+numbers, no manual copy-paste.
 
 ## Run one variant directly
 

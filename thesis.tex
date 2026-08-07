@@ -256,8 +256,8 @@ runs at higher concurrency, and must meet its deadlines without the determinism 
 purpose-built hardware once provided. This shift is accelerated by Open-RAN disaggregation,
 which turns the base station into virtualised, multi-vendor software connected by open
 interfaces~\cite{polese2023oran}, so that the control plane a vendor ships increasingly
-competes on software-engineering quality---reliability, predictable timing, security, and the
-pace at which a large codebase can be evolved safely---rather than on bespoke hardware. In
+competes on software-engineering quality (reliability, predictable timing, security, and the
+pace at which a large codebase can be evolved safely) rather than on bespoke hardware. In
 this setting a latency regression or a memory-corruption defect is not a localised bug but a
 network-wide reliability and security risk, and a language-selection question stops being
 academic and becomes a concrete engineering decision.
@@ -488,7 +488,7 @@ protocol stack, while one or more distributed units (gNB-DU) host the lower, mor
 time-critical layers close to the radio. The second is a \emph{control/user-plane} split
 inside the central unit, separating the control-plane function (gNB-CU-CP) from the
 user-plane function (gNB-CU-UP). These parts communicate over standardised
-interfaces---NG towards the 5G core, F1 between the CU and the DU, and E1 between the CU-CP and
+interfaces: NG towards the 5G core, F1 between the CU and the DU, and E1 between the CU-CP and
 the CU-UP~\cite{3gpp38401,3gpp38300,3gpp38463}. Open-RAN initiatives standardise these interfaces
 further so that each part can be supplied by a different vendor and run as software on
 commodity hardware~\cite{polese2023oran}. Figure~\ref{fig:ngran} places the subsystem studied
@@ -546,7 +546,7 @@ Latency-critical systems are judged less by how much work they do on average tha
 sustained rate of completed operations; \emph{latency} is the time an individual operation
 takes; and \emph{jitter} is the variability of that latency. Because a system can have
 excellent mean latency and still miss deadlines often, the meaningful figures are the
-high-percentile \emph{tail} latencies---the 99th (p99) and 99.9th (p99.9) percentiles---rather
+high-percentile \emph{tail} latencies, the 99th (p99) and 99.9th (p99.9) percentiles, rather
 than the mean. At the scale of a network, tail latency dominates user-visible behaviour: when
 a single user action fans out into many internal operations, the slowest of them sets the
 response time, so rare per-operation delays become common per-request delays~\cite{dean2013tail}.
@@ -596,7 +596,7 @@ Chapter~\ref{chapter:eval}.
 regardless of system state, so requests issued during a stall are recorded with their full
 latency and the tail is captured. A naive closed-loop generator (bottom) waits for each response
 before sending the next, so when the system stalls it stalls too and never issues the delayed
-requests---silently omitting exactly the samples that would expose the tail.\label{fig:coord}}
+requests, silently omitting exactly the samples that would expose the tail.\label{fig:coord}}
 \end{figure}
 
 \section{C++ for latency-critical systems}
@@ -615,8 +615,8 @@ property the compiler enforces. RAII and smart pointers reduce but do not elimin
 errors: raw pointers and references can outlive the objects they point to, iterators can be
 invalidated by container mutation, objects can be used after a move, and nothing in the type
 system prevents a mutable object from being aliased and mutated concurrently from several
-threads. The result is a well-known catalogue of defects---use-after-free, double-free,
-buffer overflow, data races, deadlocks, and iterator invalidation---that are easy to
+threads. The result is a well-known catalogue of defects (use-after-free, double-free,
+buffer overflow, data races, deadlocks, and iterator invalidation) that are easy to
 introduce and expensive to find at telecom scale. Memory-corruption errors of this kind have
 been a persistent security problem for decades, and deployed mitigations remain only partial
 defences~\cite{szekeres2013sok}. Their prevalence is well documented in
@@ -679,10 +679,10 @@ while a reference to it is still live:
 system through the \texttt{Send} and \texttt{Sync} marker traits: a value may cross a thread
 boundary only if its type is \texttt{Send}, and may be shared by reference across threads only
 if it is \texttt{Sync}. Sharing a value that permits unsynchronised mutation is therefore a
-compile error, not a latent race---the property Rust markets as ``fearless concurrency.''
+compile error, not a latent race; this is the property Rust markets as ``fearless concurrency.''
 Error handling is likewise explicit: fallible operations return a \texttt{Result} value that
 the caller must handle, rather than raising an exception that unwinds through hidden control
-flow, which keeps the cost and the control flow of the failure path visible---an advantage in
+flow, which keeps the cost and the control flow of the failure path visible, an advantage in
 latency-sensitive code where surprises in the tail are what matter.
 
 \begin{figure}
@@ -717,8 +717,8 @@ control-plane software is C++ against Rust, and why managed languages are out of
 \caption{The systems-language landscape along two axes: low-level control over memory and
 scheduling (horizontal) and memory/thread safety (vertical). Managed languages (Java, C\#, Go,
 Python) are safe but pay a garbage-collection cost that hurts tail latency; C and C++ give
-bare-metal control but leave safety to the programmer. Rust occupies the sweet spot---compile-time
-safety with no garbage collector---which is why the meaningful comparison for a RAN control plane
+bare-metal control but leave safety to the programmer. Rust occupies the sweet spot of
+compile-time safety with no garbage collector, which is why the meaningful comparison for a RAN control plane
 is C++ against Rust.\label{fig:landscape}}
 \end{figure}
 
@@ -821,7 +821,7 @@ Chapter~\ref{chapter:methodology} sets out the methodology by which they are pur
 \section{The UE Context Management subsystem}
 The subsystem under study is a UE Context Management service, modeled on a real Nokia
 gNB-CU-CP service domain that owns the UE context lifecycle, RRC procedure
-execution~\cite{3gpp38331}, and mobility/handover---the very functions the 3GPP architecture
+execution~\cite{3gpp38331}, and mobility/handover, the very functions the 3GPP architecture
 assigns to the control-plane part of a disaggregated gNB, where the CU-CP hosts the RRC and the
 control-plane part of PDCP and manages the UE context, delegating user-plane bearer handling to
 the CU-UP over the E1 interface~\cite{3gpp38401,3gpp38300,3gpp38463}. It is a good representative
@@ -897,9 +897,9 @@ is a write, a \emph{deadlock} is a cyclic wait for locks, and \emph{iterator inv
 the use of an iterator or reference into a container after a mutation has moved or freed the
 underlying storage. What these share is that they are all \emph{silent} in C++: each is accepted
 by the compiler and, on the paths ordinary tests happen to exercise, may appear to work,
-surfacing only later as corruption, a crash, or an unpredictable latency spike---the same
-memory-corruption classes that decades of security research have struggled to contain in C and
-C++~\cite{szekeres2013sok}.
+surfacing only later as corruption, a crash, or an unpredictable latency spike. These are the
+same memory-corruption classes that decades of security research have struggled to contain in C
+and C++~\cite{szekeres2013sok}.
 
 Each class has a natural incarnation in UE Context Management, which is why the subsystem is a
 good vehicle for studying them:
@@ -967,7 +967,7 @@ its mean, governs whether deadlines are met~\cite{dean2013tail}. The relevant ti
 the microsecond: modern low-latency I/O and in-memory request handling operate in a regime
 that existing systems, tuned for nanosecond and millisecond events, support
 poorly~\cite{barroso2017microseconds}, which makes disciplined microsecond-level measurement
-essential---the more so because much of the tail originates below the application, in hardware,
+essential, all the more so because much of the tail originates below the application, in hardware,
 operating-system, and scheduling effects~\cite{li2014tales}. The study therefore characterises the full latency distribution, focusing on high
 percentiles (p99, p99.9, p99.99), the maximum, and jitter, and on how these degrade as the
 system approaches and exceeds saturation. Measuring these correctly requires care to avoid
@@ -2423,7 +2423,7 @@ taken. Stating their disposition explicitly, rather than letting the results spe
 themselves, is what distinguishes a test from a description.
 
 \begin{description}
-  \item[H1 --- supported at the median; untested in the tail.] The hypothesis had two parts:
+  \item[H1: supported at the median; untested in the tail.] The hypothesis had two parts:
         that the languages are performance-equivalent below saturation, and that any
         difference is confined to the far tail. The first part is supported and the evidence
         is clean, the four build variants agreeing to $\PFiftyRange\,\mu$s
@@ -2433,7 +2433,7 @@ themselves, is what distinguishes a test from a description.
         consistent with confinement to the tail and with a substantial tail difference. H1 is
         therefore recorded as half-answered rather than supported, and the outstanding half is
         the one the hypothesis was really about.
-  \item[H2 --- supported in its precise form, refuted in its loose one.] The hypothesis was
+  \item[H2: supported in its precise form, refuted in its loose one.] The hypothesis was
         that safe Rust prevents at compile time ``the memory-safety and concurrency defect
         classes that C++ leaves to best-effort detection''. For the five injected classes of
         that kind it holds without exception. The fault-injection study nonetheless refutes
@@ -2442,7 +2442,7 @@ themselves, is what distinguishes a test from a description.
         does not prevent them either. H2 is therefore accepted for memory safety and
         data-race freedom and rejected for concurrency correctness at large, and the latter is
         the reading practitioners tend to assume.
-  \item[H3 --- supported.] The hypothesis was that interoperability cost is negligible against
+  \item[H3: supported.] The hypothesis was that interoperability cost is negligible against
         the operations invoked. The measured crossing cost is sub-nanosecond against an
         operation of order $80\,\mu$s, roughly five orders of magnitude smaller, so the
         run-time cost of the boundary is not merely small but immeasurable at the scale of the

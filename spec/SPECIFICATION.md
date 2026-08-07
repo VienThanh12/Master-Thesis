@@ -1,6 +1,6 @@
-# Shared Specification — UE Context Management Service
+# Shared Specification: UE Context Management Service
 
-**Version:** 0.1 (DRAFT — not yet frozen)
+**Version:** 0.1 (DRAFT, not yet frozen)
 **Status:** Draft for supervisor review. Once approved, bump to 1.0 and tag `spec-v1.0`.
 **Applies to:** the C++ (`cpp/`) and Rust (`rust/`) implementations.
 
@@ -240,7 +240,7 @@ mapping is recorded in Section 12.
 
 ---
 
-## 7. Concurrency model — shared-nothing, thread-per-shard
+## 7. Concurrency model: shared-nothing, thread-per-shard
 
 This is the **specified** concurrency model. It mirrors how real RAN L3 partitions UE state
 and is the fairest structure for comparing the two languages' safe-concurrency stories.
@@ -295,7 +295,7 @@ All arithmetic is wrapping (modulo 2^64). Both implementations MUST reproduce id
 shard assignments for identical `ue_id`.
 
 ### 8.2 Intra-shard container (MUST be identical in behavior)
-- Container: the language's standard hash map — C++ `std::unordered_map<u64, UeContext>`,
+- Container: the language's standard hash map: C++ `std::unordered_map<u64, UeContext>`,
   Rust `std::collections::HashMap<u64, UeContext, S>`.
 - **Pinned key hash:** to prevent the standard hashers from being an accidental
   language advantage/disadvantage, both maps MUST use the **FNV-1a 64-bit** hash over the
@@ -331,7 +331,7 @@ them from `bench/`.
 | Max contexts per shard | `MAX_CONTEXTS_PER_SHARD` | 200000 | `CapacityExceeded` beyond. |
 | Initial shard map capacity | `INITIAL_SHARD_CAPACITY` | 4096 | Reserved at start. |
 | Max DRBs per context | `MAX_DRBS` | 8 | |
-| Max signaling payload | — | 64 bytes | |
+| Max signaling payload | n/a | 64 bytes | |
 
 `N_SHARDS`, `QUEUE_CAPACITY`, and the active-UE population are the primary sweep knobs.
 
@@ -413,7 +413,7 @@ during implementation, with the requirement id and the reason. Examples that wil
 - Custom hashing hookup: Rust `BuildHasher` vs C++ hash functor.
 - One-shot completion: Rust `oneshot`/`mpsc` vs C++ `std::promise`/`std::future` or a
   condition-variable handoff.
-- Any `unsafe` block in Rust (location + justification) — expected to be **none** in the
+- Any `unsafe` block in Rust (location + justification): expected to be **none** in the
   baseline implementation.
 
 **C++ implementation (recorded 2026-07, `cpp/`):**
@@ -433,7 +433,7 @@ during implementation, with the requirement id and the reason. Examples that wil
 **Rust implementation (recorded 2026-07, `rust/`):**
 - Result type: `OpResult<T> = Result<T, OpError>` (idiomatic; no wrapper needed).
 - Request: a `Request` enum with one variant per operation, each carrying a typed one-shot
-  `Sender` of its precise result type (`src/message.rs`) — replaces the C++ `std::variant`
+  `Sender` of its precise result type (`src/message.rs`), replaces the C++ `std::variant`
   `Response`; no runtime variant dispatch on the caller side.
 - One-shot completion: a fresh `std::sync::mpsc::channel()` per request; caller blocks on
   `recv()` (the analog of `std::future::get`).
@@ -465,7 +465,7 @@ during implementation, with the requirement id and the reason. Examples that wil
   lifecycle generator: attach → signaling → bearer setup → handover → release). The
   mixed generator keeps a per-slot expected-state model so emitted ops are valid, and
   advances it optimistically with a fixed SplitMix64 draw order, so the per-op-kind
-  counts are **identical** in C++ and Rust for a given `(active_ues, seed)` — verified
+  counts are **identical** in C++ and Rust for a given `(active_ues, seed)`, verified
   equal, an extra parity signal beyond §11.
 - Coordinated omission is handled by an optional `--rate` (fixed send schedule + HDR
   correction from intended send time).
@@ -475,7 +475,7 @@ during implementation, with the requirement id and the reason. Examples that wil
   dev-dependency); the library remains `unsafe`-free and dependency-free.
 - Load sweep: `bench/load_sweep.sh` sweeps offered rate × the four variants and writes a
   latency/throughput/RSS/CPU-vs-load CSV (`bench/plot_sweep.py` renders it).
-- Dependency hygiene: the Rust core library stays dependency-free — `hdrhistogram`
+- Dependency hygiene: the Rust core library stays dependency-free: `hdrhistogram`
   is a `dev-dependency` and the bench lives under `examples/` so only the benchmark,
   not the library, pulls it in.
 
@@ -491,7 +491,7 @@ during implementation, with the requirement id and the reason. Examples that wil
 
 ---
 
-## Appendix A — Open decisions to confirm
+## Appendix A: Open decisions to confirm
 
 1. **Reconfiguration richness.** The state machine includes a `Reconfiguring` state with
    begin/complete/abort. If the supervisor prefers a leaner model, `Reconfiguring` can be

@@ -51,7 +51,7 @@ latexmk -C                   # clean build artifacts
 - [x] Implement signaling/message handling + concurrent lookup at service level
 - [x] Verify data-race freedom under ThreadSanitizer (0 races; use `setarch -m -R` on WSL2)
 - [x] Wire jemalloc allocator (`-DUECM_USE_JEMALLOC=ON`, links `libjemalloc.so.2`) + HDR latency capture (`cpp/bench/hdr.hpp`, validated) in `cpp/bench/bench.cpp`
-- [x] Run against shared parity-test contract (spec §11) — `conformance_runner` passes `basic.vec`, `shards.vec`
+- [x] Run against shared parity-test contract (spec §11): `conformance_runner` passes `basic.vec`, `shards.vec`
 
 ## Phase 4 - Rust implementation
 - [x] Scaffold Cargo project (stable toolchain 1.96; release opt-level=2 to match C++ -O2)
@@ -59,38 +59,38 @@ latexmk -C                   # clean build artifacts
 - [x] Implement ShardCore: sharded context store + UE state machine per spec (single-threaded)
 - [x] Implement threaded service: thread-per-shard + bounded `sync_channel` backpressure + typed one-shot completions (spec §7)
 - [x] Implement signaling/message handling + concurrent lookup at service level
-- [x] Record location + justification of any `unsafe` blocks (result: **zero `unsafe`** — safe Rust is data-race-free by construction)
+- [x] Record location + justification of any `unsafe` blocks (result: **zero `unsafe`**, safe Rust is data-race-free by construction)
 - [x] Unit/conformance tests green (5/5); `cargo clippy -D warnings` clean; `cargo fmt` applied
 - [x] Wire jemalloc allocator (`--features jemalloc`, `tikv-jemallocator` global allocator) + HdrHistogram (`hdrhistogram` crate) in `rust/examples/bench.rs`
 - [ ] (Optional) Miri UB/data-race pass once a nightly toolchain is available
-- [x] Run against shared parity-test contract (spec §11) — `conformance_runner` passes `basic.vec`, `shards.vec`; transcript matches C++ byte-for-byte
+- [x] Run against shared parity-test contract (spec §11): `conformance_runner` passes `basic.vec`, `shards.vec`; transcript matches C++ byte-for-byte
 
 ## Phase 5 - Parity verification
-- [x] Confirm both implementations pass identical functional parity tests (shared `conformance_runner`; op-for-op transcript match on `basic.vec`/`shards.vec` — expand vector coverage later)
+- [x] Confirm both implementations pass identical functional parity tests (shared `conformance_runner`; op-for-op transcript match on `basic.vec`/`shards.vec`, expand vector coverage later)
 - [~] Diff behaviour on edge cases; document forced-idiom deviations (deviations logged in spec §12; add more adversarial vectors)
 
 ## Phase 6 - Benchmarking framework & workload generator
-- [x] Build synthetic workload generator (UE lifecycle: attach, signaling, bearer setup, handover begin/complete/abort, release) — pinned deterministic model, identical op-stream in C++/Rust (`--workload mixed`)
-- [x] Parameterize by number of active UEs (`--active-ues`) and target event rate (`--rate`, open-loop w/ CO correction) — 3GPP-anchored rate calibration still TODO
+- [x] Build synthetic workload generator (UE lifecycle: attach, signaling, bearer setup, handover begin/complete/abort, release), pinned deterministic model, identical op-stream in C++/Rust (`--workload mixed`)
+- [x] Parameterize by number of active UEs (`--active-ues`) and target event rate (`--rate`, open-loop w/ CO correction), 3GPP-anchored rate calibration still TODO
 - [x] Ensure histogram-based capture avoids coordinated-omission bias (HDR histograms both sides; `--rate` fixed schedule + HDR correction from intended send time)
-- [x] Define testbed config (CPU pinning, disable turbo/freq scaling, warm-up discard) — protocol
+- [x] Define testbed config (CPU pinning, disable turbo/freq scaling, warm-up discard), protocol
       in `bench/TESTBED.md` (taskset pinning, performance governor, no-turbo, SMT off, repeats,
       interleaving) + `bench/capture_env.sh` (env capture, flags WSL2); execution on bare-metal TBD
 - [~] Make runs scriptable + reproducible (`bench/run_bench.sh` runs all 4 variants; full workload generator still TODO)
 
 ## Phase 7 - Experiment campaigns
 ### 7a. Load sweep (RQ1 latency predictability, RQ3 overhead)
-- [~] Run load sweep nominal -> saturation -> overload — driver ready (`bench/campaign.sh`:
+- [~] Run load sweep nominal -> saturation -> overload: driver ready (`bench/campaign.sh`:
       rates x 4 variants, CO-corrected, repeats + interleaving + bootstrap median/CI + plots);
       needs execution on a bare-metal testbed (WSL2 not testbed-grade)
 - [~] Collect latency (mean/p50/p90/p99/p99.9/max), throughput, peak RSS + CPU% per offered load
-      (getrusage; aggregated with 95% CI by `bench/aggregate.py`) — still add jitter + p99.99
+      (getrusage; aggregated with 95% CI by `bench/aggregate.py`), still add jitter + p99.99
 ### 7b. Fault-injection study (RQ2 safety)
 - [x] Inject C++ defect catalogue (use-after-free, double-free, iterator invalidation,
-      data race, unguarded shared mutation) — `faults/cpp/*.cpp`, domain-flavoured
+      data race, unguarded shared mutation), `faults/cpp/*.cpp`, domain-flavoured
 - [x] Rust counterparts, each rejected at compile time (`faults/rust/*.rs`); runner
       `faults/run_faults.sh` builds C++ under ASan+TSan (`-O0`, `setarch -R`) and compiles Rust
-- [x] Record per defect: Rust compile-time rejection (E-code) vs C++ ASan/TSan detection —
+- [x] Record per defect: Rust compile-time rejection (E-code) vs C++ ASan/TSan detection,
       `faults/results/taxonomy.{md,csv}` + per-case logs; every defect is compile-error in Rust
 - [x] Produce defect-class taxonomy table (filled into thesis §6.2, Table `tab:taxonomy`)
 ### 7c. FFI migration prototype (RQ4 adoption cost)
@@ -105,12 +105,12 @@ latexmk -C                   # clean build artifacts
 - [x] Tooling: `bench/campaign.sh` (repeats + interleaving + env capture + pinning) ->
       `bench/aggregate.py` (bootstrap median + 95% CI per metric, tidy CSV + auto `tab:latency`
       LaTeX) -> `bench/plot_campaign.py` (median + CI-band latency-vs-load). Pipeline smoke-tested.
-- [ ] Execute the campaign on a bare-metal testbed (WSL2 numbers are not testbed-grade) —
+- [ ] Execute the campaign on a bare-metal testbed (WSL2 numbers are not testbed-grade),
       provision with `bench/setup_testbed.sh` (toolchain + CPU hygiene + GREEN/RED readiness check)
 - [ ] Compute variance + confidence intervals across runs (produced by `aggregate.py` once run)
 - [ ] Generate latency-vs-load plots per language (`plot_campaign.py`; needs matplotlib)
-- [x] Fill Table (defect taxonomy) — thesis §6.2 `tab:taxonomy` from real fault-injection runs
-- [ ] Fill Table (latency percentiles) — paste generated `campaign-*.latency.tex` into `tab:latency`
+- [x] Fill Table (defect taxonomy): thesis §6.2 `tab:taxonomy` from real fault-injection runs
+- [ ] Fill Table (latency percentiles): paste generated `campaign-*.latency.tex` into `tab:latency`
 - [ ] Draft evidence-based migration/language-selection guidelines (RQ4 inputs ready; §7 discussion)
 
 ## Phase 9 - Writing (fill placeholders in thesis.tex)
@@ -123,7 +123,7 @@ latexmk -C                   # clean build artifacts
       appendix code example now the real UAF C++/Rust pair
 - [x] Describe implemented signal/mixed workloads + CO correction in §6.1
 - [ ] Populate "Evaluation data" and performance results (Table `tab:latency`) with measured
-      load-sweep data (needs testbed hygiene + repeats — Phase 7a/8)
+      load-sweep data (needs testbed hygiene + repeats, Phase 7a/8)
 - [ ] Complete Discussion: summary of findings, per-RQ discussion (after performance data)
 - [ ] Finalize conclusion + future work
 - [ ] Polish abstract to reflect actual (not expected) results

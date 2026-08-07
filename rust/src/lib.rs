@@ -1,4 +1,4 @@
-//! UE Context Management (UECM) service — Rust implementation.
+//! UE Context Management (UECM) service, Rust implementation.
 //!
 //! Conforms to `../spec/SPECIFICATION.md`. Structurally mirrors the C++
 //! implementation in `../cpp/`: identical pinned hashing (§8), the same UE state

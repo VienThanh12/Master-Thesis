@@ -1,4 +1,4 @@
-/* RQ4 FFI prototype — C ABI over the Rust UECM service.
+/* RQ4 FFI prototype, C ABI over the Rust UECM service.
  *
  * This header is the migration seam a C++ host compiles against. It is written by
  * hand (no bindgen) to keep the prototype dependency-free and to make the interop
