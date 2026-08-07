@@ -11,5 +11,5 @@
 | iterator_invalidation | detected | detected | runtime (ASan+TSan) | compile-time prevented (E0502) |
 | data_race | clean | detected | runtime (TSan) | compile-time prevented (E0373,E0382,E0502) |
 | unguarded_shared_mutation | clean | detected | runtime (TSan) | compile-time prevented (E0502,E0524,E0597) |
-| lock_order_deadlock | hung | detected | runtime (TSan) | not prevented (compiles; deadlocks) |
+| lock_order_deadlock | hung | hung | undetected (hung) | not prevented (compiles; deadlocks) |
 | lost_update | clean | clean | undetected | not prevented (compiles; wrong result) |

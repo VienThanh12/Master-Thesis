@@ -13,12 +13,14 @@ primary control against implementation bias.
 ## Phase 0 - Environment & repository setup
 - [x] Install LaTeX toolchain (TinyTeX in ~/.TinyTeX; `pdflatex`, `bibtex`, `latexmk` on PATH)
 - [x] Obtain the `UH_DS_MSc.cls` class file (local reconstruction from UH_*_MSc family; see note)
-- [x] Create `bibliography.bib` with all cited references (9 entries; see Phase 7)
-- [x] Verify `thesis.tex` compiles to PDF end-to-end (31 pages, all refs/citations resolve)
+- [x] Create `bibliography.bib` with all cited references (65 entries as of Aug 2026)
+- [x] Verify `thesis.tex` compiles to PDF end-to-end (105 pages, all refs/citations resolve)
 - [x] Initialize git repository; add `.gitignore` (build artifacts, LaTeX aux files)
 - [ ] (Optional) Replace reconstructed `UH_DS_MSc.cls` with the official one from Overleaf/Moodle
 - [ ] Confirm the cover-page programme label ("Master's Programme in Computer Science") is correct
-- [ ] Decide repo layout: `spec/`, `cpp/`, `rust/`, `bench/`, `experiments/`, `analysis/`, `thesis/`
+- [x] Decide repo layout: `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/`, `figures/` at
+      repo root; `thesis.tex` + `bibliography.bib` at root. No separate `experiments/` or
+      `analysis/` dirs (folded into `bench/`).
 
 ### Build instructions
 ```bash
@@ -54,7 +56,7 @@ latexmk -C                   # clean build artifacts
 - [x] Run against shared parity-test contract (spec §11): `conformance_runner` passes `basic.vec`, `shards.vec`
 
 ## Phase 4 - Rust implementation
-- [x] Scaffold Cargo project (stable toolchain 1.96; release opt-level=2 to match C++ -O2)
+- [x] Scaffold Cargo project (stable toolchain 1.97; release opt-level=2 to match C++ -O2)
 - [x] Implement pinned types, hash/shard functions (LE-byte FNV BuildHasher == fnv1a_64), error model (spec §4,§6,§8)
 - [x] Implement ShardCore: sharded context store + UE state machine per spec (single-threaded)
 - [x] Implement threaded service: thread-per-shard + bounded `sync_channel` backpressure + typed one-shot completions (spec §7)
@@ -76,13 +78,15 @@ latexmk -C                   # clean build artifacts
 - [x] Define testbed config (CPU pinning, disable turbo/freq scaling, warm-up discard), protocol
       in `bench/TESTBED.md` (taskset pinning, performance governor, no-turbo, SMT off, repeats,
       interleaving) + `bench/capture_env.sh` (env capture, flags WSL2); execution on bare-metal TBD
-- [~] Make runs scriptable + reproducible (`bench/run_bench.sh` runs all 4 variants; full workload generator still TODO)
+- [~] Make runs scriptable + reproducible (`bench/run_bench.sh` + `bench/campaign.sh` +
+      `bench/refresh_thesis.sh` work end-to-end; 3GPP-anchored rate calibration still TODO)
 
 ## Phase 7 - Experiment campaigns
 ### 7a. Load sweep (RQ1 latency predictability, RQ3 overhead)
 - [~] Run load sweep nominal -> saturation -> overload: driver ready (`bench/campaign.sh`:
-      rates x 4 variants, CO-corrected, repeats + interleaving + bootstrap median/CI + plots);
-      needs execution on a bare-metal testbed (WSL2 not testbed-grade)
+      rates x 4 variants, CO-corrected, repeats + interleaving + bootstrap median/CI + plots).
+      **15-repeat WSL2 campaign in progress** (Aug 2026; pipeline smoke only — WSL2 not
+      testbed-grade). Definitive RQ1/RQ3 numbers still need bare-metal execution.
 - [~] Collect latency (mean/p50/p90/p99/p99.9/max), throughput, peak RSS + CPU% per offered load
       (getrusage; aggregated with 95% CI by `bench/aggregate.py`), still add jitter + p99.99
 ### 7b. Fault-injection study (RQ2 safety)
@@ -97,7 +101,7 @@ latexmk -C                   # clean build artifacts
 - [x] Build a small Rust component behind a C ABI, driven by a C++ host (`ffi/`): seam crate
       `rust-uecm-ffi` (staticlib+cdylib, path-dep on unmodified `rust/`) + hand-written
       `uecm_ffi.h` + `cpp-host/main.cpp`; `ffi/build.sh` builds/links/runs (host PASSes)
-- [x] Measure interop cost: 11 C-ABI entry points (~223 LOC Rust + 66 LOC header), 0 `unsafe`
+- [x] Measure interop cost: 12 C-ABI entry points (~231 LOC Rust seam + 66 LOC header), 0 `unsafe`
       in core lib (confined to seam), raw crossing ~1 ns/call, op cost = service round-trip
       (not FFI-induced); clippy clean. Findings filled into thesis §6.2 (RQ4 Migration)
 
@@ -107,9 +111,9 @@ latexmk -C                   # clean build artifacts
       LaTeX) -> `bench/plot_campaign.py` (median + CI-band latency-vs-load). Pipeline smoke-tested.
 - [ ] **Execute the campaign on a bare-metal testbed** (WSL2 numbers are not testbed-grade),
       provision with `bench/setup_testbed.sh` (toolchain + CPU hygiene + GREEN/RED readiness check).
-      Use **more than 7 repeats**: the exact paired test cannot return p < 2/2^n, so at 7 repeats
-      no result can survive the Holm correction however large the effect. 15+ repeats lifts the
-      floor below 0.05 after correction.
+      Use **15+ repeats**: the exact paired test cannot return p < 2/2^n, so at 7 repeats
+      no result can survive the Holm correction however large the effect (current thesis tables
+      use 7-repeat WSL2 data; a 15-repeat WSL2 run is underway for pipeline validation only).
 - [x] Compute variance + confidence intervals across runs (`plot_figures.py`; reported as explicit
       asymmetric [lo, hi] bootstrap intervals, not symmetric half-widths, which at these
       dispersions implied negative latencies)
@@ -153,19 +157,25 @@ latexmk -C                   # clean build artifacts
 
 ### After the bare-metal campaign, re-check these
 The prose is generated from the data, so most of it updates itself. These are the claims that
-are currently shaped by *this* dataset and should be reread once the numbers change:
+are currently shaped by the **7-repeat WSL2** dataset in the thesis and should be reread once
+bare-metal numbers land (the in-flight 15-repeat WSL2 run does not change this):
 - §7.5.1 "the tail is not yet measurable" -- becomes a real finding or a bounded null result.
 - §7.5.1/§8.2 the peak-RSS language effect. Currently ~3.4 MiB with identical sign in all 7
-  repeats but Holm p = 0.188 purely because of the repeat floor. With more repeats it either
-  becomes significant (state it plainly) or fails to reproduce (retract it).
+  repeats but Holm p = 0.188 purely because of the repeat floor. With 15+ bare-metal repeats it
+  either becomes significant (state it plainly) or fails to reproduce (retract it).
 - Table 8.1 evidence-status column, and the RQ1/RQ3 "preliminary" labels throughout.
 - H1 in §8.3, currently recorded as half-answered.
 
 ---
 
 ### Notes / open questions
-- Timeline: 3-6 months.
-- Current code status: none written yet (thesis.tex + build environment now in place).
+- Timeline: writing and implementation complete; remaining work is spec freeze, bare-metal
+  campaign, supervisor review, and submission.
+- Current artefact status (verified Aug 2026): spec + C++/Rust implementations + conformance
+  suite + bench/fault/ffi harnesses + generated figures/tables + 105-page thesis PDF. All green
+  on `spec/conformance/run.sh`, `ctest`, `cargo test`, `faults/run_faults.sh`, `ffi/build.sh`.
+- **Remaining critical path:** (1) supervisor review → spec v1.0 freeze, (2) bare-metal campaign,
+  (3) `bench/refresh_thesis.sh` with definitive data, (4) final proofread + submission.
 - `UH_DS_MSc.cls` is a LOCAL RECONSTRUCTION adapted from `UH_TCM_MSc.cls` (which states it
   is "based heavily on the UH_DS_MSc.cls"). It defines every command thesis.tex uses
   (`\prof`, `\censors`, `\mytableofcontents`, `\mynomenclature`, `\myappendixtitle`,

@@ -498,16 +498,99 @@ def write_ffi_table(metrics_json, outdir):
         ("\\texttt{unsafe} in core library", f"{m.get('unsafe_core', 0)}"),
         ("\\texttt{unsafe} in FFI seam", f"{m.get('unsafe_seam', 0)}"),
         ("Raw FFI crossing", f"{m.get('ffi_crossing_ns', 0):.2f} ns/call"),
-        ("End-to-end signaling op", f"{m.get('op_roundtrip_ns', 0) / 1000.0:.1f} \\textmu s/call"),
     ]
+    # The direct A/B: the same operation, the same service configuration, and the
+    # same loop, called natively and then through the seam. An empty crossing
+    # measured against a full round-trip bounds the crossing but says nothing
+    # about what the seam costs on an operation, because it is not the same
+    # experiment.
+    native = m.get("op_roundtrip_native_ns", 0)
+    through = m.get("op_roundtrip_ns", 0)
+    if native > 0 and through > 0:
+        rows += [
+            ("Signaling op, native caller", f"{native / 1000.0:.1f} \\textmu s/call"),
+            ("Signaling op, through the seam", f"{through / 1000.0:.1f} \\textmu s/call"),
+            ("Seam cost per operation",
+             f"{through - native:+.0f} ns/call "
+             f"({100.0 * (through - native) / native:+.2f}\\%)"),
+        ]
+    else:
+        rows.append(
+            ("End-to-end signaling op", f"{through / 1000.0:.1f} \\textmu s/call"))
     out = os.path.join(outdir, "tab_ffi.tex")
     with open(out, "w") as f:
         f.write(" \\\\\n".join(f"{k} & {v}" for k, v in rows) + "\n")
     return out
 
 
+def fmt_us_adaptive(ns):
+    """Microseconds at a precision that suits the magnitude."""
+    us = ns / NS_PER_US
+    if abs(us) < 1:
+        return f"{us:.3f}"
+    if abs(us) < 100:
+        return f"{us:.2f}"
+    return f"{us:.1f}"
+
+
+def load_budget(path):
+    """Read the latency-budget records emitted by bench/latency_budget.sh."""
+    if not os.path.exists(path):
+        return {}
+    out = {}
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                rec = json.loads(line)
+                out[rec["lang"]] = rec
+    return out
+
+
+def write_budget_table(budget, outdir):
+    """Emit the body of tab:budget: where the end-to-end latency actually goes.
+
+    The sweep measures one number per operation and cannot say how much of it is
+    the work the language performs and how much is the cross-thread handoff that
+    delivers it. Both are measured here in both languages, so a bound on the
+    paired median difference can be read against the part of the cost a language
+    could plausibly change rather than against the total.
+    """
+    if not budget or "cpp" not in budget or "rust" not in budget:
+        return None
+    c, r = budget["cpp"], budget["rust"]
+    rows = [
+        ("Operation alone, no queue in the path",
+         fmt_us_adaptive(c["core_ns"]), fmt_us_adaptive(r["core_ns"])),
+        ("Cross-thread submit-and-complete handoff",
+         fmt_us_adaptive(c["handoff_ns"]), fmt_us_adaptive(r["handoff_ns"])),
+        ("End-to-end round-trip, uncontended",
+         fmt_us_adaptive(c["service_ns"]), fmt_us_adaptive(r["service_ns"])),
+        ("Operation's share of the round-trip",
+         f"{c['core_share_pct']:.2f}\\%", f"{r['core_share_pct']:.2f}\\%"),
+    ]
+    out = os.path.join(outdir, "tab_budget.tex")
+    with open(out, "w") as f:
+        f.write(" \\\\\n".join(f"{k} & {a} & {b}" for k, a, b in rows) + "\n")
+    return out
+
+
 def fmt_us(ns):
     return f"{ns / NS_PER_US:.1f}"
+
+
+def fmt_p(p):
+    """Format a p-value without rounding a small one away to ``0.000``.
+
+    The attainable floor of the exact test falls as 2 / 2**n, so at the repeat
+    counts a real campaign uses it drops below what three decimals can show. A
+    floor printed as ``0.000`` would read as "vanishingly small" when the point
+    of quoting it is to say exactly how small.
+    """
+    if p >= 0.001 or p <= 0.0:
+        return f"{p:.3f}"
+    exponent = max(3, int(math.ceil(-math.log10(p))) + 1)
+    return f"{p:.{exponent}f}"
 
 
 def med_ci_cell(values, decimals=None):
@@ -564,7 +647,7 @@ def write_latency_table(rows, outdir, load):
     return out, load
 
 
-def write_generated_macros(rows, outdir, load, sig_results=()):
+def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=None):
     """Emit the campaign's summary numbers as LaTeX macros.
 
     Every quantity the prose quotes about the campaign is defined here and used by
@@ -626,16 +709,31 @@ def write_generated_macros(rows, outdir, load, sig_results=()):
 
     if sig_results:
         # The exact paired test cannot report a p below 2 / 2**n, so the floor is
-        # quoted alongside the results: a null finding at 7 repeats is a
-        # statement about the design's resolving power as much as about the data.
+        # quoted alongside the results: whether a null finding is a statement
+        # about the data or about the design's resolving power depends on where
+        # that floor sits relative to the threshold being applied.
         n_pairs = max(r["n"] for r in sig_results)
         pick = lambda pre: [r for r in sig_results if r["metric"].startswith(pre)]
         p50_rows, rss_rows, cpu_rows = pick("p50"), pick("Peak RSS"), pick("CPU")
+        floor = 2.0 / (1 << n_pairs)
         macros.update({
             "NTests": str(len(sig_results)),
-            "MinAttainableP": f"{2.0 / (1 << n_pairs):.3f}",
+            "MinAttainableP": fmt_p(floor),
+            # The smallest Holm-adjusted value the design can return at all: the
+            # most significant test is compared against the full family size, so
+            # the corrected floor is NTests times the uncorrected one. Quoting it
+            # is what lets the reader tell a null result from an unresolvable one.
+            "CorrectedFloor": fmt_p(min(1.0, len(sig_results) * floor)),
             "NSignificant": str(sum(1 for r in sig_results if r["holm"] < 0.05)),
-            "SmallestHolm": f"{min(r['holm'] for r in sig_results):.3f}",
+            "SmallestHolm": fmt_p(min(r["holm"] for r in sig_results)),
+            # How the one interval-based reading applies across the whole family,
+            # so the text can state the rule once and be held to it.
+            "NExclZero": str(sum(1 for r in sig_results if r["excl_zero"])),
+            "NTailExclZero": str(
+                sum(1 for r in sig_results if r["excl_zero"] and r["kind"] == "tail")
+            ),
+            "TailExclZeroRows": describe_rows(sig_results, "tail"),
+            "RobustExclZeroRows": describe_rows(sig_results, "robust"),
             "PFiftyDiffAbsMax": (
                 f"{max(abs(r['diff']) for r in p50_rows):.1f}" if p50_rows else "0"
             ),
@@ -666,6 +764,37 @@ def write_generated_macros(rows, outdir, load, sig_results=()):
     if alloc_diffs:
         macros["RssAllocDiffLo"] = f"{min(alloc_diffs):.1f}"
         macros["RssAllocDiffHi"] = f"{max(alloc_diffs):.1f}"
+
+    if budget and "cpp" in budget and "rust" in budget:
+        macros.update({
+            "BudgetCoreCpp": fmt_us_adaptive(budget["cpp"]["core_ns"]),
+            "BudgetCoreRust": fmt_us_adaptive(budget["rust"]["core_ns"]),
+            "BudgetSvcCpp": fmt_us_adaptive(budget["cpp"]["service_ns"]),
+            "BudgetSvcRust": fmt_us_adaptive(budget["rust"]["service_ns"]),
+            "BudgetHandoffCpp": fmt_us_adaptive(budget["cpp"]["handoff_ns"]),
+            "BudgetHandoffRust": fmt_us_adaptive(budget["rust"]["handoff_ns"]),
+            "BudgetCoreShareMax": f"{max(v['core_share_pct'] for v in budget.values()):.2f}",
+        })
+        # How many times the operation's own cost the paired median bound is.
+        # This is the number that decides what the bound actually excludes: a
+        # bound of a fifth of the end-to-end median is a bound of many times the
+        # work if the median is mostly handoff.
+        p50_sig = [x for x in sig_results if x["metric"].startswith("p50")]
+        core_us_max = max(v["core_ns"] for v in budget.values()) / NS_PER_US
+        if p50_sig and core_us_max > 0:
+            bound_us = max(max(abs(r["lo"]), abs(r["hi"])) for r in p50_sig)
+            macros["BudgetBoundVsCore"] = f"{bound_us / core_us_max:.0f}"
+
+    if ffi:
+        native, through = ffi.get("op_roundtrip_native_ns", 0), ffi.get("op_roundtrip_ns", 0)
+        if native > 0 and through > 0:
+            macros.update({
+                "FfiOpNative": f"{native / 1000.0:.1f}",
+                "FfiOpSeam": f"{through / 1000.0:.1f}",
+                "FfiOpDelta": f"{through - native:+.0f}",
+                "FfiOpDeltaPct": f"{100.0 * (through - native) / native:+.2f}",
+            })
+
     out = os.path.join(outdir, "gen_macros.tex")
     with open(out, "w") as f:
         f.write("% Generated by bench/plot_figures.py -- do not edit by hand.\n")
@@ -675,13 +804,30 @@ def write_generated_macros(rows, outdir, load, sig_results=()):
 
 
 #: Metrics carried into the paired significance test, in table order.
+#:
+#: Each entry is (label, extractor, decimals, kind). ``kind`` records whether the
+#: statistic is *robust* to interference landing on a few samples within a run or
+#: is *determined* by it. A run-level summary (peak RSS, CPU) and a central order
+#: statistic over tens of thousands of samples (p50) barely move when a handful of
+#: operations are descheduled; p99 and p99.9 are computed from exactly those
+#: operations. Pairing cancels the interference a whole block shares, so it
+#: rescues the first group and not the second, and the tables and prose need to
+#: distinguish them rather than reading every interval the same way.
+#:
+#: Achieved throughput is deliberately absent. The representative load is chosen
+#: below saturation, where achieved throughput equals offered load for every
+#: variant by construction, so the comparison cannot resolve a language effect
+#: whatever the languages do: it re-measures the operating point, not the code.
+#: Including it would still consume two slots in the family-wise correction and
+#: make Holm more punitive on the comparisons that can resolve. It is reported
+#: with its interval in the resource table instead, where it serves its real
+#: purpose of confirming the operating point is sustained rather than nominal.
 TESTED_METRICS = [
-    ("p50 latency (\\textmu s)", lambda r: r["lat_ns"]["p50"] / NS_PER_US, 1),
-    ("p99 latency (\\textmu s)", lambda r: r["lat_ns"]["p99"] / NS_PER_US, 0),
-    ("p99.9 latency (\\textmu s)", lambda r: r["lat_ns"]["p999"] / NS_PER_US, 0),
-    ("Throughput (kops/s)", lambda r: r["throughput_ops_s"] / 1000.0, 2),
-    ("Peak RSS (MiB)", lambda r: r["rss_peak_kb"] / 1024.0, 1),
-    ("CPU utilisation (\\%)", lambda r: r["cpu_pct"], 1),
+    ("p50 latency (\\textmu s)", lambda r: r["lat_ns"]["p50"] / NS_PER_US, 1, "robust"),
+    ("p99 latency (\\textmu s)", lambda r: r["lat_ns"]["p99"] / NS_PER_US, 0, "tail"),
+    ("p99.9 latency (\\textmu s)", lambda r: r["lat_ns"]["p999"] / NS_PER_US, 0, "tail"),
+    ("Peak RSS (MiB)", lambda r: r["rss_peak_kb"] / 1024.0, 1, "robust"),
+    ("CPU utilisation (\\%)", lambda r: r["cpu_pct"], 1, "robust"),
 ]
 
 
@@ -697,7 +843,7 @@ def significance_results(rows, load):
     results = []
     allocs = [a for a in ("system", "jemalloc")
               if ("cpp", a) in VARIANT_STYLE and _subset(rows, ("cpp", a), load)]
-    for label, fn, decimals in TESTED_METRICS:
+    for label, fn, decimals, kind in TESTED_METRICS:
         for alloc in allocs:
             cpp = [fn(r) for r in _subset(rows, ("cpp", alloc), load)]
             rust = [fn(r) for r in _subset(rows, ("rust", alloc), load)]
@@ -707,18 +853,66 @@ def significance_results(rows, load):
             paired = [y - x for x, y in zip(cpp, rust)]
             _, lo, hi = bootstrap_ci(paired)
             results.append({
-                "metric": label, "alloc": alloc, "decimals": decimals,
+                "metric": label, "alloc": alloc, "decimals": decimals, "kind": kind,
                 "diff": diff, "lo": lo, "hi": hi, "p": p, "n": n,
+                # Whether the paired interval sits wholly on one side of zero.
+                # Recorded per row so the prose can apply one rule to the whole
+                # family instead of picking the rows it likes.
+                "excl_zero": (lo > 0.0 and hi > 0.0) or (lo < 0.0 and hi < 0.0),
             })
     for res, adj in zip(results, holm_adjust([r["p"] for r in results])):
         res["holm"] = adj
     return results
 
 
+def _plain(label):
+    """Drop the parenthesised unit from a metric label for use in running prose.
+
+    The result is spliced into a LaTeX macro, so it must stay free of the markup
+    the table labels carry (``\\textmu s``, ``\\%``); dropping the unit removes it
+    and reads better in a sentence than a table heading would.
+    """
+    return label.split(" (")[0]
+
+
+def describe_rows(results, kind=None):
+    """Render the rows whose paired interval excludes zero as an English phrase.
+
+    Emitted as a macro so the sentence that names them cannot go stale when the
+    campaign is rerun: if a row drops out of the set, the prose stops naming it.
+    """
+    sel = [r for r in results if r["excl_zero"] and (kind is None or r["kind"] == kind)]
+    if not sel:
+        return "none"
+    # Group allocators under a shared metric so the phrase reads as prose rather
+    # than as a list of table coordinates.
+    by_metric = {}
+    for r in sel:
+        by_metric.setdefault(_plain(r["metric"]), []).append(r["alloc"])
+    parts = []
+    for metric, allocs in by_metric.items():
+        if len(allocs) > 1:
+            parts.append(f"{metric} under both allocators")
+        else:
+            parts.append(f"{metric} under {allocs[0]}")
+    if len(parts) == 1:
+        return parts[0]
+    return ", ".join(parts[:-1]) + " and " + parts[-1]
+
+
 def write_significance_table(results, outdir):
-    """Emit the body of tab:significance."""
+    """Emit the body of tab:significance, split by how the statistic behaves.
+
+    The rows are grouped rather than listed flat, because the grouping is the
+    argument. An interval that excludes zero means one thing for a statistic a
+    few descheduled operations cannot move, and something much weaker for one
+    those operations define. Blocking the table by that distinction states the
+    reading rule in the table itself, so it cannot be applied to some rows and
+    quietly dropped for others.
+    """
     if not results:
         return None
+
     def signed(value, decimals):
         # A value that rounds to zero prints as a bare 0, never as "-0.00":
         # a sign on a quantity the measurement resolves as zero reads as a
@@ -727,18 +921,40 @@ def write_significance_table(results, outdir):
             return f"{0:.{decimals}f}"
         return f"{value:+.{decimals}f}"
 
-    lines = []
-    for r in results:
+    def row(r):
         d = r["decimals"]
         cell = (f"\\mci{{{signed(r['diff'], d)}}}"
                 f"{{{signed(r['lo'], d)}}}{{{signed(r['hi'], d)}}}")
-        lines.append(
-            f"{r['metric']} & {r['alloc']} & {cell} & "
-            f"{r['p']:.3f} & {r['holm']:.3f}"
-        )
+        return (f"{r['metric']} & {r['alloc']} & {cell} & "
+                f"{fmt_p(r['p'])} & {fmt_p(r['holm'])}")
+
+    blocks = [
+        ("robust", "\\emph{Robust to interference on individual operations}"),
+        ("tail", "\\emph{Determined by it: high percentiles}"),
+    ]
+    lines = []
+    for kind, heading in blocks:
+        sel = [r for r in results if r["kind"] == kind]
+        if not sel:
+            continue
+        if lines:
+            lines.append("\\hline")
+        lines.append(f"\\multicolumn{{5}}{{@{{}}l}}{{{heading}}}")
+        lines.extend(row(r) for r in sel)
+
     out = os.path.join(outdir, "tab_significance.tex")
     with open(out, "w") as f:
-        f.write(" \\\\\n".join(lines) + "\n")
+        # A \hline placed as its own "row" must not be preceded by \\ or LaTeX
+        # sees a misplaced \noalign, so the separator is folded into the join.
+        body = ""
+        for i, line in enumerate(lines):
+            if line == "\\hline":
+                body += "\\\\\n\\hline\n"
+                continue
+            if i and lines[i - 1] != "\\hline":
+                body += " \\\\\n"
+            body += line
+        f.write(body + "\n")
     return out
 
 
@@ -765,6 +981,7 @@ def main():
     ap.add_argument("--sweep", default=None)
     ap.add_argument("--taxonomy", default="../faults/results/taxonomy.csv")
     ap.add_argument("--ffi", default="../ffi/results/metrics.json")
+    ap.add_argument("--budget", default="results/latency_budget.json")
     ap.add_argument("--outdir", default="../figures")
     ap.add_argument("--load", type=float, default=None,
                     help="Representative offered load (ops/s); auto if omitted.")
@@ -799,11 +1016,21 @@ def main():
     ffi_tab = write_ffi_table(ffi_json, outdir)
     if ffi_tab:
         produced.append(ffi_tab)
+    ffi_metrics = json.load(open(ffi_json)) if os.path.exists(ffi_json) else None
+
+    budget_path = args.budget if os.path.isabs(args.budget) else os.path.join(here, args.budget)
+    budget = load_budget(budget_path)
+    budget_tab = write_budget_table(budget, outdir)
+    if budget_tab:
+        produced.append(budget_tab)
+    else:
+        print(f"note: no latency-budget data at {budget_path}; "
+              f"run bench/latency_budget.sh (tab_budget.tex left as is)")
 
     sig = significance_results(rows, load)
     lat_tab = write_latency_table(rows, outdir, load)[0]
     res_tab = write_resource_table(rows, outdir, load)
-    macros = write_generated_macros(rows, outdir, load, sig)
+    macros = write_generated_macros(rows, outdir, load, sig, budget, ffi_metrics)
     produced.extend([lat_tab, res_tab, macros])
     sig_tab = write_significance_table(sig, outdir)
     if sig_tab:

@@ -32,6 +32,24 @@ echo "== [3/3] Running the C++ host =="
 host_rc=${PIPESTATUS[0]}
 
 echo
+echo "== [4/4] Native baseline: the same operation without the seam =="
+# An empty crossing measured against a full service round-trip says the crossing
+# is small; it does not say the seam adds nothing to a real operation, because
+# the two quantities are not the same experiment. The direct comparison is the
+# same signaling operation, on the same service configuration and the same loop
+# shape, invoked natively from Rust instead of from C++ through the C ABI. The
+# difference between the two is the seam's actual per-operation tax.
+#
+# The host builds its service with 4 shards and hammers one connected UE, so the
+# baseline is run with the same shard count and population.
+native_json="$(cargo run --quiet --release \
+  --manifest-path "$here/../rust/Cargo.toml" \
+  --example latency_budget -- \
+  --shards 4 --active-ues 1 --core-iters 200000 --svc-iters 200000 --json)"
+echo "  $native_json"
+native_ns=$(printf '%s' "$native_json" | grep -oE '"service_ns":[0-9.]+' | grep -oE '[0-9.]+$' || echo 0)
+
+echo
 echo "== Interop-cost metrics (RQ4) =="
 count_matches() { { grep -rhoE "$1" "$2" 2>/dev/null || true; } | wc -l | tr -d ' '; }
 seam_rs=$(count_matches 'extern "C"' "$rust_dir/src/lib.rs")
@@ -52,6 +70,7 @@ cat > "$here/results/metrics.json" <<JSON
 {
   "ffi_crossing_ns": ${noop_ns:-0},
   "op_roundtrip_ns": ${op_ns:-0},
+  "op_roundtrip_native_ns": ${native_ns:-0},
   "entry_points": ${seam_rs:-0},
   "seam_loc_rust": ${loc_rs:-0},
   "header_loc": ${loc_h:-0},

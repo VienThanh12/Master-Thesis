@@ -51,6 +51,12 @@ else()
   target_compile_definitions(bench PRIVATE UECM_ALLOC_NAME="system")
 endif()
 
+# --- Latency-budget decomposition ---------------------------------------------
+# Separates the operation's own work from the cross-thread handoff the sweep
+# bundles into it. See bench/latency_budget.cpp.
+add_executable(latency_budget bench/latency_budget.cpp)
+target_link_libraries(latency_budget PRIVATE uecm)
+
 # --- Tests --------------------------------------------------------------------
 option(UECM_BUILD_TESTS "Build the C++ conformance/smoke tests" ON)
 if(UECM_BUILD_TESTS)
