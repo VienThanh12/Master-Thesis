@@ -147,9 +147,10 @@ latexmk -C                   # clean build artifacts
       LaTeX) -> `bench/plot_campaign.py` (median + CI-band latency-vs-load). Pipeline smoke-tested.
 - [ ] **Execute the campaign on a bare-metal testbed** (WSL2 numbers are not testbed-grade),
       provision with `bench/setup_testbed.sh` (toolchain + CPU hygiene + GREEN/RED readiness check).
-      Use **15+ repeats**: the exact paired test cannot return p < 2/2^n, so at 7 repeats
-      no result can survive the Holm correction however large the effect (current thesis tables
-      use 7-repeat WSL2 data; a 15-repeat WSL2 run is underway for pipeline validation only).
+      Keep **15+ repeats**: the exact paired test cannot return p < 2/2^n, and at 7 repeats the
+      corrected floor sat above 0.05 so no result could survive Holm however large the effect.
+      At 15 the floor is 0.00061 and three results now clear it. Thesis tables currently use the
+      480-run 15-repeat WSL2 campaign (`campaign-20260807-122430.jsonl`).
 - [x] Compute variance + confidence intervals across runs (`plot_figures.py`; reported as explicit
       asymmetric [lo, hi] bootstrap intervals, not symmetric half-widths, which at these
       dispersions implied negative latencies)
@@ -205,14 +206,24 @@ latexmk -C                   # clean build artifacts
 
 ### After the bare-metal campaign, re-check these
 The prose is generated from the data, so most of it updates itself. These are the claims that
-are currently shaped by the **7-repeat WSL2** dataset in the thesis and should be reread once
-bare-metal numbers land (the in-flight 15-repeat WSL2 run does not change this):
+are currently shaped by the **15-repeat WSL2** dataset and should be reread once bare-metal
+numbers land:
 - §7.5.1 "the tail is not yet measurable" -- becomes a real finding or a bounded null result.
-- §7.5.1/§8.2 the peak-RSS language effect. Currently ~3.4 MiB with identical sign in all 7
-  repeats but Holm p = 0.188 purely because of the repeat floor. With 15+ bare-metal repeats it
-  either becomes significant (state it plainly) or fails to reproduce (retract it).
+  This is the only remaining blocker. Note §7.5.2 now shows the end-to-end number to be
+  0.04% operation and the rest handoff, so bare metal will sharpen the *tail* question without
+  making the end-to-end sweep any more informative about the language.
+- §7.5.4/§8.2 the peak-RSS language effect: 2.1-2.5 MiB, Holm p = 0.00061, same sign under
+  both allocators. Confirm it reproduces; it is now the campaign's one solid quantitative
+  result and the prose leans on it.
+- §7.5.4 the CPU non-result. Currently clears Holm under the system allocator (+27.4 pp) and
+  reverses under jemalloc, so it is reported as unresolved. On a quiet host it should either
+  resolve consistently or vanish; either outcome needs a sentence.
+- §7.5.2 the core-operation gap (Rust 10.0 ns vs C++ 19.0 ns, p = 0.00024). Re-run
+  `bench/latency_budget.sh` on the testbed. If the ratio holds, consider isolating the
+  attribution with cache-miss counters rather than leaving it as the most likely explanation.
 - Table 8.1 evidence-status column, and the RQ1/RQ3 "preliminary" labels throughout.
-- H1 in §8.3, currently recorded as half-answered.
+- H1 in §8.3, currently recorded as supported end to end, untested in the tail, and ambiguous
+  in framing.
 
 ---
 

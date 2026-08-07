@@ -506,13 +506,17 @@ def write_ffi_table(metrics_json, outdir):
     # experiment.
     native = m.get("op_roundtrip_native_ns", 0)
     through = m.get("op_roundtrip_ns", 0)
-    if native > 0 and through > 0:
+    if native > 0 and through > 0 and "op_seam_delta_ns" in m:
         rows += [
             ("Signaling op, native caller", f"{native / 1000.0:.1f} \\textmu s/call"),
             ("Signaling op, through the seam", f"{through / 1000.0:.1f} \\textmu s/call"),
-            ("Seam cost per operation",
-             f"{through - native:+.0f} ns/call "
-             f"({100.0 * (through - native) / native:+.2f}\\%)"),
+            # Math mode so the signs typeset as minus rather than hyphen, which
+            # the surrounding rows get for free from \mci.
+            ("Seam cost per operation (paired)",
+             f"${m['op_seam_delta_ns']:+.0f}$ ns "
+             f"$[{m['op_seam_delta_lo_ns']:+.0f}, {m['op_seam_delta_hi_ns']:+.0f}]$"),
+            ("\\quad as a fraction of the operation",
+             f"${100.0 * m['op_seam_delta_hi_ns'] / native:+.2f}\\%$ at the upper bound"),
         ]
     else:
         rows.append(
@@ -534,17 +538,39 @@ def fmt_us_adaptive(ns):
 
 
 def load_budget(path):
-    """Read the latency-budget records emitted by bench/latency_budget.sh."""
+    """Read the latency-budget repeats emitted by bench/latency_budget.sh.
+
+    Returns {lang: [record, ...]} in run order. Order matters: the runner
+    interleaves the two languages inside each repeat, so the i-th C++ record and
+    the i-th Rust record were measured in the same block and can be paired.
+    """
     if not os.path.exists(path):
         return {}
-    out = {}
+    out = defaultdict(list)
     with open(path) as f:
         for line in f:
             line = line.strip()
             if line:
                 rec = json.loads(line)
-                out[rec["lang"]] = rec
-    return out
+                out[rec["lang"]].append(rec)
+    return dict(out)
+
+
+#: Components of the end-to-end cost, in table order: (label, JSON key, unit).
+#:
+#: The two terms differ by more than three orders of magnitude, which is the point
+#: of the table, so each is quoted in the unit that suits it. Forcing both into
+#: microseconds would print the operation as 0.019 with a confidence interval that
+#: rounds to a single repeated value, hiding the precision the measurement has.
+BUDGET_COMPONENTS = [
+    ("Operation alone, no queue in the path (ns)", "core_ns", 1.0),
+    ("Cross-thread submit-and-complete handoff (\\textmu s)", "handoff_ns", NS_PER_US),
+    ("End-to-end round-trip, uncontended (\\textmu s)", "service_ns", NS_PER_US),
+]
+
+
+def budget_median(budget, lang, key):
+    return statistics.median(r[key] for r in budget[lang])
 
 
 def write_budget_table(budget, outdir):
@@ -555,23 +581,39 @@ def write_budget_table(budget, outdir):
     delivers it. Both are measured here in both languages, so a bound on the
     paired median difference can be read against the part of the cost a language
     could plausibly change rather than against the total.
+
+    Reported the same way as the sweep: median over interleaved repeats above its
+    bootstrap interval, with the language comparison tested on the paired repeats
+    rather than read off the two medians.
     """
     if not budget or "cpp" not in budget or "rust" not in budget:
         return None
-    c, r = budget["cpp"], budget["rust"]
-    rows = [
-        ("Operation alone, no queue in the path",
-         fmt_us_adaptive(c["core_ns"]), fmt_us_adaptive(r["core_ns"])),
-        ("Cross-thread submit-and-complete handoff",
-         fmt_us_adaptive(c["handoff_ns"]), fmt_us_adaptive(r["handoff_ns"])),
-        ("End-to-end round-trip, uncontended",
-         fmt_us_adaptive(c["service_ns"]), fmt_us_adaptive(r["service_ns"])),
-        ("Operation's share of the round-trip",
-         f"{c['core_share_pct']:.2f}\\%", f"{r['core_share_pct']:.2f}\\%"),
-    ]
+    if not budget["cpp"] or not budget["rust"]:
+        return None
+
+    def cell(lang, key, scale):
+        med, lo, hi = bootstrap_ci([r[key] / scale for r in budget[lang]])
+        d = 2 if scale > 1 else 1
+        return f"\\mci{{{med:.{d}f}}}{{{lo:.{d}f}}}{{{hi:.{d}f}}}"
+
+    lines = []
+    for label, key, scale in BUDGET_COMPONENTS:
+        cpp_vals = [r[key] for r in budget["cpp"]]
+        rust_vals = [r[key] for r in budget["rust"]]
+        _, p, _ = paired_permutation_test(cpp_vals, rust_vals)
+        lines.append(
+            f"{label} & {cell('cpp', key, scale)} & {cell('rust', key, scale)} & {fmt_p(p)}")
+    shares = {
+        lang: statistics.median(r["core_share_pct"] for r in budget[lang])
+        for lang in ("cpp", "rust")
+    }
+    lines.append(
+        f"Operation's share of the round-trip & {shares['cpp']:.3f}\\,\\% & "
+        f"{shares['rust']:.3f}\\,\\% & ")
+
     out = os.path.join(outdir, "tab_budget.tex")
     with open(out, "w") as f:
-        f.write(" \\\\\n".join(f"{k} & {a} & {b}" for k, a, b in rows) + "\n")
+        f.write(" \\\\\n".join(lines) + "\n")
     return out
 
 
@@ -752,6 +794,16 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
         if cpu_rows:
             macros["CpuDiffAbsMax"] = f"{max(abs(r['diff']) for r in cpu_rows):.1f}"
 
+        # Which effects survive the allocator control as a replication check.
+        consistent, reversed_ = cross_allocator_agreement(sig_results)
+        join = lambda xs: (xs[0] if len(xs) == 1
+                           else ", ".join(xs[:-1]) + " and " + xs[-1]) if xs else "none"
+        macros.update({
+            "CrossAllocConsistent": join(consistent),
+            "CrossAllocReversed": join(reversed_),
+            "NCrossAllocReversed": str(len(reversed_)),
+        })
+
     # The allocator effect on peak RSS, held against the language effect above:
     # jemalloc minus the system allocator, with the language held fixed.
     rss_mib = lambda r: r["rss_peak_kb"] / 1024.0
@@ -765,34 +817,56 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
         macros["RssAllocDiffLo"] = f"{min(alloc_diffs):.1f}"
         macros["RssAllocDiffHi"] = f"{max(alloc_diffs):.1f}"
 
-    if budget and "cpp" in budget and "rust" in budget:
+    if budget and budget.get("cpp") and budget.get("rust"):
+        med = lambda lang, key: budget_median(budget, lang, key)
+        core_cpp, core_rust = med("cpp", "core_ns"), med("rust", "core_ns")
         macros.update({
-            "BudgetCoreCpp": fmt_us_adaptive(budget["cpp"]["core_ns"]),
-            "BudgetCoreRust": fmt_us_adaptive(budget["rust"]["core_ns"]),
-            "BudgetSvcCpp": fmt_us_adaptive(budget["cpp"]["service_ns"]),
-            "BudgetSvcRust": fmt_us_adaptive(budget["rust"]["service_ns"]),
-            "BudgetHandoffCpp": fmt_us_adaptive(budget["cpp"]["handoff_ns"]),
-            "BudgetHandoffRust": fmt_us_adaptive(budget["rust"]["handoff_ns"]),
-            "BudgetCoreShareMax": f"{max(v['core_share_pct'] for v in budget.values()):.2f}",
+            "BudgetRepeats": str(min(len(budget["cpp"]), len(budget["rust"]))),
+            "BudgetCoreCpp": f"{core_cpp:.1f}",
+            "BudgetCoreRust": f"{core_rust:.1f}",
+            "BudgetSvcCpp": fmt_us_adaptive(med("cpp", "service_ns")),
+            "BudgetSvcRust": fmt_us_adaptive(med("rust", "service_ns")),
+            "BudgetHandoffCpp": fmt_us_adaptive(med("cpp", "handoff_ns")),
+            "BudgetHandoffRust": fmt_us_adaptive(med("rust", "handoff_ns")),
+            "BudgetCoreShareMax": f"{max(med(l, 'core_share_pct') for l in budget):.3f}",
+            # Which language runs the bare operation faster, and by how much. The
+            # sweep cannot see this at all: it is four ten-thousandths of the
+            # number the sweep reports.
+            "BudgetCoreFaster": "Rust" if core_rust < core_cpp else "C++",
+            "BudgetCoreRatio": (
+                f"{max(core_cpp, core_rust) / min(core_cpp, core_rust):.1f}"
+                if min(core_cpp, core_rust) > 0 else "0"
+            ),
+            "BudgetHandoffSlower": (
+                "Rust" if med("rust", "handoff_ns") > med("cpp", "handoff_ns") else "C++"
+            ),
         })
         # How many times the operation's own cost the paired median bound is.
         # This is the number that decides what the bound actually excludes: a
         # bound of a fifth of the end-to-end median is a bound of many times the
         # work if the median is mostly handoff.
         p50_sig = [x for x in sig_results if x["metric"].startswith("p50")]
-        core_us_max = max(v["core_ns"] for v in budget.values()) / NS_PER_US
+        core_us_max = max(core_cpp, core_rust) / NS_PER_US
         if p50_sig and core_us_max > 0:
             bound_us = max(max(abs(r["lo"]), abs(r["hi"])) for r in p50_sig)
             macros["BudgetBoundVsCore"] = f"{bound_us / core_us_max:.0f}"
 
     if ffi:
         native, through = ffi.get("op_roundtrip_native_ns", 0), ffi.get("op_roundtrip_ns", 0)
-        if native > 0 and through > 0:
+        if native > 0 and through > 0 and "op_seam_delta_ns" in ffi:
             macros.update({
+                "FfiCrossing": f"{ffi.get('ffi_crossing_ns', 0):.2f}",
+                "FfiOpRepeats": str(ffi.get("op_repeats", 0)),
                 "FfiOpNative": f"{native / 1000.0:.1f}",
                 "FfiOpSeam": f"{through / 1000.0:.1f}",
-                "FfiOpDelta": f"{through - native:+.0f}",
-                "FfiOpDeltaPct": f"{100.0 * (through - native) / native:+.2f}",
+                "FfiOpDelta": f"{ffi['op_seam_delta_ns']:+.0f}",
+                "FfiOpDeltaLo": f"{ffi['op_seam_delta_lo_ns']:+.0f}",
+                "FfiOpDeltaHi": f"{ffi['op_seam_delta_hi_ns']:+.0f}",
+                "FfiOpP": f"{ffi.get('op_paired_p', 1):.3f}",
+                # The bound the interval places on the seam, as a fraction of the
+                # operation it is charged against. This is what RQ4 can actually
+                # claim: not that the cost is zero, but that it is at most this.
+                "FfiOpBoundPct": f"{100.0 * ffi['op_seam_delta_hi_ns'] / native:.2f}",
             })
 
     out = os.path.join(outdir, "gen_macros.tex")
@@ -914,6 +988,32 @@ def describe_rows(results, kind=None):
     return join(parts)
 
 
+def cross_allocator_agreement(results):
+    """Split the tested metrics by whether their effect keeps its sign across allocators.
+
+    The allocator control was introduced to stop an allocator difference being
+    read as a language difference, but it also supplies a replication check the
+    design gets for free. A genuine language effect should appear with the same
+    sign whichever allocator is linked, because the allocator is not what is
+    being varied. An effect that reverses between the two is telling us about the
+    run rather than about the language, however small its p-value happens to be
+    on one side. Applied here this is what separates the peak-RSS result, which
+    holds, from results that do not.
+
+    Returns (consistent, reversed), each a list of plain metric names.
+    """
+    by_metric = defaultdict(dict)
+    for r in results:
+        by_metric[_plain(r["metric"])][r["alloc"]] = r["diff"]
+    consistent, reversed_ = [], []
+    for metric, effects in by_metric.items():
+        if len(effects) < 2:
+            continue
+        signs = {(v > 0) - (v < 0) for v in effects.values()}
+        (consistent if len(signs) == 1 else reversed_).append(metric)
+    return consistent, reversed_
+
+
 def write_significance_table(results, outdir):
     """Emit the body of tab:significance, split by how the statistic behaves.
 
@@ -943,9 +1043,15 @@ def write_significance_table(results, outdir):
                 f"{fmt_p(r['p'])} & {fmt_p(r['holm'])}")
 
     blocks = [
-        ("robust", "\\emph{Robust to interference on individual operations}"),
-        ("tail", "\\emph{Determined by it: high percentiles}"),
+        ("robust", "Robust to interference on single operations"),
+        ("tail", "Determined by it: high percentiles"),
     ]
+    # The block heading is set in an \rlap rather than a \multicolumn. A
+    # \multicolumn has to be the first token of its cell so that it can \omit the
+    # column template, and it cannot be when the row arrives through \input: the
+    # cell has already begun by the time the file is read, and LaTeX rejects it
+    # with "Misplaced \omit". An \rlap contributes zero width, so the heading
+    # overhangs the remaining columns without widening the first one.
     lines = []
     for kind, heading in blocks:
         sel = [r for r in results if r["kind"] == kind]
@@ -953,7 +1059,7 @@ def write_significance_table(results, outdir):
             continue
         if lines:
             lines.append("\\hline")
-        lines.append(f"\\multicolumn{{5}}{{@{{}}l}}{{{heading}}}")
+        lines.append(f"\\rlap{{\\emph{{{heading}}}}} & & & &")
         lines.extend(row(r) for r in sel)
 
     out = os.path.join(outdir, "tab_significance.tex")

@@ -11,6 +11,8 @@
 // several C++ threads to show the boundary is thread-safe.
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <chrono>
 #include <thread>
 #include <vector>
@@ -20,6 +22,32 @@
 namespace {
 
 int g_failures = 0;
+
+// Mean nanoseconds per signaling call through the seam, on a freshly created
+// service with one connected UE.
+//
+// Split out so the measurement can be repeated and interleaved with the native
+// baseline. A single pass is not enough to compare them: the call is dominated
+// by a cross-thread wakeup whose run-to-run spread on a shared host is wider
+// than any difference the seam could plausibly introduce, so one pass of each
+// can order them either way.
+double bench_op(std::uint64_t n_shards, int iters) {
+  UecmService* svc = uecm_service_create(n_shards, /*queue_capacity=*/1024);
+  if (!svc) return -1.0;
+  const uint64_t hot = 2002;
+  uecm_create_context(svc, hot, 7);
+  uecm_setup_connection(svc, hot);
+
+  for (int i = 0; i < iters / 20 + 100; ++i) uecm_handle_signaling(svc, hot, 1, 0, nullptr);
+
+  const auto t0 = std::chrono::steady_clock::now();
+  for (int i = 0; i < iters; ++i) uecm_handle_signaling(svc, hot, 1, 0, nullptr);
+  const auto t1 = std::chrono::steady_clock::now();
+
+  uecm_service_destroy(svc);
+  return std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() /
+         static_cast<double>(iters);
+}
 
 void check(bool cond, const char* what, int status = UECM_OK) {
   if (!cond) {
@@ -33,7 +61,23 @@ constexpr uint8_t kIdle = 0, kConnected = 1;
 
 }  // namespace
 
-int main() {
+int main(int argc, char** argv) {
+  // Bench-only mode: emit one op-cost sample and nothing else, so the runner can
+  // interleave repeats of this with the native baseline.
+  int iters = 50000;
+  bool op_bench = false;
+  for (int i = 1; i < argc; ++i) {
+    if (std::strcmp(argv[i], "--op-bench") == 0) op_bench = true;
+    else if (std::strcmp(argv[i], "--iters") == 0 && i + 1 < argc)
+      iters = std::atoi(argv[++i]);
+  }
+  if (op_bench) {
+    const double ns = bench_op(/*n_shards=*/4, iters);
+    if (ns < 0) return 1;
+    std::printf("{\"lang\":\"cpp-via-seam\",\"iters\":%d,\"op_ns\":%.1f}\n", iters, ns);
+    return 0;
+  }
+
   std::printf("== RQ4 FFI prototype: C++ host -> Rust UECM component ==\n");
 
   UecmService* svc = uecm_service_create(/*n_shards=*/4, /*queue_capacity=*/1024);
@@ -84,13 +128,14 @@ int main() {
               (unsigned long long)sink);
 
   // --- 2b. End-to-end op latency through the seam ----------------------------
-  // Dominated by the service's cross-thread submit+complete handoff, which a
-  // native (non-FFI) caller pays identically; FFI adds only the crossing above.
+  // Dominated by the service's cross-thread submit+complete handoff. Whether a
+  // native caller pays the same is measured rather than asserted: build.sh
+  // interleaves repeats of `--op-bench` with the same operation called natively.
+  // This single pass is indicative only and is not the figure the thesis quotes.
   const uint64_t hot = 2002;
   uecm_create_context(svc, hot, 7);
   uecm_setup_connection(svc, hot);
 
-  const int iters = 200000;
   auto t0 = std::chrono::steady_clock::now();
   for (int i = 0; i < iters; ++i) {
     uecm_handle_signaling(svc, hot, 1, 0, nullptr);

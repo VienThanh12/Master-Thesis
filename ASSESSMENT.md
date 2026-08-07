@@ -12,6 +12,14 @@ An interactive version of this document exists as a Cursor canvas at
 `~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grading.canvas.tsx`. This file is
 the durable copy; keep the two in step if you revise either.
 
+> **A second, independent review followed this one and disagreed with it.** It held criteria 3
+> and 4 at 4 rather than 4.5, on the grounds that this document treats "everything analysis
+> could contribute" as done when three analysis items were still available on the existing
+> dataset. Those three were then carried out, along with two new measurements. The record is in
+> "Second pass" at the end of this file, and in
+> `~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-examiner-review.canvas.tsx`.
+> Where the two disagree, the second pass is current.
+
 ---
 
 ## Summary
@@ -323,3 +331,89 @@ abstract page and is present in the pre-refinement build as well.
 
 > The abstract box is full to the line. Any addition pushes the ACM CCS block into the Keywords
 > row, so check page 3 visually if you edit it.
+
+---
+
+## Second pass
+
+An independent re-read graded criteria 3 and 4 at 4 rather than 4.5, arguing that three
+criticisms were answerable on the dataset already in hand rather than only on bare metal. All
+three were then addressed, and two further measurements were added. Both criteria now stand at
+4.5, held there solely by the bare-metal tail campaign.
+
+The unexpected part is that closing methodological gaps changed conclusions rather than merely
+firming them up.
+
+### What was done
+
+1. **The campaign was re-run at 15 repeats** (480 runs, same host). The exact paired test floors
+   at 2/2ⁿ, so at 7 repeats the Holm-corrected floor sat at 0.1875 and *no* result could reach
+   significance whatever its size. At 15 the corrected floor is 0.00061. Three results now clear
+   it. Nothing about WSL2 had forced the low count.
+2. **The end-to-end latency was decomposed** into the operation and the cross-thread handoff, in
+   both languages, by a new harness (`bench/latency_budget.sh` plus a program per language)
+   calling `ShardCore` directly and then `Service`. This is the single most consequential
+   addition; see below.
+3. **RQ4's claim was replaced by the experiment it needed.** "No measurable per-call tax" had
+   rested on an empty crossing set against a full round-trip, which is two different
+   experiments. `ffi/build.sh` now interleaves 15 repeats of the same signaling operation called
+   natively and through the seam. Paired difference −179 ns, interval [−2583, +594], bounding any
+   tax at 1.37% of an operation. A single unpaired pass of each, run first, had made the seam
+   look *faster* than calling natively, which is why the interleaving is not optional.
+4. **The interval-versus-p-value rule is pre-committed** in §5.5 instead of applied after the
+   fact, and `tab:significance` is blocked by it. On the 7-repeat data two tail intervals
+   excluded zero and went undiscussed while the same reading promoted peak RSS; at 15 repeats
+   neither survives, which is evidence for the rule rather than an excuse for the old text.
+5. **The allocator control is now also a replication check.** A language effect should keep its
+   sign whichever allocator is linked. Only peak RSS does.
+6. **Two vacuous tests were dropped** from the Holm family (throughput at a below-saturation
+   operating point is pinned to offered load by construction), 12 tests down to 10.
+
+### Three conclusions changed
+
+| Claim | Before (7 repeats) | Now (15 repeats + decomposition) |
+| --- | --- | --- |
+| Peak RSS | 3.4–3.5 MiB, Holm p = 0.188, "language effect is the larger of the two" | 2.1–2.5 MiB, Holm p = 0.00061, **allocator effect is the larger**; reproduces under both allocators |
+| CPU | "no penalty, intervals span zero" | +27.4 pp and clears Holm under the system allocator, reverses under jemalloc: reported as **unresolved** |
+| Median latency | a null result about the languages | a null about the **design**: the operation is 0.04% of the measured cost |
+
+### The decomposition, and why it matters
+
+| Component | C++ | Rust | paired *p* |
+| --- | ---: | ---: | ---: |
+| Operation alone, no queue in the path | 19.0 ns | 10.0 ns | 0.00024 |
+| Cross-thread submit-and-complete handoff | 43.30 µs | 43.13 µs | 0.729 |
+| End-to-end round-trip, uncontended | 43.32 µs | 43.14 µs | 0.723 |
+
+The work the languages actually perform is **0.04%** of what the sweep measures. The paired
+bound on the median difference is therefore 2654× the operation's own cost, which means the
+sweep never bounded a language effect at all — a fact no repeat count and no bare-metal host
+would have fixed, because it is a property of what was being measured.
+
+It also produced the campaign's only resolved difference in *time*: on the operation alone Rust
+is ~1.9× faster (p = 0.00024, non-overlapping intervals). The most likely cause is already in
+the forced-idiom log — `std::unordered_map` is node-based by standard requirement while Rust's
+`HashMap` is open-addressed — and the thesis says so while noting that confirming it needs
+cache-miss counters. Nothing here implicates the borrow checker, and the text says that too.
+
+### Where this leaves the thesis
+
+Chapter 7's results subsection was split into four (§7.5.1 performance, §7.5.2 the budget,
+§7.5.3 the sweep figures, §7.5.4 resources), and every claim the new data touched was rewritten:
+abstract, §1.6, Table 8.1, the per-RQ discussion, H1 and H3, conclusion validity, the guidelines,
+and Chapter 9. H1 is now recorded as *ambiguous in its framing* rather than half-answered,
+because "performance-equivalent" turned out to name two quantities that answer differently.
+
+Build verified: 113 pages, zero LaTeX errors, zero undefined references or citations,
+`bench/refresh_thesis.sh` clean end to end, abstract page checked visually after the CCS block
+overflowed on first attempt.
+
+### Left over
+
+- **The bare-metal campaign.** The only substantive item, and narrower than before: the repeat
+  count is no longer binding and the end-to-end sweep is now known not to be the instrument for
+  the language question, so what the testbed buys is specifically the tail and the overload cliff.
+- **Hardware counters and allocation profiles**, which two results now need rather than one: the
+  peak-RSS effect is significant but unexplained, and the operation-level gap rests on a
+  plausibility argument.
+- **Two submission items**: `\censors{}{}{}` and the official `UH_DS_MSc.cls`.
