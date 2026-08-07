@@ -106,29 +106,25 @@
 \chapter{Introduction}
 
 \begin{itemize}
-  \item The 5G RAN control plane (gNB-CU-CP) is being softwarized onto commodity
-        servers~\cite{3gpp38401,3gpp38300,polese2023oran}: it is large, stateful, highly
-        concurrent, and bound by millisecond-scale procedure budgets~\cite{3gpp22261}, so a
-        defect or a tail-latency regression there degrades the whole
-        site~\cite{dean2013tail,barroso2017microseconds}.
+  \item The 5G RAN control plane (gNB-CU-CP) is being softwarized onto commodity servers:
+        it is large, stateful, highly concurrent, and bound by millisecond-scale procedure
+        budgets~\cite{3gpp22261}, so a defect or a tail-latency regression there degrades the
+        whole site.
   \item That software is written predominantly in C++, which supplies the required control
         and performance but leaves memory-safety and concurrency defects to the
-        programmer~\cite{szekeres2013sok,msrc2019memory}; Rust promises the same performance
-        with those defects rejected at compile
-        time~\cite{klabnik2023rust,jung2018rustbelt,jung2021safe}.
+        programmer~\cite{szekeres2013sok}; Rust promises the same performance with those
+        defects rejected at compile time~\cite{klabnik2023rust}.
   \item The problem: telecom vendors face growing pressure to adopt memory-safe
-        languages~\cite{cisa2023memorysafe,oncd2024building,google2024securebydesign} but have
-        no direct, controlled evidence on predictability, prevented-defect scope, or migration
-        cost for a representative control-plane
-        subsystem~\cite{karlback2021ran,arvidsson2025async}.
+        languages~\cite{cisa2023memorysafe} but have no direct, controlled evidence on
+        predictability, prevented-defect scope, or migration cost for a representative
+        control-plane subsystem~\cite{karlback2021ran}.
   \item Four research questions frame the work: RQ1 tail latency and jitter under
         overload~\cite{dean2013tail}, RQ2 which defect classes are eliminated at compile
-        time~\cite{xu2021rustcve}, RQ3 the overhead of Rust's safety
-        model~\cite{zhang2022runtime}, and RQ4 the cost of incremental adoption inside a C++
-        codebase~\cite{li2024rustforlinux,fan2026android}.
-  \item Contributions: a reproducible benchmarking framework~\cite{georges2007rigorous}, a
-        frozen specification with two parity-tested implementations, a defect-class taxonomy
-        including the boundary of the guarantee, and evidence-based migration guidelines.
+        time, RQ3 the overhead of Rust's safety model, and RQ4 the cost of incremental
+        adoption inside a C++ codebase.
+  \item Contributions: a reproducible benchmarking framework, a frozen specification with two
+        parity-tested implementations, a defect-class taxonomy including the boundary of the
+        guarantee, and evidence-based migration guidelines.
 \end{itemize}
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
@@ -137,52 +133,41 @@
   \item The NG-RAN architecture splits the gNB into central and distributed units and the
         central unit again into control and user planes; UE Context Management sits inside
         the gNB-CU-CP, connected over the standardised F1, E1, and NG
-        interfaces~\cite{3gpp38401,3gpp38300,3gpp38463,3gpp38331}.
+        interfaces~\cite{3gpp38401}.
   \item Predictability rather than average speed decides whether deadlines are met, so the
-        governing metrics are the p99/p99.9 tail and
-        jitter~\cite{dean2013tail,barroso2017microseconds,huang2017predictability}, measured
-        past saturation~\cite{li2014tales} and captured without coordinated omission using
-        high-dynamic-range histograms~\cite{tene_hdrhistogram}.
+        governing metrics are the p99/p99.9 tail and jitter~\cite{dean2013tail}, measured past
+        saturation and captured without coordinated omission using high-dynamic-range
+        histograms~\cite{tene_hdrhistogram}.
   \item C++ offers zero-overhead abstractions, RAII, and no garbage collector, but safety
         remains the programmer's responsibility~\cite{szekeres2013sok} and sanitizers detect
-        only what a given test happens to execute~\cite{natella2016fault}.
+        only what a given test happens to execute.
   \item Rust enforces memory safety and data-race freedom at compile time through ownership,
-        borrowing, and the \texttt{Send}/\texttt{Sync}
-        traits~\cite{klabnik2023rust,jung2021safe}, with machine-checked
-        foundations~\cite{jung2018rustbelt,jung2020stacked}, \texttt{unsafe} as an explicitly
-        delimited escape hatch~\cite{astrauskas2020unsafe,xu2021rustcve}, and no garbage
-        collector.
+        borrowing, and the \texttt{Send}/\texttt{Sync} traits~\cite{jung2021safe}, with
+        \texttt{unsafe} as an explicitly delimited escape hatch and no garbage collector.
   \item The comparison is therefore C++ against Rust (managed languages are excluded on
-        tail-latency grounds~\cite{pereira2017energy}), with the concurrency model held fixed
-        and C-ABI interoperability as the adoption
-        path~\cite{rivera2021galeed,kirth2022pkrusafe}; Rust's systems credentials are
-        established elsewhere~\cite{agache2020firecracker,levy2017kernel,mo2023rustshyper},
-        but no prior study isolates the language this
-        way~\cite{karlback2021ran,arvidsson2025async}.
+        tail-latency grounds), with the concurrency model held fixed and C-ABI
+        interoperability as the adoption path; no prior study isolates the language this
+        way~\cite{karlback2021ran}.
 \end{itemize}
 
 \chapter{Problem Context: UE Context Management and Predictability\label{chapter:context}}
 
 \begin{itemize}
   \item UE Context Management owns the per-UE context lifecycle: a four-state machine
-        (Idle, Connected, Reconfiguring, Released)~\cite{3gpp38331,3gpp38401} driven by a
-        small, lifecycle-oriented operation set in which every illegal operation returns a
-        typed error.
+        (Idle, Connected, Reconfiguring, Released) driven by a small, lifecycle-oriented
+        operation set in which every illegal operation returns a typed error.
   \item It is chosen because it is both representative (per-UE mutable state, strict
         lifecycle, high concurrency, hard latency targets~\cite{3gpp22261}) and tractable
-        enough to specify precisely and parity-test in two languages; control-plane latency is
-        an active target in the adjacent core
-        network~\cite{qazi2017pepc,liu2023l25gc,park2025ctrlbench}.
+        enough to specify precisely and parity-test in two languages.
   \item Five defect classes lie inside Rust's guarantee~\cite{jung2021safe} and each has a
         natural incarnation here: use-after-free, double-free, iterator invalidation, data
-        race, and unguarded shared mutation~\cite{szekeres2013sok,qin2020rust}.
+        race, and unguarded shared mutation.
   \item Two further classes are carried deliberately from outside the guarantee, a lock-order
-        deadlock~\cite{zhang2024deadlock,tang2025converos} and a lost
-        update~\cite{qin2024safety}, so that the study locates the boundary instead of
+        deadlock and a lost update, so that the study locates the boundary instead of
         confirming a foregone conclusion.
   \item Fan-out and fleet scale turn the p99.9 of a single operation into a sustained rate of
         degraded procedures~\cite{dean2013tail}, which is why the load sweep is pushed over
-        the overload cliff~\cite{li2014tales}.
+        the overload cliff.
 \end{itemize}
 
 \chapter{Objectives\label{chapter:objectives}}
@@ -190,26 +175,20 @@
 \begin{itemize}
   \item A stated literature-search protocol returns no study measuring the tail latency of a
         Rust and a C++ implementation of the same stateful control-plane subsystem under
-        overload; the closest work compares languages for RAN
-        applications~\cite{karlback2021ran} and async frameworks for 5G control-plane
-        procedures~\cite{arvidsson2025async}.
-  \item Five objectives map onto the research questions: quantify predictability
-        (O1)~\cite{dean2013tail}, determine prevented defect classes
-        (O2)~\cite{xu2021rustcve}, measure resource overhead (O3)~\cite{zhang2022runtime},
-        build and measure a migration prototype (O4)~\cite{li2022crosslang}, and deliver
-        reusable artifacts and guidance (O5).
+        overload~\cite{karlback2021ran}.
+  \item Five objectives map onto the research questions: quantify predictability (O1),
+        determine prevented defect classes (O2), measure resource overhead (O3), build and
+        measure a migration prototype (O4), and deliver reusable artifacts and guidance (O5).
   \item Three hypotheses are committed to in advance: H1 performance equivalence below
-        saturation~\cite{emmerich2019drivers,balasubramanian2017rust}, H2 compile-time
-        prevention of the defect classes C++ leaves to best-effort
-        detection~\cite{jung2021safe,szekeres2013sok}, and H3 negligible interoperability
-        cost~\cite{rivera2021galeed}.
+        saturation~\cite{emmerich2019drivers}, H2 compile-time prevention of the defect
+        classes C++ leaves to best-effort detection, and H3 negligible interoperability cost.
   \item Success means decision-grade evidence: repeats with confidence
         intervals~\cite{georges2007rigorous}, defects demonstrated on compilable programs,
         migration cost read off a working prototype, and reproducibility from published
         artifacts.
   \item Scope is drawn to protect internal validity; the full gNB, PHY/L2 and the user plane,
-        captured traffic traces, managed languages~\cite{pereira2017energy}, and production
-        operations are explicitly out.
+        captured traffic traces, managed languages, and production operations are explicitly
+        out.
 \end{itemize}
 
 \chapter{Research Methodology\label{chapter:methodology}}
@@ -217,8 +196,7 @@
 \begin{itemize}
   \item The approach is empirical and constructive: rather than comparing two pre-existing
         systems, the study builds a matched pair of implementations from one frozen
-        specification so that language is the only systematic
-        difference~\cite{li2021ipc,narayanan2020redleaf}.
+        specification so that language is the only systematic difference.
   \item RQ1 and RQ3 are answered by an open-loop load sweep from light load into overload,
         with latency captured in identically configured HDR
         histograms~\cite{tene_hdrhistogram} and resource use sampled through the operating
@@ -227,8 +205,7 @@
         catalogue is confronted in both languages, with recorded expectations in each
         direction so an unexpected outcome surfaces as a discrepancy.
   \item RQ4 is answered by a working C++-to-Rust FFI prototype measuring seam size, the scope
-        of \texttt{unsafe}~\cite{astrauskas2020unsafe}, and per-call crossing
-        cost~\cite{li2022crosslang,cai2026interop}.
+        of \texttt{unsafe}, and per-call crossing cost~\cite{li2022crosslang}.
   \item Fairness is the central experimental control (frozen specification, matched allocator
         and optimisation, forced-idiom log), and results are reported as medians with
         bootstrap confidence intervals plus exact paired permutation tests under Holm
@@ -241,23 +218,19 @@
 \begin{itemize}
   \item A language-agnostic specification is frozen before any code is written, fixing the
         public API, state machine, data structures, algorithmic strategy, and sharding and
-        concurrency model as the fairness
-        baseline~\cite{li2021ipc,narayanan2020redleaf}.
-  \item Both versions use one shared-nothing, thread-per-shard
-        architecture~\cite{enberg2019threadpercore}: eight shards, bounded blocking MPSC
-        queues, single-use completion handles, strict FIFO per shard, and a single atomic
-        counter as the only shared mutable state.
+        concurrency model as the fairness baseline.
+  \item Both versions use one shared-nothing, thread-per-shard architecture: eight shards,
+        bounded blocking MPSC queues, single-use completion handles, strict FIFO per shard,
+        and a single atomic counter as the only shared mutable state.
   \item The run-time substrate is equalised: the same jemalloc allocator (with a
-        system-allocator control), identically configured HDR
-        histograms~\cite{tene_hdrhistogram}, matched \texttt{-O2} and
-        \texttt{opt-level = 2}, and pinned shard-selection and intra-shard hash functions.
+        system-allocator control), identically configured HDR histograms, matched \texttt{-O2}
+        and \texttt{opt-level = 2}, and pinned shard-selection and intra-shard hash functions.
   \item Where the languages must diverge, the forced-idiom log records it: C++ hand-writes the
         bounded queue Rust gets from \texttt{sync\_channel}, and C++'s tagged request struct
         plus response variant is larger and more branch-heavy than Rust's per-variant typed
         sender, leaving Rust longer in lines but lower in total cyclomatic
-        complexity~\cite{lizard,ardito2021verbosity}.
-  \item The Rust core contains no \texttt{unsafe} at
-        all~\cite{astrauskas2020unsafe,evans2020rust}, and functional equivalence is tested
+        complexity~\cite{lizard}.
+  \item The Rust core contains no \texttt{unsafe} at all, and functional equivalence is tested
         rather than assumed by diffing canonical transcripts from a language-neutral
         conformance suite.
 \end{itemize}
@@ -267,26 +240,22 @@
 \begin{itemize}
   \item Two environments are distinguished: everything reported was measured on a WSL2
         development host, which is adequate for parity, fault injection, and the FFI structure
-        but not for tail-latency claims~\cite{li2014tales}; the bare-metal protocol is
-        specified and scripted but not yet run.
-  \item The workload is a deterministic, spec-justified RAN lifecycle
-        generator~\cite{3gpp38331} driven on a fixed open-loop send
-        schedule~\cite{tene_hdrhistogram} and swept from nominal load through saturation, with
-        the four language-by-allocator variants interleaved within every
-        repeat~\cite{georges2007rigorous}.
+        but not for tail-latency claims; the bare-metal protocol is specified and scripted but
+        not yet run.
+  \item The workload is a deterministic, spec-justified RAN lifecycle generator driven on a
+        fixed open-loop send schedule and swept from nominal load through saturation, with the
+        four language-by-allocator variants interleaved within every repeat.
   \item RQ1 and RQ3 performance: the four variants are indistinguishable at the median and
-        equal in throughput and CPU~\cite{emmerich2019drivers,balasubramanian2017rust}, while
-        the tail is not resolvable here because the confidence interval on one variant's p99
-        exceeds the spread between all four.
+        equal in throughput and CPU~\cite{emmerich2019drivers}, while the tail is not
+        resolvable here because the confidence interval on one variant's p99 exceeds the
+        spread between all four.
   \item RQ3 memory is the one cleanly resolved performance result: the Rust build carries a
         few MiB more peak resident set under either allocator, with the same sign in every
-        repeat and a larger effect than the allocator's
-        own~\cite{zhang2022runtime,cui2025perfbugs}.
+        repeat and a larger effect than the allocator's own.
   \item RQ2 and RQ4: all five in-scope defect classes are compile errors in safe
-        Rust~\cite{jung2021safe} while each compiles in C++ and needs the right
-        sanitiser~\cite{szekeres2013sok}, the two boundary classes compile in
-        both~\cite{zhang2024deadlock}, and the twelve-entry-point FFI seam keeps the core
-        \texttt{unsafe}-free at a sub-nanosecond per-call cost~\cite{li2022crosslang}.
+        Rust~\cite{jung2021safe} while each compiles in C++ and needs the right sanitiser,
+        the two boundary classes compile in both, and the twelve-entry-point FFI seam keeps
+        the core \texttt{unsafe}-free at a sub-nanosecond per-call cost.
 \end{itemize}
 
 \chapter{Discussion\label{chapter:discussion}}
