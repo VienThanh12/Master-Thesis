@@ -2,10 +2,12 @@
 # Regenerate every figure, table, and quoted number in the thesis from the raw
 # measurement logs, then rebuild the PDF.
 #
-# Run this after a campaign (bench/campaign.sh) or a fault-injection run
-# (faults/run_faults.sh). Nothing in the thesis prose is hand-copied from the
-# data: the campaign summary numbers land in figures/gen_macros.tex and the
-# prose refers to them by name, so this one command keeps text and data in step.
+# Run this after a campaign (bench/campaign.sh), a latency-budget decomposition
+# (bench/latency_budget.sh), an FFI prototype run (ffi/build.sh), or a
+# fault-injection run (faults/run_faults.sh). Nothing in the thesis prose is
+# hand-copied from the data: the campaign summary numbers land in
+# figures/gen_macros.tex and the prose refers to them by name, so this one
+# command keeps text and data in step.
 #
 # Usage:
 #   bench/refresh_thesis.sh                 # newest campaign in bench/results/

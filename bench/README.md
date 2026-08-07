@@ -142,6 +142,32 @@ python3 bench/plot_campaign.py results/campaign-XXXX.agg.csv --metric p99_ns   #
 python3 bench/plot_campaign.py results/campaign-XXXX.agg.csv --metric p999_ns
 ```
 
+## Latency-budget decomposition (what the end-to-end number is made of)
+
+Every measured op is a full cross-thread round trip: submit to a bounded queue, block
+on a one-shot completion, wake when the shard's worker has run the operation. The sweep
+reports that whole path as one number, which means a bound on the paired *difference*
+between the languages is a bound relative to a total the language mostly does not
+control. `latency_budget.sh` splits it, in both languages, at the sweep's own shard
+count and context population:
+
+```bash
+bench/latency_budget.sh                                  # sweep-matched defaults
+bench/latency_budget.sh --shards 8 --active-ues 5000 --svc-iters 100000
+```
+
+It calls `ShardCore` directly (the single-threaded operation processor: no queue in the
+path) and then `Service` (the same core behind the full threaded machinery), so the
+difference between the two is the handoff. Both are batch means over a long loop rather
+than per-call medians, deliberately: a clock read costs tens of nanoseconds, the same
+order as the core operation, so per-call timestamps would measure the instrument.
+
+Output is `bench/results/latency_budget.json`, one JSON line per language, picked up by
+`plot_figures.py` into `tab_budget.tex` and the `\Budget*` macros.
+
+**Run it on a quiet host.** Unlike the campaign it has no interleaving discipline to
+fall back on, so a concurrent build or a second campaign will corrupt it.
+
 ## Thesis figures + tables (one command, RQ1/RQ2/RQ3)
 
 `plot_figures.py` regenerates every figure and LaTeX table the thesis `\input`s /
@@ -160,7 +186,17 @@ Produces (vector PDF, embedded by `thesis.tex`):
 - `fig_resources.pdf`: peak RSS + CPU utilisation per variant (RQ3).
 - `fig_taxonomy.pdf`: fault-injection outcome matrix from `taxonomy.csv` (RQ2).
 - `fig_ffi_cost.pdf`: FFI crossing vs end-to-end op cost from `../ffi/results/metrics.json` (RQ4).
-- `tab_latency.tex`, `tab_resource.tex`, `tab_ffi.tex`: table bodies `\input` by the thesis.
+- `tab_latency.tex`, `tab_resource.tex`, `tab_significance.tex`, `tab_budget.tex`,
+  `tab_ffi.tex`: table bodies `\input` by the thesis.
+- `gen_macros.tex`: every campaign number the prose quotes, defined as a LaTeX macro so
+  the narrative updates with the data instead of going stale.
+
+`tab_significance.tex` is blocked into statistics that pairing rescues (peak RSS, CPU,
+p50) and high percentiles that it does not, because a paired interval excluding zero
+means different things in the two cases. Achieved throughput is deliberately not tested:
+at a below-saturation operating point it is pinned to the offered load by construction,
+so the comparison cannot resolve a language effect, and including it would only make the
+Holm correction harsher on the comparisons that can.
 
 The representative load is auto-selected (highest offered rate with every variant still
 below 5 ms p99) unless `--load` is given. The RQ2 taxonomy and RQ4 FFI inputs come from

@@ -73,7 +73,7 @@
 \title{Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia RAN Control-Plane Systems}
 \author{Ha Vien}
 \date{\today}
-\prof{Christoph Luneburg, Petteri Kotimaa}
+\prof{Keijo Heljanko, Christoph Luneburg, Petteri Kotimaa}
 \censors{}{}{} % TODO before submission: fill in once the faculty assigns examiners.
 \keywords{Rust, C++, RAN control plane, tail latency, memory safety, fault injection, FFI}
 \depositeplace{Helsinki University Library}
@@ -157,7 +157,7 @@
 Radio Access Network (RAN) control-plane software is written mostly in C++ for performance, but
 C++ carries well-known memory-safety and concurrency risks. Rust promises comparable
 performance with safety guaranteed at compile time, yet its fit for latency-critical telecom
-control planes is unproven. The work is done at Nokia on a subsystem modeled on a real
+control planes is unproven. The work is done at Nokia on a subsystem modelled on a real
 gNB-CU-CP component.
 
 \noindent\textbf{Objective.}
@@ -209,12 +209,12 @@ and the central unit is split again into control- and user-plane
 functions~\cite{3gpp38401,3gpp38300}. Open-RAN initiatives push this disaggregation further,
 turning the RAN into virtualised, multi-vendor software connected by open
 interfaces~\cite{polese2023oran}. The resulting control plane, the gNB-CU-CP, is a large,
-stateful, highly concurrent software system: it manages the lifecycle of every connected
+stateful, highly concurrent software system. It manages the lifecycle of every connected
 device, drives the RRC signaling procedures~\cite{3gpp38331}, and coordinates mobility and
-handovers, all under strict latency budgets and at very high event rates: a single busy site can drive on
-the order of thousands of connection-management and mobility procedures per second, each
-bounded by a budget measured in milliseconds~\cite{3gpp22261}, and a deployed control plane coordinates
-millions of simultaneously connected devices. As the RAN moves to cloud-native,
+handovers, all under strict latency budgets. The rates involved are high: a single busy site
+drives on the order of thousands of connection-management and mobility procedures per second,
+each bounded by a budget measured in milliseconds~\cite{3gpp22261}, while a deployed control
+plane coordinates millions of simultaneously connected devices. As the RAN moves to cloud-native,
 disaggregated deployments, the correctness, reliability, and timing behaviour of this
 software increasingly determine the quality of the network as a whole. An outage or a
 tail-latency regression here is not a localised defect; it is a degradation felt across every
@@ -234,7 +234,7 @@ C++~\cite{klabnik2023rust,jung2018rustbelt}. Whether that promise holds for a
 telecom-grade, latency-critical control plane, where predictability under overload matters
 as much as raw speed, is not well understood. This thesis, carried out at Nokia, addresses
 the question directly: it develops two functionally equivalent implementations of a
-representative RAN subsystem, a UE Context Management service modeled on a real Nokia
+representative RAN subsystem, a UE Context Management service modelled on a real Nokia
 gNB-CU-CP component, in modern C++ and in Rust, and compares them under a realistic
 synthetic signaling workload.
 
@@ -304,12 +304,12 @@ for a representative subsystem is the motivation for this work.
 \paragraph{Industrial setting.}
 This thesis is carried out at Nokia, one of the small number of vendors that build, maintain,
 and evolve production RAN software end to end, and the subsystem it studies, UE Context
-Management (UECM), is modeled on a real gNB-CU-CP control-plane component rather than a
+Management (UECM), is modelled on a real gNB-CU-CP control-plane component rather than a
 textbook example. The gNB-CU-CP is not a peripheral module: in the 3GPP disaggregated
 architecture it is the control-plane half of the central unit, hosting RRC and managing the
 UE context lifecycle while delegating user-plane bearer handling to the CU-UP over the E1
 interface~\cite{3gpp38401,3gpp38300,3gpp38463,3gpp38331}, all under the millisecond-scale
-procedure budgets the 5G system places on control signalling~\cite{3gpp22261} and at the very
+procedure budgets the 5G system places on control signaling~\cite{3gpp22261} and at the very
 high event rates and connected-device counts a deployed network sustains. Because it is
 written in C++, it inherits both that language's performance and its memory-safety and
 concurrency hazards, which is precisely where the two trends above converge. Software of
@@ -706,8 +706,8 @@ if it is \texttt{Sync}. Sharing a value that permits unsynchronised mutation is 
 compile error, not a latent race; this is the property Rust markets as ``fearless concurrency.''
 Error handling is likewise explicit: fallible operations return a \texttt{Result} value that
 the caller must handle, rather than raising an exception that unwinds through hidden control
-flow, which keeps the cost and the control flow of the failure path visible, an advantage in
-latency-sensitive code where surprises in the tail are what matter.
+flow. Both the cost and the control flow of the failure path therefore stay visible, which is
+an advantage in latency-sensitive code where surprises in the tail are what matter.
 
 \begin{figure}
 \centering
@@ -843,15 +843,15 @@ Chapter~\ref{chapter:methodology} sets out the methodology by which they are pur
 \chapter{Problem Context: UE Context Management and Predictability\label{chapter:context}}
 
 \section{The UE Context Management subsystem}
-The subsystem under study is a UE Context Management service, modeled on a real Nokia
+The subsystem under study is a UE Context Management service, modelled on a real Nokia
 gNB-CU-CP service domain that owns the UE context lifecycle, RRC procedure
-execution~\cite{3gpp38331}, and mobility/handover, the very functions the 3GPP architecture
-assigns to the control-plane part of a disaggregated gNB, where the CU-CP hosts the RRC and the
-control-plane part of PDCP and manages the UE context, delegating user-plane bearer handling to
-the CU-UP over the E1 interface~\cite{3gpp38401,3gpp38300,3gpp38463}. It is a good representative
-because it is core RAN L3 functionality,
+execution~\cite{3gpp38331}, and mobility/handover. Those are the very functions the 3GPP
+architecture assigns to the control-plane part of a disaggregated gNB: the CU-CP hosts the RRC
+and the control-plane part of PDCP and manages the UE context, delegating user-plane bearer
+handling to the CU-UP over the E1 interface~\cite{3gpp38401,3gpp38300,3gpp38463}. It is a good
+representative because it is core RAN L3 functionality,
 performance- and latency-sensitive, inherently stateful and concurrent, and self-contained
-enough to specify precisely and benchmark fairly. The modeled functionality includes UE
+enough to specify precisely and benchmark fairly. The modelled functionality includes UE
 context creation and deletion, state transitions (e.g.\ idle to connected), signaling
 message handling, and concurrent context lookup under load. Figure~\ref{fig:fsm} shows the
 UE-context lifecycle state machine that both implementations encode identically; illegal
@@ -1258,13 +1258,14 @@ confirming them.\label{fig:faultmethod}}
 \subsection{Foreign-function-interface migration case study (RQ4)}
 RQ4 concerns the practical cost of adopting Rust inside an existing C++ system, which is an
 engineering question as much as a performance one. It is answered by constructing a working
-prototype in the realistic direction of migration, an existing C++ host calling a Rust
-component across a C application binary interface, and then measuring three quantities on it:
-the \emph{size} of the interoperability seam (entry points, lines of code, dependencies), the
-\emph{scope} of \texttt{unsafe} it forces (where the checked language is left, and whether the
-safety-critical core is affected), and the \emph{per-call cost} of crossing the boundary
-relative to the cost of the operation being invoked. The first two are structural and are read
-off the code; the third is measured with the same histogram apparatus as the performance sweep.
+prototype in the realistic direction of migration: an existing C++ host calling a Rust
+component across a C application binary interface. Three quantities are then measured on it.
+The \emph{size} of the interoperability seam counts its entry points, lines of code, and
+dependencies. The \emph{scope} of \texttt{unsafe} records where the checked language is left
+and whether the safety-critical core is affected. The \emph{per-call cost} is the price of
+crossing the boundary, measured against the same operation invoked natively so that the
+comparison isolates what the seam adds rather than what the operation costs. The first two are
+structural and are read off the code; the third is a matched pair of microbenchmarks.
 This combination of a structural account and a quantitative cost measurement is what lets the
 study separate the run-time cost of interoperability from its true cost, which lies in API
 design and human learning.
@@ -1319,12 +1320,46 @@ comparison is made for several metrics and both allocators, the family of tests 
 with the Holm step-down procedure, which controls the family-wise error rate without assuming
 independence between the tests.
 
-The resolving power this design can reach is bounded by the number of repeats and is stated
-rather than left implicit: an exact test on $n$ pairs cannot return a two-sided $p$ below
-$2/2^{n}$, so a small campaign cannot demonstrate significance however large the effect. The
-consequence, developed with the results in Section~\ref{sec:perfresults}, is that the paired
-\emph{intervals} carry more of the evidence than the $p$-values do, and that increasing the
-repeat count is as much a part of the bare-metal protocol as controlling the clock.
+Two decisions about how that family is read are taken here rather than after the results,
+because either could otherwise be made to suit whatever the data turned out to be.
+
+The first is which comparisons enter it. Achieved throughput is excluded. The representative
+operating point is chosen below saturation, where every variant completes work as fast as it is
+offered, so achieved throughput is pinned to the offered load by construction and cannot express
+a language effect whatever the languages do. Testing it would re-measure the operating point
+rather than the code. It would also not be free: Holm divides its budget across the whole
+family, so two comparisons that cannot resolve anything would make the correction harsher on the
+ones that can. Throughput is instead reported with its interval in the resource table, where its
+job is to confirm that the operating point is sustained rather than nominal.
+
+The second is what to conclude when the interval and the $p$-value disagree, which at modest
+repeat counts they routinely will: a paired interval can sit wholly on one side of zero while
+the corrected $p$-value stays far above any conventional threshold. Which instrument to believe
+is not a free choice, and it does not depend on whether the metric happens to be interesting. It
+depends on whether pairing removes the interference that particular measurement is exposed to.
+Pairing cancels whatever an interleaved block shared; it cannot cancel interference that landed
+on one run of a pair and not on the other. A run-level summary such as peak resident set size,
+and a central order statistic such as the median of tens of thousands of per-operation samples,
+are both unmoved by a handful of descheduled operations, so a paired difference that is
+consistent in sign across repeats is a difference in the software. A high percentile is the
+opposite case: p99 and p99.9 are computed from precisely the operations that were disturbed, so
+an interval excluding zero is as consistent with one run of a pair having been unlucky as with a
+real effect. Table~\ref{tab:significance} is therefore blocked by that distinction, and
+intervals in its second block are not read as findings however far from zero they sit. Applying
+the rule to the block that suits the argument and quietly dropping it for the other is the
+specific failure this pre-commitment exists to prevent.
+
+The resolving power the design can reach is bounded by the number of repeats, and is stated
+rather than left implicit. An exact test on $n$ pairs cannot return a two-sided $p$ below
+$2/2^{n}$, and after correcting a family of $m$ comparisons the smallest attainable adjusted
+value is $m$ times that. With \NRepeats{} repeats and \NTests{} comparisons, those two floors
+are $\MinAttainableP$ and $\CorrectedFloor$. Quoting them is what lets a reader tell a null
+result from an unresolvable one. A campaign whose corrected floor lies above the threshold being
+applied cannot demonstrate significance however large the effect, so reporting ``not
+significant'' from such a campaign would say more about its repeat count than about the
+languages. Choosing the repeat count so that the corrected floor sits below the conventional
+$5\%$ is therefore part of the measurement protocol, alongside pinning the clock and isolating
+the cores (Section~\ref{sec:testbed}).
 
 \section{Reproducibility and research artifacts}
 The study is designed so that its results can be regenerated by a third party without access to
@@ -1343,7 +1378,7 @@ without ambiguity.
 \section{Ethical and data-protection considerations}
 The study processes no personal, subscriber, or operator-confidential data. All traffic is
 synthetic and generated by the deterministic driver, the UE contexts contain only fabricated
-identifiers and a fixed dummy security field, and the subsystem is modeled on, rather than
+identifiers and a fixed dummy security field, and the subsystem is modelled on, rather than
 copied from, production code. There are therefore no privacy, consent, or data-retention
 concerns, and the resulting artifacts can be released openly for reproduction.
 
@@ -2141,9 +2176,15 @@ individual variants' intervals.
 allocator held fixed. The effect is the median of the \NRepeats{} paired differences
 (Rust~$-$~C++), shown above its bootstrap $95\%$ confidence interval; the test statistic is
 their mean. $p$ is exact over all $2^{\NRepeats}$ sign assignments, and the final column
-applies the Holm correction across the whole family of \NTests{} tests. Note the attainable
-floor of $\MinAttainableP$ on any single uncorrected $p$. Preliminary,
-development-environment (WSL2) measurements.\label{tab:significance}}
+applies the Holm correction across the whole family of \NTests{} tests; the attainable floors
+are $\MinAttainableP$ uncorrected and $\CorrectedFloor$ after correction. The rows are blocked
+by the criterion set out in Section~\ref{sec:stats}: statistics in the upper block are unmoved
+by interference falling on a few operations within a run, so pairing rescues them and a
+consistent interval is evidence, whereas the high percentiles in the lower block are computed
+from exactly those operations, so an interval excluding zero there is not read as a finding.
+Achieved throughput is not tested, for the reason given in the same section, and appears in
+Table~\ref{tab:resource} instead. Preliminary, development-environment (WSL2)
+measurements.\label{tab:significance}}
 \begin{tabular}{@{}l l r r r@{}}
 \hline\hline
 Metric & Allocator & Effect (Rust $-$ C++) & $p$ & Holm \\
@@ -2440,7 +2481,11 @@ guidelines of Chapter~\ref{chapter:discussion}.
 \centering
 \caption{FFI migration prototype: seam size, safety boundary, and per-call interop cost
 (C++ host calling the Rust component across a C ABI, \texttt{-O2}). The core library is
-unmodified and \texttt{unsafe}-free; all interop is confined to the seam crate.\label{tab:ffi}}
+unmodified and \texttt{unsafe}-free; all interop is confined to the seam crate. The last
+three rows are the direct comparison: one signaling operation on the same service
+configuration and the same loop, invoked natively and then through the seam, so the
+difference isolates what the boundary adds rather than what the operation
+costs.\label{tab:ffi}}
 \begin{tabular}{l r}
 \hline\hline
 Metric & Value \\
@@ -2973,7 +3018,7 @@ offered as the reusable contribution.
 \section{Ethical and professional reflection}
 The conduct of the study raised no data-protection questions, for the reasons set out in
 Chapter~\ref{chapter:methodology}: all traffic is synthetic, the contexts carry fabricated
-identifiers, and the subsystem is modeled on rather than copied from production code. The
+identifiers, and the subsystem is modelled on rather than copied from production code. The
 \emph{use} of the study is a different matter and deserves stating explicitly, because a
 language-selection recommendation in this domain is not a neutral technical output.
 
@@ -2995,7 +3040,7 @@ was relocated from run time to human effort rather than removed.
 
 \chapter{Conclusion and Future Work\label{chapter:conclusions}}
 
-This thesis compared modern C++ and Rust on a UE Context Management service modeled on a real
+This thesis compared modern C++ and Rust on a UE Context Management service modelled on a real
 Nokia gNB-CU-CP component, along four dimensions: tail-latency predictability, compile-time
 defect prevention, safety-model overhead, and incremental-adoption cost. Built against a single
 frozen specification and driven through identical code paths, the two implementations let

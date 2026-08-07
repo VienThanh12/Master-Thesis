@@ -1,0 +1,78 @@
+# State-machine conformance vector (spec §5.2): the full legal/illegal transition
+# matrix, `lookup` observed in every reachable state, and the §6.1 requirement that
+# a rejected operation leaves the context completely unchanged.
+config n_shards=8 queue_capacity=1024 max_contexts_per_shard=200000
+
+# --- From Idle --------------------------------------------------------------
+# Only setup_connection and release_context are legal from Idle.
+create 100 cell=11                 => Ok
+lookup 100                         => Ok(state=Idle,cell=11,drbs=0,messages_handled=0)
+signal 100 kind=1 len=4            => Err(InvalidState)
+adddrb 100 id=1 qfi=1 teid=10      => Err(InvalidState)
+begin_reconf 100 cell=99           => Err(InvalidState)
+complete_reconf 100                => Err(InvalidState)
+abort_reconf 100                   => Err(InvalidState)
+# §6.1: none of the five rejects above may have mutated the context. In particular
+# the rejected begin_reconf must not have written its target cell (99).
+lookup 100                         => Ok(state=Idle,cell=11,drbs=0,messages_handled=0)
+# release from Idle is legal (§5.2) and removes the context.
+release 100                        => Ok
+lookup 100                         => Err(NotFound)
+
+# --- From Connected ---------------------------------------------------------
+create 200 cell=22                 => Ok
+setup 200                          => Ok
+lookup 200                         => Ok(state=Connected,cell=22,drbs=0,messages_handled=0)
+# handle_signaling and add_drb are Connected self-loops; messages_handled accrues.
+signal 200 kind=1 len=0            => Ok(accepted=true,handled=1)
+signal 200 kind=2 len=32           => Ok(accepted=true,handled=2)
+signal 200 kind=3 len=64           => Ok(accepted=true,handled=3)
+adddrb 200 id=1 qfi=5 teid=1       => Ok
+adddrb 200 id=2 qfi=5 teid=2       => Ok
+lookup 200                         => Ok(state=Connected,cell=22,drbs=2,messages_handled=3)
+# Illegal from Connected.
+setup 200                          => Err(InvalidState)
+complete_reconf 200                => Err(InvalidState)
+abort_reconf 200                   => Err(InvalidState)
+lookup 200                         => Ok(state=Connected,cell=22,drbs=2,messages_handled=3)
+
+# --- From Reconfiguring -----------------------------------------------------
+begin_reconf 200 cell=33           => Ok
+lookup 200                         => Ok(state=Reconfiguring,cell=33,drbs=2,messages_handled=3)
+# Illegal from Reconfiguring. The rejected re-entry must not overwrite the target
+# cell (44), and the rejected signal must not bump messages_handled.
+setup 200                          => Err(InvalidState)
+signal 200 kind=1 len=0            => Err(InvalidState)
+adddrb 200 id=3 qfi=5 teid=3       => Err(InvalidState)
+begin_reconf 200 cell=44           => Err(InvalidState)
+lookup 200                         => Ok(state=Reconfiguring,cell=33,drbs=2,messages_handled=3)
+complete_reconf 200                => Ok
+lookup 200                         => Ok(state=Connected,cell=33,drbs=2,messages_handled=3)
+
+# --- release from Reconfiguring is legal (§5.2) ------------------------------
+create 300 cell=7                  => Ok
+setup 300                          => Ok
+begin_reconf 300 cell=8            => Ok
+lookup 300                         => Ok(state=Reconfiguring,cell=8,drbs=0,messages_handled=0)
+release 300                        => Ok
+lookup 300                         => Err(NotFound)
+release 300                        => Err(NotFound)
+
+# --- abort restores Connected, and the context is reusable afterwards --------
+# Note: abort_reconfigure restores the *state* only; begin_reconfigure has already
+# committed the target cell and it is not rolled back (same behaviour on both sides,
+# pinned by basic.vec).
+create 400 cell=1                  => Ok
+setup 400                          => Ok
+begin_reconf 400 cell=2            => Ok
+abort_reconf 400                   => Ok
+lookup 400                         => Ok(state=Connected,cell=2,drbs=0,messages_handled=0)
+# A second reconfiguration must work after an abort.
+begin_reconf 400 cell=3            => Ok
+complete_reconf 400                => Ok
+lookup 400                         => Ok(state=Connected,cell=3,drbs=0,messages_handled=0)
+signal 400 kind=1 len=1            => Ok(accepted=true,handled=1)
+release 400                        => Ok
+
+# Only UE 200 survives.
+count                              => 1

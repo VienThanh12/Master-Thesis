@@ -89,6 +89,12 @@ latexmk -C                   # clean build artifacts
       testbed-grade). Definitive RQ1/RQ3 numbers still need bare-metal execution.
 - [~] Collect latency (mean/p50/p90/p99/p99.9/max), throughput, peak RSS + CPU% per offered load
       (getrusage; aggregated with 95% CI by `bench/aggregate.py`), still add jitter + p99.99
+- [x] Decompose the end-to-end latency into the operation's own work and the cross-thread
+      handoff, in both languages, at the sweep's shard count and population
+      (`bench/latency_budget.sh` -> `tab_budget.tex`, `\Budget*` macros). Without this a bound
+      on the paired median difference cannot be read: "a fifth of the median" is a weak bound
+      if the median is mostly handoff, and the sweep alone cannot say whether it is.
+      `ShardCore` gives the work with no queue in the path; `Service` gives work + handoff.
 ### 7b. Fault-injection study (RQ2 safety)
 - [x] Inject C++ defect catalogue (use-after-free, double-free, iterator invalidation,
       data race, unguarded shared mutation), `faults/cpp/*.cpp`, domain-flavoured
@@ -104,6 +110,12 @@ latexmk -C                   # clean build artifacts
 - [x] Measure interop cost: 12 C-ABI entry points (~231 LOC Rust seam + 66 LOC header), 0 `unsafe`
       in core lib (confined to seam), raw crossing ~1 ns/call, op cost = service round-trip
       (not FFI-induced); clippy clean. Findings filled into thesis §6.2 (RQ4 Migration)
+- [x] Replace the indirect argument for "no measurable per-call tax" with the direct A/B.
+      An empty crossing measured against a full round-trip bounds the crossing but is not the
+      same experiment; `ffi/build.sh` now also runs the *same* signaling op natively (same
+      shard count, same loop shape, `rust/examples/latency_budget.rs --shards 4`) so the
+      difference is the seam's actual per-operation cost. Lands in `metrics.json` as
+      `op_roundtrip_native_ns` and in `tab_ffi.tex`.
 
 ## Phase 8 - Analysis & figures
 - [x] Tooling: `bench/campaign.sh` (repeats + interleaving + env capture + pinning) ->

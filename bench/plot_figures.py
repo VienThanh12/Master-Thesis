@@ -884,20 +884,34 @@ def describe_rows(results, kind=None):
     sel = [r for r in results if r["excl_zero"] and (kind is None or r["kind"] == kind)]
     if not sel:
         return "none"
-    # Group allocators under a shared metric so the phrase reads as prose rather
-    # than as a list of table coordinates.
+    # Collect the metrics that share an allocator set, so the phrase reads as
+    # prose ("p99 and p99.9 latency under jemalloc") rather than as a list of
+    # table coordinates repeating the same qualifier.
     by_metric = {}
     for r in sel:
         by_metric.setdefault(_plain(r["metric"]), []).append(r["alloc"])
-    parts = []
+    by_allocs = {}
     for metric, allocs in by_metric.items():
-        if len(allocs) > 1:
-            parts.append(f"{metric} under both allocators")
+        by_allocs.setdefault(tuple(sorted(allocs)), []).append(metric)
+
+    def join(items):
+        if len(items) == 1:
+            return items[0]
+        return ", ".join(items[:-1]) + " and " + items[-1]
+
+    parts = []
+    for allocs, metrics in by_allocs.items():
+        # "p99 latency" and "p99.9 latency" collapse to "p99 and p99.9 latency".
+        words = [m.split(" ") for m in metrics]
+        if len(metrics) > 1 and len({w[-1] for w in words}) == 1:
+            tail_word = words[0][-1]
+            heads = [" ".join(w[:-1]) for w in words]
+            subject = f"{join(heads)} {tail_word}"
         else:
-            parts.append(f"{metric} under {allocs[0]}")
-    if len(parts) == 1:
-        return parts[0]
-    return ", ".join(parts[:-1]) + " and " + parts[-1]
+            subject = join(metrics)
+        where = "both allocators" if len(allocs) > 1 else allocs[0]
+        parts.append(f"{subject} under {where}")
+    return join(parts)
 
 
 def write_significance_table(results, outdir):
