@@ -39,6 +39,15 @@
 \onehalfspacing
 \sloppy
 
+% A measured value above its bootstrap 95% confidence interval, as used by the
+% generated tables in figures/. The interval is printed in full rather than as a
+% symmetric half-width because a bootstrap interval on the median of a
+% heavy-tailed latency sample is markedly asymmetric.
+\newcommand{\mci}[3]{%
+  \begin{tabular}[t]{@{}r@{}}%
+    $#1$\\[-2pt]{\scriptsize$[#2,\,#3]$}%
+  \end{tabular}}
+
 \title{Hiệu năng, an toàn và đánh đổi kỹ thuật của Rust và C++ trong hệ thống điều khiển RAN của Nokia}
 \author{Ha Vien}
 \date{\today}
