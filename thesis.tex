@@ -727,6 +727,39 @@ Error handling is likewise explicit: fallible operations return a \texttt{Result
 the caller must handle, rather than raising an exception that unwinds through hidden control
 flow. Both the cost and the control flow of the failure path therefore stay visible, which is
 an advantage in latency-sensitive code where surprises in the tail are what matter.
+Table~\ref{tab:langmodel} sets the two languages' mechanisms side by side. The distinction it
+is built around is not which hazards each language names, since both name much the same ones,
+but \emph{when} and \emph{by what} each is ruled out, and the last two rows mark where the
+answer stops being ``by the compiler'' for either of them.
+
+\begin{table}
+\centering
+\small
+\caption[How each language enforces the properties measured here]{How each language enforces the properties this thesis measures. The rows above the
+rule are the ones on which the two differ in kind rather than in degree: a compiler that
+rejects a program rules the defect out of every execution of it, whereas a sanitiser rules it
+out only of the executions an instrumented test happens to take. The rows below the rule are
+the boundary developed in Chapter~\ref{chapter:context} and measured in
+Chapter~\ref{chapter:eval}, where neither language offers a static
+guarantee.\label{tab:langmodel}}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}R{0.20\linewidth} R{0.36\linewidth} R{0.36\linewidth}@{}}
+\hline\hline
+Concern & Modern C++ & Rust \\
+\hline
+Object lifetime & RAII and smart pointers, applied by convention; a raw pointer or reference may outlive its referent & Ownership: each value has one owner and is dropped exactly once \\
+Aliasing & Unrestricted; any number of mutable aliases may coexist & Borrowing: either one mutable reference or many shared ones, never both \\
+Bounds & Unchecked on \texttt{operator[]}, checked only through \texttt{at()} & Checked by default, elided where the index can be proved in range \\
+Thread safety & Not expressed in the type system; sharing a mutable object across threads compiles & \texttt{Send} and \texttt{Sync} marker traits; unsynchronised sharing is a type error \\
+Error signalling & Exceptions or error codes; the failure path can be invisible at the call site & \texttt{Result} values the caller must handle; the failure path is explicit \\
+Escape hatch & The whole language & \texttt{unsafe} blocks, delimited and mechanically countable \\
+Stage of detection & Run time, under the right sanitiser, on a path a test exercises & Compile time, on every ordinary build, whatever the test coverage \\
+\hline
+Lock-acquisition order & Not checked & Not checked \\
+Atomicity of a composed operation & Not checked & Not checked \\
+\hline
+\end{tabular}
+\end{table}
 
 \begin{figure}
 \centering
@@ -988,6 +1021,41 @@ between the two groups is what lets the study report a boundary rather than a ve
 overflow is described above for completeness but is not injected, because neither
 implementation performs raw pointer arithmetic on the context store, so an injected instance
 would be an artificial construct rather than a plausible bug in this subsystem.
+Table~\ref{tab:defectmap} collects the catalogue with the outcome expected of each case
+\emph{before} the study was run, which is the form in which the runner records it: an
+expectation written down in advance can be violated in either direction and reported as a
+discrepancy, whereas one formed after the fact cannot.
+
+\begin{table}
+\centering
+\small
+\caption[The injected catalogue and its incarnations in UECM]{The injected defect catalogue: each class in the form it would plausibly take in UE
+Context Management, and the outcome recorded for it in advance of the study. The last column
+is a prediction rather than a result; Table~\ref{tab:taxonomy} reports what was measured, and
+the fault runner flags a mismatch in either direction rather than absorbing it into the
+conclusion. Buffer overflow is listed for completeness and is not injected, because neither
+implementation does pointer arithmetic on the context store.\label{tab:defectmap}}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}R{0.19\linewidth} R{0.40\linewidth} R{0.14\linewidth} R{0.16\linewidth}@{}}
+\hline\hline
+Defect class & Incarnation in UE Context Management & How it fails & Expected in safe Rust \\
+\hline
+\multicolumn{4}{@{}l}{\emph{Memory-safety family: object lifetime and bounds}} \\
+Use-after-free & An in-flight signaling handler dereferences a context that a concurrent \texttt{release} has already erased from the map & Corruption or crash & Prevented \\
+Double-free & A retransmitted release is not made idempotent, so the release path frees the context's resources a second time & Corruption or crash & Prevented \\
+Buffer overflow & No plausible incarnation here: the context store is reached only through container APIs & --- & Not injected \\
+\hline
+\multicolumn{4}{@{}l}{\emph{Concurrency family: unsynchronised or ill-ordered access}} \\
+Iterator invalidation & A bearer is added while the context's data-radio-bearer list is being iterated & Corruption or crash & Prevented \\
+Data race & Two workers update the same context field, a counter or a state flag, without synchronisation & Torn or lost value & Prevented \\
+Unguarded shared mutation & A context is shared by reference across threads and mutated with no ownership rule governing it & Torn or lost value & Prevented \\
+\hline
+\multicolumn{4}{@{}l}{\emph{Boundary group: included because safe Rust is expected \emph{not} to prevent them}} \\
+Lock-order deadlock & Opposing handovers lock source-then-target and target-then-source & Hang & Not prevented \\
+Lost update & A counter's read-modify-write is split across two separate critical sections, so each access is synchronised but their composition is not atomic & Silently wrong value & Not prevented \\
+\hline
+\end{tabular}
+\end{table}
 
 \begin{figure}
 \centering
@@ -1115,6 +1183,42 @@ than estimated; and that the whole be reproducible from published artifacts and 
 specification. Meeting these criteria is what distinguishes the contribution from the
 general-purpose, average-case comparisons whose deficiencies motivate the work.
 
+The four questions, the five objectives, and the three hypotheses are three views of the same
+plan, and Table~\ref{tab:traceability} lines them up so that a reader can follow any one
+question from the objective it sets, through the method that pursues it and the section that
+reports its evidence, to the place where its verdict is recorded. Every claim in
+Chapter~\ref{chapter:discussion} is reachable from this table, which is the practical form of
+the ``decision-grade'' requirement above: a result a practitioner cannot trace back to the
+measurement that produced it is not one they can act on.
+
+\begin{table}
+\centering
+\small
+\caption[Traceability from question to objective, evidence, and verdict]{Traceability from each research question to the objective it sets, the hypothesis it
+is tested against, and the sections in which it is pursued, evidenced, and judged. RQ3 shares
+H1, which was worded to cover performance equivalence in both its latency and its resource
+sense; Chapter~\ref{chapter:discussion} finds that wording to be the hypothesis's main
+weakness. O5 (artifacts and guidance) is cross-cutting and is discharged by
+Section~\ref{sec:repro} and Section~\ref{sec:guidelines} rather than by any single question.
+Table~\ref{tab:design} gives the complementary view, what each method actually does and which
+metric its conclusion rests on.\label{tab:traceability}}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}l R{0.24\linewidth} c l l l@{}}
+\hline\hline
+RQ & Objective & H & Method & Evidence & Verdict \\
+\hline
+RQ1 & O1 tail latency and jitter to overload & H1 &
+\S\ref{sec:methodperf} & \S\ref{sec:perfresults}, \S\ref{sec:budget} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
+RQ2 & O2 which defect classes are prevented, and when & H2 &
+\S\ref{sec:methodfaults} & \S\ref{sec:safetyresults} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
+RQ3 & O3 cost of the safety model in resources & H1 &
+\S\ref{sec:methodperf} & \S\ref{sec:resources}, \S\ref{sec:budget} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
+RQ4 & O4 seam size, \texttt{unsafe} scope, and per-call cost & H3 &
+\S\ref{sec:methodffi} & \S\ref{sec:migrationresults} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
+\hline
+\end{tabular}
+\end{table}
+
 \section{Scope and boundaries}
 The work focuses on a single representative subsystem studied under controlled, synthetic
 conditions, and its boundaries are drawn deliberately to protect the internal validity of the
@@ -1211,7 +1315,7 @@ tail-latency measurement, does not undermine the conclusions as a whole.
 Table~\ref{tab:design} pairs each question with a method; this section states what each method
 does and why it is appropriate.
 
-\subsection{Performance measurement under a load sweep (RQ1, RQ3)}
+\subsection{Performance measurement under a load sweep (RQ1, RQ3)}\label{sec:methodperf}
 RQ1 and RQ3 are answered by driving both implementations with one deterministic synthetic
 workload across a sweep of offered load, from light load through saturation and into overload,
 and recording latency and resource use at each level. Two design decisions make the
@@ -1228,7 +1332,7 @@ on both sides, and resource use (peak resident set size, CPU utilisation, throug
 sampled through the operating system, so that the same measurement apparatus is applied to both
 languages.
 
-\subsection{Controlled fault injection (RQ2)}
+\subsection{Controlled fault injection (RQ2)}\label{sec:methodfaults}
 RQ2 asks which defect classes a language prevents, and it cannot be answered by measuring
 defect-free code: the absence of a bug in a passing test says nothing about whether the
 language would have caught it. The method is therefore adversarial, following the established
@@ -1274,7 +1378,7 @@ inside and outside those guarantees so that the method locates their boundary ra
 confirming them.\label{fig:faultmethod}}
 \end{figure}
 
-\subsection{Foreign-function-interface migration case study (RQ4)}
+\subsection{Foreign-function-interface migration case study (RQ4)}\label{sec:methodffi}
 RQ4 concerns the practical cost of adopting Rust inside an existing C++ system, which is an
 engineering question as much as a performance one. It is answered by constructing a working
 prototype in the realistic direction of migration: an existing C++ host calling a Rust
@@ -1306,6 +1410,54 @@ is not hidden but recorded in a forced-idiom log so it can be weighed explicitly
 discussion. What remains uncontrolled, principally single-author skill asymmetry, is
 acknowledged as a threat to validity (Chapter~\ref{chapter:discussion}) rather than claimed to
 be eliminated.
+
+Table~\ref{tab:controls} states the strategy variable by variable, and its third column is the
+part that matters most. A controlled experiment is credible in proportion to the honesty of
+its account of what it failed to control, and three of the rows below record a residual rather
+than a clean fix: the languages cannot always express the same construct, they do not ship the
+same hash-map layout, and one person wrote both implementations. Figure~\ref{fig:controls}
+shows the same strategy as a flow, from the single frozen specification to the one variable
+that is deliberately allowed to vary.
+
+\begin{table}
+\centering
+\small
+\caption[The controlled-variable strategy]{The controlled-variable strategy: what is held fixed so that the language remains the
+only systematic difference, and what each control does not reach. The third column is not a
+list of oversights but the study's own account of its limits; each entry is picked up again as
+a threat to validity in Section~\ref{sec:threats}. Only the last row names a variable for
+which there is no control at all.\label{tab:controls}}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}R{0.16\linewidth} R{0.44\linewidth} R{0.32\linewidth}@{}}
+\hline\hline
+Variable & How it is held fixed & What the control does not reach \\
+\hline
+Design & One specification, frozen before any code is written, fixing the public API, the state machine, the data structures and their algorithmic strategy, and the sharding granularity (\S\ref{sec:fairness}) & Where the two languages cannot express the same construct, the divergence is logged rather than removed (Table~\ref{tab:idioms}) \\
+Concurrency model & Thread-per-shard over bounded blocking MPSC queues on both sides, with no asynchronous runtime on either & --- \\
+Hashing & SplitMix64 for shard selection and FNV-1a inside the shard, pinned identically, so neither standard library's default hasher becomes an accidental advantage & The container itself is still each language's own hash map, and the two differ in layout (\S\ref{sec:budget}) \\
+Allocator & The same \texttt{jemalloc} linked on both sides, with a system-allocator build kept on each as a control & --- \\
+Optimisation & \texttt{-O2} against \texttt{opt-level~=~2} & Nominal parity is not identical code generation \\
+Workload & One deterministic driver; for a given seed and active-UE population both implementations execute the same operation sequence, checked by per-kind counts & Synthetic and spec-justified rather than replayed from production traffic \\
+Instrumentation & The same HDR histogram algorithm and configuration, the same open-loop schedule, the same repeat and interleaving discipline & --- \\
+Behaviour & A language-neutral conformance suite whose canonical transcripts are diffed op for op (\S\ref{sec:parity}) & Parity bounds behaviour, not performance \\
+\hline
+Author & No control & One person wrote both implementations and is not equally expert in both \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/18_fairness_controls.pdf}
+\caption[Fairness as a controlled-variable strategy]{Fairness as a controlled-variable strategy. A single specification is frozen before
+any code is written and fixes everything the two implementations share, so that exactly one
+variable, the implementation language, is allowed to differ. The two escape valves are shown
+rather than hidden: constructs the languages cannot express identically are recorded in the
+forced-idiom log and weighed in the discussion, and the one variable with no control at all,
+single-author skill asymmetry, is carried forward as a threat to
+validity.\label{fig:controls}}
+\end{figure}
 
 \section{Statistical treatment of measurements}\label{sec:stats}
 Performance measurements are non-deterministic, so single-run numbers are avoided throughout.
@@ -1380,7 +1532,7 @@ languages. Choosing the repeat count so that the corrected floor sits below the 
 $5\%$ is therefore part of the measurement protocol, alongside pinning the clock and isolating
 the cores (Section~\ref{sec:testbed}).
 
-\section{Reproducibility and research artifacts}
+\section{Reproducibility and research artifacts}\label{sec:repro}
 The study is designed so that its results can be regenerated by a third party without access to
 Nokia's proprietary code. The implementations are driven entirely by the public frozen
 specification; the benchmarking harness, the fault catalogue and its runner, and the FFI
@@ -2050,6 +2202,43 @@ phase alone, with the warm-up iterations excluded from both the numerator and th
 so that achieved throughput is directly comparable with offered load. The full configuration
 and scripts are published for reproducibility.
 
+Table~\ref{tab:testbed} sets the two environments against each other row by row. Reading down
+the middle column is the fastest way to see why the chapter labels some results final and
+others preliminary: every row on which the two columns agree is a property of the source code
+and the compilers, and every row on which they differ is a property of the machine, which is
+exactly the line between the two evidence classes.
+
+\begin{table}
+\centering
+\small
+\caption[The environment used and the testbed protocol still to be executed]{The environment the reported results were measured on, against the protocol that
+testbed-grade tail figures require (\texttt{bench/TESTBED.md}). The rows where the two columns
+agree are the ones that carry the final results; the rows where they differ are what the
+bare-metal campaign buys. The protocol is scripted and published, so executing it and rerunning
+the analysis is the only step between the preliminary performance numbers below and final
+ones.\label{tab:testbed}}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}R{0.22\linewidth} R{0.35\linewidth} R{0.35\linewidth}@{}}
+\hline\hline
+Aspect & Used for the results reported here & Required for testbed-grade tail figures \\
+\hline
+Host & WSL2 development host, eight x86-64 cores & Dedicated bare-metal Linux host \\
+Kernel & As supplied by WSL2, under a virtualised scheduler & Distribution kernel, no hypervisor \\
+Toolchain & \texttt{g++~13.3}, \texttt{rustc~1.97} & \texttt{g++~13.3}, \texttt{rustc~1.97} \\
+CPU pinning & Not available & Isolated physical cores via \texttt{taskset} \\
+Frequency governor & Not exposed & \texttt{performance} \\
+Turbo / boost & Not exposed & Disabled \\
+Simultaneous multithreading & Not controllable & Disabled where per-core behaviour is measured \\
+Warm-up & Initial fraction of each run discarded & Initial fraction of each run discarded \\
+Repeats and interleaving & \NRepeats{} repeats, four variants interleaved per repeat & \NRepeats{} repeats, four variants interleaved per repeat \\
+Environment capture & \texttt{bench/capture\_env.sh}, stored with each result & \texttt{bench/capture\_env.sh}, stored with each result \\
+Hardware counters & Unavailable under WSL2 & Available; the clearest instrumentation gap \\
+\hline
+Adequate for & Parity, fault injection, FFI structure, and comparisons the interleaving rescues & Additionally the tail, jitter, and the onset of the overload cliff \\
+\hline
+\end{tabular}
+\end{table}
+
 \section{Workload and evaluation measurements\label{sec:workload}}
 A synthetic but spec-justified telecom workload is generated by a deterministic driver shared
 in structure by both implementations, so that the two versions are exercised along identical
@@ -2066,6 +2255,58 @@ active UEs, swept from nominal load through saturation and overload; a fixed sen
 histogram correction is used so that coordinated-omission bias is avoided when the system
 stalls~\cite{tene_hdrhistogram}. Three measurement campaigns are run: a load sweep for
 performance, the fault-injection study, and an FFI migration prototype.
+
+Table~\ref{tab:params} gathers the configuration of all of this in one place. The values are
+otherwise distributed across the specification, Chapter~\ref{chapter:design}, and this chapter,
+which is convenient while reading each in turn and unhelpful to anyone trying to reproduce the
+campaign or judge whether a parameter was chosen to suit the result. Every entry in the
+campaign block is either fixed by the specification or generated from the measurement logs, so
+the table cannot drift out of step with the data reported below.
+
+\begin{table}
+\centering
+\small
+\caption[Configuration of the service, the workload, and the campaign]{Configuration of the service under test, the workload driving it, and the measurement
+campaign. Service parameters are fixed by the frozen specification and are therefore identical
+in both languages; campaign figures are generated from the measurement logs together with the
+tables that report them. The representative load is not chosen by eye but derived, as the
+busiest swept load at which all four build variants still hold their p99 below
+$5$~ms.\label{tab:params}}
+\footnotesize
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}R{0.28\linewidth} R{0.28\linewidth} R{0.36\linewidth}@{}}
+\hline\hline
+Parameter & Value & Note \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Service under test, identical in both languages}} \\
+Shards, and worker threads & $8$ & one thread exclusively owns one shard \\
+Queue bound per shard & $1\,024$ requests & bounded and blocking, so overload is observable \\
+Initial map capacity & $4\,096$ entries & reserved so steady state does not rehash \\
+Bearers per context & at most $8$ & \\
+Signaling payload & $64$ bytes & \\
+Context ceiling per shard & $200\,000$ & \\
+Shard selection & SplitMix64, then modulo & pinned; diffuses sequential identifiers \\
+Intra-shard hash & FNV-1a, 64-bit & pinned on both sides and checked bit-for-bit \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Workload}} \\
+Workloads & signal, mixed & mixed walks the full RAN lifecycle \\
+Active UEs & $5\,000$ & \\
+Offered-load levels & \NLoadLevels{} & up to $\MaxOfferedLoad$~kops/s \\
+Representative load & $\ReprLoad$~kops/s & derived, see caption \\
+Measured saturation & $\SatKnee$~kops/s & tracks the offered rate to $\TrackingLoad$~kops/s \\
+Load model & open loop, fixed intended schedule & latency measured from intended send time \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Campaign}} \\
+Build variants & $\NVariants$ & two languages $\times$ two allocators \\
+Repeats per sweep point & \NRepeats{} & variants interleaved within each repeat \\
+Measured runs & $\NRuns$ & \\
+Latency capture & HDR histogram, $[1\,\text{ns}, 3.6\,\text{s}]$, 3 s.f. & same algorithm and configuration on both sides \\
+Summary statistic & median with bootstrap $95\%$ CI & intervals reported in full, not as half-widths \\
+Language comparison & exact paired permutation test & \NTests{} tests, Holm-corrected \\
+Attainable $p$ floors & $\MinAttainableP$ / $\CorrectedFloor$ & uncorrected / after correction \\
+\hline
+\end{tabular}
+\end{table}
 
 \section{Data collection and metrics}
 The study records latency predictability (per-event mean, median, p99/p99.9/p99.99, and
@@ -2314,6 +2555,27 @@ the corrected threshold. This is the only place in the whole performance campaig
 language difference in \emph{time} is resolved at all, and the sweep is blind to it by four
 orders of magnitude.
 
+Figure~\ref{fig:budget} draws both conclusions on one page, because each is easier to see than
+to read off a table of numbers spanning four decades. The left panel is the round-trip at true
+proportion, where the operation is a sliver too thin to render and the caption has to point at
+it. The right panel puts that sliver on a log axis beside the smallest paired difference the
+sweep could have detected, and the ordering there is the argument of this section: the
+instrument sits entirely above the quantity it would have to constrain.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{figures/fig_budget.pdf}
+\caption[The end-to-end operation decomposed, against what the sweep can resolve]{Where an end-to-end operation's cost goes, and why the sweep cannot bound a language
+effect. \textbf{(a)} The round-trip drawn at true proportion: the operation the language
+performs is $\BudgetCoreShareMax\%$ of the bar and the remainder is the cross-thread handoff
+the operating system performs. \textbf{(b)} The same quantities on a log axis, with the
+smallest paired difference the sweep can resolve shown as a blind zone. Both operation
+measurements fall inside it, by a factor of $\BudgetBoundVsCore$, so an end-to-end null result
+excludes nothing about the code the compilers emit. Note that (b) is also where the one
+resolved timing difference in the campaign lives: \BudgetCoreFaster{} runs the operation about
+$\BudgetCoreRatio\times$ faster. Preliminary (WSL2) data.\label{fig:budget}}
+\end{figure}
+
 The attribution deserves care, because the obvious reading is the wrong one. Nothing here
 implicates the borrow checker, bounds checking, or ownership. The single most likely source is
 already recorded in the forced-idiom log of Table~\ref{tab:idioms}: the per-shard container is
@@ -2464,7 +2726,7 @@ Variant & throughput (kops/s) & peak RSS (MiB) & CPU (\%) \\
 $\ReprLoad$~kops/s. Preliminary (WSL2) data.\label{fig:resources}}
 \end{figure}
 
-\subsection{Safety via fault injection (RQ2)}
+\subsection{Safety via fault injection (RQ2)}\label{sec:safetyresults}
 Instead of claiming that Rust has no bugs, a catalogue of seven classic C++ defects is
 deliberately injected. Each is a small, self-contained program flavoured with the subsystem's
 domain, so that it maps onto a plausible bug in the UE Context Management service. The
@@ -2582,7 +2844,7 @@ or, in the right-hand column, that safe Rust does not prevent. Generated from th
 fault-injection runner logs.\label{fig:taxonomy}}
 \end{figure}
 
-\subsection{Migration (RQ4)}
+\subsection{Migration (RQ4)}\label{sec:migrationresults}
 Incremental adoption is assessed with a working prototype that models the realistic
 direction of migration: an existing C++ host keeps a Rust component behind a C ABI. The Rust
 service is exposed through a thin \texttt{extern "C"} seam in a \emph{separate} crate that
@@ -2705,7 +2967,7 @@ it shares an address space with. & Final \\
 \end{tabular}
 \end{table}
 
-\section{Discussion on the research questions}
+\section{Discussion on the research questions}\label{sec:rqdiscussion}
 \paragraph{RQ1 (predictability).} The sweep answers part of RQ1, and the decomposition of
 Section~\ref{sec:budget} changes what the rest of it means. End to end and below saturation the
 two languages are indistinguishable, agreeing to $\PFiftyRange\,\mu$s across all four build
@@ -2779,6 +3041,25 @@ untouched, and the latter is the category that fails silently, corrupting a coun
 decision rather than crashing. A migration plan that treats ``memory-safe'' as ``concurrency-safe''
 would therefore mis-budget its review and testing effort, which is why this boundary is
 reported as a first-class result rather than a caveat.
+Figure~\ref{fig:boundary} states the whole result in one picture, with the two halves of the
+guarantee on either side of the line and the mechanism that does the enforcing, or the absence
+of one, named in each panel.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/17_guarantee_boundary.pdf}
+\caption[Where Rust's compile-time guarantee stops]{Where the compile-time guarantee stops. On the left are the classes safe Rust rejects
+outright, grouped here by the \emph{mechanism} that rejects them rather than by the defect
+families of Figure~\ref{fig:defectfamilies}: ownership and borrowing for lifetime and aliasing
+errors, which is why iterator invalidation sits with them (\texttt{E0502}), and the
+\texttt{Send}/\texttt{Sync} discipline for unsynchronised access to a location, which is what a
+\emph{data race} is. All five compile in C++, and no one sanitiser reports all of them. On the
+right are the two classes the catalogue included in order to find the edge, and neither
+compiler prevents either; ThreadSanitizer does report the lock-order inversion in C++, but the
+lost update escapes it too, because with every access correctly synchronised there is no race
+to detect. That is also why it escapes the borrow checker. The phrase ``thread safety'' spans
+both sides of the line; the guarantee covers only the left.\label{fig:boundary}}
+\end{figure}
 
 \paragraph{RQ3 (overhead).} The answer splits by resource, and one of the three splits is a
 non-answer that is worth reporting as such. On memory there is a penalty, and it is the one
@@ -2841,7 +3122,7 @@ of the host until the host is migrated too. That is still the right direction of
 is a reason to sequence a migration so that the components sharing the most mutable state cross
 over together rather than one at a time.
 
-\section{Revisiting the hypotheses}
+\section{Revisiting the hypotheses}\label{sec:hypotheses}
 Chapter~\ref{chapter:objectives} committed to three hypotheses before any measurement was
 taken. Stating their disposition explicitly, rather than letting the results speak for
 themselves, is what distinguishes a test from a description.
@@ -2896,7 +3177,10 @@ themselves, is what distinguishes a test from a description.
 The results are meant to be usable, and a vendor weighing Rust for a control-plane component
 needs more than a set of measurements. The following guidelines are the practical form of the
 evidence above; each is tied to the finding that supports it, and the boundaries of that
-support are stated rather than glossed.
+support are stated rather than glossed. Table~\ref{tab:guidelines} states the same six
+guidelines in the compressed form a reader can take into a design review, and
+Figure~\ref{fig:playbook} sequences the first three into the order a first migration would
+actually run them.
 
 \paragraph{Choose the first component for its interface, not its size.}
 The migration prototype (RQ4) bounds the run-time cost of the boundary at $\FfiOpBoundPct\%$
@@ -2961,6 +3245,41 @@ the component one, which says what the language is doing. Neither substitutes fo
 Beyond that, the benchmarking framework rather than its current output is the reusable
 artifact: the decision it should inform is ``measure this on your component'', not ``Rust is
 fast enough, proceed''.
+
+\begin{table}
+\centering
+\small
+\caption[Adoption guidelines, the evidence for each, and its limits]{The six guidelines, the finding each rests on, and the boundary of that support. The
+third column is what keeps the set usable: a guideline quoted without its limit is how the RQ2
+result becomes ``the migrated component is safe'' and the RQ4 result becomes ``migration is
+cheap'', neither of which this study establishes.\label{tab:guidelines}}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}R{0.26\linewidth} R{0.31\linewidth} R{0.33\linewidth}@{}}
+\hline\hline
+Guideline & Rests on & Boundary of that support \\
+\hline
+Choose the first component for its interface, not its size or its heat & RQ4: twelve entry points and $231$ lines sufficed because the API was already lifecycle-oriented and scalar & A component whose interface passes rich C++ objects, templates, or callbacks must have those designed out first, and that redesign is the schedule risk \\
+Put the ABI in its own crate and keep the core \texttt{unsafe}-free & RQ4: zero \texttt{unsafe} in the core, twelve delimited sites in the seam under one safety contract & Bounds what must be \emph{reviewed}, not what can be \emph{corrupted}: host and component share a heap until the host migrates too \\
+Do not re-budget concurrency review on the strength of memory safety & RQ2: both boundary classes compile in safe Rust, and the lost update escapes both sanitisers as well & Lock ordering and composed-but-not-atomic operations remain exactly as necessary to review as they were in C++ \\
+Prefer a shared-nothing structure to a shared-and-locked one & The thread-per-shard design removes locks from the hot path, which is why the boundary defects had to be written as standalone programs & Not a language result: the same structure is available to C++, and it needs neither compiler's help \\
+Budget for the learning curve, and instrument it & Adoption studies report the barrier as human rather than technical~\cite{fulton2021adopting,crichton2024learning} & This study is single-author and cannot quantify the cost it is telling others to budget for \\
+Measure the component, not only the round-trip & \S\ref{sec:budget}: an end-to-end operation here is $\BudgetCoreShareMax\%$ language and the rest scheduler & Neither measurement substitutes for the other; the round-trip says what a deployment feels, the component says what the language does \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/19_migration_playbook.pdf}
+\caption[A playbook for a first Rust component in a C++ control plane]{A playbook for a first Rust component in a C++ control plane, assembled from the RQ4
+prototype and the RQ2 boundary. The upper row is the sequence, each step annotated with the
+quantity that justifies it; the green band is what the migration buys, at a run-time cost
+bounded at $\FfiOpBoundPct\%$ of one operation; the red band is what it does not buy, which is
+the part most likely to be dropped when the result is summarised. Step~4 is there because an
+end-to-end round-trip in a design of this shape is only $\BudgetCoreShareMax\%$ the work the
+language performs (Section~\ref{sec:budget}), so measuring it alone answers a different
+question from the one being asked.\label{fig:playbook}}
+\end{figure}
 
 \section{Related work}
 Prior Rust-versus-C/C++ comparisons focus on general-purpose performance and
@@ -3132,7 +3451,43 @@ This thesis & RAN control plane & yes & yes & measured \\
 Because every conclusion here attributes a difference to the implementation language, the
 credibility of the study rests on the controls that hold everything else equal and on an
 honest account of where those controls stop. The threats are grouped below by the kind of
-inference each endangers.
+inference each endangers, and Table~\ref{tab:threats} maps them first, so that the residual
+risks can be read as a set rather than recovered one at a time from the prose that follows.
+Two of them are load-bearing enough to be worth naming here: the study cannot rule out
+single-author skill asymmetry, and its end-to-end instrument is the wrong one for part of what
+RQ1 and RQ3 ask.
+
+\begin{table}
+\centering
+\small
+\caption[Threats to validity, their mitigations, and what remains]{Threats to validity by the kind of inference each endangers, the control applied, and
+what that control leaves behind. Only the residuals in the last column are live risks; the
+middle column is what has already been done about each. Two rows carry no mitigation at all,
+and are recorded as such rather than softened.\label{tab:threats}}
+\footnotesize
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}R{0.23\linewidth} R{0.35\linewidth} R{0.32\linewidth}@{}}
+\hline\hline
+Threat & Control applied & Residual risk \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Internal: is the language really the only difference?}} \\
+Implementation bias between the two versions & Frozen specification, shared allocator and optimisation level, pinned hash functions, forced-idiom log, transcript-level parity testing & Single-author skill asymmetry. Parity bounds behaviour, not performance \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Construct: do the metrics measure what the questions ask?}} \\
+The sweep measures the design, not the language & The operation is measured apart from the handoff and both are reported (\S\ref{sec:budget}) & One operation on one data structure is narrower than the sweep it supplements \\
+A defect catalogue is a sample the author chose & Two classes drawn from outside the guarantee, with expectations recorded in advance & Seven programs remain seven programs \\
+RQ3 captures resource cost but not its origin & None available on this host & The memory result is established but unexplained \\
+RQ4 measures the seam, not the safety of the whole & The distinction is stated wherever the result is quoted & One address space: a compile-time property of the Rust side bounds nothing at run time \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Conclusion: are the differences real or noise?}} \\
+Run-to-run non-determinism & \NRepeats{} interleaved repeats, bootstrap intervals, exact paired permutation test, Holm correction, floors quoted & Pairing cancels only what a block shared, so the tail percentiles stay unresolved \\
+A corrected $p$-value that does not replicate & The allocator control runs every comparison twice; replication is followed over the $p$-value & Costs a result where the two disagree: the CPU effect is reported as unresolved \\
+\hline
+\multicolumn{3}{@{}l}{\emph{External: how far do the results travel?}} \\
+One subsystem, one workload, one machine & RQ2 and RQ4 rest on the compilers and the C ABI rather than on the host & The performance results do not travel: shared mutable state or allocation churn could behave differently \\
+\hline
+\end{tabular}
+\end{table}
 
 \paragraph{Internal validity: is the language really the only difference?}
 The central threat is implementation bias between the two versions. It is mitigated

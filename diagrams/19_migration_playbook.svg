@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 514" width="880" height="514" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <marker id="pk" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#2f6db3"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="514" fill="#ffffff"/>
+  <text x="440" y="32" text-anchor="middle" font-size="22" font-weight="700" fill="#12233a">A playbook for a first Rust component in a C++ control plane</text>
+  <text x="440" y="54" text-anchor="middle" font-size="12.5" fill="#5b6b7b">Each step carries the measurement that justifies it; the band below carries what the migration does not buy</text>
+
+  <!-- ================= step 1 ================= -->
+  <rect x="15" y="80" width="196" height="198" rx="10" fill="#eef3fa" stroke="#2f6db3" stroke-width="2"/>
+  <circle cx="41" cy="108" r="14" fill="#2f6db3"/>
+  <text x="41" y="113" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">1</text>
+  <text x="63" y="113" font-size="12.5" font-weight="700" fill="#12233a">Choose by interface</text>
+  <g font-size="11.5" fill="#33475b">
+    <text x="29" y="140">Not by size or by how hot it</text>
+    <text x="29" y="155">is. What decides the cost is</text>
+    <text x="29" y="170">how narrow and scalar the</text>
+    <text x="29" y="185">API already is.</text>
+  </g>
+  <rect x="29" y="214" width="168" height="44" rx="6" fill="#ffffff" stroke="#bcd0e8"/>
+  <text x="39" y="230" font-size="10.5" font-weight="700" fill="#1c4e86">MEASURED</text>
+  <text x="39" y="244" font-size="11" fill="#5b6b7b">12 entry points and 231</text>
+  <text x="39" y="256" font-size="11" fill="#5b6b7b">lines, already scalar.</text>
+
+  <!-- ================= step 2 ================= -->
+  <rect x="233" y="80" width="196" height="198" rx="10" fill="#eef3fa" stroke="#2f6db3" stroke-width="2"/>
+  <circle cx="259" cy="108" r="14" fill="#2f6db3"/>
+  <text x="259" y="113" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">2</text>
+  <text x="281" y="113" font-size="12" font-weight="700" fill="#12233a">Design the C surface</text>
+  <g font-size="11.5" fill="#33475b">
+    <text x="247" y="140">An opaque handle, scalar-</text>
+    <text x="247" y="155">typed operations, and a</text>
+    <text x="247" y="170">status convention. This is</text>
+    <text x="247" y="185">the step needing real</text>
+    <text x="247" y="200">design decisions.</text>
+  </g>
+  <rect x="247" y="214" width="168" height="44" rx="6" fill="#ffffff" stroke="#bcd0e8"/>
+  <text x="257" y="230" font-size="10.5" font-weight="700" fill="#1c4e86">WHERE THE EFFORT IS</text>
+  <text x="257" y="244" font-size="11" fill="#5b6b7b">Rich objects, templates,</text>
+  <text x="257" y="256" font-size="11" fill="#5b6b7b">callbacks: design out.</text>
+
+  <!-- ================= step 3 ================= -->
+  <rect x="451" y="80" width="196" height="198" rx="10" fill="#eef3fa" stroke="#2f6db3" stroke-width="2"/>
+  <circle cx="477" cy="108" r="14" fill="#2f6db3"/>
+  <text x="477" y="113" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">3</text>
+  <text x="499" y="113" font-size="12.5" font-weight="700" fill="#12233a">Isolate the ABI</text>
+  <g font-size="11.5" fill="#33475b">
+    <text x="465" y="140">Every raw-pointer operation</text>
+    <text x="465" y="155">goes in a separate seam</text>
+    <text x="465" y="170">crate depending on an</text>
+    <text x="465" y="185">unmodified core, under one</text>
+    <text x="465" y="200">documented contract.</text>
+  </g>
+  <rect x="465" y="214" width="168" height="44" rx="6" fill="#ffffff" stroke="#bcd0e8"/>
+  <text x="475" y="230" font-size="10.5" font-weight="700" fill="#1c4e86">MEASURED</text>
+  <text x="475" y="244" font-size="11" fill="#5b6b7b">0 unsafe in the core; 12</text>
+  <text x="475" y="256" font-size="11" fill="#5b6b7b">sites in the seam.</text>
+
+  <!-- ================= step 4 ================= -->
+  <rect x="669" y="80" width="196" height="198" rx="10" fill="#eef3fa" stroke="#2f6db3" stroke-width="2"/>
+  <circle cx="695" cy="108" r="14" fill="#2f6db3"/>
+  <text x="695" y="113" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">4</text>
+  <text x="717" y="113" font-size="12.5" font-weight="700" fill="#12233a">Measure twice</text>
+  <g font-size="11.5" fill="#33475b">
+    <text x="683" y="140">The round-trip, which says</text>
+    <text x="683" y="155">what a deployment feels,</text>
+    <text x="683" y="170">and the component, which</text>
+    <text x="683" y="185">says what the language</text>
+    <text x="683" y="200">does. Neither substitutes.</text>
+  </g>
+  <rect x="683" y="214" width="168" height="44" rx="6" fill="#ffffff" stroke="#bcd0e8"/>
+  <text x="693" y="230" font-size="10.5" font-weight="700" fill="#1c4e86">WHY</text>
+  <text x="693" y="244" font-size="11" fill="#5b6b7b">A round-trip is mostly</text>
+  <text x="693" y="256" font-size="11" fill="#5b6b7b">the OS, not the language.</text>
+
+  <line x1="213" y1="179" x2="229" y2="179" stroke="#2f6db3" stroke-width="2" marker-end="url(#pk)"/>
+  <line x1="431" y1="179" x2="447" y2="179" stroke="#2f6db3" stroke-width="2" marker-end="url(#pk)"/>
+  <line x1="649" y1="179" x2="665" y2="179" stroke="#2f6db3" stroke-width="2" marker-end="url(#pk)"/>
+
+  <!-- ================= what it buys ================= -->
+  <rect x="15" y="292" width="850" height="54" rx="8" fill="#f4fbf6" stroke="#2e8b57" stroke-width="1.8"/>
+  <text x="31" y="311" font-size="12.5" font-weight="700" fill="#1f6b41">What this buys</text>
+  <text x="31" y="328" font-size="11.5" fill="#33475b">The migrated component stops contributing new use-after-free, double-free, iterator-invalidation, and data-race defects &#8212;</text>
+  <text x="31" y="343" font-size="11.5" fill="#33475b">at compile time, on every ordinary build, and for a run-time cost the measurement bounds at a small fraction of one operation.</text>
+
+  <!-- ================= what it does not buy ================= -->
+  <rect x="15" y="358" width="850" height="112" rx="9" fill="#fdf1f0" stroke="#a5281b" stroke-width="1.8"/>
+  <text x="31" y="380" font-size="13" font-weight="700" fill="#8c2a20">What it does not buy &#8212; the part most likely to be dropped when the result is summarised</text>
+
+  <rect x="29" y="390" width="266" height="72" rx="7" fill="#ffffff" stroke="#e6b3ad"/>
+  <text x="43" y="410" font-size="11.5" font-weight="700" fill="#12233a">Protection from the host</text>
+  <text x="43" y="427" font-size="11" fill="#5b6b7b">One address space: a C++ memory</text>
+  <text x="43" y="441" font-size="11" fill="#5b6b7b">error can corrupt Rust-owned data</text>
+  <text x="43" y="455" font-size="11" fill="#5b6b7b">however checked the Rust side was.</text>
+
+  <rect x="311" y="390" width="266" height="72" rx="7" fill="#ffffff" stroke="#e6b3ad"/>
+  <text x="325" y="410" font-size="11.5" font-weight="700" fill="#12233a">A smaller concurrency review</text>
+  <text x="325" y="427" font-size="11" fill="#5b6b7b">Lock-ordering discipline and review</text>
+  <text x="325" y="441" font-size="11" fill="#5b6b7b">for composed-but-not-atomic</text>
+  <text x="325" y="455" font-size="11" fill="#5b6b7b">operations stay just as necessary.</text>
+
+  <rect x="593" y="390" width="266" height="72" rx="7" fill="#ffffff" stroke="#e6b3ad"/>
+  <text x="607" y="410" font-size="11.5" font-weight="700" fill="#12233a">A free first component</text>
+  <text x="607" y="427" font-size="11" fill="#5b6b7b">The dominant cost is human. Treat</text>
+  <text x="607" y="441" font-size="11" fill="#5b6b7b">the first as a training investment</text>
+  <text x="607" y="455" font-size="11" fill="#5b6b7b">and instrument it.</text>
+
+  <text x="440" y="496" text-anchor="middle" font-size="11.5" fill="#8794a3">Sequence the migration so that components sharing the most mutable state cross over together rather than one at a time.</text>
+</svg>

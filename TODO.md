@@ -12,7 +12,7 @@ primary control against implementation bias.
 
 ## Next up (as of 9 Aug 2026)
 
-Implementation, analysis, and writing are finished: `thesis.pdf` builds at 119 pages with zero
+Implementation, analysis, and writing are finished: `thesis.pdf` builds at 127 pages with zero
 LaTeX errors and zero undefined references or citations, and every quoted number regenerates
 from the raw logs. What is left is one measurement, one review round, and housekeeping. The plan
 document (`Thesis_Plan_v2.pdf`, dated 9 Aug 2026) puts measurement in September, RQ1/RQ3
@@ -55,7 +55,7 @@ needs.
 - [x] Install LaTeX toolchain (TinyTeX in ~/.TinyTeX; `pdflatex`, `bibtex`, `latexmk` on PATH)
 - [x] Obtain the `UH_DS_MSc.cls` class file (local reconstruction from UH_*_MSc family; see note)
 - [x] Create `bibliography.bib` with all cited references (65 entries as of Aug 2026)
-- [x] Verify `thesis.tex` compiles to PDF end-to-end (119 pages as of Aug 2026, all
+- [x] Verify `thesis.tex` compiles to PDF end-to-end (127 pages as of Aug 2026, all
       refs/citations resolve; bibliography style is now `IEEEtran`, numbered in citation order)
 - [x] Initialize git repository; add `.gitignore` (build artifacts, LaTeX aux files)
 - [ ] (Optional) Replace reconstructed `UH_DS_MSc.cls` with the official one from Overleaf/Moodle
@@ -328,7 +328,7 @@ numbers land:
   campaign, supervisor review, and submission. `Thesis_Plan_v2.pdf` schedules these as
   September (measure), October (resolve RQ1/RQ3), November (colloquium + submit).
 - Current artefact status (verified Aug 2026): spec + C++/Rust implementations + conformance
-  suite + bench/fault/ffi harnesses + generated figures/tables + 119-page thesis PDF. All green
+  suite + bench/fault/ffi harnesses + generated figures/tables + 127-page thesis PDF. All green
   on `spec/conformance/run.sh`, `ctest`, `cargo test`, `faults/run_faults.sh`, `ffi/build.sh`.
 - **Remaining critical path:** (1) supervisor review → spec v1.0 freeze, (2) bare-metal campaign
   including counters + allocation profile, (3) `bench/refresh_thesis.sh` with definitive data,

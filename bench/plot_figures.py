@@ -617,6 +617,111 @@ def write_budget_table(budget, outdir):
     return out
 
 
+def fig_budget(budget, sig_results, outdir):
+    """Two-panel decomposition of the end-to-end latency the sweep reports.
+
+    The table states this in numbers, but the numbers span four orders of
+    magnitude and that is exactly the thing a reader skims past. Panel (a) draws
+    the round-trip at true proportion, so the operation is a sliver the caption
+    has to point at. Panel (b) puts the operation on a log axis next to the
+    smallest paired difference the sweep could have resolved, which is the
+    comparison that decides whether an end-to-end null result bounds a language
+    effect at all. It does not: the instrument is coarser than the quantity by
+    three orders of magnitude.
+    """
+    if not budget or not budget.get("cpp") or not budget.get("rust"):
+        return None
+    med = lambda lang, key: budget_median(budget, lang, key)
+    core = {l: med(l, "core_ns") for l in ("cpp", "rust")}
+    handoff = {l: med(l, "handoff_ns") for l in ("cpp", "rust")}
+    if min(core.values()) <= 0:
+        return None
+
+    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(9.6, 3.5),
+                                     gridspec_kw={"width_ratios": [1.0, 1.25]})
+
+    # ---- (a) the round-trip at true proportion ---------------------------- #
+    langs = ["cpp", "rust"]
+    names = {"cpp": "C++", "rust": "Rust"}
+    ypos = [1, 0]
+    core_us = [core[l] / NS_PER_US for l in langs]
+    hand_us = [handoff[l] / NS_PER_US for l in langs]
+    ax_a.barh(ypos, core_us, height=0.45, color="#c0392b",
+              label="operation (the language)")
+    ax_a.barh(ypos, hand_us, height=0.45, left=core_us, color="#b6c2cf",
+              label="cross-thread handoff (the OS)")
+    ax_a.set_yticks(ypos)
+    ax_a.set_yticklabels([names[l] for l in langs])
+    ax_a.set_xlabel("End-to-end round-trip (\u00b5s)")
+    ax_a.set_title("(a) Drawn at true proportion", fontsize=9.5)
+    ax_a.grid(True, axis="x", ls=":", alpha=0.4)
+    ax_a.set_axisbelow(True)
+    ax_a.set_xlim(0, max(c + h for c, h in zip(core_us, hand_us)) * 1.32)
+    for y, c, h in zip(ypos, core_us, hand_us):
+        ax_a.text(c + h, y, f"  {c + h:.1f} \u00b5s", va="center", fontsize=8.5)
+    share = max(med(l, "core_share_pct") for l in langs)
+    ax_a.annotate(f"the operation:\n{share:.3f}% of the bar",
+                  xy=(0, 1.23), xytext=(max(hand_us) * 0.22, 1.60),
+                  fontsize=8, color="#c0392b", ha="left",
+                  arrowprops=dict(arrowstyle="->", color="#c0392b", lw=1.1))
+    ax_a.set_ylim(-0.75, 2.05)
+    ax_a.legend(fontsize=7.5, loc="lower right", framealpha=0.95)
+
+    # ---- (b) the same quantities on a log axis ---------------------------- #
+    # The sweep's resolving power on the paired median difference: the widest
+    # bound its confidence interval supports. Anything smaller than this is
+    # invisible to the sweep however many repeats are added, because the
+    # dispersion is interference rather than sampling noise.
+    p50_sig = [r for r in sig_results if r["metric"].startswith("p50")]
+    bound_us = (max(max(abs(r["lo"]), abs(r["hi"])) for r in p50_sig)
+                if p50_sig else None)
+
+    labels, vals, colors = [], [], []
+    for l in langs:
+        labels.append(f"{names[l]} operation")
+        vals.append(core[l])
+        colors.append("#d62728" if l == "rust" else "#1f77b4")
+    labels.append("Cross-thread handoff")
+    vals.append(max(handoff.values()))
+    colors.append("#8794a3")
+    if bound_us:
+        # Drawn as a bar rather than a marker on purpose: it is a blind zone, not
+        # a measurement. Everything it covers is invisible to the sweep, and the
+        # two operation bars sit well inside it.
+        labels.append("Sweep's blind zone\n(bound on the paired p50)")
+        vals.append(bound_us * NS_PER_US)
+        colors.append("#f2d4d0")
+
+    yb = list(range(len(vals)))[::-1]
+    bars = ax_b.barh(yb, vals, height=0.5, color=colors)
+    if bound_us:
+        bars[-1].set_hatch("//")
+        bars[-1].set_edgecolor("#a5281b")
+    ax_b.set_xscale("log")
+    ax_b.set_yticks(yb)
+    ax_b.set_yticklabels(labels, fontsize=8.5)
+    ax_b.set_xlabel("Cost (ns, log scale)")
+    ax_b.set_title("(b) The instrument against the quantity", fontsize=9.5)
+    ax_b.grid(True, axis="x", which="both", ls=":", alpha=0.4)
+    ax_b.set_axisbelow(True)
+    ax_b.set_xlim(min(vals) * 0.4, max(vals) * 7)
+    for y, v in zip(yb, vals):
+        txt = f"{v:.0f} ns" if v < 1000 else f"{v / NS_PER_US:.0f} \u00b5s"
+        ax_b.text(v * 1.25, y, txt, va="center", fontsize=8.5)
+    if bound_us:
+        ratio = bound_us * NS_PER_US / max(core.values())
+        ax_b.annotate(f"{ratio:.0f}\u00d7 the quantity it would have to constrain",
+                      xy=(0.5, -0.55), xycoords=("axes fraction", "data"),
+                      ha="center", fontsize=8, color="#a5281b")
+        ax_b.set_ylim(-1.15, len(vals) - 0.4)
+
+    fig.tight_layout()
+    out = os.path.join(outdir, "fig_budget.pdf")
+    fig.savefig(out)
+    plt.close(fig)
+    return out
+
+
 def fmt_us(ns):
     return f"{ns / NS_PER_US:.1f}"
 
@@ -1148,6 +1253,9 @@ def main():
               f"run bench/latency_budget.sh (tab_budget.tex left as is)")
 
     sig = significance_results(rows, load)
+    budget_fig = fig_budget(budget, sig, outdir)
+    if budget_fig:
+        produced.append(budget_fig)
     lat_tab = write_latency_table(rows, outdir, load)[0]
     res_tab = write_resource_table(rows, outdir, load)
     macros = write_generated_macros(rows, outdir, load, sig, budget, ffi_metrics)
