@@ -10,11 +10,53 @@ primary control against implementation bias.
 
 ---
 
+## Next up (as of 9 Aug 2026)
+
+Implementation, analysis, and writing are finished: `thesis.pdf` builds at 119 pages with zero
+LaTeX errors and zero undefined references or citations, and every quoted number regenerates
+from the raw logs. What is left is one measurement, one review round, and housekeeping. The plan
+document (`Thesis_Plan_v2.pdf`, dated 9 Aug 2026) puts measurement in September, RQ1/RQ3
+resolution in October, and submission in November, so the ordering below is what that timeline
+needs.
+
+1. **Send the spec and the plan to the supervisors** (Phase 1, Phase 2). This needs no repo work
+   and everything gated on `spec-v1.0` is queued behind it. Of the three Phase 1 items, "what can
+   be published" is the one that can force rework rather than just a signature: the repository is
+   already public (`github.com/VienThanh12/Master-Thesis`, compiled PDF included), so hearing a
+   Nokia objection now costs far less than hearing it in November.
+2. **Line up the bare-metal host** (Phase 8). Still the only substantive blocker, and now a
+   narrow one: §7.5.2 showed the operation itself to be 0.04% of the end-to-end cost, so the
+   testbed buys the tail and the overload cliff specifically, not a better median comparison.
+   `bench/setup_testbed.sh` provisions a fresh box and prints a GREEN/RED readiness check. The
+   fallbacks named in the plan are a cloud bare-metal instance or a Nokia lab host.
+3. **Do the harness work before that visit, not during it** (Phase 7a). Three things are in this
+   category, and all three are cheap now and expensive later:
+   - p99.99 and a jitter statistic. Both benches emit only fixed percentiles and never persist
+     the HDR histogram, so neither can be recovered from a finished campaign. Left alone, the
+     bare-metal data comes back with the same hole as the WSL2 data, on the one question the
+     visit exists to answer.
+   - `perf` counters. Two results are currently significant but unexplained (peak RSS) or resting
+     on a plausibility argument (the 1.9x operation gap, attributed to `std::unordered_map` being
+     node-based against Rust's open-addressed `HashMap`).
+   - An allocation profile per variant, to attribute the peak-RSS difference to allocation sites.
+   The last two do not work under WSL2 at all, so the visit is the only chance to collect them.
+4. **Decide what the companion documents are for, and fix the broken one** (new Phase 9b).
+   `thesis-vi.pdf` currently renders 113 citations as `[?]` and predates the 15-repeat campaign.
+5. **Rebuild the slide deck against the current results** (Phase 10). Three of its slides now
+   contradict the thesis.
+6. **Then, once the data lands:** `bench/refresh_thesis.sh`, reread the six claims listed under
+   "After the bare-metal campaign" at the end of this file, and start the proofread round. The two
+   title-page items are not on this path and are not yours to schedule: the examiners come from
+   the faculty, and the official `UH_DS_MSc.cls` from the UH Overleaf/Moodle.
+
+---
+
 ## Phase 0 - Environment & repository setup
 - [x] Install LaTeX toolchain (TinyTeX in ~/.TinyTeX; `pdflatex`, `bibtex`, `latexmk` on PATH)
 - [x] Obtain the `UH_DS_MSc.cls` class file (local reconstruction from UH_*_MSc family; see note)
 - [x] Create `bibliography.bib` with all cited references (65 entries as of Aug 2026)
-- [x] Verify `thesis.tex` compiles to PDF end-to-end (105 pages, all refs/citations resolve)
+- [x] Verify `thesis.tex` compiles to PDF end-to-end (119 pages as of Aug 2026, all
+      refs/citations resolve; bibliography style is now `IEEEtran`, numbered in citation order)
 - [x] Initialize git repository; add `.gitignore` (build artifacts, LaTeX aux files)
 - [ ] (Optional) Replace reconstructed `UH_DS_MSc.cls` with the official one from Overleaf/Moodle
 - [ ] Confirm the cover-page programme label ("Master's Programme in Computer Science") is correct
@@ -109,16 +151,34 @@ latexmk -C                   # clean build artifacts
 ### 7a. Load sweep (RQ1 latency predictability, RQ3 overhead)
 - [~] Run load sweep nominal -> saturation -> overload: driver ready (`bench/campaign.sh`:
       rates x 4 variants, CO-corrected, repeats + interleaving + bootstrap median/CI + plots).
-      **15-repeat WSL2 campaign in progress** (Aug 2026; pipeline smoke only — WSL2 not
-      testbed-grade). Definitive RQ1/RQ3 numbers still need bare-metal execution.
+      15-repeat WSL2 campaign **done** (480 runs, `campaign-20260807-122430.jsonl`,
+      `campaign-15rep.log`), and it is what every thesis table currently reports. WSL2 is not
+      testbed-grade, so definitive RQ1/RQ3 numbers still need bare-metal execution.
 - [~] Collect latency (mean/p50/p90/p99/p99.9/max), throughput, peak RSS + CPU% per offered load
-      (getrusage; aggregated with 95% CI by `bench/aggregate.py`), still add jitter + p99.99
+      (getrusage; aggregated with 95% CI by `bench/aggregate.py`), still add jitter + p99.99.
+      **Do this before the testbed run, not after.** Both benches emit only fixed percentiles
+      into the JSONL (`lat_ns: p50/p90/p99/p999/max/mean`) and never persist the HDR histogram
+      itself, so p99.99 and any jitter statistic cannot be recovered from a finished campaign.
+      Left as is, the bare-metal dataset comes back with exactly the same gap as this one, on the
+      one question the visit is for.
 - [x] Decompose the end-to-end latency into the operation's own work and the cross-thread
       handoff, in both languages, at the sweep's shard count and population
       (`bench/latency_budget.sh` -> `tab_budget.tex`, `\Budget*` macros). Without this a bound
       on the paired median difference cannot be read: "a fifth of the median" is a weak bound
       if the median is mostly handoff, and the sweep alone cannot say whether it is.
       `ShardCore` gives the work with no queue in the path; `Service` gives work + handoff.
+- [ ] Hardware counters, collected on the testbed visit. Add a `bench/counters.sh` that wraps the
+      existing budget and sweep binaries in `perf stat` (cycles, instructions, cache-references,
+      cache-misses, LLC-load-misses) and writes them into the same JSONL the aggregator reads.
+      Two live claims need it: the peak-RSS effect is significant but unexplained, and the
+      operation-level gap rests on the node-based-`unordered_map` argument rather than on a
+      measurement. `perf` counters are not available under WSL2, so write it here and run it
+      there.
+- [ ] Allocation profile per variant, same visit (heaptrack or massif for C++, `dhat` or
+      jemalloc's own `prof` for Rust), to attribute the 2.1-2.5 MiB peak-RSS difference to
+      allocation sites. §7.5.4 already establishes the difference is fixed rather than
+      per-context (the `UeContext` layout accounts for ~40 kB at 5000 active UEs, three orders of
+      magnitude short of the gap), so the profile is what turns "unexplained" into a cause.
 ### 7b. Fault-injection study (RQ2 safety)
 - [x] Inject C++ defect catalogue (use-after-free, double-free, iterator invalidation,
       data race, unguarded shared mutation), `faults/cpp/*.cpp`, domain-flavoured
@@ -177,6 +237,10 @@ latexmk -C                   # clean build artifacts
       `lizard` over both cores (one tool, both languages) -> `tab_complexity.tex`. Result: Rust is
       19% longer but 15% lower in total complexity; C++ `worker_loop` is CCN 13 vs Rust's max of 6.
 - [x] Draft evidence-based migration/language-selection guidelines (RQ4 inputs ready; §8.4)
+- [ ] Extend `bench/refresh_thesis.sh` to rebuild every document that quotes the numbers, not
+      only `thesis.tex`. `plain_thesis.tex` inputs the same `figures/gen_*.tex`, so its prose
+      updates while its PDF does not, which is exactly how a companion document goes stale
+      without anyone noticing.
 
 ## Phase 9 - Writing (fill placeholders in thesis.tex)
 - [x] Build `bibliography.bib` (3gpp38401, 3gpp38300, msrc2019memory, google2022android,
@@ -195,6 +259,31 @@ latexmk -C                   # clean build artifacts
       NOTE: the abstract box is full to the line. Any addition pushes the CCS block into the
       Keywords row; check page 3 visually after editing it.
 
+## Phase 9b - Companion documents (assign a status, then keep them in step)
+The repo now carries four documents besides `thesis.tex`. Only `thesis.tex` is the submission
+artefact; the rest are unlabelled, which is how two of them drifted without it being visible.
+- [x] `plain_thesis.tex` - plain-language variant (121 pages) for a reader with no 5G
+      background. Same argument, same data, same generated macros; builds clean. `thesis.tex`
+      stays the reference version, and its header already says so.
+- [ ] `thesis-vi.tex` - Vietnamese translation (75 pages), currently **broken and stale**. All
+      113 citations (33 distinct keys) render as `[?]` because bibtex has never been run for this
+      variant: there is no `thesis-vi.blg`, and its `.bbl` is a 25 Jul copy predating the
+      `IEEEtran` switch. It also does not `\input figures/gen_macros.tex` at all, so its numbers
+      are hand-copied and now predate the 15-repeat campaign, the latency decomposition, and the
+      corrected RQ3 reading. Decide whether it is a deliverable: if yes, run bibtex and port the
+      results across; if no, record that in the notes so it stops reading as unfinished work.
+- [ ] `thesis_wbm.tex` - 27-page bullet digest of all ten chapters, useful for a supervisor
+      read-through. Its abstract is still the template placeholder, "Abstract to be written last."
+- [ ] `Thesis_Plan_v2.tex` - the 5-page plan, reset to a pre-work baseline ("Work has not started
+      yet") and dated 9 Aug 2026. If it is handed in later than that date, the date and the status
+      table have to move together.
+- [ ] Make the title-page fields agree across variants: `thesis_wbm.tex` has
+      `\censors{Keijo Heljanko}{}{}` while `thesis.tex` still has `\censors{}{}{}`. One of the two
+      is wrong, and the same programme/study-track labels are duplicated in four files.
+- [ ] Housekeeping: `thesis_wbm_full_backup.tex` is a tracked 208 kB leftover still on
+      `\bibliographystyle{abbrv}`. Delete it or move it out of the repo root, so the one-word
+      difference from `thesis_wbm.tex` cannot be edited by mistake.
+
 ## Phase 10 - Finalization
 - [ ] Full proofread + supervisor review round(s)
 - [x] Verify all cross-references, citations, tables, figures resolve (0 errors, 0 undefined)
@@ -202,6 +291,13 @@ latexmk -C                   # clean build artifacts
       quoted number from the raw logs and rebuilds the PDF in one command
 - [ ] Fill `\censors{}{}{}` on the title page once the faculty assigns examiners
 - [ ] Swap the reconstructed `UH_DS_MSc.cls` for the official one (see Notes)
+- [ ] Rebuild the colloquium deck (`build_deck.py` -> `Rust_vs_Cpp_Nokia_RAN_thesis.pptx`, last
+      built 14 Jul). Its numbers are hardcoded medians over **four** repeats, and three slides now
+      contradict the thesis: "RQ3: resource use is comparable across languages" (peak RSS is now
+      the campaign's one resolved language effect), and both RQ1 slides still say the languages
+      "diverge only in the far tail", the reading §7.5.1 explicitly refuses. It also has no slide
+      for the latency decomposition, which is the study's most consequential result. Have the
+      script read `figures/gen_macros.tex` so the deck cannot drift from the data again.
 - [ ] Final PDF + submission
 
 ### After the bare-metal campaign, re-check these
@@ -229,12 +325,20 @@ numbers land:
 
 ### Notes / open questions
 - Timeline: writing and implementation complete; remaining work is spec freeze, bare-metal
-  campaign, supervisor review, and submission.
+  campaign, supervisor review, and submission. `Thesis_Plan_v2.pdf` schedules these as
+  September (measure), October (resolve RQ1/RQ3), November (colloquium + submit).
 - Current artefact status (verified Aug 2026): spec + C++/Rust implementations + conformance
-  suite + bench/fault/ffi harnesses + generated figures/tables + 105-page thesis PDF. All green
+  suite + bench/fault/ffi harnesses + generated figures/tables + 119-page thesis PDF. All green
   on `spec/conformance/run.sh`, `ctest`, `cargo test`, `faults/run_faults.sh`, `ffi/build.sh`.
-- **Remaining critical path:** (1) supervisor review → spec v1.0 freeze, (2) bare-metal campaign,
-  (3) `bench/refresh_thesis.sh` with definitive data, (4) final proofread + submission.
+- **Remaining critical path:** (1) supervisor review → spec v1.0 freeze, (2) bare-metal campaign
+  including counters + allocation profile, (3) `bench/refresh_thesis.sh` with definitive data,
+  (4) final proofread + submission.
+- Three overfull boxes remain in `thesis.log`; all three are the known abstract-page overflow,
+  and they are present in pre-refinement builds too. Nothing else in the build is dirty.
+- Two load-bearing citations are still arXiv preprints rather than peer-reviewed work (Bugden and
+  Alahmar for "Rust matches C/C++ on performance", Zhang et al. for deadlock detection). Optional,
+  but replacing either removes the last soft spot in the bibliography. See `ASSESSMENT.md`
+  criterion 2.
 - `UH_DS_MSc.cls` is a LOCAL RECONSTRUCTION adapted from `UH_TCM_MSc.cls` (which states it
   is "based heavily on the UH_DS_MSc.cls"). It defines every command thesis.tex uses
   (`\prof`, `\censors`, `\mytableofcontents`, `\mynomenclature`, `\myappendixtitle`,
