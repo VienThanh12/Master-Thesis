@@ -3094,6 +3094,23 @@ useful to a vendor sizing a control-plane node: adopting Rust here costs a few m
 fixed footprint per process, and buys a faster core operation
 (Section~\ref{sec:budget}) that this workload's structure never converts into throughput.
 
+The sign of that result is worth defending, because the closest prior work in the domain
+reports the opposite one. Karlb\"ack and Or\"o measure peak resident set on a RAN workload and
+find Rust the \emph{lowest} of the three languages and C++ the highest, with the gap widening
+as concurrency rises, a pattern they flag as unexplained~\cite{karlback2021ran}. The two
+findings are compatible once it is seen that they measure different quantities. Their C++ runs
+on Boost.Fibers, which allocates a stack per fiber, so ten thousand concurrent sequences cost
+ten thousand stacks; their Rust runs on Tokio, where a task is a heap-allocated future of a few
+hundred bytes. What their figures capture is therefore the per-context cost of the concurrency
+runtime, which is precisely why it grows with the number of contexts. The design measured here
+has no green threads on either side: a fixed thread-per-shard pool leaves no per-context
+allocation to differ, and what remains is the fixed footprint reported above, constant in the
+number of UEs rather than proportional to it. Their disagreement with this result is thus
+between two concurrency runtimes rather than between two languages, which is as direct a
+demonstration as the literature offers of why this study holds the concurrency model fixed. It
+also sharpens the caveat attached to the present number: it licenses nothing about Rust's
+memory behaviour under a task-per-UE design, which is a different experiment.
+
 \paragraph{RQ4 (migration).} The prototype shows that incremental adoption is technically
 cheap: a C++ host can call an unmodified Rust core across a thin C-ABI seam whose cost on a
 real operation is bounded at $\FfiOpBoundPct\%$, confining all \texttt{unsafe} to the seam.
@@ -3367,7 +3384,18 @@ Two master's theses, both carried out at Ericsson, are the closest prior work by
 deserve separate treatment. Karlb\"ack and Or\"o compare Rust and Go against C++ for RAN
 applications on x86 and ARM, combining runtime measurements with development-efficiency metrics,
 and conclude that C++ remains the choice where performance is
-critical~\cite{karlback2021ran}. Arvidsson and Kaller are closer still: they evaluate
+critical~\cite{karlback2021ran}. Their control deserves to be quoted rather than characterised,
+because it is the clearest statement in this literature of the confound the present study is
+built to remove: the authors record that they deliberately did not write the same program three
+times, making ``an effort \ldots{} to utilize the different strengths of each language, and stay
+away from using exactly the same implementation''~\cite{karlback2021ran}. For the question they
+ask, which is what a team would obtain by writing idiomatic code in each language, that is the
+right choice. It is the wrong control for the question asked here, because the concurrency
+runtime then varies with the language (Boost.Fibers over libevent, goroutines, and Tokio
+respectively) and no measured difference can be apportioned between the two.
+Section~\ref{sec:rqdiscussion} returns to this with a concrete case, in which their resource
+results and the ones reported here have opposite signs and the disagreement resolves into a
+difference between runtimes rather than between languages. Arvidsson and Kaller are closer still: they evaluate
 asynchronous programming frameworks, C++ with Boost.Fibers, Rust with Tokio and Monoio, Go, and
 Erlang, on 5G control-plane procedures, and report both median and 99th-percentile latency
 across a load sweep~\cite{arvidsson2025async}. Their result is the most direct challenge in the
