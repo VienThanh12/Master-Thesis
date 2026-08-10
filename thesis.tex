@@ -282,6 +282,9 @@ RRC & Radio Resource Control; the control-plane signaling protocol between UE an
 DRB & Data Radio Bearer; a per-UE user-plane data channel set up during a session \\
 Control plane & The signaling and management path, as opposed to the user-plane data path \\
 Tail latency & High-percentile latency (p99, p99.9), the worst-case-oriented timing metric \\
+Jitter & How much latency varies from one operation to the next, as opposed to its typical value \\
+Saturation & The offered load beyond which the service can no longer keep up and requests start queueing \\
+Shard & One of several independent slices of the UE state, each owned by exactly one worker thread \\
 FFI & Foreign Function Interface; calling Rust from C++ across a C ABI \\
 HDR histogram & High-Dynamic-Range histogram, used for accurate latency capture \\
 \hline
@@ -320,25 +323,31 @@ for a representative subsystem is the motivation for this work.
 
 \paragraph{Industrial setting.}
 This thesis is carried out at Nokia, one of the small number of vendors that build, maintain,
-and evolve production RAN software end to end, and the subsystem it studies, UE Context
+and evolve production RAN software end to end. The subsystem it studies, UE Context
 Management (UECM), is modelled on a real gNB-CU-CP control-plane component rather than a
-textbook example. The gNB-CU-CP is not a peripheral module: in the 3GPP disaggregated
-architecture it is the control-plane half of the central unit, hosting RRC and managing the
-UE context lifecycle while delegating user-plane bearer handling to the CU-UP over the E1
-interface~\cite{3gpp38401,3gpp38300,3gpp38463,3gpp38331}, all under the millisecond-scale
-procedure budgets the 5G system places on control signaling~\cite{3gpp22261} and at the very
-high event rates and connected-device counts a deployed network sustains. Because it is
-written in C++, it inherits both that language's performance and its memory-safety and
-concurrency hazards, which is precisely where the two trends above converge. Software of
-this class is shipped, evolved, and operated across live operator networks, so a
-language-selection decision here is a concrete production concern rather than a hypothetical
-one, which is what makes a controlled comparison on a representative subsystem valuable to a
-vendor. UECM is a deliberate choice of study object within that setting: it is small enough to
+textbook example.
+
+The gNB-CU-CP is not a minor component. In the 3GPP disaggregated architecture it is the
+control-plane half of the central unit: it hosts RRC and manages the UE context lifecycle,
+delegating user-plane bearer handling to the CU-UP over the E1
+interface~\cite{3gpp38401,3gpp38300,3gpp38463,3gpp38331}. It does so under the
+millisecond-scale procedure budgets the 5G system places on control
+signaling~\cite{3gpp22261}, and at the very high event rates and connected-device counts a
+deployed network sustains. Because it is written in C++, it inherits both that language's
+performance and its memory-safety and concurrency hazards. That is precisely where the two
+trends above converge.
+
+Software of this class is shipped, evolved, and operated across live operator networks. A
+language-selection decision here is therefore a concrete production concern rather than a
+hypothetical one, which is what makes a controlled comparison on a representative subsystem
+valuable to a vendor.
+
+UECM is a deliberate choice of study object within that setting. It is small enough to
 reimplement faithfully and to reason about in full, yet it exercises exactly the properties
 that make RAN control-plane code hard: per-UE mutable state, a strict operation lifecycle,
 high concurrency across many UEs, and hard tail-latency expectations. Conclusions drawn from
-it therefore transfer to the broader class of stateful, concurrent control-plane services,
-while remaining reproducible by readers outside Nokia because the implementation is driven
+it therefore transfer to the broader class of stateful, concurrent control-plane services.
+They also remain reproducible by readers outside Nokia, because the implementation is driven
 entirely by a public, frozen specification rather than by proprietary code.
 
 \paragraph{A concrete failure mode.}
@@ -347,7 +356,7 @@ single mishandled pointer, a UE context freed on release while an in-flight sign
 still references it, produces a use-after-free. In C++ this compiles cleanly and may pass
 ordinary testing, only to corrupt an unrelated UE's state or crash the worker thread under
 precisely the high-concurrency conditions the system exists to handle; the same latent race
-can equally manifest as an unpredictable tail-latency spike rather than an outright crash. In
+can equally show up as an unpredictable tail-latency spike rather than an outright crash. In
 safe Rust the same design does not compile: ownership and borrowing reject the dangling
 reference at build time. This one scenario captures why the thesis measures both
 \emph{safety} (which defects are prevented, and when) and \emph{predictability} (tail
@@ -370,7 +379,7 @@ memory-safe languages, yet for the RAN control plane they lack \emph{direct, con
 evidence on which to base that decision. It is not established whether a Rust implementation of
 a stateful, concurrent control-plane subsystem can match modern C++ in \emph{tail latency and
 predictability under overload} (as opposed to average throughput), whether Rust's compile-time
-guarantees actually eliminate the specific defect classes that afflict the existing C++ code,
+guarantees actually eliminate the specific defect classes that affect the existing C++ code,
 and what incremental adoption \emph{costs} inside a large C++ codebase. The available evidence
 is largely general-purpose and average-case~\cite{balasubramanian2017rust,qin2020rust}, leaving
 these three questions (predictability, prevented-defect scope, and migration cost) open for a
@@ -525,7 +534,7 @@ and heavily concurrent workloads. In these systems the worst-case and tail behav
 rather than the average, determines whether deadlines are met, which motivates the
 predictability focus of this thesis.
 
-Functionally, the gNB is disaggregated along two orthogonal axes. The first is a
+Functionally, the gNB is disaggregated along two independent axes. The first is a
 \emph{central/distributed} split: a central unit (gNB-CU) hosts the higher layers of the
 protocol stack, while one or more distributed units (gNB-DU) host the lower, more
 time-critical layers close to the radio. The second is a \emph{control/user-plane} split
@@ -684,27 +693,32 @@ Rust offers memory safety and data-race freedom enforced at compile time through
 ownership and borrowing model~\cite{klabnik2023rust}, together with a strong concurrency
 story and modern tooling (Cargo, integrated testing). It is the first industry-supported
 language to overcome the traditional trade-off between the safety of high-level languages and
-the low-level control of C and C++, achieving this with a type system based on ownership and
-borrowing that statically forbids the mutation of shared state, while confining the
-unavoidable exceptions to \texttt{unsafe} code encapsulated behind safe
-APIs~\cite{jung2021safe}. The soundness of the safe fragment of the language, including the
-role of \texttt{unsafe} as an explicitly delimited escape hatch, has been established formally
-by the RustBelt project~\cite{jung2018rustbelt}, and the aliasing discipline that even
-\texttt{unsafe} code must respect has been given a precise operational
-semantics~\cite{jung2020stacked}. Empirical evidence supports the model in
-practice: \texttt{unsafe} is used sparingly and in localised ways in real
-codebases~\cite{astrauskas2020unsafe,qin2020rust}, and a study of all Rust memory-safety CVEs
-found that every one of them involved \texttt{unsafe} code, confirming that safe Rust keeps
-its promise~\cite{xu2021rustcve}. The caveat is that unsafety propagates through dependencies:
-although fewer than a third of libraries use \texttt{unsafe} directly, a much larger fraction
-cannot be fully statically checked because \texttt{unsafe} hides somewhere in their call
-chain~\cite{evans2020rust}, which is a further argument for keeping the safety-critical core of
-a subsystem \texttt{unsafe}-free, as this thesis does. Crucially for a latency-critical setting, this safety is
-enforced by the type system and borrow checker rather than by runtime instrumentation, and is
-intended to be \emph{zero-cost}: systems research argues Rust attains safety without the
-overhead of garbage collection or runtime checks, and even enables efficiency techniques that
-are impractical in C~\cite{balasubramanian2017rust}. Whether that zero-cost claim holds for a
-telecom control-plane workload is precisely the property this thesis evaluates.
+the low-level control of C and C++. It achieves this with a type system based on ownership and
+borrowing that statically forbids the mutation of shared state, confining the unavoidable
+exceptions to \texttt{unsafe} code encapsulated behind safe APIs~\cite{jung2021safe}.
+
+These guarantees rest on more than assertion. The soundness of the safe fragment of the
+language, including the role of \texttt{unsafe} as an explicitly marked escape hatch, has
+been established formally by the RustBelt project~\cite{jung2018rustbelt}, and the aliasing
+discipline that even \texttt{unsafe} code must respect has been given a precise operational
+semantics~\cite{jung2020stacked}. Empirical evidence supports the model in practice. In real
+codebases \texttt{unsafe} is used sparingly and in localised
+ways~\cite{astrauskas2020unsafe,qin2020rust}, and a study of all Rust memory-safety CVEs found
+that every one of them involved \texttt{unsafe} code~\cite{xu2021rustcve}. Safe Rust, in other
+words, keeps its promise.
+
+The caveat is that unsafety propagates through dependencies. Fewer than a third of libraries
+use \texttt{unsafe} directly, but a much larger fraction cannot be fully statically checked
+because \texttt{unsafe} hides somewhere in their call chain~\cite{evans2020rust}. That is a
+further argument for keeping the safety-critical core of a subsystem \texttt{unsafe}-free, as
+this thesis does.
+
+One property matters crucially in a latency-critical setting: this safety is enforced by the
+type system and borrow checker rather than by runtime instrumentation, and is intended to be
+\emph{zero-cost}. Systems research argues Rust attains safety without the overhead of garbage
+collection or runtime checks, and even enables efficiency techniques that are impractical in
+C~\cite{balasubramanian2017rust}. Whether that zero-cost claim holds for a telecom
+control-plane workload is precisely the property this thesis evaluates.
 
 Concretely, the borrow checker rejects at compile time the very use-after-free sketched in the
 introduction. The following program does not build, because \texttt{ctx} is moved (dropped)
@@ -813,15 +827,17 @@ change application tail latency in its own right~\cite{enberg2019threadpercore},
 reason the model is held fixed across both implementations rather than left to each language's
 idiom.
 
-A second, orthogonal choice is how work is queued between producers and consumers. Unbounded
+A second, independent choice is how work is queued between producers and consumers. Unbounded
 queues mask overload and let latency and memory grow without limit; \emph{bounded} queues with
 either blocking (backpressure) or shedding bound worst-case memory and make overload visible,
 which is essential for predictable tail latency. Lock-free structures can reduce contention
 but are notoriously difficult to implement correctly. These considerations directly motivate
 the architecture adopted for both implementations in Chapter~\ref{chapter:design}: a
-shared-nothing, thread-per-shard design with bounded multi-producer/single-consumer queues and
-blocking backpressure, chosen so that any measured latency difference reflects the language
-rather than a divergent concurrency strategy.
+shared-nothing, thread-per-shard design. The UE state is divided into independent slices called
+\emph{shards}, and each shard is owned by exactly one worker thread, so no two threads ever
+touch the same context. Requests reach a shard through a bounded multi-producer,
+single-consumer queue that blocks when full. This model is chosen so that any measured latency
+difference reflects the language rather than a divergent concurrency strategy.
 
 \begin{figure}
 \centering
@@ -910,21 +926,23 @@ Chapter~\ref{chapter:methodology} sets out the methodology by which they are pur
 \chapter{Problem Context: UE Context Management and Predictability\label{chapter:context}}
 
 \section{The UE Context Management subsystem}
-The subsystem under study is a UE Context Management service, modelled on a real Nokia
+The subsystem under study is a UE Context Management service. It is modelled on a real Nokia
 gNB-CU-CP service domain that owns the UE context lifecycle, RRC procedure
 execution~\cite{3gpp38331}, and mobility/handover. Those are the very functions the 3GPP
 architecture assigns to the control-plane part of a disaggregated gNB: the CU-CP hosts the RRC
 and the control-plane part of PDCP and manages the UE context, delegating user-plane bearer
-handling to the CU-UP over the E1 interface~\cite{3gpp38401,3gpp38300,3gpp38463}. It is a good
-representative because it is core RAN L3 functionality,
-performance- and latency-sensitive, inherently stateful and concurrent, and self-contained
+handling to the CU-UP over the E1 interface~\cite{3gpp38401,3gpp38300,3gpp38463}.
+
+It is a good representative on four counts. It is core RAN L3 functionality, it is performance-
+and latency-sensitive, it is inherently stateful and concurrent, and it is self-contained
 enough to specify precisely and benchmark fairly. The modelled functionality includes UE
 context creation and deletion, state transitions (e.g.\ idle to connected), signaling
-message handling, and concurrent context lookup under load. Figure~\ref{fig:fsm} shows the
-UE-context lifecycle state machine that both implementations encode identically; illegal
-transitions (for example signaling an \texttt{Idle} context) return a typed error rather than
-mutating state, and this state machine is exactly what the mixed workload of
-Section~\ref{sec:workload} walks each UE through.
+message handling, and concurrent context lookup under load.
+
+Figure~\ref{fig:fsm} shows the UE-context lifecycle state machine that both implementations
+encode identically. Illegal transitions, for example signaling an \texttt{Idle} context, return
+a typed error rather than mutating state. This state machine is exactly what the mixed workload
+of Section~\ref{sec:workload} walks each UE through.
 
 \begin{figure}
 \centering
@@ -970,15 +988,15 @@ keeps both within reach.
 The interface exercised by the study is deliberately small and lifecycle-oriented: create and
 release a context; set up a connection (\texttt{Idle}$\rightarrow$\texttt{Connected}); handle an
 in-session signaling message; add a data radio bearer; begin, complete, or abort a
-reconfiguration/handover; and look up a context's state under concurrent load. Each operation is
-total with respect to the state machine of Figure~\ref{fig:fsm}: an operation that is illegal in
+reconfiguration/handover; and look up a context's state under concurrent load. Every operation is
+defined for every state of the machine in Figure~\ref{fig:fsm}: an operation that is illegal in
 the current state returns a typed error and leaves the context unchanged, rather than throwing
 or corrupting state. This closed, well-typed operation set is what lets the same test vectors
 and the same workload drive both implementations along identical paths
 (Section~\ref{sec:parity}).
 
 \section{Memory-safety and concurrency defect classes}
-The defects that afflict C++ control-plane code of this kind fall into two families. The
+The defects that affect C++ control-plane code of this kind fall into two families. The
 \emph{memory-safety} family concerns the lifetime and bounds of objects: a \emph{use-after-free}
 accesses storage that has already been released, a \emph{double-free} releases the same storage
 twice, and a \emph{buffer overflow} reads or writes past the end of an allocation. The
@@ -1075,7 +1093,7 @@ Lost update & A counter's read-modify-write is split across two separate critica
 \begin{figure}
 \centering
 \includegraphics[width=0.92\linewidth]{diagrams/pdf/13_defect_families_tree.pdf}
-\caption[Defect classes afflicting C++ control-plane code]{The defect classes that afflict C++ control-plane code, split into a memory-safety
+\caption[Defect classes affecting C++ control-plane code]{The defect classes that affect C++ control-plane code, split into a memory-safety
 family (object lifetime and bounds) and a concurrency family (unsynchronised or ill-ordered
 access). Starred classes are the five injected from inside Rust's guarantee; the two
 diamond-marked classes, lock-order deadlock and lost update, are injected precisely because they
@@ -1364,22 +1382,25 @@ languages.
 
 \subsection{Controlled fault injection (RQ2)}\label{sec:methodfaults}
 RQ2 asks which defect classes a language prevents, and it cannot be answered by measuring
-defect-free code: the absence of a bug in a passing test says nothing about whether the
+defect-free code. The absence of a bug in a passing test says nothing about whether the
 language would have caught it. The method is therefore adversarial, following the established
 practice of software fault injection, in which representative faults are deliberately introduced
-to assess how a system behaves in their presence~\cite{natella2016fault}. A catalogue of
-representative C++ defects, drawn from the classes that afflict this subsystem
-(Chapter~\ref{chapter:context}), is written \emph{deliberately}, each as a small self-contained
-program flavoured with the domain (a stale pointer into the context map, a double release, a
-mutation during iteration, an unsynchronised shared update). Each C++ defect is then built and
+to assess how a system behaves in their presence~\cite{natella2016fault}.
+
+A catalogue of representative C++ defects is written \emph{deliberately}, drawn from the classes
+that affect this subsystem (Chapter~\ref{chapter:context}). Each is a small self-contained
+program flavoured with the domain: a stale pointer into the context map, a double release, a
+mutation during iteration, an unsynchronised shared update. Each C++ defect is then built and
 run under AddressSanitizer and ThreadSanitizer, recording which tool, if any, detects it and at
-what stage; the analogous construct is written in safe Rust and compiled, recording the
-compiler's outcome and, where it compiles, the behaviour of the resulting program. Because the
-independent variable is again only the language while the injected fault is held fixed, the
-difference in outcome, compile-time rejection, runtime detection, or silent miss, is
-attributable to the language's guarantees rather than to the specific bug. The result is a
-taxonomy rather than a performance number: the method establishes the \emph{kind} of protection
-each language offers.
+what stage. The analogous construct is written in safe Rust and compiled, recording the
+compiler's outcome and, where it compiles, the behaviour of the resulting program.
+
+The comparison is controlled in the same way as the performance one. Because the independent
+variable is again only the language while the injected fault is held fixed, the difference in
+outcome is attributable to the language's guarantees rather than to the specific bug. That
+outcome is one of three: compile-time rejection, runtime detection, or a silent miss. The result
+is a taxonomy rather than a performance number: the method establishes the \emph{kind} of
+protection each language offers.
 
 One design decision determines whether that taxonomy can be trusted. A catalogue drawn only
 from classes the language is known to prevent would produce a foregone conclusion: the method
@@ -1576,18 +1597,20 @@ the cores (Section~\ref{sec:testbed}).
 
 \section{Reproducibility and research artifacts}\label{sec:repro}
 The study is designed so that its results can be regenerated by a third party without access to
-Nokia's proprietary code. The implementations are driven entirely by the public frozen
-specification; the benchmarking harness, the fault catalogue and its runner, and the FFI
-prototype are published together with the thesis; and every figure and table in the evaluation
-is produced by a single script directly from the raw measurement logs, so that rerunning the
-campaign on a different host regenerates the artifacts verbatim. The execution environment (CPU
-model, kernel, compiler and toolchain versions, and the frequency and scheduling settings of
-the testbed) is captured automatically alongside each result set, so that the conditions of a
-measurement travel with its data. This separation of environment-sensitive results (the
-performance sweep) from environment-insensitive ones (parity testing, fault injection, and the
-FFI structure) is what lets the thesis label the former preliminary and the latter final
-without ambiguity. Figure~\ref{fig:repro} sets out the published artifact set, the single
-command that regenerates the evaluation from it, and what that command reproduces.
+Nokia's proprietary code. Three things make that possible. The implementations are driven
+entirely by the public frozen specification. The benchmarking harness, the fault catalogue and
+its runner, and the FFI prototype are published together with the thesis. And every figure and
+table in the evaluation is produced by a single script directly from the raw measurement logs,
+so that rerunning the campaign on a different host regenerates the artifacts verbatim.
+
+The execution environment is captured automatically alongside each result set: CPU model,
+kernel, compiler and toolchain versions, and the frequency and scheduling settings of the
+testbed. The conditions of a measurement therefore travel with its data. That matters for one
+distinction in particular. Separating environment-sensitive results (the performance sweep) from
+environment-insensitive ones (parity testing, fault injection, and the FFI structure) is what
+lets the thesis label the former preliminary and the latter final without ambiguity.
+Figure~\ref{fig:repro} sets out the published artifact set, the single command that regenerates
+the evaluation from it, and what that command reproduces.
 
 \begin{figure}
 \centering
@@ -1714,16 +1737,17 @@ build.
 \section{Implementation details}\label{sec:impldetails}
 \label{sec:impl}
 Both implementations follow the frozen specification field-for-field, and both are small
-enough to be read end to end: the C++ core is $649$ lines across eight headers and two
-translation units, the Rust core $736$ lines across eight modules; discarding blank lines and
-comments leaves $516$ and $602$ respectively. That the Rust version is the larger of the two,
-by $13\%$ in raw lines and $17\%$ in code lines, is worth stating plainly rather than leaving
-to a footnote, both because line count is one of the software-quality proxies this study set
-out to collect and because the difference is not incidental verbosity: it is the net of
-several forced idioms pulling in opposite directions, which Section~\ref{sec:idioms}
-decomposes file by file. The remainder of this section works outward from the data model to
-the concurrency machinery, and reports the measured consequences of each language-forced
-divergence as it arises.
+enough to be read end to end. The C++ core is $649$ lines across eight headers and two
+translation units, the Rust core $736$ lines across eight modules. Discarding blank lines and
+comments leaves $516$ and $602$ respectively.
+
+The Rust version is therefore the larger of the two, by $13\%$ in raw lines and $17\%$ in code
+lines. That is worth stating plainly rather than leaving it to a footnote, for two reasons. Line
+count is one of the software-quality proxies this study set out to collect, and the difference
+is not incidental verbosity: it is the net of several forced idioms pulling in opposite
+directions, which Section~\ref{sec:idioms} decomposes file by file. The remainder of this
+section works outward from the data model to the concurrency machinery, and reports the measured
+consequences of each language-forced divergence as it arises.
 
 \subsection{The UE context and its memory layout}\label{sec:uecontext}
 Each UE context stores its identifier, lifecycle state (a four-value enumeration
@@ -1812,18 +1836,21 @@ sides pin their hashing. Shard assignment applies the SplitMix64 finalizer to th
 \texttt{ue\_id}, three xor-shift and multiply rounds with the constants
 \texttt{0xBF58476D1CE4E5B9} and \texttt{0x94D049BB133111EB}, before reducing modulo the shard
 count. The finalizer matters because the workload draws sequential identifiers, which a naive
-modulo would map onto shards in a fixed repeating pattern; diffusing the identifier first
-makes the offered load per shard uniform in both languages by construction rather than by
-luck. The per-shard container is each language's standard hash map
-(\texttt{std::unordered\_map} / \texttt{std::collections::HashMap}), but the default hashers
-are bypassed, C++'s \texttt{std::hash<uint64\_t>} is typically the identity function while
-Rust's default \texttt{SipHash-1-3} is cryptographically strong and correspondingly slower,
-so leaving them in place would have measured a standard-library choice rather than a language.
-Both are therefore keyed through a pinned FNV-1a 64-bit hash over the eight little-endian
-bytes of the identifier, and a test checks that the Rust \texttt{BuildHasher} produces a
-digest bit-identical to the reference \texttt{fnv1a\_64}. Both maps reserve an initial
-capacity of $4\,096$ entries at start-up so that steady-state measurements are not perturbed
-by rehashing. The remaining configuration is likewise shared: eight shards, a queue bound of
+modulo would map onto shards in a fixed repeating pattern. Diffusing the identifier first makes
+the offered load per shard uniform in both languages by construction rather than by luck.
+
+The per-shard container is each language's standard hash map (\texttt{std::unordered\_map} /
+\texttt{std::collections::HashMap}), but the default hashers are bypassed. They differ too much
+to leave in place: C++'s \texttt{std::hash<uint64\_t>} is typically the identity function, while
+Rust's default \texttt{SipHash-1-3} is cryptographically strong and correspondingly slower.
+Keeping them would have measured a standard-library choice rather than a language. Both are
+therefore keyed through a pinned FNV-1a 64-bit hash over the eight little-endian bytes of the
+identifier, and a test checks that the Rust \texttt{BuildHasher} produces a digest bit-identical
+to the reference \texttt{fnv1a\_64}.
+
+Both maps reserve an initial capacity of $4\,096$ entries at start-up so that steady-state
+measurements are not disturbed by rehashing. The remaining configuration is likewise shared:
+eight shards, a queue bound of
 $1\,024$ requests per shard, at most eight bearers and a 64-byte signaling payload per
 context, and a ceiling of $200\,000$ contexts per shard.
 
@@ -1989,7 +2016,7 @@ FIFO, every request already enqueued ahead of it is executed and completed befor
 observes the sentinel and returns. No separate closed flag, timeout, or drain API is required,
 and no completion handle is left unfulfilled. The worker threads are then joined, so shutdown
 returns only once every shard has actually stopped. Figure~\ref{fig:lifecycle} shows the three
-phases and why the sentinel alone is sufficient.
+phases and why the sentinel alone is enough.
 
 \begin{figure}
 \centering
@@ -3129,26 +3156,29 @@ through dependencies~\cite{evans2020rust}, which is why keeping the core \texttt
 
 The second half is where the guarantee stops, and it matters just as much for a vendor
 deciding what Rust buys. The two boundary classes compile in safe Rust and misbehave exactly
-as their C++ counterparts do. Both are instructive for different reasons. The lock-order
-deadlock shows that Rust reasons about \emph{aliasing}, not about \emph{acquisition order}: a
-\texttt{Mutex} guard is an ordinary value whose lifetime the borrow checker tracks perfectly,
-and tracking it perfectly says nothing about whether two threads take their locks in
-compatible orders. That this is a boundary of the language rather than an artefact of the
-injected example is corroborated by the tooling built around it: static deadlock detection for
-Rust is an active research problem in its own right~\cite{zhang2024deadlock}, and model
-checkers for Rust kernel code are motivated explicitly by the observation that ownership and
-borrowing leave data races, deadlocks, and livelocks
-reachable~\cite{tang2025converos}. The lost update is sharper still, because it separates two things the
-phrase ``thread safety'' routinely conflates. Rust eliminates \emph{data races}, unsynchronised
-concurrent access to a location; it does not eliminate \emph{race conditions}, in which every
-individual access is correctly synchronised but the composition of them is not atomic. Here
-the defect is invisible to ThreadSanitizer for precisely the reason it is invisible to the
-borrow checker: there is no unsynchronised access to find. The practical consequence is that
-adopting Rust retires one category of concurrency defect completely while leaving another
-untouched, and the latter is the category that fails silently, corrupting a counter or a state
-decision rather than crashing. A migration plan that treats ``memory-safe'' as ``concurrency-safe''
-would therefore mis-budget its review and testing effort, which is why this boundary is
-reported as a first-class result rather than a caveat.
+as their C++ counterparts do. Both are instructive for different reasons.
+
+The lock-order deadlock shows that Rust reasons about \emph{aliasing}, not about
+\emph{acquisition order}. A \texttt{Mutex} guard is an ordinary value whose lifetime the borrow
+checker tracks perfectly, and tracking it perfectly says nothing about whether two threads take
+their locks in compatible orders. The tooling built around the language confirms that this
+is a boundary of the language rather than an artefact of the injected example. Static deadlock
+detection for Rust is an active research problem in its own right~\cite{zhang2024deadlock}, and
+model checkers for Rust kernel code are motivated explicitly by the observation that ownership
+and borrowing leave data races, deadlocks, and livelocks reachable~\cite{tang2025converos}.
+
+The lost update is sharper still, because it separates two things the phrase ``thread safety''
+routinely conflates. Rust eliminates \emph{data races}: unsynchronised concurrent access to a
+location. It does not eliminate \emph{race conditions}, in which every individual access is
+correctly synchronised but the composition of them is not atomic. Here the defect is invisible
+to ThreadSanitizer for precisely the reason it is invisible to the borrow checker. There is no
+unsynchronised access to find.
+
+The practical consequence is that adopting Rust retires one category of concurrency defect
+completely while leaving another untouched. The category left untouched is the one that fails
+silently, corrupting a counter or a state decision rather than crashing. A migration plan that
+treats ``memory-safe'' as ``concurrency-safe'' would therefore mis-budget its review and testing
+effort. That is why this boundary is reported as a first-class result rather than a caveat.
 Figure~\ref{fig:boundary} states the whole result in one picture, with the two halves of the
 guarantee on either side of the line and the mechanism that does the enforcing, or the absence
 of one, named in each panel.
@@ -3162,7 +3192,7 @@ families of Figure~\ref{fig:defectfamilies}: ownership and borrowing for lifetim
 errors, which is why iterator invalidation sits with them (\texttt{E0502}), and the
 \texttt{Send}/\texttt{Sync} discipline for unsynchronised access to a location, which is what a
 \emph{data race} is. All five compile in C++, and no one sanitiser reports all of them. On the
-right are the two classes the catalogue included in order to find the edge, and neither
+right are the two classes the catalogue included to find the edge, and neither
 compiler prevents either; ThreadSanitizer does report the lock-order inversion in C++, but the
 lost update escapes it too, because with every access correctly synchronised there is no race
 to detect. That is also why it escapes the borrow checker. The phrase ``thread safety'' spans
@@ -3276,7 +3306,7 @@ themselves, is what distinguishes a test from a description.
   \item[H2: supported in its precise form, refuted in its loose one.] The hypothesis was
         that safe Rust prevents at compile time ``the memory-safety and concurrency defect
         classes that C++ leaves to best-effort detection''. For the five injected classes of
-        that kind it holds without exception. The fault-injection study nonetheless refutes
+        that kind it holds without exception. The fault-injection study still refutes
         the broader reading the wording invites: the two boundary classes are concurrency
         defects, they are exactly the sort C++ leaves to best-effort detection, and safe Rust
         does not prevent them either. H2 is therefore accepted for memory safety and
@@ -3409,24 +3439,29 @@ question from the one being asked.\label{fig:playbook}}
 \section{Related work}
 Prior Rust-versus-C/C++ comparisons focus on general-purpose performance and
 energy~\cite{pereira2017energy}, and cross-language benchmark surveys report that Rust matches
-C and C++ on performance while adding safety~\cite{bugden2022rust}. Formal and empirical work establishes the soundness of
-Rust's safe fragment and the disciplined use of \texttt{unsafe}: RustBelt provides
-machine-checked foundations for the safety claims~\cite{jung2018rustbelt,jung2021safe}, and the
-Stacked Borrows model formalises the aliasing rules that \texttt{unsafe} code must
-respect~\cite{jung2020stacked}. Empirical studies of real-world code and of all known
-memory-safety CVEs show that \texttt{unsafe} is used sparingly and that memory-safety defects
-invariably trace back to it~\cite{astrauskas2020unsafe,qin2020rust,xu2021rustcve}. A
-complementary study cautions that unsafety nonetheless propagates through dependency call
-chains, so most libraries cannot be fully statically checked~\cite{evans2020rust}. Ecosystem-scale evidence has since sharpened
-this picture: automated auditing of the crate registry finds memory-safety defects at
-scale~\cite{bae2021rudra}, a study of the advisory database attributes the bulk of reported
-problems to memory-safety and concurrency issues~\cite{zheng2024security}, and the real-world
-defect study cited above has been extended with a larger corpus~\cite{qin2024safety}. Industry
-and government reports motivate memory
-safety from a security standpoint and now call for migration to memory-safe
-languages~\cite{msrc2019memory,google2022android,cisa2023memorysafe,oncd2024building,google2024securebydesign};
-the long-standing difficulty of containing memory-corruption attacks in C/C++ with runtime
-mitigations alone is the security backdrop to this shift~\cite{szekeres2013sok}.
+C and C++ on performance while adding safety~\cite{bugden2022rust}.
+
+Formal and empirical work establishes the soundness of Rust's safe fragment and the disciplined
+use of \texttt{unsafe}. RustBelt provides machine-checked foundations for the safety
+claims~\cite{jung2018rustbelt,jung2021safe}, and the Stacked Borrows model formalises the
+aliasing rules that \texttt{unsafe} code must respect~\cite{jung2020stacked}. Empirical studies
+of real-world code and of all known memory-safety CVEs show that \texttt{unsafe} is used
+sparingly and that memory-safety defects invariably trace back to
+it~\cite{astrauskas2020unsafe,qin2020rust,xu2021rustcve}. A complementary study cautions that
+unsafety still propagates through dependency call chains, so most libraries cannot be
+fully statically checked~\cite{evans2020rust}.
+
+Ecosystem-scale evidence has since sharpened this picture. Automated auditing of the crate
+registry finds memory-safety defects at scale~\cite{bae2021rudra}, a study of the advisory
+database attributes the bulk of reported problems to memory-safety and concurrency
+issues~\cite{zheng2024security}, and the real-world defect study cited above has been extended
+with a larger corpus~\cite{qin2024safety}.
+
+Industry and government reports motivate memory safety from a security standpoint and now call
+for migration to memory-safe
+languages~\cite{msrc2019memory,google2022android,cisa2023memorysafe,oncd2024building,google2024securebydesign}.
+The security backdrop to this shift is a long-standing one: memory-corruption attacks in C/C++
+have proved hard to contain with runtime mitigations alone~\cite{szekeres2013sok}.
 
 On the performance side, systems-oriented studies argue that Rust delivers safety at
 essentially zero runtime cost and is viable in demanding low-level domains. Rust enforces
@@ -3489,53 +3524,61 @@ evaluation~\cite{georges2007rigorous}, and the fault-injection study follows sta
 software-fault-injection practice~\cite{natella2016fault}.
 
 Two master's theses, both carried out at Ericsson, are the closest prior work by domain and
-deserve separate treatment. Karlb\"ack and Or\"o compare Rust and Go against C++ for RAN
-applications on x86 and ARM, combining runtime measurements with development-efficiency metrics,
-and conclude that C++ remains the choice where performance is
-critical~\cite{karlback2021ran}. Their control deserves to be quoted rather than characterised,
-because it is the clearest statement in this literature of the confound the present study is
-built to remove: the authors record that they deliberately did not write the same program three
-times, making ``an effort \ldots{} to utilize the different strengths of each language, and stay
-away from using exactly the same implementation''~\cite{karlback2021ran}. For the question they
-ask, which is what a team would obtain by writing idiomatic code in each language, that is the
-right choice. It is the wrong control for the question asked here, because the concurrency
-runtime then varies with the language (Boost.Fibers over libevent, goroutines, and Tokio
-respectively) and no measured difference can be apportioned between the two.
-Section~\ref{sec:rqdiscussion} returns to this with a concrete case, in which their resource
-results and the ones reported here have opposite signs and the disagreement resolves into a
-difference between runtimes rather than between languages. Arvidsson and Kaller are closer still: they evaluate
-asynchronous programming frameworks, C++ with Boost.Fibers, Rust with Tokio and Monoio, Go, and
-Erlang, on 5G control-plane procedures, and report both median and 99th-percentile latency
-across a load sweep~\cite{arvidsson2025async}. Their result is the most direct challenge in the
-literature to the expectation this thesis set out with: Boost.Fibers shows the lowest latency at
-every load, and while the Rust runtimes track it at the median, their 99th percentile rises more
-steeply beyond a certain request rate. That is a tail divergence in the right domain, and it
-would be dishonest to omit it. It is also, however, a comparison in which the concurrency
-runtime co-varies with the language: the authors attribute the effect to stackless
+deserve separate treatment.
+
+Karlb\"ack and Or\"o compare Rust and Go against C++ for RAN applications on x86 and ARM,
+combining runtime measurements with development-efficiency metrics, and conclude that C++ remains
+the choice where performance is critical~\cite{karlback2021ran}. Their control deserves to be
+quoted rather than characterised, because it is the clearest statement in this literature of the
+confound the present study is built to remove. The authors record that they deliberately did not
+write the same program three times, making ``an effort \ldots{} to utilize the different
+strengths of each language, and stay away from using exactly the same
+implementation''~\cite{karlback2021ran}. For the question they ask, which is what a team would
+obtain by writing idiomatic code in each language, that is the right choice. It is the wrong
+control for the question asked here. The concurrency runtime then varies with the language
+(Boost.Fibers over libevent, goroutines, and Tokio respectively), so no measured difference can
+be divided between the two. Section~\ref{sec:rqdiscussion} returns to this with a concrete
+case, in which their resource results and the ones reported here have opposite signs and the
+disagreement resolves into a difference between runtimes rather than between languages.
+
+Arvidsson and Kaller are closer still. They evaluate asynchronous programming frameworks, C++
+with Boost.Fibers, Rust with Tokio and Monoio, Go, and Erlang, on 5G control-plane procedures,
+and report both median and 99th-percentile latency across a load
+sweep~\cite{arvidsson2025async}. Their result is the most direct challenge in the literature to
+the expectation this thesis set out with. Boost.Fibers shows the lowest latency at every load,
+and while the Rust runtimes track it at the median, their 99th percentile rises more steeply
+beyond a certain request rate. That is a tail divergence in the right domain, and it would be
+dishonest to omit it. It is also, however, a comparison in which the concurrency runtime
+co-varies with the language: the authors attribute the effect to stackless
 \texttt{async}/\texttt{await} permitting a context switch immediately before an I/O operation is
 initiated, which is a property of Tokio and Monoio rather than of Rust. That confound is
 precisely what the frozen specification and the shared thread-per-shard model in this thesis are
-designed to remove, so the two studies are complementary rather than contradictory: theirs
-establishes that a tail difference is observable in this domain, and this one is constructed to
-determine whether the language is what causes it.
+designed to remove. The two studies are therefore complementary rather than contradictory:
+theirs establishes that a tail difference is observable in this domain, and this one is
+constructed to determine whether the language is what causes it.
 
 Not all of this evidence points the same way, and the thesis takes the qualifying findings
-seriously rather than citing only the favourable ones. Even the positive networking result
-records a real cost: the idiomatic Rust driver issues substantially more instructions per
-packet than its C reference and is measurably slower in absolute terms, its safety checks
-being absorbed by out-of-order execution rather than being literally
-free~\cite{emmerich2019drivers}; the ``zero-cost'' framing~\cite{balasubramanian2017rust} is
-therefore better read as workload-dependent than as universal, which is precisely why tail
-behaviour must be measured on the target workload rather than assumed. The safety story is
-likewise not absolute: empirical studies of real-world Rust find that memory- and
-thread-safety bugs still occur in practice, with blocking bugs and misused synchronisation
-among them~\cite{qin2020rust,qin2024safety}, and that a substantial fraction of the ecosystem
-cannot be fully statically checked because \texttt{unsafe} propagates through dependency
-chains~\cite{evans2020rust}. These qualifications do not overturn the case for Rust, but they
-motivate two of the thesis's design choices: measuring predictability and defect prevention
-directly on the subsystem instead of importing general-purpose, average-case conclusions, and
-keeping the safety-critical core \texttt{unsafe}-free so that the dependency-propagation
-caveat does not apply to it.
+seriously rather than citing only the favourable ones.
+
+Even the positive networking result records a real cost. The idiomatic Rust driver issues
+substantially more instructions per packet than its C reference and is measurably slower in
+absolute terms, its safety checks being absorbed by out-of-order execution rather than being
+literally free~\cite{emmerich2019drivers}. The ``zero-cost''
+framing~\cite{balasubramanian2017rust} is therefore better read as workload-dependent than as
+universal. That is precisely why tail behaviour must be measured on the target workload rather
+than assumed.
+
+The safety story is likewise not absolute. Empirical studies of real-world Rust find that memory-
+and thread-safety bugs still occur in practice, with blocking bugs and misused synchronisation
+among them~\cite{qin2020rust,qin2024safety}. They also find that a substantial fraction of the
+ecosystem cannot be fully statically checked, because \texttt{unsafe} propagates through
+dependency chains~\cite{evans2020rust}.
+
+These qualifications do not overturn the case for Rust, but they motivate two of the thesis's
+design choices. The first is measuring predictability and defect prevention directly on the
+subsystem instead of importing general-purpose, average-case conclusions. The second is keeping
+the safety-critical core \texttt{unsafe}-free, so that the dependency-propagation caveat does not
+apply to it.
 
 Table~\ref{tab:related} positions this thesis against the studies closest to it along the
 three axes on which it claims to differ: whether the comparison controls for design by
@@ -3659,32 +3702,36 @@ mitigated, not eliminated.
 
 \paragraph{Construct validity: do the metrics measure what the questions ask?}
 RQ1 asks about predictability and is answered with high percentiles, the maximum, and jitter
-rather than the mean, which is the standard operationalisation in this
-literature~\cite{dean2013tail}; the residual risk is that p99.9 on a synthetic workload is not
+rather than the mean, which is the standard way of measuring it in this
+literature~\cite{dean2013tail}. The residual risk is that p99.9 on a synthetic workload is not
 the same quantity as a missed procedure deadline in a live network. A second and larger
-construct gap in RQ1 was found rather than anticipated: the end-to-end latency the sweep
-reports is $\BudgetCoreShareMax\%$ operation and the rest cross-thread handoff
+construct gap in RQ1 was found rather than anticipated. The end-to-end latency the sweep reports
+is $\BudgetCoreShareMax\%$ operation and the rest cross-thread handoff
 (Section~\ref{sec:budget}), so it measures the delivered cost of the design faithfully and the
-cost of the language barely at all. Which of those RQ1 is asking about depends on the reader:
-a vendor sizing a node wants the first, a language comparison wants the second. The study now
+cost of the language barely at all. Which of those RQ1 is asking about depends on the reader: a
+vendor sizing a node wants the first, a language comparison wants the second. The study now
 reports both and keeps them apart, but the question as originally worded did not distinguish
-them. RQ2 asks which defect
-classes a language prevents and is answered by a catalogue of seven hand-written programs; a
-catalogue is a sample, and a sample chosen by the author could flatter either language.
-Including the two boundary classes is the direct mitigation, since it forces the catalogue to
-contain cases the expected conclusion does not cover, but seven programs remain seven
-programs. RQ3 measures peak RSS and aggregate CPU, which capture resource cost but not its
-origin: no hardware counters, allocation profiles, or cache statistics were collected, so the
-study can say that no language-level penalty appeared without being able to say why; the
-mechanisms most likely responsible have been isolated
-elsewhere~\cite{zhang2022runtime,harris2023morello}, and confirming which of them applies here
-would need counter-level instrumentation this study did not collect. RQ4 measures the size of
-the seam, the \texttt{unsafe} it concentrates, and the per-call cost, and these are the right
-quantities for the question as posed; they are not, however, a measure of how safe the
-composed system is. Because host and component share an address space, a compile-time property
-of the Rust side does not bound what the C++ side can corrupt at run
-time~\cite{rivera2021galeed,kirth2022pkrusafe}, so the construct measured here is the cost and
-reviewability of the boundary rather than the safety of the whole.
+them.
+
+RQ2 asks which defect classes a language prevents and is answered by a catalogue of seven
+hand-written programs. A catalogue is a sample, and a sample chosen by the author could flatter
+either language. Including the two boundary classes is the direct mitigation, since it forces the
+catalogue to contain cases the expected conclusion does not cover. Seven programs, however,
+remain seven programs.
+
+RQ3 measures peak RSS and aggregate CPU, which capture resource cost but not its origin. No
+hardware counters, allocation profiles, or cache statistics were collected, so the study can say
+that no language-level penalty appeared without being able to say why. The mechanisms most likely
+responsible have been isolated elsewhere~\cite{zhang2022runtime,harris2023morello}, and
+confirming which of them applies here would need counter-level instrumentation this study did not
+collect.
+
+RQ4 measures the size of the seam, the \texttt{unsafe} it concentrates, and the per-call cost.
+These are the right quantities for the question as posed. They are not a measure of how safe the
+composed system is. Because host and component share an address space, a compile-time property of
+the Rust side does not bound what the C++ side can corrupt at run
+time~\cite{rivera2021galeed,kirth2022pkrusafe}. The construct measured here is therefore the cost
+and reviewability of the boundary rather than the safety of the whole.
 
 \paragraph{Conclusion validity: are the differences real or noise?}
 Every configuration is measured over \NRepeats{} interleaved repeats and reported as a median
@@ -3853,7 +3900,7 @@ cliff. Beyond that:
   \texttt{async}/\texttt{await}~\cite{arvidsson2025async} from the language itself, under the
   controls this study imposes.
 \item Measure what in-process isolation of the two heaps costs at the seam, since that is what
-  an \texttt{unsafe}-free core would need in order to be protected as well as
+  an \texttt{unsafe}-free core would need to be protected as well as
   verified~\cite{rivera2021galeed,kirth2022pkrusafe}.
 \item Track defect density and review effort in a longer-term case study, as Rust is adopted
   incrementally in a production RAN codebase.
