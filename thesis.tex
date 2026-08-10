@@ -879,7 +879,22 @@ programming frameworks~\cite{arvidsson2025async}. Both are directly relevant, an
 reports a tail difference unfavourable to Rust. Neither, however, isolates the language:
 in both, the language varies together with the runtime, the concurrency model, and the
 implementation, so a measured difference cannot be attributed to the language rather than to
-the framework built on it.
+the framework built on it. Figure~\ref{fig:gapmap} sets the neighbouring studies against the
+properties a controlled answer would require, and the pattern it shows is that each holds some
+of them and none holds all.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/29_research_gap.pdf}
+\caption[What the neighbouring studies control, and what they leave varying]{What the neighbouring studies control, and what they leave varying. Each row is a
+property that a controlled answer to the research questions would need; each column is a study.
+The general cross-language comparisons measure the right kind of object but the wrong regime,
+reporting averages on general-purpose workloads. The two vendor RAN theses reach the right
+domain and do report the tail, but in both the language varies together with the runtime, the
+concurrency model, and the implementation, which is where the bottom two rows stop them.
+Holding those three fixed and driving the system past saturation is what this thesis adds; the
+contribution is the control, not a new measurement technique.\label{fig:gapmap}}
+\end{figure}
 
 What is therefore missing from the literature
 is \emph{direct, controlled} evidence for a representative control-plane subsystem: whether
@@ -1190,6 +1205,8 @@ reports its evidence, to the place where its verdict is recorded. Every claim in
 Chapter~\ref{chapter:discussion} is reachable from this table, which is the practical form of
 the ``decision-grade'' requirement above: a result a practitioner cannot trace back to the
 measurement that produced it is not one they can act on.
+Figure~\ref{fig:traceability} shows the same plan grouped by hypothesis instead of by question
+number, which is what makes the two places the mapping is not one-to-one visible at a glance.
 
 \begin{table}
 \centering
@@ -1218,6 +1235,19 @@ RQ4 & O4 seam size, \texttt{unsafe} scope, and per-call cost & H3 &
 \hline
 \end{tabular}
 \end{table}
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/22_traceability_map.pdf}
+\caption[From research question to verdict, grouped by hypothesis]{From research question to verdict, grouped by hypothesis rather than by question
+number. The regrouping is what makes two structural facts legible that
+Table~\ref{tab:traceability} can only note in passing. The first is that H1 is shared by RQ1
+and RQ3, so a single wording had to cover equivalence in both its latency and its resource
+sense; Section~\ref{sec:hypotheses} finds that to be its main weakness. The second is that O5
+sits underneath all four questions rather than beside any one of them, and is discharged by the
+published artifacts and the adoption guidelines instead of by a
+measurement.\label{fig:traceability}}
+\end{figure}
 
 \section{Scope and boundaries}
 The work focuses on a single representative subsystem studied under controlled, synthetic
@@ -1489,7 +1519,19 @@ sign assignments is enumerated rather than sampled, so the resulting $p$-value i
 like the bootstrap, assumes nothing about the shape of the distribution. Because the same
 comparison is made for several metrics and both allocators, the family of tests is corrected
 with the Holm step-down procedure, which controls the family-wise error rate without assuming
-independence between the tests.
+independence between the tests. Figure~\ref{fig:statspipeline} gathers this treatment together
+with the two decisions set out next.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/23_stats_pipeline.pdf}
+\caption[From runs to a defensible comparison]{From runs to a defensible comparison. The numbered column is the analysis applied to
+every configuration, each step chosen so that it assumes nothing about the shape of a
+heavy-tailed distribution. The column beside it records the two decisions about how the
+resulting family of tests is read; both are taken before the results because either could
+otherwise be made to suit whatever the data turned out to be. The floors quoted at the foot are
+what let a reader tell a null result from an unresolvable one.\label{fig:statspipeline}}
+\end{figure}
 
 Two decisions about how that family is read are taken here rather than after the results,
 because either could otherwise be made to suit whatever the data turned out to be.
@@ -1544,7 +1586,19 @@ the testbed) is captured automatically alongside each result set, so that the co
 measurement travel with its data. This separation of environment-sensitive results (the
 performance sweep) from environment-insensitive ones (parity testing, fault injection, and the
 FFI structure) is what lets the thesis label the former preliminary and the latter final
-without ambiguity.
+without ambiguity. Figure~\ref{fig:repro} sets out the published artifact set, the single
+command that regenerates the evaluation from it, and what that command reproduces.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/24_repro_artifacts.pdf}
+\caption[What is published, and what it regenerates]{What is published, and what it regenerates. The left column is the artifact set
+released with the thesis, the middle the single command that reruns the analysis over the raw
+logs, and the right what that command reproduces verbatim. The environment record travels with
+each result set, so a measurement carries the conditions under which it was taken. Nothing on
+the path requires proprietary source, which is what makes third-party reproduction possible at
+all rather than merely permitted.\label{fig:repro}}
+\end{figure}
 
 \section{Ethical and data-protection considerations}
 The study processes no personal, subscriber, or operator-confidential data. All traffic is
@@ -1934,7 +1988,20 @@ one \texttt{Stop} request is pushed onto each shard's queue, and because the que
 FIFO, every request already enqueued ahead of it is executed and completed before the worker
 observes the sentinel and returns. No separate closed flag, timeout, or drain API is required,
 and no completion handle is left unfulfilled. The worker threads are then joined, so shutdown
-returns only once every shard has actually stopped.
+returns only once every shard has actually stopped. Figure~\ref{fig:lifecycle} shows the three
+phases and why the sentinel alone is sufficient.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/28_service_lifecycle.pdf}
+\caption[Service lifecycle, and the in-band \texttt{Stop} sentinel]{Starting and stopping the service. Startup hands each worker exclusive ownership of
+one shard, which is what removes locks from the request path; the run phase moves a request
+into the queue rather than copying it, so producer and worker never both hold a usable
+reference to the same request. Shutdown pushes a single \texttt{Stop} onto each shard's queue
+and relies on strict FIFO ordering to guarantee that everything enqueued ahead of it is
+executed and completed first. That is why no drain API, timeout, or closed flag is needed, and
+why no completion handle is left unfulfilled.\label{fig:lifecycle}}
+\end{figure}
 
 Both languages tie this to object destruction, and the mechanism is one of the few places
 where the two are near-identical: the C++ destructor calls \texttt{shutdown()}, and Rust's
@@ -2206,7 +2273,9 @@ Table~\ref{tab:testbed} sets the two environments against each other row by row.
 the middle column is the fastest way to see why the chapter labels some results final and
 others preliminary: every row on which the two columns agree is a property of the source code
 and the compilers, and every row on which they differ is a property of the machine, which is
-exactly the line between the two evidence classes.
+exactly the line between the two evidence classes. Figure~\ref{fig:evidenceclasses} draws that
+same line by result rather than by row, which is the form the rest of the chapter uses whenever
+it labels a number final or preliminary.
 
 \begin{table}
 \centering
@@ -2239,6 +2308,18 @@ Adequate for & Parity, fault injection, FFI structure, and comparisons the inter
 \end{tabular}
 \end{table}
 
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/21_evidence_classes.pdf}
+\caption[Which conclusions the measurement host can carry]{Which conclusions the measurement host can carry. The division is not between
+important and unimportant results but between those that are properties of the compilers and
+the source, which this host establishes as firmly as any host would, and those that are
+properties of the machine, which it cannot. The band below is what executing the published
+bare-metal protocol adds. Because the analysis pipeline is unchanged by it, rerunning the same
+scripts on such a host is the only step separating the right-hand column from the
+left.\label{fig:evidenceclasses}}
+\end{figure}
+
 \section{Workload and evaluation measurements\label{sec:workload}}
 A synthetic but spec-justified telecom workload is generated by a deterministic driver shared
 in structure by both implementations, so that the two versions are exercised along identical
@@ -2255,6 +2336,20 @@ active UEs, swept from nominal load through saturation and overload; a fixed sen
 histogram correction is used so that coordinated-omission bias is avoided when the system
 stalls~\cite{tene_hdrhistogram}. Three measurement campaigns are run: a load sweep for
 performance, the fault-injection study, and an FFI migration prototype.
+Figure~\ref{fig:workload} shows the two workloads and the procedure sequence the mixed one
+walks.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/27_workload_timeline.pdf}
+\caption[The two workloads, and the lifecycle the mixed one walks]{The two workloads. The \emph{signal} workload isolates the steady-state hot path;
+the \emph{mixed} workload walks each UE through the full RAN procedure sequence, with a
+per-slot expected-state model ensuring that every operation it emits is legal for the state
+its context is actually in. Because the SplitMix64 draw order is pinned, a given seed and
+active-UE population produce identical per-operation-kind counts in both languages, so a
+divergence is a parity failure rather than a difference in what the two implementations were
+asked to do.\label{fig:workload}}
+\end{figure}
 
 Table~\ref{tab:params} gathers the configuration of all of this in one place. The values are
 otherwise distributed across the specification, Chapter~\ref{chapter:design}, and this chapter,
@@ -2323,7 +2418,20 @@ interleaved repeats and reported as a median with a bootstrap $95\%$ confidence 
 than as a single number, so that run-to-run non-determinism does not lead to unsupported
 conclusions~\cite{georges2007rigorous}; differences between languages are additionally tested
 on the paired repeats (Section~\ref{sec:stats}). Only synthetic data is used, so no personal,
-subscriber, or confidential data is processed.
+subscriber, or confidential data is processed. Figure~\ref{fig:harness} traces the whole path,
+from the specification both implementations are built against to the generated macros this
+prose cites.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/20_benchmark_harness.pdf}
+\caption[How a reported number is produced]{How a reported number is produced, from the frozen specification to the macro the
+prose cites. The upper row is the measurement path and the lower row the analysis path; the
+band between them is the interleaved repeat structure that turns the campaign into a matched
+design. No value in the evaluation is hand-copied: \texttt{bench/refresh\_thesis.sh}
+regenerates every figure, table, and quoted number directly from the raw logs, so the text and
+the data cannot drift apart.\label{fig:harness}}
+\end{figure}
 
 \section{Evaluation data}
 The collected dataset consists of per-event latency histograms, throughput and resource-use
@@ -3483,7 +3591,9 @@ inference each endangers, and Table~\ref{tab:threats} maps them first, so that t
 risks can be read as a set rather than recovered one at a time from the prose that follows.
 Two of them are load-bearing enough to be worth naming here: the study cannot rule out
 single-author skill asymmetry, and its end-to-end instrument is the wrong one for part of what
-RQ1 and RQ3 ask.
+RQ1 and RQ3 ask. Figure~\ref{fig:threats} shades the same map by how much of each threat its
+control actually removes, so that the rows carrying no mitigation stand out from those where
+something remains only at the margin.
 
 \begin{table}
 \centering
@@ -3516,6 +3626,20 @@ One subsystem, one workload, one machine & RQ2 and RQ4 rest on the compilers and
 \hline
 \end{tabular}
 \end{table}
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/25_threats_validity.pdf}
+\caption[Threats to validity, and what each control leaves behind]{Threats to validity, shaded by what remains after the control rather than by how the
+threat was described. Amber marks a residual risk that the control bounds without removing;
+red marks a threat for which no mitigation was available; green marks the one case where the
+control does its job and the study pays for it, since running every comparison twice is what
+turned the CPU effect from a reportable result into an unresolved one. Reading the right-hand
+column alone gives the live risks as a set. The two red rows are the load-bearing ones:
+single-author skill asymmetry, which parity testing bounds for behaviour but not for
+performance, and the absence of hardware counters, which leaves the memory result established
+but unexplained.\label{fig:threats}}
+\end{figure}
 
 \paragraph{Internal validity: is the language really the only difference?}
 The central threat is implementation bias between the two versions. It is mitigated
@@ -3690,7 +3814,19 @@ wants to make unwriteable, and about whether it is prepared to pay the engineeri
 learning cost of getting them. What this thesis adds to that decision is not a verdict but an
 instrument: a frozen specification, a parity-tested pair of implementations, a reproducible
 measurement framework, and a defect catalogue that maps both what the guarantee covers and
-where it stops.
+where it stops. Figure~\ref{fig:contributions} collects the three conclusions, the artifacts
+offered in place of a verdict, and the work that remains.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/26_contributions.pdf}
+\caption[What the thesis concludes, and what it leaves behind]{What the thesis concludes, and what it leaves behind. The three cards are the
+conclusions in the order the evidence supports them, with the performance card divided as the
+evidence divides it: end to end and on the operation alone are different measurements and give
+different answers. The grey band is the instrument offered in place of a verdict, and the blue
+band the work that remains, with the bare-metal campaign first because it is what turns the RQ1
+and RQ3 results from preliminary into final.\label{fig:contributions}}
+\end{figure}
 
 Several directions extend the work, each of them the direct remedy to a limitation named above.
 The most immediate is executing the bare-metal campaign that turns the RQ1 and RQ3 results from

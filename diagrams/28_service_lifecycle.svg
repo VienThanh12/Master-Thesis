@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 480" width="880" height="480" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs><marker id="a0" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#2f6db3"/></marker><marker id="a1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#d7dde3"/></marker></defs>
+  <rect x="0" y="0" width="880" height="480" fill="#ffffff"/>
+  <text x="440.0" y="32" font-size="22" fill="#12233a" text-anchor="middle" font-weight="700">Starting and stopping the service without losing a request</text>
+  <text x="440.0" y="54" font-size="12.5" fill="#5b6b7b" text-anchor="middle">Shutdown is the delicate half: it must stop workers blocked on an empty queue without abandoning work already in flight</text>
+  <rect x="20" y="80" width="250" height="120" rx="10" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.8"/>
+  <text x="35" y="105.325" font-size="11.5" fill="#1c4e86" font-weight="700">1.  Start</text>
+  <text x="35" y="126.325" font-size="10.5" fill="#5b6b7b">Allocate the shards, spawn one</text>
+  <text x="35" y="140.325" font-size="10.5" fill="#5b6b7b">worker thread per shard, and hand</text>
+  <text x="35" y="154.325" font-size="10.5" fill="#5b6b7b">each worker exclusive ownership of</text>
+  <text x="35" y="168.325" font-size="10.5" fill="#5b6b7b">its store. Nothing is shared, so</text>
+  <text x="35" y="182.325" font-size="10.5" fill="#5b6b7b">nothing needs locking.</text>
+  <rect x="292" y="80" width="268" height="120" rx="10" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.8"/>
+  <text x="307" y="105.325" font-size="11.5" fill="#1c4e86" font-weight="700">2.  Run</text>
+  <text x="307" y="126.325" font-size="10.5" fill="#5b6b7b">A request is moved into the queue</text>
+  <text x="307" y="140.325" font-size="10.5" fill="#5b6b7b">rather than copied, carrying its</text>
+  <text x="307" y="154.325" font-size="10.5" fill="#5b6b7b">completion handle with it, so the</text>
+  <text x="307" y="168.325" font-size="10.5" fill="#5b6b7b">producer and the worker never both</text>
+  <text x="307" y="182.325" font-size="10.5" fill="#5b6b7b">hold a usable reference to it.</text>
+  <rect x="582" y="80" width="278" height="120" rx="10" fill="#fdf6e9" stroke="#c8860d" stroke-width="1.8"/>
+  <text x="597" y="105.325" font-size="11.5" fill="#a5700c" font-weight="700">3.  Stop</text>
+  <text x="597" y="126.325" font-size="10.5" fill="#5b6b7b">Push one Stop sentinel onto each</text>
+  <text x="597" y="140.325" font-size="10.5" fill="#5b6b7b">shard's queue, then join the workers,</text>
+  <text x="597" y="154.325" font-size="10.5" fill="#5b6b7b">so shutdown returns only once every</text>
+  <text x="597" y="168.325" font-size="10.5" fill="#5b6b7b">shard has actually stopped.</text>
+  <line x1="272" y1="140" x2="288" y2="140" stroke="#2f6db3" stroke-width="2.0" marker-end="url(#a0)"/>
+  <line x1="562" y1="140" x2="578" y2="140" stroke="#2f6db3" stroke-width="2.0" marker-end="url(#a0)"/>
+  <text x="440" y="238" font-size="12.5" fill="#12233a" text-anchor="middle" font-weight="700">Why an in-band sentinel needs no drain API</text>
+  <rect x="30" y="258" width="396" height="46" rx="6" fill="#ffffff" stroke="#d7dde3" stroke-width="1.5"/>
+  <text x="38" y="274" font-size="9" fill="#8794a3">queue head</text>
+  <rect x="40" y="278" width="88" height="20" rx="4" fill="#dce8f7"/>
+  <text x="84.0" y="291.78" font-size="10.5" fill="#1c4e86" text-anchor="middle">req</text>
+  <rect x="134" y="278" width="88" height="20" rx="4" fill="#dce8f7"/>
+  <text x="178.0" y="291.78" font-size="10.5" fill="#1c4e86" text-anchor="middle">req</text>
+  <rect x="228" y="278" width="88" height="20" rx="4" fill="#dce8f7"/>
+  <text x="272.0" y="291.78" font-size="10.5" fill="#1c4e86" text-anchor="middle">req</text>
+  <rect x="322" y="278" width="88" height="20" rx="4" fill="#fdecc8"/>
+  <text x="366.0" y="291.78" font-size="10.5" fill="#a5700c" text-anchor="middle" font-weight="700">Stop</text>
+  <text x="228" y="318" font-size="10" fill="#5b6b7b" text-anchor="middle">strictly FIFO</text>
+  <line x1="432" y1="281" x2="462" y2="281" stroke="#d7dde3" stroke-width="1.8" marker-end="url(#a1)"/>
+  <rect x="468" y="265" width="104" height="32" rx="6" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.0"/>
+  <text x="520.0" y="285.14" font-size="11.5" fill="#12233a" text-anchor="middle">worker</text>
+  <text x="586" y="272" font-size="10.5" fill="#33475b">The worker observes Stop only after the</text>
+  <text x="586" y="286" font-size="10.5" fill="#33475b">three requests ahead of it have run and</text>
+  <text x="586" y="300" font-size="10.5" fill="#33475b">completed, so nothing is abandoned.</text>
+  <rect x="20" y="332" width="410" height="90" rx="9" fill="#f4fbf6" stroke="#2e8b57" stroke-width="1.6"/>
+  <text x="35" y="357.325" font-size="11.5" fill="#1f6b41" font-weight="700">Tied to object destruction</text>
+  <text x="35" y="376.325" font-size="10.5" fill="#33475b">The C++ destructor calls shutdown() and Rust's Drop</text>
+  <text x="35" y="389.825" font-size="10.5" fill="#33475b">does the same, so a service that goes out of scope</text>
+  <text x="35" y="403.325" font-size="10.5" fill="#33475b">cannot leave detached threads behind. A running flag</text>
+  <text x="35" y="416.825" font-size="10.5" fill="#33475b">makes the call idempotent on both sides.</text>
+  <rect x="450" y="332" width="410" height="90" rx="9" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.5"/>
+  <text x="465" y="357.325" font-size="11.5" fill="#12233a" font-weight="700">The one piece of shared mutable state</text>
+  <text x="465" y="376.325" font-size="10.5" fill="#33475b">An atomic activity counter, held by reference in C++</text>
+  <text x="465" y="389.825" font-size="10.5" fill="#33475b">and as a cloned Arc&lt;AtomicU64&gt; in Rust, incremented</text>
+  <text x="465" y="403.325" font-size="10.5" fill="#33475b">with relaxed ordering because nothing branches on its</text>
+  <text x="465" y="416.825" font-size="10.5" fill="#33475b">value. Write-only bookkeeping.</text>
+  <text x="440.0" y="452" font-size="11.5" fill="#8794a3" text-anchor="middle">No separate closed flag, timeout, or drain API is required, and no completion handle is left unfulfilled.</text>
+</svg>

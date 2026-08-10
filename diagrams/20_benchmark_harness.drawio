@@ -1,0 +1,93 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="505" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="How a reported number is produced" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="242.16" y="11.1" width="395.67" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n3" value="From the frozen specification to the macro the prose cites, with no hand-copied value anywhere on the path" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="78.94" y="42.12" width="722.13" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n11" value="&lt;b&gt;Frozen specification&lt;/b&gt;&lt;br&gt;&lt;br&gt;spec/SPECIFICATION.md fixes&lt;br&gt;the API, state machine, data&lt;br&gt;structures, and concurrency&lt;br&gt;model, before any code is&lt;br&gt;written." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=11;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="15" y="76" width="200" height="126" as="geometry"/>
+    </mxCell>
+    <mxCell id="n19" value="&lt;b&gt;Four build variants&lt;/b&gt;&lt;br&gt;&lt;br&gt;Two languages crossed with&lt;br&gt;two allocators. Matched&lt;br&gt;optimisation levels; both&lt;br&gt;sides pin the same shard&lt;br&gt;and intra-shard hashes." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=11;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="231" y="76" width="200" height="126" as="geometry"/>
+    </mxCell>
+    <mxCell id="n27" value="&lt;b&gt;Deterministic driver&lt;/b&gt;&lt;br&gt;&lt;br&gt;A fixed SplitMix64 draw&lt;br&gt;order and a per-slot&lt;br&gt;expected-state model, so&lt;br&gt;both versions walk identical&lt;br&gt;code paths." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=11;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="447" y="76" width="200" height="126" as="geometry"/>
+    </mxCell>
+    <mxCell id="n35" value="&lt;b&gt;Service and capture&lt;/b&gt;&lt;br&gt;&lt;br&gt;Eight shards, one owning&lt;br&gt;thread each, 1024-slot&lt;br&gt;queues. HDR histogram&lt;br&gt;timed from the intended&lt;br&gt;send time, not the actual." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=11;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="663" y="76" width="200" height="126" as="geometry"/>
+    </mxCell>
+    <mxCell id="n36" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="217" y="139" as="sourcePoint"/>
+        <mxPoint x="229" y="139" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n37" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="433" y="139" as="sourcePoint"/>
+        <mxPoint x="445" y="139" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n38" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="649" y="139" as="sourcePoint"/>
+        <mxPoint x="661" y="139" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n39" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=16;fillColor=#dce8f7;strokeColor=#bcd0e8;strokeWidth=1.0;" vertex="1" parent="1">
+      <mxGeometry x="15" y="214" width="848" height="54" as="geometry"/>
+    </mxCell>
+    <mxCell id="n40" value="Repeated 15 times, with the four variants interleaved inside each repeat" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#1c4e86;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="31" y="224.6" width="470.88" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n41" value="8 offered-load levels up to 64 kops/s give 480 measured runs; interleaving makes the interference common to a block, so it cancels." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=11;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="31" y="244.55" width="785.35" height="16.5" as="geometry"/>
+    </mxCell>
+    <mxCell id="n48" value="&lt;b&gt;Raw measurement logs&lt;/b&gt;&lt;br&gt;&lt;br&gt;bench/results/*.jsonl, with&lt;br&gt;the environment record&lt;br&gt;from capture_env.sh kept&lt;br&gt;alongside each result set." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=16;fillColor=#ffffff;strokeColor=#bcd0e8;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=11;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="15" y="284" width="196" height="104" as="geometry"/>
+    </mxCell>
+    <mxCell id="n55" value="&lt;b&gt;bench/plot_figures.py&lt;/b&gt;&lt;br&gt;&lt;br&gt;Median with a bootstrap 95%&lt;br&gt;confidence interval, an exact&lt;br&gt;paired permutation test, and&lt;br&gt;the Holm correction." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=16;fillColor=#ffffff;strokeColor=#bcd0e8;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=11;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="232" y="284" width="222" height="104" as="geometry"/>
+    </mxCell>
+    <mxCell id="n61" value="&lt;b&gt;Generated artifacts&lt;/b&gt;&lt;br&gt;&lt;br&gt;figures/*.pdf&lt;br&gt;figures/tab_*.tex&lt;br&gt;figures/gen_macros.tex" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=16;fillColor=#ffffff;strokeColor=#bcd0e8;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=11;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="474" y="284" width="178" height="104" as="geometry"/>
+    </mxCell>
+    <mxCell id="n68" value="&lt;b&gt;thesis.tex&lt;/b&gt;&lt;br&gt;&lt;br&gt;The prose refers to&lt;br&gt;the generated macros&lt;br&gt;by name, so text and&lt;br&gt;data cannot drift." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=16;fillColor=#ffffff;strokeColor=#bcd0e8;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=11;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="672" y="284" width="186" height="104" as="geometry"/>
+    </mxCell>
+    <mxCell id="n69" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="213" y="336" as="sourcePoint"/>
+        <mxPoint x="225" y="336" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n70" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="456" y="336" as="sourcePoint"/>
+        <mxPoint x="468" y="336" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n71" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="654" y="336" as="sourcePoint"/>
+        <mxPoint x="666" y="336" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n72" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=16;fillColor=#f4fbf6;strokeColor=#2e8b57;strokeWidth=1.8;" vertex="1" parent="1">
+      <mxGeometry x="15" y="404" width="848" height="56" as="geometry"/>
+    </mxCell>
+    <mxCell id="n73" value="Nothing in the evaluation is hand-copied" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#1f6b41;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="31" y="413.12" width="272.5" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n74" value="bench/refresh_thesis.sh reruns the analysis and rebuilds the PDF, so a fresh campaign updates every figure, table, and quoted number in one step." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=11;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="31" y="433.55" width="869.27" height="16.5" as="geometry"/>
+    </mxCell>
+    <mxCell id="n75" value="A third party can walk this path without proprietary code: the specification and the harness are themselves published artifacts." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="38.88" y="475.07" width="802.24" height="17.25" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

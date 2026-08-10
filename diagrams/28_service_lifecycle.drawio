@@ -1,0 +1,84 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="480" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="Starting and stopping the service without losing a request" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="92.29" y="11.1" width="695.42" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n3" value="Shutdown is the delicate half: it must stop workers blocked on an empty queue without abandoning work already in flight" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="34.66" y="42.12" width="810.69" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n11" value="&lt;b&gt;1.  Start&lt;/b&gt;&lt;br&gt;&lt;br&gt;Allocate the shards, spawn one&lt;br&gt;worker thread per shard, and hand&lt;br&gt;each worker exclusive ownership of&lt;br&gt;its store. Nothing is shared, so&lt;br&gt;nothing needs locking." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=11;spacingTop=5;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="20" y="80" width="250" height="120" as="geometry"/>
+    </mxCell>
+    <mxCell id="n19" value="&lt;b&gt;2.  Run&lt;/b&gt;&lt;br&gt;&lt;br&gt;A request is moved into the queue&lt;br&gt;rather than copied, carrying its&lt;br&gt;completion handle with it, so the&lt;br&gt;producer and the worker never both&lt;br&gt;hold a usable reference to it." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=11;spacingTop=5;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="292" y="80" width="268" height="120" as="geometry"/>
+    </mxCell>
+    <mxCell id="n26" value="&lt;b&gt;3.  Stop&lt;/b&gt;&lt;br&gt;&lt;br&gt;Push one Stop sentinel onto each&lt;br&gt;shard's queue, then join the workers,&lt;br&gt;so shutdown returns only once every&lt;br&gt;shard has actually stopped." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#fdf6e9;strokeColor=#c8860d;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=11;spacingTop=5;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="582" y="80" width="278" height="120" as="geometry"/>
+    </mxCell>
+    <mxCell id="n27" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="272" y="140" as="sourcePoint"/>
+        <mxPoint x="288" y="140" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n28" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="562" y="140" as="sourcePoint"/>
+        <mxPoint x="578" y="140" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n29" value="Why an in-band sentinel needs no drain API" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="296.94" y="226.12" width="286.13" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n30" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;fillColor=#ffffff;strokeColor=#d7dde3;strokeWidth=1.5;" vertex="1" parent="1">
+      <mxGeometry x="30" y="258" width="396" height="46" as="geometry"/>
+    </mxCell>
+    <mxCell id="n31" value="queue head" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=9;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="38" y="265.45" width="49.05" height="13.5" as="geometry"/>
+    </mxCell>
+    <mxCell id="n34" value="req" style="rounded=1;absoluteArcSize=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dce8f7;strokeColor=none;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#1c4e86;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="40" y="278" width="88" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="n37" value="req" style="rounded=1;absoluteArcSize=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dce8f7;strokeColor=none;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#1c4e86;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="134" y="278" width="88" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="n40" value="req" style="rounded=1;absoluteArcSize=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#dce8f7;strokeColor=none;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#1c4e86;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="228" y="278" width="88" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="n43" value="Stop" style="rounded=1;absoluteArcSize=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fdecc8;strokeColor=none;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#a5700c;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="322" y="278" width="88" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="n44" value="strictly FIFO" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=10;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="192.57" y="308.5" width="70.85" height="15.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n45" value="" style="html=1;rounded=0;strokeColor=#d7dde3;strokeWidth=1.8;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="432" y="281" as="sourcePoint"/>
+        <mxPoint x="462" y="281" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n48" value="worker" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#f1f4f7;strokeColor=#d7dde3;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#12233a;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="468" y="265" width="104" height="32" as="geometry"/>
+    </mxCell>
+    <mxCell id="n49" value="The worker observes Stop only after the" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="586" y="262.02" width="223.18" height="15.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n50" value="three requests ahead of it have run and" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="586" y="276.02" width="223.18" height="15.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n51" value="completed, so nothing is abandoned." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="586" y="290.02" width="200.29" height="15.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n58" value="&lt;b&gt;Tied to object destruction&lt;/b&gt;&lt;br&gt;&lt;br&gt;The C++ destructor calls shutdown() and Rust's Drop&lt;br&gt;does the same, so a service that goes out of scope&lt;br&gt;cannot leave detached threads behind. A running flag&lt;br&gt;makes the call idempotent on both sides." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#f4fbf6;strokeColor=#2e8b57;strokeWidth=1.6;align=left;verticalAlign=top;spacingLeft=11;spacingTop=5;spacingRight=6;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="20" y="332" width="410" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="n65" value="&lt;b&gt;The one piece of shared mutable state&lt;/b&gt;&lt;br&gt;&lt;br&gt;An atomic activity counter, held by reference in C++&lt;br&gt;and as a cloned Arc&amp;lt;AtomicU64&amp;gt; in Rust, incremented&lt;br&gt;with relaxed ordering because nothing branches on its&lt;br&gt;value. Write-only bookkeeping." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#f1f4f7;strokeColor=#d7dde3;strokeWidth=1.5;align=left;verticalAlign=top;spacingLeft=11;spacingTop=5;spacingRight=6;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="450" y="332" width="410" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="n66" value="No separate closed flag, timeout, or drain API is required, and no completion handle is left unfulfilled." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="110.96" y="441.07" width="658.09" height="17.25" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

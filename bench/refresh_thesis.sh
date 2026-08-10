@@ -20,6 +20,20 @@ root="$(cd "$here/.." && pwd)"
 echo "== regenerating figures, tables, and generated macros =="
 python3 "$here/plot_figures.py" "$@"
 
+# Diagrams 20-29 quote campaign numbers straight out of figures/gen_macros.tex,
+# so they are rebuilt here for the same reason the prose is: a fresh campaign
+# must not leave a stale figure behind. Diagrams 01-19 are hand-authored SVG
+# and are only re-rendered, not regenerated.
+echo "== regenerating diagrams that quote campaign numbers =="
+python3 "$root/diagrams/build_new_diagrams.py"
+if "$root/.venv-pptx/bin/python" -c 'import cairosvg' 2>/dev/null; then
+  "$root/.venv-pptx/bin/python" "$root/diagrams/render.py" >/dev/null
+elif python3 -c 'import cairosvg' 2>/dev/null; then
+  python3 "$root/diagrams/render.py" >/dev/null
+else
+  echo "  SKIP: cairosvg not installed; keeping existing diagrams/pdf/*.pdf"
+fi
+
 # Source-level proxies come from the code rather than from a campaign log, so
 # they are regenerated here too and are the one part of this script that stays
 # valid without a fresh measurement run.

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 494" width="880" height="494" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs><marker id="a0" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#2e8b57"/></marker></defs>
+  <rect x="0" y="0" width="880" height="494" fill="#ffffff"/>
+  <text x="440.0" y="32" font-size="22" fill="#12233a" text-anchor="middle" font-weight="700">The two workloads, and the lifecycle the mixed one walks</text>
+  <text x="440.0" y="54" font-size="12.5" fill="#5b6b7b" text-anchor="middle">A fixed draw order makes the per-operation-kind counts identical in both languages, so the workload doubles as a parity signal</text>
+  <rect x="20" y="78" width="410" height="106" rx="10" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.8"/>
+  <text x="35" y="103.325" font-size="11.5" fill="#1c4e86" font-weight="700">signal — the steady-state hot path</text>
+  <text x="35" y="124.325" font-size="10.5" fill="#5b6b7b">Preloads a population of connected UEs and then hammers</text>
+  <text x="35" y="138.325" font-size="10.5" fill="#5b6b7b">handle_signaling, isolating per-message latency with no</text>
+  <text x="35" y="152.325" font-size="10.5" fill="#5b6b7b">lifecycle transitions in the way.</text>
+  <rect x="450" y="78" width="410" height="106" rx="10" fill="#f4fbf6" stroke="#2e8b57" stroke-width="1.8"/>
+  <text x="465" y="103.325" font-size="11.5" fill="#1f6b41" font-weight="700">mixed — the full RAN lifecycle</text>
+  <text x="465" y="124.325" font-size="10.5" fill="#5b6b7b">A pinned generator that walks each UE through a realistic</text>
+  <text x="465" y="138.325" font-size="10.5" fill="#5b6b7b">procedure sequence, using a per-slot expected-state model</text>
+  <text x="465" y="152.325" font-size="10.5" fill="#5b6b7b">so that every operation it emits is valid for that UE.</text>
+  <text x="440" y="220" font-size="12" fill="#12233a" text-anchor="middle" font-weight="700">The procedure sequence the mixed workload walks, per UE</text>
+  <rect x="24" y="240" width="108" height="30" rx="6" fill="#d9f0dd" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="78.0" y="258.78" font-size="10.5" fill="#1f6b41" text-anchor="middle">create</text>
+  <text x="78" y="290" font-size="10" fill="#5b6b7b" text-anchor="middle">Idle</text>
+  <line x1="134" y1="255" x2="146" y2="255" stroke="#2e8b57" stroke-width="1.6" marker-end="url(#a0)"/>
+  <rect x="148" y="240" width="108" height="30" rx="6" fill="#d9f0dd" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="202.0" y="258.78" font-size="10.5" fill="#1f6b41" text-anchor="middle">setup</text>
+  <text x="202" y="290" font-size="10" fill="#5b6b7b" text-anchor="middle">Connected</text>
+  <line x1="258" y1="255" x2="270" y2="255" stroke="#2e8b57" stroke-width="1.6" marker-end="url(#a0)"/>
+  <rect x="272" y="240" width="108" height="30" rx="6" fill="#d9f0dd" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="326.0" y="258.78" font-size="10.5" fill="#1f6b41" text-anchor="middle">signal</text>
+  <text x="326" y="290" font-size="10" fill="#5b6b7b" text-anchor="middle">Connected</text>
+  <line x1="382" y1="255" x2="394" y2="255" stroke="#2e8b57" stroke-width="1.6" marker-end="url(#a0)"/>
+  <rect x="396" y="240" width="108" height="30" rx="6" fill="#d9f0dd" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="450.0" y="258.78" font-size="10.5" fill="#1f6b41" text-anchor="middle">add_drb</text>
+  <text x="450" y="290" font-size="10" fill="#5b6b7b" text-anchor="middle">Connected</text>
+  <line x1="506" y1="255" x2="518" y2="255" stroke="#2e8b57" stroke-width="1.6" marker-end="url(#a0)"/>
+  <rect x="520" y="240" width="108" height="30" rx="6" fill="#d9f0dd" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="574.0" y="258.78" font-size="10.5" fill="#1f6b41" text-anchor="middle">begin</text>
+  <text x="574" y="290" font-size="10" fill="#5b6b7b" text-anchor="middle">Reconfiguring</text>
+  <line x1="630" y1="255" x2="642" y2="255" stroke="#2e8b57" stroke-width="1.6" marker-end="url(#a0)"/>
+  <rect x="644" y="240" width="108" height="30" rx="6" fill="#d9f0dd" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="698.0" y="258.78" font-size="10.5" fill="#1f6b41" text-anchor="middle">complete / abort</text>
+  <text x="698" y="290" font-size="10" fill="#5b6b7b" text-anchor="middle">Connected</text>
+  <line x1="754" y1="255" x2="766" y2="255" stroke="#2e8b57" stroke-width="1.6" marker-end="url(#a0)"/>
+  <rect x="768" y="240" width="108" height="30" rx="6" fill="#d9f0dd" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="822.0" y="258.78" font-size="10.5" fill="#1f6b41" text-anchor="middle">release</text>
+  <text x="822" y="290" font-size="10" fill="#5b6b7b" text-anchor="middle">Released</text>
+  <text x="24" y="310" font-size="9.5" fill="#8794a3">resulting state</text>
+  <rect x="20" y="328" width="410" height="108" rx="9" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.5"/>
+  <text x="35" y="353.6" font-size="12" fill="#12233a" font-weight="700">Control parameters</text>
+  <text x="35" y="373.6" font-size="10.5" fill="#33475b">5 000 active UEs, and 8 offered-load levels up to</text>
+  <text x="35" y="387.6" font-size="10.5" fill="#33475b">64 kops/s swept from nominal through saturation into</text>
+  <text x="35" y="401.6" font-size="10.5" fill="#33475b">overload. Open loop against a fixed intended send</text>
+  <text x="35" y="415.6" font-size="10.5" fill="#33475b">schedule, so latency is measured from the time an</text>
+  <text x="35" y="429.6" font-size="10.5" fill="#33475b">operation should have been sent rather than was.</text>
+  <rect x="450" y="328" width="410" height="108" rx="9" fill="#fdf6e9" stroke="#c8860d" stroke-width="1.5"/>
+  <text x="465" y="353.6" font-size="12" fill="#a5700c" font-weight="700">Why the draw order is pinned</text>
+  <text x="465" y="373.6" font-size="10.5" fill="#33475b">A fixed SplitMix64 draw order means that for a given</text>
+  <text x="465" y="387.6" font-size="10.5" fill="#33475b">seed and active-UE population the two implementations</text>
+  <text x="465" y="401.6" font-size="10.5" fill="#33475b">emit exactly the same count of each operation kind. A</text>
+  <text x="465" y="415.6" font-size="10.5" fill="#33475b">divergence is therefore a parity failure rather than a</text>
+  <text x="465" y="429.6" font-size="10.5" fill="#33475b">difference in what the two were asked to do.</text>
+  <text x="440.0" y="468" font-size="11.5" fill="#8794a3" text-anchor="middle">The workload is synthetic and specification-justified rather than replayed from production traffic, so its operation mix is plausible rather than validated.</text>
+</svg>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 505" width="880" height="505" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs><marker id="a0" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#2f6db3"/></marker></defs>
+  <rect x="0" y="0" width="880" height="505" fill="#ffffff"/>
+  <text x="440.0" y="32" font-size="22" fill="#12233a" text-anchor="middle" font-weight="700">How a reported number is produced</text>
+  <text x="440.0" y="54" font-size="12.5" fill="#5b6b7b" text-anchor="middle">From the frozen specification to the macro the prose cites, with no hand-copied value anywhere on the path</text>
+  <rect x="15" y="76" width="200" height="126" rx="10" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.8"/>
+  <text x="29" y="100.325" font-size="11.5" fill="#12233a" font-weight="700">Frozen specification</text>
+  <text x="29" y="120.325" font-size="11" fill="#5b6b7b">spec/SPECIFICATION.md fixes</text>
+  <text x="29" y="134.825" font-size="11" fill="#5b6b7b">the API, state machine, data</text>
+  <text x="29" y="149.325" font-size="11" fill="#5b6b7b">structures, and concurrency</text>
+  <text x="29" y="163.825" font-size="11" fill="#5b6b7b">model, before any code is</text>
+  <text x="29" y="178.325" font-size="11" fill="#5b6b7b">written.</text>
+  <rect x="231" y="76" width="200" height="126" rx="10" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.8"/>
+  <text x="245" y="100.325" font-size="11.5" fill="#12233a" font-weight="700">Four build variants</text>
+  <text x="245" y="120.325" font-size="11" fill="#5b6b7b">Two languages crossed with</text>
+  <text x="245" y="134.825" font-size="11" fill="#5b6b7b">two allocators. Matched</text>
+  <text x="245" y="149.325" font-size="11" fill="#5b6b7b">optimisation levels; both</text>
+  <text x="245" y="163.825" font-size="11" fill="#5b6b7b">sides pin the same shard</text>
+  <text x="245" y="178.325" font-size="11" fill="#5b6b7b">and intra-shard hashes.</text>
+  <rect x="447" y="76" width="200" height="126" rx="10" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.8"/>
+  <text x="461" y="100.325" font-size="11.5" fill="#12233a" font-weight="700">Deterministic driver</text>
+  <text x="461" y="120.325" font-size="11" fill="#5b6b7b">A fixed SplitMix64 draw</text>
+  <text x="461" y="134.825" font-size="11" fill="#5b6b7b">order and a per-slot</text>
+  <text x="461" y="149.325" font-size="11" fill="#5b6b7b">expected-state model, so</text>
+  <text x="461" y="163.825" font-size="11" fill="#5b6b7b">both versions walk identical</text>
+  <text x="461" y="178.325" font-size="11" fill="#5b6b7b">code paths.</text>
+  <rect x="663" y="76" width="200" height="126" rx="10" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.8"/>
+  <text x="677" y="100.325" font-size="11.5" fill="#12233a" font-weight="700">Service and capture</text>
+  <text x="677" y="120.325" font-size="11" fill="#5b6b7b">Eight shards, one owning</text>
+  <text x="677" y="134.825" font-size="11" fill="#5b6b7b">thread each, 1024-slot</text>
+  <text x="677" y="149.325" font-size="11" fill="#5b6b7b">queues. HDR histogram</text>
+  <text x="677" y="163.825" font-size="11" fill="#5b6b7b">timed from the intended</text>
+  <text x="677" y="178.325" font-size="11" fill="#5b6b7b">send time, not the actual.</text>
+  <line x1="217" y1="139" x2="229" y2="139" stroke="#2f6db3" stroke-width="2.0" marker-end="url(#a0)"/>
+  <line x1="433" y1="139" x2="445" y2="139" stroke="#2f6db3" stroke-width="2.0" marker-end="url(#a0)"/>
+  <line x1="649" y1="139" x2="661" y2="139" stroke="#2f6db3" stroke-width="2.0" marker-end="url(#a0)"/>
+  <rect x="15" y="214" width="848" height="54" rx="8" fill="#dce8f7" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="31" y="236" font-size="12" fill="#1c4e86" font-weight="700">Repeated 15 times, with the four variants interleaved inside each repeat</text>
+  <text x="31" y="255" font-size="11" fill="#33475b">8 offered-load levels up to 64 kops/s give 480 measured runs; interleaving makes the interference common to a block, so it cancels.</text>
+  <rect x="15" y="284" width="196" height="104" rx="8" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="29" y="308.325" font-size="11.5" fill="#12233a" font-weight="700">Raw measurement logs</text>
+  <text x="29" y="328.325" font-size="11" fill="#5b6b7b">bench/results/*.jsonl, with</text>
+  <text x="29" y="342.825" font-size="11" fill="#5b6b7b">the environment record</text>
+  <text x="29" y="357.325" font-size="11" fill="#5b6b7b">from capture_env.sh kept</text>
+  <text x="29" y="371.825" font-size="11" fill="#5b6b7b">alongside each result set.</text>
+  <rect x="232" y="284" width="222" height="104" rx="8" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="246" y="308.325" font-size="11.5" fill="#12233a" font-weight="700">bench/plot_figures.py</text>
+  <text x="246" y="328.325" font-size="11" fill="#5b6b7b">Median with a bootstrap 95%</text>
+  <text x="246" y="342.825" font-size="11" fill="#5b6b7b">confidence interval, an exact</text>
+  <text x="246" y="357.325" font-size="11" fill="#5b6b7b">paired permutation test, and</text>
+  <text x="246" y="371.825" font-size="11" fill="#5b6b7b">the Holm correction.</text>
+  <rect x="474" y="284" width="178" height="104" rx="8" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="488" y="308.325" font-size="11.5" fill="#12233a" font-weight="700">Generated artifacts</text>
+  <text x="488" y="328.325" font-size="11" fill="#5b6b7b">figures/*.pdf</text>
+  <text x="488" y="342.825" font-size="11" fill="#5b6b7b">figures/tab_*.tex</text>
+  <text x="488" y="357.325" font-size="11" fill="#5b6b7b">figures/gen_macros.tex</text>
+  <rect x="672" y="284" width="186" height="104" rx="8" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="686" y="308.325" font-size="11.5" fill="#12233a" font-weight="700">thesis.tex</text>
+  <text x="686" y="328.325" font-size="11" fill="#5b6b7b">The prose refers to</text>
+  <text x="686" y="342.825" font-size="11" fill="#5b6b7b">the generated macros</text>
+  <text x="686" y="357.325" font-size="11" fill="#5b6b7b">by name, so text and</text>
+  <text x="686" y="371.825" font-size="11" fill="#5b6b7b">data cannot drift.</text>
+  <line x1="213" y1="336" x2="225" y2="336" stroke="#2f6db3" stroke-width="2.0" marker-end="url(#a0)"/>
+  <line x1="456" y1="336" x2="468" y2="336" stroke="#2f6db3" stroke-width="2.0" marker-end="url(#a0)"/>
+  <line x1="654" y1="336" x2="666" y2="336" stroke="#2f6db3" stroke-width="2.0" marker-end="url(#a0)"/>
+  <rect x="15" y="404" width="848" height="56" rx="8" fill="#f4fbf6" stroke="#2e8b57" stroke-width="1.8"/>
+  <text x="31" y="425" font-size="12.5" fill="#1f6b41" font-weight="700">Nothing in the evaluation is hand-copied</text>
+  <text x="31" y="444" font-size="11" fill="#33475b">bench/refresh_thesis.sh reruns the analysis and rebuilds the PDF, so a fresh campaign updates every figure, table, and quoted number in one step.</text>
+  <text x="440.0" y="486" font-size="11.5" fill="#8794a3" text-anchor="middle">A third party can walk this path without proprietary code: the specification and the harness are themselves published artifacts.</text>
+</svg>

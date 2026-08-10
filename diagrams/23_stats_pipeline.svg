@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 566" width="880" height="566" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs><marker id="a0" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#2f6db3"/></marker></defs>
+  <rect x="0" y="0" width="880" height="566" fill="#ffffff"/>
+  <text x="440.0" y="32" font-size="22" fill="#12233a" text-anchor="middle" font-weight="700">From runs to a defensible comparison</text>
+  <text x="440.0" y="54" font-size="12.5" fill="#5b6b7b" text-anchor="middle">Two decisions about how the family of tests is read are taken here, before the results, because either could otherwise be fitted to them</text>
+  <rect x="20" y="84" width="530" height="83" rx="9" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.7"/>
+  <text x="36" y="110.325" font-size="11.5" fill="#12233a" font-weight="700">1.  Measure in interleaved blocks</text>
+  <text x="36" y="131.325" font-size="10.5" fill="#5b6b7b">15 repeats, with the four variants run back to back inside</text>
+  <text x="36" y="146.325" font-size="10.5" fill="#5b6b7b">each, so the interference common to a block is shared rather</text>
+  <text x="36" y="161.325" font-size="10.5" fill="#5b6b7b">than assigned to one variant.</text>
+  <line x1="285" y1="168" x2="285" y2="180" stroke="#2f6db3" stroke-width="2.0" marker-end="url(#a0)"/>
+  <rect x="20" y="182" width="530" height="83" rx="9" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.7"/>
+  <text x="36" y="208.325" font-size="11.5" fill="#12233a" font-weight="700">2.  Summarise without assuming a shape</text>
+  <text x="36" y="229.325" font-size="10.5" fill="#5b6b7b">Median with a nonparametric bootstrap 95% interval, reported</text>
+  <text x="36" y="244.325" font-size="10.5" fill="#5b6b7b">in full rather than as a half-width: latency is skewed, and a</text>
+  <text x="36" y="259.325" font-size="10.5" fill="#5b6b7b">symmetric width covering the upper bound would fall below zero.</text>
+  <line x1="285" y1="266" x2="285" y2="278" stroke="#2f6db3" stroke-width="2.0" marker-end="url(#a0)"/>
+  <rect x="20" y="280" width="530" height="83" rx="9" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.7"/>
+  <text x="36" y="306.325" font-size="11.5" fill="#12233a" font-weight="700">3.  Test the comparison, not the overlap</text>
+  <text x="36" y="327.325" font-size="10.5" fill="#5b6b7b">An exact two-sided paired permutation test on the repeat-wise</text>
+  <text x="36" y="342.325" font-size="10.5" fill="#5b6b7b">differences, with the allocator held fixed. All 2^15 sign</text>
+  <text x="36" y="357.325" font-size="10.5" fill="#5b6b7b">assignments are enumerated, so the p-value is exact.</text>
+  <line x1="285" y1="364" x2="285" y2="376" stroke="#2f6db3" stroke-width="2.0" marker-end="url(#a0)"/>
+  <rect x="20" y="378" width="530" height="68" rx="9" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.7"/>
+  <text x="36" y="404.325" font-size="11.5" fill="#12233a" font-weight="700">4.  Correct the family</text>
+  <text x="36" y="425.325" font-size="10.5" fill="#5b6b7b">Holm step-down across the 10 comparisons, controlling the</text>
+  <text x="36" y="440.325" font-size="10.5" fill="#5b6b7b">family-wise error rate without assuming the tests independent.</text>
+  <rect x="20" y="461" width="530" height="52" rx="8" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.5"/>
+  <text x="35" y="486.325" font-size="11.5" fill="#12233a" font-weight="700">Resolving power, quoted rather than left implicit</text>
+  <text x="35" y="505.325" font-size="10.5" fill="#5b6b7b">An exact test on 15 pairs floors at p = 0.000061, and at 0.00061 after correction.</text>
+  <text x="714" y="76" font-size="10.5" fill="#a5700c" text-anchor="middle" font-weight="700">PRE-COMMITTED</text>
+  <rect x="568" y="86" width="292" height="154" rx="9" fill="#fdf6e9" stroke="#c8860d" stroke-width="1.7"/>
+  <text x="583" y="111.325" font-size="11.5" fill="#a5700c" font-weight="700">Which comparisons enter the family</text>
+  <text x="583" y="131.325" font-size="10.5" fill="#5b6b7b">Achieved throughput is excluded. Below</text>
+  <text x="583" y="145.325" font-size="10.5" fill="#5b6b7b">saturation it is pinned to the offered load</text>
+  <text x="583" y="159.325" font-size="10.5" fill="#5b6b7b">by construction, so it cannot express a</text>
+  <text x="583" y="173.325" font-size="10.5" fill="#5b6b7b">language effect whatever the languages do.</text>
+  <text x="583" y="187.325" font-size="10.5" fill="#5b6b7b">Holm also divides its budget across the</text>
+  <text x="583" y="201.325" font-size="10.5" fill="#5b6b7b">whole family, so two comparisons that</text>
+  <text x="583" y="215.325" font-size="10.5" fill="#5b6b7b">resolve nothing would make the correction</text>
+  <text x="583" y="229.325" font-size="10.5" fill="#5b6b7b">harsher on the ones that can.</text>
+  <rect x="568" y="254" width="292" height="196" rx="9" fill="#fdf6e9" stroke="#c8860d" stroke-width="1.7"/>
+  <text x="583" y="279.325" font-size="11.5" fill="#a5700c" font-weight="700">Which instrument to believe</text>
+  <text x="583" y="299.325" font-size="10.5" fill="#5b6b7b">When the interval and the p-value disagree,</text>
+  <text x="583" y="313.325" font-size="10.5" fill="#5b6b7b">which at these repeat counts they routinely</text>
+  <text x="583" y="327.325" font-size="10.5" fill="#5b6b7b">will, the answer turns on whether pairing</text>
+  <text x="583" y="341.325" font-size="10.5" fill="#5b6b7b">cancels the interference that metric is</text>
+  <text x="583" y="355.325" font-size="10.5" fill="#5b6b7b">exposed to. A run-level summary or a central</text>
+  <text x="583" y="369.325" font-size="10.5" fill="#5b6b7b">order statistic is unmoved by a handful of</text>
+  <text x="583" y="383.325" font-size="10.5" fill="#5b6b7b">descheduled operations, so a consistent</text>
+  <text x="583" y="397.325" font-size="10.5" fill="#5b6b7b">paired difference is real. A high percentile</text>
+  <text x="583" y="411.325" font-size="10.5" fill="#5b6b7b">is computed from precisely those operations,</text>
+  <text x="583" y="425.325" font-size="10.5" fill="#5b6b7b">so an interval excluding zero is not read as</text>
+  <text x="583" y="439.325" font-size="10.5" fill="#5b6b7b">a finding however far from zero it sits.</text>
+  <text x="440.0" y="532" font-size="11.5" fill="#8794a3" text-anchor="middle">Applying the second rule to the block that suits the argument and quietly dropping it for the other</text>
+  <text x="440.0" y="548" font-size="11.5" fill="#8794a3" text-anchor="middle">is the specific failure the pre-commitment exists to prevent.</text>
+</svg>

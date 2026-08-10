@@ -1,0 +1,60 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="566" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="From runs to a defensible comparison" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="224.18" y="11.1" width="431.64" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n3" value="Two decisions about how the family of tests is read are taken here, before the results, because either could otherwise be fitted to them" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="-23.25" y="42.12" width="926.5" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n9" value="&lt;b&gt;1.  Measure in interleaved blocks&lt;/b&gt;&lt;br&gt;&lt;br&gt;15 repeats, with the four variants run back to back inside&lt;br&gt;each, so the interference common to a block is shared rather&lt;br&gt;than assigned to one variant." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.7;align=left;verticalAlign=top;spacingLeft=12;spacingTop=6;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="20" y="84" width="530" height="83" as="geometry"/>
+    </mxCell>
+    <mxCell id="n10" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="285" y="168" as="sourcePoint"/>
+        <mxPoint x="285" y="180" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n16" value="&lt;b&gt;2.  Summarise without assuming a shape&lt;/b&gt;&lt;br&gt;&lt;br&gt;Median with a nonparametric bootstrap 95% interval, reported&lt;br&gt;in full rather than as a half-width: latency is skewed, and a&lt;br&gt;symmetric width covering the upper bound would fall below zero." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.7;align=left;verticalAlign=top;spacingLeft=12;spacingTop=6;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="20" y="182" width="530" height="83" as="geometry"/>
+    </mxCell>
+    <mxCell id="n17" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="285" y="266" as="sourcePoint"/>
+        <mxPoint x="285" y="278" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n23" value="&lt;b&gt;3.  Test the comparison, not the overlap&lt;/b&gt;&lt;br&gt;&lt;br&gt;An exact two-sided paired permutation test on the repeat-wise&lt;br&gt;differences, with the allocator held fixed. All 2^15 sign&lt;br&gt;assignments are enumerated, so the p-value is exact." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.7;align=left;verticalAlign=top;spacingLeft=12;spacingTop=6;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="20" y="280" width="530" height="83" as="geometry"/>
+    </mxCell>
+    <mxCell id="n24" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="285" y="364" as="sourcePoint"/>
+        <mxPoint x="285" y="376" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n29" value="&lt;b&gt;4.  Correct the family&lt;/b&gt;&lt;br&gt;&lt;br&gt;Holm step-down across the 10 comparisons, controlling the&lt;br&gt;family-wise error rate without assuming the tests independent." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.7;align=left;verticalAlign=top;spacingLeft=12;spacingTop=6;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="20" y="378" width="530" height="68" as="geometry"/>
+    </mxCell>
+    <mxCell id="n33" value="&lt;b&gt;Resolving power, quoted rather than left implicit&lt;/b&gt;&lt;br&gt;&lt;br&gt;An exact test on 15 pairs floors at p = 0.000061, and at 0.00061 after correction." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=16;fillColor=#f1f4f7;strokeColor=#d7dde3;strokeWidth=1.5;align=left;verticalAlign=top;spacingLeft=11;spacingTop=5;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="20" y="461" width="530" height="52" as="geometry"/>
+    </mxCell>
+    <mxCell id="n34" value="PRE-COMMITTED" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#a5700c;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="676.8" y="66.03" width="74.39" height="15.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n45" value="&lt;b&gt;Which comparisons enter the family&lt;/b&gt;&lt;br&gt;&lt;br&gt;Achieved throughput is excluded. Below&lt;br&gt;saturation it is pinned to the offered load&lt;br&gt;by construction, so it cannot express a&lt;br&gt;language effect whatever the languages do.&lt;br&gt;Holm also divides its budget across the&lt;br&gt;whole family, so two comparisons that&lt;br&gt;resolve nothing would make the correction&lt;br&gt;harsher on the ones that can." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#fdf6e9;strokeColor=#c8860d;strokeWidth=1.7;align=left;verticalAlign=top;spacingLeft=11;spacingTop=5;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="568" y="86" width="292" height="154" as="geometry"/>
+    </mxCell>
+    <mxCell id="n59" value="&lt;b&gt;Which instrument to believe&lt;/b&gt;&lt;br&gt;&lt;br&gt;When the interval and the p-value disagree,&lt;br&gt;which at these repeat counts they routinely&lt;br&gt;will, the answer turns on whether pairing&lt;br&gt;cancels the interference that metric is&lt;br&gt;exposed to. A run-level summary or a central&lt;br&gt;order statistic is unmoved by a handful of&lt;br&gt;descheduled operations, so a consistent&lt;br&gt;paired difference is real. A high percentile&lt;br&gt;is computed from precisely those operations,&lt;br&gt;so an interval excluding zero is not read as&lt;br&gt;a finding however far from zero it sits." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#fdf6e9;strokeColor=#c8860d;strokeWidth=1.7;align=left;verticalAlign=top;spacingLeft=11;spacingTop=5;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="568" y="254" width="292" height="196" as="geometry"/>
+    </mxCell>
+    <mxCell id="n60" value="Applying the second rule to the block that suits the argument and quietly dropping it for the other" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="129.76" y="521.08" width="620.48" height="17.25" as="geometry"/>
+    </mxCell>
+    <mxCell id="n61" value="is the specific failure the pre-commitment exists to prevent." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="248.84" y="537.08" width="382.32" height="17.25" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

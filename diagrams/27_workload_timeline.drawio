@@ -1,0 +1,111 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="494" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="The two workloads, and the lifecycle the mixed one walks" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="104.28" y="11.1" width="671.44" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n3" value="A fixed draw order makes the per-operation-kind counts identical in both languages, so the workload doubles as a parity signal" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="10.81" y="42.12" width="858.38" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n9" value="&lt;b&gt;signal — the steady-state hot path&lt;/b&gt;&lt;br&gt;&lt;br&gt;Preloads a population of connected UEs and then hammers&lt;br&gt;handle_signaling, isolating per-message latency with no&lt;br&gt;lifecycle transitions in the way." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=11;spacingTop=5;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="20" y="78" width="410" height="106" as="geometry"/>
+    </mxCell>
+    <mxCell id="n15" value="&lt;b&gt;mixed — the full RAN lifecycle&lt;/b&gt;&lt;br&gt;&lt;br&gt;A pinned generator that walks each UE through a realistic&lt;br&gt;procedure sequence, using a per-slot expected-state model&lt;br&gt;so that every operation it emits is valid for that UE." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#f4fbf6;strokeColor=#2e8b57;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=11;spacingTop=5;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="450" y="78" width="410" height="106" as="geometry"/>
+    </mxCell>
+    <mxCell id="n16" value="The procedure sequence the mixed workload walks, per UE" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="260.15" y="208.6" width="359.7" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n19" value="create" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#d9f0dd;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="24" y="240" width="108" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="n20" value="Idle" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=10;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="67.1" y="280.5" width="21.8" height="15.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n21" value="" style="html=1;rounded=0;strokeColor=#2e8b57;strokeWidth=1.6;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="134" y="255" as="sourcePoint"/>
+        <mxPoint x="146" y="255" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n24" value="setup" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#d9f0dd;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="148" y="240" width="108" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="n25" value="Connected" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=10;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="177.47" y="280.5" width="49.05" height="15.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n26" value="" style="html=1;rounded=0;strokeColor=#2e8b57;strokeWidth=1.6;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="258" y="255" as="sourcePoint"/>
+        <mxPoint x="270" y="255" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n29" value="signal" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#d9f0dd;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="272" y="240" width="108" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="n30" value="Connected" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=10;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="301.48" y="280.5" width="49.05" height="15.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n31" value="" style="html=1;rounded=0;strokeColor=#2e8b57;strokeWidth=1.6;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="382" y="255" as="sourcePoint"/>
+        <mxPoint x="394" y="255" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n34" value="add_drb" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#d9f0dd;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="396" y="240" width="108" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="n35" value="Connected" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=10;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="425.48" y="280.5" width="49.05" height="15.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n36" value="" style="html=1;rounded=0;strokeColor=#2e8b57;strokeWidth=1.6;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="506" y="255" as="sourcePoint"/>
+        <mxPoint x="518" y="255" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n39" value="begin" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#d9f0dd;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="520" y="240" width="108" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="n40" value="Reconfiguring" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=10;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="538.58" y="280.5" width="70.85" height="15.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n41" value="" style="html=1;rounded=0;strokeColor=#2e8b57;strokeWidth=1.6;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="630" y="255" as="sourcePoint"/>
+        <mxPoint x="642" y="255" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n44" value="complete / abort" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#d9f0dd;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="644" y="240" width="108" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="n45" value="Connected" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=10;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="673.48" y="280.5" width="49.05" height="15.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n46" value="" style="html=1;rounded=0;strokeColor=#2e8b57;strokeWidth=1.6;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="754" y="255" as="sourcePoint"/>
+        <mxPoint x="766" y="255" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n49" value="release" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#d9f0dd;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="768" y="240" width="108" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="n50" value="Released" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=10;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="800.2" y="280.5" width="43.6" height="15.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n51" value="resulting state" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=9.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="24" y="300.98" width="77.66" height="14.25" as="geometry"/>
+    </mxCell>
+    <mxCell id="n59" value="&lt;b&gt;Control parameters&lt;/b&gt;&lt;br&gt;&lt;br&gt;5 000 active UEs, and 8 offered-load levels up to&lt;br&gt;64 kops/s swept from nominal through saturation into&lt;br&gt;overload. Open loop against a fixed intended send&lt;br&gt;schedule, so latency is measured from the time an&lt;br&gt;operation should have been sent rather than was." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#f1f4f7;strokeColor=#d7dde3;strokeWidth=1.5;align=left;verticalAlign=top;spacingLeft=11;spacingTop=5;spacingRight=6;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="20" y="328" width="410" height="108" as="geometry"/>
+    </mxCell>
+    <mxCell id="n67" value="&lt;b&gt;Why the draw order is pinned&lt;/b&gt;&lt;br&gt;&lt;br&gt;A fixed SplitMix64 draw order means that for a given&lt;br&gt;seed and active-UE population the two implementations&lt;br&gt;emit exactly the same count of each operation kind. A&lt;br&gt;divergence is therefore a parity failure rather than a&lt;br&gt;difference in what the two were asked to do." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#fdf6e9;strokeColor=#c8860d;strokeWidth=1.5;align=left;verticalAlign=top;spacingLeft=11;spacingTop=5;spacingRight=6;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="450" y="328" width="410" height="108" as="geometry"/>
+    </mxCell>
+    <mxCell id="n68" value="The workload is synthetic and specification-justified rather than replayed from production traffic, so its operation mix is plausible rather than validated." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="-48.87" y="457.07" width="977.73" height="17.25" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>
