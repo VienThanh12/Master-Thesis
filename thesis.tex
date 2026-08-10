@@ -23,10 +23,23 @@
 \usepackage[titletoc]{appendix}
 \usepackage{array} % Ragged-right p-columns in the Chapter 6 tables
 
-% The class sets a headheight fractionally smaller than fancyhdr wants for this
-% font size, which otherwise emits a warning on every page.
-\setlength{\headheight}{15pt}
+% The class sets headheight to 0.52cm, but \onehalfspacing inflates the header's
+% baselineskip, so fancyhdr asks for 27.11653pt and warns on every page. The
+% head box is grown to cover that and \topmargin is shortened by the same
+% amount, which leaves the body text block, and therefore the pagination, where
+% the class put it. The -3pt is the class's own original correction.
+\setlength{\headheight}{27.2pt}
 \addtolength{\topmargin}{-3pt}
+\addtolength{\topmargin}{-12.2pt}
+
+% \itshape\textsc in the running head (see the \fancyhead definitions in the
+% class) asks for a small-caps italic that Latin Modern does not ship. LaTeX
+% already substitutes small-caps slanted for it; declaring that substitution
+% explicitly produces the same glyphs without 228 warnings. Deferred to
+% \begin{document} because T1+lmr is not declared until t1lmr.fd is loaded,
+% which happens when the font is first selected rather than when lmodern is
+% loaded.
+\AtBeginDocument{\DeclareFontShape{T1}{lmr}{m}{scit}{<->ssub*lmr/m/scsl}{}}
 \usepackage{listings} % For the side-by-side C++/Rust excerpts in Chapter 6
 
 % Ragged-right paragraph column: avoids stretched inter-word spacing in narrow cells.
