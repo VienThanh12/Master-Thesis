@@ -307,10 +307,19 @@ academic and becomes a concrete engineering decision.
 The second trend is an industry-wide shift toward memory-safe languages. Large
 software organisations report that the majority of their serious security vulnerabilities
 stem from memory-safety errors, and that adopting memory-safe languages measurably reduces
-them~\cite{msrc2019memory,google2022android,google2024securebydesign}. This concern has risen to the level of national
+them~\cite{msrc2019memory,google2022android,vanderstoep2025android,google2024securebydesign}.
+The case no longer rests on vendor reporting alone: a group spanning academia and industry has
+argued that memory safety now needs standardised terminology and requirements if it is to be
+specified and procured at all~\cite{watson2025memorysafety}. This concern has risen to the level of national
 policy: cybersecurity agencies now urge software manufacturers to publish ``memory-safe
 roadmaps'' and to migrate away from memory-unsafe languages such as C and
-C++~\cite{cisa2023memorysafe,oncd2024building}. Rust in particular has moved from a niche
+C++~\cite{cisa2023memorysafe,oncd2024building}. In the market this subsystem is sold into it has
+also become a regulatory matter. The EU Cyber Resilience Act places secure-by-design and
+lifecycle vulnerability-handling obligations on manufacturers of products with digital elements,
+with reporting obligations applying from September 2026 and the remainder from December
+2027~\cite{eu2024cra}. It names no programming language, and it would be wrong to read it as
+requiring one; what it changes is that the recurring defect classes of a memory-unsafe language
+become a compliance exposure as well as an engineering one. Rust in particular has moved from a niche
 language into operating-system kernels, cloud infrastructure, and increasingly into
 telecommunications; production hypervisors such as AWS Firecracker, which underpins its
 serverless platform, are already written in Rust~\cite{agache2020firecracker}. Yet the evidence base for Rust's suitability rests largely on
@@ -634,7 +643,12 @@ Measuring tail latency correctly is itself a pitfall. A naive closed-loop load g
 that waits for each response before issuing the next request suffers \emph{coordinated
 omission}: when the system stalls, the generator stalls with it and simply fails to record
 the many requests that would have arrived during the stall, systematically hiding the very
-tail it is meant to expose. Sound measurement therefore requires an open-loop model with an
+tail it is meant to expose. The distinction beneath this is a modelling one rather than an
+implementation detail. In a closed system a new request is triggered only by the completion of a
+previous one, whereas in an open system arrivals are independent of completions, and the two
+produce systematically different response-time behaviour on the same service process, with the
+closed model reporting the lower figures~\cite{schroeder2006openclosed}. Sound measurement
+therefore requires an open-loop model with an
 intended schedule, correction for coordinated omission, high-dynamic-range latency histograms
 that retain resolution across many orders of magnitude, and statistically rigorous reporting
 with repeated runs and confidence intervals rather than single point
@@ -651,7 +665,7 @@ before sending the next, so when the system stalls it stalls too and never issue
 requests, silently omitting exactly the samples that would expose the tail.\label{fig:coord}}
 \end{figure}
 
-\section{C++ for latency-critical systems}
+\section{C++ for latency-critical systems}\label{sec:cpplatency}
 C++ is the default language for RAN control-plane software for good reasons. It offers
 zero-overhead abstractions, direct control over memory layout and allocation, deterministic
 destruction through the Resource Acquisition Is Initialization (RAII) idiom, and mature
@@ -674,7 +688,9 @@ been a persistent security problem for decades, and deployed mitigations remain 
 defences~\cite{szekeres2013sok}. Their prevalence is well documented in
 industry: memory-safety issues account for roughly 70\,\% of the security vulnerabilities
 reported at Microsoft~\cite{msrc2019memory}, and Google reports a sharp drop in such
-vulnerabilities as memory-safe languages are adopted in Android~\cite{google2022android}. This
+vulnerabilities as memory-safe languages are adopted in Android, to below a fifth of that
+platform's total vulnerabilities by
+2025~\cite{google2022android,vanderstoep2025android}. This
 specific catalogue is developed in detail in Chapter~\ref{chapter:context} and forms the basis
 for the fault-injection study in Chapter~\ref{chapter:eval}.
 
@@ -687,6 +703,27 @@ those data races that happen to occur during a run, so a race that manifests onl
 interleaving can pass unnoticed. Static analysers help but suffer false negatives and cannot
 reason about the whole program. Detection is therefore best-effort and after the fact, which
 is precisely the situation a language with compile-time guarantees is meant to change.
+
+That account describes C++ as it can be deployed today, and it would misrepresent the situation
+to leave the impression that the language is standing still. Since 2023 the standards committee
+has pursued \emph{profiles}: named sets of rules, covering type, bounds, lifetime, and arithmetic
+safety, that a conforming implementation must enforce wherever they are
+enabled~\cite{sutter2025profiles}. That direction was chosen over \emph{Safe C++}, a proposal for
+a rigorously safe subset with borrow checking and an accompanying standard library, which is
+essentially Rust's model expressed in C++~\cite{baxter2024safecpp}. Three things nonetheless keep
+the comparison drawn here live. Profiles are not yet standardised: in January 2026 their own
+authors were still calling for implementations, describing the state of the art as a
+specification together with ``an experimental implementation \ldots{} being conducted in a major
+C++ compiler'', and treating the design and specification of the initial profiles as work still
+to be done~\cite{vandevoorde2026profiles}. The concurrency profile, which is the one that would
+bear on the concurrency defect classes catalogued in Chapter~\ref{chapter:context}, is placed
+after that initial set rather than within it: ``more profiles should be defined and implemented,
+notably a concurrency profile''~\cite{vandevoorde2026profiles}. And a rule that is enforced when
+switched on is a different kind of object from a property the type system carries
+unconditionally, particularly where the enforcement is a run-time check rather than a
+compile-time rejection. The implementations compared in this thesis are therefore built against
+C++23 as specified and shipped, and Section~\ref{sec:threats} records what that pins the
+comparison to.
 
 \section{The Rust ownership and safety model}
 Rust offers memory safety and data-race freedom enforced at compile time through its
@@ -826,6 +863,15 @@ respect to the quantity this thesis measures: thread-per-core structuring has be
 change application tail latency in its own right~\cite{enberg2019threadpercore}, which is one
 reason the model is held fixed across both implementations rather than left to each language's
 idiom.
+
+A third structure, an asynchronous runtime over a work-stealing scheduler, is idiomatic in both
+languages and is deliberately used in neither. Its timing behaviour belongs to the runtime rather
+than to the language hosting it: a real-time study of asynchronous Rust finds that one and the
+same application meets or misses its deadlines depending on which runtime and thread-priority
+mapping it is given, and that the configuration meeting them is not the idiomatic work-stealing
+one~\cite{skoudlil2025asyncrust}. Adopting such a runtime would therefore introduce a variable
+that this study is built to exclude, and Section~\ref{sec:relatedwork} returns to a comparison in
+which it was not excluded.
 
 A second, independent choice is how work is queued between producers and consumers. Unbounded
 queues mask overload and let latency and memory grow without limit; \emph{bounded} queues with
@@ -1118,6 +1164,15 @@ thousand operations is not an edge case but a routine occurrence somewhere in th
 every instant. Taken together, the p99.9 of a single UE Context Management operation is not a
 curiosity at the margin of a distribution; it is a rate of degraded procedures the network
 sustains continuously.
+
+The scale at which those percentiles matter is not hypothetical. A measurement study of a
+disaggregated 5G RAN times the CU-CP-to-DU UE Context Setup procedure over F1-C, and the
+CU-CP-to-CU-UP bearer context setup over E1, under different interface-protection schemes, and
+finds the choice worth hundreds of microseconds: on F1-C, IPsec adds on the order of
+$120\,\mu$s on average to UE context setup, against roughly $430\,\mu$s for
+DTLS~\cite{michaelides2026ranlatency}. Overheads of that size are treated as consequential for
+precisely the procedure family this thesis reimplements, which places these operations in a
+regime where tens of microseconds are an engineering quantity rather than noise.
 
 The study therefore characterises the full latency distribution, focusing on the high
 percentiles (p99, p99.9, p99.99), the maximum, and jitter, and on how these degrade as offered
@@ -2361,7 +2416,7 @@ Rust for a given active-UE population and seed, which doubles as the parity sign
 Section~\ref{sec:parity}. The control parameters are the target event rate and the number of
 active UEs, swept from nominal load through saturation and overload; a fixed send schedule with
 histogram correction is used so that coordinated-omission bias is avoided when the system
-stalls~\cite{tene_hdrhistogram}. Three measurement campaigns are run: a load sweep for
+stalls~\cite{schroeder2006openclosed,tene_hdrhistogram}. Three measurement campaigns are run: a load sweep for
 performance, the fault-injection study, and an FFI migration prototype.
 Figure~\ref{fig:workload} shows the two workloads and the procedure sequence the mixed one
 walks.
@@ -2669,6 +2724,15 @@ $\BudgetHandoffCpp\,\mu$s and $\BudgetHandoffRust\,\mu$s. The work the languages
 perform is therefore at most $\BudgetCoreShareMax\%$ of what the sweep measures, and better
 than $99.9\%$ of every latency in Table~\ref{tab:latency} is the operating system moving a
 message between two threads.
+
+That shape is not peculiar to this system or to this pair of languages. Revisiting a classic
+decomposition of transaction-processing cost on a shared-nothing database structured, as this
+service is, with one partition per worker thread, Zhou et al.\ report that once the
+per-operation work has been optimised the remaining cost is dominated by communication across
+isolation boundaries rather than by the operation itself~\cite{zhou2025oltp}. A mature
+shared-nothing design tends to end up communication- and scheduler-bound, and the table above is
+that pattern appearing in a control-plane service. It is worth saying because it makes the result
+below a general property of the design rather than an artefact of this measurement.
 
 Two conclusions follow, and they pull in opposite directions.
 
@@ -3436,7 +3500,7 @@ language performs (Section~\ref{sec:budget}), so measuring it alone answers a di
 question from the one being asked.\label{fig:playbook}}
 \end{figure}
 
-\section{Related work}
+\section{Related work}\label{sec:relatedwork}
 Prior Rust-versus-C/C++ comparisons focus on general-purpose performance and
 energy~\cite{pereira2017energy}, and cross-language benchmark surveys report that Rust matches
 C and C++ on performance while adding safety~\cite{bugden2022rust}.
@@ -3512,7 +3576,12 @@ of the kind adopted here materially affects application tail
 latency~\cite{enberg2019threadpercore}. The RAN context draws on the O-RAN disaggregation
 trend~\cite{polese2023oran}. Within mobile networks specifically, Rust already has a
 peer-reviewed precedent in the datapath, a cellular packet core built on
-it~\cite{qazi2017pepc}, and control-plane latency is an active target in the core network,
+it~\cite{qazi2017pepc}, and on the control-plane side an open-source proof-of-concept gNB-CU has
+been written in Rust, with a separated CU-CP and CU-UP communicating over E1, establishing that
+the ASN.1- and SCTP-based protocol surface is not a barrier in principle~\cite{alsoran}. That
+artefact is an existence proof rather than a comparison, since it reports no latency measurements
+and has no C++ counterpart built to the same specification. Control-plane latency is meanwhile an
+active target in the core network,
 where procedures have been redesigned for low latency~\cite{liu2023l25gc} and procedure-level
 benchmarking harnesses have begun to appear~\cite{park2025ctrlbench}. The adoption angle rests
 on qualitative studies reporting that the main barrier to Rust is its learning curve rather
@@ -3551,7 +3620,17 @@ beyond a certain request rate. That is a tail divergence in the right domain, an
 dishonest to omit it. It is also, however, a comparison in which the concurrency runtime
 co-varies with the language: the authors attribute the effect to stackless
 \texttt{async}/\texttt{await} permitting a context switch immediately before an I/O operation is
-initiated, which is a property of Tokio and Monoio rather than of Rust. That confound is
+initiated, which is a property of Tokio and Monoio rather than of Rust.
+
+That attribution does not have to be taken on trust, because the runtimes have since been
+examined directly in a real-time setting. Dissecting the execution model of asynchronous Rust
+against a thread-based C++ equivalent, \v{S}koudlil et al.\ report that the
+runtimes' scheduling policies are ``complex and difficult to understand due to the use of
+abstraction layers'' and that Tokio specifically is ``designed to maximize throughput rather than
+time determinism''; restructuring the same application onto prioritised threads over a different
+runtime yields response times that match classical response-time analysis, which the idiomatic
+work-stealing configuration does not~\cite{skoudlil2025asyncrust}. The tail behaviour at issue is
+therefore a property of the runtime, and one that changes when the runtime does. That confound is
 precisely what the frozen specification and the shared thread-per-shard model in this thesis are
 designed to remove. The two studies are therefore complementary rather than contradictory:
 theirs establishes that a tail difference is observable in this domain, and this one is
@@ -3738,7 +3817,7 @@ Every configuration is measured over \NRepeats{} interleaved repeats and reporte
 with a nonparametric bootstrap $95\%$ confidence interval rather than a point estimate, in
 line with established guidance~\cite{georges2007rigorous}, and latency is captured in
 high-dynamic-range histograms against an intended send schedule so that coordinated omission
-does not hide the tail~\cite{tene_hdrhistogram}. Comparisons are not left to interval overlap:
+does not hide the tail~\cite{schroeder2006openclosed,tene_hdrhistogram}. Comparisons are not left to interval overlap:
 the interleaved design is exploited as a matched one and tested with an exact paired
 permutation test, Holm-corrected across the family
 (Section~\ref{sec:stats}, Table~\ref{tab:significance}).
@@ -3794,6 +3873,20 @@ is therefore narrow: for stateful, concurrent, partitionable control-plane servi
 kind, the language choice is not a performance decision. Extending it beyond that class
 requires rerunning the framework, which is why the framework rather than the numbers is
 offered as the reusable contribution.
+
+A final limit on reach is temporal rather than structural, and it applies to the comparison
+itself rather than to any one result: one of the two objects being compared is moving. The C++
+side is pinned to C++23 as specified and shipped, and to the compiler versions recorded in
+Section~\ref{sec:testbed}, while the standards committee is actively pursuing enforced safety
+profiles (Section~\ref{sec:cpplatency}). This does not qualify anything measured here, because
+none of that work is standardised or generally implemented, and the concurrency profile that
+would reach the boundary classes of RQ2 is placed after an initial set that is itself still to be
+specified~\cite{vandevoorde2026profiles}. It does mean the RQ2 result should be read as a
+statement about these languages as they stand rather than as a permanent one. An implemented and
+enforced lifetime profile would narrow the memory-safety half of the catalogue; an implemented
+concurrency profile would bear on the half deliberately placed outside Rust's guarantee. This is
+again a case where the framework is what survives: the catalogue is designed to be re-run against
+a compiler that enforces profiles, and the answer would then be measured rather than predicted.
 
 \section{Ethical and professional reflection}
 The conduct of the study raised no data-protection questions, for the reasons set out in

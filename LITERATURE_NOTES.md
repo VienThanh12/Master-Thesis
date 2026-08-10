@@ -1,8 +1,15 @@
 # Literature sweep, August 2026
 
 Candidate sources for `thesis.tex`, found by searching for work published after the current
-bibliography was assembled. Nothing here has been added to `bibliography.bib` or `thesis.tex`
-yet — this file is the review step before that.
+bibliography was assembled.
+
+> **Status, 10 August 2026.** The core set (§10, items 1–7) has been **applied**: eleven entries
+> added to `bibliography.bib` and the accompanying prose written into `thesis.tex`. The build is
+> clean at 141 pages with no undefined citations. One deviation: the C++ profiles threat was
+> written into the external-validity prose of §"Threats to validity" rather than added as a row
+> to `tab:threats`, because the companion figure `25_threats_validity.drawio` is hand-laid-out
+> and a table row without a matching diagram row would leave the two inconsistent. Everything
+> else in this file remains a candidate, not a commitment.
 
 **Baseline:** `bibliography.bib` currently holds 65 entries. The newest are `cai2026interop`,
 `mccormack2026unsafe`, and `fan2026android` (2026); `tang2025converos`, `cui2025perfbugs`,
