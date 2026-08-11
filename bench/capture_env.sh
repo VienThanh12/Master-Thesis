@@ -50,8 +50,60 @@ out="$here/results/env-$ts.txt"
     echo "smt/control: (not exposed)"
   echo
 
+  echo "## Virtualisation and core isolation"
+  # A guest reports the governor and turbo controls as "not exposed" for the same
+  # reason bare metal reports them as absent, so the two are indistinguishable
+  # from the section above alone. They are not equivalent: under a hypervisor the
+  # frequency state is host-controlled and a vCPU can be descheduled entirely.
+  if command -v systemd-detect-virt >/dev/null 2>&1; then
+    virt="$(systemd-detect-virt 2>/dev/null || echo none)"
+  elif command -v lscpu >/dev/null 2>&1 && lscpu | grep -qi 'hypervisor vendor'; then
+    virt="$(lscpu | sed -n 's/^Hypervisor vendor: *//p')"
+  else
+    virt="unknown"
+  fi
+  echo "virtualisation: ${virt:-none}"
+  cmdline="$(cat /proc/cmdline 2>/dev/null || echo '')"
+  echo "kernel cmdline: ${cmdline:-(unreadable)}"
+  isolated="$(printf '%s' "$cmdline" | sed -n 's/.*isolcpus=\([^ ]*\).*/\1/p')"
+  nohz="$(printf '%s' "$cmdline" | sed -n 's/.*nohz_full=\([^ ]*\).*/\1/p')"
+  echo "isolcpus: ${isolated:-(none)}"
+  echo "nohz_full: ${nohz:-(none)}"
+  # Steal time is the one source of tail latency that cannot be addressed from
+  # inside the guest, so it is sampled over a window rather than read cumulatively:
+  # a long-lived host accumulates ticks that say nothing about this session.
+  steal_a="$(awk '/^cpu /{print $9; exit}' /proc/stat 2>/dev/null || echo '')"
+  sleep 1
+  steal_b="$(awk '/^cpu /{print $9; exit}' /proc/stat 2>/dev/null || echo '')"
+  steal_delta=""
+  if [ -n "$steal_a" ] && [ -n "$steal_b" ]; then
+    steal_delta=$(( steal_b - steal_a ))
+    echo "steal ticks (1 s sample): $steal_delta"
+  else
+    echo "steal ticks (1 s sample): (unavailable)"
+  fi
+  echo
+
   echo "## Warnings"
   warned=0
+  if [ "$virt" != "none" ] && [ "$virt" != "unknown" ]; then
+    echo "  [VIRT] Running under virtualisation ($virt): the frequency governor and"
+    echo "         turbo state are host-controlled and not observable from here, and"
+    echo "         the hypervisor may deschedule a vCPU. This is not the bare-metal"
+    echo "         host TESTBED.md specifies."
+    warned=1
+  fi
+  if [ -z "$isolated" ]; then
+    echo "  [NOISOL] No isolcpus= on the kernel command line: benchmark threads share"
+    echo "           their cores with the rest of the system, and a lost timeslice"
+    echo "           lands directly in p99."
+    warned=1
+  fi
+  if [ -n "$steal_delta" ] && [ "$steal_delta" -gt 0 ] 2>/dev/null; then
+    echo "  [STEAL] Non-zero CPU steal in a 1 s sample: the host descheduled this"
+    echo "          guest. Tail figures include contention this guest cannot control."
+    warned=1
+  fi
   if grep -qiE 'microsoft|wsl' /proc/version 2>/dev/null; then
     echo "  [WSL] Running under WSL2: frequency/turbo/SMT hygiene unavailable and"
     echo "        tails are perturbed by the host. NOT testbed-grade for RQ1/RQ3."

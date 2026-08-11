@@ -33,6 +33,7 @@ warmup_s=1
 seed=42
 repeats=10
 pin=""                       # taskset core list, e.g. "2-17"; empty = no pinning
+rt=""                        # SCHED_FIFO priority for the benchmark, e.g. "80"; empty = default scheduling
 rates="1000 2000 4000 6000 8000 10000 12000 16000"
 
 while [ $# -gt 0 ]; do
@@ -47,6 +48,7 @@ while [ $# -gt 0 ]; do
     --seed)       seed="$2"; shift 2;;
     --repeats)    repeats="$2"; shift 2;;
     --pin)        pin="$2"; shift 2;;
+    --rt)         rt="$2"; shift 2;;
     --rates)      rates="$2"; shift 2;;
     *) echo "unknown arg: $1"; exit 2;;
   esac
@@ -54,11 +56,24 @@ done
 
 mkdir -p "$here/.bin" "$here/results"
 
-# Optional CPU pinning prefix (see TESTBED.md).
+# Optional scheduling prefixes (see TESTBED.md). Applied to the benchmark binary
+# only, not to the builds or the analysis, so a real-time priority does not leak
+# into a cargo invocation.
 pre=()
+# SCHED_FIFO removes the benchmark from ordinary timeslice preemption, which is
+# what a flat multi-millisecond p99 on an otherwise idle system looks like.
+# Needs CAP_SYS_NICE: either run as root or grant the account an rtprio limit.
+if [ -n "$rt" ]; then
+  if command -v chrt >/dev/null 2>&1; then
+    pre+=(chrt -f "$rt")
+    echo "== running benchmark at SCHED_FIFO priority $rt =="
+  else
+    echo "WARN: chrt not found; ignoring --rt $rt"
+  fi
+fi
 if [ -n "$pin" ]; then
   if command -v taskset >/dev/null 2>&1; then
-    pre=(taskset -c "$pin")
+    pre+=(taskset -c "$pin")
     echo "== pinning benchmark to cores: $pin =="
   else
     echo "WARN: taskset not found; ignoring --pin $pin"
