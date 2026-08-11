@@ -20,11 +20,19 @@ out="$here/results/env-$ts.txt"
   echo
 
   echo "## Toolchains"
-  command -v g++    >/dev/null && g++ --version   | head -1
-  command -v clang++>/dev/null && clang++ --version| head -1
-  command -v rustc  >/dev/null && rustc --version
-  command -v cargo  >/dev/null && cargo --version
-  command -v cmake  >/dev/null && cmake --version  | head -1
+  # Report a missing tool rather than omitting its line. A silent omission is
+  # indistinguishable from a tool that was never relevant, and a record that
+  # simply lacks a rustc version does not describe the build that produced the
+  # data beside it.
+  ver() {
+    if command -v "$1" >/dev/null 2>&1; then "$@" 2>/dev/null | head -1
+    else echo "$1: (not found on PATH)"; fi
+  }
+  ver g++ --version
+  command -v clang++ >/dev/null 2>&1 && clang++ --version | head -1
+  ver rustc --version
+  ver cargo --version
+  ver cmake --version
   echo
 
   echo "## CPU"
@@ -100,8 +108,9 @@ out="$here/results/env-$ts.txt"
     warned=1
   fi
   if [ -n "$steal_delta" ] && [ "$steal_delta" -gt 0 ] 2>/dev/null; then
-    echo "  [STEAL] Non-zero CPU steal in a 1 s sample: the host descheduled this"
-    echo "          guest. Tail figures include contention this guest cannot control."
+    echo "  [STEAL] $steal_delta tick(s) of CPU steal in a 1 s sample (~$((steal_delta * 10)) ms of"
+    echo "          vCPU time): the host descheduled this guest. Small in aggregate, but"
+    echo "          the same order as the tail being measured. Quantify with 'vmstat 1 30'."
     warned=1
   fi
   if grep -qiE 'microsoft|wsl' /proc/version 2>/dev/null; then
