@@ -3,8 +3,8 @@ Seam size (Rust \texttt{lib.rs}) & 231 LOC \\
 Hand-written C header & 66 LOC \\
 \texttt{unsafe} in core library & 0 \\
 \texttt{unsafe} in FFI seam & 12 \\
-Raw FFI crossing & 0.46 ns/call \\
-Signaling op, native caller & 43.2 \textmu s/call \\
-Signaling op, through the seam & 42.4 \textmu s/call \\
-Seam cost per operation (paired) & $-179$ ns $[-2583, +594]$ \\
-\quad as a fraction of the operation & $+1.37\%$ at the upper bound
+Raw FFI crossing & 2.54 ns/call \\
+Signaling op, native caller & 12.3 \textmu s/call \\
+Signaling op, through the seam & 12.7 \textmu s/call \\
+Seam cost per operation (paired) & $+192$ ns $[-954, +1341]$ \\
+\quad as a fraction of the operation & $+10.91\%$ at the upper bound
