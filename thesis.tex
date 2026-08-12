@@ -5,7 +5,10 @@
 % STEP 1: language, pagination, programme, and study track.
 % openright is passed through to report so chapters start on a right-hand page;
 % the template's own default is openany.
-\documentclass[english,twoside,openright,censored,csm,software-track-2020]{HYthesisML}
+% a4paper has to be given here: the template sets it with a \PassOptionsToClass
+% placed after \documentclass, by which time report is already loaded, so the
+% stock template silently produces US Letter pages.
+\documentclass[english,twoside,openright,a4paper,censored,csm,software-track-2020]{HYthesisML}
 
 \usepackage{csquotes}
 
@@ -285,7 +288,9 @@ meets its deadlines~\cite{dean2013tail,barroso2017microseconds}.
 \begin{table}
 \centering
 \caption[Abbreviations and key terms]{Abbreviations and key terms used throughout the thesis.\label{tab:abbrev}}
-\renewcommand{\arraystretch}{1.2}
+% 1.1 rather than 1.2: the class's text block is 23cm, and at 1.2 the table is
+% a shade taller than the page.
+\renewcommand{\arraystretch}{1.1}
 \begin{tabular}{@{}p{0.17\linewidth} p{0.75\linewidth}@{}}
 \hline\hline
 Term & Meaning \\
@@ -1138,7 +1143,7 @@ is a prediction rather than a result; Table~\ref{tab:taxonomy} reports what was 
 the fault runner flags a mismatch in either direction rather than absorbing it into the
 conclusion. Buffer overflow is listed for completeness and is not injected, because neither
 implementation does pointer arithmetic on the context store.\label{tab:defectmap}}
-\renewcommand{\arraystretch}{1.1}
+\renewcommand{\arraystretch}{1.0}
 \begin{tabular}{@{}R{0.19\linewidth} R{0.40\linewidth} R{0.14\linewidth} R{0.16\linewidth}@{}}
 \hline\hline
 Defect class & Incarnation in UE Context Management & How it fails & Expected in safe Rust \\
