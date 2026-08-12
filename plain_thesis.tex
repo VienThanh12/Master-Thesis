@@ -5,35 +5,40 @@
 %% result changes, and note that both \input the same figures/gen_*.tex, so re-running
 %% bench/refresh_thesis.sh updates the numbers in this file too.
 
-%% Final edits by Jussi Kangasharju and Pirjo Moen
-%% This file is modified by Veli Mäkinen from HY_fysiikka_LuKtemplate.tex authored by Roope Halonen ja Tomi Vainio.
-%% Some text is also inherited from engl_malli.tex by Kutvonen, Erkiö, Mäkelä, Verkamo, Kurhila, and Nykänen.
+%% Written on the CSM thesis template (HYthesisML.cls) of the Department of
+%% Computer Science; see CSM-thesis-template_2021_09_07/ for the pristine copy.
+%% Kept in step with thesis.tex, which uses the same class and options.
 
+% STEP 1: language, pagination, programme, and study track.
+% openright is passed through to report so chapters start on a right-hand page;
+% the template's own default is openany.
+% a4paper has to be given here: the template sets it with a \PassOptionsToClass
+% placed after \documentclass, by which time report is already loaded, so the
+% stock template silently produces US Letter pages.
+\documentclass[english,twoside,openright,a4paper,censored,csm,software-track-2020]{HYthesisML}
 
-% STEP 1: Choose oneside or twoside
-\documentclass[english,twoside,openright]{UH_DS_MSc}
-%finnish,swedish
+\usepackage{csquotes}
 
-%\usepackage[utf8]{inputenc} % For UTF8 support. Use UTF8 when saving your file.
-\usepackage{lmodern} % Font package
-\usepackage{textcomp} % Package for special symbols
-\usepackage[pdftex]{color, graphicx} % For pdf output and jpg/png graphics
+% REFERENCES: numeric (Vancouver) style, one of the three styles the template
+% offers. sorting=none keeps the numbers in citation order, as IEEEtran did.
+\usepackage[style=numeric,bibstyle=numeric,backend=biber,natbib=true,
+            sorting=none,maxbibnames=99,giveninits=true,uniquename=init]{biblatex}
+\addbibresource{bibliography.bib}
+% List the authors in the bibliography as Lastname F.
+\DeclareNameAlias{sortname}{family-given}
+% Without a mark of its own the bibliography keeps the last chapter's title in
+% the running head of its continuation pages.
+\defbibheading{bibliography}[\bibname]{%
+  \chapter*{#1}%
+  \markboth{#1}{#1}}
+
+% lmodern, textcomp, color, graphicx, epsfig, subfigure, tikz, amsmath, amssymb,
+% caption, titlesec and appendix are all loaded by the class itself.
 \usepackage[pdftex, plainpages=false]{hyperref} % For hyperlinks and pdf metadata
 \usepackage{fancyhdr} % For nicer page headers
-\usepackage{tikz} % For making vector graphics (hard to learn but powerful)
 \usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
 %\usepackage{wrapfig} % For nice text-wrapping figures (use at own discretion)
-\usepackage{amsmath, amssymb} % For better math
-%\usepackage[square]{natbib} % For bibliography
-\usepackage[footnotesize,bf]{caption} % For more control over figure captions
-\usepackage{titlesec}
-\usepackage[titletoc]{appendix}
 \usepackage{array} % Ragged-right p-columns in the Chapter 6 tables
-
-% The class sets a headheight fractionally smaller than fancyhdr wants for this
-% font size, which otherwise emits a warning on every page.
-\setlength{\headheight}{15pt}
-\addtolength{\topmargin}{-3pt}
 \usepackage{listings} % For the side-by-side C++/Rust excerpts in Chapter 6
 
 % Ragged-right paragraph column: avoids stretched inter-word spacing in narrow cells.
@@ -80,17 +85,22 @@
 \title{Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia RAN Control-Plane Systems}
 \author{Ha Vien}
 \date{\today}
-\prof{Keijo Heljanko, Christoph Luneburg, Petteri Kotimaa}
-\censors{}{}{} % TODO before submission: fill in once the faculty assigns examiners.
+% Supervisors are printed on the abstract form rather than on the title page.
+% TODO before submission: the template asks for the academic title (Prof., Dr.)
+% in front of each name.
+\supervisors{Keijo Heljanko, Christoph Luneburg, Petteri Kotimaa}
+% Examiners are assigned by the faculty. The class prints them nowhere, so
+% \examiners is left unset until they are known.
 \keywords{Rust, C++, RAN control plane, tail latency, memory safety, fault injection, FFI}
-\depositeplace{Helsinki University Library}
-\additionalinformation{Software study track}
+% Where deposited fills itself in from the class. Additional information is the
+% study track, taken from the software-track-2020 class option.
+\additionalinformation{\translate{\track}}
 
 
 \classification{\protect{\ \\
 \  Software and its engineering $\rightarrow$ Software notations and tools $\rightarrow$ General programming languages\  \\
 \  Computer systems organization $\rightarrow$ Real-time systems $\rightarrow$ Real-time system specification\\
-\  Networks $\rightarrow$ Network types $\rightarrow$ Mobile networks\\
+\  Networks $\rightarrow$ Network types $\rightarrow$ Mobile networks
 }}
 
 % if you want to quote someone special. You can comment this line and there will be nothing on the document.
@@ -155,23 +165,26 @@
 
 % STEP 3:
 % Write your abstract (of course you really do this last).
-% You can make several abstract pages (if you want it in different languages),
-% but you should also then redefine some of the above parameters in the proper
-% language as well, in between the abstract definitions.
+% You can make several abstract pages (if you want it in different languages)
+% by repeating the otherlanguage environment with a different language.
 
+% The abstract form is a fixed-height box, so it is set single-spaced as in the
+% template; the 1.5 spacing of the body would cost it a fifth of its lines.
+{\singlespacing
+\begin{otherlanguage}{english}
 \begin{abstract}
 \noindent\textbf{Context.}
 The software that keeps a 5G network aware of every connected phone now runs on ordinary
-servers. This control plane, the gNB-CU-CP, is written almost entirely in C++. C++ is fast, but
-it leaves memory and threads to the programmer, the source of a large share of serious defects.
-Rust promises the same speed with those mistakes refused by the compiler.
+servers. This control plane, the gNB-CU-CP, is written almost entirely in C++, which is fast
+but leaves memory and threads to the programmer, the source of a large share of serious
+defects. Rust promises the same speed with those mistakes refused by the compiler.
 
 \noindent\textbf{Objective.}
 Whether it holds under millisecond deadlines is what this thesis, done at Nokia, tests. It
-builds the component that owns the per-phone records, UE Context Management, modelled on a
-Nokia subsystem, twice: in modern C++ and in Rust. Average speed is known to be similar, so the
-four questions are the slowest operations in overload, the defects Rust rejects at compile
-time, what safety costs in memory and CPU, and what piecemeal adoption into C++ costs.
+builds the component that owns the per-phone records, UE Context Management, twice: in modern
+C++ and in Rust. Average speed is known to be similar, so the four questions are the slowest
+operations in overload, the defects Rust rejects at compile time, what safety costs in memory
+and CPU, and what piecemeal adoption into C++ costs.
 
 \noindent\textbf{Methods.}
 A language-neutral specification was frozen before any code was written, so the two share
@@ -181,8 +194,7 @@ overload, face the same injected defects, and meet across a C-compatible boundar
 
 \noindent\textbf{Results.}
 Safe Rust refuses to compile all five injected memory-safety and data-race defects; in C++ each
-compiles and is caught only at run time, only under a sanitiser, and only on a path a test
-happens to run. Two borderline defects, a deadlock and a lost update, compile in both: the
+compiles and is caught only at run time, under a sanitiser, on a path a test happens to run. Two borderline defects, a deadlock and a lost update, compile in both: the
 guarantee has an edge. Rust runs under C++
 across a thin boundary costing under $\FfiOpBoundPct\%$ of one operation. Only
 $\BudgetCoreShareMax\%$ of an operation is work the language does, the rest a thread handoff,
@@ -193,11 +205,20 @@ is twice as fast, its process a few MiB larger. The tail awaits a dedicated, qui
 The choice here is not about performance but about which defects an organisation wants to make
 unwriteable, and whether it will pay for them in engineering effort instead of run time. Rust
 removes data races, not concurrency bugs in general. The thesis leaves a frozen specification,
-two parity-tested implementations, a reproducible measurement framework, and a defect catalogue
-marking where the guarantee ends.
+two parity-tested implementations, a measurement framework, and a defect catalogue marking
+where the guarantee ends.
 \end{abstract}
+\end{otherlanguage}
+}
 
-\mytableofcontents
+% The class's \mytableofcontents switches straight to arabic numbering, which is
+% right when the contents are the last thing before the body. The lists of
+% figures and tables sit in between, so the front matter is numbered in roman
+% here and \mainmatter starts the body at arabic 1.
+\cleardoublepage
+\pagenumbering{roman}
+\setcounter{page}{1}
+\tableofcontents
 
 % \cleardoublepage has to come before \addcontentsline: the \chapter* inside \listoffigures
 % opens a new page itself, so the contents entry must record the page after that, not before.
@@ -212,11 +233,11 @@ marking where the guarantee ends.
 \addcontentsline{toc}{chapter}{\listtablename}
 \listoftables
 
-% Flush the last roman-numbered page before \mynomenclature switches to arabic, or the
+% Flush the last roman-numbered page before \mainmatter switches to arabic, or the
 % reset lands on the still-open List of Tables page and the body starts at 3 instead of 1.
 \cleardoublepage
 
-\mynomenclature
+\mainmatter
 
 % -----------------------------------------------------------------------------------
 % STEP 4: Write the thesis.
@@ -615,6 +636,9 @@ conclusions.\label{fig:roadmap}}
 \end{figure}
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
+% The class prints the chapter and section titles in the running head in capitals,
+% where the full title of this chapter runs into the margin.
+\chaptermark{Background}
 
 This chapter lays the ground the rest of the thesis stands on, in three parts. The first
 describes the domain and what predictable timing means in it. The second looks at the two
@@ -694,6 +718,7 @@ measures.\label{fig:ngran}}
 \end{figure}
 
 \section{Latency, throughput, and predictability in real-time software}\label{sec:predictability}
+\sectionmark{Latency and predictability}
 Latency-critical systems are judged less by how much work they get through on average than by
 how \emph{predictably} they get through it. Three quantities need separating.
 \emph{Throughput} is the sustained rate of completed operations. \emph{Latency} is how long a
@@ -1004,6 +1029,7 @@ Chapter~\ref{chapter:objectives} turns them into objectives and testable hypothe
 Chapter~\ref{chapter:methodology} sets out the methodology by which they are pursued.
 
 \chapter{Problem Context: UE Context Management and Predictability\label{chapter:context}}
+\chaptermark{Problem Context}
 
 \section{The UE Context Management subsystem}
 The subsystem under study is a UE Context Management service, modelled on a real Nokia gNB-CU-CP
@@ -3535,22 +3561,19 @@ cliff. Beyond that:
 \end{itemize}
 
 % STEP 5:
-% Uncomment the following lines and set your .bib file and desired bibliography style
-% to make a bibliography with BibTeX.
-% Alternatively you can use the thebibliography environment if you want to add all
-% references by hand.
+% The bibliography style is selected with the biblatex options in the preamble.
 
 \cleardoublepage %fixes the position of bibliography in bookmarks
 \phantomsection
 
 \addcontentsline{toc}{chapter}{\bibname} % This lines adds the bibliography to the ToC
-\bibliographystyle{IEEEtran} % numbered in citation order
-\bibliography{bibliography}
+\printbibliography
 
+\backmatter
 \begin{appendices}
-\myappendixtitle
 
-\chapter{Fault-injection example\label{appendix:code}}
+% Inside the appendices, \appendix takes the title where \chapter would.
+\appendix{Fault-injection example\label{appendix:code}}
 As an illustration of the fault-injection study (Chapter~\ref{chapter:eval}, RQ2), the
 use-after-free defect is shown in both languages. In C++ the alias into the context map
 survives the \texttt{erase} that frees it, so the following program compiles cleanly and is
@@ -3577,5 +3600,10 @@ p.messages_handled += 1;             // p used after the remove
 \end{verbatim}
 
 \end{appendices}
+
+% The class writes the page counts for the abstract form from \AtEndDocument, which
+% runs before \end{document} flushes the last page. Without this the final appendix
+% page is never counted and the form reports no appendix pages at all.
+\clearpage
 
 \end{document}

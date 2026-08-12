@@ -1,13 +1,31 @@
 % Vietnamese translation of the thesis. Compile with XeLaTeX:
 %   latexmk -xelatex thesis-vi.tex
-\documentclass[english,twoside,openright]{UH_DS_MSc}
+%
+% Written on the CSM thesis template (HYthesisML.cls) of the Department of
+% Computer Science; see CSM-thesis-template_2021_09_07/ for the pristine copy.
+%
+% The class loads graphics and tikz with a hardcoded [pdftex] option, which makes
+% pgf reach for pdfTeX primitives that XeTeX does not have, and the document then
+% fails while the class is still loading. The drivers therefore have to be pinned
+% here, before \documentclass, where the class can no longer override them.
+\RequirePackage[pdftex,xetex]{graphicx}
+\makeatletter\def\Gin@driver{xetex.def}\makeatother
+\def\pgfsysdriver{pgfsys-xetex.def}
+
+% STEP 1: language, pagination, programme, and study track.
+% a4paper has to be given here: the template sets it with a \PassOptionsToClass
+% placed after \documentclass, by which time report is already loaded, so the
+% stock template silently produces US Letter pages.
+\documentclass[english,twoside,openright,a4paper,censored,csm,software-track-2020]{HYthesisML}
 
 % --- XeLaTeX Unicode + Vietnamese fonts (Latin Modern, full Vietnamese coverage) ---
+% Loaded after the class, so that fontspec supersedes the class's T1 encoding.
 \usepackage{fontspec}
 \setmainfont{lmroman10-regular.otf}[
   BoldFont=lmroman10-bold.otf,
   ItalicFont=lmroman10-italic.otf,
-  BoldItalicFont=lmroman10-bolditalic.otf]
+  BoldItalicFont=lmroman10-bolditalic.otf,
+  SmallCapsFont=lmromancaps10-regular.otf]
 \setsansfont{lmsans10-regular.otf}[
   BoldFont=lmsans10-bold.otf,
   ItalicFont=lmsans10-oblique.otf,
@@ -15,16 +33,29 @@
 \setmonofont{lmmono10-regular.otf}[
   ItalicFont=lmmono10-italic.otf]
 
-\usepackage{textcomp}
-\usepackage{color, graphicx}
+\usepackage{csquotes}
+
+% REFERENCES: numeric (Vancouver) style, one of the three styles the template
+% offers. sorting=none keeps the numbers in citation order, as IEEEtran did.
+\usepackage[style=numeric,bibstyle=numeric,backend=biber,natbib=true,
+            sorting=none,maxbibnames=99,giveninits=true,uniquename=init]{biblatex}
+\addbibresource{bibliography.bib}
+% List the authors in the bibliography as Lastname F.
+\DeclareNameAlias{sortname}{family-given}
+% biblatex prints its own heading string rather than \bibname, so the Vietnamese
+% title has to be given to biblatex as well as to the caption list below.
+\DefineBibliographyStrings{english}{bibliography={Tài liệu tham khảo}}
+% Without a mark of its own the bibliography keeps the last chapter's title in
+% the running head of its continuation pages.
+\defbibheading{bibliography}[\bibname]{%
+  \chapter*{#1}%
+  \markboth{#1}{#1}}
+
+% textcomp, color, graphicx, tikz, amsmath, amssymb, caption, titlesec and
+% appendix are all loaded by the class itself.
 \usepackage[plainpages=false]{hyperref}
 \usepackage{fancyhdr}
-\usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
-\usepackage{amsmath, amssymb}
-\usepackage[footnotesize,bf]{caption}
-\usepackage{titlesec}
-\usepackage[titletoc]{appendix}
 
 % --- Vietnamese names for auto-generated labels ---
 \addto\captionsenglish{%
@@ -51,16 +82,20 @@
 \title{Hiệu năng, an toàn và đánh đổi kỹ thuật của Rust và C++ trong hệ thống điều khiển RAN của Nokia}
 \author{Ha Vien}
 \date{\today}
-\prof{Keijo Heljanko, Christoph Luneburg, Petteri Kotimaa}
-\censors{}{}{}
+% Supervisors are printed on the abstract form rather than on the title page.
+\supervisors{Keijo Heljanko, Christoph Luneburg, Petteri Kotimaa}
+% Examiners are assigned by the faculty. The class prints them nowhere, so
+% \examiners is left unset until they are known.
 \keywords{Rust, C++, điều khiển RAN, trễ đuôi, an toàn bộ nhớ, tiêm lỗi, FFI}
-\depositeplace{Thư viện Đại học Helsinki}
-\additionalinformation{Software study track}
+% The class fills "where deposited" in from its own translation, which is
+% English; it is overridden here rather than passed as an argument.
+\renewcommand{\depositeplace}{Thư viện Đại học Helsinki}
+\additionalinformation{\translate{\track}}
 
 \classification{\protect{\ \\
 \ Software and its engineering $\rightarrow$ Software notations and tools $\rightarrow$ General programming languages\ \\
 \ Computer systems organization $\rightarrow$ Real-time systems $\rightarrow$ Real-time system specification\\
-\ Networks $\rightarrow$ Network types $\rightarrow$ Mobile networks\\
+\ Networks $\rightarrow$ Network types $\rightarrow$ Mobile networks
 }}
 
 \hypersetup{
@@ -78,49 +113,48 @@
 \begin{document}
 \maketitle
 
+% The abstract form is a fixed-height box, so it is set single-spaced as in the
+% template; the 1.5 spacing of the body would cost it a fifth of its lines.
+{\singlespacing
+\begin{otherlanguage}{english}
 \begin{abstract}
 \noindent\textbf{Bối cảnh.}
-Phần mềm mặt điều khiển của Mạng truy nhập vô tuyến (RAN) --- ví dụ tầng L3 của một gNB ---
-chủ yếu được viết bằng C++ vì hiệu năng, nhưng C++ mang theo những rủi ro đã được biết rõ về
-an toàn bộ nhớ và tương tranh. Rust cung cấp hiệu năng tương đương với các bảo đảm an toàn được
-kiểm tra tại thời điểm biên dịch, song mức độ phù hợp của nó cho các mặt điều khiển viễn thông
-nhạy độ trễ vẫn chưa được chứng minh. Công trình này được thực hiện tại Nokia trên một phân hệ
-được mô hình hoá theo một thành phần gNB-CU-CP thực tế của Nokia.
+Phần mềm mặt điều khiển của Mạng truy nhập vô tuyến (RAN) chủ yếu được viết bằng C++ vì hiệu
+năng, nhưng C++ mang theo rủi ro về an toàn bộ nhớ và tương tranh. Rust hứa hẹn hiệu năng tương
+đương với an toàn được bảo đảm tại thời điểm biên dịch, song mức độ phù hợp cho các mặt điều
+khiển viễn thông nhạy độ trễ vẫn chưa được chứng minh. Công trình được thực hiện tại Nokia trên
+một phân hệ mô hình hoá theo một thành phần gNB-CU-CP.
 
 \noindent\textbf{Mục tiêu.}
-Luận văn so sánh C++ hiện đại và Rust trên một dịch vụ Quản lý Ngữ cảnh UE (UE Context
-Management). Vì thông lượng trung bình tương tự nhau đã được biết trước, luận văn nhắm tới bốn
-khía cạnh ít được khảo sát hơn: độ trễ đuôi và độ dao động (jitter) khi quá tải; những lớp lỗi
-C++ nào được Rust ngăn chặn tại thời điểm biên dịch; chi phí phụ trội của mô hình an toàn của
-Rust; và chi phí áp dụng tăng dần trong một mã nguồn C++ sẵn có.
+Luận văn so sánh C++ hiện đại và Rust trên một dịch vụ Quản lý Ngữ cảnh UE. Vì thông lượng
+trung bình tương đương đã được biết, luận văn nhắm tới bốn khía cạnh ít được khảo sát hơn: độ
+trễ đuôi và độ dao động khi quá tải; những lớp lỗi C++ nào Rust ngăn chặn khi biên dịch; chi
+phí của mô hình an toàn; và chi phí áp dụng tăng dần trong một mã nguồn C++ sẵn có.
 
 \noindent\textbf{Phương pháp.}
-Trước hết, một đặc tả độc lập ngôn ngữ được cố định (đóng băng); sau đó hai bản hiện thực tương
-đương về chức năng được xây dựng bằng C++ và Rust với cùng thuật toán, mô hình tương tranh, bộ
-cấp phát bộ nhớ và cấu hình biên dịch. Một khối lượng công việc tổng hợp, được biện minh theo
-đặc tả, được quét tăng dần đến mức quá tải; cả hai bản đều vượt qua cùng một bộ kiểm thử tương
-đương (parity), và phần đánh giá bổ sung thêm một nghiên cứu tiêm lỗi và một nguyên mẫu khả năng
-tương tác FFI nhỏ.
+Trước hết, một đặc tả độc lập ngôn ngữ được cố định; sau đó hai bản hiện thực tương đương về
+chức năng được xây dựng với cùng thuật toán, mô hình tương tranh, bộ cấp phát bộ nhớ và cấu
+hình biên dịch. Một khối lượng công việc tổng hợp được quét đến mức quá tải; cả hai bản đều
+vượt qua cùng bộ kiểm thử tương đương, và phần đánh giá bổ sung một nghiên cứu tiêm lỗi và một
+nguyên mẫu FFI.
 
 \noindent\textbf{Kết quả.}
-Kết quả về an toàn và di trú là kết quả cuối cùng. Mỗi một trong năm lớp lỗi C++ được tiêm vào
-(sử dụng sau khi giải phóng, giải phóng hai lần, vô hiệu hoá iterator, tranh chấp dữ liệu, biến
-đổi trạng thái chia sẻ không được bảo vệ) đều bị ngăn chặn tại thời điểm biên dịch trong Rust an
-toàn, trong khi ở C++ mỗi lỗi đều biên dịch được và chỉ bị phát hiện, nếu có, tại thời điểm chạy
-và chỉ khi dùng đúng bộ dò lỗi (sanitiser). Nguyên mẫu di trú FFI cho thấy một đường ghép (seam)
-nhỏ giúp lõi Rust không cần \texttt{unsafe} và không thêm chi phí đo được nào cho mỗi lời gọi.
-Các phép đo hiệu năng sơ bộ cho thấy hai ngôn ngữ bám sát nhau đến điểm bão hoà, với khác biệt
-chỉ giới hạn ở phần đuôi xa; các số liệu độ trễ đạt chuẩn testbed là bước còn lại.
+Kết quả về an toàn và di trú là kết quả cuối cùng. Cả năm lớp lỗi C++ được tiêm vào đều bị ngăn
+chặn khi biên dịch trong Rust an toàn, trong khi ở C++ mỗi lỗi đều biên dịch được và chỉ bị
+phát hiện, nếu có, khi chạy với đúng bộ dò lỗi. Đường ghép FFI giữ cho lõi Rust không cần
+\texttt{unsafe} với chi phí không đáng kể cho mỗi lời gọi. Các phép đo sơ bộ cho thấy hai ngôn
+ngữ bám sát nhau đến điểm bão hoà; phần đuôi còn chờ testbed chuyên dụng.
 
 \noindent\textbf{Kết luận.}
-Luận văn cung cấp một khung đo hiệu năng có thể tái lập, một cặp bản hiện thực đã kiểm thử tương
-đương, một phân loại (taxonomy) các lớp lỗi, và một chi phí di trú được định lượng; đồng thời lập
-luận rằng đối với lớp phân hệ này, rào cản áp dụng Rust là công sức kỹ thuật và đường cong học
-tập chứ không phải hiệu năng lúc chạy.
+Luận văn để lại một khung đo có thể tái lập, một cặp bản hiện thực đã kiểm thử tương đương, một
+phân loại các lớp lỗi, và một chi phí di trú định lượng. Rào cản áp dụng Rust là công sức kỹ
+thuật và đường cong học tập, không phải hiệu năng lúc chạy.
 \end{abstract}
+\end{otherlanguage}
+}
 
 \mytableofcontents
-\mynomenclature
+\mainmatter
 
 % =====================================================================
 \chapter{Giới thiệu}
@@ -410,6 +444,9 @@ và cuối cùng đến diễn giải và kết luận.\label{fig:roadmap}}
 
 % =====================================================================
 \chapter{Nền tảng: Các ngôn ngữ hệ thống cho phần mềm nhạy độ trễ\label{chapter:background}}
+% The class prints the chapter and section titles in the running head in capitals,
+% where the full title of this chapter runs into the margin.
+\chaptermark{Nền tảng}
 
 \section{Các hệ thống mặt điều khiển RAN và gNB-CU-CP}
 Kiến trúc NG-RAN tách gNB thành một đơn vị trung tâm (gNB-CU) và các đơn vị phân tán, với mặt điều
@@ -477,6 +514,7 @@ UE bên trong gNB-CU-CP mà luận văn này hiện thực lại và đo đạc.
 \end{figure}
 
 \section{Độ trễ, thông lượng và tính dự đoán được trong phần mềm thời gian thực}
+\sectionmark{Độ trễ và tính dự đoán được}
 Các hệ thống nhạy độ trễ được đánh giá ít hơn qua khối lượng công việc chúng làm trên trung bình mà
 nhiều hơn qua mức độ \emph{dự đoán được} khi chúng làm việc đó. Cần phân biệt ba thước đo.
 \emph{Thông lượng} là tốc độ hoàn thành thao tác được duy trì; \emph{độ trễ} là thời gian một thao
@@ -913,6 +951,7 @@ liệu, và các sản phẩm thu được có thể được phát hành công 
 
 % =====================================================================
 \chapter{Bối cảnh bài toán: Quản lý Ngữ cảnh UE và tính dự đoán được\label{chapter:context}}
+\chaptermark{Bối cảnh bài toán}
 
 \section{Phân hệ Quản lý Ngữ cảnh UE}
 Phân hệ được nghiên cứu là một dịch vụ Quản lý Ngữ cảnh UE, được mô hình hoá theo một miền dịch vụ
@@ -1557,7 +1596,10 @@ hơn dữ liệu được mượn khi nó thoát sang một luồng khác).
 \caption{Phân loại lớp lỗi: các kết quả đo được cho danh mục được tiêm. C++ dưới \texttt{g++~13.3}
 với ASan/TSan; Rust dưới \texttt{rustc~1.96}, edition~2021. ``Ngăn tại biên dịch'' nghĩa là chương
 trình Rust an toàn không biên dịch được.\label{tab:taxonomy}}
-\begin{tabular}{l l l l}
+% The Vietnamese labels are longer than the English ones, so this table needs the
+% smaller size and the trimmed outer padding to stay inside the text block.
+\footnotesize
+\begin{tabular}{@{}l l l l@{}}
 \hline\hline
 Lớp lỗi & ASan & TSan & Kết quả Rust \\
 \hline
@@ -1763,7 +1805,15 @@ văn: đo tính dự đoán được và việc ngăn chặn lỗi trực tiếp
 đa dụng, trường hợp trung bình, và giữ cho lõi nhạy-an-toàn không có \texttt{unsafe} sao cho điểm dè
 dặt lan-truyền-qua-phụ-thuộc không áp dụng cho nó.
 
-\section{Các mối đe doạ đối với tính hợp lệ và biện pháp giảm thiểu}
+% This title is too long for the running head. \section sets the mark itself, and
+% that mark is the one the head of the section's opening page uses, so it is
+% suppressed for the heading and set short immediately afterwards. The contents
+% entry keeps the full title.
+\makeatletter
+{\let\sectionmark\@gobble
+\section{Các mối đe doạ đối với tính hợp lệ và biện pháp giảm thiểu}}
+\makeatother
+\sectionmark{Các mối đe doạ đối với tính hợp lệ}
 Mối đe doạ trung tâm là thiên lệch hiện thực giữa hai bản; nó được giảm thiểu bằng đặc tả chung đã
 đóng băng (Mục~\ref{sec:fairness}), các thuật toán, cấu trúc dữ liệu, và mô hình tương tranh giống
 hệt nhau, bộ cấp phát và tối ưu hoá bản dựng giống hệt nhau, và kiểm thử tương đương chức năng độc
@@ -1805,18 +1855,21 @@ một-luồng-trên-mỗi-mảnh được dùng ở đây; và một nghiên c�
 \cleardoublepage
 \phantomsection
 \addcontentsline{toc}{chapter}{\bibname}
-\bibliographystyle{IEEEtran}
-\bibliography{bibliography}
+\printbibliography
 
+\backmatter
 \begin{appendices}
-\myappendixtitle
 
-\chapter{Ví dụ tiêm lỗi\label{appendix:code}}
+% Inside the appendices, \appendix takes the title where \chapter would.
+\appendix{Ví dụ tiêm lỗi\label{appendix:code}}
 Để minh hoạ cho nghiên cứu tiêm lỗi (Chương~\ref{chapter:eval}, RQ2), lỗi
 sử-dụng-sau-khi-giải-phóng được cho thấy trong cả hai ngôn ngữ. Trong C++, bí danh vào bản đồ ngữ
 cảnh sống sót qua thao tác \texttt{erase} giải phóng nó, nên chương trình sau biên dịch sạch sẽ và
 chỉ bị AddressSanitizer gắn cờ tại thời gian chạy:
 
+% \small so that the longest commented line of the Rust listing below stays
+% inside the text block; both listings are set alike.
+{\small
 \begin{verbatim}
 std::unordered_map<unsigned long, UeContext> ctxs;
 ctxs[1001] = UeContext{1001, 0};
@@ -1824,11 +1877,13 @@ UeContext* p = &ctxs.at(1001);  // alias into the container
 ctxs.erase(1001);               // frees the node that p refers to
 p->messages_handled += 1;       // use-after-free
 \end{verbatim}
+}
 
 Chương trình Rust an toàn tương tự không biên dịch được: trình kiểm tra mượn cấm biến đổi bản đồ
 (\texttt{remove}) trong khi tham chiếu \texttt{p} vào nó vẫn còn sống, nên lỗi ngay từ đầu không thể
 viết ra được (lỗi \texttt{E0499}):
 
+{\small
 \begin{verbatim}
 let mut ctxs: HashMap<u64, UeContext> = HashMap::new();
 ctxs.insert(1001, UeContext { messages_handled: 0 });
@@ -1836,7 +1891,13 @@ let p = ctxs.get_mut(&1001).unwrap(); // mutable borrow starts
 ctxs.remove(&1001);                   // borrow while p live -> rejected
 p.messages_handled += 1;              // p used after the remove
 \end{verbatim}
+}
 
 \end{appendices}
+
+% The class writes the page counts for the abstract form from \AtEndDocument, which
+% runs before \end{document} flushes the last page. Without this the final appendix
+% page is never counted and the form reports no appendix pages at all.
+\clearpage
 
 \end{document}
