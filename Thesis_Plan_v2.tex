@@ -6,6 +6,20 @@
 \usepackage[margin=2.5cm]{geometry}
 \usepackage{array}
 \usepackage{titlesec}
+\usepackage{csquotes}
+
+% Same reference setup as the thesis documents, so the two reference lists match:
+% numeric (Vancouver) style, numbered in citation order.
+\usepackage[style=numeric,bibstyle=numeric,backend=biber,natbib=true,
+            sorting=none,maxbibnames=99,giveninits=true,uniquename=init]{biblatex}
+\addbibresource{bibliography.bib}
+% List the authors in the bibliography as Lastname F.
+\DeclareNameAlias{sortname}{family-given}
+% One reference carries the unbreakable token arXiv:2401.01114v1, which leaves its
+% line with nowhere to break at this measure. \sloppy is what the thesis documents
+% use for the same reason, and it sets that entry the way they do.
+\sloppy
+
 \usepackage[hidelinks]{hyperref}
 
 \newcolumntype{R}[1]{>{\raggedright\arraybackslash}p{#1}}
@@ -189,7 +203,6 @@ suite, and acknowledged as residual for performance.
 \textbf{Out of scope.} The full gNB, PHY/L2 and the user plane, real captured
 traces, managed-language alternatives, and production operational concerns.
 
-\bibliographystyle{IEEEtran}
-\bibliography{bibliography}
+\printbibliography
 
 \end{document}
