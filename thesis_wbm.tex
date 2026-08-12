@@ -1,30 +1,36 @@
-%% Final edits by Jussi Kangasharju and Pirjo Moen
-%% This file is modified by Veli Mäkinen from HY_fysiikka_LuKtemplate.tex authored by Roope Halonen ja Tomi Vainio.
-%% Some text is also inherited from engl_malli.tex by Kutvonen, Erkiö, Mäkelä, Verkamo, Kurhila, and Nykänen.
+%% Chapter-by-chapter skeleton of the thesis, one bullet per argument move.
+%% Written on the CSM thesis template (HYthesisML.cls) of the Department of
+%% Computer Science; see CSM-thesis-template_2021_09_07/ for the pristine copy.
+%% Kept in step with thesis.tex, which uses the same class and options.
 
+% STEP 1: language, pagination, programme, and study track.
+% openright is passed through to report so chapters start on a right-hand page;
+% the template's own default is openany.
+% a4paper has to be given here: the template sets it with a \PassOptionsToClass
+% placed after \documentclass, by which time report is already loaded, so the
+% stock template silently produces US Letter pages.
+\documentclass[english,twoside,openright,a4paper,censored,csm,software-track-2020]{HYthesisML}
 
-% STEP 1: Choose oneside or twoside
-\documentclass[english,twoside,openright]{UH_DS_MSc}
-%finnish,swedish
+\usepackage{csquotes}
 
-%\usepackage[utf8]{inputenc} % For UTF8 support. Use UTF8 when saving your file.
-\usepackage{lmodern} % Font package
-\usepackage{textcomp} % Package for special symbols
-\usepackage[pdftex]{color, graphicx} % For pdf output and jpg/png graphics
+% REFERENCES: numeric (Vancouver) style, one of the three styles the template
+% offers. sorting=none keeps the numbers in citation order, as IEEEtran did.
+\usepackage[style=numeric,bibstyle=numeric,backend=biber,natbib=true,
+            sorting=none,maxbibnames=99,giveninits=true,uniquename=init]{biblatex}
+\addbibresource{bibliography.bib}
+% List the authors in the bibliography as Lastname F.
+\DeclareNameAlias{sortname}{family-given}
+% Without a mark of its own the bibliography keeps the last chapter's title in
+% the running head of its continuation pages.
+\defbibheading{bibliography}[\bibname]{%
+  \chapter*{#1}%
+  \markboth{#1}{#1}}
+
+% lmodern, textcomp, color, graphicx, epsfig, subfigure, tikz, amsmath, amssymb,
+% caption, titlesec and appendix are all loaded by the class itself.
 \usepackage[pdftex, plainpages=false]{hyperref} % For hyperlinks and pdf metadata
 \usepackage{fancyhdr} % For nicer page headers
-\usepackage{tikz} % For making vector graphics (hard to learn but powerful)
 %\usepackage{wrapfig} % For nice text-wrapping figures (use at own discretion)
-\usepackage{amsmath, amssymb} % For better math
-%\usepackage[square]{natbib} % For bibliography
-\usepackage[footnotesize,bf]{caption} % For more control over figure captions
-\usepackage{titlesec}
-\usepackage[titletoc]{appendix}
-
-% The class sets a headheight fractionally smaller than fancyhdr wants for this
-% font size, which otherwise emits a warning on every page.
-\setlength{\headheight}{15pt}
-\addtolength{\topmargin}{-3pt}
 
 \onehalfspacing %line spacing
 %\singlespacing
@@ -39,17 +45,22 @@
 \title{Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia RAN Control-Plane Systems}
 \author{Ha Vien}
 \date{\today}
-\prof{Keijo Heljanko, Christoph Luneburg, Petteri Kotimaa}
-\censors{Keijo Heljanko}{}{}
+% Supervisors are printed on the abstract form rather than on the title page.
+% TODO before submission: the template asks for the academic title (Prof., Dr.)
+% in front of each name.
+\supervisors{Keijo Heljanko, Christoph Luneburg, Petteri Kotimaa}
+% The class prints examiners nowhere, so this is recorded but has no output.
+\examiners{Keijo Heljanko}
 \keywords{Rust, C++, RAN control plane, tail latency, memory safety, fault injection, FFI}
-\depositeplace{Helsinki University Library}
-\additionalinformation{Software study track}
+% Where deposited fills itself in from the class. Additional information is the
+% study track, taken from the software-track-2020 class option.
+\additionalinformation{\translate{\track}}
 
 
 \classification{\protect{\ \\
 \  Software and its engineering $\rightarrow$ Software notations and tools $\rightarrow$ General programming languages\  \\
 \  Computer systems organization $\rightarrow$ Real-time systems $\rightarrow$ Real-time system specification\\
-\  Networks $\rightarrow$ Network types $\rightarrow$ Mobile networks\\
+\  Networks $\rightarrow$ Network types $\rightarrow$ Mobile networks
 }}
 
 % if you want to quote someone special. You can comment this line and there will be nothing on the document.
@@ -86,18 +97,23 @@
 
 % STEP 3:
 % Write your abstract (of course you really do this last).
-% You can make several abstract pages (if you want it in different languages),
-% but you should also then redefine some of the above parameters in the proper
-% language as well, in between the abstract definitions.
+% You can make several abstract pages (if you want it in different languages)
+% by repeating the otherlanguage environment with a different language.
 
+% The abstract form is a fixed-height box, so it is set single-spaced as in the
+% template; the 1.5 spacing of the body would cost it a fifth of its lines.
+{\singlespacing
+\begin{otherlanguage}{english}
 \begin{abstract}
 \noindent Abstract to be written last.
 \end{abstract}
+\end{otherlanguage}
+}
 
 % Place ToC
 \mytableofcontents
 
-\mynomenclature
+\mainmatter
 
 % -----------------------------------------------------------------------------------
 % STEP 4: Write the thesis.
@@ -131,6 +147,9 @@
 \end{itemize}
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
+% The class prints the chapter titles in the running head in capitals, where the
+% full title of this chapter runs into the margin.
+\chaptermark{Background}
 
 \begin{itemize}
   \item In the NG-RAN architecture the base station (gNB) is split into a central and a
@@ -158,6 +177,7 @@
 \end{itemize}
 
 \chapter{Problem Context: UE Context Management and Predictability\label{chapter:context}}
+\chaptermark{Problem Context}
 
 \begin{itemize}
   \item UE Context Management owns the lifecycle of one context per connected device. Each
@@ -326,22 +346,19 @@
 \end{itemize}
 
 % STEP 5:
-% Uncomment the following lines and set your .bib file and desired bibliography style
-% to make a bibliography with BibTeX.
-% Alternatively you can use the thebibliography environment if you want to add all
-% references by hand.
+% The bibliography style is selected with the biblatex options in the preamble.
 
 \cleardoublepage %fixes the position of bibliography in bookmarks
 \phantomsection
 
 \addcontentsline{toc}{chapter}{\bibname} % This lines adds the bibliography to the ToC
-\bibliographystyle{IEEEtran} % numbered in citation order
-\bibliography{bibliography}
+\printbibliography
 
+\backmatter
 \begin{appendices}
-\myappendixtitle
 
-\chapter{Fault-injection example\label{appendix:code}}
+% Inside the appendices, \appendix takes the title where \chapter would.
+\appendix{Fault-injection example\label{appendix:code}}
 
 \begin{itemize}
   \item This appendix shows one case from the RQ2 catalogue, the use-after-free, in both
@@ -358,5 +375,10 @@
 \end{itemize}
 
 \end{appendices}
+
+% The class writes the page counts for the abstract form from \AtEndDocument, which
+% runs before \end{document} flushes the last page. Without this the final appendix
+% page is never counted and the form reports no appendix pages at all.
+\clearpage
 
 \end{document}
