@@ -62,6 +62,20 @@ done
 
 if [ -z "$max_run_s" ]; then max_run_s=$(( duration * 2 )); fi
 
+# The jemalloc arm is the allocator control, so both languages have to run the
+# allocator on the same settings -- which does not happen by default. The C++
+# variant links the system libjemalloc and reads MALLOC_CONF; the Rust variant
+# links tikv-jemalloc, which ignores MALLOC_CONF and reads _RJEM_MALLOC_CONF.
+# Left unset, the arena count follows however many CPUs the allocator sees and
+# the footprint follows the host's transparent-hugepage policy: on this testbed
+# that put peak RSS at 66 MiB against 11 MiB on a host with THP off, swamping
+# the few MiB that separate the languages. Pinning both makes the footprint a
+# property of the configuration rather than of the machine. Neither variable is
+# read by glibc malloc, so the system-allocator arm is untouched.
+jemalloc_conf="thp:never,narenas:16"
+export MALLOC_CONF="$jemalloc_conf"
+export _RJEM_MALLOC_CONF="$jemalloc_conf"
+
 mkdir -p "$here/.bin" "$here/results"
 
 # Optional scheduling prefixes (see TESTBED.md). Applied to the benchmark binary

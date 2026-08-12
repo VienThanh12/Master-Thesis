@@ -92,6 +92,18 @@ out="$here/results/env-$ts.txt"
   fi
   echo
 
+  echo "## Allocator"
+  # The jemalloc arm only isolates the language from the allocator if the
+  # allocator itself is held fixed, and its footprint answers to the arena count
+  # and to the host's hugepage policy as much as to the program. Both are
+  # recorded so a footprint can be compared against another run's.
+  echo "system jemalloc: $( (ldconfig -p 2>/dev/null | sed -n 's/.*libjemalloc\.so\.2 .*=> //p' | head -1) || echo '(not installed)')"
+  echo "MALLOC_CONF (C++ jemalloc): ${MALLOC_CONF:-(unset -- allocator defaults)}"
+  echo "_RJEM_MALLOC_CONF (Rust jemalloc): ${_RJEM_MALLOC_CONF:-(unset -- allocator defaults)}"
+  thp="$(sed -n 's/.*\[\(.*\)\].*/\1/p' /sys/kernel/mm/transparent_hugepage/enabled 2>/dev/null)"
+  echo "transparent hugepages: ${thp:-(not exposed)}"
+  echo
+
   echo "## Warnings"
   warned=0
   if [ "$virt" != "none" ] && [ "$virt" != "unknown" ]; then
