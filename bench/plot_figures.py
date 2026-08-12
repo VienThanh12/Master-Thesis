@@ -37,8 +37,12 @@ PRODUCERS_DEFAULT = 8
 NS_PER_US = 1000.0
 
 # Paired permutation test: enumerate all 2**n sign assignments up to this many
-# repeats, and fall back to a seeded Monte Carlo sample above it.
-EXACT_MAX = 18
+# repeats, and fall back to a seeded Monte Carlo sample above it. Set to cover the
+# campaign's repeat count, because the thesis quotes the attainable p floor as a
+# property of an exact test: at 20 repeats the sampled branch floors at
+# 2 / PERM_SAMPLES = 1e-5 rather than at 2 / 2**20 = 1.9e-6, and quoting the
+# latter while computing the former would overstate the design's resolving power.
+EXACT_MAX = 20
 PERM_SAMPLES = 200000
 
 # Consistent per-variant styling across every figure.
@@ -119,6 +123,20 @@ def paired_permutation_test(a, b):
             if abs(total) >= observed - 1e-12:
                 at_least_as_extreme += 1
     return (statistics.median(diffs), at_least_as_extreme / float(total_assignments), n)
+
+
+def attainable_floor(n):
+    """Smallest two-sided p the paired test can return at n pairs.
+
+    Mirrors the branch taken in paired_permutation_test rather than assuming the
+    exact one, so the floor the thesis quotes cannot claim a resolution the
+    computation did not deliver.
+    """
+    if n <= 0:
+        return 1.0
+    if n <= EXACT_MAX:
+        return 2.0 / (1 << n)
+    return 2.0 / PERM_SAMPLES
 
 
 def holm_adjust(pvalues):
@@ -294,6 +312,36 @@ def pick_representative_load(rows):
         if ok:
             best = load
     return best
+
+
+def pick_overload_load(rows, tracking_ratio=0.9):
+    """Highest swept load at which every variant is past saturation, or None.
+
+    Below saturation achieved throughput is pinned to the offered rate by
+    construction, so it cannot express a language effect however the languages
+    behave. Above saturation that reverses: the offered rate is no longer being
+    met, and what each variant still sustains is precisely the observable. The
+    two regimes therefore need separate operating points, and this picks the
+    second one.
+
+    The deepest swept load is chosen rather than the first point past the knee
+    because the transition point is the noisiest place on the curve, while behaviour
+    well beyond it is stable. Returning None when no swept load saturates is the
+    important case: it says the sweep never reached the regime the question is
+    about, which is a fact about the campaign that should stop the analysis rather
+    than be papered over by reporting the top of the ladder regardless.
+    """
+    saturated = [
+        load
+        for load in loads_present(rows)
+        if all(
+            (vals := group_metric(rows, lambda r: r["throughput_ops_s"])
+                     .get((key[0], key[1], load)))
+            and statistics.median(vals) < tracking_ratio * load
+            for key in variants_present(rows)
+        )
+    ]
+    return max(saturated) if saturated else None
 
 
 def fig_tail_percentiles(rows, outdir, load):
@@ -794,7 +842,8 @@ def write_latency_table(rows, outdir, load):
     return out, load
 
 
-def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=None):
+def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=None,
+                           overload=None):
     """Emit the campaign's summary numbers as LaTeX macros.
 
     Every quantity the prose quotes about the campaign is defined here and used by
@@ -860,9 +909,13 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
         # about the data or about the design's resolving power depends on where
         # that floor sits relative to the threshold being applied.
         n_pairs = max(r["n"] for r in sig_results)
-        pick = lambda pre: [r for r in sig_results if r["metric"].startswith(pre)]
+        # Scoped to the representative load: an overload row carries the same
+        # metric name for a different quantity, and these macros are quoted in
+        # sentences about the below-saturation operating point.
+        pick = lambda pre: [r for r in sig_results
+                            if r["metric"].startswith(pre) and r.get("point", "repr") == "repr"]
         p50_rows, rss_rows, cpu_rows = pick("p50"), pick("Peak RSS"), pick("CPU")
-        floor = 2.0 / (1 << n_pairs)
+        floor = attainable_floor(n_pairs)
         macros.update({
             "NTests": str(len(sig_results)),
             "MinAttainableP": fmt_p(floor),
@@ -908,6 +961,61 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
             "CrossAllocReversed": join(reversed_),
             "NCrossAllocReversed": str(len(reversed_)),
         })
+
+        # The overload operating point. Whether the sweep reached it at all is
+        # recorded first, because every sentence below is conditional on that and
+        # a campaign whose ladder stopped short should say so rather than quote
+        # the top of its own range as though it were a saturation point.
+        thr_rows = [r for r in sig_results
+                    if r.get("point") == "overload" and r["metric"].startswith("Sustained")]
+        macros["SatReached"] = "yes" if overload is not None else "no"
+        if overload is not None and thr_rows:
+            cpp_thr = statistics.median(
+                [med_at(("cpp", a), overload, thr_kops) for a in ("system", "jemalloc")
+                 if _subset(rows, ("cpp", a), overload)])
+            rust_thr = statistics.median(
+                [med_at(("rust", a), overload, thr_kops) for a in ("system", "jemalloc")
+                 if _subset(rows, ("rust", a), overload)])
+            hi_lang, lo_lang = (("C++", "Rust") if cpp_thr >= rust_thr else ("Rust", "C++"))
+            macros.update({
+                "OverloadLoad": f"{overload / 1000.0:.0f}",
+                "OverloadThrCpp": f"{cpp_thr:.0f}",
+                "OverloadThrRust": f"{rust_thr:.0f}",
+                "OverloadThrRatio": f"{max(cpp_thr, rust_thr) / min(cpp_thr, rust_thr):.1f}",
+                "OverloadSustainedFaster": hi_lang,
+                "OverloadSustainedSlower": lo_lang,
+                # The weakest of the per-allocator results is quoted, so the
+                # sentence holds under either allocator rather than under the
+                # more favourable one. The bound is the interval endpoint nearest
+                # zero across both, which supports "at least this large" rather
+                # than an interval that would read backwards once the two
+                # allocators' negative intervals were combined endpoint-wise.
+                "OverloadThrDiff": f"{min(abs(r['diff']) for r in thr_rows):.0f}",
+                "OverloadThrBound": (
+                    f"{min(min(abs(r['lo']), abs(r['hi'])) for r in thr_rows):.0f}"
+                ),
+                "OverloadThrP": fmt_p(max(r["p"] for r in thr_rows)),
+                "OverloadThrHolm": fmt_p(max(r["holm"] for r in thr_rows)),
+                "OverloadThrAgree": (f"{min(r['agree'] for r in thr_rows)}/"
+                                     f"{max(r['n'] for r in thr_rows)}"),
+            })
+            # CPU spent per completed operation, as a ratio between the languages.
+            # Total CPU alone understates the effect: the slower variant is not
+            # idle while it under-delivers, so the interesting quantity is the
+            # cost of the work that did complete.
+            cpu_pct = lambda r: r["cpu_pct"]
+            per_op = {}
+            for lang in ("cpp", "rust"):
+                vals = [
+                    med_at((lang, a), overload, cpu_pct) / med_at((lang, a), overload, thr_kops)
+                    for a in ("system", "jemalloc") if _subset(rows, (lang, a), overload)
+                ]
+                if vals:
+                    per_op[lang] = statistics.median(vals)
+            if len(per_op) == 2 and min(per_op.values()) > 0:
+                macros["OverloadCpuPerOpRatio"] = (
+                    f"{max(per_op.values()) / min(per_op.values()):.1f}"
+                )
 
     # The allocator effect on peak RSS, held against the language effect above:
     # jemalloc minus the system allocator, with the language held fixed.
@@ -1009,36 +1117,68 @@ TESTED_METRICS = [
     ("CPU utilisation (\\%)", lambda r: r["cpu_pct"], 1, "robust"),
 ]
 
+# Metrics tested at the overload operating point. Achieved throughput leads
+# because past saturation it stops being pinned to the offered rate and becomes
+# the quantity that separates the variants; CPU accompanies it because it says
+# whether a variant that delivers less is idle or busy while doing so.
+#
+# The latency percentiles are deliberately absent. Above saturation the measured
+# phase is truncated and the coordinated-omission backfill is capped, so a
+# reported tail there is a lower bound rather than an estimate, and testing a
+# lower bound would attach a p-value to an artefact of the harness.
+OVERLOAD_METRICS = [
+    ("Sustained throughput (kops/s)", lambda r: r["throughput_ops_s"] / 1000.0, 1, "robust"),
+    ("CPU utilisation (\\%)", lambda r: r["cpu_pct"], 1, "robust"),
+]
 
-def significance_results(rows, load):
-    """Paired C++-vs-Rust tests at the representative load, one per metric x allocator.
+
+def significance_results(rows, load, overload=None):
+    """Paired C++-vs-Rust tests, one per metric x allocator x operating point.
 
     The allocator is held fixed inside each comparison so that the only thing
     varying is the language, which is the independent variable the whole study is
     built around. Pairing is by repeat index: the campaign's outer loop is the
     repeat, so the i-th run of each variant at a given load belongs to the same
     interleaved block.
+
+    When an overload point is supplied its comparisons join the same family rather
+    than forming a second one. Holm then corrects across everything reported, which
+    is the conservative reading: two separately corrected families would let a
+    reader wonder whether the split was chosen once the p-values were known.
     """
     results = []
-    allocs = [a for a in ("system", "jemalloc")
-              if ("cpp", a) in VARIANT_STYLE and _subset(rows, ("cpp", a), load)]
-    for label, fn, decimals, kind in TESTED_METRICS:
-        for alloc in allocs:
-            cpp = [fn(r) for r in _subset(rows, ("cpp", alloc), load)]
-            rust = [fn(r) for r in _subset(rows, ("rust", alloc), load)]
-            if not cpp or not rust:
-                continue
-            diff, p, n = paired_permutation_test(cpp, rust)
-            paired = [y - x for x, y in zip(cpp, rust)]
-            _, lo, hi = bootstrap_ci(paired)
-            results.append({
-                "metric": label, "alloc": alloc, "decimals": decimals, "kind": kind,
-                "diff": diff, "lo": lo, "hi": hi, "p": p, "n": n,
-                # Whether the paired interval sits wholly on one side of zero.
-                # Recorded per row so the prose can apply one rule to the whole
-                # family instead of picking the rows it likes.
-                "excl_zero": (lo > 0.0 and hi > 0.0) or (lo < 0.0 and hi < 0.0),
-            })
+    points = [("repr", load, TESTED_METRICS)]
+    if overload is not None and overload != load:
+        points.append(("overload", overload, OVERLOAD_METRICS))
+
+    for point, point_load, metrics in points:
+        allocs = [a for a in ("system", "jemalloc")
+                  if ("cpp", a) in VARIANT_STYLE and _subset(rows, ("cpp", a), point_load)]
+        for label, fn, decimals, kind in metrics:
+            for alloc in allocs:
+                cpp = [fn(r) for r in _subset(rows, ("cpp", alloc), point_load)]
+                rust = [fn(r) for r in _subset(rows, ("rust", alloc), point_load)]
+                if not cpp or not rust:
+                    continue
+                diff, p, n = paired_permutation_test(cpp, rust)
+                paired = [y - x for x, y in zip(cpp, rust)]
+                _, lo, hi = bootstrap_ci(paired)
+                # How many repeats agree with the sign of the median effect. A
+                # count carries information a p-value computed from the mean does
+                # not: it is unmoved by a single contaminated run, so the two
+                # disagreeing is itself diagnostic.
+                sign = (diff > 0) - (diff < 0)
+                agree = sum(1 for d in paired if ((d > 0) - (d < 0)) == sign) if sign else 0
+                results.append({
+                    "metric": label, "alloc": alloc, "decimals": decimals, "kind": kind,
+                    "point": point, "load": point_load,
+                    "diff": diff, "lo": lo, "hi": hi, "p": p, "n": n,
+                    "agree": agree,
+                    # Whether the paired interval sits wholly on one side of zero.
+                    # Recorded per row so the prose can apply one rule to the whole
+                    # family instead of picking the rows it likes.
+                    "excl_zero": (lo > 0.0 and hi > 0.0) or (lo < 0.0 and hi < 0.0),
+                })
     for res, adj in zip(results, holm_adjust([r["p"] for r in results])):
         res["holm"] = adj
     return results
@@ -1054,13 +1194,19 @@ def _plain(label):
     return label.split(" (")[0]
 
 
-def describe_rows(results, kind=None):
+def describe_rows(results, kind=None, point="repr"):
     """Render the rows whose paired interval excludes zero as an English phrase.
 
     Emitted as a macro so the sentence that names them cannot go stale when the
     campaign is rerun: if a row drops out of the set, the prose stops naming it.
+
+    Scoped to one operating point, because the sentences that consume this speak
+    about the representative load and would otherwise silently acquire rows
+    measured in overload, where the same metric name means a different thing.
     """
-    sel = [r for r in results if r["excl_zero"] and (kind is None or r["kind"] == kind)]
+    sel = [r for r in results
+           if r["excl_zero"] and (kind is None or r["kind"] == kind)
+           and (point is None or r.get("point", "repr") == point)]
     if not sel:
         return "none"
     # Collect the metrics that share an allocator set, so the phrase reads as
@@ -1109,6 +1255,8 @@ def cross_allocator_agreement(results):
     """
     by_metric = defaultdict(dict)
     for r in results:
+        if r.get("point", "repr") != "repr":
+            continue
         by_metric[_plain(r["metric"])][r["alloc"]] = r["diff"]
     consistent, reversed_ = [], []
     for metric, effects in by_metric.items():
@@ -1147,6 +1295,10 @@ def write_significance_table(results, outdir):
         return (f"{r['metric']} & {r['alloc']} & {cell} & "
                 f"{fmt_p(r['p'])} & {fmt_p(r['holm'])}")
 
+    results = [r for r in results if r.get("point", "repr") == "repr"]
+    if not results:
+        return None
+
     blocks = [
         ("robust", "Robust to interference on single operations"),
         ("tail", "Determined by it: high percentiles"),
@@ -1183,6 +1335,44 @@ def write_significance_table(results, outdir):
     return out
 
 
+def write_overload_table(rows, results, outdir, overload):
+    """Emit the body of tab:overload: what each variant still sustains past saturation.
+
+    Reports the per-variant medians beside the paired comparison, because the
+    absolute figures are the finding a practitioner would act on and the paired
+    test is what establishes that the gap between them is not run-to-run noise.
+    """
+    sel = [r for r in results if r.get("point") == "overload"]
+    if not sel or overload is None:
+        return None
+
+    thr = lambda r: r["throughput_ops_s"] / 1000.0
+    lines = []
+    for key in variants_present(rows):
+        sub = _subset(rows, key, overload)
+        if not sub:
+            continue
+        lines.append(f"{VARIANT_STYLE[key][0]} & {med_ci_cell([thr(r) for r in sub], decimals=1)}"
+                     f" & {med_ci_cell([r['cpu_pct'] for r in sub])}")
+
+    out = os.path.join(outdir, "tab_overload.tex")
+    with open(out, "w") as f:
+        f.write(" \\\\\n".join(lines) + "\n")
+
+    # The paired comparison goes in its own file so the two can be typeset as
+    # separate tables: one is per-variant state, the other is a test.
+    trows = []
+    for r in sel:
+        d = r["decimals"]
+        cell = (f"\\mci{{{r['diff']:+.{d}f}}}{{{r['lo']:+.{d}f}}}{{{r['hi']:+.{d}f}}}")
+        trows.append(f"{r['metric']} & {r['alloc']} & {cell} & "
+                     f"{r['agree']}/{r['n']} & {fmt_p(r['p'])} & {fmt_p(r['holm'])}")
+    out2 = os.path.join(outdir, "tab_overload_test.tex")
+    with open(out2, "w") as f:
+        f.write(" \\\\\n".join(trows) + "\n")
+    return out, out2
+
+
 def write_resource_table(rows, outdir, load):
     lines = []
     for key in variants_present(rows):
@@ -1210,6 +1400,9 @@ def main():
     ap.add_argument("--outdir", default="../figures")
     ap.add_argument("--load", type=float, default=None,
                     help="Representative offered load (ops/s); auto if omitted.")
+    ap.add_argument("--overload", type=float, default=None,
+                    help="Offered load (ops/s) for the past-saturation comparison; "
+                         "auto (deepest saturated load) if omitted.")
     args = ap.parse_args()
 
     here = os.path.dirname(os.path.abspath(__file__))
@@ -1223,7 +1416,14 @@ def main():
     rows = balance_repeats(load_campaign(campaign))
 
     load = args.load if args.load is not None else pick_representative_load(rows)
+    overload = args.overload if args.overload is not None else pick_overload_load(rows)
     print(f"campaign: {campaign}  rows={len(rows)}  representative load={load:.0f} ops/s")
+    if overload is None:
+        print("note: no swept load is past saturation, so the overload comparison is "
+              "skipped. Extend the rate ladder: RQ1's overload question needs a load "
+              "at which the service stops meeting the offered rate.")
+    else:
+        print(f"overload operating point: {overload:.0f} ops/s")
 
     produced = []
     produced.append(fig_latency_vs_load(rows, outdir))
@@ -1252,14 +1452,17 @@ def main():
         print(f"note: no latency-budget data at {budget_path}; "
               f"run bench/latency_budget.sh (tab_budget.tex left as is)")
 
-    sig = significance_results(rows, load)
+    sig = significance_results(rows, load, overload)
     budget_fig = fig_budget(budget, sig, outdir)
     if budget_fig:
         produced.append(budget_fig)
     lat_tab = write_latency_table(rows, outdir, load)[0]
     res_tab = write_resource_table(rows, outdir, load)
-    macros = write_generated_macros(rows, outdir, load, sig, budget, ffi_metrics)
+    macros = write_generated_macros(rows, outdir, load, sig, budget, ffi_metrics, overload)
     produced.extend([lat_tab, res_tab, macros])
+    over_tabs = write_overload_table(rows, sig, outdir, overload)
+    if over_tabs:
+        produced.extend(over_tabs)
     sig_tab = write_significance_table(sig, outdir)
     if sig_tab:
         produced.append(sig_tab)

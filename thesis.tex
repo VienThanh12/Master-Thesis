@@ -1695,14 +1695,30 @@ what let a reader tell a null result from an unresolvable one.\label{fig:statspi
 Two decisions about how that family is read are taken here rather than after the results,
 because either could otherwise be made to suit whatever the data turned out to be.
 
-The first is which comparisons enter it. Achieved throughput is excluded. The representative
-operating point is chosen below saturation, where every variant completes work as fast as it is
-offered, so achieved throughput is pinned to the offered load by construction and cannot express
-a language effect whatever the languages do. Testing it would re-measure the operating point
-rather than the code. It would also not be free: Holm divides its budget across the whole
-family, so two comparisons that cannot resolve anything would make the correction harsher on the
-ones that can. Throughput is instead reported with its interval in the resource table, where its
-job is to confirm that the operating point is sustained rather than nominal.
+The first is which comparisons enter it, and the answer turns on the operating point rather than
+on the metric. The representative operating point is chosen below saturation, where every variant
+completes work as fast as it is offered, so achieved throughput there is pinned to the offered
+load by construction and cannot express a language effect whatever the languages do. Testing it
+would re-measure the operating point rather than the code. It would also not be free: Holm
+divides its budget across the whole family, so two comparisons that cannot resolve anything would
+make the correction harsher on the ones that can. Below saturation, therefore, throughput is
+reported with its interval in the resource table, where its job is to confirm that the operating
+point is sustained rather than nominal.
+
+Above saturation that reasoning inverts, and the design has to follow it. Once the offered rate
+is no longer being met, what each variant still sustains is pinned to nothing and becomes the one
+quantity that can separate them; excluding it there would discard the only observable the regime
+offers. A second operating point is therefore fixed in the overload region, defined as the
+deepest swept load at which \emph{every} variant has stopped meeting the offered rate, and
+sustained throughput and CPU utilisation are tested at it (Section~\ref{sec:overload}). Two
+commitments go with that, both taken here for the same reason as the rest of this section. The
+overload comparisons join the same Holm family rather than forming a second one, so the
+correction covers everything the thesis reports and the division into two operating points
+cannot be read as a split chosen once the $p$-values were known. And no latency percentile is
+tested above saturation at all: with a fixed intended send schedule, a producer that cannot keep
+up falls behind cumulatively, so the percentiles there measure accumulated backlog against a
+measurement window that truncates it, which makes them a lower bound rather than an estimate.
+Attaching a $p$-value to a lower bound would test the harness rather than the software.
 
 The second is what to conclude when the interval and the $p$-value disagree, which at modest
 repeat counts they routinely will: a paired interval can sit wholly on one side of zero while
@@ -2797,33 +2813,36 @@ Metric & Allocator & Effect (Rust $-$ C++) & $p$ & Holm \\
 \end{tabular}
 \end{table}
 
-Four things follow. First, \NSignificant{} of the \NTests{} tests survive the Holm correction:
-both peak resident set size rows, at the corrected floor of $\SmallestHolm$, and CPU
-utilisation under the system allocator.
+Four things follow. First, \NSignificant{} of the \NTests{} tests in the family survive the Holm
+correction. At this operating point they are the two median-latency rows, peak resident set size
+under the system allocator, and both CPU rows; the four remaining survivors are the overload
+comparisons of Section~\ref{sec:overload}. Peak resident set size under jemalloc is the one
+robust-block row that does not clear the correction despite an interval nowhere near zero, and
+Section~\ref{sec:resources} takes up why.
 
 Second, the reading rule fixed in Section~\ref{sec:stats} has to be applied before those are
-interpreted, and applying it costs nothing here. \NExclZero{} paired intervals exclude zero;
-in the tail block the intervals that do so are: \TailExclZeroRows. The rule is stated in
-advance rather than at this point precisely because that is not guaranteed, and an earlier
-seven-repeat pass of the same campaign did produce tail intervals excluding zero which more
-repeats then removed, which is the behaviour the rule anticipates.
+interpreted. \NExclZero{} paired intervals exclude zero; in the tail block the intervals that do
+so are: \TailExclZeroRows. The rule is stated in advance rather than at this point precisely
+because that outcome is not guaranteed, and an earlier seven-repeat pass of the same campaign did
+produce tail intervals excluding zero which more repeats then removed, which is the behaviour the
+rule anticipates.
 
-Third, the allocator control supplies a second and independent check, and it is the one that
-does real work. It was introduced so that an allocator difference could not be mistaken for a
-language difference, but it also means every comparison is run twice under conditions that
-should not change a language effect. An effect that is genuinely the language ought to keep
-its sign whichever allocator is linked. Only \CrossAllocConsistent{} does:
-\CrossAllocReversed{} all reverse between the two. That is why the Holm-significant CPU row is
-\emph{not} read here as a language effect. It is significant under the system allocator and
-points the other way under jemalloc, and a $p$-value cannot rescue an effect that the
-experiment's own control fails to reproduce. Peak resident set size passes both tests, and
-Section~\ref{sec:resources} takes it up.
+Third, the allocator control supplies a second and independent check. It was introduced so that
+an allocator difference could not be mistaken for a language difference, but it also means every
+comparison is run twice under conditions that should not change a language effect, so an effect
+that is genuinely the language ought to keep its sign whichever allocator is linked. Here
+\CrossAllocConsistent{} all do, and \NCrossAllocReversed{} reverse. That the control confirms
+rather than vetoes is not evidence that it was unnecessary: on an earlier campaign, run before the
+two \texttt{jemalloc} builds were held to one configuration, the CPU effect cleared the correction
+under one allocator and reversed sign under the other, and was reported as unresolved on exactly
+this rule. Fixing the configuration is what turned it into a finding. A control is worth keeping
+because of what it would have caught, not because of what it happens to catch.
 
-Fourth, the median. The paired difference there is at most $\PFiftyDiffAbsMax\,\mu$s under
-either allocator, with the interval reaching $\PFiftyDiffCIMax\,\mu$s. Against a median of
-roughly $210\,\mu$s that reads like a tight bound, and the temptation is to report it as one:
-no language effect larger than a fifth of the operation. That reading would be wrong, and the
-reason is the subject of the next section.
+Fourth, the median, which is now a resolved difference rather than a null: $\PFiftyDiffAbsMax\,\mu$s
+in Rust's favour, consistent under both allocators. The interval on it reaches
+$\PFiftyDiffCIMax\,\mu$s against a median of roughly $80\,\mu$s, and the temptation is to report
+that as a bound on the language effect: nothing larger than a few percent of an operation. That
+reading would be wrong, and the reason is the subject of the next section.
 
 \subsection{What the end-to-end number is made of}\label{sec:budget}
 Every latency the sweep reports is an end-to-end round-trip. A caller builds a request, routes
@@ -2948,18 +2967,26 @@ one data structure: generalising from it to ``Rust is twice as fast'' would repe
 error this thesis criticises in the average-case literature.
 
 \subsection{Latency, throughput, and saturation across the sweep}
-Figure~\ref{fig:latency-load} plots p99 latency against offered load. All four variants climb
-together across the sweep, by roughly three orders of magnitude between the lightest load and
-the heaviest, as the blocking-backpressure design pushes queueing delay into the end-to-end
-measurement. Two features of the plot are worth naming explicitly. The first is that the
-confidence bands are wide and heavily overlapping at every load level, so the curves cannot be
-separated from one another anywhere on the sweep. The second is what is \emph{missing}: the
-sharp knee that a bounded-queue design should produce at saturation, sketched in
-Figure~\ref{fig:cliff}, is not cleanly visible here, because interference from other work on
-the host raises the tail well before the service itself is the bottleneck. The onset and shape
-of that overload cliff is the quantity RQ1 is really about, and this figure shows that it
-cannot be recovered from a shared host at any number of repeats. It is precisely what the
-bare-metal campaign is designed to pin down.
+Figure~\ref{fig:latency-load} plots p99 latency against offered load, and the shape it shows is
+the one Figure~\ref{fig:cliff} sketched. Through the tracking region the four variants climb
+together and gently, from roughly $240\,\mu$s at the lightest load to single-digit milliseconds
+by $\SatKnee$~kops/s, with confidence bands wide enough that no curve can be separated from
+another anywhere in that region. Then, in the single step of the rate ladder that follows, every
+variant's p99 rises by more than two orders of magnitude at once, from about $6$~ms to several
+seconds. That is the overload cliff, and the sharpness of its onset is the finding: one increment
+of offered load separates a service meeting millisecond deadlines from one missing them by three
+orders of magnitude. A design with bounded, blocking queues has no graceful degradation to offer
+in between.
+
+Two properties of the far side of the cliff bound what those numbers mean, and they are the
+reason Section~\ref{sec:stats} tests no percentile there. The latency past the knee is not
+service time but accumulated schedule backlog: with a fixed intended send schedule and one
+request outstanding per producer, a producer that cannot keep up falls further behind with every
+iteration, and latency measured from intended send time therefore grows with the length of the
+run rather than converging on any property of the service. Because the measured phase is
+truncated, the reported percentiles saturate near the width of that window instead, which makes
+every one of them above the knee a lower bound. What remains interpretable in this regime is how
+much work each variant still completes, and Section~\ref{sec:overload} takes that up.
 
 \begin{figure}
 \centering
@@ -2970,16 +2997,21 @@ Preliminary (WSL2) data.\label{fig:latency-load}}
 \end{figure}
 
 Figure~\ref{fig:throughput-load} shows achieved throughput against offered load, and it is the
-more informative of the two plots on this host, because throughput is an average over a whole
-run and therefore far more robust to the interference that destroys the tail. Every variant
-tracks the ideal offered-equals-achieved line up to $\TrackingLoad$~kops/s, saturates at around
-$\SatKnee$~kops/s, and then falls back as producers block on full queues; the four are
-indistinguishable throughout. Two things follow. First, the saturation point is a property of
-the shared design rather than of either language, which is what the identical thread-per-shard
-structure predicts. Second, because achieved throughput matches offered load below the knee to
-within $\ReprLoadShortfall\%$, the operating point of Table~\ref{tab:latency} is genuinely a
-\emph{sustained} load rather than a nominal one: the system is completing work as fast as it is
-offered, so the latencies reported there are not those of an already-queueing system.
+more informative of the two plots, because throughput is an average over a whole run and
+therefore far more robust than a percentile to interference landing on individual operations.
+Every variant tracks the ideal offered-equals-achieved line up to $\TrackingLoad$~kops/s and
+saturates at around $\SatKnee$~kops/s. Two things follow immediately. First, because achieved
+throughput matches offered load below the knee to within $\ReprLoadShortfall\%$, the operating
+point of Table~\ref{tab:latency} is genuinely a \emph{sustained} load rather than a nominal one:
+the system is completing work as fast as it is offered, so the latencies reported there are not
+those of an already-queueing system. Second, the knee itself sits at the same place for all four
+variants, which is what the identical thread-per-shard structure predicts: where the design stops
+coping is a property of the design.
+
+What happens \emph{after} the knee is not shared. The four curves separate as soon as the
+offered rate stops being met, and they separate by language rather than by allocator, which is
+the one thing the sweep was built to be able to detect and the one regime in which it can.
+Section~\ref{sec:overload} measures that separation rather than leaving it to the eye.
 
 \begin{figure}
 \centering
@@ -3007,6 +3039,105 @@ four variants coincide at the median and separate as the percentile rises; on th
 separation is within run-to-run dispersion and is therefore not attributable to language or
 allocator. Preliminary (WSL2) data.\label{fig:tail}}
 \end{figure}
+
+\subsection{Behaviour past saturation (RQ1)}\label{sec:overload}
+RQ1 asks how the two languages compare under increasing load \emph{and overload}, and everything
+reported so far has been below the knee. This section is the other half. The operating point is
+$\OverloadLoad$~kops/s offered, defined as the deepest swept load at which every variant has
+stopped meeting the offered rate, and the metrics are the two that remain interpretable there
+(Section~\ref{sec:stats}). Table~\ref{tab:overload} gives what each variant still sustains and
+Table~\ref{tab:overloadtest} tests the comparison.
+
+The languages are not equivalent in this regime, and the margin is not marginal.
+\OverloadSustainedFaster{} sustains $\OverloadThrCpp$~kops/s where \OverloadSustainedSlower{}
+sustains $\OverloadThrRust$, a factor of $\OverloadThrRatio$. The paired difference is at least
+$\OverloadThrBound$~kops/s under either allocator, it holds in \OverloadThrAgree{} repeats, and
+its Holm-adjusted $p$ sits at the corrected floor of the whole family of \NTests{} tests. This is
+the largest and most reproducible language effect anywhere in the study, and it is the only one
+that speaks directly to the question RQ1 was written to ask.
+
+The CPU column is what makes the result interpretable rather than merely large, because it rules
+out the reading that would otherwise be natural. A variant that completes less work might simply
+be doing less: throttled, blocked, idle. That is not what happens.
+\OverloadSustainedSlower{} draws \emph{more} total CPU than \OverloadSustainedFaster{} here,
+reproducibly and under both allocators, having inverted the sign it carried at the representative
+load in Table~\ref{tab:significance}. Divided through by the work that actually completed, its
+CPU cost per sustained operation is $\OverloadCpuPerOpRatio$ times the other's. Nor is either
+variant near the capacity of the machine: both sit near six of the fourteen pinned cores. So the
+gap is not a capacity limit and not idleness. It is effort expended without completing
+operations, which is the signature of a synchronisation path that spins, or repeatedly parks and
+wakes, where the other blocks once and sleeps.
+
+Where that effort is spent is not measured here, but the candidates are not open-ended, and
+neither of them is the safety model. Past saturation the producers spend essentially all of their
+time in two places, and Table~\ref{tab:idioms} already records both as points where the two
+standard libraries forced the implementations apart: the bounded blocking queue, hand-assembled
+from a mutex and two condition variables on one side against \texttt{sync\_channel} on the other,
+and the completion handle, a \texttt{std::promise}/\texttt{std::future} pair against a freshly
+allocated channel per request. A difference of this size, appearing only once those primitives are
+contended, is where the forced-idiom log predicted a difference would appear if one did. Nothing
+in the borrow checker, in bounds checking, or in ownership is implicated, and the finding should
+not be quoted as though it were: what it compares is two standard libraries' blocking and wakeup
+machinery under contention. Confirming that attribution needs a contended-queue microbenchmark
+holding everything else fixed, which is the natural companion to the component decomposition of
+Section~\ref{sec:budget} and is listed as future work rather than claimed here.
+
+Three limits keep the finding the size it is. It is one design: a shared-nothing service with one
+request outstanding per producer and a queue bound of $1\,024$, and the depth of the collapse
+depends on all three. It is measured with a harness whose producers block per request, so it
+describes what this shape of client experiences rather than what a pipelined one would.
+And the absolute figures belong to this host. What travels is the ordering and its cause: below
+saturation the language choice did not matter, above it the standard library's synchronisation
+primitives did, and the crossover is sharp enough that a comparison stopping at nominal load
+would have concluded the opposite.
+
+That conclusion also bears on the closest prior work. Arvidsson and Kaller report Rust's tail
+degrading faster than C++'s beyond a threshold request rate and attribute it to the asynchronous
+runtime~\cite{arvidsson2025async}, an attribution Section~\ref{sec:relatedwork} accepts. The
+present result was obtained with no asynchronous runtime on either side and the concurrency model
+held fixed by construction, and a degradation past a threshold rate appeared anyway. The runtime
+is therefore not the only place such an effect can originate; the synchronisation primitives
+underneath one are another. The two studies agree on the more important point, which is that in
+this domain the difference lives in the concurrency plumbing rather than in the language proper.
+
+\begin{table}
+\centering
+\small
+\caption[What each variant sustains past saturation]{What each variant still sustains at
+$\OverloadLoad$~kops/s offered, well beyond the $\SatKnee$~kops/s knee: the median over
+\NRepeats{} repeats above its bootstrap $95\%$ confidence interval. Below saturation achieved
+throughput is pinned to the offered rate by construction and can express nothing about the
+languages; here it is the only thing that can. CPU utilisation exceeds $100\%$ because it is
+summed across threads, so $600\%$ is six busy cores of the fourteen
+pinned.\label{tab:overload}}
+\begin{tabular}{@{}l r r@{}}
+\hline\hline
+Variant & sustained throughput (kops/s) & CPU (\%) \\
+\hline
+\input{figures/tab_overload.tex}\\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}
+\centering
+\small
+\caption[Exact paired test past saturation]{Exact paired permutation test of C++ against Rust at
+$\OverloadLoad$~kops/s, the allocator held fixed, Holm-corrected across the same family of
+\NTests{} tests as Table~\ref{tab:significance} rather than as a family of its own. ``Repeats''
+counts how many of the \NRepeats{} paired differences agree with the sign of the median, which a
+statistic computed from their mean cannot show and which no single contaminated run can move. No
+latency percentile is tested here, for the reason fixed in advance in Section~\ref{sec:stats}:
+above saturation a reported percentile is a lower bound set by the measurement window rather than
+an estimate of anything the service does.\label{tab:overloadtest}}
+\begin{tabular}{@{}l l r c r r@{}}
+\hline\hline
+Metric & Allocator & Effect (Rust $-$ C++) & Repeats & $p$ & Holm \\
+\hline
+\input{figures/tab_overload_test.tex}\\
+\hline
+\end{tabular}
+\end{table}
 
 \subsection{Resource use (RQ3)}\label{sec:resources}
 Table~\ref{tab:resource} and Figure~\ref{fig:resources} report resource use at the same
@@ -3322,45 +3453,51 @@ it shares an address space with. & Final \\
 \end{table}
 
 \section{Discussion on the research questions}\label{sec:rqdiscussion}
-\paragraph{RQ1 (predictability).} The sweep answers part of RQ1, and the decomposition of
-Section~\ref{sec:budget} changes what the rest of it means. End to end and below saturation the
-two languages are indistinguishable, agreeing to $\PFiftyRange\,\mu$s across all four build
-variants, which is consistent with the wider evidence that Rust's safety checks are largely
-absorbed by modern out-of-order CPUs~\cite{emmerich2019drivers,balasubramanian2017rust}. That
-equivalence is a real and operationally relevant result: a deployment of this shape would see
-no difference. It is not, however, evidence that the compilers emit equally fast code, and it
-was tempting to report it as though it were. The operation the languages actually execute is
-$\BudgetCoreShareMax\%$ of the measured latency, and on that component they differ by
-$\BudgetCoreRatio\times$. An end-to-end null result in a design whose cost is dominated by a
-cross-thread wakeup is a statement about the design, not about the languages.
+\paragraph{RQ1 (predictability).} RQ1 has two halves, below saturation and beyond it, and the
+campaign answers them differently enough that reporting either alone would misrepresent the
+result.
 
-The half the sweep does not answer at all is the tail, and the reason is instructive rather
-than merely unfortunate. The dispersion in the p99 measurements is larger than any difference between the
-variants, so the data is consistent with the languages being identical in the tail and equally
-consistent with a substantial gap. The correct conclusion is therefore not ``the languages are
-equivalent in the tail'' but ``this measurement cannot tell'', and stating it that way is what
-keeps the eventual bare-metal result a finding rather than a confirmation of something already
-asserted. What the sweep does establish is that the practical question has moved: not ``is Rust
-fast enough on average?'', which is settled here and in the literature, but ``how does each
-language behave at the overload cliff?'', which remains open.
+Below saturation the languages are equivalent for any purpose a deployment would care about. The
+four build variants agree to $\PFiftyRange\,\mu$s at the median, and although a paired difference
+of $\PFiftyDiffAbsMax\,\mu$s in Rust's favour does now clear the correction under both
+allocators, it is a small fraction of an $80\,\mu$s operation that nothing running this service
+would notice. The tail in this regime is a null: no ordering among the four survives testing, and
+the interval on a single variant's p99 remains several times the spread between all of them. All
+of this is consistent with the wider evidence that Rust's safety checks are largely absorbed by
+modern out-of-order CPUs~\cite{emmerich2019drivers,balasubramanian2017rust}. It is also a weaker
+statement than it appears, for the reason Section~\ref{sec:budget} gives: the operation the
+languages execute is $\BudgetCoreShareMax\%$ of what the sweep measures, so an end-to-end null in
+a design dominated by a cross-thread wakeup is a statement about the design rather than about the
+languages. Measured apart, the operation differs by $\BudgetCoreRatio\times$.
 
-That question is not open for want of anyone asking it. Arvidsson and Kaller measure exactly
-this quantity for 5G control-plane procedures and find a tail difference: their Rust runtimes
-match C++ with Boost.Fibers at the median but their 99th percentile degrades faster beyond a
-threshold request rate~\cite{arvidsson2025async}. Taken at face value that result contradicts
-the expectation behind H1, and it is reported here rather than set aside. What it does not
-settle is attribution. The comparison is between asynchronous frameworks, and the authors trace
-the effect to stackless \texttt{async}/\texttt{await} allowing a context switch immediately
-before an I/O operation begins, which delays the overlap of waiting with useful work. That is a
-property of the runtime, not of the borrow checker, and it is the confound this study is built
-to exclude: both implementations here run one worker per shard over a bounded blocking queue,
-with no asynchronous runtime on either side. The prediction that follows is specific enough to
-be wrong. If tail divergence in this domain is caused by runtime scheduling, the bare-metal
-campaign should find the two implementations closer in the tail than Arvidsson and Kaller found
-their frameworks; if a comparable gap appears even with the concurrency model held fixed, the
-explanation has to be sought in the language, and the mechanisms already localised in the
-literature, bounds and overflow checking~\cite{zhang2022runtime,harris2023morello}, are where
-to look first.
+Beyond saturation the answer changes in kind, and it is the one result in the study that answers
+RQ1 on RQ1's own terms. \OverloadSustainedFaster{} sustains $\OverloadThrRatio$ times the
+throughput of \OverloadSustainedSlower{} at $\OverloadLoad$~kops/s offered, in
+\OverloadThrAgree{} repeats, under both allocators, at the corrected floor of the whole test
+family (Section~\ref{sec:overload}). The slower variant is not idling while it under-delivers: it
+draws more CPU, at $\OverloadCpuPerOpRatio$ times the cost per completed operation. So the
+practical form of RQ1's answer is not that the language choice is irrelevant to predictability
+but that it is irrelevant \emph{until the service stops coping}, at which point it decides how
+much work still gets done. A comparison that stopped at nominal load, as most in this literature
+do, would have concluded the opposite with the same apparatus.
+
+That reframes the closest prior work rather than merely agreeing with it. Arvidsson and Kaller
+measure this quantity for 5G control-plane procedures and find Rust's 99th percentile degrading
+faster beyond a threshold request rate, which they trace to stackless
+\texttt{async}/\texttt{await} permitting a context switch immediately before an I/O operation
+begins~\cite{arvidsson2025async}. Section~\ref{sec:relatedwork} accepts that attribution, and
+this study was built to exclude the confound behind it: one worker per shard over a bounded
+blocking queue, no asynchronous runtime on either side. Chapter~\ref{chapter:objectives}
+committed in advance to what each outcome would mean, and the second branch is the one that
+fired. A degradation past a threshold rate appeared with the concurrency model held fixed, so the
+asynchronous runtime cannot be the only place such an effect originates. The prediction also
+named where to look first if that happened, bounds and overflow
+checking~\cite{zhang2022runtime,harris2023morello}, and that part of it was wrong: the effect
+appears only once the queue and the completion handle are contended, which points at the two
+standard libraries' blocking primitives, both of them already recorded in the forced-idiom log of
+Table~\ref{tab:idioms} as places where the implementations were forced apart. Recording that the
+prediction resolved against its own first hypothesis is more useful to the next study than
+quietly substituting the explanation that survived.
 
 \paragraph{RQ2 (safety).} The result is unambiguous and does not depend on the environment,
 and it has two halves. Within its scope the guarantee is absolute: the borrow checker and the
@@ -3418,24 +3555,25 @@ to detect. That is also why it escapes the borrow checker. The phrase ``thread s
 both sides of the line; the guarantee covers only the left.\label{fig:boundary}}
 \end{figure}
 
-\paragraph{RQ3 (overhead).} The answer splits by resource, and one of the three splits is a
-non-answer that is worth reporting as such. On memory there is a penalty, and it is the one
-quantitative result in the performance campaign that the environment does not obscure. The Rust
-build carries $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak resident set than the C++ build,
-with a paired interval of $\RssLangCILo$ to $\RssLangCIHi$~MiB and a Holm-adjusted $p$ of
-$\SmallestHolm$, slightly smaller than the allocator's own
-$\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB. Two independent things make it credible. Peak RSS is
-not a tail statistic but a run-level maximum, insensitive to the scheduling jitter that
-destroys the p99, so a shared host degrades it far less. And it is the only effect in the
-campaign that keeps its sign under both allocators, which is the replication check the design
-supplies for free.
+\paragraph{RQ3 (overhead).} The answer splits by resource, and the splits do not all point the
+same way. On memory there is a penalty. The Rust build carries
+$\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak resident set than the C++ build, with a paired
+interval of $\RssLangCILo$ to $\RssLangCIHi$~MiB, and it keeps its sign under both allocators.
+Two things make it credible beyond the $p$-value. Peak RSS is a run-level maximum rather than a
+tail statistic, so it is insensitive to the scheduling jitter that destroys the p99. And the
+effect is an order of magnitude smaller than the allocator's own
+$\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB, which is the useful way to size it: a team choosing
+between these two languages moves less memory than a team choosing between these two allocators.
 
-On CPU there is no answer. The paired difference clears the Holm correction under the system
-allocator and reverses sign under jemalloc, with per-repeat spreads of tens of percentage
-points either way. Reporting the significant half alone would be indefensible, and reporting
-``no CPU penalty'' would overstate a measurement that is simply too noisy on this host to say.
-On throughput there is nothing to measure at a below-saturation operating point, where achieved
-throughput tracks offered load by construction.
+On CPU the answer depends on the load, and that dependence is the finding rather than a
+complication. Below saturation Rust draws marginally \emph{less} CPU, by
+$\CpuDiffAbsMax$~percentage points at most, consistently under both allocators. Past saturation
+the sign inverts and the magnitude grows: Rust draws more, at $\OverloadCpuPerOpRatio$ times the
+CPU per completed operation (Section~\ref{sec:overload}). A single number for ``the CPU cost of
+Rust's safety model'' would therefore be an average over two regimes that behave oppositely, and
+neither figure is the safety model in any case. On throughput the same split applies for the same
+reason: below saturation there is nothing to measure, because achieved throughput tracks offered
+load by construction, and above it there is the largest effect in the study.
 
 Three things bound what the memory result licenses. It is small in absolute terms and, more
 importantly, it is fixed rather than per-context, so its share of a deployment's footprint
@@ -3449,7 +3587,8 @@ the mechanisms that the literature has localised~\cite{zhang2022runtime,harris20
 are candidates to test, not conclusions to import. What can be said is narrower and still
 useful to a vendor sizing a control-plane node: adopting Rust here costs a few megabytes of
 fixed footprint per process, and buys a faster core operation
-(Section~\ref{sec:budget}) that this workload's structure never converts into throughput.
+(Section~\ref{sec:budget}) that this workload's structure never converts into throughput below
+saturation and, above it, converts into a deficit rather than a gain.
 
 The sign of that result is worth defending, because the closest prior work in the domain
 reports the opposite one. Karlb\"ack and Or\"o measure peak resident set on a RAN workload and
