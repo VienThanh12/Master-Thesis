@@ -35,6 +35,11 @@ repeats=10
 pin=""                       # taskset core list, e.g. "2-17"; empty = no pinning
 rt=""                        # SCHED_FIFO priority for the benchmark, e.g. "80"; empty = default scheduling
 rates="1000 2000 4000 6000 8000 10000 12000 16000"
+# Wall-clock cap on each run's measured phase. A run that keeps up with its
+# offered rate finishes on op count in `duration` seconds and never reaches the
+# cap; one above saturation never finishes on op count at all, so without a cap
+# the sweep cannot be taken past the knee. Empty = 2x duration.
+max_run_s=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -50,9 +55,12 @@ while [ $# -gt 0 ]; do
     --pin)        pin="$2"; shift 2;;
     --rt)         rt="$2"; shift 2;;
     --rates)      rates="$2"; shift 2;;
+    --max-run-s)  max_run_s="$2"; shift 2;;
     *) echo "unknown arg: $1"; exit 2;;
   esac
 done
+
+if [ -z "$max_run_s" ]; then max_run_s=$(( duration * 2 )); fi
 
 mkdir -p "$here/.bin" "$here/results"
 
@@ -119,7 +127,7 @@ for rep in $(seq 1 "$repeats"); do
       printf '\r  run %d/%d (rep %d, rate %d/prod, %s)      ' "$n" "$total" "$rep" "$r" "$variant"
       "${pre[@]}" "$bin" --workload "$workload" --shards "$shards" --producers "$producers" \
         --active-ues "$active_ues" --preload "$preload" --ops "$ops" \
-        --warmup "$warmup" --seed "$seed" --rate "$r" --json >>"$jsonl"
+        --warmup "$warmup" --seed "$seed" --rate "$r" --max-run-s "$max_run_s" --json >>"$jsonl"
     done
   done
 done

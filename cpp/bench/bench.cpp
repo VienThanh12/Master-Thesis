@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <mutex>
+#include <numeric>
 #include <string>
 #include <thread>
 #include <vector>
@@ -55,6 +56,7 @@ struct Args {
   std::uint64_t warmup = 0;  // 0 => auto
   std::uint64_t seed = 42;
   double rate = 0.0;  // ops/sec/producer; 0 => closed loop
+  double max_run_s = 0.0;  // wall-clock cap on the measured phase; 0 => uncapped
   bool json = false;
 };
 
@@ -75,6 +77,7 @@ Args parse(int argc, char** argv) {
     else if (k == "--warmup") a.warmup = to_u64(val());
     else if (k == "--seed") a.seed = to_u64(val());
     else if (k == "--rate") a.rate = std::strtod(val(), nullptr);
+    else if (k == "--max-run-s") a.max_run_s = std::strtod(val(), nullptr);
     else if (k == "--json") a.json = true;
     else { std::fprintf(stderr, "unknown arg: %s\n", k.c_str()); std::exit(2); }
   }
@@ -172,6 +175,11 @@ int main(int argc, char** argv) {
   std::atomic<std::uint64_t> errors{0};
   const std::int64_t interval_ns =
       a.rate > 0.0 ? static_cast<std::int64_t>(1e9 / a.rate) : 0;
+  // Above saturation a producer can never retire its full op budget, so the
+  // measured phase is also bounded in wall-clock time; throughput is then
+  // computed from the ops actually retired, which is what exposes the knee.
+  const std::int64_t max_run_ns =
+      a.max_run_s > 0.0 ? static_cast<std::int64_t>(a.max_run_s * 1e9) : 0;
 
   const auto wall_start = clock_type::now();
   // Throughput must be counted over the measured phase only. `total_ops` excludes
@@ -181,6 +189,7 @@ int main(int argc, char** argv) {
   // the union of those intervals. Distinct indices, so no synchronisation needed.
   std::vector<clock_type::time_point> meas_start(a.producers, clock_type::time_point::max());
   std::vector<clock_type::time_point> meas_end(a.producers, clock_type::time_point::min());
+  std::vector<std::uint64_t> meas_ops(a.producers, 0);
   {
     std::vector<std::thread> ts;
     for (std::uint64_t p = 0; p < a.producers; ++p) {
@@ -192,12 +201,18 @@ int main(int argc, char** argv) {
         const std::uint64_t base = p * 100000000ULL + 1;
         const SignalingMsg msg{1, 4, {}};
         std::uint64_t local_errors = 0;
+        std::uint64_t local_measured = 0;
 
         auto schedule = clock_type::now();
         const std::uint64_t total_iters = a.warmup + a.ops;
+        clock_type::time_point meas_deadline = clock_type::time_point::max();
         for (std::uint64_t n = 0; n < total_iters; ++n) {
           const bool measured = n >= a.warmup;
-          if (n == a.warmup) meas_start[p] = clock_type::now();
+          if (n == a.warmup) {
+            meas_start[p] = clock_type::now();
+            if (max_run_ns > 0)
+              meas_deadline = meas_start[p] + std::chrono::nanoseconds(max_run_ns);
+          }
 
           // Select the op for this step.
           WOp op{WKind::Signal, 0, 0};
@@ -228,6 +243,7 @@ int main(int argc, char** argv) {
 
           if (measured) {
             ++counts[static_cast<std::size_t>(op.kind)];
+            ++local_measured;
             std::int64_t lat;
             if (interval_ns > 0)
               lat = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - intended).count();
@@ -236,9 +252,11 @@ int main(int argc, char** argv) {
             if (lat < 1) lat = 1;
             if (interval_ns > 0) hist.record_corrected(lat, interval_ns);
             else hist.record(lat);
+            if (max_run_ns > 0 && t1 >= meas_deadline) break;
           }
         }
         meas_end[p] = clock_type::now();
+        meas_ops[p] = local_measured;
         errors.fetch_add(local_errors, std::memory_order_relaxed);
         std::lock_guard<std::mutex> lk(merge_mtx);
         merged.add(hist);
@@ -259,7 +277,8 @@ int main(int argc, char** argv) {
       meas_hi > meas_lo
           ? std::chrono::duration_cast<std::chrono::nanoseconds>(meas_hi - meas_lo).count() / 1e9
           : wall_s;
-  const std::int64_t total_ops = static_cast<std::int64_t>(a.ops * a.producers);
+  const std::int64_t total_ops = static_cast<std::int64_t>(
+      std::accumulate(meas_ops.begin(), meas_ops.end(), std::uint64_t{0}));
   const double thr = measured_wall_s > 0 ? total_ops / measured_wall_s : 0.0;
   const char* alloc = UECM_ALLOC_NAME;
 

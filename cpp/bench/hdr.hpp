@@ -16,6 +16,10 @@
 
 namespace bench {
 
+// Upper bound on synthetic samples emitted by one coordinated-omission
+// correction. Mirrored by MAX_CORRECTION_SAMPLES in rust/examples/bench.rs.
+inline constexpr std::int64_t kMaxCorrectionSamples = 10000;
+
 class HdrHistogram {
  public:
   HdrHistogram(std::int64_t lowest, std::int64_t highest, int sig_figs) {
@@ -62,11 +66,20 @@ class HdrHistogram {
   // Coordinated-omission correction: if an operation took longer than the
   // expected inter-arrival interval, backfill the samples that "should" have
   // been recorded during the stall (Gil Tene's correction).
+  //
+  // The backfill is capped. Above saturation the producer falls permanently
+  // behind its schedule, so `value` grows without bound and an uncapped loop is
+  // O(value/expected_interval) per operation -- work that steals CPU from the
+  // producer that is already behind, which makes the next value larger still.
+  // The cap bounds that feedback; above saturation the reported tail is
+  // therefore a lower bound. kMaxCorrectionSamples must match the Rust side.
   void record_corrected(std::int64_t value, std::int64_t expected_interval) {
     record(value);
     if (expected_interval <= 0 || value <= expected_interval) return;
-    for (std::int64_t missing = value - expected_interval; missing >= expected_interval;
-         missing -= expected_interval) {
+    std::int64_t emitted = 0;
+    for (std::int64_t missing = value - expected_interval;
+         missing >= expected_interval && emitted < kMaxCorrectionSamples;
+         missing -= expected_interval, ++emitted) {
       std::int64_t idx = counts_index_for(missing);
       if (idx < 0) idx = 0;
       if (idx >= counts_len_) idx = counts_len_ - 1;

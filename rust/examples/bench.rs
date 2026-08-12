@@ -32,6 +32,10 @@ const HDR_LOW: u64 = 1;
 const HDR_HIGH: u64 = 3_600 * 1_000 * 1_000 * 1_000; // 3.6 s in ns
 const HDR_SIG: u8 = 3;
 
+// Upper bound on synthetic samples emitted by one coordinated-omission
+// correction. Mirrors kMaxCorrectionSamples in cpp/bench/hdr.hpp.
+const MAX_CORRECTION_SAMPLES: u64 = 10_000;
+
 #[derive(Clone, Copy)]
 struct SplitMix64 {
     s: u64,
@@ -171,6 +175,7 @@ struct Args {
     warmup: u64,
     seed: u64,
     rate: f64,
+    max_run_s: f64,
     json: bool,
 }
 
@@ -186,6 +191,7 @@ fn parse() -> Args {
         warmup: 0,
         seed: 42,
         rate: 0.0,
+        max_run_s: 0.0,
         json: false,
     };
     let argv: Vec<String> = std::env::args().collect();
@@ -207,6 +213,7 @@ fn parse() -> Args {
             "--warmup" => a.warmup = val().parse().unwrap_or(0),
             "--seed" => a.seed = val().parse().unwrap_or(42),
             "--rate" => a.rate = val().parse().unwrap_or(0.0),
+            "--max-run-s" => a.max_run_s = val().parse().unwrap_or(0.0),
             "--json" => a.json = true,
             other => {
                 eprintln!("unknown arg: {other}");
@@ -232,6 +239,26 @@ fn parse() -> Args {
 
 fn new_hist() -> Histogram<u64> {
     Histogram::new_with_bounds(HDR_LOW, HDR_HIGH, HDR_SIG).expect("valid hdr bounds")
+}
+
+// Coordinated-omission correction, mirroring HdrHistogram::record_corrected in
+// cpp/bench/hdr.hpp step for step, including the backfill cap. The crate's own
+// record_correct() is uncapped, and above saturation `value` grows without
+// bound, so the correction would cost O(value/expected_interval) per operation.
+// Recording saturates rather than erroring so out-of-range values are clamped
+// into the top bucket, which is what the C++ histogram does.
+fn record_corrected(hist: &mut Histogram<u64>, value: u64, expected_interval: u64) {
+    hist.saturating_record(value);
+    if expected_interval == 0 || value <= expected_interval {
+        return;
+    }
+    let mut missing = value - expected_interval;
+    let mut emitted = 0u64;
+    while missing >= expected_interval && emitted < MAX_CORRECTION_SAMPLES {
+        hist.saturating_record(missing);
+        missing -= expected_interval;
+        emitted += 1;
+    }
 }
 
 /// Process resource usage (RQ3): (peak RSS kB, user CPU s, sys CPU s), via getrusage.
@@ -355,6 +382,7 @@ fn main() {
     // the measured window is the union of those intervals.
     let meas_lo_ns = AtomicU64::new(u64::MAX);
     let meas_hi_ns = AtomicU64::new(0);
+    let measured_ops = AtomicU64::new(0);
     thread::scope(|s| {
         for p in 0..a.producers {
             let svc = &svc;
@@ -364,6 +392,7 @@ fn main() {
             let args = &a;
             let meas_lo_ns = &meas_lo_ns;
             let meas_hi_ns = &meas_hi_ns;
+            let measured_ops = &measured_ops;
             s.spawn(move || {
                 let mut hist = new_hist();
                 let mut counts = [0u64; KIND_COUNT];
@@ -378,14 +407,21 @@ fn main() {
                     payload: [0u8; 64],
                 };
                 let mut local_errors = 0u64;
+                let mut local_measured = 0u64;
 
                 let mut schedule = Instant::now();
                 let total_iters = args.warmup + args.ops;
+                let mut meas_deadline: Option<Instant> = None;
                 for n in 0..total_iters {
                     let measured = n >= args.warmup;
                     if n == args.warmup {
+                        let now = Instant::now();
                         let off = wall_start.elapsed().as_nanos() as u64;
                         meas_lo_ns.fetch_min(off, Ordering::Relaxed);
+                        if args.max_run_s > 0.0 {
+                            meas_deadline =
+                                Some(now + Duration::from_nanos((args.max_run_s * 1e9) as u64));
+                        }
                     }
 
                     let (op, id) = if args.workload == "mixed" {
@@ -427,14 +463,21 @@ fn main() {
                         }
                         .max(1);
                         if interval_ns > 0 {
-                            let _ = hist.record_correct(lat, interval_ns);
+                            record_corrected(&mut hist, lat, interval_ns);
                         } else {
-                            let _ = hist.record(lat);
+                            hist.saturating_record(lat);
+                        }
+                        local_measured += 1;
+                        if let Some(deadline) = meas_deadline {
+                            if t1 >= deadline {
+                                break;
+                            }
                         }
                     }
                 }
                 meas_hi_ns.fetch_max(wall_start.elapsed().as_nanos() as u64, Ordering::Relaxed);
                 errors.fetch_add(local_errors, Ordering::Relaxed);
+                measured_ops.fetch_add(local_measured, Ordering::Relaxed);
                 merged.lock().unwrap().add(&hist).expect("compatible hists");
                 let mut mc = merged_counts.lock().unwrap();
                 for k in 0..KIND_COUNT {
@@ -456,7 +499,7 @@ fn main() {
     } else {
         wall_s
     };
-    let total_ops = a.ops * a.producers;
+    let total_ops = measured_ops.load(Ordering::Relaxed);
     let thr = if measured_wall_s > 0.0 {
         total_ops as f64 / measured_wall_s
     } else {
