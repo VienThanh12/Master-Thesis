@@ -655,6 +655,9 @@ operating-system and software overheads are no longer negligible~\cite{barroso20
 Fine-grained measurement studies show that, even at moderate utilisation, hardware, operating-system,
 and application-level effects such as background interference, scheduling, interrupt routing, and
 power-saving states inflate the tail far beyond what queueing models predict~\cite{li2014tales}.
+Figure~\ref{fig:tailconcept} sets the two effects side by side: the distance between the median
+and the high percentiles, and the fan-out that turns a delay which is rare per operation into
+one that is common per procedure.
 
 \begin{figure}
 \centering
@@ -681,7 +684,8 @@ Measuring tail latency correctly is itself a pitfall. A naive closed-loop load g
 that waits for each response before issuing the next request suffers \emph{coordinated
 omission}: when the system stalls, the generator stalls with it and simply fails to record
 the many requests that would have arrived during the stall, systematically hiding the very
-tail it is meant to expose. The distinction beneath this is a modelling one rather than an
+tail it is meant to expose. Figure~\ref{fig:coord} contrasts the two generator models.
+The distinction beneath this is a modelling one rather than an
 implementation detail. In a closed system a new request is triggered only by the completion of a
 previous one, whereas in an open system arrivals are independent of completions, and the two
 produce systematically different response-time behaviour on the same service process, with the
@@ -807,7 +811,20 @@ use_ctx(r);        // error[E0505]: cannot move out of `ctx`
                    //              because it is borrowed
 \end{lstlisting}
 
-\noindent The same discipline extends to concurrency. Rust encodes thread-safety in the type
+\noindent Figure~\ref{fig:borrowuaf} puts the same defect in its UE Context Management form
+beside the C++ version, which compiles and is caught, if at all, only at runtime.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/08_borrow_checker_uaf.pdf}
+\caption[The same use-after-free in C++ and in safe Rust]{The same use-after-free defect in C++ and in safe Rust. The stale alias into the
+context map survives the \texttt{erase}/\texttt{remove} that frees it: in C++ this compiles and
+is caught only at runtime (and only under AddressSanitizer, on a path a test exercises), whereas
+in safe Rust the borrow checker rejects it at compile time (\texttt{E0499}), so the defect
+cannot be written at all. The difference is one of kind, not degree.\label{fig:borrowuaf}}
+\end{figure}
+
+The same discipline extends to concurrency. Rust encodes thread-safety in the type
 system through the \texttt{Send} and \texttt{Sync} marker traits: a value may cross a thread
 boundary only if its type is \texttt{Send}, and may be shared by reference across threads only
 if it is \texttt{Sync}. Sharing a value that permits unsynchronised mutation is therefore a
@@ -850,16 +867,6 @@ Atomicity of a composed operation & Not checked & Not checked \\
 \end{tabular}
 \end{table}
 
-\begin{figure}
-\centering
-\includegraphics[width=\linewidth]{diagrams/pdf/08_borrow_checker_uaf.pdf}
-\caption[The same use-after-free in C++ and in safe Rust]{The same use-after-free defect in C++ and in safe Rust. The stale alias into the
-context map survives the \texttt{erase}/\texttt{remove} that frees it: in C++ this compiles and
-is caught only at runtime (and only under AddressSanitizer, on a path a test exercises), whereas
-in safe Rust the borrow checker rejects it at compile time (\texttt{E0499}), so the defect
-cannot be written at all. The difference is one of kind, not degree.\label{fig:borrowuaf}}
-\end{figure}
-
 \section{The systems-language landscape}
 Rust is not the only memory-safe language, but it occupies a distinctive position for this
 problem. Managed languages such as Java, C\#, and Go achieve memory safety through a runtime
@@ -875,6 +882,8 @@ balasubramanian2017rust}; cross-language benchmark surveys place Rust's throughp
 use alongside C and C++ while it retains its safety guarantees~\cite{bugden2022rust}. That
 combination is exactly why the meaningful comparison for RAN
 control-plane software is C++ against Rust, and why managed languages are out of scope here.
+Figure~\ref{fig:landscape} places the candidates on the two axes that decide it, low-level
+control and compile-time safety.
 
 \begin{figure}
 \centering
@@ -900,7 +909,19 @@ control plane, where each UE's state is largely independent. The choice is not n
 respect to the quantity this thesis measures: thread-per-core structuring has been shown to
 change application tail latency in its own right~\cite{enberg2019threadpercore}, which is one
 reason the model is held fixed across both implementations rather than left to each language's
-idiom.
+idiom. Figure~\ref{fig:concmodels} contrasts the two models and marks what each does to the
+hazards catalogued above.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/12_concurrency_models.pdf}
+\caption[Two concurrency models for control-plane state]{Two concurrency models for control-plane state. Shared-memory concurrency (left) lets
+threads mutate common state behind locks and is the source of data races, deadlock, and lock
+contention, with a worst case that is hard to bound. Shared-nothing message-passing (right)
+partitions state so each shard is owned by a single worker and all interaction happens through
+bounded queues; this eliminates locks on context data and maps naturally onto per-UE
+partitioning, and is the model adopted for both implementations.\label{fig:concmodels}}
+\end{figure}
 
 A third structure, an asynchronous runtime over a work-stealing scheduler, is idiomatic in both
 languages and is deliberately used in neither. Its timing behaviour belongs to the runtime rather
@@ -922,17 +943,6 @@ shared-nothing, thread-per-shard design. The UE state is divided into independen
 touch the same context. Requests reach a shard through a bounded multi-producer,
 single-consumer queue that blocks when full. This model is chosen so that any measured latency
 difference reflects the language rather than a divergent concurrency strategy.
-
-\begin{figure}
-\centering
-\includegraphics[width=\linewidth]{diagrams/pdf/12_concurrency_models.pdf}
-\caption[Two concurrency models for control-plane state]{Two concurrency models for control-plane state. Shared-memory concurrency (left) lets
-threads mutate common state behind locks and is the source of data races, deadlock, and lock
-contention, with a worst case that is hard to bound. Shared-nothing message-passing (right)
-partitions state so each shard is owned by a single worker and all interaction happens through
-bounded queues; this eliminates locks on context data and maps naturally onto per-UE
-partitioning, and is the model adopted for both implementations.\label{fig:concmodels}}
-\end{figure}
 
 \section{Interoperability between C++ and Rust}
 Adopting a new language in a large existing system is necessarily incremental: a Rust
@@ -1397,7 +1407,9 @@ specification, algorithms, concurrency model, allocator, and build settings acro
 implementations, and reports variance over repeated runs.
 
 Table~\ref{tab:design} maps each research question to the method, artifact, data, and metric
-used to answer it, making the chain from question to evidence explicit and traceable.
+used to answer it, making the chain from question to evidence explicit and traceable, and
+Figure~\ref{fig:rqmap} draws the same chain as a flow, which is where the split between the
+questions the measurement host bears on and those it does not becomes visible.
 
 \begin{table}
 \centering
@@ -1561,7 +1573,8 @@ direction, so an unexpected outcome would surface as a discrepancy rather than b
 into the narrative. What this buys is a boundary rather than a score: the study can state not
 only which defect classes the language removes but which comparable ones it leaves in place,
 and the second half of that statement is the part a practitioner planning a migration
-needs.
+needs. Figure~\ref{fig:faultmethod} shows the procedure end to end, with the two groups on the
+same footing.
 
 \begin{figure}
 \centering
@@ -1924,6 +1937,7 @@ rather than a fixed array, so that the allocator study (RQ3) observes realistic 
 allocation. Reads return an immutable snapshot (a \texttt{UeContextView}) copied out of the
 worker rather than a reference into live shard state, which preserves the shared-nothing
 guarantee and keeps the two implementations semantically identical.
+Figure~\ref{fig:datamodel} gives the record and the read path in full.
 
 Identical field declarations do not, however, produce identical objects. Measured on the
 evaluation host, a \texttt{UeContext} occupies $96$~bytes in C++ but only $88$~bytes in Rust.
@@ -2390,7 +2404,9 @@ on to the next request. Ownership of the request, and of any heap data it carrie
 transferred to the worker on submit and is never shared, which is what upholds the
 shared-nothing invariant end to end. Latency is measured across this entire path, from intended
 send time to completion, so that it includes queueing delay under load and reflects the same
-cross-thread round-trip on both sides.
+cross-thread round-trip on both sides. Figure~\ref{fig:reqlifecycle} traces the same path as a
+sequence, and Section~\ref{sec:budget} later decomposes it into the part the language executes
+and the part the operating system does.
 
 \begin{figure}
 \centering
@@ -2914,8 +2930,13 @@ measuring the component separately, which is what this section does.
 
 The second is that once the component \emph{is} measured separately, the languages are not
 equivalent. \BudgetCoreFaster{} runs the bare operation about $\BudgetCoreRatio\times$ faster,
-the difference is present in the great majority of repeats, and the paired test puts it below
-the corrected threshold. This is the only place in the whole performance campaign where a
+the difference is present in the great majority of repeats, and the paired test puts it two
+orders of magnitude below the conventional threshold. This decomposition is a separate
+experiment from the sweep and is not part of its Holm family: it runs \BudgetRepeats{} repeats
+rather than \NRepeats{}, so its own attainable floor is $0.000061$ rather than the
+$\CorrectedFloor$ quoted in Section~\ref{sec:stats}, and no correction is applied to it. The
+same holds for the interoperability comparison of Section~\ref{sec:migrationresults}. This is
+the only place in the whole performance campaign where a
 language difference in \emph{time} is resolved at all, and the sweep is blind to it by more
 than two orders of magnitude.
 
@@ -3323,7 +3344,8 @@ depends on the unmodified core library, so adopting the component requires no ch
 component itself. The C++ host sees only an opaque handle and a set of plain-C entry points
 (a hand-written header, no generated bindings), and drives the full UE lifecycle across the
 boundary; the error model is transported faithfully (for example, a duplicate connection
-setup returns \texttt{InvalidState} through the seam).
+setup returns \texttt{InvalidState} through the seam). Figure~\ref{fig:ffiseam} shows the
+resulting structure and where the \texttt{unsafe} sits.
 
 \begin{figure}
 \centering
