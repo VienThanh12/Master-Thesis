@@ -425,7 +425,7 @@ these three questions (predictability, prevented-defect scope, and migration cos
 representative subsystem. Answering them under controlled, reproducible conditions is the
 problem this thesis sets out to solve.
 
-\section{Research questions}
+\section{Research questions and hypotheses}\label{sec:rqs}
 The thesis is organised around four research questions, ordered to put predictability and
 migration ahead of raw average performance:
 
@@ -442,6 +442,16 @@ migration ahead of raw average performance:
   \item[RQ4] What are the practical implications (effort, FFI interoperability, and risk)
         of adopting Rust incrementally within an existing C++ RAN software ecosystem?
 \end{description}
+
+The questions are approached with three prior expectations, stated here so that the evaluation
+can confirm or refute them rather than merely describe results after the fact. \textbf{H1:} for
+this workload the two languages are performance-equivalent in the operationally relevant region
+below saturation, with any difference confined to the far tail. \textbf{H2:} safe Rust prevents
+at compile time the memory-safety and concurrency defect classes that C++ leaves to
+best-effort, after-the-fact detection. \textbf{H3:} the run-time cost of C++-to-Rust
+interoperability is negligible relative to the cost of the operations invoked, so that the true
+cost of incremental adoption is engineering effort rather than performance. These hypotheses are
+revisited against the evidence in Section~\ref{sec:hypotheses}.
 
 \section{Research approach at a glance}
 The four questions are answered constructively rather than by literature synthesis. The core
@@ -494,6 +504,18 @@ synthetic workload, a single simplified subsystem, single-author implementation 
 virtualised measurement host; these are treated in detail in
 Chapter~\ref{chapter:discussion}.
 
+The scope is drawn deliberately to protect the internal validity of the language comparison. In
+scope are the UE Context Management functionality of Chapter~\ref{chapter:context}, the
+shared-nothing concurrency design, the load sweep to overload, the fault-injection catalogue,
+and the FFI prototype. Explicitly out of scope are the full gNB system and its remaining
+control-plane domains, PHY/L2 processing and the data-heavy user plane, real captured traffic
+traces (as opposed to a spec-justified synthetic workload), managed-language alternatives
+(excluded on the tail-latency grounds argued in Chapter~\ref{chapter:background}), and
+production deployment and operational concerns such as upgrade, observability, and
+multi-tenancy. These exclusions trade external validity for the controlled conditions a fair
+language comparison needs, and each is revisited as a limitation in
+Chapter~\ref{chapter:discussion}.
+
 \section{Significance and beneficiaries}
 The results are intended to be directly actionable. For RAN vendors and cloud-native network
 operators, the thesis supplies controlled evidence on the question that gates any language
@@ -511,9 +533,8 @@ Rust's guarantees do and do not buy in this domain.
 Chapter~\ref{chapter:background} gives the background on RAN control-plane software, C++,
 and the Rust safety model. Chapter~\ref{chapter:context} describes the problem context: the
 UE Context Management subsystem, the relevant defect classes, and tail-latency
-predictability. Chapter~\ref{chapter:objectives} sets the objectives, hypotheses, scope, and
-boundaries, and Chapter~\ref{chapter:methodology} states the research approach by which they
-are pursued.
+predictability. Chapter~\ref{chapter:methodology} states the research approach by which the
+questions are pursued.
 Chapter~\ref{chapter:design} presents the design and implementation of both versions.
 Chapter~\ref{chapter:eval} describes the experimental setup and reports the evaluation.
 Chapter~\ref{chapter:discussion} discusses the findings, related work, and threats to
@@ -532,21 +553,20 @@ Figure~\ref{fig:roadmap} summarises this structure at a glance.
   \node[stage] (c1) at (0,0.75)  {Ch.~1\\ Introduction};
   \node[stage] (c2) at (0,-0.75) {Ch.~2\\ Background};
 
-  \node[stage] (c3) at (4,1.5)   {Ch.~3\\ Context};
-  \node[stage] (c4) at (4,0.0)   {Ch.~4\\ Objectives};
-  \node[stage] (c5) at (4,-1.5)  {Ch.~5\\ Methodology};
+  \node[stage] (c3) at (4,0.75)   {Ch.~3\\ Context};
+  \node[stage] (c4) at (4,-0.75)  {Ch.~4\\ Methodology};
 
-  \node[stage] (c6) at (8,0.75)  {Ch.~6\\ Design \& Impl.};
-  \node[stage] (c7) at (8,-0.75) {Ch.~7\\ Evaluation};
+  \node[stage] (c5) at (8,0.75)  {Ch.~5\\ Design \& Impl.};
+  \node[stage] (c6) at (8,-0.75) {Ch.~6\\ Evaluation};
 
-  \node[stage] (c8) at (12,0.75) {Ch.~8\\ Discussion};
-  \node[stage] (c9) at (12,-0.75){Ch.~9\\ Conclusions};
+  \node[stage] (c7) at (12,0.75) {Ch.~7\\ Discussion};
+  \node[stage] (c8) at (12,-0.75){Ch.~8\\ Conclusions};
 
   \begin{scope}[on background layer]
     \node[grp, fill=blue!3,   fit=(c1)(c2)]      (g1) {};
-    \node[grp, fill=green!4,  fit=(c3)(c4)(c5)]  (g2) {};
-    \node[grp, fill=red!4,    fit=(c6)(c7)]      (g3) {};
-    \node[grp, fill=orange!5, fit=(c8)(c9)]      (g4) {};
+    \node[grp, fill=green!4,  fit=(c3)(c4)]      (g2) {};
+    \node[grp, fill=red!4,    fit=(c5)(c6)]      (g3) {};
+    \node[grp, fill=orange!5, fit=(c7)(c8)]      (g4) {};
   \end{scope}
 
   \node[font=\scriptsize, above] at (g1.north) {Framing};
@@ -559,9 +579,8 @@ Figure~\ref{fig:roadmap} summarises this structure at a glance.
   \draw[->, thick] (g3.east) -- (g4.west);
 \end{tikzpicture}
 \caption[Roadmap of the thesis]{Roadmap of the thesis. The chapters progress from framing the problem, through the
-problem context, the objectives it sets, and the method by which they are pursued, to the
-constructed artifacts and their evaluation, and finally to interpretation and
-conclusions.\label{fig:roadmap}}
+problem context and the method by which the questions are pursued, to the constructed artifacts
+and their evaluation, and finally to interpretation and conclusions.\label{fig:roadmap}}
 \end{figure}
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
@@ -1013,8 +1032,7 @@ Rust actually holds its tail latency and predictability under overload against m
 exactly which defect classes it eliminates and at what stage the remainder are caught, what
 its safety model costs in throughput and resources, and what incremental adoption costs in
 practice. Closing this gap is the purpose of the four research questions. The next chapter
-grounds them in the specific subsystem, defect classes, and timing properties at stake;
-Chapter~\ref{chapter:objectives} turns them into objectives and testable hypotheses; and
+grounds them in the specific subsystem, defect classes, and timing properties at stake, and
 Chapter~\ref{chapter:methodology} sets out the methodology by which they are pursued.
 
 \chapter{Problem Context: UE Context Management and Predictability\label{chapter:context}}
@@ -1185,19 +1203,6 @@ Lost update & A counter's read-modify-write is split across two separate critica
 \end{tabular}
 \end{table}
 
-\begin{figure}
-\centering
-\includegraphics[width=0.92\linewidth]{diagrams/pdf/13_defect_families_tree.pdf}
-\caption[Defect classes affecting C++ control-plane code]{The defect classes that affect C++ control-plane code, split into a memory-safety
-family (object lifetime and bounds) and a concurrency family (unsynchronised or ill-ordered
-access). Starred classes are the five injected from inside Rust's guarantee; the two
-diamond-marked classes, lock-order deadlock and lost update, are injected precisely because they
-lie outside it, so the catalogue locates the boundary of the guarantee rather than only
-confirming it. Buffer overflow is described for completeness but is not injected. All are
-silent in C++, surfacing only later as corruption, a crash, a hang, or a latency
-spike.\label{fig:defectfamilies}}
-\end{figure}
-
 \section{Tail latency and predictability in RAN}
 Section~\ref{sec:predictability} set out why the tail rather than the mean governs a
 latency-critical system, and what measuring it correctly demands. What that section left
@@ -1243,149 +1248,6 @@ rises is exactly what RQ1 asks, and Section~\ref{sec:perfresults} reports that t
 host cannot resolve it.\label{fig:cliff}}
 \end{figure}
 
-\chapter{Objectives\label{chapter:objectives}}
-
-\section{Deficiencies in existing comparisons}
-The gap argued in Section~\ref{sec:gap} is only as good as the search that looked for it, so
-the search is stated rather than assumed. Candidate literature was gathered from the ACM Digital
-Library, IEEE Xplore, USENIX, and Google Scholar using combinations of the terms \emph{Rust},
-\emph{C++}, \emph{memory safety}, \emph{tail latency}, \emph{systems programming},
-\emph{performance comparison}, and \emph{RAN} / \emph{5G control plane}, restricted to
-peer-reviewed venues except where an industry or government report is itself the object of
-study (the memory-safety mandates and vendor vulnerability statistics). The result set was then
-extended by backward and forward citation chaining from the core Rust-safety papers, and
-filtered to work that either measures a systems language empirically, formalises Rust's
-guarantees, or reports adoption experience. The domain literature (3GPP specifications and the
-O-RAN survey) was added separately to fix the architectural context. The search returned no
-study that measures the tail-latency behaviour of a Rust and a C++ implementation of the same
-stateful, concurrent control-plane subsystem under overload.
-
-What it did return is the baseline this thesis works against, and two results deserve naming
-because they are the strongest evidence that the answer may simply be ``no difference''.
-Cross-language studies report that compiled systems languages achieve broadly similar time and
-energy efficiency, well ahead of managed and interpreted ones~\cite{pereira2017energy}. Closer
-to this domain, an idiomatic Rust 10~Gbit/s user-space network driver executes many more
-instructions per packet than its C reference yet runs only about $4\%$
-slower~\cite{emmerich2019drivers}, which suggests Rust's safety checks are largely absorbed by
-out-of-order execution rather than being literally free. Both are average-case results on
-general-purpose or packet-forwarding workloads, so neither addresses the four questions
-Section~\ref{sec:gap} left open. They establish that this comparison is worth making under
-controlled conditions, not that it has been made.
-
-\section{Solution objectives}
-The overarching objective is a fair, reproducible comparison of modern C++ and Rust for a RAN
-control-plane subsystem, together with reusable artifacts and evidence-based guidance. It
-decomposes into concrete objectives, each aligned with a research question so that progress is
-traceable:
-
-\begin{description}
-  \item[O1 (predictability, RQ1)] Quantify and compare the latency distributions of the two
-        implementations, focusing on the p99/p99.9 tail and jitter, across a load sweep that
-        reaches overload, and identify where along that sweep, if anywhere, the languages
-        diverge.
-  \item[O2 (defect prevention, RQ2)] Determine, for a catalogue of defect classes
-        representative of the subsystem, which are prevented at compile time in safe Rust and,
-        for those that are not, at what stage and cost they are detected in C++.
-  \item[O3 (overhead, RQ3)] Measure the resource cost, throughput, CPU utilisation, and memory
-        behaviour, of each implementation under matched conditions, isolating any systematic
-        penalty attributable to Rust's safety model.
-  \item[O4 (migration, RQ4)] Build and measure a realistic incremental-adoption prototype,
-        quantifying the size of the interoperability seam, the scope of \texttt{unsafe} it
-        requires, and the per-call cost of crossing the language boundary.
-  \item[O5 (artifacts and guidance)] Deliver a frozen specification, a parity-tested pair of
-        implementations, a reproducible benchmarking framework, a defect-class taxonomy, and
-        engineering guidelines that practitioners can reuse for language-selection decisions in
-        cloud-native RAN evolution.
-\end{description}
-
-\section{Hypotheses}
-The objectives are approached with three prior expectations, stated so that the evaluation can
-confirm or refute them rather than merely describe results after the fact. \textbf{H1:} for
-this workload the two languages are performance-equivalent in the operationally relevant region
-below saturation, with any difference confined to the far tail. \textbf{H2:} safe Rust prevents
-at compile time the memory-safety and concurrency defect classes that C++ leaves to
-best-effort, after-the-fact detection. \textbf{H3:} the run-time cost of C++-to-Rust
-interoperability is negligible relative to the cost of the operations invoked, so that the true
-cost of incremental adoption is engineering effort rather than performance. These hypotheses are
-revisited against the evidence in Chapter~\ref{chapter:discussion}.
-
-\section{Success criteria}
-The study is successful to the extent that it produces \emph{decision-grade} evidence, evidence
-on which a practitioner could base a language choice, rather than merely a set of measurements.
-Concretely this requires: that any performance comparison be reported with repeats and
-confidence intervals so that a claimed difference is distinguishable from run-to-run noise; that
-the defect-prevention result be demonstrated on concrete, compilable programs rather than argued
-from language semantics alone; that the migration cost be read off a working prototype rather
-than estimated; and that the whole be reproducible from published artifacts and a public
-specification. Meeting these criteria is what distinguishes the contribution from the
-general-purpose, average-case comparisons whose deficiencies motivate the work.
-
-The four questions, the five objectives, and the three hypotheses are three views of the same
-plan, and Table~\ref{tab:traceability} lines them up so that a reader can follow any one
-question from the objective it sets, through the method that pursues it and the section that
-reports its evidence, to the place where its verdict is recorded. Every claim in
-Chapter~\ref{chapter:discussion} is reachable from this table, which is the practical form of
-the ``decision-grade'' requirement above: a result a practitioner cannot trace back to the
-measurement that produced it is not one they can act on.
-Figure~\ref{fig:traceability} adds what a row-per-question table cannot: grouped by hypothesis
-rather than by question number, it exposes the two places where the mapping is not one-to-one,
-H1 carrying two questions and O5 sitting beneath all four.
-
-\begin{table}
-\centering
-\small
-\caption[Traceability from question to objective, evidence, and verdict]{Traceability from each research question to the objective it sets, the hypothesis it
-is tested against, and the sections in which it is pursued, evidenced, and judged. RQ3 shares
-H1, which was worded to cover performance equivalence in both its latency and its resource
-sense; Chapter~\ref{chapter:discussion} finds that wording to be the hypothesis's main
-weakness. O5 (artifacts and guidance) is cross-cutting and is discharged by
-Section~\ref{sec:repro} and Section~\ref{sec:guidelines} rather than by any single question.
-Table~\ref{tab:design} gives the complementary view, what each method actually does and which
-metric its conclusion rests on.\label{tab:traceability}}
-\renewcommand{\arraystretch}{1.25}
-\begin{tabular}{@{}l R{0.24\linewidth} c l l l@{}}
-\hline\hline
-RQ & Objective & H & Method & Evidence & Verdict \\
-\hline
-RQ1 & O1 tail latency and jitter to overload & H1 &
-\S\ref{sec:methodperf} & \S\ref{sec:perfresults}, \S\ref{sec:budget} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
-RQ2 & O2 which defect classes are prevented, and when & H2 &
-\S\ref{sec:methodfaults} & \S\ref{sec:safetyresults} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
-RQ3 & O3 cost of the safety model in resources & H1 &
-\S\ref{sec:methodperf} & \S\ref{sec:resources}, \S\ref{sec:budget} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
-RQ4 & O4 seam size, \texttt{unsafe} scope, and per-call cost & H3 &
-\S\ref{sec:methodffi} & \S\ref{sec:migrationresults} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
-\hline
-\end{tabular}
-\end{table}
-
-\begin{figure}
-\centering
-\includegraphics[width=\linewidth]{diagrams/pdf/22_traceability_map.pdf}
-\caption[From research question to verdict, grouped by hypothesis]{From research question to verdict, grouped by hypothesis rather than by question
-number. The regrouping is what makes two structural facts legible that
-Table~\ref{tab:traceability} can only note in passing. The first is that H1 is shared by RQ1
-and RQ3, so a single wording had to cover equivalence in both its latency and its resource
-sense; Section~\ref{sec:hypotheses} finds that to be its main weakness. The second is that O5
-sits underneath all four questions rather than beside any one of them, and is discharged by the
-published artifacts and the adoption guidelines instead of by a
-measurement.\label{fig:traceability}}
-\end{figure}
-
-\section{Scope and boundaries}
-The work focuses on a single representative subsystem studied under controlled, synthetic
-conditions, and its boundaries are drawn deliberately to protect the internal validity of the
-language comparison. In scope are the UE Context Management functionality of
-Chapter~\ref{chapter:context}, the shared-nothing concurrency design, the load sweep to
-overload, the fault-injection catalogue, and the FFI prototype. Explicitly out of scope are the
-full gNB system and its remaining control-plane domains, PHY/L2 processing and the data-heavy
-user plane, real captured traffic traces (as opposed to a spec-justified synthetic workload),
-managed-language alternatives (excluded on the tail-latency grounds argued in
-Chapter~\ref{chapter:background}), and production deployment and operational concerns such as
-upgrade, observability, and multi-tenancy. These exclusions trade external validity for the
-controlled conditions a fair language comparison needs, and each is revisited as a limitation in
-Chapter~\ref{chapter:discussion}.
-
 \chapter{Research Methodology\label{chapter:methodology}}
 
 The previous chapter set out what the study must achieve; this one sets out how. It states
@@ -1406,10 +1268,26 @@ first-class concern: because the goal is to isolate language effects, the study 
 specification, algorithms, concurrency model, allocator, and build settings across both
 implementations, and reports variance over repeated runs.
 
+The gap this design addresses (Section~\ref{sec:gap}) is only as good as the search that looked
+for it, so the search is stated rather than assumed. Candidate literature was gathered from the
+ACM Digital Library, IEEE Xplore, USENIX, and Google Scholar using combinations of the terms
+\emph{Rust}, \emph{C++}, \emph{memory safety}, \emph{tail latency}, \emph{systems programming},
+\emph{performance comparison}, and \emph{RAN} / \emph{5G control plane}, restricted to
+peer-reviewed venues except where an industry or government report is itself the object of study
+(the memory-safety mandates and vendor vulnerability statistics). The result set was extended by
+backward and forward citation chaining from the core Rust-safety papers, and filtered to work
+that either measures a systems language empirically, formalises Rust's guarantees, or reports
+adoption experience. The domain literature (3GPP specifications and the O-RAN survey) was added
+separately to fix the architectural context. The search returned no study that measures the
+tail-latency behaviour of a Rust and a C++ implementation of the same stateful, concurrent
+control-plane subsystem under overload.
+
 Table~\ref{tab:design} maps each research question to the method, artifact, data, and metric
 used to answer it, making the chain from question to evidence explicit and traceable, and
-Figure~\ref{fig:rqmap} draws the same chain as a flow, which is where the split between the
-questions the measurement host bears on and those it does not becomes visible.
+Table~\ref{tab:traceability} carries each question onward to the hypothesis it is tested
+against and the section that records its verdict. RQ2 and RQ4 are environment-insensitive;
+RQ1 and RQ3 depend on the measurement host and are reported against what it can carry
+(Section~\ref{sec:testbed}).
 
 \begin{table}
 \centering
@@ -1439,15 +1317,26 @@ seam size, \texttt{unsafe} scope, per-call interop cost \\
 \end{tabular}
 \end{table}
 
-\begin{figure}
+\begin{table}
 \centering
-\includegraphics[width=\linewidth]{diagrams/pdf/10_rq_method_map.pdf}
-\caption[The research design as a flow]{The research design as a flow, showing for each research question the method, the
-artifact and data it produces, and the primary metric its conclusion rests on. All four questions
-are answered from one matched pair of C++/Rust implementations built from a single frozen
-specification; RQ2 and RQ4 are environment-insensitive, while RQ1 and RQ3 depend on the
-measurement host and are reported against what it can carry (Section~\ref{sec:testbed}).\label{fig:rqmap}}
-\end{figure}
+\small
+\caption[Traceability from question to hypothesis, evidence, and verdict]{Traceability from each research question to the hypothesis it is tested against and
+the sections in which it is pursued, evidenced, and judged. RQ3 shares H1, which was worded to
+cover performance equivalence in both its latency and its resource sense;
+Section~\ref{sec:hypotheses} finds that wording to be the hypothesis's main
+weakness.\label{tab:traceability}}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}l c l l l@{}}
+\hline\hline
+RQ & H & Method & Evidence & Verdict \\
+\hline
+RQ1 & H1 & \S\ref{sec:methodperf} & \S\ref{sec:perfresults}, \S\ref{sec:budget} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
+RQ2 & H2 & \S\ref{sec:methodfaults} & \S\ref{sec:safetyresults} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
+RQ3 & H1 & \S\ref{sec:methodperf} & \S\ref{sec:resources}, \S\ref{sec:budget} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
+RQ4 & H3 & \S\ref{sec:methodffi} & \S\ref{sec:migrationresults} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
+\hline
+\end{tabular}
+\end{table}
 
 \section{A constructive, comparative experiment}
 The four research questions are causal and comparative: each asks how an outcome (tail
@@ -1626,10 +1515,9 @@ Table~\ref{tab:controls} states the strategy variable by variable, and its third
 part that matters most. A controlled experiment is credible in proportion to the honesty of
 its account of what it failed to control, and three of the rows below record a residual rather
 than a clean fix: the languages cannot always express the same construct, they do not ship the
-same hash-map layout, and one person wrote both implementations. Figure~\ref{fig:controls}
-traces the strategy as a flow instead, which is what makes the two escape valves legible as
-parts of the design rather than as exceptions to it: the forced-idiom log, where the languages
-cannot express the same construct, and the one variable left with no control at all.
+same hash-map layout, and one person wrote both implementations. Both escape valves are part of
+the design rather than exceptions to it: the forced-idiom log records where the languages cannot
+be held identical, and the last row names the one variable left with no control at all.
 
 \begin{table}
 \centering
@@ -1658,18 +1546,6 @@ Author & No control & One person wrote both implementations and is not equally e
 \hline
 \end{tabular}
 \end{table}
-
-\begin{figure}
-\centering
-\includegraphics[width=\linewidth]{diagrams/pdf/18_fairness_controls.pdf}
-\caption[Fairness as a controlled-variable strategy]{Fairness as a controlled-variable strategy. A single specification is frozen before
-any code is written and fixes everything the two implementations share, so that exactly one
-variable, the implementation language, is allowed to differ. The two escape valves are shown
-rather than hidden: constructs the languages cannot express identically are recorded in the
-forced-idiom log and weighed in the discussion, and the one variable with no control at all,
-single-author skill asymmetry, is carried forward as a threat to
-validity.\label{fig:controls}}
-\end{figure}
 
 \section{Statistical treatment of measurements}\label{sec:stats}
 Performance measurements are non-deterministic, so single-run numbers are avoided throughout.
@@ -1701,19 +1577,7 @@ sign assignments is enumerated rather than sampled, so the resulting $p$-value i
 like the bootstrap, assumes nothing about the shape of the distribution. Because the same
 comparison is made for several metrics and both allocators, the family of tests is corrected
 with the Holm step-down procedure, which controls the family-wise error rate without assuming
-independence between the tests. Figure~\ref{fig:statspipeline} gathers this treatment together
-with the two decisions set out next.
-
-\begin{figure}
-\centering
-\includegraphics[width=\linewidth]{diagrams/pdf/23_stats_pipeline.pdf}
-\caption[From runs to a defensible comparison]{From runs to a defensible comparison. The numbered column is the analysis applied to
-every configuration, each step chosen so that it assumes nothing about the shape of a
-heavy-tailed distribution. The column beside it records the two decisions about how the
-resulting family of tests is read; both are taken before the results because either could
-otherwise be made to suit whatever the data turned out to be. The floors quoted at the foot are
-what let a reader tell a null result from an unresolvable one.\label{fig:statspipeline}}
-\end{figure}
+independence between the tests.
 
 Two decisions about how that family is read are taken here rather than after the results,
 because either could otherwise be made to suit whatever the data turned out to be.
@@ -1785,20 +1649,9 @@ kernel, compiler and toolchain versions, and the frequency and scheduling settin
 testbed. The conditions of a measurement therefore travel with its data. That matters for one
 distinction in particular. Separating environment-sensitive results (the performance sweep) from
 environment-insensitive ones (parity testing, fault injection, and the FFI structure) is what
-lets the thesis state, per result, which of the two a reader is looking at.
-Figure~\ref{fig:repro} sets out the published artifact set, the single command that regenerates
-the evaluation from it, and what that command reproduces.
-
-\begin{figure}
-\centering
-\includegraphics[width=\linewidth]{diagrams/pdf/24_repro_artifacts.pdf}
-\caption[What is published, and what it regenerates]{What is published, and what it regenerates. The left column is the artifact set
-released with the thesis, the middle the single command that reruns the analysis over the raw
-logs, and the right what that command reproduces verbatim. The environment record travels with
-each result set, so a measurement carries the conditions under which it was taken. Nothing on
-the path requires proprietary source, which is what makes third-party reproduction possible at
-all rather than merely permitted.\label{fig:repro}}
-\end{figure}
+lets the thesis state, per result, which of the two a reader is looking at. Nothing on the path
+requires proprietary source, which is what makes third-party reproduction possible at all rather
+than merely permitted.
 
 \section{Ethical and data-protection considerations}
 The study processes no personal, subscriber, or operator-confidential data. All traffic is
@@ -1818,7 +1671,7 @@ concurrency model. Both implementations conform to this specification so that th
 measures language differences rather than design or skill asymmetry. The specification is
 itself a deliverable and is the primary control against implementation bias.
 
-\section{Conceptual model and concurrency design}
+\section{Conceptual model and concurrency design}\label{sec:concurrency}
 Two functionally equivalent implementations are developed against the shared specification:
 a modern C++ version (C++23, STL, RAII, standard threading) and a Rust version (stable
 toolchain, ownership-based memory model, safe concurrency). A single concurrency model is
@@ -1840,7 +1693,22 @@ safe-concurrency comparison meaningful: the interesting machinery is the queue, 
 completion handoff, and the ownership transfer of requests, rather than lock contention. The
 only shared mutable state permitted is a single atomic counter used to stamp a per-context
 activity sequence number, which is write-only bookkeeping that does not affect control flow.
-Figure~\ref{fig:arch} shows this data flow.
+Latency is measured across this entire path, from intended send time to completion, so that it
+includes queueing delay under load and reflects the same cross-thread round-trip on both sides;
+Section~\ref{sec:budget} later decomposes it into the part the language executes and the part
+the operating system does. Figure~\ref{fig:arch} shows the data flow and
+Figure~\ref{fig:reqlifecycle} traces a single operation through it as a sequence.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{diagrams/pdf/04_request_lifecycle_sequence.pdf}
+\caption[The end-to-end path of a single operation]{The end-to-end path of a single operation and the completion handoff. The caller builds
+a request with a single-use completion handle, routes it by \texttt{shard\_index(ue\_id)} to the
+owning shard's bounded queue (blocking if it is full), and waits; the shard's single worker
+dequeues in FIFO order, executes the operation against its exclusively owned store, and writes the
+result back to the completion handle. Ownership of the request is transferred to the worker on
+submit and never shared. Latency is measured across the whole path.\label{fig:reqlifecycle}}
+\end{figure}
 
 \begin{figure}
 \centering
@@ -2188,27 +2056,14 @@ result.\label{lst:request}}
 \subsection{Service lifecycle, shutdown, and ownership}
 Starting the service allocates the shards, spawns one worker thread per shard, and hands each
 worker exclusive ownership of its store; the request path is then as described in
-Section~\ref{sec:reqlifecycle}. Shutdown is the more delicate half, because it must terminate
+Section~\ref{sec:concurrency}. Shutdown is the more delicate half, because it must terminate
 workers that are blocked on an empty queue without abandoning requests that are still in
 flight. Both implementations solve it the same way, with an in-band \texttt{Stop} sentinel:
 one \texttt{Stop} request is pushed onto each shard's queue, and because the queue is strictly
 FIFO, every request already enqueued ahead of it is executed and completed before the worker
 observes the sentinel and returns. No separate closed flag, timeout, or drain API is required,
 and no completion handle is left unfulfilled. The worker threads are then joined, so shutdown
-returns only once every shard has actually stopped. Figure~\ref{fig:lifecycle} shows the three
-phases and why the sentinel alone is enough.
-
-\begin{figure}
-\centering
-\includegraphics[width=\linewidth]{diagrams/pdf/28_service_lifecycle.pdf}
-\caption[Service lifecycle, and the in-band \texttt{Stop} sentinel]{Starting and stopping the service. Startup hands each worker exclusive ownership of
-one shard, which is what removes locks from the request path; the run phase moves a request
-into the queue rather than copying it, so producer and worker never both hold a usable
-reference to the same request. Shutdown pushes a single \texttt{Stop} onto each shard's queue
-and relies on strict FIFO ordering to guarantee that everything enqueued ahead of it is
-executed and completed first. That is why no drain API, timeout, or closed flag is needed, and
-why no completion handle is left unfulfilled.\label{fig:lifecycle}}
-\end{figure}
+returns only once every shard has actually stopped.
 
 Both languages tie this to object destruction, and the mechanism is one of the few places
 where the two are near-identical: the C++ destructor calls \texttt{shutdown()}, and Rust's
@@ -2388,37 +2243,6 @@ codes as a hidden control-flow channel, the cost and the control flow of the fai
 visible and identical on both sides, and the same conformance vectors (Section~\ref{sec:parity})
 can assert op-for-op agreement on both the returned value and the resulting state.
 
-\section{Request lifecycle and the completion handoff}
-\label{sec:reqlifecycle}
-The end-to-end path of a single operation is the machinery the study actually measures, so it is
-worth stating precisely. A caller constructs a request carrying the operation, its arguments, and
-a single-use completion handle, and computes the target shard from a pinned hash of the
-\texttt{ue\_id}. It submits the request to that shard's bounded MPSC queue: if the queue has
-space the request is enqueued and the caller blocks on the completion handle; if the queue is
-full the \emph{submission} blocks until space frees, which is the point at which offered overload
-becomes observable as queueing latency rather than being silently dropped. The shard's single
-worker dequeues requests in strict FIFO order, executes the operation against its exclusively
-owned store, writes the result (a success value or an \texttt{OpError}, and for reads an
-immutable \texttt{UeContextView} copied out of live state) into the completion handle, and moves
-on to the next request. Ownership of the request, and of any heap data it carries, is
-transferred to the worker on submit and is never shared, which is what upholds the
-shared-nothing invariant end to end. Latency is measured across this entire path, from intended
-send time to completion, so that it includes queueing delay under load and reflects the same
-cross-thread round-trip on both sides. Figure~\ref{fig:reqlifecycle} traces the same path as a
-sequence, and Section~\ref{sec:budget} later decomposes it into the part the language executes
-and the part the operating system does.
-
-\begin{figure}
-\centering
-\includegraphics[width=\linewidth]{diagrams/pdf/04_request_lifecycle_sequence.pdf}
-\caption[The end-to-end path of a single operation]{The end-to-end path of a single operation and the completion handoff. The caller builds
-a request with a single-use completion handle, routes it by \texttt{shard\_index(ue\_id)} to the
-owning shard's bounded queue (blocking if it is full), and waits; the shard's single worker
-dequeues in FIFO order, executes the operation against its exclusively owned store, and writes the
-result back to the completion handle. Ownership of the request is transferred to the worker on
-submit and never shared. Latency is measured across the whole path.\label{fig:reqlifecycle}}
-\end{figure}
-
 \section{Parity verification}
 \label{sec:parity}
 Because the whole comparison rests on the two versions being functionally identical, parity
@@ -2490,8 +2314,10 @@ phase alone, with the warm-up iterations excluded from both the numerator and th
 so that achieved throughput is directly comparable with offered load. The full configuration
 and scripts are published for reproducibility.
 
-Table~\ref{tab:testbed} sets the host used against the protocol still to be executed, row by row,
-and Figure~\ref{fig:evidenceclasses} carries the same line forward onto the results themselves.
+Table~\ref{tab:testbed} sets the host used against the protocol still to be executed, row by row.
+The division it draws is not between important and unimportant results but between those that are
+properties of the compilers and the source, which this host establishes as firmly as any would,
+and those that are properties of the machine, which it cannot.
 
 \begin{table}
 \centering
@@ -2524,17 +2350,6 @@ Adequate for & Parity, fault injection, FFI structure, the saturation knee and t
 \hline
 \end{tabular}
 \end{table}
-
-\begin{figure}
-\centering
-\includegraphics[width=\linewidth]{diagrams/pdf/21_evidence_classes.pdf}
-\caption[Which conclusions the measurement host can carry]{Which conclusions the measurement host can carry. The division is not between
-important and unimportant results but between those that are properties of the compilers and
-the source, which this host establishes as firmly as any would, and those that are properties
-of the machine, which it cannot. The band below is what executing the published bare-metal
-protocol adds; because the analysis pipeline is unchanged by it, rerunning the same scripts is
-the only step separating the two.\label{fig:evidenceclasses}}
-\end{figure}
 
 \section{Workload and evaluation measurements\label{sec:workload}}
 A synthetic but spec-justified telecom workload is generated by a deterministic driver shared
@@ -2641,36 +2456,17 @@ Attainable $p$ floors & $\MinAttainableP$ / $\CorrectedFloor$ & uncorrected / af
 \end{tabular}
 \end{table}
 
-\section{Data collection and metrics}
-The study records latency predictability (per-event mean, median, p99/p99.9/p99.99, and
-maximum latency, plus jitter), throughput (sustained events/sec and throughput at a fixed
-latency service-level objective (SLO)), resource use (CPU utilisation, memory over time, allocation patterns),
-concurrency robustness, safety (defect classes prevented at compile time vs runtime), and
-software-quality proxies. The last of these are reported where they are most legible rather
-than gathered into this chapter: lines of code and cyclomatic complexity alongside the
-forced-idiom log they explain (Table~\ref{tab:complexity}), and the count and scope of Rust
-\texttt{unsafe} blocks alongside the FFI seam that is the only place either implementation
-contains any (Table~\ref{tab:ffi}). Each configuration is measured and summarised under the
-statistical treatment of Section~\ref{sec:stats}, and only synthetic data is used, so no
-personal, subscriber, or confidential data is processed. Figure~\ref{fig:harness} traces the
-whole path, from the specification both implementations are built against to the generated
-macros this prose cites.
-
-\begin{figure}
-\centering
-\includegraphics[width=\linewidth]{diagrams/pdf/20_benchmark_harness.pdf}
-\caption[How a reported number is produced]{How a reported number is produced, from the frozen specification to the macro the
-prose cites. The upper row is the measurement path and the lower row the analysis path; the
-band between them is the interleaved repeat structure that turns the campaign into a matched
-design. No value in the evaluation is hand-copied: \texttt{bench/refresh\_thesis.sh}
-regenerates every figure, table, and quoted number directly from the raw logs, so the text and
-the data cannot drift apart.\label{fig:harness}}
-\end{figure}
-
 \section{Evaluation data}
 Three campaigns produce three datasets, and they differ in kind and not only in content. What
 follows describes each as captured, because a reader judging whether the analysis is sound needs
-to know what was recorded and at what granularity, not merely what was reported.
+to know what was recorded and at what granularity, not merely what was reported. Each
+configuration is summarised under the statistical treatment of Section~\ref{sec:stats}, and no
+value is hand-copied: \texttt{bench/refresh\_thesis.sh} regenerates every figure, table, and
+quoted number directly from the raw logs, so the text and the data cannot drift apart. The
+software-quality proxies are reported where they are most legible rather than gathered here:
+lines of code and cyclomatic complexity alongside the forced-idiom log they explain
+(Table~\ref{tab:complexity}), and the count and scope of Rust \texttt{unsafe} blocks alongside
+the FFI seam that is the only place either implementation contains any (Table~\ref{tab:ffi}).
 
 \paragraph{The performance sweep.}
 The sweep is a full factorial design over two languages $\times$ two allocators $\times$
@@ -2721,7 +2517,8 @@ analysis.
 
 \section{Evaluation results}
 The safety and migration results do not depend on the measurement host at all. The performance and
-resource results do, and Section~\ref{sec:testbed} states what that host can and cannot carry.
+resource results do, and Section~\ref{sec:testbed} states what that host can and cannot carry;
+every figure and table below is measured on it unless stated otherwise.
 
 Because this chapter reports resolved and unresolved outcomes side by side, it is worth saying at
 the outset which are which, so that a null result is not read as an absent one. Six findings are
@@ -2793,7 +2590,7 @@ RAN-lifecycle workload, $7$ shards). Values in microseconds: the median over \NR
 repeats above its nonparametric bootstrap $95\%$ confidence interval. The interval is printed
 in full rather than as a symmetric half-width because it is strongly asymmetric at these
 percentiles, and a half-width wide enough to cover the upper bound would place the lower one
-below zero. Measured on the host of Section~\ref{sec:testbed}.\label{tab:latency}}
+below zero.\label{tab:latency}}
 \begin{tabular}{@{}l r r r r@{}}
 \hline\hline
 Variant & p50 & p99 & p99.9 & max \\
@@ -2890,7 +2687,7 @@ $5\,000$ active UEs with a single uncontended caller. Each row is the median ove
 unit its own magnitude calls for: the two terms differ by more than two orders of magnitude,
 which is the point of the table. $p$ is the exact two-sided paired permutation test of C++
 against Rust on the repeat-wise differences. The handoff is obtained as the difference between
-the two measured rows, so it carries the uncertainty of both. Measured on the host of Section~\ref{sec:testbed}.\label{tab:budget}}
+the two measured rows, so it carries the uncertainty of both.\label{tab:budget}}
 \begin{tabular}{@{}l r r r@{}}
 \hline\hline
 Component & C++ & Rust & $p$ \\
@@ -2956,7 +2753,7 @@ $\BudgetCoreShareMax\%$ of the bar, the remainder the cross-thread handoff. \tex
 same quantities on a log axis against the smallest paired difference the sweep can resolve,
 shown as a blind zone. Both operation measurements fall inside it by a factor of
 $\BudgetBoundVsCore$, and (b) is also where the campaign's one resolved timing difference
-lives. Measured on the host of Section~\ref{sec:testbed}.\label{fig:budget}}
+lives.\label{fig:budget}}
 \end{figure}
 
 The attribution deserves care, because the obvious reading is the wrong one. Nothing here
@@ -3005,7 +2802,7 @@ variant still completes, and Section~\ref{sec:overload} takes that up.
 \includegraphics[width=0.82\linewidth]{figures/fig_latency_vs_load.pdf}
 \caption[Tail latency versus offered load]{Tail latency (p99) versus offered load for the four build variants. Lines are medians
 over \NRepeats{} repeats; shaded bands are bootstrap $95\%$ CIs. Log-scaled $y$-axis.
-Measured on the host of Section~\ref{sec:testbed}.\label{fig:latency-load}}
+\label{fig:latency-load}}
 \end{figure}
 
 Figure~\ref{fig:throughput-load} shows achieved throughput against offered load, and it is the
@@ -3030,26 +2827,15 @@ Section~\ref{sec:overload} measures that separation rather than leaving it to th
 \includegraphics[width=0.82\linewidth]{figures/fig_throughput_vs_load.pdf}
 \caption[Achieved throughput versus offered load]{Achieved throughput versus offered load. The dotted line marks the ideal
 offered-equals-achieved regime. Throughput is counted over the measured phase only, so the
-warm-up iterations bias neither the numerator nor the denominator. Measured on the host of Section~\ref{sec:testbed}.\label{fig:throughput-load}}
+warm-up iterations bias neither the numerator nor the denominator.\label{fig:throughput-load}}
 \end{figure}
 
-Figure~\ref{fig:tail} isolates the shape of the distribution at the $\ReprLoad$~kops/s
-sustained load by plotting latency against percentile. The curves start together at the median
-and fan out as the percentile rises, which is the expected shape for a heavy-tailed
-distribution and is why a percentile-aware methodology is used throughout. The fanning should
-not be read as a
-language effect: as established above, the run-to-run dispersion at these percentiles is larger
-than the separation between the curves, so the figure shows where the measurement loses
-resolution rather than where the languages differ.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.82\linewidth]{figures/fig_tail_percentiles.pdf}
-\caption[Latency by percentile at the representative load]{Latency by percentile at $\ReprLoad$~kops/s sustained load; log-scaled $y$-axis. The
-four variants coincide at the median and separate as the percentile rises; on this host the
-separation is within run-to-run dispersion and is therefore not attributable to language or
-allocator. Measured on the host of Section~\ref{sec:testbed}.\label{fig:tail}}
-\end{figure}
+Across the percentile range the four variants coincide at the median and fan out as the
+percentile rises, which is the expected shape for a heavy-tailed distribution and is why a
+percentile-aware methodology is used throughout. The fanning is not a language effect: as
+established above, the run-to-run dispersion at these percentiles is larger than the separation
+between the variants, so it marks where the measurement loses resolution rather than where the
+languages differ.
 
 \subsection{Behaviour past saturation (RQ1)}\label{sec:overload}
 RQ1 asks how the two languages compare under increasing load \emph{and overload}, and everything
@@ -3145,7 +2931,7 @@ Metric & Allocator & Effect (Rust $-$ C++) & Repeats & $p$ & Holm \\
 \end{table}
 
 \subsection{Resource use (RQ3)}\label{sec:resources}
-Table~\ref{tab:resource} and Figure~\ref{fig:resources} report resource use at the same
+Table~\ref{tab:resource} reports resource use at the same
 sustained load. Peak resident set size separates the four variants cleanly, and it does so
 whichever way the family is read: its intervals exclude zero, and its effect keeps its sign under
 both allocators.
@@ -3204,7 +2990,7 @@ the two.
 \caption[Resource use at the representative load]{Resource use at a sustained offered load of $\ReprLoad$~kops/s: achieved throughput,
 peak RSS, and total CPU utilisation. The median over \NRepeats{} repeats above its bootstrap
 $95\%$ confidence interval. Peak RSS is the one metric here whose intervals separate the four
-variants cleanly. Measured on the host of Section~\ref{sec:testbed}.\label{tab:resource}}
+variants cleanly.\label{tab:resource}}
 \begin{tabular}{@{}l r r r@{}}
 \hline\hline
 Variant & throughput (kops/s) & peak RSS (MiB) & CPU (\%) \\
@@ -3213,13 +2999,6 @@ Variant & throughput (kops/s) & peak RSS (MiB) & CPU (\%) \\
 \hline
 \end{tabular}
 \end{table}
-
-\begin{figure}
-\centering
-\includegraphics[width=\linewidth]{figures/fig_resources.pdf}
-\caption[Peak resident set size and CPU utilisation per variant]{Peak resident set size (left) and CPU utilisation (right) per build variant at
-$\ReprLoad$~kops/s. Measured on the host of Section~\ref{sec:testbed}.\label{fig:resources}}
-\end{figure}
 
 \subsection{Safety via fault injection (RQ2)}\label{sec:safetyresults}
 Instead of claiming that Rust has no bugs, the catalogue of seven defects set out in
@@ -3319,22 +3098,11 @@ $^{\ddagger}$ AddressSanitizer issues no report because nothing is corrupted: th
 instrumented binary simply deadlocks and is killed by the harness timeout.\par}
 \end{table}
 
-Figure~\ref{fig:taxonomy} presents the same outcomes as a colour-coded matrix, generated from
-the runner's machine-readable log (\texttt{faults/results/taxonomy.csv}), with a rule marking
-where the compile-time guarantee stops. Read as a whole it makes two things visible at once:
-above the rule the entire right-hand column is green while the C++ columns are a patchwork of
-runtime detections and outright misses, and below it the right-hand column turns red alongside
-them.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.9\linewidth]{figures/fig_taxonomy.pdf}
-\caption[Defect-class outcome matrix]{Defect-class outcome matrix, with the boundary group below the rule. Green cells are
-defects prevented at compile time (safe Rust); amber cells are defects that compile but are
-caught at runtime by the given sanitiser; red cells are defects the sanitiser does not detect
-or, in the right-hand column, that safe Rust does not prevent. Generated from the
-fault-injection runner logs.\label{fig:taxonomy}}
-\end{figure}
+Read as a whole the table makes two things visible at once: above the boundary rule the entire
+Rust column is a compile-time rejection while the C++ columns are a patchwork of runtime
+detections and outright misses, and below it the Rust column joins them. The outcomes are
+generated from the runner's machine-readable log
+(\texttt{faults/results/taxonomy.csv}).
 
 \subsection{Migration (RQ4)}\label{sec:migrationresults}
 Incremental adoption is assessed with a working prototype that models the realistic
@@ -3367,8 +3135,8 @@ contract, so the C++ side never sees a Rust type.
 
 The per-call cost is measured twice, because the two measurements answer different questions
 and only the second answers RQ4's. The first is the intrinsic crossing: a do-nothing
-\texttt{extern "C"} call costs $\FfiCrossing$~ns, an ordinary indirect call, and
-Figure~\ref{fig:ffi-cost} places it against the cost of a signaling operation. That bounds the
+\texttt{extern "C"} call costs $\FfiCrossing$~ns, an ordinary indirect call, and negligible
+next to the microsecond-scale round-trip of a signaling operation. That bounds the
 crossing but says nothing about what the seam does to a real operation, because an empty call
 and a full round-trip are not the same experiment: the round-trip is dominated by a
 cross-thread handoff, and an argument that the handoff ``would be paid identically anyway'' is
@@ -3408,14 +3176,6 @@ Metric & Value \\
 \hline
 \end{tabular}
 \end{table}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.78\linewidth]{figures/fig_ffi_cost.pdf}
-\caption[Per-call FFI crossing cost against one whole operation]{Per-call cost of crossing the C ABI (a do-nothing \texttt{extern "C"} call) versus
-the end-to-end cost of one signaling operation through the seam. Log-scaled $y$-axis: the FFI
-crossing is negligible next to the service's cross-thread round-trip.\label{fig:ffi-cost}}
-\end{figure}
 
 \chapter{Discussion\label{chapter:discussion}}
 
@@ -3494,7 +3254,7 @@ faster beyond a threshold request rate, which they trace to stackless
 \texttt{async}/\texttt{await} permitting a context switch immediately before an I/O operation
 begins~\cite{arvidsson2025async}. Section~\ref{sec:relatedwork} accepts that attribution, and
 this study was built to exclude the confound behind it: one worker per shard over a bounded
-blocking queue, no asynchronous runtime on either side. Chapter~\ref{chapter:objectives}
+blocking queue, no asynchronous runtime on either side. Section~\ref{sec:rqs}
 committed in advance to what each outcome would mean, and the second branch is the one that
 fired. A degradation past a threshold rate appeared with the concurrency model held fixed, so the
 asynchronous runtime cannot be the only place such an effect originates. The prediction also
@@ -3545,8 +3305,8 @@ of one, named in each panel.
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/17_guarantee_boundary.pdf}
 \caption[Where Rust's compile-time guarantee stops]{Where the compile-time guarantee stops. On the left are the classes safe Rust rejects
-outright, grouped by the \emph{mechanism} that rejects them rather than by the defect families
-of Figure~\ref{fig:defectfamilies}: ownership and borrowing for lifetime and aliasing errors,
+outright, grouped by the \emph{mechanism} that rejects them rather than by defect
+family: ownership and borrowing for lifetime and aliasing errors,
 which is why iterator invalidation sits with them, and the \texttt{Send}/\texttt{Sync}
 discipline for unsynchronised access to a location. On the right are the two classes the
 catalogue included to find the edge, which neither compiler prevents. The phrase ``thread
@@ -3633,7 +3393,7 @@ is a reason to sequence a migration so that the components sharing the most muta
 over together rather than one at a time.
 
 \section{Revisiting the hypotheses}\label{sec:hypotheses}
-Chapter~\ref{chapter:objectives} committed to three hypotheses before any measurement was
+Section~\ref{sec:rqs} committed to three hypotheses before any measurement was
 taken. Stating their disposition explicitly, rather than letting the results speak for
 themselves, is what distinguishes a test from a description.
 
