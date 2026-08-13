@@ -1,0 +1,204 @@
+# Agent guide — Master's thesis repository
+
+Instructions for AI agents (and human collaborators) working on this repository.
+**Every change to thesis text, figures, data, or artefacts must be judged against the
+grade criteria and quality checklist below.** The bar is submission quality, not “good
+enough for a draft.”
+
+Author: **Ha Vien** · University of Helsinki, Software study track · Nokia internship  
+Title: *Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia RAN Control-Plane Systems*
+
+---
+
+## 1. Document roles (read this first)
+
+Not every PDF in this repo has the same status. **Do not treat them as interchangeable.**
+
+| Document | Source | Status | Role |
+| --- | --- | --- | --- |
+| **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `thesis_wbm.tex`. |
+| **`thesis_wbm.pdf`** | `thesis_wbm.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through. This is what goes to the supervisor alongside the plan. |
+| **`thesis.pdf`** | `thesis.tex` | **Full draft — not yet final** | Canonical long-form thesis (~113–127 pages). Rich figures, generated numbers, full argument. **Everything still needs review** before submission. |
+| `plain_thesis.tex` / `thesis-vi.tex` | variants | Secondary / stale | Do not edit unless explicitly asked. `thesis-vi.tex` is broken (missing bib). |
+| Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `thesis.tex`. |
+
+### Sync rule
+
+When you change **claims, RQs, scope, methodology, or contributions**:
+
+1. Update **`thesis_wbm.tex`** if the supervisor skeleton should reflect it.
+2. Update **`Thesis_Plan_v2.tex`** if the plan’s status, timeline, or framing changes.
+3. Update **`thesis.tex`** for the full argument, figures, tables, and cross-references.
+4. Rebuild affected PDFs and run the verification steps in §5.
+
+When you change **measured numbers**:
+
+1. Regenerate via `bench/refresh_thesis.sh` (never hand-edit `figures/gen_macros.tex`).
+2. Re-read every prose claim that cites those macros (Chapters 7–9, abstract, discussion).
+3. Check `ASSESSMENT.md` and `TODO.md` “after bare-metal campaign” items if tail or RSS claims move.
+
+---
+
+## 2. Grade criteria (Finnish 1–5 scale)
+
+The thesis is assessed on **six criteria** (simplified from the UH data-science master's
+matrix). Current self-assessment is in **`ASSESSMENT.md`** (durable record; keep aligned
+with any grading canvas if present).
+
+| # | Criterion | Target | Current (post-refinement) | What still blocks a 5 |
+| --- | --- | --- | --- | --- |
+| **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (5 inside + 2 outside guarantee). |
+| **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace two arXiv load-bearing cites (`Bugden`, `Zhang` deadlock) with peer-reviewed equivalents. |
+| **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **Bare-metal tail campaign** (WSL2 is not testbed-grade for RQ1 tail). More repeats on testbed; hardware counters + allocation profiles for unexplained RSS / op-level gap. |
+| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.5** | RQ1 tail still open; Figures 7.1/7.3 cannot separate curves on current host. Lifts with same campaign as criterion 3. |
+| **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Maintain register: “cannot tell” ≠ “equivalent”. H1 is *ambiguous in framing*, not simply supported. |
+| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **5** | Housekeeping: fill `\censors{}{}{}` when faculty assigns examiners; swap in official `UH_DS_MSc.cls`. |
+
+**Overall mean (unweighted): 4.8** — held at 4.5 on criteria 3 and 4 **deliberately** until
+bare-metal tail evidence exists. Do not round those half-grades in prose without updating the
+reasoning in `ASSESSMENT.md`.
+
+### Criterion checklist (apply to every thesis edit)
+
+Before considering a change done, ask:
+
+**1 — Objectives & RQs**
+
+- [ ] Does the edit preserve the precise gap (language isolated; spec + concurrency model fixed)?
+- [ ] Are all four RQs still answered in the right chapter with the right artefact?
+- [ ] Does RQ2 still include boundary classes (deadlock, lost update) that can refute the premise?
+
+**2 — Sources**
+
+- [ ] Is every new claim cited with a defensible source?
+- [ ] Are contrary results (e.g. Arvidsson tail, Emmerich slower driver) acknowledged, not omitted?
+- [ ] Are distinctions (data race vs race condition; compile-time vs run-time) used consistently?
+
+**3 — Method & data**
+
+- [ ] Does the edit respect the frozen spec, matched pair, interleaved design, Holm correction?
+- [ ] Are WSL2 numbers labelled **preliminary** where tail latency is discussed?
+- [ ] If claiming significance: exact paired permutation test, pre-committed interval-vs-*p* rule (§5.5)?
+
+**4 — Results presentation**
+
+- [ ] Do figures, tables, and prose agree (no schematic presented as measured result)?
+- [ ] Are CIs asymmetric where needed (no impossible negative latencies)?
+- [ ] Does `bench/refresh_thesis.sh` regenerate every quoted number?
+
+**5 — Discussion**
+
+- [ ] Is evidence status stated (final vs preliminary) per RQ?
+- [ ] Are threats to validity and residual risks named, not hand-waved?
+- [ ] Does the conclusion avoid upgrading “not measurable” to “equivalent”?
+
+**6 — Academic text**
+
+- [ ] No duplicated sections; signposting clear; sentences not overloaded.
+- [ ] Terminology matches earlier definitions (UECM, open-loop, coordinated omission, etc.).
+- [ ] Abstract box on page 3: visually check after edits (CCS block overflows easily).
+
+---
+
+## 3. Non-negotiable scientific commitments
+
+These are load-bearing for the whole thesis. **Do not weaken them in edits.**
+
+1. **Frozen specification** — both implementations built from one language-neutral spec; forced-idiom log for unavoidable divergences (`spec/SPECIFICATION.md`).
+2. **Fairness controls** — same algorithms, shard count, SplitMix64/FNV-1a hashing, jemalloc + system-allocator control, matched `-O2` / `opt-level = 2`, conformance transcripts diffed line by line.
+3. **RQ2 is falsifiable** — five in-guarantee defect classes + two boundary classes; catalogue must not contain only defects Rust prevents.
+4. **Honest performance claims** — end-to-end sweep measures mostly handoff (~0.04% operation); median language comparison on that path is structurally uninformative; tail requires bare metal.
+5. **Peak RSS** — real, Holm-significant at 15 repeats, **allocator effect larger than language effect**; sign reproduces under both allocators; do not revert to “allocator only.”
+6. **FFI** — interleaved native vs seam calls; tax bounded, not “free”; `unsafe` confined to seam; core stays `unsafe`-free.
+7. **No over-claim on Rust** — eliminates data races and aliasing errors, not race conditions or lock-order deadlocks.
+
+---
+
+## 4. Chapter map (`thesis.tex`)
+
+| Ch. | Title | Primary criterion |
+| --- | --- | --- |
+| 1 | Introduction | 1 |
+| 2 | Background | 2 |
+| 3 | Problem context (UECM) | 1, 2 |
+| 4 | Objectives | 1 |
+| 5 | Research methodology | 3 |
+| 6 | Design and implementation | 3 |
+| 7 | Experimental setup and evaluation | 3, 4 |
+| 8 | Discussion | 5 |
+| 9 | Conclusion and future work | 5 |
+| App. | Fault-injection example | 4 |
+
+`thesis_wbm.tex` mirrors this structure as **one bullet per argument move** per chapter.
+Chapters 6–9 in `thesis_wbm.tex` are intentionally **empty placeholders** until supervisor
+review of the skeleton is complete — do not fill them without explicit author request.
+
+---
+
+## 5. Verification workflow (run after substantive changes)
+
+```bash
+# Parity and tests
+spec/conformance/run.sh
+cd cpp && ctest --test-dir build --output-on-failure
+cd rust && cargo test --release
+faults/run_faults.sh
+ffi/build.sh
+
+# Regenerate figures/tables and rebuild canonical thesis
+bench/refresh_thesis.sh
+
+# Supervisor documents (when their sources changed)
+latexmk -pdf thesis_wbm.tex
+latexmk -pdf Thesis_Plan_v2.tex
+```
+
+**Acceptance gates**
+
+- `thesis.log`: **zero errors**, zero undefined references/citations.
+- Figure/table macros in prose match `figures/gen_macros.tex`.
+- No figure contradicts its table (see `ASSESSMENT.md` refinement pass for past failures).
+- If abstract changed: visually inspect page 3 (abstract form + CCS + keywords).
+
+---
+
+## 6. What agents should not do
+
+- **Do not** treat `thesis.pdf` as supervisor-approved; only `Thesis_Plan_v2.pdf` and `thesis_wbm.pdf` are in that bucket today.
+- **Do not** hand-edit generated files under `figures/` except source diagrams in `diagrams/`.
+- **Do not** claim testbed-grade tail latency from WSL2 data.
+- **Do not** remove boundary defect classes or sanitiser-only C++ outcomes to tidy the narrative.
+- **Do not** expand `thesis_wbm.tex` chapters 6–9 without explicit instruction.
+- **Do not** commit secrets, Nokia-internal identifiers, or confidential traces.
+- **Do not** create git commits unless the author explicitly asks.
+
+---
+
+## 7. Key reference files
+
+| File | Use |
+| --- | --- |
+| `ASSESSMENT.md` | Full criterion-by-criterion grading notes and blockers |
+| `TODO.md` | Phase checklist, bare-metal prep, post-campaign re-check list |
+| `LITERATURE_NOTES.md` | Citation upgrades and literature gaps |
+| `bench/TESTBED.md` | Bare-metal protocol (only path to criterion 3/4 → 5 on tail) |
+| `spec/SPECIFICATION.md` | Fairness baseline; freeze before implementation changes |
+| `README.md` | Repo layout and quick start |
+
+---
+
+## 8. Supervisor submission bundle (current)
+
+When preparing material for **Keijo Heljanko** (supervisor) and Nokia instructors
+(**Christoph Luneburg**, **Petteri Kotimaa**):
+
+1. `Thesis_Plan_v2.pdf` — plan, status, timeline (dated; status table must match repo reality).
+2. `thesis_wbm.pdf` — chapter skeleton; chapters 1–5 + appendix populated; 6–9 reserved.
+3. Optionally reference `thesis.pdf` as the **working full draft** (clearly labelled not final).
+
+After supervisor feedback on the skeleton, expand `thesis_wbm.tex` chapters 6–9 and port
+refinements into `thesis.tex` in the same edit pass so the two do not diverge.
+
+---
+
+*Last updated: August 2026. Revise this file when supervisor review status, grade blockers, or document roles change.*

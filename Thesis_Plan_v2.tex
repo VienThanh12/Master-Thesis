@@ -46,7 +46,7 @@ in Nokia RAN Control-Plane Systems}}
 \normalsize Thesis supervisor: Keijo Heljanko\\
 \normalsize Nokia instructors: Christoph Luneburg, Petteri Kotimaa}
 
-\date{\normalsize 9 August 2026\\[0.5em]
+\date{\normalsize 13 August 2026\\[0.5em]
 \normalsize Estimated completion: 11 November 2026 \quad Planned thesis presentation: November 2026}
 
 \begin{document}
@@ -154,21 +154,23 @@ data is used, so no personal or confidential data is processed.
 
 \section{Status and timeline}
 
-Work has not started yet: no literature review, no implementation, and no
-measurements. The timeline below begins in June 2026 with topic definition and
-foundational learning, then moves to drafting in July.
+Work is well under way. The shared specification, both implementations, the conformance
+suite, the fault-injection catalogue, the FFI prototype, and the benchmark harness are in
+place. Chapter drafts and a supervisor-read-through skeleton (\texttt{thesis\_wbm.tex}) exist.
+What remains is the bare-metal measurement campaign (RQ1/RQ3 tail claims), final chapter
+prose for Design through Conclusion, and submission.
 
 \begin{center}
 \begin{tabular}{@{}R{0.30\linewidth} R{0.63\linewidth}@{}}
 \hline\hline
 Item & State \\
 \hline
-Literature review & Not started \\
-Spec + implementations & Not started \\
-RQ2 (fault injection) & Not started \\
-RQ4 (FFI prototype) & Not started \\
-RQ1 / RQ3 (benchmarks) & Not started \\
-Thesis document & Not started \\
+Literature review & Drafted in thesis skeleton \\
+Spec + implementations & Complete; awaiting supervisor freeze \\
+RQ2 (fault injection) & Complete \\
+RQ4 (FFI prototype) & Complete \\
+RQ1 / RQ3 (benchmarks) & Preliminary (WSL2); bare-metal pending \\
+Thesis document & In progress (full draft + bullet skeleton) \\
 \hline
 \end{tabular}
 \end{center}
@@ -178,12 +180,10 @@ Thesis document & Not started \\
 \hline\hline
 Month (2026) & Goal & What happens \\
 \hline
-June & Foundations & Define the topic; learn C++, Rust, and 5G basics;
-begin the literature review. \\
-July & Draft & Draft this plan; start writing thesis chapters and outline
-the evaluation design. \\
-August & Build & Freeze the shared specification; implement both versions and
-the parity suite; build the benchmark harness. \\
+June & Foundations & Done: topic defined; C++/Rust/5G foundations; literature review drafted. \\
+July & Draft & Done: thesis plan approved; chapter skeleton and evaluation design outlined. \\
+August & Build & In progress: specification and both implementations built; parity suite and
+benchmark harness operational; bare-metal campaign next. \\
 September & Measure & Provision a bare-metal testbed; run the full campaign;
 generate figures and numbers. \\
 October & Resolve & Finalise RQ1/RQ3 analysis; confirm or retract the tail

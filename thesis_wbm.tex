@@ -126,24 +126,33 @@
         It is large, it keeps state for every connected device, it serves many requests at
         once, and it has only a few milliseconds to complete each procedure~\cite{3gpp22261}.
         One defect, or one regression in the slowest requests, therefore degrades the whole
-        site.
+        site. The work is carried out at Nokia on a UE Context Management service modelled on a
+        real gNB-CU-CP component.
   \item This software is written mostly in C++. C++ gives the control over memory and timing
         that such a system needs, but it leaves memory-safety and concurrency mistakes to the
         programmer~\cite{szekeres2013sok}. Rust promises the same performance while rejecting
         those mistakes at compile time~\cite{klabnik2023rust}.
   \item The problem is a lack of evidence. Telecom vendors are under growing pressure to move
-        to memory-safe languages~\cite{cisa2023memorysafe}, but no controlled study tells them
-        what the change would mean for predictability, how many defects it would really
-        prevent, or what the migration would cost for a representative control-plane
-        subsystem~\cite{karlback2021ran}.
-  \item Four research questions frame the work. RQ1 compares tail latency and jitter under
-        overload~\cite{dean2013tail}. RQ2 asks which defect classes Rust removes at compile
-        time. RQ3 asks what Rust's safety model costs in resources. RQ4 asks how expensive it
-        is to adopt Rust step by step inside an existing C++ codebase.
-  \item The work contributes four things: a benchmarking framework that others can rerun, one
-        frozen specification implemented twice and tested for identical behaviour, a defect
-        taxonomy that also marks where Rust's guarantee ends, and migration guidelines drawn
-        from the measurements.
+        to memory-safe languages~\cite{cisa2023memorysafe}, but the closest prior work does not
+        isolate the language. Karlb\"ack and Or\"o compare Rust and Go against C++ for RAN
+        applications and keep the runtime in play~\cite{karlback2021ran}; Arvidsson and Kaller
+        find Rust async runtimes diverging from C++ only in the tail, but their comparison is
+        between asynchronous frameworks~\cite{arvidsson2025async}. No controlled study holds the
+        specification, concurrency model, and build settings fixed while sweeping past
+        saturation and measuring incremental migration cost.
+  \item Four research questions frame the work. RQ1 compares latency predictability (mean,
+        p99, p99.9, jitter) under increasing load and overload with the concurrency model held
+        fixed~\cite{dean2013tail}. RQ2 asks which defect classes Rust removes at compile time,
+        at what stage the rest are detected, and which classes it does not prevent. RQ3 asks what
+        overhead Rust's safety model imposes on throughput, CPU, and memory. RQ4 asks what
+        incremental adoption costs in effort, FFI interoperability, and risk inside an existing
+        C++ RAN codebase.
+  \item The work contributes five things: a reproducible, telecom-relevant benchmarking
+        framework; a frozen shared specification with two parity-tested implementations; a
+        quantitative comparison that emphasises tail latency under overload; a defect-class
+        taxonomy that marks where Rust's compile-time guarantee stops; and evidence-based
+        guidelines for incremental adoption, where the dominant cost is the learning curve rather
+        than run-time~\cite{fulton2021adopting}.
 \end{itemize}
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
@@ -203,9 +212,9 @@
 \chapter{Objectives\label{chapter:objectives}}
 
 \begin{itemize}
-  \item A documented literature search found no study that measures the tail latency of a Rust
-        and a C++ implementation of the same stateful control-plane subsystem under
-        overload~\cite{karlback2021ran}.
+  \item A documented literature search found no study that holds a stateful control-plane
+        subsystem fixed while measuring tail latency of Rust and C++ past saturation under the
+        same concurrency model~\cite{karlback2021ran,arvidsson2025async}.
   \item Five objectives follow from the research questions: measure predictability (O1),
         establish which defect classes are prevented (O2), measure the resource overhead (O3),
         build and measure a migration prototype (O4), and publish reusable artifacts and
@@ -229,12 +238,16 @@
   \item The approach is empirical and constructive. Instead of comparing two systems that
         already exist and differ in many ways, the study builds a matched pair of
         implementations from one frozen specification, so that the language is the only
-        systematic difference between them.
+        systematic difference between them. Both use an identical thread-per-shard concurrency
+        model, because that structuring itself changes tail
+        latency~\cite{enberg2019threadpercore}.
   \item RQ1 and RQ3 are answered with an open-loop load sweep that runs from light load into
-        overload; open-loop means the generator keeps to its send schedule instead of waiting
-        for replies. Latency is recorded in identically configured HDR
-        histograms~\cite{tene_hdrhistogram}, and resource use is sampled through the operating
-        system.
+        overload on pinned, frequency-locked bare-metal hardware; open-loop means the generator
+        keeps to its send schedule instead of waiting for replies. Latency is recorded in
+        identically configured HDR histograms~\cite{tene_hdrhistogram}, and resource use is
+        sampled through the operating system. Until that host is available, parity testing and
+        preliminary benchmarks run on a WSL2 development machine, which is adequate for
+        structure and median comparisons but not for tail claims.
   \item RQ2 is answered by controlled fault injection~\cite{natella2016fault}. A fixed
         catalogue of defects is written in both languages, and the expected outcome of each one
         is recorded in advance, so that a surprise shows up as a discrepancy instead of being
