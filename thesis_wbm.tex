@@ -253,97 +253,11 @@
 
 \chapter{Design and Implementation\label{chapter:design}}
 
-\begin{itemize}
-  \item A language-neutral specification is frozen before any code is written. It fixes the
-        public API, the state machine, the data structures, the algorithmic strategy, and the
-        sharding and concurrency model, and it serves as the fairness baseline for everything
-        that follows.
-  \item Both versions use the same shared-nothing, thread-per-shard architecture: eight shards,
-        one bounded blocking MPSC queue per shard, single-use completion handles, strict FIFO
-        order within a shard, and a single atomic counter as the only shared mutable state.
-  \item The run-time substrate is equalised as well: the same jemalloc allocator, with the
-        system allocator kept as a control, the same HDR histogram configuration, matching
-        optimisation levels (\texttt{-O2} and \texttt{opt-level = 2}), and the same hash
-        functions for choosing a shard and for lookups inside it.
-  \item Where the languages must diverge, the forced-idiom log records why. C++ has to
-        hand-write the bounded queue that Rust gets from \texttt{sync\_channel}, and the tagged
-        request struct and response variant that C++ needs are larger and more branch-heavy than
-        Rust's typed per-variant senders. The result is that the Rust version has more lines but
-        lower total cyclomatic complexity~\cite{lizard}.
-  \item The Rust core contains no \texttt{unsafe} at all. Equal behaviour is tested rather than
-        assumed: a language-neutral conformance suite drives both implementations, and their
-        canonical transcripts are compared line by line.
-\end{itemize}
-
 \chapter{Experimental Setup and Evaluation\label{chapter:eval}}
-
-\begin{itemize}
-  \item Two environments have to be kept apart. Everything reported here was measured on a WSL2
-        development host, which is adequate for parity testing, fault injection, and the
-        structure of the FFI seam, but not for claims about tail latency. The bare-metal
-        protocol is specified and scripted, but it has not been run yet.
-  \item The workload is a deterministic generator of RAN lifecycle traffic, justified by the
-        specification, that follows a fixed open-loop send schedule and is swept from nominal
-        load through saturation. The four variants, two languages by two allocators, are
-        interleaved within every repeat.
-  \item For RQ1 and RQ3, the four variants are indistinguishable at the median and equal in
-        throughput and CPU use~\cite{emmerich2019drivers}. The tail cannot be resolved on this
-        host, because the confidence interval on a single variant's p99 is wider than the spread
-        between all four variants.
-  \item For RQ3, memory is the one performance result that comes out cleanly. The Rust build
-        carries a few MiB more peak resident set under either allocator, the difference has the
-        same sign in every repeat, and it is larger than the difference the allocator makes.
-  \item For RQ2, all five in-scope defect classes are compile errors in safe
-        Rust~\cite{jung2021safe}, whereas every one of them compiles in C++ and is caught only
-        if the right sanitiser happens to cover the path. The two boundary classes compile in
-        both languages. For RQ4, a seam of twelve entry points lets C++ drive the Rust core,
-        keeps that core free of \texttt{unsafe}, and costs less than a nanosecond per call.
-\end{itemize}
 
 \chapter{Discussion\label{chapter:discussion}}
 
-\begin{itemize}
-  \item Every research question is answered together with the status of its evidence. The safety
-        and migration results are final, because they do not depend on the measurement
-        environment. The performance and resource results are preliminary.
-  \item On performance, the honest reading is that the question about the median is settled and
-        the question about the tail is still open. That is the better position to be in: it
-        leaves the eventual bare-metal measurement free to be a finding rather than a
-        confirmation. The memory penalty is bounded, but explaining it would need hardware
-        counters.
-  \item On safety the difference is one of kind rather than degree, and it has a definite edge.
-        Rust eliminates data races, not race conditions, and aliasing errors, not lock-ordering
-        errors~\cite{jung2021safe}.
-  \item On migration, an \texttt{unsafe}-free core says what the compiler checks; it says
-        nothing about what a C++ host in the same address space can
-        corrupt~\cite{li2022crosslang}. The gain is therefore that the component stops
-        contributing new defects of its own.
-  \item The hypotheses are then revisited: H1 is half answered, H2 holds in its precise form
-        and fails in the loose reading that Rust prevents every concurrency bug, and H3 is
-        supported. The chapter closes with engineering guidelines, related work, threats to
-        validity, and the professional obligation not to over-claim.
-\end{itemize}
-
 \chapter{Conclusion and Future Work\label{chapter:conclusions}}
-
-\begin{itemize}
-  \item The thesis compared modern C++ and Rust along four dimensions, on one UE Context
-        Management service built twice from a single frozen specification. Building both
-        versions from one specification separates the effect of the language from differences
-        in design or in the skill of the author.
-  \item Safety: safe Rust rejects all five injected memory-safety and data-race classes at
-        compile time, while the two boundary classes compile and misbehave exactly as they do
-        in C++.
-  \item Migration: an unmodified Rust core can be driven from C++ across a thin seam that
-        confines \texttt{unsafe} to a few functions, at less than a nanosecond per call. The
-        real cost of adoption is API design and the learning curve~\cite{fulton2021adopting}.
-  \item Performance: the languages are equivalent at the median and in CPU use and throughput,
-        the Rust build carries a few MiB more peak RSS, and the tail is not yet measurable on
-        a shared host.
-  \item Future work starts with the bare-metal campaign that is already specified, and then
-        extends to production traces, further subsystems, hardware counters, async runtimes,
-        in-process heap isolation, and a longitudinal migration case study.
-\end{itemize}
 
 % STEP 5:
 % The bibliography style is selected with the biblatex options in the preamble.
