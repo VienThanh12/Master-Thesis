@@ -101,24 +101,82 @@ class HdrHistogram {
   }
 
   std::int64_t total() const { return total_; }
-  std::int64_t max() const { return total_ ? max_ : 0; }
+
+  // Highest recorded value, reported at the resolution of the bucket that holds
+  // it. The Rust crate's `max()` returns `highest_equivalent(max_value)`, so
+  // returning the exact sample here would have the two languages reporting the
+  // maximum by different conventions (a difference of up to one bucket width,
+  // ~0.1% at three significant figures). `max_exact()` keeps the raw sample for
+  // anything that needs it.
+  std::int64_t max() const { return total_ ? highest_equivalent_value(max_) : 0; }
+  std::int64_t max_exact() const { return total_ ? max_ : 0; }
   std::int64_t min() const { return total_ ? min_ : 0; }
   double mean() const {
     return total_ ? static_cast<double>(sum_) / static_cast<double>(total_) : 0.0;
   }
 
-  std::int64_t value_at_percentile(double percentile) const {
+  // Value at a quantile in [0, 1], mirroring the Rust crate's
+  // `value_at_quantile()` step for step.
+  //
+  // The quantile, not the percentile, is the primitive on both sides on purpose.
+  // Going through a percentile means computing `ceil((99.9 / 100.0) * total)`,
+  // and `99.9 / 100.0` is one or two ULP away from the double the Rust side gets
+  // from the literal `0.999`. That is invisible until the product lands on an
+  // integer (0.999 * 168000 is exactly 167832, and campaign sample counts are
+  // round numbers), where the two languages would then select a different sample
+  // and occasionally a different bucket. Callers pass the same literal to both.
+  std::int64_t value_at_quantile(double quantile) const {
     if (total_ == 0) return 0;
-    double p = std::clamp(percentile, 0.0, 100.0);
-    std::int64_t count_at =
-        static_cast<std::int64_t>(std::ceil((p / 100.0) * static_cast<double>(total_)));
+    const double q = quantile > 1.0 ? 1.0 : quantile;
+    std::int64_t count_at = static_cast<std::int64_t>(std::ceil(q * static_cast<double>(total_)));
     if (count_at < 1) count_at = 1;
     std::int64_t running = 0;
     for (std::int64_t i = 0; i < counts_len_; ++i) {
       running += counts_[static_cast<std::size_t>(i)];
-      if (running >= count_at) return highest_equivalent_value(value_at_index(i));
+      if (running >= count_at)
+        return q == 0.0 ? lowest_equivalent_value(value_at_index(i))
+                        : highest_equivalent_value(value_at_index(i));
     }
-    return max_;
+    return highest_equivalent_value(max_);
+  }
+
+  std::int64_t value_at_percentile(double percentile) const {
+    return value_at_quantile(std::clamp(percentile, 0.0, 100.0) / 100.0);
+  }
+
+  // Standard deviation over the recorded distribution.
+  //
+  // Computed from each occupied bucket's median equivalent value weighted by its
+  // count, which is the convention the Rust `hdrhistogram` crate's `stdev()`
+  // uses, including taking the deviation about a mean computed the same way. The
+  // two languages therefore compute this statistic by an identical method rather
+  // than merely to a similar precision. `mean()` above is the exact sample mean
+  // and is deliberately left as it is.
+  double stdev() const {
+    if (total_ == 0) return 0.0;
+    const double m = bucket_mean();
+    double acc = 0.0;
+    for (std::int64_t i = 0; i < counts_len_; ++i) {
+      const std::int64_t c = counts_[static_cast<std::size_t>(i)];
+      if (c == 0) continue;
+      const double dev = static_cast<double>(median_equivalent_value(value_at_index(i))) - m;
+      acc += dev * dev * static_cast<double>(c);
+    }
+    return std::sqrt(acc / static_cast<double>(total_));
+  }
+
+  // Iterate occupied buckets in ascending value order, calling
+  // `fn(value_iterated_to, count)`. `value_iterated_to` is the bucket's highest
+  // equivalent value, which is what the Rust crate's `iter_recorded()` yields,
+  // so a persisted histogram lands on one language-neutral value lattice instead
+  // of on two internal bucket indices that merely happen to agree.
+  template <typename F>
+  void for_each_recorded(F&& fn) const {
+    for (std::int64_t i = 0; i < counts_len_; ++i) {
+      const std::int64_t c = counts_[static_cast<std::size_t>(i)];
+      if (c == 0) continue;
+      fn(highest_equivalent_value(value_at_index(i)), c);
+    }
   }
 
  private:
@@ -169,6 +227,23 @@ class HdrHistogram {
   }
   std::int64_t highest_equivalent_value(std::int64_t value) const {
     return lowest_equivalent_value(value) + size_of_equivalent_value_range(value) - 1;
+  }
+  std::int64_t median_equivalent_value(std::int64_t value) const {
+    return lowest_equivalent_value(value) + (size_of_equivalent_value_range(value) >> 1);
+  }
+  // Mean over bucket representative values, mirroring the Rust crate's `mean()`.
+  // Used only as the deviation base in `stdev()`, so that statistic is computed
+  // identically in both languages; the reported mean stays the exact one.
+  double bucket_mean() const {
+    if (total_ == 0) return 0.0;
+    double acc = 0.0;
+    for (std::int64_t i = 0; i < counts_len_; ++i) {
+      const std::int64_t c = counts_[static_cast<std::size_t>(i)];
+      if (c == 0) continue;
+      acc += static_cast<double>(median_equivalent_value(value_at_index(i))) *
+             static_cast<double>(c);
+    }
+    return acc / static_cast<double>(total_);
   }
 
   std::int64_t lowest_ = 1, highest_ = 1;

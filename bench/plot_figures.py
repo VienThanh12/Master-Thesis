@@ -344,10 +344,28 @@ def pick_overload_load(rows, tracking_ratio=0.9):
     return max(saturated) if saturated else None
 
 
+def has_metric(rows, path):
+    """True when every row carries the nested key path, e.g. ("lat_ns", "p9999").
+
+    Campaigns recorded before p99.99 and inter-operation jitter were emitted are
+    still valid input, and a figure or table must not present a partially measured
+    quantity as if the whole campaign had it.
+    """
+    for r in rows:
+        cur = r
+        for key in path:
+            if not isinstance(cur, dict) or key not in cur:
+                return False
+            cur = cur[key]
+    return True
+
+
 def fig_tail_percentiles(rows, outdir, load):
     pcts = ["p50", "p90", "p99", "p999"]
-    pct_x = [50, 90, 99, 99.9]
     pct_labels = ["p50", "p90", "p99", "p99.9"]
+    if has_metric(rows, ("lat_ns", "p9999")):
+        pcts.append("p9999")
+        pct_labels.append("p99.99")
     fig, ax = plt.subplots(figsize=(6.2, 4.0))
     for key in variants_present(rows):
         label, color, ls, mk = VARIANT_STYLE[key]
@@ -851,8 +869,21 @@ def _subset(rows, key, load):
     ]
 
 
+def latency_table_fields(rows):
+    """Columns of tab:latency, widened to p99.99 when the campaign recorded it."""
+    fields = ["p50", "p99", "p999"]
+    labels = ["p50", "p99", "p99.9"]
+    if has_metric(rows, ("lat_ns", "p9999")):
+        fields.append("p9999")
+        labels.append("p99.99")
+    fields.append("max")
+    labels.append("max")
+    return fields, labels
+
+
 def write_latency_table(rows, outdir, load):
     """Emit the body of tab:latency at the representative load (values in \u00b5s)."""
+    fields, _labels = latency_table_fields(rows)
     lines = []
     for key in variants_present(rows):
         label = VARIANT_STYLE[key][0]
@@ -863,15 +894,39 @@ def write_latency_table(rows, outdir, load):
         def cell(field):
             return med_ci_cell([r["lat_ns"][field] / NS_PER_US for r in sub])
 
-        lines.append(
-            f"{label} & {cell('p50')} & {cell('p99')} & {cell('p999')} & {cell('max')}"
-        )
+        lines.append(label + " & " + " & ".join(cell(f) for f in fields))
     out = os.path.join(outdir, "tab_latency.tex")
     with open(out, "w") as f:
         # Rows separated by \\ but no trailing \\, so \input can be followed by
         # \\\hline in the caller without a "Misplaced \noalign" boundary error.
         f.write(" \\\\\n".join(lines) + "\n")
     return out, load
+
+
+def write_jitter_table(rows, outdir, load):
+    """Emit the body of tab:jitter, or nothing when the campaign has no jitter data.
+
+    Inter-operation jitter (IPDV) is only recorded when the run was made with
+    --jitter, so this returns None for older campaigns rather than emitting a table
+    of zeros that would read as a measured result.
+    """
+    if not has_metric(rows, ("jitter_ns", "p50")):
+        return None
+    lines = []
+    for key in variants_present(rows):
+        label = VARIANT_STYLE[key][0]
+        sub = _subset(rows, key, load)
+        if not sub:
+            continue
+
+        def cell(field):
+            return med_ci_cell([r["jitter_ns"][field] / NS_PER_US for r in sub])
+
+        lines.append(label + " & " + " & ".join(cell(f) for f in ("p50", "p99", "p999", "max")))
+    out = os.path.join(outdir, "tab_jitter.tex")
+    with open(out, "w") as f:
+        f.write(" \\\\\n".join(lines) + "\n")
+    return out
 
 
 def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=None,
@@ -934,6 +989,55 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
         "PNineNineMaxCI": f"{max(p99_ci):.0f}" if p99_ci else "0",
         "MaxOfferedLoad": f"{max(loads) / 1000.0:.0f}",
     }
+
+    # The preamble of tab:latency travels with its generated body. The table gains
+    # a p99.99 column the moment a campaign records one, and a hand-written
+    # column specification in the thesis would then be one column short of the
+    # \input body -- a build error at best and a silently mislabelled table at
+    # worst. Generating both keeps the two in step with no manual edit.
+    lat_fields, lat_labels = latency_table_fields(rows)
+    macros["LatencyCols"] = "@{}l" + " r" * len(lat_fields) + "@{}"
+    macros["LatencyHead"] = "Variant & " + " & ".join(lat_labels)
+
+    # p99.99 and inter-operation jitter, reported descriptively.
+    #
+    # Neither is added to the Holm-tested family (see TESTED_METRICS). The rule
+    # this thesis pre-commits is that pairing cancels the interference a whole
+    # interleaved block shares, not interference landing on one run of a pair, so
+    # it rescues run-level and central statistics and not high percentiles, which
+    # are computed from exactly the disturbed operations. p99.99 is the extreme
+    # case of that, and a jitter percentile is a dispersion of the same disturbed
+    # samples. Testing them would spend two more slots of the family-wise budget
+    # on comparisons that cannot resolve and make Holm harsher on the ones that
+    # can -- the same reasoning that removed achieved throughput from the family.
+    if has_metric(rows, ("lat_ns", "p9999")):
+        p9999_us = lambda r: r["lat_ns"]["p9999"] / NS_PER_US
+        far = [med_at(k, load, p9999_us) for k in variants]
+        macros.update({
+            "FarTailSpread": f"{100.0 * (max(far) / min(far) - 1):.0f}",
+            "FarTailRange": f"{max(far) - min(far):.0f}",
+            "FarTailMax": f"{max(far):.0f}",
+        })
+    if has_metric(rows, ("lat_ns", "p25")) and has_metric(rows, ("lat_ns", "p75")):
+        iqr_us = lambda r: (r["lat_ns"]["p75"] - r["lat_ns"]["p25"]) / NS_PER_US
+        iqr = [med_at(k, load, iqr_us) for k in variants]
+        macros.update({
+            "IqrSpread": f"{100.0 * (max(iqr) / min(iqr) - 1):.0f}",
+            "IqrRange": f"{min(iqr):.0f}--{max(iqr):.0f}",
+        })
+    if has_metric(rows, ("jitter_ns", "p50")):
+        jp50_us = lambda r: r["jitter_ns"]["p50"] / NS_PER_US
+        jp99_us = lambda r: r["jitter_ns"]["p99"] / NS_PER_US
+        jp50 = [med_at(k, load, jp50_us) for k in variants]
+        jp99 = [med_at(k, load, jp99_us) for k in variants]
+        macros.update({
+            "JitterRange": f"{min(jp50):.0f}--{max(jp50):.0f}",
+            "JitterSpread": f"{100.0 * (max(jp50) / min(jp50) - 1):.0f}",
+            "JitterPNineNineRange": f"{min(jp99):.0f}--{max(jp99):.0f}",
+            # Jitter against the median it perturbs: the ratio is what says whether
+            # consecutive operations vary by a rounding error or by a whole median.
+            "JitterVsMedian": f"{100.0 * statistics.median(jp50) / statistics.median(p50):.0f}",
+        })
 
     if sig_results:
         # The exact paired test cannot report a p below 2 / 2**n, so the floor is
@@ -1163,6 +1267,14 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
 #: make Holm more punitive on the comparisons that can resolve. It is reported
 #: with its interval in the resource table instead, where it serves its real
 #: purpose of confirming the operating point is sustained rather than nominal.
+#:
+#: p99.99 and inter-operation jitter are absent for the same structural reason
+#: rather than an oversight. Both are computed from precisely the operations that
+#: interference lands on, which is the class of statistic the pre-committed rule
+#: says pairing does not rescue, so a paired interval on them could not be read as
+#: a language effect. They are reported descriptively, in tab:latency, tab:jitter,
+#: fig_tail_percentiles and their macros, and the family stays at the size the
+#: design committed to.
 TESTED_METRICS = [
     ("p50 latency (\\textmu s)", lambda r: r["lat_ns"]["p50"] / NS_PER_US, 1, "robust"),
     ("p99 latency (\\textmu s)", lambda r: r["lat_ns"]["p99"] / NS_PER_US, 0, "tail"),
@@ -1523,6 +1635,12 @@ def main():
         produced.append(budget_fig)
     lat_tab = write_latency_table(rows, outdir, load)[0]
     res_tab = write_resource_table(rows, outdir, load)
+    jitter_tab = write_jitter_table(rows, outdir, load)
+    if jitter_tab:
+        produced.append(jitter_tab)
+    else:
+        print("note: campaign has no inter-operation jitter data; run campaign.sh "
+              "with --jitter (tab_jitter.tex not written)")
     macros = write_generated_macros(rows, outdir, load, sig, budget, ffi_metrics,
                                     overload, contention)
     produced.extend([lat_tab, res_tab, macros])

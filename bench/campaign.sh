@@ -13,6 +13,10 @@
 #   bench/campaign.sh --repeats 20 --pin 2-17 \
 #       --workload mixed --producers 8 --active-ues 5000 --duration 3 --warmup-s 1 \
 #       --rates "1000 2000 4000 6000 8000 10000 12000 16000"
+#   bench/campaign.sh --no-jitter --no-hist          # older instrument, smaller footprint
+#
+# Inter-operation jitter and full HDR bucket persistence are on by default; see the
+# `jitter` and `hist` defaults below for what each costs and why.
 #
 # On WSL2 this still runs, but see TESTBED.md: headline numbers need bare metal.
 set -uo pipefail
@@ -40,6 +44,18 @@ rates="1000 2000 4000 6000 8000 10000 12000 16000"
 # cap; one above saturation never finishes on op count at all, so without a cap
 # the sweep cannot be taken past the knee. Empty = 2x duration.
 max_run_s=""
+# Inter-operation jitter (IPDV) is an RQ1 metric, so it is on by default. It
+# costs one extra histogram per producer (~264 KiB each), which lifts peak RSS by
+# the same amount in both languages: uniform within a campaign, so the RQ3
+# language and allocator comparisons are unaffected, but absolute peak RSS is not
+# comparable across campaigns run with different settings. --no-jitter restores
+# the older footprint for a campaign whose purpose is absolute RSS.
+jitter=1
+# Persist the full HDR buckets to a sidecar. Without this the far tail (p99.99)
+# and any statistic not summarised in the JSONL cannot be recovered from a
+# finished campaign, which is exactly the hole a testbed visit must not come back
+# with. Off the measured path: written once per run, after the run.
+hist=1
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -56,6 +72,8 @@ while [ $# -gt 0 ]; do
     --rt)         rt="$2"; shift 2;;
     --rates)      rates="$2"; shift 2;;
     --max-run-s)  max_run_s="$2"; shift 2;;
+    --no-jitter)  jitter=0; shift;;
+    --no-hist)    hist=0; shift;;
     *) echo "unknown arg: $1"; exit 2;;
   esac
 done
@@ -128,6 +146,17 @@ stamp="$(date +%Y%m%d-%H%M%S)"
 jsonl="$here/results/campaign-$stamp.jsonl"
 : > "$jsonl"
 
+# Per-run flags shared by every variant, so the instrument is identical across
+# the four arms (a variant measured with a different instrument is not a control).
+extra=()
+if [ "$jitter" = "1" ]; then extra+=(--jitter); fi
+histfile=""
+if [ "$hist" = "1" ]; then
+  histfile="$here/results/campaign-$stamp.hist.jsonl"
+  : > "$histfile"
+  extra+=(--hist-out "$histfile")
+fi
+
 total=$(( repeats * $(echo "$rates" | wc -w) * ${#order[@]} ))
 echo "== campaign: $repeats repeats x rates[$rates] x ${#order[@]} variants = $total runs =="
 n=0
@@ -141,7 +170,8 @@ for rep in $(seq 1 "$repeats"); do
       printf '\r  run %d/%d (rep %d, rate %d/prod, %s)      ' "$n" "$total" "$rep" "$r" "$variant"
       "${pre[@]}" "$bin" --workload "$workload" --shards "$shards" --producers "$producers" \
         --active-ues "$active_ues" --preload "$preload" --ops "$ops" \
-        --warmup "$warmup" --seed "$seed" --rate "$r" --max-run-s "$max_run_s" --json >>"$jsonl"
+        --warmup "$warmup" --seed "$seed" --rate "$r" --max-run-s "$max_run_s" \
+        --run-id "$rep" "${extra[@]}" --json >>"$jsonl"
     done
   done
 done
@@ -160,3 +190,7 @@ echo
 echo "raw:   $jsonl"
 echo "agg:   $agg"
 echo "table: $tex"
+if [ -n "$histfile" ]; then
+  echo "hist:  $histfile"
+  echo "       pool the far tail with: python3 bench/pool_hist.py $histfile"
+fi

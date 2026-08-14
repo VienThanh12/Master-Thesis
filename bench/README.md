@@ -46,6 +46,89 @@ significant figures on both sides (C++ uses a vendored HDR port in
 fixed schedule and record latency from the *intended* send time with HDR
 correction. Without `--rate` the loop is closed (back-to-back).
 
+## Latency statistics, and how the two languages are kept comparable
+
+Both harnesses report, from the merged histogram: `p25 p50 p75 p90 p99 p999 p9999`,
+`max`, `mean`, and `stdev`. Three conventions are pinned so the numbers are the
+same statistic on both sides rather than two close ones.
+
+- **Quantiles are the primitive, not percentiles.** Both sides call their quantile
+  function with the same literal (`0.999`, not `99.9 / 100`). Those differ by a ULP
+  of double arithmetic, which is invisible until the product lands on an integer —
+  and `0.999 * 168000` is exactly `167832`, with campaign sample counts being round
+  numbers by construction. At that point the two languages would select a different
+  sample and occasionally a different bucket.
+- **`max` is bucket-aligned on both sides.** The Rust crate's `max()` returns
+  `highest_equivalent(max_value)`. The C++ port used to return the exact recorded
+  sample, so the two languages reported the maximum by different conventions, up to
+  one bucket width apart (~0.1% at three significant figures). `HdrHistogram::max()`
+  now matches the crate; `max_exact()` keeps the raw sample.
+- **`stdev` uses the crate's convention.** It is computed from each occupied
+  bucket's median equivalent value, weighted by count, about a mean computed the
+  same way, which is what `hdrhistogram::stdev()` does. Note that the reported
+  `mean` is *not* this quantity: C++ reports the exact sample mean while the crate
+  reports the bucket-representative one. The difference is bounded by the 0.1%
+  bucket width and is left as it is, but `stdev` is method-identical by
+  construction rather than by coincidence.
+
+**Interquartile range** is derived by the analysis as `p75 - p25` rather than
+emitted, so there is a single place it is defined.
+
+### Inter-operation jitter (`--jitter`)
+
+RQ1 asks about jitter, which the thesis glossary defines as how much latency varies
+*from one operation to the next*. That is a successive-difference quantity and a
+latency histogram cannot recover it, so it is measured directly: `--jitter` records
+a second HDR histogram over the absolute difference between consecutive latencies,
+which is IPDV in the sense of RFC 3393. The definition is pinned identically in
+both languages:
+
+- **within one producer only**, never across producers — a difference between two
+  threads' latencies is not a difference between consecutive operations;
+- **measured phase only**, and the **first measured operation is skipped** because
+  it has no predecessor (so `n` is `ops_total` minus the producer count);
+- computed from **the same latency value that enters the main histogram**, which is
+  the intended-send-time value under `--rate`;
+- from **real observations only**. The synthetic samples the coordinated-omission
+  correction backfills are not operations, so differencing them would invent
+  variation that no operation experienced;
+- floored at 1 ns, the same floor the latency path applies.
+
+Reported as `jitter_ns: {p50, p99, p999, max, mean, stdev, n}`.
+
+**What `--jitter` costs.** One extra histogram per producer, about 264 KiB each, so
+peak RSS rises by roughly `producers × 264 KiB` — the same order as the language
+RSS difference RQ3 reports. Both languages allocate exactly the same amount and
+only when the flag is given, so the *comparison* is unaffected and the flag is
+uniform across a campaign's four arms. Absolute peak RSS is therefore not
+comparable between campaigns run with and without it; `campaign.sh --no-jitter`
+reproduces the older footprint when a campaign's purpose is absolute RSS.
+
+### Persisting the histograms (`--hist-out`)
+
+`--hist-out <path>` appends one JSON record per run holding the full occupied
+buckets of the latency histogram, and of the jitter histogram when enabled, as
+sparse `[value, count]` pairs. `value` is the bucket's highest equivalent value,
+which is what the Rust crate's `iter_recorded()` yields and what the C++ port's
+`for_each_recorded()` was added to expose, so both languages persist onto one
+language-neutral lattice instead of onto two internal bucket indices that merely
+happen to agree. `--run-id` tags the record (campaign.sh passes the repeat index).
+
+This exists because **p99.99 and jitter cannot be recovered from a finished
+campaign**. Without the buckets, a testbed visit returns the same summary
+percentiles it always did, on the one question the visit is for. It also makes the
+far tail readable: at the campaign's representative load a single run records about
+170k samples, so its p99.99 rests on ~17 observations, while 20 pooled repeats give
+~3.4M samples and ~340 observations past p99.99.
+
+Note that a histogram's `total` can exceed `ops_total` under `--rate`: the
+coordinated-omission correction backfills synthetic samples. That is by design, not
+a miscount of retired operations.
+
+Sidecar files are appended per run and are large compared with the summary JSONL
+(tens of KiB per run below saturation, a few hundred above it, where the correction
+inflates the sample count). They compress well; gzip them after a campaign.
+
 ## Run everything
 
 ```bash
@@ -125,8 +208,13 @@ taskset -c 2-17 bench/campaign.sh --repeats 20 --pin 2-17 \
     --rates "1000 2000 4000 6000 8000 10000 12000 16000"
 ```
 
+Inter-operation jitter and histogram persistence are **on by default** (see above);
+`--no-jitter` and `--no-hist` turn them off.
+
 Outputs under `bench/results/`:
 - `campaign-<stamp>.jsonl`: every individual run (raw).
+- `campaign-<stamp>.hist.jsonl`: the full HDR buckets per run, for the pooled far
+  tail (`--no-hist` to skip).
 - `campaign-<stamp>.agg.csv`: one row per `(variant, offered load)` with, for each
   metric, `<metric>_median`, `<metric>_lo`, `<metric>_hi` where the CI is a **95%
   nonparametric bootstrap CI of the median** across repeats (seeded, dependency-free).
@@ -141,6 +229,109 @@ python3 bench/aggregate.py results/campaign-XXXX.jsonl --out agg.csv --tex tab.t
 python3 bench/plot_campaign.py results/campaign-XXXX.agg.csv --metric p99_ns   # median + CI band
 python3 bench/plot_campaign.py results/campaign-XXXX.agg.csv --metric p999_ns
 ```
+
+`aggregate.py` picks up `p25/p75/p9999/stdev`, the derived `iqr_ns`, and the jitter
+metrics **only when every run in the campaign carries them**, so campaigns recorded
+before these existed still aggregate exactly as they did before, and a campaign that
+mixes instruments is reported rather than silently averaged.
+
+## Pooling the far tail (`pool_hist.py`)
+
+```bash
+python3 bench/pool_hist.py results/campaign-XXXX.hist.jsonl
+python3 bench/pool_hist.py results/campaign-XXXX.hist.jsonl --verify results/campaign-XXXX.jsonl
+```
+
+Two jobs. **Pooling** concatenates the per-run distributions across repeats and
+takes one percentile of the result, which is what makes p99.99 readable at all.
+**Verification** recomputes every run's percentiles from its persisted buckets and
+checks them against the values the binary printed, so the sidecar is demonstrably a
+faithful record of the histogram rather than a lossy summary of it. Both modes also
+assert that every persisted value is a point on the HDR lattice implied by
+`(low, high, sig)` and that both languages used the same lattice — the C++ port and
+the Rust crate are independent implementations of the same bucketing, so their
+agreement is checked rather than assumed.
+
+The pooled percentile and the one `aggregate.py` reports are **different
+statistics** and must not be mixed in a claim:
+
+- `aggregate.py` takes the per-run percentile and reports the median across repeats
+  with a bootstrap CI. Repeats are the unit, so run-to-run spread is visible and a
+  paired test is possible.
+- `pool_hist.py` takes one percentile of all samples together. Operations are the
+  unit, the far tail is far better resolved, and there is **no across-repeat
+  interval** — a single pooled number has no dispersion to quote.
+
+So the pooled figure is the far-tail estimate and the per-repeat figures remain the
+basis for any paired comparison.
+
+**p99.99 and jitter are reported descriptively and are not in the Holm-tested
+family.** The rule §5.5 pre-commits is that pairing cancels the interference an
+interleaved block shares, not interference landing on one run of a pair, so it
+rescues run-level and central statistics and not high percentiles, which are
+computed from exactly the disturbed operations. p99.99 is the extreme case, and a
+jitter percentile is a dispersion of those same samples. Testing them would spend
+family-wise budget on comparisons that cannot resolve and make Holm harsher on the
+ones that can — the same reasoning that removed achieved throughput from the family.
+
+## Hardware counters (`counters.sh`) — testbed only
+
+```bash
+bench/counters.sh                 # hardware counters
+bench/counters.sh --software      # plumbing check; needs no PMU
+python3 bench/parse_perf.py --self-test
+```
+
+Wraps `perf stat` around the benchmark binaries for the two results that currently
+rest on argument rather than measurement: the peak-RSS difference (significant but
+unexplained) and the operation-level gap (attributed to node-based
+`std::unordered_map` against Rust's open-addressed `HashMap` via the forced-idiom
+log, not measured).
+
+It measures two scopes, and the second is the important one. `e2e` is the sweep
+path, which §7.5.2 shows is ~99.96% cross-thread handoff — counters there describe
+the queue and the scheduler. `op` drives `ShardCore` through `latency_budget` with
+no queue in the path, which is where the map claim actually lives.
+
+**This cannot run on WSL2**: there is no hardware PMU (`/sys/bus/event_source/devices/`
+exposes no `cpu`), and `perf` is usually absent too. The script detects both and
+refuses rather than reporting zeros. Events the host cannot count are recorded as
+`null`, never `0`, because a counter that did not run is not one that read zero.
+The CSV parsing lives in `parse_perf.py` with a self-test so it is known-good before
+the visit rather than debugged during it.
+
+## Allocation profile (`alloc_profile.sh`) — testbed only
+
+```bash
+bench/alloc_profile.sh --check    # tool availability
+bench/alloc_profile.sh            # matched profile of both jemalloc arms
+bench/alloc_profile.sh --raw-ok   # collect dumps even without jeprof
+python3 bench/parse_jeprof.py --self-test
+```
+
+Attributes the 2.1–2.5 MiB peak-RSS difference to allocation sites. §7.5.4 already
+shows the difference is fixed rather than per-context — the `UeContext` layout
+accounts for ~40 kB at 5000 active UEs, three orders of magnitude short of the gap —
+so what is missing is *where the memory goes*.
+
+**One tool, both languages:** jemalloc's own `prof`, run against the two jemalloc
+arms that already exist, which needs the opt-in `jemalloc-prof` Cargo feature on the
+Rust side. Profiling C++ with heaptrack and Rust with dhat would measure the two
+sides with different instruments, different sampling, and different notions of a
+call site, and the entire point is a comparison; this mirrors the choice already
+made for the complexity proxies, where one tool measures both languages. If prof is
+unavailable the script names the per-language fallbacks together with the caveat
+that they do not form a matched pair and must not be differenced.
+
+Prof support is detected **functionally** — run the arm's own binary with profiling
+on and check a dump lands — rather than by matching jemalloc's diagnostics, since a
+build without `--enable-prof` says `Invalid conf pair` while a syntax error says
+`Malformed conf string`, and treating the absence of one wording as success is how a
+false positive survives until the testbed. Note jemalloc's conf syntax is
+colon-separated (`prof_prefix:/path`); `prof_prefix=/path` is rejected as malformed.
+
+Profiling perturbs the allocation path, so these runs are for attribution only and
+must never be quoted as latency or throughput.
 
 ## Latency-budget decomposition (what the end-to-end number is made of)
 
@@ -236,6 +427,9 @@ rust/target/release/examples/bench --shards 8 --ops 200000 [--json]
 | `--warmup N` | ops/10 | unmeasured warmup ops per producer |
 | `--seed S` | 42 | PRNG seed base |
 | `--rate R` | 0 (closed loop) | target ops/sec/producer (enables CO correction) |
+| `--jitter` | off | also record inter-operation jitter (IPDV); see above for its RSS cost |
+| `--hist-out P` | off | append the full HDR buckets for this run to `P` |
+| `--run-id S` | empty | opaque tag echoed into the sidecar (campaign.sh passes the repeat) |
 | `--json` | off | emit one JSON summary line |
 
 ## Caveats

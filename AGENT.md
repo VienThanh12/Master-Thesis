@@ -143,7 +143,7 @@ spec/conformance/run.sh
 cd cpp && ctest --test-dir build --output-on-failure
 cd rust && cargo test --release
 faults/run_faults.sh
-ffi/build.sh
+ffi/build.sh   # CAUTION: this re-measures; see the note below before running it
 
 # Regenerate figures/tables and rebuild canonical thesis
 bench/refresh_thesis.sh
@@ -152,6 +152,22 @@ bench/refresh_thesis.sh
 latexmk -pdf thesis_wbm.tex
 latexmk -pdf Thesis_Plan_v2.tex
 ```
+
+**`ffi/build.sh` is a measurement, not just a test.** It overwrites the tracked
+`ffi/results/metrics.json` and `op_cost.jsonl` with numbers from whatever host it
+runs on, and those feed `tab_ffi.tex` and every `\Ffi*` macro. Run on a busy
+development machine it will quietly replace the RQ4 evidence with noise — a run
+during this work reported the operation round-trip as 63 µs against the recorded
+12.7 µs and flipped the sign of the seam delta. If you run it only to check that it
+still builds and passes, restore the evidence afterwards:
+
+```bash
+git checkout -- ffi/results/metrics.json ffi/results/op_cost.jsonl
+```
+
+`faults/run_faults.sh` is safe by comparison: its outcomes are categorical
+(compile-time prevented, sanitiser-detected, undetected) and do not move with host
+load.
 
 **Acceptance gates**
 

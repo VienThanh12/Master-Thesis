@@ -21,6 +21,7 @@
 #include <cstring>
 #include <mutex>
 #include <numeric>
+#include <optional>
 #include <string>
 #include <thread>
 #include <vector>
@@ -58,6 +59,9 @@ struct Args {
   double rate = 0.0;  // ops/sec/producer; 0 => closed loop
   double max_run_s = 0.0;  // wall-clock cap on the measured phase; 0 => uncapped
   bool json = false;
+  bool jitter = false;       // record inter-operation jitter (IPDV) as well
+  std::string hist_out;      // append the full HDR bucket contents here
+  std::string run_id;        // opaque tag echoed into the sidecar (campaign repeat)
 };
 
 std::uint64_t to_u64(const char* s) { return std::strtoull(s, nullptr, 10); }
@@ -78,6 +82,9 @@ Args parse(int argc, char** argv) {
     else if (k == "--seed") a.seed = to_u64(val());
     else if (k == "--rate") a.rate = std::strtod(val(), nullptr);
     else if (k == "--max-run-s") a.max_run_s = std::strtod(val(), nullptr);
+    else if (k == "--jitter") a.jitter = true;
+    else if (k == "--hist-out") a.hist_out = val();
+    else if (k == "--run-id") a.run_id = val();
     else if (k == "--json") a.json = true;
     else { std::fprintf(stderr, "unknown arg: %s\n", k.c_str()); std::exit(2); }
   }
@@ -135,6 +142,49 @@ const char* kind_name(int k) {
   return "?";
 }
 
+// Append one record holding the full bucket contents of the run's histograms.
+//
+// The JSON line carries the sparse occupied buckets as [value, count] pairs,
+// where value is the bucket's highest equivalent value: the same lattice the
+// Rust crate's iter_recorded() yields, so the two languages persist onto one
+// grid rather than onto two internal bucket indices that happen to agree. This
+// is what makes the far tail recoverable after the fact. p99.99 rests on ~17
+// observations in a single run at the campaign's representative load, so it is
+// only decision-grade once repeats are pooled, and pooling needs the buckets
+// rather than the summary percentiles.
+void write_hist_sidecar(const Args& a, const char* alloc, std::int64_t total_ops,
+                        const HdrHistogram& lat, const HdrHistogram* jit) {
+  std::FILE* f = std::fopen(a.hist_out.c_str(), "a");
+  if (f == nullptr) {
+    std::fprintf(stderr, "warning: cannot open --hist-out '%s'\n", a.hist_out.c_str());
+    return;
+  }
+  std::fprintf(f,
+               "{\"run_id\":\"%s\",\"lang\":\"cpp\",\"alloc\":\"%s\",\"workload\":\"%s\","
+               "\"shards\":%llu,\"producers\":%llu,\"rate\":%.1f,\"seed\":%llu,"
+               "\"ops_total\":%lld,\"hdr\":{\"low\":%lld,\"high\":%lld,\"sig\":%d}",
+               a.run_id.c_str(), alloc, a.workload.c_str(), (unsigned long long)a.shards,
+               (unsigned long long)a.producers, a.rate, (unsigned long long)a.seed,
+               (long long)total_ops, (long long)kHdrLow, (long long)kHdrHigh, kHdrSig);
+  auto dump = [&](const char* key, const HdrHistogram& h) {
+    // `total` can exceed ops_total: under --rate the coordinated-omission
+    // correction backfills synthetic samples into the histogram, which is by
+    // design and is not a miscount of retired operations.
+    std::fprintf(f, ",\"%s\":{\"total\":%lld,\"max\":%lld,\"pairs\":[", key,
+                 (long long)h.total(), (long long)h.max());
+    bool first = true;
+    h.for_each_recorded([&](std::int64_t v, std::int64_t c) {
+      std::fprintf(f, "%s[%lld,%lld]", first ? "" : ",", (long long)v, (long long)c);
+      first = false;
+    });
+    std::fprintf(f, "]}");
+  };
+  dump("lat", lat);
+  if (jit != nullptr) dump("jitter", *jit);
+  std::fprintf(f, "}\n");
+  std::fclose(f);
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -170,6 +220,12 @@ int main(int argc, char** argv) {
 
   // --- Measured phase --------------------------------------------------------
   HdrHistogram merged(kHdrLow, kHdrHigh, kHdrSig);
+  // Allocated only under --jitter. One histogram is ~264 KiB, so allocating it
+  // unconditionally would add producers x 264 KiB to peak RSS: the same order as
+  // the language RSS difference RQ3 reports, measured by the instrument rather
+  // than by the subject. The Rust side gates it identically.
+  std::optional<HdrHistogram> merged_jitter;
+  if (a.jitter) merged_jitter.emplace(kHdrLow, kHdrHigh, kHdrSig);
   KindCounts merged_counts{};
   std::mutex merge_mtx;
   std::atomic<std::uint64_t> errors{0};
@@ -195,6 +251,9 @@ int main(int argc, char** argv) {
     for (std::uint64_t p = 0; p < a.producers; ++p) {
       ts.emplace_back([&, p]() {
         HdrHistogram hist(kHdrLow, kHdrHigh, kHdrSig);
+        std::optional<HdrHistogram> jhist;
+        if (a.jitter) jhist.emplace(kHdrLow, kHdrHigh, kHdrSig);
+        std::int64_t prev_lat = -1;  // no predecessor yet; first measured op is skipped
         KindCounts counts{};
         SplitMix64 rng{a.seed + p};
         Workload wl(a.active_ues, a.seed + p);
@@ -252,6 +311,19 @@ int main(int argc, char** argv) {
             if (lat < 1) lat = 1;
             if (interval_ns > 0) hist.record_corrected(lat, interval_ns);
             else hist.record(lat);
+            // Inter-operation jitter (IPDV, RFC 3393): the absolute difference
+            // between consecutive measured latencies within this producer. Never
+            // across producers, and only over real observations -- the synthetic
+            // samples the coordinated-omission correction backfills are not
+            // operations, so differencing them would invent variation.
+            if (a.jitter) {
+              if (prev_lat >= 0) {
+                std::int64_t d = lat > prev_lat ? lat - prev_lat : prev_lat - lat;
+                if (d < 1) d = 1;  // same floor the latency path uses
+                jhist->record(d);
+              }
+              prev_lat = lat;
+            }
             if (max_run_ns > 0 && t1 >= meas_deadline) break;
           }
         }
@@ -260,6 +332,7 @@ int main(int argc, char** argv) {
         errors.fetch_add(local_errors, std::memory_order_relaxed);
         std::lock_guard<std::mutex> lk(merge_mtx);
         merged.add(hist);
+        if (jhist) merged_jitter->add(*jhist);
         for (int k = 0; k < bench::kWKindCount; ++k) merged_counts[static_cast<std::size_t>(k)] += counts[static_cast<std::size_t>(k)];
       });
     }
@@ -290,20 +363,44 @@ int main(int argc, char** argv) {
   const double cpu_sys_s = ru.ru_stime.tv_sec + ru.ru_stime.tv_usec / 1e6;
   const double cpu_pct = wall_s > 0 ? (cpu_user_s + cpu_sys_s) / wall_s * 100.0 : 0.0;
 
+  // Quantiles, not percentiles: the Rust side passes these same literals to
+  // hdrhistogram's value_at_quantile, so both languages select the same sample.
+  const std::int64_t p25 = merged.value_at_quantile(0.25);
+  const std::int64_t p50 = merged.value_at_quantile(0.50);
+  const std::int64_t p75 = merged.value_at_quantile(0.75);
+  const std::int64_t p90 = merged.value_at_quantile(0.90);
+  const std::int64_t p99 = merged.value_at_quantile(0.99);
+  const std::int64_t p999 = merged.value_at_quantile(0.999);
+  const std::int64_t p9999 = merged.value_at_quantile(0.9999);
+
+  std::string jitter_json;
+  if (a.jitter) {
+    char jbuf[320];
+    std::snprintf(jbuf, sizeof(jbuf),
+                  ",\"jitter_ns\":{\"p50\":%lld,\"p99\":%lld,\"p999\":%lld,\"max\":%lld,"
+                  "\"mean\":%.1f,\"stdev\":%.1f,\"n\":%lld}",
+                  (long long)merged_jitter->value_at_quantile(0.50),
+                  (long long)merged_jitter->value_at_quantile(0.99),
+                  (long long)merged_jitter->value_at_quantile(0.999),
+                  (long long)merged_jitter->max(), merged_jitter->mean(),
+                  merged_jitter->stdev(), (long long)merged_jitter->total());
+    jitter_json = jbuf;
+  }
+
   if (a.json) {
     std::printf(
         "{\"lang\":\"cpp\",\"alloc\":\"%s\",\"workload\":\"%s\",\"shards\":%llu,\"producers\":%llu,"
         "\"rate\":%.1f,\"ops_total\":%lld,\"errors\":%llu,\"wall_s\":%.6f,"
         "\"measured_wall_s\":%.6f,\"throughput_ops_s\":%.1f,"
-        "\"lat_ns\":{\"p50\":%lld,\"p90\":%lld,\"p99\":%lld,\"p999\":%lld,\"max\":%lld,"
-        "\"mean\":%.1f},\"rss_peak_kb\":%ld,\"cpu_user_s\":%.3f,\"cpu_sys_s\":%.3f,"
+        "\"lat_ns\":{\"p25\":%lld,\"p50\":%lld,\"p75\":%lld,\"p90\":%lld,\"p99\":%lld,"
+        "\"p999\":%lld,\"p9999\":%lld,\"max\":%lld,\"mean\":%.1f,\"stdev\":%.1f}%s,"
+        "\"rss_peak_kb\":%ld,\"cpu_user_s\":%.3f,\"cpu_sys_s\":%.3f,"
         "\"cpu_pct\":%.1f,\"kinds\":{",
         alloc, a.workload.c_str(), (unsigned long long)a.shards, (unsigned long long)a.producers,
         a.rate, (long long)total_ops, (unsigned long long)errors.load(), wall_s, measured_wall_s,
-        thr,
-        (long long)merged.value_at_percentile(50), (long long)merged.value_at_percentile(90),
-        (long long)merged.value_at_percentile(99), (long long)merged.value_at_percentile(99.9),
-        (long long)merged.max(), merged.mean(), rss_peak_kb, cpu_user_s, cpu_sys_s, cpu_pct);
+        thr, (long long)p25, (long long)p50, (long long)p75, (long long)p90, (long long)p99,
+        (long long)p999, (long long)p9999, (long long)merged.max(), merged.mean(), merged.stdev(),
+        jitter_json.c_str(), rss_peak_kb, cpu_user_s, cpu_sys_s, cpu_pct);
     for (int k = 0; k < bench::kWKindCount; ++k)
       std::printf("%s\"%s\":%llu", k ? "," : "", kind_name(k),
                   (unsigned long long)merged_counts[static_cast<std::size_t>(k)]);
@@ -317,12 +414,19 @@ int main(int argc, char** argv) {
     std::printf("  ops_total=%lld errors=%llu wall=%.3fs (measured %.3fs) throughput=%.0f ops/s\n",
                 (long long)total_ops, (unsigned long long)errors.load(), wall_s, measured_wall_s,
                 thr);
-    std::printf("  latency ns: p50=%lld p90=%lld p99=%lld p99.9=%lld max=%lld mean=%.1f\n",
-                (long long)merged.value_at_percentile(50),
-                (long long)merged.value_at_percentile(90),
-                (long long)merged.value_at_percentile(99),
-                (long long)merged.value_at_percentile(99.9), (long long)merged.max(),
-                merged.mean());
+    std::printf(
+        "  latency ns: p50=%lld p90=%lld p99=%lld p99.9=%lld p99.99=%lld max=%lld mean=%.1f\n",
+        (long long)p50, (long long)p90, (long long)p99, (long long)p999, (long long)p9999,
+        (long long)merged.max(), merged.mean());
+    std::printf("  dispersion ns: iqr=%lld (p25=%lld p75=%lld) stdev=%.1f\n",
+                (long long)(p75 - p25), (long long)p25, (long long)p75, merged.stdev());
+    if (a.jitter)
+      std::printf("  jitter ns (IPDV): p50=%lld p99=%lld p99.9=%lld max=%lld mean=%.1f n=%lld\n",
+                  (long long)merged_jitter->value_at_quantile(0.50),
+                  (long long)merged_jitter->value_at_quantile(0.99),
+                  (long long)merged_jitter->value_at_quantile(0.999),
+                  (long long)merged_jitter->max(), merged_jitter->mean(),
+                  (long long)merged_jitter->total());
     std::printf("  resource: peak_rss=%.1f MB  cpu=%.2fs (user %.2f + sys %.2f)  cpu%%=%.0f\n",
                 rss_peak_kb / 1024.0, cpu_user_s + cpu_sys_s, cpu_user_s, cpu_sys_s, cpu_pct);
     if (a.workload == "mixed") {
@@ -332,5 +436,10 @@ int main(int argc, char** argv) {
       std::printf("\n");
     }
   }
+
+  if (!a.hist_out.empty())
+    write_hist_sidecar(a, alloc, total_ops, merged,
+                       merged_jitter ? &*merged_jitter : nullptr);
+
   return errors.load() == 0 ? 0 : 1;
 }

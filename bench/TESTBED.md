@@ -84,9 +84,55 @@ Guidelines (all handled by `campaign.sh`):
 ## 4. What to record per run
 
 `bench/run_bench.sh` / `load_sweep.sh` already emit per run: language, allocator,
-workload, offered rate, throughput, latency percentiles (p50/p90/p99/p99.9/max,
-mean), peak RSS, and CPU%. Additionally capture the environment once per session
-with `capture_env.sh` and store it alongside the CSVs.
+workload, offered rate, throughput, latency percentiles
+(p25/p50/p75/p90/p99/p99.9/p99.99/max, mean, stdev), peak RSS, and CPU%.
+Additionally capture the environment once per session with `capture_env.sh` and
+store it alongside the CSVs.
+
+`campaign.sh` also records, by default:
+
+- **Inter-operation jitter** (IPDV), the RQ1 metric a latency histogram cannot
+  recover after the fact. `--no-jitter` disables it; note it raises peak RSS by
+  about `producers × 264 KiB` equally in both languages, so absolute RSS is not
+  comparable against a campaign run without it.
+- **The full HDR buckets**, to `campaign-<stamp>.hist.jsonl`. This is what makes
+  p99.99 recoverable at all, and what makes it *readable* once repeats are pooled.
+
+Verify the persistence before leaving the testbed, while another run is still
+possible:
+
+```bash
+python3 bench/pool_hist.py results/campaign-<stamp>.hist.jsonl \
+    --verify results/campaign-<stamp>.jsonl
+```
+
+It recomputes every run's percentiles from the persisted buckets, checks them
+against what the binaries printed, and asserts both languages landed on the same HDR
+lattice.
+
+### 4.1 Collect on the same visit: counters and allocation profiles
+
+Neither is available under WSL2, and both answer questions the campaign raises but
+cannot settle. This is the only opportunity to collect them.
+
+```bash
+bench/counters.sh --repeats 10 --pin 2-17    # perf: cycles, instructions, cache, LLC
+bench/alloc_profile.sh --check               # confirm jemalloc prof + jeprof first
+bench/alloc_profile.sh
+```
+
+- **Counters** address the operation-level gap, currently argued from the
+  forced-idiom log rather than measured. Collect the `op` scope in particular: the
+  end-to-end path is ~99.96% handoff, so counters over the sweep describe the queue,
+  not the map. Needs `perf` installed and `kernel.perf_event_paranoid` ≤ 2.
+- **Allocation profiles** address the peak-RSS difference, significant but
+  unexplained. Needs a jemalloc built with `--enable-prof` and `jeprof` to
+  symbolise. If `jeprof` cannot be installed, run with `--raw-ok`: the raw dumps and
+  the binaries keep, and can be symbolised afterwards, whereas a dump not taken is
+  gone.
+
+Run `bench/alloc_profile.sh --check` and `bench/counters.sh --software` **early in
+the session**, not at the end, so a missing tool is a problem you can still fix.
 
 ## 5. WSL2 caveat (this development machine)
 

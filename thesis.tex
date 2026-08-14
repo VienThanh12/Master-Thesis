@@ -1575,6 +1575,28 @@ in full rather than as a symmetric half-width, because a bootstrap interval on t
 heavy-tailed sample is markedly asymmetric and a half-width wide enough to cover its upper
 bound would place the lower bound below zero.
 
+Two of these quantities need their own note, because how far into the tail a campaign can see
+is a property of how many operations it recorded. At the representative load a single run
+retires on the order of $170$~thousand measured operations, so its p99.99 rests on roughly
+seventeen observations: a per-run p99.99 is dominated by sampling noise even on a perfectly
+quiet host. The harness therefore persists each run's complete HDR bucket contents alongside
+the summary percentiles, which allows the repeats to be \emph{pooled} into one distribution of
+several million operations before the far tail is read. Pooling and averaging are different
+statistics and the thesis keeps them apart: the pooled figure takes the operation as the unit
+of analysis and resolves the far tail but carries no across-repeat interval, while the
+median-of-repeats figures reported with intervals keep the repeat as the unit and remain the
+only basis for a paired comparison. Jitter is measured directly rather than inferred from the
+latency distribution, as the absolute difference between consecutive latencies within a
+producer, which is the packet-delay-variation quantity of RFC~3393 and matches the sense in
+which this thesis uses the term: variation from one operation to the next, not spread of the
+distribution as a whole.
+
+Neither p99.99 nor jitter enters the tested family of Section~\ref{sec:stats} below. This
+follows the same rule as the rest of the design rather than being an omission: both are
+computed from precisely the operations that interference lands on, which is the class of
+statistic pairing does not rescue, so a paired interval on them could not be read as a language
+effect. They are reported descriptively, and the family stays the size the design committed to.
+
 Interval estimates alone, however, are a weak basis for a comparison. Two intervals can overlap
 while one variant is ahead in every single repeat, and they can separate on a difference that
 does not reproduce. The study therefore also tests the comparison directly, and the interleaved
@@ -2605,9 +2627,12 @@ repeats above its nonparametric bootstrap $95\%$ confidence interval. The interv
 in full rather than as a symmetric half-width because it is strongly asymmetric at these
 percentiles, and a half-width wide enough to cover the upper bound would place the lower one
 below zero.\label{tab:latency}}
-\begin{tabular}{@{}l r r r r@{}}
+% Column specification and header are generated alongside the table body, so the
+% table gains a p99.99 column when a campaign records one instead of the preamble
+% falling one column short of the body it is wrapping.
+\begin{tabular}{\LatencyCols}
 \hline\hline
-Variant & p50 & p99 & p99.9 & max \\
+\LatencyHead \\
 \hline
 \input{figures/tab_latency.tex}\\
 \hline

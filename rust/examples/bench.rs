@@ -177,6 +177,12 @@ struct Args {
     rate: f64,
     max_run_s: f64,
     json: bool,
+    /// Record inter-operation jitter (IPDV) alongside latency.
+    jitter: bool,
+    /// Append the full HDR bucket contents here (empty => not written).
+    hist_out: String,
+    /// Opaque tag echoed into the sidecar, used by campaign.sh for the repeat index.
+    run_id: String,
 }
 
 fn parse() -> Args {
@@ -193,6 +199,9 @@ fn parse() -> Args {
         rate: 0.0,
         max_run_s: 0.0,
         json: false,
+        jitter: false,
+        hist_out: String::new(),
+        run_id: String::new(),
     };
     let argv: Vec<String> = std::env::args().collect();
     let mut i = 1;
@@ -214,6 +223,9 @@ fn parse() -> Args {
             "--seed" => a.seed = val().parse().unwrap_or(42),
             "--rate" => a.rate = val().parse().unwrap_or(0.0),
             "--max-run-s" => a.max_run_s = val().parse().unwrap_or(0.0),
+            "--jitter" => a.jitter = true,
+            "--hist-out" => a.hist_out = val(),
+            "--run-id" => a.run_id = val(),
             "--json" => a.json = true,
             other => {
                 eprintln!("unknown arg: {other}");
@@ -258,6 +270,83 @@ fn record_corrected(hist: &mut Histogram<u64>, value: u64, expected_interval: u6
         hist.saturating_record(missing);
         missing -= expected_interval;
         emitted += 1;
+    }
+}
+
+/// Append one record holding the full bucket contents of the run's histograms.
+///
+/// Mirrors `write_hist_sidecar` in `cpp/bench/bench.cpp`. Buckets are emitted as
+/// `[value, count]` pairs where value is `value_iterated_to()`, the bucket's
+/// highest equivalent value, and the C++ port exposes the same lattice through
+/// `for_each_recorded`, so the two languages persist onto one grid instead of
+/// onto two internal bucket indices that happen to agree. Without this the far
+/// tail is unrecoverable after the fact: p99.99 rests on roughly 17 observations
+/// in a single run at the campaign's representative load, so it only becomes
+/// decision-grade once repeats are pooled, and pooling needs the buckets.
+fn write_hist_sidecar(
+    a: &Args,
+    total_ops: u64,
+    lat: &Histogram<u64>,
+    jit: Option<&Histogram<u64>>,
+) {
+    use std::fmt::Write as _;
+    use std::io::Write as _;
+
+    let dump = |out: &mut String, key: &str, h: &Histogram<u64>| {
+        // `total` can exceed ops_total: under --rate the coordinated-omission
+        // correction backfills synthetic samples into the histogram, which is by
+        // design and is not a miscount of retired operations.
+        let _ = write!(
+            out,
+            ",\"{}\":{{\"total\":{},\"max\":{},\"pairs\":[",
+            key,
+            h.len(),
+            h.max()
+        );
+        let mut first = true;
+        for v in h.iter_recorded() {
+            if !first {
+                out.push(',');
+            }
+            first = false;
+            let _ = write!(out, "[{},{}]", v.value_iterated_to(), v.count_at_value());
+        }
+        out.push_str("]}");
+    };
+
+    let mut line = format!(
+        "{{\"run_id\":\"{}\",\"lang\":\"rust\",\"alloc\":\"{}\",\"workload\":\"{}\",\
+\"shards\":{},\"producers\":{},\"rate\":{:.1},\"seed\":{},\"ops_total\":{},\
+\"hdr\":{{\"low\":{},\"high\":{},\"sig\":{}}}",
+        a.run_id,
+        ALLOC_NAME,
+        a.workload,
+        a.shards,
+        a.producers,
+        a.rate,
+        a.seed,
+        total_ops,
+        HDR_LOW,
+        HDR_HIGH,
+        HDR_SIG
+    );
+    dump(&mut line, "lat", lat);
+    if let Some(j) = jit {
+        dump(&mut line, "jitter", j);
+    }
+    line.push_str("}\n");
+
+    match std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&a.hist_out)
+    {
+        Ok(mut f) => {
+            if let Err(e) = f.write_all(line.as_bytes()) {
+                eprintln!("warning: cannot write --hist-out '{}': {e}", a.hist_out);
+            }
+        }
+        Err(e) => eprintln!("warning: cannot open --hist-out '{}': {e}", a.hist_out),
     }
 }
 
@@ -366,6 +455,12 @@ fn main() {
 
     // --- Measured phase ------------------------------------------------------
     let merged = Mutex::new(new_hist());
+    // Allocated only under --jitter. One histogram is ~264 KiB, so allocating it
+    // unconditionally would add producers x 264 KiB to peak RSS: the same order as
+    // the language RSS difference RQ3 reports, measured by the instrument rather
+    // than by the subject. The C++ side gates it identically.
+    let merged_jitter: Mutex<Option<Histogram<u64>>> =
+        Mutex::new(if a.jitter { Some(new_hist()) } else { None });
     let merged_counts = Mutex::new([0u64; KIND_COUNT]);
     let errors = AtomicU64::new(0);
     let interval_ns: u64 = if a.rate > 0.0 {
@@ -387,6 +482,7 @@ fn main() {
         for p in 0..a.producers {
             let svc = &svc;
             let merged = &merged;
+            let merged_jitter = &merged_jitter;
             let merged_counts = &merged_counts;
             let errors = &errors;
             let args = &a;
@@ -395,6 +491,8 @@ fn main() {
             let measured_ops = &measured_ops;
             s.spawn(move || {
                 let mut hist = new_hist();
+                let mut jhist = if args.jitter { Some(new_hist()) } else { None };
+                let mut prev_lat: Option<u64> = None; // first measured op has no predecessor
                 let mut counts = [0u64; KIND_COUNT];
                 let mut rng = SplitMix64 {
                     s: args.seed.wrapping_add(p),
@@ -467,6 +565,19 @@ fn main() {
                         } else {
                             hist.saturating_record(lat);
                         }
+                        // Inter-operation jitter (IPDV, RFC 3393): the absolute
+                        // difference between consecutive measured latencies within
+                        // this producer. Never across producers, and only over real
+                        // observations -- the synthetic samples the
+                        // coordinated-omission correction backfills are not
+                        // operations, so differencing them would invent variation.
+                        if let Some(j) = jhist.as_mut() {
+                            if let Some(prev) = prev_lat {
+                                let d = lat.abs_diff(prev).max(1); // same floor the latency path uses
+                                j.saturating_record(d);
+                            }
+                            prev_lat = Some(lat);
+                        }
                         local_measured += 1;
                         if let Some(deadline) = meas_deadline {
                             if t1 >= deadline {
@@ -479,6 +590,11 @@ fn main() {
                 errors.fetch_add(local_errors, Ordering::Relaxed);
                 measured_ops.fetch_add(local_measured, Ordering::Relaxed);
                 merged.lock().unwrap().add(&hist).expect("compatible hists");
+                if let Some(j) = jhist.as_ref() {
+                    if let Some(mj) = merged_jitter.lock().unwrap().as_mut() {
+                        mj.add(j).expect("compatible hists");
+                    }
+                }
                 let mut mc = merged_counts.lock().unwrap();
                 for k in 0..KIND_COUNT {
                     mc[k] += counts[k];
@@ -490,6 +606,7 @@ fn main() {
     svc.shutdown();
 
     let h = merged.into_inner().unwrap();
+    let hj = merged_jitter.into_inner().unwrap();
     let counts = merged_counts.into_inner().unwrap();
     let wall_s = wall.as_secs_f64();
     let lo = meas_lo_ns.load(Ordering::Relaxed);
@@ -514,6 +631,35 @@ fn main() {
         0.0
     };
 
+    // The C++ side passes these same literals to its value_at_quantile, so both
+    // languages select the same sample rather than two that differ by a ULP of
+    // quantile arithmetic.
+    let (p25, p50, p75) = (
+        h.value_at_quantile(0.25),
+        h.value_at_quantile(0.50),
+        h.value_at_quantile(0.75),
+    );
+    let (p90, p99, p999, p9999) = (
+        h.value_at_quantile(0.90),
+        h.value_at_quantile(0.99),
+        h.value_at_quantile(0.999),
+        h.value_at_quantile(0.9999),
+    );
+    let jitter_json = match hj.as_ref() {
+        Some(j) => format!(
+            ",\"jitter_ns\":{{\"p50\":{},\"p99\":{},\"p999\":{},\"max\":{},\"mean\":{:.1},\
+\"stdev\":{:.1},\"n\":{}}}",
+            j.value_at_quantile(0.50),
+            j.value_at_quantile(0.99),
+            j.value_at_quantile(0.999),
+            j.max(),
+            j.mean(),
+            j.stdev(),
+            j.len()
+        ),
+        None => String::new(),
+    };
+
     if a.json {
         let kinds: String = KIND_NAMES
             .iter()
@@ -531,12 +677,12 @@ fn main() {
             "{{\"lang\":\"rust\",\"alloc\":\"{}\",\"workload\":\"{}\",\"shards\":{},\"producers\":{},\
 \"rate\":{:.1},\"ops_total\":{},\"errors\":{},\"wall_s\":{:.6},\"measured_wall_s\":{:.6},\
 \"throughput_ops_s\":{:.1},\
-\"lat_ns\":{{\"p50\":{},\"p90\":{},\"p99\":{},\"p999\":{},\"max\":{},\"mean\":{:.1}}},\
+\"lat_ns\":{{\"p25\":{},\"p50\":{},\"p75\":{},\"p90\":{},\"p99\":{},\"p999\":{},\"p9999\":{},\
+\"max\":{},\"mean\":{:.1},\"stdev\":{:.1}}}{},\
 \"rss_peak_kb\":{},\"cpu_user_s\":{:.3},\"cpu_sys_s\":{:.3},\"cpu_pct\":{:.1},\"kinds\":{{{}}}}}",
             ALLOC_NAME, a.workload, a.shards, a.producers, a.rate, total_ops, errs, wall_s,
             measured_wall_s, thr,
-            h.value_at_quantile(0.50), h.value_at_quantile(0.90), h.value_at_quantile(0.99),
-            h.value_at_quantile(0.999), h.max(), h.mean(),
+            p25, p50, p75, p90, p99, p999, p9999, h.max(), h.mean(), h.stdev(), jitter_json,
             rss_peak_kb, cpu_user_s, cpu_sys_s, cpu_pct, kinds,
         );
     } else {
@@ -561,14 +707,33 @@ fn main() {
             total_ops, errs, wall_s, measured_wall_s, thr
         );
         println!(
-            "  latency ns: p50={} p90={} p99={} p99.9={} max={} mean={:.1}",
-            h.value_at_quantile(0.50),
-            h.value_at_quantile(0.90),
-            h.value_at_quantile(0.99),
-            h.value_at_quantile(0.999),
+            "  latency ns: p50={} p90={} p99={} p99.9={} p99.99={} max={} mean={:.1}",
+            p50,
+            p90,
+            p99,
+            p999,
+            p9999,
             h.max(),
             h.mean(),
         );
+        println!(
+            "  dispersion ns: iqr={} (p25={} p75={}) stdev={:.1}",
+            p75 - p25,
+            p25,
+            p75,
+            h.stdev()
+        );
+        if let Some(j) = hj.as_ref() {
+            println!(
+                "  jitter ns (IPDV): p50={} p99={} p99.9={} max={} mean={:.1} n={}",
+                j.value_at_quantile(0.50),
+                j.value_at_quantile(0.99),
+                j.value_at_quantile(0.999),
+                j.max(),
+                j.mean(),
+                j.len()
+            );
+        }
         println!(
             "  resource: peak_rss={:.1} MB  cpu={:.2}s (user {:.2} + sys {:.2})  cpu%={:.0}",
             rss_peak_kb as f64 / 1024.0,
@@ -584,6 +749,10 @@ fn main() {
             }
             println!();
         }
+    }
+
+    if !a.hist_out.is_empty() {
+        write_hist_sidecar(&a, total_ops, &h, hj.as_ref());
     }
 
     if errs != 0 {

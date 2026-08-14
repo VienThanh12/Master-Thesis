@@ -25,6 +25,13 @@ libc = "0.2.186"
 
 [features]
 jemalloc = ["dep:tikv-jemallocator"]
+# Heap-profiling build of the same allocator, used by bench/alloc_profile.sh to
+# attribute the peak-RSS difference to allocation sites (RQ3). Opt-in and never
+# used for reported timings: profiling adds a sampled backtrace to allocation, so
+# a build with it enabled is not the build the campaign measures. It exists so the
+# C++ and Rust arms can be profiled with one tool -- jemalloc's own prof -- rather
+# than with two tools whose numbers would not be comparable.
+jemalloc-prof = ["jemalloc", "tikv-jemallocator/profiling"]
 
 # The benchmark lives as an example so it can use the dev-dependency (hdrhistogram)
 # while keeping the library itself free of runtime dependencies.
