@@ -995,8 +995,15 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
     # column specification in the thesis would then be one column short of the
     # \input body -- a build error at best and a silently mislabelled table at
     # worst. Generating both keeps the two in step with no manual edit.
+    #
+    # The whole \begin{tabular}{...} is emitted rather than just the column
+    # specification, because the array package's preamble scanner does not expand
+    # macros: `\begin{tabular}{\LatencyCols}` fails with "Illegal pream-token".
+    # Expanding a macro that already contains the \begin leaves literal preamble
+    # tokens for the scanner to read.
     lat_fields, lat_labels = latency_table_fields(rows)
-    macros["LatencyCols"] = "@{}l" + " r" * len(lat_fields) + "@{}"
+    cols = "@{}l" + " r" * len(lat_fields) + "@{}"
+    macros["LatencyTabular"] = "\\begin{tabular}{" + cols + "}"
     macros["LatencyHead"] = "Variant & " + " & ".join(lat_labels)
 
     # p99.99 and inter-operation jitter, reported descriptively.

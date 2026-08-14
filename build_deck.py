@@ -4,14 +4,23 @@
 Thesis: Performance, Safety, and Engineering Trade-offs of Rust and C++
         in Nokia RAN Control-Plane Systems (Ha Vien).
 
-Uses the Nokia 2026 PPT toolkit v2.12 clean template. Light theme, PPT-native figures.
+Uses the Nokia 2026 PPT toolkit v2.12 clean template. Light theme.
 
-Every measured number on these slides is read at build time from the artefacts that
-bench/refresh_thesis.sh regenerates: figures/gen_macros.tex, figures/gen_complexity.tex,
-the figures/tab_*.tex table bodies the thesis itself \\input, faults/results/taxonomy.csv,
-and the newest bench/results/env-*.txt environment capture. Nothing is transcribed, so a
-rerun of the campaign cannot leave the deck contradicting the thesis. A macro the deck
-asks for and the data does not provide is a hard error rather than a stale literal.
+The deck is figure-first. A slide carries a picture wherever the thesis already
+owns one that makes the point: the generated result plots under figures/, and
+the hand-authored and generated diagrams under diagrams/. Prose survives only as
+a short reading note beside the picture, because a slide the audience must read
+is a slide they are not listening through.
+
+Every measured number is read at build time from the artefacts that
+bench/refresh_thesis.sh regenerates: figures/gen_macros.tex,
+figures/gen_complexity.tex, the figures/tab_*.tex table bodies the thesis itself
+\\input, faults/results/taxonomy.csv, and the environment capture belonging to
+the campaign the figures were plotted from. Nothing is transcribed, so a rerun of
+the campaign cannot leave the deck contradicting the thesis. A macro the deck
+asks for and the data does not provide is a hard error rather than a stale
+literal, and a diagram whose own labels disagree with the macros is refused
+before it can reach a slide.
 """
 import csv
 import glob
@@ -27,6 +36,7 @@ from pptx import Presentation
 from pptx.util import Cm, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+from pptx.enum.dml import MSO_LINE_DASH_STYLE
 from pptx.enum.shapes import MSO_SHAPE, MSO_CONNECTOR
 from pptx.oxml.ns import qn
 
@@ -34,6 +44,8 @@ from pptx_lib import fill_placeholder, remove_template_slides
 
 ROOT = os.path.expanduser("~/thesis.local")
 FIGURES = os.path.join(ROOT, "figures")
+DIAGRAMS = os.path.join(ROOT, "diagrams")
+ASSETS = os.path.join(ROOT, ".deck-assets")
 TEMPLATE = os.path.join(SKILL, "references", "NokiaTemplate_v2.12_clean.pptx")
 OUT = os.path.join(ROOT, "Rust_vs_Cpp_Nokia_RAN_thesis.pptx")
 
@@ -181,15 +193,30 @@ def read_taxonomy():
 
 
 def read_env():
-    """Extract host facts from the newest environment capture.
+    """Extract host facts from the environment capture belonging to the campaign.
 
-    The capture is written beside every campaign, so the testbed slide states
-    the machine the reported numbers came from rather than a remembered one.
+    Not simply the newest capture on disk: ``bench/capture_env.sh`` can be run
+    on its own, on any machine, and a stray capture taken on a laptop would
+    otherwise have the deck name the wrong measurement host. The capture chosen
+    here is the last one written at or before the campaign that
+    ``bench/plot_figures.py`` plotted, which is the one the campaign script
+    wrote beside it.
     """
-    caps = sorted(glob.glob(os.path.join(ROOT, "bench", "results", "env-*.txt")))
+    results = os.path.join(ROOT, "bench", "results")
+    campaigns = sorted(glob.glob(os.path.join(results, "campaign-*.jsonl")))
+    if not campaigns:
+        raise SystemExit("no bench/results/campaign-*.jsonl: run bench/campaign.sh")
+    stamp = re.search(r"campaign-(\d{8}-\d{6})", os.path.basename(campaigns[-1]))
+    if not stamp:
+        raise SystemExit(f"cannot read a timestamp from {os.path.basename(campaigns[-1])}")
+    caps = sorted(p for p in glob.glob(os.path.join(results, "env-*.txt"))
+                  if re.search(r"env-(\d{8}-\d{6})", os.path.basename(p)).group(1)
+                  <= stamp.group(1))
     if not caps:
-        raise SystemExit("no bench/results/env-*.txt capture: run bench/campaign.sh")
-    env = {"_path": caps[-1]}
+        raise SystemExit(
+            f"no bench/results/env-*.txt written at or before campaign {stamp.group(1)}: "
+            "the campaign that produced the figures has no environment capture beside it")
+    env = {"_path": caps[-1], "_campaign": campaigns[-1]}
     patterns = {
         "distro": r"^distro:\s*(.+)$",
         "gpp": r"^(g\+\+ \(GCC\) \S+)",
@@ -218,6 +245,9 @@ def read_env():
     return env
 
 
+# The result tables the slides no longer print are still read: together with the
+# macros they define every number the campaign publishes, which is the set a
+# diagram's own labels are checked against before it can go on a slide.
 LATENCY = read_table("tab_latency")
 RESOURCE = read_table("tab_resource")
 OVERLOAD = read_table("tab_overload")
@@ -229,13 +259,125 @@ ENV = read_env()
 
 IN_GUARANTEE = [d for d in TAXONOMY if not d["boundary"]]
 BOUNDARY = [d for d in TAXONOMY if d["boundary"]]
+#: How many in-guarantee classes each sanitiser fails to report. The point of
+#: the safety slide is that no single C++ tool covers the set, so the shortfall
+#: is counted from the outcomes rather than asserted.
+ASAN_MISSES = sum(1 for d in IN_GUARANTEE if d["asan"] != "detected")
+TSAN_MISSES = sum(1 for d in IN_GUARANTEE if d["tsan"] != "detected")
+
+
+def ffi_value(metric):
+    """One row of the generated FFI table, by its metric name."""
+    for row in FFI:
+        if row[0].lower().startswith(metric.lower()):
+            return row[1]
+    raise SystemExit(f"no row starting {metric!r} in figures/tab_ffi.tex: {REFRESH_HINT}")
+
+
+# =====================================================================
+# Figure assets
+#
+# Two kinds, both generated elsewhere and only placed here:
+#
+#   * figures/fig_*.pdf   -- the result plots bench/plot_figures.py writes.
+#     PowerPoint will not embed a PDF, so each is rasterised into .deck-assets/
+#     and refreshed whenever the source plot is newer.
+#   * diagrams/png/*.png  -- the thesis diagrams. Each carries its own title and
+#     subtitle for the printed page; on a slide those would duplicate the slide
+#     headline, so the band is cropped away by the picture frame rather than by
+#     editing the artwork.
+# =====================================================================
+
+FIGURE_DPI = 220
+os.makedirs(ASSETS, exist_ok=True)
+
+
+def result_figure(stem):
+    """Rasterise a generated result plot, caching until the plot changes."""
+    src = os.path.join(FIGURES, f"{stem}.pdf")
+    if not os.path.exists(src):
+        raise SystemExit(f"missing figures/{stem}.pdf: {REFRESH_HINT}")
+    dst = os.path.join(ASSETS, f"{stem}.png")
+    if not os.path.exists(dst) or os.path.getmtime(dst) < os.path.getmtime(src):
+        try:
+            import fitz  # PyMuPDF
+        except ImportError:
+            raise SystemExit(
+                "PyMuPDF is needed to place figures/*.pdf on a slide: "
+                "pip install pymupdf into .venv-pptx") from None
+        with fitz.open(src) as doc:
+            doc[0].get_pixmap(dpi=FIGURE_DPI).save(dst)
+    return dst
+
+
+#: Units that only ever appear on a measured quantity. A diagram label carrying
+#: one of these has to agree with the generated data, so the numbers behind them
+#: are checked before the diagram is allowed onto a slide. Bare percentages and
+#: counts are deliberately excluded: "95% interval" and "20 repeats" are prose.
+_DIAGRAM_UNIT_RE = re.compile(
+    r"(\d[\d\u00a0 ]*(?:\.\d+)?)\s*(ns|\u00b5s|ms|MiB|GiB|kops/s)\b")
+
+
+def _as_number(text):
+    try:
+        return float(text.replace("\u00a0", "").replace(" ", "").replace(",", ""))
+    except ValueError:
+        return None
+
+
+def _known_numbers():
+    """Every number the generated artefacts publish, as floats."""
+    values = set(MACROS.values())
+    for table in (LATENCY, RESOURCE, OVERLOAD, BUDGET, CONTENTION, FFI):
+        for row in table:
+            for cell in row:
+                for part in (cell if isinstance(cell, tuple) else (cell,)):
+                    values.update(re.findall(r"-?\d[\d.]*", str(part)))
+    return {n for n in (_as_number(v) for v in values) if n is not None}
+
+
+KNOWN_NUMBERS = _known_numbers()
+
+#: SVG text baselines at or above this are the diagram's own title block.
+_TITLE_BAND_Y = 70.0
+_SVG_TEXT_Y_RE = re.compile(r"<text\b[^>]*?\by=\"(-?[\d.]+)\"")
+
+
+def diagram(name):
+    """A thesis diagram as (png path, crop fraction hiding its own title block).
+
+    The crop is derived from the artwork rather than tabulated here: the title
+    and subtitle are the only text drawn in the top band, so the band ends just
+    below the lowest baseline found there.
+    """
+    svg = os.path.join(DIAGRAMS, f"{name}.svg")
+    png = os.path.join(DIAGRAMS, "png", f"{name}.png")
+    for path in (svg, png):
+        if not os.path.exists(path):
+            raise SystemExit(f"missing {os.path.relpath(path, ROOT)}: "
+                             "run diagrams/render.py")
+    source = open(svg).read()
+    height = float(re.search(r"height=\"([\d.]+)\"", source[:400]).group(1))
+
+    for value, unit in _DIAGRAM_UNIT_RE.findall(source):
+        number = _as_number(value)
+        if number is not None and number not in KNOWN_NUMBERS:
+            raise SystemExit(
+                f"diagrams/{name}.svg labels a measured quantity as "
+                f"{value.strip()} {unit}, which is in no generated artefact. "
+                "The diagram is stale against the campaign; correct the artwork "
+                "before it goes on a slide or into the thesis.")
+
+    band = [float(y) for y in _SVG_TEXT_Y_RE.findall(source) if float(y) <= _TITLE_BAND_Y]
+    crop = (max(band) + 14.0) / height if band else 0.0
+    return png, crop
+
 
 # ---- Nokia palette ----
 BLUE = RGBColor(0x00, 0x5A, 0xFF)
 BLACKBLUE = RGBColor(0x00, 0x11, 0x35)
 TEAL = RGBColor(0x23, 0xAB, 0xB6)
 GREEN = RGBColor(0x37, 0xCC, 0x73)
-AMBER = RGBColor(0xF7, 0xB7, 0x37)
 ORANGE = RGBColor(0xF4, 0x7F, 0x31)
 RED = RGBColor(0xE2, 0x3B, 0x3B)
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
@@ -244,21 +386,24 @@ GRAY800 = RGBColor(0x66, 0x66, 0x66)
 LIGHTBLUE = RGBColor(0xE6, 0xEE, 0xFF)
 LIGHTGREEN = RGBColor(0xE3, 0xF7, 0xEA)
 LIGHTAMBER = RGBColor(0xFD, 0xF2, 0xD9)
-LIGHTRED = RGBColor(0xFC, 0xE6, 0xE6)
 
 BODY_FONT = "Nokia Pure Text Light"
-HEAD_FONT = "Nokia Pure Headline Light"
 
 # Template content bounds (see create-pptx-master-thesis/scripts/pptx_lib.py):
-# manually placed shapes must start below the header band and end above the footer.
+# manually placed shapes must start below the header band and end above the
+# footer. The subtitle placeholder runs to 3.07 cm, so content starts below it.
+EMU_PER_CM = 360000
 SLIDE_W_CM = 25.4
 SLIDE_H_CM = 14.288
 TOP_MARGIN_CM = 2.94
 BOTTOM_MARGIN_CM = 1.2
+CONTENT_LEFT_CM = 1.16
+CONTENT_W_CM = 23.08
+CONTENT_TOP_CM = 3.35
+CONTENT_BOTTOM_CM = SLIDE_H_CM - BOTTOM_MARGIN_CM - 0.04
+CONTENT_H_CM = CONTENT_BOTTOM_CM - CONTENT_TOP_CM
 
 PRESENTER = "Ha Vien"
-TITLE = ("Performance, Safety, and Engineering Trade-offs of Rust and C++ "
-         "in Nokia RAN Control-Plane Systems")
 DECK_DATE = date.today().strftime("%Y-%m-%d")
 
 prs = Presentation(TEMPLATE)
@@ -276,24 +421,12 @@ def _emu(v):
     return Emu(int(v.emu if hasattr(v, "emu") else v))
 
 
-def set_body_bullets(slide, idx, items, size=16, color=BLACKBLUE):
-    """Fill a body placeholder with bullet paragraphs (template supplies markers)."""
-    tf = slide.placeholders[idx].text_frame
-    tf.clear()
-    tf.word_wrap = True
-    for i, it in enumerate(items):
-        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
-        if isinstance(it, tuple):
-            text, lvl = it
-        else:
-            text, lvl = it, 0
-        p.text = text
-        p.level = lvl
-        p.font.size = Pt(size if lvl == 0 else max(12, size - 2))
-        p.font.name = BODY_FONT
-        p.font.color.rgb = color
-        p.space_after = Pt(6)
-    return tf
+def headline(layout, title, subtitle):
+    """A slide with the template's title and subject line filled in."""
+    s = prs.slides.add_slide(L(layout))
+    s.shapes.title.text = title
+    fill_placeholder(s, 10, subtitle)
+    return s
 
 
 def add_textbox(slide, left, top, width, height, text, size=14, color=BLACKBLUE,
@@ -320,7 +453,7 @@ def add_caption(slide, top, text, size=12, color=GRAY800, height=None):
     so a caption is never given a box that ends below the footer.
     """
     if height is None:
-        height = Cm(SLIDE_H_CM - BOTTOM_MARGIN_CM) - _emu(top)
+        height = Cm(CONTENT_BOTTOM_CM) - _emu(top)
     return add_textbox(slide, Cm(1.3), top, Cm(22.8), height, text, size=size, color=color)
 
 
@@ -359,10 +492,146 @@ def add_arrow(slide, x1, y1, x2, y2, color=GRAY800, width=1.75):
     return cn
 
 
+def add_figure(slide, asset, left=None, top=None, width=None, height=None,
+               crop_top=0.0):
+    """Place a picture inside a box, scaled to fit and centred in it.
+
+    Returns the box edge the picture actually reached, so a caption or a row of
+    reading notes can sit against the picture rather than against the box.
+    """
+    left = Cm(CONTENT_LEFT_CM) if left is None else left
+    top = Cm(CONTENT_TOP_CM) if top is None else top
+    width = Cm(CONTENT_W_CM) if width is None else width
+    height = Cm(CONTENT_H_CM) if height is None else height
+    pic = slide.shapes.add_picture(asset, _emu(left), _emu(top))
+    if crop_top:
+        pic.crop_top = crop_top
+    px_w, px_h = pic.image.size
+    aspect = px_w / (px_h * (1.0 - crop_top))
+    w = min(int(width), int(height * aspect))
+    h = int(w / aspect)
+    pic.width, pic.height = w, h
+    pic.left = int(left) + (int(width) - w) // 2
+    pic.top = int(top) + (int(height) - h) // 2
+    return pic
+
+
+#: Rough advance width of one character as a fraction of the point size, for
+#: regular and bold text. Only used to refuse a note whose text will not fit the
+#: box it was given: the deck cannot be rendered here, so overflowing type would
+#: otherwise only show up on the projector.
+_CHAR_W = {False: 0.50, True: 0.55}
+_LINE_H = 1.25
+_PT_CM = 0.03528
+
+
+def _text_height_cm(text, size_pt, width_cm, bold=False):
+    per_line = max(8, int(width_cm / (size_pt * _CHAR_W[bold] * _PT_CM)))
+    lines = sum(max(1, -(-len(part) // per_line)) for part in text.split("\n"))
+    return lines * size_pt * _LINE_H * _PT_CM
+
+
+def add_notes(slide, items, top, left=None, width=None, height=Cm(2.35),
+              gap=Cm(0.4), accent=BLUE, fill=LIGHTBLUE, headline_size=13,
+              detail_size=10.5, vertical=False):
+    """A row (or column) of short reading notes: a verdict over one line of why.
+
+    This is what replaced the paragraph-length captions the earlier deck put
+    under every table. A note is meant to be read in one glance while the
+    speaker talks, so it carries a headline and at most a sentence, and text
+    that will not fit the box is a build error rather than a surprise on stage.
+    """
+    left = Cm(CONTENT_LEFT_CM) if left is None else left
+    width = Cm(CONTENT_W_CM) if width is None else width
+    n = len(items)
+    if vertical:
+        each_h = (int(height) - int(gap) * (n - 1)) // n
+        boxes = [(int(left), int(top) + i * (each_h + int(gap)), int(width), each_h)
+                 for i in range(n)]
+    else:
+        each_w = (int(width) - int(gap) * (n - 1)) // n
+        boxes = [(int(left) + i * (each_w + int(gap)), int(top), each_w, int(height))
+                 for i in range(n)]
+    for (x, y, w, h), item in zip(boxes, items):
+        head, detail = item
+        inner_w = w / EMU_PER_CM - 0.6
+        needed = (_text_height_cm(head, headline_size, inner_w, bold=True)
+                  + _text_height_cm(detail, detail_size, inner_w) + 0.4)
+        if needed > h / EMU_PER_CM:
+            raise SystemExit(
+                f"reading note {head!r} needs about {needed:.2f} cm but its box is "
+                f"{h / EMU_PER_CM:.2f} cm: shorten the text or give the row more height")
+        sp = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, w, h)
+        sp.fill.solid()
+        sp.fill.fore_color.rgb = fill
+        sp.line.color.rgb = accent
+        sp.line.width = Pt(1)
+        sp.shadow.inherit = False
+        tf = sp.text_frame
+        tf.word_wrap = True
+        tf.vertical_anchor = MSO_ANCHOR.MIDDLE
+        tf.margin_left = tf.margin_right = Cm(0.3)
+        tf.margin_top = tf.margin_bottom = Cm(0.15)
+        p = tf.paragraphs[0]
+        p.text = head
+        p.font.size = Pt(headline_size)
+        p.font.bold = True
+        p.font.color.rgb = accent
+        p.font.name = BODY_FONT
+        p.space_after = Pt(3)
+        q = tf.add_paragraph()
+        q.text = detail
+        q.font.size = Pt(detail_size)
+        q.font.color.rgb = BLACKBLUE
+        q.font.name = BODY_FONT
+    return int(top) + int(height)
+
+
+def add_bar_chart(slide, left, top, width, title, rows, baseline=None,
+                  label_w=Cm(5.0), value_w=Cm(2.0), bar_h=Cm(0.62),
+                  row_gap=Cm(0.22)):
+    """A small horizontal bar comparison drawn in PowerPoint shapes.
+
+    `rows` is a list of ``(label, value, printed value, colour)``. Bars are
+    drawn from zero against the largest value in the group; `baseline` draws a
+    dashed rule at a value that means "no difference", so a pair of ratios
+    cannot be made to look further apart than it is.
+    """
+    add_textbox(slide, left, top, width, Cm(0.62), title, size=12.5,
+                color=BLACKBLUE, bold=True)
+    track_x = int(left) + int(label_w)
+    track_w = int(width) - int(label_w) - int(value_w)
+    top_row = int(top) + int(Cm(0.72))
+    biggest = max(r[1] for r in rows) or 1.0
+    for i, (label, value, printed, colour) in enumerate(rows):
+        y = top_row + i * (int(bar_h) + int(row_gap))
+        add_textbox(slide, left, y - int(Cm(0.06)), label_w, bar_h, label, size=11,
+                    color=BLACKBLUE, anchor=MSO_ANCHOR.MIDDLE)
+        bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, track_x, y,
+                                     max(int(track_w * value / biggest), int(Cm(0.1))),
+                                     int(bar_h))
+        bar.fill.solid()
+        bar.fill.fore_color.rgb = colour
+        bar.line.fill.background()
+        bar.shadow.inherit = False
+        add_textbox(slide, track_x + track_w + int(Cm(0.2)), y - int(Cm(0.06)),
+                    value_w, bar_h, printed, size=11.5, color=colour, bold=True,
+                    anchor=MSO_ANCHOR.MIDDLE)
+    bottom = top_row + len(rows) * (int(bar_h) + int(row_gap))
+    if baseline is not None:
+        x = track_x + int(track_w * baseline / biggest)
+        rule = slide.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, x, top_row - int(Cm(0.12)),
+                                          x, bottom - int(row_gap) + int(Cm(0.06)))
+        rule.line.color.rgb = GRAY800
+        rule.line.width = Pt(1)
+        rule.line.dash_style = MSO_LINE_DASH_STYLE.DASH
+    return bottom
+
+
 def add_data_table(slide, rows, col_widths_cm, left=Cm(1.3), top=Cm(4.0),
                    height=None, aligns=None, header_fill=BLUE,
                    header_size=14, body_size=13, sub_size=9, cell_fill=None,
-                   row_height_cm=None):
+                   row_height_cm=None, header_height_cm=None):
     """Generic table helper. `rows` is a list of tuples (row 0 = header).
 
     A body cell may be a plain value or a ``(main, sub)`` pair; the pair renders
@@ -373,13 +642,19 @@ def add_data_table(slide, rows, col_widths_cm, left=Cm(1.3), top=Cm(4.0),
     width). `aligns` is an optional per-column PP_ALIGN list applied to every
     row. `cell_fill(r, c, main)` may return an RGBColor to override the default
     zebra striping for a body cell (return None to fall back to striping).
+
+    Row heights are set per row rather than left to the even split a bare table
+    gets, because a table with tall body rows would otherwise be given an
+    equally tall header band with one word in it.
     """
     ncols = len(col_widths_cm)
+    if row_height_cm is None:
+        two_line = any(isinstance(v, tuple) for row in rows[1:] for v in row)
+        row_height_cm = 0.95 if two_line else 0.68
+    if header_height_cm is None:
+        header_height_cm = row_height_cm
     if height is None:
-        if row_height_cm is None:
-            two_line = any(isinstance(v, tuple) for row in rows[1:] for v in row)
-            row_height_cm = 0.95 if two_line else 0.68
-        height = Cm(len(rows) * row_height_cm)
+        height = Cm(header_height_cm + (len(rows) - 1) * row_height_cm)
     total_w = Cm(sum(col_widths_cm))
     gtbl = slide.shapes.add_table(len(rows), ncols, _emu(left), _emu(top),
                                   _emu(total_w), _emu(height))
@@ -388,6 +663,9 @@ def add_data_table(slide, rows, col_widths_cm, left=Cm(1.3), top=Cm(4.0),
     tbl.horz_banding = False
     for c, w in enumerate(col_widths_cm):
         tbl.columns[c].width = _emu(Cm(w))
+    tbl.rows[0].height = _emu(Cm(header_height_cm))
+    for r in range(1, len(rows)):
+        tbl.rows[r].height = _emu(Cm(row_height_cm))
     for r, row in enumerate(rows):
         for c, val in enumerate(row):
             main, sub = val if isinstance(val, tuple) else (val, None)
@@ -439,57 +717,66 @@ if sz is not None:
     p2.font.size = sz
 
 # =====================================================================
-# Slide 2: Agenda
+# Slide 2: Roadmap (drawn, not listed)
 # =====================================================================
-s = prs.slides.add_slide(L(3))
-s.shapes.title.text = "What this talk covers"
-fill_placeholder(s, 10, "From the industrial problem to controlled evidence for Rust in the RAN")
-set_body_bullets(s, 15, [
-    "Context: the softwarizing RAN control plane and why memory safety matters",
-    "Problem and four research questions (predictability, safety, overhead, migration)",
-    "Method: two parity-tested implementations from one frozen specification",
-    "Design: shared-nothing, thread-per-shard architecture and the UE lifecycle",
-    "Evidence: what the host can carry, and how the comparison is tested",
-    "Results: safety, the latency budget, overload, resources, and migration",
-    "Conclusions, open questions, and future work",
-])
+s = headline(1, "What this talk covers",
+             "From the industrial problem to controlled evidence for Rust in the RAN")
+
+stops = [
+    ("Context", "the control plane,\nand the gap"),
+    ("Questions", "four RQs,\none design"),
+    ("Method", "one frozen spec,\ntwo builds"),
+    ("Safety", f"{len(TAXONOMY)} injected\ndefect classes"),
+    ("Performance", "latency, overload,\nresources"),
+    ("Migration", "a C++ host over\na Rust core"),
+]
+LINE_Y = Cm(6.6)
+add_arrow(s, Cm(1.6), LINE_Y, Cm(23.9), LINE_Y, color=GRAY300, width=3.0)
+first_x, last_x = 3.1, 22.1
+step = (last_x - first_x) / (len(stops) - 1)
+for i, (label, detail) in enumerate(stops):
+    cx = Cm(first_x + i * step)
+    add_box(s, cx - Cm(0.78), LINE_Y - Cm(0.78), Cm(1.56), Cm(1.56), str(i + 1),
+            BLUE if i else BLACKBLUE, font_color=WHITE, size=17,
+            shape=MSO_SHAPE.OVAL)
+    add_textbox(s, cx - Cm(1.85), Cm(7.95), Cm(3.7), Cm(0.8), label, size=14,
+                color=BLACKBLUE, bold=True, align=PP_ALIGN.CENTER)
+    add_textbox(s, cx - Cm(1.85), Cm(8.75), Cm(3.7), Cm(1.5), detail, size=11,
+                color=GRAY800, align=PP_ALIGN.CENTER)
 
 # =====================================================================
-# Slide 3: Motivation and industrial context
+# Slide 3: Where the subsystem sits (diagram)
 # =====================================================================
-s = prs.slides.add_slide(L(3))
-s.shapes.title.text = "Cloud-native RAN raises the premium on software quality"
-fill_placeholder(s, 10, "Two trends make a Rust-versus-C++ comparison timely for the control plane")
-set_body_bullets(s, 15, [
-    "The gNB-CU-CP is a large, stateful, highly concurrent control plane under millisecond budgets",
-    "It runs on commodity servers, evolves continuously, and coordinates millions of connected devices",
-    "C++ dominates for performance, but manual memory and concurrency management is error-prone",
-    "Roughly 70% of serious security vulnerabilities at major vendors stem from memory-safety defects",
-    "Policy now pushes vendors toward memory-safe languages, yet direct RAN evidence is missing",
-    "This work is carried out at Nokia on a subsystem modeled on a real gNB-CU-CP component",
-])
+s = headline(1, "Where the studied subsystem sits",
+             "UE Context Management inside the 5G base station's control plane")
+_png, _crop = diagram("01_ngran_architecture")
+add_figure(s, _png, crop_top=_crop)
 
 # =====================================================================
-# Slide 4: Problem statement and the gap
+# Slide 4: Why the comparison is timely
 # =====================================================================
-s = prs.slides.add_slide(L(3))
-s.shapes.title.text = "The gap: no controlled evidence for the RAN control plane"
-fill_placeholder(s, 10, "In the closest prior work the language varies together with the runtime")
-set_body_bullets(s, 15, [
-    "Can Rust match modern C++ in tail latency and predictability under overload, not just averages?",
-    "Do Rust's compile-time guarantees actually eliminate the defect classes that afflict C++ code?",
-    "What does incremental adoption cost inside a large existing C++ codebase?",
-    "Two vendor RAN theses reach this domain, but vary runtime and concurrency model with the language",
-    "So a measured difference cannot be attributed to the language rather than the framework on it",
-    "The contribution is the control: hold spec, algorithms, and concurrency model fixed, then sweep past saturation",
-])
+s = headline(1, "Cloud-native RAN raises the premium on software quality",
+             "Two trends make a Rust-versus-C++ comparison timely for the control plane")
+add_notes(s, [
+    ("A hard place to be wrong",
+     "The control plane is large, stateful, and highly concurrent, running on commodity "
+     "servers under millisecond budgets while coordinating millions of devices."),
+    ("Memory safety dominates the defects",
+     "Roughly 70% of serious security vulnerabilities at major vendors come from "
+     "memory-safety defects \u2014 the class C++ leaves to the programmer."),
+    ("Policy is moving ahead of evidence",
+     "Agencies now push vendors toward memory-safe languages, yet no controlled "
+     "measurement exists for a RAN control-plane subsystem."),
+], top=Cm(5.0), height=Cm(4.6), gap=Cm(0.5))
+add_textbox(s, Cm(1.16), Cm(10.3), Cm(23.08), Cm(1.0),
+            "Carried out at Nokia on a subsystem modelled on a real gNB-CU-CP component",
+            size=13, color=BLUE, bold=True, align=PP_ALIGN.CENTER)
 
 # =====================================================================
-# Slide 5: Key terms and abbreviations (table)
+# Slide 5: Key terms
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "Key terms for readers outside telecom"
-fill_placeholder(s, 10, "The vocabulary that recurs throughout the talk")
+s = headline(1, "Key terms for readers outside telecom",
+             "The vocabulary that recurs throughout the talk")
 add_data_table(
     s,
     [
@@ -509,118 +796,63 @@ add_data_table(
 )
 
 # =====================================================================
-# Slide 6: Four research questions (table)
+# Slide 6: The gap (diagram)
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "Four research questions"
-fill_placeholder(s, 10, "Ordered to put predictability and migration ahead of raw average speed")
-add_data_table(
-    s,
-    [
-        ("RQ", "Focus", "Question"),
-        ("RQ1", "Predictability", "Mean, p99, p99.9 tail latency and jitter under load and overload"),
-        ("RQ2", "Safety", "Which C++ defect classes are eliminated at compile time, and how are the rest caught?"),
-        ("RQ3", "Overhead", "Cost of Rust's safety model on throughput, CPU utilisation, and memory"),
-        ("RQ4", "Migration", "Effort, FFI interoperability, and risk of adopting Rust incrementally within C++"),
-    ],
-    col_widths_cm=[2.4, 5.0, 15.6],
-    aligns=[PP_ALIGN.CENTER, PP_ALIGN.LEFT, PP_ALIGN.LEFT],
-    row_height_cm=1.1,
-    cell_fill=lambda r, c, v: LIGHTBLUE if c == 0 else None,
-)
+s = headline(1, "The gap: no controlled evidence for the RAN control plane",
+             "In the closest prior work the language varies together with the runtime")
+_png, _crop = diagram("29_research_gap")
+add_figure(s, _png, crop_top=_crop)
 
 # =====================================================================
-# Slide 7: Methodology
+# Slide 7: Research design (diagram)
 # =====================================================================
-s = prs.slides.add_slide(L(3))
-s.shapes.title.text = "One frozen spec, two implementations, four measurements"
-fill_placeholder(s, 10, "Empirical and constructive: build the artifact, then measure it fairly")
-set_body_bullets(s, 15, [
-    "A single language-agnostic specification is frozen before any code is written",
-    "Modern C++ (C++23) and Rust share algorithms, concurrency model, allocator, and build flags",
-    f"RQ1/RQ3: load sweep to overload, {M('NRepeats')} interleaved repeats, matched HDR histograms",
-    "RQ1/RQ3: the operation is also measured apart from the cross-thread handoff that delivers it",
-    f"RQ2: fault injection of {len(TAXONOMY)} defect classes, {len(IN_GUARANTEE)} inside Rust's guarantee and {len(BOUNDARY)} deliberately outside it",
-    "RQ4: a C++-to-Rust FFI prototype measuring seam size, unsafe scope, and per-call cost",
-])
+s = headline(1, "Four questions, each tied to evidence",
+             "Predictability and migration ahead of raw average speed")
+_png, _crop = diagram("10_rq_method_map")
+add_figure(s, _png, crop_top=_crop)
 
 # =====================================================================
-# Slide 8: Research design (table)
+# Slide 8: UE lifecycle state machine (drawn)
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "How each research question is answered"
-fill_placeholder(s, 10, "Every question is tied to a method, an artifact, and a primary metric")
-add_data_table(
-    s,
-    [
-        ("RQ", "Method", "Artifact / data", "Primary metric"),
-        ("RQ1", "Load sweep to overload, interleaved repeats", "Benchmark harness; latency histograms", "p99/p99.9 tail latency and jitter vs. load"),
-        ("RQ3", "Same sweep, resource capture", "getrusage samples per run", "peak RSS, CPU utilisation, throughput"),
-        ("RQ1, RQ3", "Component decomposition: core direct, then through the service", "Matched microbenchmark pair", "operation cost vs. cross-thread handoff"),
-        ("RQ1", "Contended primitives in isolation", "Queue + completion microbenchmark", "sustained throughput under contention"),
-        ("RQ2", "Controlled fault injection", "Defect catalogue; ASan/TSan and rustc logs", "defect-class taxonomy"),
-        ("RQ4", "FFI migration prototype", "C++ host + Rust C-ABI seam", "seam size, unsafe scope, per-call cost"),
-    ],
-    col_widths_cm=[2.6, 6.4, 6.4, 7.8],
-    aligns=[PP_ALIGN.CENTER, PP_ALIGN.LEFT, PP_ALIGN.LEFT, PP_ALIGN.LEFT],
-    row_height_cm=1.16,
-    body_size=11,
-    cell_fill=lambda r, c, v: LIGHTBLUE if c == 0 else None,
-)
+s = headline(1, "The UE context lifecycle both versions encode identically",
+             "Illegal transitions return a typed error instead of mutating state")
 
-# =====================================================================
-# Slide 9: UE lifecycle state machine (figure only)
-# =====================================================================
-s = prs.slides.add_slide(L(1))  # figure/table headline
-s.shapes.title.text = "The UE context lifecycle both versions encode identically"
-fill_placeholder(s, 10, "Illegal transitions return a typed error instead of mutating state")
-
-# boxes
 by = Cm(5.2)
 bh = Cm(1.5)
 bw = Cm(4.4)
-idle = add_box(s, Cm(1.6), by, bw, bh, "Idle", LIGHTBLUE, font_color=BLACKBLUE)
-conn = add_box(s, Cm(8.3), by, bw, bh, "Connected", BLUE, font_color=WHITE)
-reconf = add_box(s, Cm(15.0), by, bw, bh, "Reconfiguring", TEAL, font_color=WHITE)
-rel = add_box(s, Cm(8.3), Cm(9.6), bw, bh, "Released", GRAY800, font_color=WHITE)
+add_box(s, Cm(1.6), by, bw, bh, "Idle", LIGHTBLUE, font_color=BLACKBLUE)
+add_box(s, Cm(8.3), by, bw, bh, "Connected", BLUE, font_color=WHITE)
+add_box(s, Cm(15.0), by, bw, bh, "Reconfiguring", TEAL, font_color=WHITE)
+add_box(s, Cm(8.3), Cm(9.6), bw, bh, "Released", GRAY800, font_color=WHITE)
 
-# Idle -> Connected
 add_arrow(s, Cm(6.0), Cm(5.95), Cm(8.3), Cm(5.95), color=BLUE)
 add_textbox(s, Cm(6.0), Cm(4.45), Cm(2.3), Cm(0.7), "setup", size=12, color=BLUE,
             bold=True, align=PP_ALIGN.CENTER)
-# Connected -> Reconfiguring (upper)
 add_arrow(s, Cm(12.7), Cm(5.55), Cm(15.0), Cm(5.55), color=TEAL)
 add_textbox(s, Cm(12.7), Cm(4.35), Cm(2.3), Cm(0.7), "begin", size=12, color=TEAL,
             bold=True, align=PP_ALIGN.CENTER)
-# Reconfiguring -> Connected (lower)
 add_arrow(s, Cm(15.0), Cm(6.35), Cm(12.7), Cm(6.35), color=TEAL)
 add_textbox(s, Cm(12.1), Cm(6.9), Cm(3.5), Cm(0.7), "complete / abort", size=11,
             color=TEAL, bold=True, align=PP_ALIGN.CENTER)
-# Connected -> Released
 add_arrow(s, Cm(10.5), Cm(6.7), Cm(10.5), Cm(9.6), color=GRAY800)
 add_textbox(s, Cm(10.7), Cm(7.6), Cm(2.6), Cm(0.7), "release", size=12, color=GRAY800,
             bold=True, align=PP_ALIGN.LEFT)
-# Idle -> Released (elbow along the left/bottom, clear of boxes)
 add_arrow(s, Cm(3.8), Cm(6.7), Cm(3.8), Cm(10.35), color=GRAY800)
 add_arrow(s, Cm(3.8), Cm(10.35), Cm(8.3), Cm(10.35), color=GRAY800)
 add_textbox(s, Cm(4.0), Cm(8.2), Cm(3.0), Cm(0.7), "release", size=12, color=GRAY800,
             bold=True, align=PP_ALIGN.LEFT)
-# in-place operations note on Connected (single line, arrow points down into the box)
 add_textbox(s, Cm(7.0), Cm(3.5), Cm(7.0), Cm(0.7), "signal / add_drb handled in place",
             size=12, color=BLACKBLUE, bold=True, align=PP_ALIGN.CENTER)
 add_arrow(s, Cm(10.5), Cm(4.3), Cm(10.5), Cm(5.15), color=BLACKBLUE, width=1.25)
 
 # =====================================================================
-# Slide 10: Architecture (figure only)
+# Slide 9: Architecture (drawn)
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "Shared-nothing, thread-per-shard architecture"
-fill_placeholder(s, 10, "Blocking on a full queue is what makes overload observable as tail latency")
+s = headline(1, "Shared-nothing, thread-per-shard architecture",
+             "Blocking on a full queue is what makes overload observable as tail latency")
 
-# producers group
 add_box(s, Cm(1.4), Cm(4.4), Cm(4.3), Cm(4.6), "Load generators\n(producers)", LIGHTBLUE,
         font_color=BLACKBLUE, size=13)
-# routing caption, placed in the clear band below the producer block
 add_textbox(s, Cm(1.2), Cm(9.35), Cm(4.7), Cm(0.9), "requests routed by hash(ue_id)",
             size=11, color=GRAY800, bold=True, align=PP_ALIGN.CENTER)
 
@@ -634,134 +866,112 @@ for ly, sname, wname in lane_defs:
     add_box(s, sx, ly, sw, bh2, sname, GREEN, font_color=WHITE, size=12,
             shape=MSO_SHAPE.ROUNDED_RECTANGLE)
     ymid = ly + Cm(0.75)
-    # producers -> queue
     add_arrow(s, Cm(5.7), Cm(6.7), qx, ymid, color=GRAY800)
-    # queue -> worker
     add_arrow(s, qx + qw, ymid, wx, ymid, color=GRAY800)
-    # worker -> shard (owns)
     add_arrow(s, wx + ww, ymid, sx, ymid, color=GRAY800)
 
 add_textbox(s, Cm(9.2), Cm(3.35), Cm(12.0), Cm(0.7),
             "shard-owning threads: no shared mutable state, no locks", size=12,
             color=BLACKBLUE, bold=True, align=PP_ALIGN.CENTER)
-# one-shot completion note
 add_textbox(s, Cm(1.4), Cm(11.4), Cm(20.0), Cm(0.8),
             "One-shot completion: each worker writes the result back to the waiting producer",
             size=11, color=BLUE, bold=True, align=PP_ALIGN.CENTER)
 
 # =====================================================================
-# Slide 11: Fairness controls (table)
+# Slide 10: Fairness controls (diagram)
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "Fairness by construction: what is held identical"
-fill_placeholder(s, 10, "Any measured difference should be the language, not the design")
-add_data_table(
-    s,
-    [
-        ("Level", "Held identical across C++ and Rust"),
-        ("Specification", "API, UE state machine, data structures, sharding, locking, concurrency model"),
-        ("Runtime substrate", "Same jemalloc allocator, system allocator kept as a control; Rust opt-level 2 matched to C++ -O2"),
-        ("Hashing", "Pinned SplitMix64 shard split and FNV-1a keying, bit-verified equal"),
-        ("Measurement", f"Identical HDR histogram config; {M('NVariants')} variants interleaved within each of {M('NRepeats')} repeats"),
-        ("Behaviour", "Language-neutral conformance suite; canonical transcripts diffed operation by operation"),
-        ("Deviations", "Unavoidable language differences logged in a forced-idiom record"),
-    ],
-    col_widths_cm=[5.0, 18.0],
-    aligns=[PP_ALIGN.LEFT, PP_ALIGN.LEFT],
-    row_height_cm=1.0,
-)
+s = headline(1, "Fairness by construction, so the language is the only variable",
+             "One frozen specification, two implementations, exactly one thing allowed to differ")
+_png, _crop = diagram("18_fairness_controls")
+add_figure(s, _png, crop_top=_crop)
 
 # =====================================================================
-# Slide 12: Language-forced idioms (table)
+# Slide 11: How a reported number is produced (diagram)
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "Where the two languages must diverge"
-fill_placeholder(s, 10, "The forced-idiom log: same requirement, idiomatic in each language")
+s = headline(1, "How a reported number is produced",
+             "From the frozen specification to the macro the prose cites, with nothing hand-copied")
+_png, _crop = diagram("20_benchmark_harness")
+add_figure(s, _png, crop_top=_crop)
+
+# =====================================================================
+# Slide 12: Language-forced idioms, with the size and complexity they cost
+# =====================================================================
+s = headline(1, "Where the two languages must diverge",
+             "The forced-idiom log: same requirement, idiomatic in each language")
 _, tbl_bottom = add_data_table(
     s,
     [
         ("Concern", "Modern C++ (C++23)", "Rust (stable)"),
         ("Result type", "std::expected<T, OpError>", "Result<T, OpError>"),
-        ("Request", "tagged struct, every argument field (160 B)", "enum, one variant per operation (96 B)"),
-        ("Response", "std::variant of four result types", "each variant carries a sender of its own type"),
-        ("Bounded queue", "hand-written mutex + two condition variables", "sync_channel(capacity)"),
+        ("Request", "tagged struct, every argument field", "enum, one variant per operation"),
+        ("Response", "std::variant of four result types", "each variant carries its own sender"),
+        ("Bounded queue", "hand-written mutex + 2 condition vars", "sync_channel(capacity)"),
         ("One-shot completion", "std::promise / std::future", "a fresh mpsc::channel() per request"),
         ("Per-shard map", "std::unordered_map (node-based)", "HashMap (open-addressed)"),
     ],
+    top=Cm(3.5),
     col_widths_cm=[4.6, 9.2, 9.2],
     aligns=[PP_ALIGN.LEFT, PP_ALIGN.LEFT, PP_ALIGN.LEFT],
-    row_height_cm=0.93,
+    row_height_cm=0.85,
     body_size=12,
 )
-add_caption(s, tbl_bottom + Cm(0.3), size=11, text=
-            f"Rust is {M('NlocRise')}% longer in code lines ({M('RustNloc')} against {M('CppNloc')} NLOC) "
-            f"but {M('CcnTotalDrop')}% lower in total cyclomatic complexity ({M('RustCcnTotal')} against "
-            f"{M('CppCcnTotal')}). The C++ {M('CppCcnMaxFn')} scores {M('CppCcnMax')} against Rust's worst "
-            f"of {M('RustCcnMax')}: the extra lines buy back branching where review is hardest.")
+_chart_top = tbl_bottom + Cm(0.45)
+add_bar_chart(s, Cm(1.3), _chart_top, Cm(11.0), "Code size (lines of code)",
+              [("C++", float(M("CppNloc")), M("CppNloc"), BLUE),
+               ("Rust", float(M("RustNloc")), M("RustNloc"), ORANGE)])
+add_bar_chart(s, Cm(13.1), _chart_top, Cm(11.0), "Branching (cyclomatic complexity)",
+              [("C++", float(M("CppCcnTotal")), M("CppCcnTotal"), BLUE),
+               ("Rust", float(M("RustCcnTotal")), M("RustCcnTotal"), ORANGE)])
+add_textbox(s, Cm(1.3), Cm(12.35), Cm(22.8), Cm(0.7),
+            f"Rust is {M('NlocRise')}% longer but {M('CcnTotalDrop')}% lower in total branching; "
+            f"the worst C++ function scores {M('CppCcnMax')} against Rust's {M('RustCcnMax')}",
+            size=11, color=GRAY800, align=PP_ALIGN.CENTER)
 
 # =====================================================================
-# Slide 13: Defect classes in UECM (table)
+# Slide 13: The defect catalogue (diagram)
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "The catalogue spans both sides of Rust's guarantee"
-fill_placeholder(s, 10, f"{len(IN_GUARANTEE)} classes Rust claims to prevent, and {len(BOUNDARY)} chosen because it does not")
-_, tbl_bottom = add_data_table(
-    s,
-    [("Defect class", "Incarnation in UE Context Management")] +
-    [(d["defect"], d["incarnation"]) for d in TAXONOMY],
-    col_widths_cm=[5.8, 17.2],
-    aligns=[PP_ALIGN.LEFT, PP_ALIGN.LEFT],
-    row_height_cm=0.86,
-    cell_fill=lambda r, c, v: LIGHTRED if r > len(IN_GUARANTEE) else None,
-)
-add_caption(s, tbl_bottom + Cm(0.3),
-            "The last two rows are the boundary group. A catalogue containing only defects Rust "
-            "prevents would confirm its own premise, so RQ2 is built to be able to fail.")
+s = headline(1, "The catalogue spans both sides of Rust's guarantee",
+             f"{len(IN_GUARANTEE)} classes Rust claims to prevent, and {len(BOUNDARY)} chosen because it does not")
+_png, _crop = diagram("13_defect_families_tree")
+add_figure(s, _png, crop_top=_crop)
 
 # =====================================================================
-# Slide 14: Safety results (table, generated from the taxonomy)
+# Slide 14: RQ2 outcomes (generated figure)
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "RQ2: a difference of kind, with a definite edge"
-fill_placeholder(s, 10, f"{ENV.get('gpp', 'g++')} with ASan/TSan versus {ENV.get('rustc', 'rustc')}")
-
-
-def _taxonomy_fill(r, c, v):
-    if r > len(IN_GUARANTEE):
-        return LIGHTRED
-    if c == 3:
-        return LIGHTGREEN
-    if c in (1, 2):
-        return LIGHTAMBER if v == "detected" else GRAY300
-    return WHITE
-
-
-_, tbl_bottom = add_data_table(
-    s,
-    [("Defect class", "ASan", "TSan", "Rust outcome")] +
-    [(d["defect"], d["asan"], d["tsan"], d["rust"]) for d in TAXONOMY],
-    col_widths_cm=[6.0, 3.4, 3.4, 10.4],
-    aligns=[PP_ALIGN.LEFT, PP_ALIGN.CENTER, PP_ALIGN.CENTER, PP_ALIGN.LEFT],
-    row_height_cm=0.86,
-    body_size=12,
-    cell_fill=_taxonomy_fill,
-)
-add_caption(s, tbl_bottom + Cm(0.28), size=11, text=
-            f"All {len(IN_GUARANTEE)} in-guarantee classes are compile errors in safe Rust; in C++ each compiles "
-            "and is caught, if at all, only at runtime and by no single sanitiser. The guarantee stops at the "
-            "boundary rows: Rust removes data races, not race conditions, and aliasing errors, not lock-ordering "
-            "errors.")
+s = headline(1, "RQ2: a difference of kind, with a definite edge",
+             f"{ENV.get('gpp', 'g++')} with ASan/TSan versus {ENV.get('rustc', 'rustc')}")
+add_figure(s, result_figure("fig_taxonomy"), width=Cm(12.0), height=Cm(9.2),
+           top=Cm(3.5))
+add_notes(s, [
+    (f"All {len(IN_GUARANTEE)} in-guarantee classes are compile errors",
+     "Safe Rust rejects them on every ordinary build, with no test coverage required "
+     "for the guarantee to hold."),
+    ("In C++ each one compiles",
+     f"and is caught, if at all, only at run time and by no single tool: ASan misses "
+     f"{ASAN_MISSES} of them and TSan misses {TSAN_MISSES}."),
+    (f"The last {len(BOUNDARY)} rows are the boundary",
+     "Rust removes data races, not race conditions; aliasing errors, not lock-ordering "
+     "errors. Both languages fail there."),
+], top=Cm(3.6), left=Cm(13.6), width=Cm(10.64), height=Cm(9.2), gap=Cm(0.42),
+   vertical=True)
 
 # =====================================================================
-# Slide 15: The measurement host (from the environment capture)
+# Slide 15: Where the guarantee stops (diagram)
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "What the measurement host can and cannot carry"
-fill_placeholder(s, 10, "Dedicated and server-class, but virtualised: this is where the tail claim stops")
+s = headline(1, "Where the compile-time guarantee stops",
+             "Rust eliminates data races, not race conditions; aliasing errors, not lock-ordering errors")
+_png, _crop = diagram("17_guarantee_boundary")
+add_figure(s, _png, crop_top=_crop)
+
+# =====================================================================
+# Slide 16: The measurement host
+# =====================================================================
+s = headline(1, "What the measurement host can and cannot carry",
+             "Dedicated and server-class, but virtualised: this is where the tail claim stops")
 _, tbl_bottom = add_data_table(
     s,
     [
-        ("Aspect", "This host, from the environment capture stored with every run"),
+        ("Aspect", "This host, from the environment capture stored with the campaign"),
         ("CPU", f"{ENV.get('cpu_model', 'unknown')} \u2014 {ENV.get('cpus', '?')} cores, "
                 f"{ENV.get('sockets', '?')} sockets, {ENV.get('numa', '?')} NUMA node, SMT {ENV.get('smt', 'unknown')}"),
         ("OS / kernel", f"{ENV.get('distro', 'unknown')}, kernel {ENV.get('kernel', 'unknown')}"),
@@ -773,161 +983,167 @@ _, tbl_bottom = add_data_table(
         ("Campaign size", f"{M('NRepeats')} repeats \u00d7 {M('NLoadLevels')} load levels \u00d7 "
                           f"{M('NVariants')} variants = {M('NRuns')} runs"),
     ],
+    top=Cm(3.45),
     col_widths_cm=[4.2, 18.8],
     aligns=[PP_ALIGN.LEFT, PP_ALIGN.LEFT],
-    row_height_cm=0.92,
-    body_size=12,
+    row_height_cm=1.05,
+    body_size=11.5,
 )
-add_caption(s, tbl_bottom + Cm(0.28), size=11, text=
+add_caption(s, tbl_bottom + Cm(0.3), size=11, text=
             "Adequate for parity, fault injection, the FFI seam, the saturation knee, the overload comparison, "
             "and the resource comparisons \u2014 but not for the far tail below saturation, which needs the "
             "bare-metal protocol in bench/TESTBED.md.")
 
 # =====================================================================
-# Slide 16: Statistical treatment, fixed in advance
+# Slide 17: How the comparison is tested (diagram)
 # =====================================================================
-s = prs.slides.add_slide(L(3))
-s.shapes.title.text = "How the comparison is tested, decided before the results"
-fill_placeholder(s, 10, "Interleaving buys a matched design; the reading rule is pre-committed")
-set_body_bullets(s, 15, [
-    f"The {M('NVariants')} variants run back to back inside every repeat, so interference common to a block cancels in the paired difference",
-    "Medians with nonparametric bootstrap 95% intervals, printed in full because they are strongly asymmetric",
-    f"Exact two-sided paired permutation test over all 2^{M('NRepeats')} sign assignments, Holm-corrected across the family of {M('NTests')} tests",
-    f"Attainable floors quoted rather than left implicit: {M('MinAttainableP')} uncorrected, {M('CorrectedFloor')} after correction",
-    f"{M('NSignificant')} of the {M('NTests')} comparisons survive the correction",
-    "Rule fixed in advance: an interval is read as a finding only where pairing removes the interference \u2014 medians and run-level counters, never high percentiles",
-    f"The allocator control doubles as a replication check: {M('NCrossAllocReversed')} of the compared effects reverse sign",
-])
+s = headline(1, "How the comparison is tested, decided before the results",
+             "Interleaving buys a matched design; the two reading rules are pre-committed")
+_png, _crop = diagram("23_stats_pipeline")
+add_figure(s, _png, crop_top=_crop)
 
 # =====================================================================
-# Slide 17: RQ1 latency below saturation (table)
+# Slide 18: RQ1 below saturation (generated figure)
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = f"RQ1: latency at {M('ReprLoad')} kops/s, below saturation"
-fill_placeholder(s, 10, f"Microseconds; median over {M('NRepeats')} repeats above its bootstrap 95% interval")
-_, tbl_bottom = add_data_table(
-    s,
-    [("Variant", "p50", "p99", "p99.9", "max")] + LATENCY,
-    col_widths_cm=[5.6, 4.4, 4.4, 4.4, 4.4],
-    aligns=[PP_ALIGN.LEFT] + [PP_ALIGN.CENTER] * 4,
-    row_height_cm=0.98,
-    body_size=13,
-)
-add_caption(s, tbl_bottom + Cm(0.3),
-            f"Read at two levels of confidence. At the median the four variants sit within "
-            f"{M('PFiftyRange')} \u00b5s of one another ({M('PFiftySpread')}%). Above it the host runs out of "
-            f"resolution: p99 differs by {M('PNineNineRange')} \u00b5s across variants while the widest 95% "
-            f"interval on a single variant's own p99 spans {M('PNineNineMaxCI')} \u00b5s. When the uncertainty "
-            "about one variant exceeds the gap between all of them, no ordering can be read off.")
+s = headline(1, "RQ1 below saturation: the host runs out of resolution",
+             f"Latency by percentile at {M('ReprLoad')} kops/s, median over {M('NRepeats')} interleaved repeats")
+add_figure(s, result_figure("fig_tail_percentiles"), width=Cm(12.4), height=Cm(9.2),
+           top=Cm(3.5))
+add_notes(s, [
+    (f"Within {M('PFiftyRange')} \u00b5s at the median",
+     f"The four variants sit {M('PFiftySpread')}% apart at p50 \u2014 a real result, and the "
+     "one place pairing removes the interference."),
+    (f"p99 spread {M('PNineNineRange')} \u00b5s, widest own interval {M('PNineNineMaxCI')} \u00b5s",
+     "When the uncertainty about one variant exceeds the gap between all of them, "
+     "no ordering can be read off."),
+    ("\u201cCannot tell\u201d is not \u201cequivalent\u201d",
+     "The far tail below saturation stays open on this host; resolving it needs the "
+     "bare-metal protocol, not more repeats."),
+], top=Cm(3.6), left=Cm(14.0), width=Cm(10.24), height=Cm(9.2), gap=Cm(0.42),
+   vertical=True)
 
 # =====================================================================
-# Slide 18: What the end-to-end number is made of (table)
+# Slide 19: What the end-to-end number is made of (generated figure)
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "What the end-to-end number is actually made of"
-fill_placeholder(s, 10, f"Medians over {M('BudgetRepeats')} interleaved repeats, with the paired test on the difference")
-_, tbl_bottom = add_data_table(
-    s,
-    [("Component", "C++", "Rust", "paired p")] + BUDGET,
-    col_widths_cm=[9.6, 4.4, 4.4, 4.8],
-    aligns=[PP_ALIGN.LEFT, PP_ALIGN.CENTER, PP_ALIGN.CENTER, PP_ALIGN.CENTER],
-    row_height_cm=1.0,
-    body_size=12,
-)
-add_caption(s, tbl_bottom + Cm(0.3),
-            f"The work the languages perform is {M('BudgetCoreShareMax')}% of what the sweep measures; the rest is a "
-            f"cross-thread handoff the operating system performs. So the end-to-end null bounds the design, not the "
-            f"language: the paired bound is {M('BudgetBoundVsCore')}\u00d7 the operation's own cost. Measured apart, the "
-            f"operation is {M('BudgetCoreRatio')}\u00d7 faster in {M('BudgetCoreFaster')} \u2014 traceable to hash-map "
-            "layout, not to the safety model.")
+s = headline(1, "What the end-to-end number is actually made of",
+             f"Medians over {M('BudgetRepeats')} interleaved repeats, with the paired test on the difference")
+add_figure(s, result_figure("fig_budget"), top=Cm(3.4), height=Cm(6.9))
+add_notes(s, [
+    (f"{M('BudgetCoreShareMax')}% of the round-trip",
+     "is the work the language performs. The rest is a cross-thread handoff the OS "
+     "performs."),
+    (f"{M('BudgetBoundVsCore')}\u00d7 too coarse",
+     "The paired bound on the sweep is that many times the operation's own cost, so the "
+     "null bounds the design."),
+    (f"{M('BudgetCoreRatio')}\u00d7 faster in {M('BudgetCoreFaster')}",
+     "measured apart from the handoff \u2014 traceable to hash-map layout, not to either "
+     "safety model."),
+], top=Cm(10.55), height=Cm(2.4))
 
 # =====================================================================
-# Slide 19: RQ1 past saturation (table)
+# Slide 20: Past saturation (two generated figures)
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "RQ1 past saturation: the languages are not equivalent"
-fill_placeholder(s, 10, f"At {M('OverloadLoad')} kops/s offered, well beyond the {M('SatKnee')} kops/s knee")
-_, tbl_bottom = add_data_table(
-    s,
-    [("Variant", "sustained throughput (kops/s)", "CPU (%)")] + OVERLOAD,
-    col_widths_cm=[7.0, 8.6, 7.6],
-    aligns=[PP_ALIGN.LEFT, PP_ALIGN.CENTER, PP_ALIGN.CENTER],
-    row_height_cm=1.0,
-)
-add_caption(s, tbl_bottom + Cm(0.3),
-            f"{M('OverloadSustainedFaster')} sustains {M('OverloadThrRatio')}\u00d7 the throughput of "
-            f"{M('OverloadSustainedSlower')} in {M('OverloadThrAgree')} repeats under both allocators, at the "
-            f"corrected floor of the whole family (Holm p = {M('OverloadThrHolm')}), while drawing "
-            f"{M('OverloadCpuPerOpRatio')}\u00d7 the CPU per completed operation. Effort spent without completing "
-            "work, not idleness. CPU is summed across threads, so 600% is six busy cores of the fourteen pinned.")
+s = headline(1, "RQ1 past saturation: the languages are not equivalent",
+             f"The full sweep to {M('MaxOfferedLoad')} kops/s offered, well beyond the {M('SatKnee')} kops/s knee")
+add_figure(s, result_figure("fig_throughput_vs_load"), left=Cm(1.5), top=Cm(3.4),
+           width=Cm(10.9), height=Cm(7.0))
+add_figure(s, result_figure("fig_latency_vs_load"), left=Cm(13.0), top=Cm(3.4),
+           width=Cm(10.9), height=Cm(7.0))
+add_notes(s, [
+    (f"{M('OverloadSustainedFaster')} sustains {M('OverloadThrRatio')}\u00d7",
+     f"the throughput of {M('OverloadSustainedSlower')} at {M('OverloadLoad')} kops/s, "
+     f"agreeing in {M('OverloadThrAgree')} repeats under both allocators."),
+    (f"Holm p = {M('OverloadThrHolm')}",
+     "the corrected floor of the whole family: the strongest result in the campaign."),
+    (f"{M('OverloadCpuPerOpRatio')}\u00d7 the CPU per operation",
+     "Effort spent without completing work, not idleness \u2014 the slower side is busier."),
+], top=Cm(10.6), height=Cm(2.4))
 
 # =====================================================================
-# Slide 20: Testing the mechanism (table)
+# Slide 21: Testing the mechanism
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "Testing the mechanism: the primitives on their own"
-fill_placeholder(s, 10, f"{M('ContentionProducers')} producers on one bounded queue, capacity 1024, no operation work in the path")
+s = headline(1, "Testing the mechanism: the primitives on their own",
+             f"{M('ContentionProducers')} producers on one bounded queue, capacity 1024, no operation work in the path")
 _, tbl_bottom = add_data_table(
     s,
     [("Language", "throughput (kops/s)", "ns per completed op", "paired p")] + CONTENTION,
-    col_widths_cm=[5.0, 6.6, 6.0, 5.6],
-    aligns=[PP_ALIGN.LEFT, PP_ALIGN.CENTER, PP_ALIGN.CENTER, PP_ALIGN.CENTER],
-    row_height_cm=1.05,
-)
-add_caption(s, tbl_bottom + Cm(0.35),
-            f"The overload gap was attributed to the bounded queue and the completion handle. Isolated, they "
-            f"do not reproduce it: {M('ContentionThrCpp')} against {M('ContentionThrRust')} kops/s is only "
-            f"{M('ContentionRatio')}\u00d7 at p = {M('ContentionP')}, against {M('OverloadThrRatio')}\u00d7 in the full "
-            "service. So the mechanism involves more of the handoff path than these two primitives \u2014 and "
-            "nothing here implicates the borrow checker, bounds checking, or ownership.")
-
-# =====================================================================
-# Slide 21: Resource use (table)
-# =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "RQ3: memory follows the language and the allocator both"
-fill_placeholder(s, 10, f"At {M('ReprLoad')} kops/s; median over {M('NRepeats')} repeats above its bootstrap 95% interval")
-_, tbl_bottom = add_data_table(
-    s,
-    [("Variant", "throughput (kops/s)", "peak RSS (MiB)", "CPU (%)")] + RESOURCE,
-    col_widths_cm=[6.4, 5.8, 5.6, 5.4],
+    top=Cm(3.5),
+    col_widths_cm=[5.0, 6.6, 6.0, 5.4],
     aligns=[PP_ALIGN.LEFT, PP_ALIGN.CENTER, PP_ALIGN.CENTER, PP_ALIGN.CENTER],
     row_height_cm=1.0,
 )
-add_caption(s, tbl_bottom + Cm(0.3),
-            f"The Rust build carries {M('RssLangDiffLo')}\u2013{M('RssLangDiffHi')} MiB more peak RSS under "
-            f"both allocators, interval [{M('RssLangCILo')}, {M('RssLangCIHi')}] MiB: a real language effect "
-            f"that replicates. Linking jemalloc costs {M('RssAllocDiffLo')}\u2013{M('RssAllocDiffHi')} MiB in either "
-            "language, an order of magnitude more, so the allocator is the larger lever. The effect is "
-            "established but unexplained: attributing it needs hardware counters this guest cannot provide.")
+add_bar_chart(s, Cm(1.3), tbl_bottom + Cm(0.6), Cm(15.0),
+              "Gap between the languages, where 1.0\u00d7 is no difference",
+              [("primitives in isolation", float(M("ContentionRatio")),
+                f"{M('ContentionRatio')}\u00d7 ({M('ContentionFaster')})", GREEN),
+               ("the full service past saturation", float(M("OverloadThrRatio")),
+                f"{M('OverloadThrRatio')}\u00d7 ({M('OverloadSustainedFaster')})", RED)],
+              baseline=1.0, label_w=Cm(6.6), value_w=Cm(2.6))
+add_caption(s, Cm(10.1), size=11, text=
+            f"The overload gap was attributed to the bounded queue and the completion handle. Isolated, they do "
+            f"not reproduce it: {M('ContentionThrCpp')} against {M('ContentionThrRust')} kops/s is only "
+            f"{M('ContentionRatio')}\u00d7 at p = {M('ContentionP')}. So the mechanism involves more of the handoff "
+            "path than these two primitives \u2014 and nothing here implicates the borrow checker, bounds "
+            "checking, or ownership.")
 
 # =====================================================================
-# Slide 22: Migration results (table)
+# Slide 22: RQ3 resources (generated figure)
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "RQ4: incremental adoption is technically cheap"
-fill_placeholder(s, 10, "A C++ host drives an unmodified Rust core across a thin C-ABI seam: "
-                        "unsafe-free at compile time, still exposed at run time")
-_, tbl_bottom = add_data_table(
-    s,
-    [("Metric", "Value")] + FFI,
-    col_widths_cm=[9.6, 13.4],
-    aligns=[PP_ALIGN.LEFT, PP_ALIGN.LEFT],
-    row_height_cm=0.63,
-    body_size=11,
-    cell_fill=lambda r, c, v: (LIGHTGREEN if c == 1 else None) if r in (4, 10) else None,
-)
-add_caption(s, tbl_bottom + Cm(0.25), size=11, text=
-            f"No cost detected (p = {M('FfiOpP')}) over {M('FfiOpRepeats')} interleaved repeats against the same "
-            f"operation called natively, and the interval bounds any tax at {M('FfiOpBoundPct')}% of one operation. "
-            "The bound, not the failure to detect a difference, is what supports the claim.")
+s = headline(1, "RQ3: memory follows the language and the allocator both",
+             f"At {M('ReprLoad')} kops/s; median over {M('NRepeats')} interleaved repeats")
+add_figure(s, result_figure("fig_resources"), top=Cm(3.4), height=Cm(6.9))
+add_notes(s, [
+    (f"+{M('RssLangDiffLo')}\u2013{M('RssLangDiffHi')} MiB in Rust",
+     f"under both allocators, interval [{M('RssLangCILo')}, {M('RssLangCIHi')}] MiB \u2014 a "
+     "language effect that replicates."),
+    (f"+{M('RssAllocDiffLo')}\u2013{M('RssAllocDiffHi')} MiB for jemalloc",
+     "in either language: an order of magnitude more, so the allocator is the larger lever."),
+    ("Established, unexplained",
+     "Attributing it needs hardware counters this virtualised guest cannot provide."),
+], top=Cm(10.55), height=Cm(2.4))
 
 # =====================================================================
-# Slide 23: Summary of findings (table)
+# Slide 23: The migration seam (diagram)
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "Summary of findings and evidence strength"
-fill_placeholder(s, 10, "Safety and migration are final; the performance answer divides at saturation")
+s = headline(1, "RQ4: a C++ host driving an unmodified Rust core",
+             "All unsafe is confined to a thin seam crate; the core stays free of it")
+_png, _crop = diagram("07_ffi_seam")
+add_figure(s, _png, crop_top=_crop)
+
+# =====================================================================
+# Slide 24: What the seam costs (generated figure)
+# =====================================================================
+s = headline(1, "RQ4: incremental adoption is technically cheap",
+             "The crossing is bounded against the same operation called natively, not declared free")
+add_figure(s, result_figure("fig_ffi_cost"), width=Cm(12.2), height=Cm(9.2),
+           top=Cm(3.5))
+add_notes(s, [
+    (f"{ffi_value('Raw FFI crossing')} for the crossing itself",
+     f"an ordinary indirect call: {ffi_value('C-ABI entry points')} entry points in "
+     f"{ffi_value('Seam size')} plus a {ffi_value('Hand-written C header')} header."),
+    (f"unsafe: {ffi_value('unsafe in core library')} in the core, "
+     f"{ffi_value('unsafe in FFI seam')} in the seam",
+     "The raw-pointer work the C ABI needs is concentrated under one documented safety "
+     "contract."),
+    (f"No cost detected, bounded at {M('FfiOpBoundPct')}%",
+     f"p = {M('FfiOpP')} over {M('FfiOpRepeats')} interleaved repeats. The bound, not the "
+     "failure to detect a difference, supports the claim."),
+], top=Cm(3.6), left=Cm(13.8), width=Cm(10.44), height=Cm(9.2), gap=Cm(0.42),
+   vertical=True)
+
+# =====================================================================
+# Slide 25: Migration playbook (diagram)
+# =====================================================================
+s = headline(1, "A playbook for a first Rust component in a C++ control plane",
+             "Each step carries the measurement that justifies it, and what it does not buy")
+_png, _crop = diagram("19_migration_playbook")
+add_figure(s, _png, crop_top=_crop)
+
+# =====================================================================
+# Slide 26: Summary of findings
+# =====================================================================
+s = headline(1, "Summary of findings and evidence strength",
+             "Safety and migration are final; the performance answer divides at saturation")
 add_data_table(
     s,
     [
@@ -944,19 +1160,20 @@ add_data_table(
         ("RQ4", f"Thin, unsafe-isolated seam; no cost detected and any tax bounded at "
                 f"{M('FfiOpBoundPct')}% of an operation", "Final"),
     ],
+    top=Cm(3.6),
     col_widths_cm=[2.0, 14.6, 6.4],
     aligns=[PP_ALIGN.CENTER, PP_ALIGN.LEFT, PP_ALIGN.LEFT],
-    row_height_cm=1.7,
+    row_height_cm=1.95,
+    header_height_cm=0.8,
     body_size=12,
     cell_fill=lambda r, c, v: (LIGHTGREEN if v == "Final" else LIGHTAMBER) if c == 2 else None,
 )
 
 # =====================================================================
-# Slide 24: Hypotheses versus verdict (table)
+# Slide 27: Hypotheses versus verdict
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "The three prior hypotheses against the evidence"
-fill_placeholder(s, 10, "Stated up front so the evaluation could refute them, and two of the three needed refining")
+s = headline(1, "The three prior hypotheses against the evidence",
+             "Stated up front so the evaluation could refute them, and two of the three needed refining")
 add_data_table(
     s,
     [
@@ -972,83 +1189,77 @@ add_data_table(
                "bound, once the seam was compared against the same operation called natively.",
          "Supported"),
     ],
-    col_widths_cm=[2.6, 14.2, 6.2],
+    top=Cm(3.6),
+    col_widths_cm=[3.0, 13.8, 6.2],
     aligns=[PP_ALIGN.CENTER, PP_ALIGN.LEFT, PP_ALIGN.LEFT],
-    row_height_cm=2.1,
+    row_height_cm=2.65,
+    header_height_cm=0.8,
     body_size=12,
     cell_fill=lambda r, c, v: (LIGHTGREEN if v == "Supported" else LIGHTAMBER) if c == 2 else None,
 )
 
 # =====================================================================
-# Slide 25: Scope and boundaries (table)
+# Slide 28: Threats to validity
+#
+# diagrams/25_threats_validity carries the full three-column version, but it is
+# the tallest artwork in the set and shrinks to about a third of the slide when
+# fitted, which puts its body text below what a projector can carry. What is
+# left standing on the slide is the last column, the live risk, since the
+# controls themselves are the subject of the two method slides.
 # =====================================================================
-s = prs.slides.add_slide(L(1))
-s.shapes.title.text = "Scope and boundaries"
-fill_placeholder(s, 10, "Boundaries drawn to protect the internal validity of the comparison")
-add_data_table(
-    s,
-    [
-        ("In scope", "Out of scope"),
-        ("UE Context Management subsystem", "Full gNB and other control-plane domains"),
-        ("Shared-nothing concurrency design", "PHY/L2 and the user-plane data path"),
-        ("Load sweep to overload", "Real captured production traffic traces"),
-        (f"{len(TAXONOMY)}-class fault-injection catalogue", "Managed-language alternatives (GC pauses)"),
-        ("C++-to-Rust FFI migration prototype", "Production deployment and operations"),
-    ],
-    col_widths_cm=[11.5, 11.5],
-    aligns=[PP_ALIGN.LEFT, PP_ALIGN.LEFT],
-    row_height_cm=0.92,
-    body_size=13,
-    cell_fill=lambda r, c, v: LIGHTGREEN if c == 0 else LIGHTAMBER,
-)
+s = headline(1, "Threats to validity, and what each control leaves behind",
+             "The controls are on the method slides; what is left here is the residual risk")
+_threats = [
+    ("Internal \u2014 is the language the only difference?",
+     "Controlled by the frozen specification, the shared allocator and optimisation level, "
+     "and the parity suite. What remains: one author wrote both versions, and parity bounds "
+     "behaviour, not performance."),
+    ("Construct \u2014 do the metrics measure the questions?",
+     "The operation is reported apart from the handoff rather than folded into it. "
+     "What remains: one operation on one data structure is narrower than the sweep it "
+     "supplements, and RQ3 captures the cost but not its origin."),
+    ("Conclusion \u2014 are the differences real, or noise?",
+     f"{M('NRepeats')} interleaved repeats, an exact paired permutation test, and the Holm "
+     "correction, with the floors quoted. What remains: pairing cancels only what a block "
+     "shared, so the tail percentiles stay unresolved."),
+    ("External \u2014 how far do the results travel?",
+     "RQ2 and RQ4 rest on the compilers and the C ABI rather than on the host, so they "
+     "travel. What remains: the performance results do not \u2014 shared mutable state or "
+     "allocation churn could behave differently."),
+]
+add_notes(s, _threats[:2], top=Cm(3.9), height=Cm(4.3), gap=Cm(0.5),
+          accent=BLUE, fill=LIGHTBLUE)
+add_notes(s, _threats[2:], top=Cm(8.6), height=Cm(4.3), gap=Cm(0.5),
+          accent=ORANGE, fill=LIGHTAMBER)
 
 # =====================================================================
-# Slide 26: Conclusions
+# Slide 29: Conclusions and what comes next (diagram)
 # =====================================================================
-s = prs.slides.add_slide(L(3))
-s.shapes.title.text = "At nominal load the choice is about defects, not speed"
-fill_placeholder(s, 10, "Three conclusions from a parity-tested C++ and Rust pair")
-set_body_bullets(s, 15, [
-    f"Safety is a difference of kind: safe Rust rejects all {len(IN_GUARANTEE)} in-guarantee classes at compile time, and neither language prevents the other {len(BOUNDARY)}",
-    f"Migration cost is API design and the learning curve, not run-time overhead: any tax is bounded at {M('FfiOpBoundPct')}% of an operation",
-    "Performance divides twice: by what is measured, and by whether the service is still coping",
-    f"Below saturation the languages are equivalent at the median; the operation itself is only {M('BudgetCoreShareMax')}% of the round-trip",
-    f"Past saturation they are not: {M('OverloadSustainedFaster')} sustains {M('OverloadThrRatio')}\u00d7 the throughput, for reasons in the concurrency plumbing rather than either safety model",
-    "What the thesis offers is an instrument rather than a verdict: frozen spec, parity-tested pair, reproducible harness, defect catalogue with its boundary",
-])
+s = headline(1, "At nominal load the choice is about defects, not speed",
+             "What the thesis concludes, what it leaves behind, and where it goes next")
+_png, _crop = diagram("26_contributions")
+add_figure(s, _png, crop_top=_crop)
 
 # =====================================================================
-# Slide 27: Open questions and future work
-# =====================================================================
-s = prs.slides.add_slide(L(3))
-s.shapes.title.text = "What is still open, and what comes next"
-fill_placeholder(s, 10, "Each item is the direct remedy to a limitation named in the talk")
-set_body_bullets(s, 15, [
-    "Bare-metal campaign (bench/TESTBED.md): the far tail below saturation is the one result this host cannot resolve",
-    "Hardware counters and allocation profiles on the same visit: two results are established but unexplained",
-    "Localise the overload mechanism further along the handoff path, now that the isolated primitives are ruled out",
-    "Replay captured, anonymised production traces so the operation mix is validated rather than spec-justified",
-    "Extend to further control-plane subsystems and to the data-heavy L2/PHY path",
-    "Evaluate Rust async runtimes against the thread-per-shard model, to separate the runtime from the language",
-])
-
-# =====================================================================
-# Slide 28: End slide
+# Slide 30: End slide
 # =====================================================================
 prs.slides.add_slide(L(71))  # End slide Blue
-
-EMU_PER_CM = 360000
 
 
 def check_layout(presentation):
     """Report manually placed shapes that fall outside the template's content band.
 
     Placeholders are exempt because the layout owns their geometry. This catches
-    the failure mode a generated deck is prone to: a table or caption that grew
-    with the data and now runs under the footer.
+    the failure mode a generated deck is prone to: a table, a caption, or a
+    picture that grew with the data and now runs under the footer or off the side.
     """
     floor = Cm(SLIDE_H_CM - BOTTOM_MARGIN_CM)
     ceiling = Cm(TOP_MARGIN_CM)
+    left_edge = Cm(1.1)
+    right_edge = Cm(SLIDE_W_CM - 1.1)
+    # A shape laid out flush against a margin lands on it to within rounding, so
+    # only a visible excursion counts.
+    slack = Cm(0.03)
     problems = []
     for i, slide in enumerate(presentation.slides, start=1):
         for shape in slide.shapes:
@@ -1057,24 +1268,38 @@ def check_layout(presentation):
             text = shape.text_frame.text.strip() if shape.has_text_frame else ""
             label = (text.splitlines() or [str(shape.shape_type)])[0][:38]
             bottom = shape.top + abs(shape.height)
-            if bottom > floor:
+            if bottom > floor + slack:
                 problems.append(f"slide {i}: {label!r} ends "
                                 f"{(bottom - floor) / EMU_PER_CM:.2f} cm below the footer")
-            elif shape.top < ceiling:
+            elif shape.top < ceiling - slack:
                 problems.append(f"slide {i}: {label!r} starts "
                                 f"{(ceiling - shape.top) / EMU_PER_CM:.2f} cm inside the header band")
+            if shape.width is None:
+                continue
+            if shape.left < left_edge - slack:
+                problems.append(f"slide {i}: {label!r} starts "
+                                f"{(left_edge - shape.left) / EMU_PER_CM:.2f} cm past the left margin")
+            elif shape.left + abs(shape.width) > right_edge + slack:
+                problems.append(f"slide {i}: {label!r} ends "
+                                f"{(shape.left + abs(shape.width) - right_edge) / EMU_PER_CM:.2f} "
+                                "cm past the right margin")
     return problems
 
 
 prs.save(OUT)
+_pictures = sum(1 for sl in prs.slides for sh in sl.shapes if sh.shape_type == 13)
 print("Saved", OUT, "with", len(prs.slides._sldIdLst), "slides")
+print(f"Figures placed: {_pictures}")
 print("Data read from:")
 print("  figures/gen_macros.tex, figures/gen_complexity.tex "
       f"({len(MACROS)} macros)")
 print("  figures/tab_{latency,resource,overload,budget,contention,ffi}.tex")
+print("  figures/fig_*.pdf, diagrams/png/*.png")
 print(f"  faults/results/taxonomy.csv ({len(IN_GUARANTEE)} in-guarantee "
       f"+ {len(BOUNDARY)} boundary classes)")
-print(f"  {os.path.relpath(ENV['_path'], ROOT)}")
+print(f"  {os.path.relpath(ENV['_campaign'], ROOT)}")
+print(f"  {os.path.relpath(ENV['_path'], ROOT)} "
+      f"({ENV.get('cpu_model', 'unknown host')}, {ENV.get('virt', '?')})")
 print(f"Campaign: {M('NRepeats')} repeats, {M('NRuns')} runs, "
       f"representative load {M('ReprLoad')} kops/s, overload {M('OverloadLoad')} kops/s")
 

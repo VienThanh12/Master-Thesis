@@ -12,7 +12,7 @@ primary control against implementation bias.
 
 ## Next up (as of 9 Aug 2026)
 
-Implementation, analysis, and writing are finished: `thesis.pdf` builds at 127 pages with zero
+Implementation, analysis, and writing are finished: `thesis.pdf` builds at 143 pages with zero
 LaTeX errors and zero undefined references or citations, and every quoted number regenerates
 from the raw logs. What is left is one measurement, one review round, and housekeeping. The plan
 document (`Thesis_Plan_v2.pdf`, dated 9 Aug 2026) puts measurement in September, RQ1/RQ3
@@ -55,7 +55,7 @@ needs.
 - [x] Install LaTeX toolchain (TinyTeX in ~/.TinyTeX; `pdflatex`, `bibtex`, `latexmk` on PATH)
 - [x] Obtain the `UH_DS_MSc.cls` class file (local reconstruction from UH_*_MSc family; see note)
 - [x] Create `bibliography.bib` with all cited references (65 entries as of Aug 2026)
-- [x] Verify `thesis.tex` compiles to PDF end-to-end (127 pages as of Aug 2026, all
+- [x] Verify `thesis.tex` compiles to PDF end-to-end (143 pages as of Aug 2026, all
       refs/citations resolve; bibliography style is now `IEEEtran`, numbered in citation order)
 - [x] Initialize git repository; add `.gitignore` (build artifacts, LaTeX aux files)
 - [ ] (Optional) Replace reconstructed `UH_DS_MSc.cls` with the official one from Overleaf/Moodle
@@ -154,31 +154,59 @@ latexmk -C                   # clean build artifacts
       15-repeat WSL2 campaign **done** (480 runs, `campaign-20260807-122430.jsonl`,
       `campaign-15rep.log`), and it is what every thesis table currently reports. WSL2 is not
       testbed-grade, so definitive RQ1/RQ3 numbers still need bare-metal execution.
-- [~] Collect latency (mean/p50/p90/p99/p99.9/max), throughput, peak RSS + CPU% per offered load
-      (getrusage; aggregated with 95% CI by `bench/aggregate.py`), still add jitter + p99.99.
-      **Do this before the testbed run, not after.** Both benches emit only fixed percentiles
-      into the JSONL (`lat_ns: p50/p90/p99/p999/max/mean`) and never persist the HDR histogram
-      itself, so p99.99 and any jitter statistic cannot be recovered from a finished campaign.
-      Left as is, the bare-metal dataset comes back with exactly the same gap as this one, on the
-      one question the visit is for.
+- [x] Collect latency (mean/p50/p90/p99/p99.9/max), throughput, peak RSS + CPU% per offered load
+      (getrusage; aggregated with 95% CI by `bench/aggregate.py`). **Jitter + p99.99 done**
+      (Aug 2026), before the testbed run rather than after. Both benches now emit
+      `lat_ns: p25/p50/p75/p90/p99/p999/p9999/max/mean/stdev`, an IPDV jitter histogram under
+      `--jitter` (per-producer consecutive-latency differences, RFC 3393 sense), and the full HDR
+      buckets to a `campaign-<stamp>.hist.jsonl` sidecar under `--hist-out`; `campaign.sh` passes
+      both by default. `bench/pool_hist.py` pools repeats for a decision-grade far tail (a single
+      run's p99.99 rests on ~17 observations; 20 pooled repeats give ~340) and its `--verify`
+      mode proves the persistence is lossless by recomputing every printed percentile from the
+      buckets. Three cross-language conventions were pinned in the same pass, all of which were
+      latent divergences: quantiles rather than percentiles as the primitive (`99.9/100` and the
+      literal `0.999` are different doubles, and `0.999 * 168000` is exactly an integer), a
+      bucket-aligned `max` on both sides (the crate returns `highest_equivalent`, the C++ port
+      returned the exact sample), and `stdev` computed by the crate's own convention.
+      Note `--jitter` costs ~264 KiB per producer of peak RSS, equally in both languages and
+      uniform across a campaign's arms, so within-campaign RQ3 comparisons are unaffected but
+      absolute RSS is not comparable against a campaign run without it (`--no-jitter`).
 - [x] Decompose the end-to-end latency into the operation's own work and the cross-thread
       handoff, in both languages, at the sweep's shard count and population
       (`bench/latency_budget.sh` -> `tab_budget.tex`, `\Budget*` macros). Without this a bound
       on the paired median difference cannot be read: "a fifth of the median" is a weak bound
       if the median is mostly handoff, and the sweep alone cannot say whether it is.
       `ShardCore` gives the work with no queue in the path; `Service` gives work + handoff.
-- [ ] Hardware counters, collected on the testbed visit. Add a `bench/counters.sh` that wraps the
-      existing budget and sweep binaries in `perf stat` (cycles, instructions, cache-references,
-      cache-misses, LLC-load-misses) and writes them into the same JSONL the aggregator reads.
-      Two live claims need it: the peak-RSS effect is significant but unexplained, and the
-      operation-level gap rests on the node-based-`unordered_map` argument rather than on a
-      measurement. `perf` counters are not available under WSL2, so write it here and run it
-      there.
-- [ ] Allocation profile per variant, same visit (heaptrack or massif for C++, `dhat` or
-      jemalloc's own `prof` for Rust), to attribute the 2.1-2.5 MiB peak-RSS difference to
-      allocation sites. §7.5.4 already establishes the difference is fixed rather than
-      per-context (the `UeContext` layout accounts for ~40 kB at 5000 active UEs, three orders of
-      magnitude short of the gap), so the profile is what turns "unexplained" into a cause.
+- [~] Hardware counters: **`bench/counters.sh` written** (Aug 2026), to be *run* on the testbed
+      visit. Wraps `perf stat` (cycles, instructions, cache-references, cache-misses,
+      LLC-load-misses) around both the sweep bench and the `latency_budget` binaries, and writes
+      `counters-<stamp>.jsonl`. The `op` scope is the one that matters for the map claim: the
+      end-to-end path is ~99.96% handoff, so counters over the sweep describe the queue rather
+      than the operation. Refuses to run rather than reporting zeros where there is no PMU (WSL2
+      exposes none) and records uncountable events as `null`, never `0`. The `perf` CSV parsing
+      lives in `bench/parse_perf.py` with `--self-test`, so it is known-good before the visit
+      instead of being debugged during it; `--software` exercises the whole path on events that
+      need no PMU.
+- [ ] Run `bench/counters.sh` on the testbed. Two live claims need it: the peak-RSS effect is
+      significant but unexplained, and the operation-level gap rests on the
+      node-based-`unordered_map` argument rather than on a measurement.
+- [~] Allocation profile per variant: **`bench/alloc_profile.sh` written** (Aug 2026), to be *run*
+      on the testbed visit. Uses jemalloc's own `prof` on **both** jemalloc arms rather than
+      heaptrack for C++ and dhat for Rust, so the two sides are measured by one instrument with
+      one notion of a call site (the same choice already made for the complexity proxies, where
+      `lizard` measures both languages); a mismatched pair could not be differenced, which is the
+      whole question. Needs the new opt-in `jemalloc-prof` Cargo feature. Prof support is detected
+      functionally, by checking a dump actually lands, since a build without `--enable-prof` says
+      `Invalid conf pair` while a syntax error says `Malformed conf string` and matching on
+      wording is how a false positive survives to the testbed. Verified on this host: both arms
+      dump, only `jeprof` is missing, and `--raw-ok` collects dumps plus their binaries for later
+      symbolisation so a one-off visit is never wasted. Parsing is in `bench/parse_jeprof.py` with
+      `--self-test`.
+- [ ] Run `bench/alloc_profile.sh` on the testbed to attribute the 2.1-2.5 MiB peak-RSS
+      difference to allocation sites. §7.5.4 already establishes the difference is fixed rather
+      than per-context (the `UeContext` layout accounts for ~40 kB at 5000 active UEs, three
+      orders of magnitude short of the gap), so the profile is what turns "unexplained" into a
+      cause. Install `jeprof` first (`--check` reports readiness).
 ### 7b. Fault-injection study (RQ2 safety)
 - [x] Inject C++ defect catalogue (use-after-free, double-free, iterator invalidation,
       data race, unguarded shared mutation), `faults/cpp/*.cpp`, domain-flavoured
@@ -325,6 +353,22 @@ numbers land:
 - Table 8.1 evidence-status column, and the RQ1/RQ3 "preliminary" labels throughout.
 - H1 in §8.3, currently recorded as supported end to end, untested in the tail, and ambiguous
   in framing.
+- **p99.99 and jitter become reportable for the first time.** The instrumentation landed in
+  Aug 2026 but the campaign the thesis reports predates it, so §8.6 currently states plainly
+  that RQ1 is answered with p99/p99.9/max and that these two metrics are instrumented but not
+  yet reported. Once the new campaign lands:
+  - `tab:latency` gains a p99.99 column with **no thesis edit required** -- its column
+    specification and header are generated (`\LatencyCols`, `\LatencyHead`) precisely so the
+    preamble cannot fall out of step with the `\input` body. Check the table still fits the
+    text width at six columns.
+  - `figures/tab_jitter.tex` starts being written; it needs a float and a caption in §7.5,
+    plus prose using `\JitterRange`, `\JitterSpread`, `\JitterPNineNineRange`,
+    `\JitterVsMedian`, `\FarTailSpread`, `\FarTailRange`, `\IqrSpread`.
+  - Update the §8.6 paragraph that currently says these are not yet reported, and the
+    §5.5 note explaining why they stay descriptive rather than joining the tested family.
+  - Run `python3 bench/pool_hist.py <hist.jsonl> --verify <jsonl>` before relying on any of
+    it, and quote the **pooled** p99.99 for the far tail while keeping the per-repeat figures
+    for anything paired. `NTests` must still read 14.
 
 ---
 
@@ -333,7 +377,7 @@ numbers land:
   campaign, supervisor review, and submission. `Thesis_Plan_v2.pdf` schedules these as
   September (measure), October (resolve RQ1/RQ3), November (colloquium + submit).
 - Current artefact status (verified Aug 2026): spec + C++/Rust implementations + conformance
-  suite + bench/fault/ffi harnesses + generated figures/tables + 127-page thesis PDF. All green
+  suite + bench/fault/ffi harnesses + generated figures/tables + 143-page thesis PDF. All green
   on `spec/conformance/run.sh`, `ctest`, `cargo test`, `faults/run_faults.sh`, `ffi/build.sh`.
 - **Remaining critical path:** (1) supervisor review → spec v1.0 freeze, (2) bare-metal campaign
   including counters + allocation profile, (3) `bench/refresh_thesis.sh` with definitive data,

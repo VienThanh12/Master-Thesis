@@ -1587,7 +1587,7 @@ of analysis and resolves the far tail but carries no across-repeat interval, whi
 median-of-repeats figures reported with intervals keep the repeat as the unit and remain the
 only basis for a paired comparison. Jitter is measured directly rather than inferred from the
 latency distribution, as the absolute difference between consecutive latencies within a
-producer, which is the packet-delay-variation quantity of RFC~3393 and matches the sense in
+producer, which is the packet-delay-variation quantity of RFC~3393~\cite{rfc3393} and matches the sense in
 which this thesis uses the term: variation from one operation to the next, not spread of the
 distribution as a whole.
 
@@ -2627,10 +2627,12 @@ repeats above its nonparametric bootstrap $95\%$ confidence interval. The interv
 in full rather than as a symmetric half-width because it is strongly asymmetric at these
 percentiles, and a half-width wide enough to cover the upper bound would place the lower one
 below zero.\label{tab:latency}}
-% Column specification and header are generated alongside the table body, so the
-% table gains a p99.99 column when a campaign records one instead of the preamble
-% falling one column short of the body it is wrapping.
-\begin{tabular}{\LatencyCols}
+% Tabular preamble and header are generated alongside the table body, so the table
+% gains a p99.99 column when a campaign records one instead of the preamble falling
+% one column short of the body it is wrapping. \LatencyTabular expands to the whole
+% \begin{tabular}{...}: array's preamble scanner does not expand macros, so passing
+% only the column specification would fail with "Illegal pream-token".
+\LatencyTabular
 \hline\hline
 \LatencyHead \\
 \hline
@@ -3200,9 +3202,9 @@ resulting structure and where the \texttt{unsafe} sits.
 \caption[The C++-to-Rust FFI migration seam]{The C++-to-Rust FFI migration seam. The C++ host sees only an opaque handle, twelve
 plain-C entry points, and a status-code convention; a thin \texttt{extern "C"} seam crate
 concentrates all of the raw-pointer \texttt{unsafe} (twelve sites) and calls the unmodified Rust
-core, which remains free of \texttt{unsafe}. The do-nothing crossing costs a fraction of a
-nanosecond; measured against the same signaling operation called natively, the seam's cost per
-operation is bounded at $\FfiOpBoundPct\%$.\label{fig:ffiseam}}
+core, which remains free of \texttt{unsafe}. The do-nothing crossing costs $\FfiCrossing$~ns
+against a $\FfiOpSeam$~\textmu s operation; measured against the same signaling operation called
+natively, the seam's cost per operation is bounded at $\FfiOpBoundPct\%$.\label{fig:ffiseam}}
 \end{figure}
 
 The prototype yields concrete interop-cost figures, summarised in Table~\ref{tab:ffi}. The
@@ -3876,7 +3878,12 @@ mitigated, not eliminated.
 \paragraph{Construct validity: do the metrics measure what the questions ask?}
 RQ1 asks about predictability and is answered with high percentiles, the maximum, and jitter
 rather than the mean, which is the standard way of measuring it in this
-literature~\cite{dean2013tail}. The residual risk is that p99.9 on a synthetic workload is not
+literature~\cite{dean2013tail}. Two of those metrics are instrumented but not yet reported: the
+harness records p99.99 and inter-operation jitter and persists the histograms the far tail has
+to be pooled from, but the campaign this thesis reports predates that instrumentation, so RQ1 is
+currently answered with p99 and p99.9 and the maximum. That is a gap in the evidence rather than
+in the design, and it closes with the same bare-metal campaign the tail claims already wait on.
+The residual risk in the metrics themselves is that p99.9 on a synthetic workload is not
 the same quantity as a missed procedure deadline in a live network. A second and larger
 construct gap in RQ1 was found rather than anticipated. The end-to-end latency the sweep reports
 is $\BudgetCoreShareMax\%$ operation and the rest cross-thread handoff

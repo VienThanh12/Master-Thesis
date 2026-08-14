@@ -158,7 +158,19 @@ Section 8.7.
   test's floor is set by the repeat count: at seven, nothing survives Holm correction; at
   fifteen, it comfortably can.
 - **No hardware counters or allocation profiles.** Now the clearest instrumentation gap, because
-  the campaign has found a real memory difference that it cannot explain.
+  the campaign has found a real memory difference that it cannot explain. **The tooling for both
+  exists as of Aug 2026** (`bench/counters.sh`, `bench/alloc_profile.sh`, with their parsers
+  self-tested so neither is first exercised on the testbed); what is missing is a host that can
+  run them. Neither works under WSL2: there is no hardware PMU, and the allocation profile needs
+  a prof-enabled jemalloc, which is present here but has no `jeprof` to symbolise with.
+- **p99.99 and jitter were promised but not measured.** Chapter 5 said tail percentiles
+  "(p99, p99.9, p99.99)" were read from the HDR histograms and §8.6 said RQ1 was answered partly
+  with jitter, while the harness emitted neither and discarded the histograms, so neither could
+  be recovered from a finished campaign. Fixed at the source in Aug 2026: both are emitted, the
+  histograms are persisted per run so the far tail can be pooled across repeats (a single run's
+  p99.99 rests on ~17 observations), and §8.6 now states plainly that the two metrics are
+  instrumented but not yet reported because the reported campaign predates them. This was a
+  claim-versus-evidence gap in criteria 4 and 6, not only a missing measurement.
 
 ---
 

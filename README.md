@@ -154,7 +154,17 @@ A Nokia-branded presentation can be generated from measured results:
 python3 build_deck.py    # -> Rust_vs_Cpp_Nokia_RAN_thesis.pptx
 ```
 
-Requires the slide toolkit under `create-pptx-master-thesis/` (see `.gitignore`).
+The deck is figure-first: it places the generated result plots from `figures/*.pdf`
+and the thesis diagrams from `diagrams/png/`, and keeps prose to a headline and a
+sentence beside each picture. Nothing is transcribed. Every number comes from
+`figures/gen_macros.tex`, the `figures/tab_*.tex` bodies, `faults/results/taxonomy.csv`,
+and the environment capture belonging to the campaign that was plotted, and the build
+fails rather than print a stale value — including when a hand-authored diagram's own
+labels disagree with the generated data.
+
+Requires the slide toolkit under `create-pptx-master-thesis/` (see `.gitignore`),
+`python-pptx`, and `pymupdf` for rasterising the result plots. Diagram artwork is read
+from `diagrams/png/`, which `diagrams/render.py` writes.
 
 ## Status
 
