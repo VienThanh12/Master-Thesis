@@ -417,3 +417,85 @@ overflowed on first attempt.
   peak-RSS effect is significant but unexplained, and the operation-level gap rests on a
   plausibility argument.
 - **Two submission items**: `\censors{}{}{}` and the official `UH_DS_MSc.cls`.
+
+---
+
+## Third pass — 14 August 2026
+
+Re-read of `thesis.tex` / `thesis.pdf` against the same six-criterion matrix. Source:
+full document (Chapters 1–9, abstract, tables, generated macros in `figures/gen_macros.tex`),
+plus spot-check of `spec/`, `bench/`, `faults/`, `ffi/`. Build: `latexmk -pdf thesis.tex`
+up to date (last PDF 13 Aug 2026).
+
+### Summary (current)
+
+| Criterion | Second pass | Third pass | Notes |
+| --- | --- | --- | --- |
+| 1. Thesis objective and research questions | 5 | **5** | Unchanged |
+| 2. Scholarly framework and use of sources | 5 | **5** | Unchanged |
+| 3. Research data and method | 4.5 | **4.5** | Method still at 5; data improved but tail blocker remains |
+| 4. Presentation of thesis results | 4.5 | **4.5** | More resolved results; one RQ1 half still open |
+| 5. Discussion and conclusions | 5 | **5** | Unchanged |
+| 6. Academic text | 5 | **5** | Unchanged |
+| **Overall (unweighted mean)** | **4.8** | **4.8** | |
+
+### What changed since the second pass
+
+1. **Measurement host upgraded.** §7.1 no longer reports a WSL2 development laptop. Results are
+   from a dedicated dual-socket Xeon E5-2680~v4 KVM guest on Rocky Linux~8.10, with
+   `taskset` pinning, seven shards/producers, and environment capture per run. Run-to-run p99
+   dispersion fell by more than an order of magnitude versus the earlier pass. This is a material
+   improvement in instrument quality, but the host is still virtualised: CPU steal is non-zero,
+   frequency/turbo are host-controlled and unobservable from the guest, and `isolcpus` was not
+   used. Table~\ref{tab:testbed} states this plainly.
+2. **Repeat count raised to 20** (`\NRepeats{}` in `figures/gen_macros.tex`; 1,120 runs total).
+   The Holm-corrected floor is now 0.000027; nine comparisons clear it.
+3. **Evidence status is more differentiated.** Chapter 7 opens by listing six resolved findings
+   (taxonomy, FFI, RSS, operation budget, median below saturation, overload past saturation) and
+   one unresolved (far tail below saturation). Table~\ref{tab:findings} carries the same split.
+   The overload divergence (C++ sustains $\OverloadThrRatio\times$ Rust throughput at
+   $\OverloadLoad$~kops/s) is now a resolved, Holm-significant result on this host—not merely
+   preliminary.
+4. **Blocker narrowed.** Bare metal is no longer needed to establish the saturation knee, overload
+   ordering, or allocator/language RSS decomposition. It is still needed for **far-tail ordering
+   below saturation** and for **hardware counters / allocation profiles** (unavailable in the
+   guest). A **contended-queue microbenchmark** is named as the missing instrument for the
+   overload *mechanism* (construct-validity gap, not a missing measurement).
+
+### Criterion notes (third pass)
+
+**1 — Grade 5.** Gap, RQs, hypotheses, traceability tables (5.1–5.2), and contributions remain
+exceptionally tight. The introduction's §1.6 already states the dual division (instrument vs
+regime) that the evidence later forces—graduate-level framing.
+
+**2 — Grade 5.** §4.1 search protocol is auditable. §2.8 gap map and §8.5 related work engage
+contrary evidence (Arvidsson, Emmerich) honestly. Optional soft spot unchanged: two load-bearing
+arXiv cites (`Bugden`, `Zhang` deadlock).
+
+**3 — Grade 4.5.** Methodology (§5.5–5.6) is among the strongest parts of the thesis: pre-committed
+interval-vs-$p$ rule, Holm family design, exact permutation test, allocator replication check,
+vacuous-test exclusion, latency decomposition as a second instrument. **Data** still cannot reach 5:
+virtualised host blocks far-tail claims; counters and allocation profiles absent; overload
+attribution argued via forced-idiom log, not microbenchmarked.
+
+**4 — Grade 4.5.** Presentation is excellent: RQ-by-RQ structure, generated tables/macros,
+two-level reading of Table~\ref{tab:latency}, schematic vs measured figures corrected. RQ1's
+high-percentile half remains honestly "unresolved on this host." That single gap keeps this
+criterion at 4.5 alongside criterion 3.
+
+**5 — Grade 5.** §8.6 four-way validity, Table~\ref{tab:threats}, Figure~\ref{fig:threats},
+hypothesis revision (H1 ambiguous in framing), and the refusal to equate "cannot tell" with
+"equivalent" remain the thesis's strongest register.
+
+**6 — Grade 5.** Prose is precise and signposted; abstract reflects current evidence (virtualised
+host, overload qualification). Housekeeping unchanged: `\censors{}{}{}`, official class file.
+
+### Priority actions to reach 5 on criteria 3 and 4
+
+1. Execute `bench/TESTBED.md` on bare metal (or Nokia lab host)—target: far tail below
+   saturation; counters and allocation profiles on the same visit.
+2. ~~Run contended-queue microbenchmark~~ **Done** (§\ref{sec:contention}): primitives alone
+   do not reproduce overload ordering; further attribution is in the full handoff path.
+3. Re-run `bench/refresh_thesis.sh`; re-read §7.5.1, Table~\ref{tab:findings}, §8.3 H1, and
+   abstract.
+4. Submission housekeeping: examiners on title page, official `UH_DS_MSc.cls`.

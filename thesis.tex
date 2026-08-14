@@ -1330,7 +1330,7 @@ weakness.\label{tab:traceability}}
 \hline\hline
 RQ & H & Method & Evidence & Verdict \\
 \hline
-RQ1 & H1 & \S\ref{sec:methodperf} & \S\ref{sec:perfresults}, \S\ref{sec:budget} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
+RQ1 & H1 & \S\ref{sec:methodperf} & \S\ref{sec:perfresults}, \S\ref{sec:budget}, \S\ref{sec:contention} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
 RQ2 & H2 & \S\ref{sec:methodfaults} & \S\ref{sec:safetyresults} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
 RQ3 & H1 & \S\ref{sec:methodperf} & \S\ref{sec:resources}, \S\ref{sec:budget} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
 RQ4 & H3 & \S\ref{sec:methodffi} & \S\ref{sec:migrationresults} & \S\ref{sec:rqdiscussion}, \S\ref{sec:hypotheses} \\
@@ -1406,6 +1406,17 @@ distinction is not a refinement but the difference between an interpretable resu
 uninterpretable one. This second level was added after a first pass of the campaign rather than
 designed in from the start, and Section~\ref{sec:threats} records that revision instead of
 presenting the design as though it had always been complete.
+
+\paragraph{Isolating the contended synchronisation primitives.}
+The overload comparison of Section~\ref{sec:overload} attributes its gap to the bounded blocking
+queue and the one-shot completion handle, the two forced-idiom entries where the standard libraries
+diverge. A third matched microbenchmark isolates those primitives alone: \ContentionProducers{}
+producer threads hammer one queue of capacity $1\,024$ while a single consumer drains it, with no
+\texttt{ShardCore} work in the path. C++ uses the hand-written \texttt{BoundedQueue} and
+\texttt{std::promise}/\texttt{std::future}; Rust uses \texttt{sync\_channel} and a fresh
+\texttt{mpsc::channel()} per request. The benchmark is analysed with the same interleaved repeats
+and exact paired test as the decomposition above; Section~\ref{sec:contention} reports whether
+the isolated primitives reproduce the ordering seen in the full service.
 
 \subsection{Controlled fault injection (RQ2)}\label{sec:methodfaults}
 RQ2 asks which defect classes a language prevents, and it cannot be answered by measuring
@@ -2483,13 +2494,15 @@ utilisation), and the per-operation-kind counts. Retaining the kind counts in ev
 what makes a divergence between the two languages visible as a parity failure
 (Section~\ref{sec:parity}) rather than being mistaken for a performance difference.
 
-\paragraph{The component decomposition.}
+\paragraph{The component decomposition and contended primitives.}
 The second measurement level of Section~\ref{sec:methodperf} yields a much smaller dataset of a
 different shape: for each of \BudgetRepeats{} interleaved repeats, the batch-mean cost in both
 languages of the operation called directly and of the same operation called through the threaded
-service. The FFI comparison of Section~\ref{sec:migrationresults} has the same structure over
-\FfiOpRepeats{} repeats. Both are paired by construction, which is what the exact paired test of
-Section~\ref{sec:stats} requires.
+service. A third dataset, of the same paired shape over \ContentionRepeats{} repeats, records
+sustained throughput through the bounded queue and completion primitives alone
+(Section~\ref{sec:contention}). The FFI comparison of Section~\ref{sec:migrationresults} has the
+same structure over \FfiOpRepeats{} repeats. All three are paired by construction, which is what
+the exact paired test of Section~\ref{sec:stats} requires.
 
 \paragraph{The fault-injection catalogue.}
 This dataset is categorical rather than numeric. Each of the seven defect cases yields three tool
@@ -2529,14 +2542,15 @@ equivalence of the four variants at the median below saturation, and their diver
 (Section~\ref{sec:overload}), which is the largest and most reproducible language effect in the
 study.
 
-One thing is unresolved, and one is resolved but unexplained. The far tail \emph{below} saturation
-is unresolved because of the host: run-to-run dispersion at p99 exceeds every difference between
-the variants, and no number of repeats on a virtualised machine with non-zero CPU steal closes
-that gap (Section~\ref{sec:perfresults}). The overload divergence, by contrast, is not in doubt as
-a measurement; what is missing is its mechanism, which is narrowed to two standard-library
-primitives but not measured on either. The bare-metal protocol of
-Section~\ref{sec:testbed} would answer the first. Only a contended-queue microbenchmark answers
-the second.
+One thing is unresolved, and one is resolved with a measured but inconclusive mechanism. The far
+tail \emph{below} saturation is unresolved because of the host: run-to-run dispersion at p99
+exceeds every difference between the variants, and no number of repeats on a virtualised machine
+with non-zero CPU steal closes that gap (Section~\ref{sec:perfresults}). The overload divergence
+is resolved as a measurement; Section~\ref{sec:contention} now tests whether the bounded queue and
+completion primitives alone explain it, and finds they do not reproduce the full-service ordering
+at significance. The bare-metal protocol of Section~\ref{sec:testbed} would answer the tail
+question; what remains for the overload mechanism is work in the full handoff path beyond the
+isolated primitives.
 
 \subsection{Performance (RQ1, RQ3)}\label{sec:perfresults}
 The hypothesis under test is H1: that the two languages are performance-equivalent below
@@ -2865,19 +2879,17 @@ gap is not a capacity limit and not idleness. It is effort expended without comp
 operations, which is the signature of a synchronisation path that spins, or repeatedly parks and
 wakes, where the other blocks once and sleeps.
 
-Where that effort is spent is not measured here, but the candidates are not open-ended, and
-neither of them is the safety model. Past saturation the producers spend essentially all of their
-time in two places, and Table~\ref{tab:idioms} already records both as points where the two
-standard libraries forced the implementations apart: the bounded blocking queue, hand-assembled
-from a mutex and two condition variables on one side against \texttt{sync\_channel} on the other,
-and the completion handle, a \texttt{std::promise}/\texttt{std::future} pair against a freshly
-allocated channel per request. A difference of this size, appearing only once those primitives are
-contended, is where the forced-idiom log predicted a difference would appear if one did. Nothing
-in the borrow checker, in bounds checking, or in ownership is implicated, and the finding should
-not be quoted as though it were: what it compares is two standard libraries' blocking and wakeup
-machinery under contention. Confirming that attribution needs a contended-queue microbenchmark
-holding everything else fixed, which is the natural companion to the component decomposition of
-Section~\ref{sec:budget} and is listed as future work rather than claimed here.
+Where that effort is spent is narrowed by measurement rather than left entirely open. Past
+saturation the producers spend essentially all of their time in two places recorded in
+Table~\ref{tab:idioms}: the bounded blocking queue and the completion handle. Section~\ref{sec:contention}
+isolates those primitives under the same seven-producer pattern; the isolated path does not
+reproduce the full-service ordering at significance ($p = \ContentionP$), which rules out the
+queue and completion primitives \emph{alone} as the whole explanation for a
+$\OverloadThrRatio\times$ gap even though contention in the full path is where the effect appears.
+Nothing in the borrow checker, in bounds checking, or in ownership is implicated, and the finding
+should not be quoted as though it were: what the overload comparison measures is the full
+handoff under load, and the microbenchmark shows the synchronisation stacks are closer than that
+comparison alone would suggest.
 
 Three things again bound what the finding licenses. It is one design: a shared-nothing service with one
 request outstanding per producer and a queue bound of $1\,024$, and the depth of the collapse
@@ -2929,6 +2941,48 @@ Metric & Allocator & Effect (Rust $-$ C++) & Repeats & $p$ & Holm \\
 \hline
 \end{tabular}
 \end{table}
+
+\subsection{Contended queue and completion primitives (RQ1)}\label{sec:contention}
+The overload result attributes its gap to the two forced-idiom synchronisation constructs, but
+that attribution was argued from the shape of the full-service measurement. This subsection
+isolates those constructs alone.
+
+Seven producer threads hammer one bounded queue of capacity $1\,024$ while a single consumer
+drains it. Each producer submits a no-op job carrying a one-shot completion handle and blocks
+until the consumer signals; no \texttt{ShardCore} work runs in the path. C++ uses the
+hand-written \texttt{BoundedQueue} of Section~\ref{sec:impldetails} with
+\texttt{std::promise}/\texttt{std::future}; Rust uses \texttt{sync\_channel} and a fresh
+\texttt{mpsc::channel()} per request. Each timed window lasts two seconds after a warmup;
+\ContentionRepeats{} interleaved repeats are summarised as medians with bootstrap intervals and
+tested with the exact paired permutation procedure of Section~\ref{sec:stats}.
+
+\begin{table}
+\centering
+\small
+\caption[Throughput through the contended synchronisation primitives alone]{Throughput through
+the bounded queue and completion primitives alone, with seven contending producers and queue
+capacity $1\,024$. Values are medians over \ContentionRepeats{} interleaved repeats above
+bootstrap $95\%$ confidence intervals; the paired test compares C++ against Rust on sustained
+throughput (kops/s). Measured on the host of Section~\ref{sec:testbed}.\label{tab:contention}}
+\begin{tabular}{@{}l r r r@{}}
+\hline\hline
+Language & Throughput (kops/s) & Mean ns/op & Paired $p$ \\
+\hline
+\input{figures/tab_contention.tex}\\
+\hline
+\end{tabular}
+\end{table}
+
+The isolated primitives do not reproduce the overload ordering. C++ sustains
+\ContentionThrCpp{}~kops/s and Rust \ContentionThrRust{}~kops/s, a gap of only
+$\ContentionRatio\times$ with $p = \ContentionP$, whereas the full service at
+$\OverloadLoad$~kops/s separates by $\OverloadThrRatio\times$ with the corrected $p$ at the
+family floor. The honest reading is therefore that the overload divergence involves additional
+work the microbenchmark strips away: the larger tagged \texttt{Request} on the C++ side, the
+worker's variant dispatch, and the map operations that still execute in the overload regime.
+What the result still establishes is useful: a orders-of-magnitude difference in the primitives
+alone is ruled out, and the search for the mechanism moves to the rest of the handoff path rather
+than to the safety model.
 
 \subsection{Resource use (RQ3)}\label{sec:resources}
 Table~\ref{tab:resource} reports resource use at the same
@@ -3204,7 +3258,8 @@ the operation measured apart is $\BudgetCoreRatio\times$ faster in \BudgetCoreFa
 saturation they diverge decisively: \OverloadSustainedFaster{} sustains
 $\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{} at
 $\OverloadLoad$~kops/s, in \OverloadThrAgree{} repeats under both allocators. & Overload and
-operation: resolved. Far tail below saturation: unresolved on this host \\
+operation: resolved. Far tail: unresolved on this host. Mechanism: tested; primitives alone
+insufficient \\
 RQ2 & All five injected memory-safety and data-race classes are prevented at compile time in
 safe Rust, where in C++ each compiles and is caught, if at all, only at runtime and by no single
 sanitiser. The guarantee stops there: the two boundary classes compile in both languages. &
@@ -3260,11 +3315,13 @@ fired. A degradation past a threshold rate appeared with the concurrency model h
 asynchronous runtime cannot be the only place such an effect originates. The prediction also
 named where to look first if that happened, bounds and overflow
 checking~\cite{zhang2022runtime,harris2023morello}, and that part of it was wrong: the effect
-appears only once the queue and the completion handle are contended, which points at the two
-standard libraries' blocking primitives, both of them already recorded in the forced-idiom log of
-Table~\ref{tab:idioms} as places where the implementations were forced apart. Recording that the
-prediction resolved against its own first hypothesis is more useful to the next study than
-quietly substituting the explanation that survived.
+appears only once the handoff path is contended, which points at the two standard libraries'
+blocking primitives recorded in Table~\ref{tab:idioms}. Section~\ref{sec:contention} then tests
+whether those primitives alone explain the gap and finds they do not reproduce the full-service
+ordering at significance, which narrows the cause to additional work on the C++ handoff path
+rather than to the safety model. Recording that the prediction resolved against its own first
+hypothesis, and that the follow-up microbenchmark refined rather than confirmed the attribution,
+is more useful to the next study than quietly substituting the explanation that survived.
 
 \paragraph{RQ2 (safety).} The result does not depend on the environment, and what makes it
 interesting is not the half that confirms the expectation but the half that bounds it. Within
@@ -3749,7 +3806,7 @@ Implementation bias between the two versions & Frozen specification, shared allo
 \hline
 \multicolumn{3}{@{}l}{\emph{Construct: do the metrics measure what the questions ask?}} \\
 The sweep measures the design, not the language & The operation is measured apart from the handoff and both are reported (\S\ref{sec:budget}) & One operation on one data structure is narrower than the sweep it supplements \\
-The overload result is attributed but not localised & The candidates are narrowed to two entries already in the forced-idiom log (\S\ref{sec:overload}) & No contended-queue microbenchmark was run, so the mechanism is argued rather than measured \\
+The overload result is attributed but not localised & The candidates are narrowed to two entries already in the forced-idiom log (\S\ref{sec:overload}); the contended-primitive microbenchmark (\S\ref{sec:contention}) rules out the queue and completion handle alone as the full explanation & The full handoff path under load still includes variant dispatch and larger requests on the C++ side \\
 A defect catalogue is a sample the author chose & Two classes drawn from outside the guarantee, with expectations recorded in advance & Seven programs remain seven programs \\
 RQ3 captures resource cost but not its origin & None available on this host & The memory result is established but unexplained \\
 RQ4 measures the seam, not the safety of the whole & The distinction is stated wherever the result is quoted & One address space: a compile-time property of the Rust side bounds nothing at run time \\
@@ -3877,15 +3934,14 @@ are complementary: the operation is measured apart from the handoff, and the swe
 the regime where the design stops absorbing the difference. The residual risk is that a
 microbenchmark of one operation is a narrower object than the sweep it supplements.
 
-Fourth, the strongest finding in the study is the least directly instrumented. The overload
-divergence itself is measured, replicated across the allocator control, and consistent in every
-repeat; the \emph{explanation} offered for it is not. Attributing it to the two standard libraries'
-blocking queue and completion primitives rests on where the producers must be spending their time
-in that regime and on those two constructs already appearing in the forced-idiom log, which is an
-argument rather than a measurement. A contended-queue microbenchmark holding the surrounding
-service fixed would settle it, and until one is run the attribution should be read as the most
-plausible candidate rather than as a result. What does not depend on it is the finding: the
-divergence is there whatever causes it.
+Fourth, the overload divergence is measured and replicated, and its mechanism is now tested
+rather than only argued. Section~\ref{sec:contention} isolates the bounded queue and completion
+primitives under the same seven-producer pattern; they do not reproduce the full-service ordering
+at significance ($p = \ContentionP$), which rules out those two constructs alone as the whole
+explanation even though they are where the forced-idiom log predicted contention would matter.
+The residual risk is therefore narrower than before: the cause likely includes additional work on
+the C++ handoff path---the larger tagged \texttt{Request}, variant dispatch, and map operations
+that the microbenchmark strips away---rather than being unknowable.
 
 \paragraph{External validity: how far do the results travel?}
 The study covers one subsystem, one workload, one concurrency structure, and one machine, and
@@ -3986,9 +4042,9 @@ shape, and their far tail remains unresolvable on a virtualised host, which is a
 the instrument. Past saturation they are not equivalent: the C++ build sustains
 $\OverloadThrRatio\times$ the throughput of the Rust build, in \OverloadThrAgree{} interleaved
 repeats under both allocators, while drawing $\OverloadCpuPerOpRatio\times$ the CPU per completed
-operation. The likely cause is again a standard library rather than a safety model, this time the
-blocking queue and completion primitives; confirming that needs a contended-queue microbenchmark
-this study did not run. On memory the Rust build carries a few MiB more fixed footprint under both
+operation. Section~\ref{sec:contention} shows the isolated queue and completion primitives do not
+reproduce that ordering at significance; the gap likely includes additional C++ handoff work beyond
+those two constructs. On memory the Rust build carries a few MiB more fixed footprint under both
 allocators, an order of magnitude less than the allocator choice itself costs.
 
 Taken together these support a narrow but decision-grade claim, and it is narrower than the one
@@ -4011,18 +4067,15 @@ verdict, and the work that remains.
 \caption[What the thesis concludes, and what it leaves behind]{What the thesis concludes, and what it leaves behind. The three cards are the
 conclusions in the order the evidence supports them, the performance card divided twice as the
 evidence divides it. The grey band is the instrument offered in place of a verdict, the blue
-band the work that remains, with the contended-queue microbenchmark first because it would
-explain the largest finding rather than merely confirm it.\label{fig:contributions}}
+band the work that remains, led by the bare-metal tail campaign and hardware
+counters.\label{fig:contributions}}
 \end{figure}
 
 Several directions extend the work, each of them the direct remedy to a limitation named above.
-Two are immediate. The first is a contended-queue microbenchmark isolating the bounded queue and
-the completion handle in both languages, which is what would turn the overload result of
-Section~\ref{sec:overload} from a measured divergence with an argued cause into an explained one.
-The second is executing the bare-metal campaign, whose target is now much narrower than it was:
-the repeat count is not the binding constraint, the saturation knee and the overload comparison
-are already resolved, and what bare metal would buy specifically is the far tail below
-saturation. Beyond those:
+The immediate priority is executing the bare-metal campaign, whose target is now narrow: the
+saturation knee and the overload comparison are already resolved, and what bare metal would buy
+specifically is the far tail below saturation, together with hardware counters and allocation
+profiles on the same visit. Beyond that:
 
 \begin{itemize}
 \item Replay captured, anonymised production traces in place of the synthetic workload, so that

@@ -665,6 +665,38 @@ def write_budget_table(budget, outdir):
     return out
 
 
+def load_contention(path):
+    """Read contended-queue repeats from bench/queue_contention.sh."""
+    return load_budget(path)
+
+
+def write_contention_table(contention, outdir):
+    """Emit tab_contention.tex: throughput under multi-producer queue load."""
+    if not contention or "cpp" not in contention or "rust" not in contention:
+        return None
+    if not contention["cpp"] or not contention["rust"]:
+        return None
+
+    def cell(lang, key, scale=1.0, digits=1):
+        med, lo, hi = bootstrap_ci([r[key] / scale for r in contention[lang]])
+        return f"\\mci{{{med:.{digits}f}}}{{{lo:.{digits}f}}}{{{hi:.{digits}f}}}"
+
+    cpp_thr = [r["throughput_kops"] for r in contention["cpp"]]
+    rust_thr = [r["throughput_kops"] for r in contention["rust"]]
+    effect, p, _ = paired_permutation_test(cpp_thr, rust_thr)
+
+    lines = [
+        f"C++ & {cell('cpp', 'throughput_kops')} & {cell('cpp', 'ns_per_op', 1.0, 0)} & "
+        f"\\multicolumn{{1}}{{c}}{{---}}",
+        f"Rust & {cell('rust', 'throughput_kops')} & {cell('rust', 'ns_per_op', 1.0, 0)} & "
+        f"{fmt_p(p)}",
+    ]
+    out = os.path.join(outdir, "tab_contention.tex")
+    with open(out, "w") as f:
+        f.write(" \\\\\n".join(lines) + "\n")
+    return out
+
+
 def fig_budget(budget, sig_results, outdir):
     """Two-panel decomposition of the end-to-end latency the sweep reports.
 
@@ -843,7 +875,7 @@ def write_latency_table(rows, outdir, load):
 
 
 def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=None,
-                           overload=None):
+                           overload=None, contention=None):
     """Emit the campaign's summary numbers as LaTeX macros.
 
     Every quantity the prose quotes about the campaign is defined here and used by
@@ -1063,6 +1095,28 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
         if p50_sig and core_us_max > 0:
             bound_us = max(max(abs(r["lo"]), abs(r["hi"])) for r in p50_sig)
             macros["BudgetBoundVsCore"] = f"{bound_us / core_us_max:.0f}"
+
+    if contention and contention.get("cpp") and contention.get("rust"):
+        med_thr = lambda lang: statistics.median(
+            r["throughput_kops"] for r in contention[lang])
+        cpp_thr, rust_thr = med_thr("cpp"), med_thr("rust")
+        _, cont_p, _ = paired_permutation_test(
+            [r["throughput_kops"] for r in contention["cpp"]],
+            [r["throughput_kops"] for r in contention["rust"]],
+        )
+        if min(cpp_thr, rust_thr) > 0:
+            macros.update({
+                "ContentionRepeats": str(
+                    min(len(contention["cpp"]), len(contention["rust"]))),
+                "ContentionThrCpp": f"{cpp_thr:.0f}",
+                "ContentionThrRust": f"{rust_thr:.0f}",
+                "ContentionFaster": "C++" if cpp_thr > rust_thr else "Rust",
+                "ContentionRatio": (
+                    f"{max(cpp_thr, rust_thr) / min(cpp_thr, rust_thr):.1f}"),
+                "ContentionP": fmt_p(cont_p),
+                "ContentionProducers": str(
+                    contention["cpp"][0].get("producers", 7)),
+            })
 
     if ffi:
         native, through = ffi.get("op_roundtrip_native_ns", 0), ffi.get("op_roundtrip_ns", 0)
@@ -1397,6 +1451,7 @@ def main():
     ap.add_argument("--taxonomy", default="../faults/results/taxonomy.csv")
     ap.add_argument("--ffi", default="../ffi/results/metrics.json")
     ap.add_argument("--budget", default="results/latency_budget.json")
+    ap.add_argument("--contention", default="results/queue_contention.json")
     ap.add_argument("--outdir", default="../figures")
     ap.add_argument("--load", type=float, default=None,
                     help="Representative offered load (ops/s); auto if omitted.")
@@ -1452,13 +1507,24 @@ def main():
         print(f"note: no latency-budget data at {budget_path}; "
               f"run bench/latency_budget.sh (tab_budget.tex left as is)")
 
+    contention_path = (args.contention if os.path.isabs(args.contention)
+                       else os.path.join(here, args.contention))
+    contention = load_contention(contention_path)
+    contention_tab = write_contention_table(contention, outdir)
+    if contention_tab:
+        produced.append(contention_tab)
+    else:
+        print(f"note: no queue-contention data at {contention_path}; "
+              f"run bench/queue_contention.sh (tab_contention.tex left as is)")
+
     sig = significance_results(rows, load, overload)
     budget_fig = fig_budget(budget, sig, outdir)
     if budget_fig:
         produced.append(budget_fig)
     lat_tab = write_latency_table(rows, outdir, load)[0]
     res_tab = write_resource_table(rows, outdir, load)
-    macros = write_generated_macros(rows, outdir, load, sig, budget, ffi_metrics, overload)
+    macros = write_generated_macros(rows, outdir, load, sig, budget, ffi_metrics,
+                                    overload, contention)
     produced.extend([lat_tab, res_tab, macros])
     over_tabs = write_overload_table(rows, sig, outdir, overload)
     if over_tabs:

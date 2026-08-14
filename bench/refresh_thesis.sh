@@ -3,7 +3,8 @@
 # measurement logs, then rebuild the PDF.
 #
 # Run this after a campaign (bench/campaign.sh), a latency-budget decomposition
-# (bench/latency_budget.sh), an FFI prototype run (ffi/build.sh), or a
+# (bench/latency_budget.sh), a queue-contention microbenchmark
+# (bench/queue_contention.sh), an FFI prototype run (ffi/build.sh), or a
 # fault-injection run (faults/run_faults.sh). Nothing in the thesis prose is
 # hand-copied from the data: the campaign summary numbers land in
 # figures/gen_macros.tex and the prose refers to them by name, so this one

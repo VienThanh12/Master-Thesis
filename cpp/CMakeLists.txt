@@ -57,6 +57,12 @@ endif()
 add_executable(latency_budget bench/latency_budget.cpp)
 target_link_libraries(latency_budget PRIVATE uecm)
 
+# --- Contended-queue microbenchmark -------------------------------------------
+# Isolates the bounded queue and completion primitives under multi-producer load.
+# See bench/queue_contention.cpp.
+add_executable(queue_contention bench/queue_contention.cpp)
+target_link_libraries(queue_contention PRIVATE uecm)
+
 # --- Tests --------------------------------------------------------------------
 option(UECM_BUILD_TESTS "Build the C++ conformance/smoke tests" ON)
 if(UECM_BUILD_TESTS)
