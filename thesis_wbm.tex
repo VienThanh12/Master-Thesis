@@ -281,31 +281,4 @@
 \addcontentsline{toc}{chapter}{\bibname} % This lines adds the bibliography to the ToC
 \printbibliography
 
-\backmatter
-\begin{appendices}
-
-% Inside the appendices, \appendix takes the title where \chapter would.
-\appendix{Fault-injection example\label{appendix:code}}
-
-\begin{itemize}
-  \item This appendix shows one case from the RQ2 catalogue, the use-after-free, in both
-        languages side by side.
-  \item In the C++ version a reference into the context map outlives the \texttt{erase} that
-        frees the entry, and the program still compiles cleanly.
-  \item The error appears only at run time, and only if AddressSanitizer is enabled on a path
-        that a test actually exercises.
-  \item The equivalent safe-Rust program does not compile at all: the borrow checker refuses to
-        let the map be modified while a reference into it is still live
-        (\texttt{E0499})~\cite{klabnik2023rust}.
-  \item Side by side, the two programs make the difference in kind of guarantee concrete instead
-        of arguing it from language semantics.
-\end{itemize}
-
-\end{appendices}
-
-% The class writes the page counts for the abstract form from \AtEndDocument, which
-% runs before \end{document} flushes the last page. Without this the final appendix
-% page is never counted and the form reports no appendix pages at all.
-\clearpage
-
 \end{document}
