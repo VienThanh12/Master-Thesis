@@ -1,0 +1,50 @@
+---
+description: Thesis quality bar, document roles, and grade criteria for this repo
+alwaysApply: true
+---
+
+# Thesis repository — agent rules
+
+**Before any thesis, plan, benchmark, or artefact edit: read `AGENT.md` in the repo root.**
+
+## Document roles (do not confuse these)
+
+| Document | Status |
+| --- | --- |
+| `Thesis_Plan_v2.tex` / `.pdf` | **Supervisor-facing, reviewed** |
+| `thesis_wbm.tex` / `.pdf` | **Supervisor-facing, reviewed** (skeleton; ch. 6–9 empty unless author asks) |
+| `thesis.tex` / `.pdf` | **Full draft** — canonical but still needs review |
+| `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Evidence — must match thesis claims |
+
+When claims, RQs, methodology, or numbers change: sync plan + wbm + `thesis.tex`; regenerate via `bench/refresh_thesis.sh` (never hand-edit `figures/gen_macros.tex`).
+
+## Grade criteria (Finnish 1–5) — every edit must protect these
+
+| # | Criterion | Grade | Blocker to 5 |
+| --- | --- | --- | --- |
+| 1 | Objectives & RQs | 5 | Keep falsifiable RQ2 (5 in-guarantee + 2 boundary defects) |
+| 2 | Scholarly sources | 5 | Acknowledge contrary results; consistent terminology |
+| 3 | Method & data | 4.5 | Bare-metal tail campaign; counters for RSS/op gap |
+| 4 | Results presentation | 4.5 | RQ1 tail open on WSL2; figures must match tables |
+| 5 | Discussion | 5 | No over-claim: “cannot tell” ≠ “equivalent” |
+| 6 | Academic text | 5 | No figure–text contradictions; check abstract page overflow |
+
+Full notes: `ASSESSMENT.md`. Checklist per edit: `AGENT.md` §2.
+
+## Non-negotiable claims
+
+- Frozen spec + parity suite; interleaved design + Holm-corrected paired tests.
+- WSL2 = preliminary for **tail** latency only.
+- Peak RSS: real language + allocator effect; allocator effect is larger.
+- End-to-end sweep ≈ handoff cost; operation is ~0.04% — do not claim median language equivalence from that sweep.
+- Rust: data races/aliasing at compile time; **not** race conditions or deadlocks.
+
+## After substantive changes
+
+Run `bench/refresh_thesis.sh` when numbers change; rebuild `thesis_wbm.tex` / `Thesis_Plan_v2.tex` when their sources change. Zero LaTeX errors and undefined refs required.
+
+## Do not
+
+- Treat `thesis.pdf` as supervisor-approved.
+- Fill `thesis_wbm.tex` chapters 6–9 without explicit author request.
+- Commit unless explicitly asked.
