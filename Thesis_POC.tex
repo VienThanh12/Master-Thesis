@@ -258,7 +258,7 @@ stateful, highly concurrent software system. It manages the lifecycle of every c
 device, drives the RRC signaling procedures~\cite{3gpp38331}, and coordinates mobility and
 handovers, all under strict latency budgets. The rates involved are high: a single busy site
 drives on the order of thousands of connection-management and mobility procedures per second,
-each bounded by a budget measured in milliseconds~\cite{3gpp22261}, while a deployed control
+each bounded by a budget measured in milliseconds~\cite{3gpp38913}, while a deployed control
 plane coordinates millions of simultaneously connected devices. As the RAN moves to cloud-native,
 disaggregated deployments, the correctness, reliability, and timing behaviour of this
 software increasingly determine the quality of the network as a whole. An outage or a
@@ -371,7 +371,7 @@ control-plane half of the central unit: it hosts RRC and manages the UE context 
 delegating user-plane bearer handling to the CU-UP over the E1
 interface~\cite{3gpp38401,3gpp38300,3gpp38463,3gpp38331}. It does so under the
 millisecond-scale procedure budgets the 5G system places on control
-signaling~\cite{3gpp22261}, and at the very high event rates and connected-device counts a
+signaling~\cite{3gpp38913}, and at the very high event rates and connected-device counts a
 deployed network sustains. Because it is written in C++, it inherits both that language's
 performance and its memory-safety and concurrency hazards. That is precisely where the two
 trends above converge.
@@ -593,8 +593,8 @@ The NG-RAN architecture splits the gNB into a central unit (gNB-CU) and distribu
 with the control plane (gNB-CU-CP) handling RRC and connection management for each
 UE~\cite{3gpp38401,3gpp38300,3gpp38331}. Such control-plane systems must satisfy demanding
 non-functional requirements: very high event rates (UE mobility, signaling storms), strict
-and predictable latency bounds that the 5G service specifications quantify as
-KPIs~\cite{3gpp22261}, long-lived software with continuously evolving complexity,
+and predictable latency bounds that the 5G service and RAN specifications quantify as
+KPIs~\cite{3gpp22261,3gpp38913}, long-lived software with continuously evolving complexity,
 and heavily concurrent workloads. In these systems the worst-case and tail behaviour,
 rather than the average, determines whether deadlines are met, which motivates the
 predictability focus of this thesis.
@@ -1088,7 +1088,7 @@ instead of changing state.\label{fig:fsm}}
 Two properties make UECM a good study object for a language comparison. It is
 \emph{representative}: per-UE mutable state, a strict operation lifecycle, high inter-UE
 concurrency, and the hard latency and reliability targets the 5G system places on control-plane
-procedures~\cite{3gpp22261} are exactly the properties that make production
+procedures~\cite{3gpp22261,3gpp38913} are exactly the properties that make production
 RAN control-plane code difficult, so conclusions about how a language handles them transfer to
 the broader class of stateful, concurrent control-plane services. It is also \emph{tractable}:
 the subsystem is small enough to specify precisely, implement faithfully in two languages, and
@@ -1564,7 +1564,8 @@ Each configuration (language $\times$ allocator $\times$ load level) is measured
 independent repeats, and the four variants are \emph{interleaved} within each repeat so that
 slow drift, thermal effects, and background activity perturb them equally rather than biasing
 one. Results are summarised by the median with a nonparametric bootstrap $95\%$ confidence
-interval rather than by the mean with a standard deviation, because latency distributions are
+interval~\cite{efron1993bootstrap} rather than by the mean with a standard deviation, because
+latency distributions are
 heavy-tailed and skewed and a distribution-free interval on the median makes no normality
 assumption. This follows established guidance on statistically rigorous performance evaluation,
 which warns that reporting a single number invites conclusions that run-to-run variation does
@@ -1609,8 +1610,8 @@ paired difference is exchangeable; for the repeat counts used here every one of 
 sign assignments is enumerated rather than sampled, so the resulting $p$-value is exact and,
 like the bootstrap, assumes nothing about the shape of the distribution. Because the same
 comparison is made for several metrics and both allocators, the family of tests is corrected
-with the Holm step-down procedure, which controls the family-wise error rate without assuming
-independence between the tests.
+with the Holm step-down procedure~\cite{holm1979simple}, which controls the family-wise error
+rate without assuming independence between the tests.
 
 Two decisions about how that family is read are taken here rather than after the results,
 because either could otherwise be made to suit whatever the data turned out to be.
@@ -3367,7 +3368,7 @@ ordinary value whose lifetime the borrow checker tracks perfectly, and tracking 
 says nothing about whether two threads take their locks in compatible orders. That this is a
 boundary of the language rather than an artefact of the injected example is confirmed by the
 tooling built around it, since static deadlock detection for Rust is an active research problem
-in its own right~\cite{zhang2024deadlock} and model checkers for Rust kernel code are motivated
+in its own right~\cite{zhang2026deadlock} and model checkers for Rust kernel code are motivated
 explicitly by the observation that ownership and borrowing leave data races, deadlocks, and
 livelocks reachable~\cite{tang2025converos}. The lost update is sharper still, for the reason
 Section~\ref{sec:safetyresults} gives: it escapes ThreadSanitizer for precisely the reason it
@@ -3916,7 +3917,7 @@ and reviewability of the boundary rather than the safety of the whole.
 \paragraph{Conclusion validity: are the differences real or noise?}
 Every configuration is measured over \NRepeats{} interleaved repeats and reported as a median
 with a nonparametric bootstrap $95\%$ confidence interval, in line with established
-guidance~\cite{georges2007rigorous}; latency is captured against an intended send schedule so
+guidance~\cite{georges2007rigorous,efron1993bootstrap}; latency is captured against an intended send schedule so
 that coordinated omission does not hide the
 tail~\cite{schroeder2006openclosed,tene_hdrhistogram}; and comparisons are tested rather than
 left to interval overlap, the interleaved design being exploited as a matched one

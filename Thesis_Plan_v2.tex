@@ -15,9 +15,9 @@
 \addbibresource{bibliography.bib}
 % List the authors in the bibliography as Lastname F.
 \DeclareNameAlias{sortname}{family-given}
-% One reference carries the unbreakable token arXiv:2401.01114v1, which leaves its
-% line with nowhere to break at this measure. \sloppy is what the thesis documents
-% use for the same reason, and it sets that entry the way they do.
+% Several references carry long unbreakable URLs, which leave their line with
+% nowhere to break at this measure. \sloppy is what the thesis documents use for
+% the same reason, and it sets those entries the way they do.
 \sloppy
 
 \usepackage[hidelinks]{hyperref}
@@ -79,9 +79,10 @@ Two master's theses at Ericsson are the closest prior work. Karlb\"ack and
 Or\"o compare Rust and Go against C++ for RAN applications and conclude C++
 remains the choice where performance is critical~\cite{karlback2021ran}.
 Arvidsson and Kaller measure median and 99th-percentile latency for 5G
-control-plane procedures across five asynchronous frameworks, and find that the
-Rust runtimes match C++ at the median but their p99 rises more steeply past a
-threshold rate~\cite{arvidsson2025async}.
+control-plane procedures across five asynchronous frameworks. C++ with
+Boost.Fibers is fastest at every load; the Rust runtimes track the shape of its
+median curve, but their p99 rises more steeply past a threshold
+rate~\cite{arvidsson2025async}.
 
 Neither isolates the language: in both, the runtime and concurrency model vary
 together with it, so a measured difference cannot be attributed to the language
@@ -115,7 +116,7 @@ RQ2 is deliberately two-sided: a catalogue containing only defects Rust
 prevents would confirm its own premise, so it spans the boundary: five
 classes safe Rust rejects and two it does not. Memory-safety defects in real
 Rust code invariably trace back to \texttt{unsafe}~\cite{xu2021rustcve}, while
-deadlock remains an open problem for the language~\cite{zhang2024deadlock}.
+deadlock remains an open problem for the language~\cite{zhang2026deadlock}.
 
 \section{Methodology}
 
@@ -128,11 +129,16 @@ optimisation. Holding the concurrency model fixed matters because
 thread-per-core structuring itself changes tail
 latency~\cite{enberg2019threadpercore}. Both must pass the same parity suite.
 
-The workload is swept from nominal load to overload on pinned,
-frequency-locked hardware, with interleaved repeats and bootstrap confidence
-intervals~\cite{georges2007rigorous}, latency captured in high-dynamic-range
-histograms against an intended send schedule so coordinated omission does not
-hide the tail~\cite{tene_hdrhistogram}. Evaluation adds a controlled
+The workload is swept from nominal load to overload on pinned cores, with
+interleaved repeats and interval estimates rather than single
+figures~\cite{georges2007rigorous}: medians with nonparametric bootstrap
+confidence intervals~\cite{efron1993bootstrap}, and exact paired permutation
+tests corrected across the family by the Holm procedure~\cite{holm1979simple}.
+Frequency locking belongs to the bare-metal protocol; the virtualised host
+measured so far does not expose the governor from inside the guest. Latency is
+captured in high-dynamic-range histograms against an intended send schedule, so
+coordinated omission does not hide the
+tail~\cite{schroeder2006openclosed,tene_hdrhistogram}. Evaluation adds a controlled
 fault-injection study~\cite{natella2016fault} and an FFI prototype. On the FFI,
 the plan takes a narrow position: confining \texttt{unsafe} to the seam is a
 statement about what the compiler checks, not run-time protection, since host
@@ -156,7 +162,7 @@ data is used, so no personal or confidential data is processed.
 
 Work is well under way. The shared specification, both implementations, the conformance
 suite, the fault-injection catalogue, the FFI prototype, and the benchmark harness are in
-place. Chapter drafts and a supervisor-read-through skeleton (\texttt{thesis\_wbm.tex}) exist.
+place. Chapter drafts and a supervisor-read-through skeleton (\texttt{Thesis\_v1.tex}) exist.
 What remains is the bare-metal measurement campaign (RQ1/RQ3 tail claims), final chapter
 prose for Design through Conclusion, and submission.
 
@@ -169,7 +175,8 @@ Literature review & Drafted in thesis skeleton \\
 Spec + implementations & Complete; awaiting supervisor freeze \\
 RQ2 (fault injection) & Complete \\
 RQ4 (FFI prototype) & Complete \\
-RQ1 / RQ3 (benchmarks) & Preliminary (WSL2); bare-metal pending \\
+RQ1 / RQ3 (benchmarks) & Measured on a dedicated virtualised Xeon host;
+bare-metal pending for the far tail \\
 Thesis document & In progress (full draft + bullet skeleton) \\
 \hline
 \end{tabular}

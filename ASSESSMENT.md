@@ -100,11 +100,12 @@ that consistency by the discussion chapter.
 Section 2.8 has just stated. It keeps what was genuinely its own contribution — the search
 protocol — and reframes the two contrary results as the baseline the thesis works against.
 
-**Outstanding (optional).** Two load-bearing citations are arXiv preprints rather than
+**Outstanding (optional).** One load-bearing citation is still an arXiv preprint rather than
 peer-reviewed work: Bugden and Alahmar carries the claim that Rust matches C and C++ on
-performance, and Zhang et al. carries the deadlock-detection claim. Replacing either with a
-peer-reviewed equivalent would remove the last soft spot in an otherwise very strong
-bibliography.
+performance. The deadlock-detection claim no longer is — Zhang et al. appeared in *Automated
+Software Engineering* 33(2):65, 2026, and the bibliography now cites that version
+(`zhang2026deadlock`). Replacing the remaining preprint would remove the last soft spot in an
+otherwise very strong bibliography.
 
 ---
 
@@ -481,8 +482,8 @@ exceptionally tight. The introduction's §1.6 already states the dual division (
 regime) that the evidence later forces—graduate-level framing.
 
 **2 — Grade 5.** §4.1 search protocol is auditable. §2.8 gap map and §8.5 related work engage
-contrary evidence (Arvidsson, Emmerich) honestly. Optional soft spot unchanged: two load-bearing
-arXiv cites (`Bugden`, `Zhang` deadlock).
+contrary evidence (Arvidsson, Emmerich) honestly. Optional soft spot now one load-bearing arXiv
+cite (`Bugden`); the deadlock cite was upgraded to its peer-reviewed journal version.
 
 **3 — Grade 4.5.** Methodology (§5.5–5.6) is among the strongest parts of the thesis: pre-committed
 interval-vs-$p$ rule, Holm family design, exact permutation test, allocator replication check,

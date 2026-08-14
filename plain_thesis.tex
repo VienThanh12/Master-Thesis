@@ -2966,7 +2966,7 @@ deadlock shows that Rust reasons about \emph{aliasing}, not about \emph{acquisit
 and tracking it perfectly says nothing about whether two threads take their locks in
 compatible orders. That this is a boundary of the language and not an artefact of the
 injected example is corroborated by the tooling built around it: static deadlock detection for
-Rust is an active research problem in its own right~\cite{zhang2024deadlock}, and model
+Rust is an active research problem in its own right~\cite{zhang2026deadlock}, and model
 checkers for Rust kernel code are motivated explicitly by the observation that ownership and
 borrowing leave data races, deadlocks, and livelocks
 reachable~\cite{tang2025converos}.
