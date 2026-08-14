@@ -5,7 +5,7 @@ RAN Control-Plane Systems** against the six-criterion assessment matrix (simplif
 data science master's thesis matrix), on the Finnish 1–5 scale.
 
 Two states are recorded per criterion: the grade on first reading, and the grade after a
-refinement pass. Source material was `thesis.pdf` and the supporting artefacts in `spec/`,
+refinement pass. Source material was `Thesis_POC.pdf` and the supporting artefacts in `spec/`,
 `bench/`, `faults/`, `ffi/`, and `diagrams/`.
 
 An interactive version of this document exists as a Cursor canvas at
@@ -319,7 +319,7 @@ Whether it survives more repeats is a named item to re-check after the bare-meta
 | `diagrams/13_defect_families_tree.svg` | Both boundary classes added with their own marker; legend corrected from five classes to five plus two. |
 | `diagrams/14_fault_injection_method.svg` | Seven classes not five, `rustc 1.97` not `1.96`, and the outcome box no longer claims every case is a compile error. |
 | `diagrams/15_overload_cliff.svg` | Dropped the unsupported claim that both languages track the cliff; stale load annotations replaced with qualitative labels. |
-| `thesis.tex` | New significance and complexity tables with their discussion; corrected RQ3 finding in Chapters 7, 8, 9 and the abstract; Section 5.5 rewritten; 3.3 and 4.1 de-duplicated; contents trimmed; long sentences broken up. |
+| `Thesis_POC.tex` | New significance and complexity tables with their discussion; corrected RQ3 finding in Chapters 7, 8, 9 and the abstract; Section 5.5 rewritten; 3.3 and 4.1 de-duplicated; contents trimmed; long sentences broken up. |
 | `bibliography.bib` | Added the `lizard` tool entry. |
 
 Verified by full rebuild: 105 pages, zero LaTeX errors, zero undefined references or citations,
@@ -434,9 +434,9 @@ overflowed on first attempt.
 
 ## Third pass — 14 August 2026
 
-Re-read of `thesis.tex` / `thesis.pdf` against the same six-criterion matrix. Source:
+Re-read of `Thesis_POC.tex` / `Thesis_POC.pdf` against the same six-criterion matrix. Source:
 full document (Chapters 1–9, abstract, tables, generated macros in `figures/gen_macros.tex`),
-plus spot-check of `spec/`, `bench/`, `faults/`, `ffi/`. Build: `latexmk -pdf thesis.tex`
+plus spot-check of `spec/`, `bench/`, `faults/`, `ffi/`. Build: `latexmk -pdf Thesis_POC.tex`
 up to date (last PDF 13 Aug 2026).
 
 ### Summary (current)

@@ -57,21 +57,21 @@ else
   echo "  SKIP: .venv-pptx not present; keeping existing Rust_vs_Cpp_Nokia_RAN_thesis.pptx"
 fi
 
-echo "== rebuilding thesis.pdf =="
+echo "== rebuilding Thesis_POC.pdf =="
 cd "$root"
-latexmk -pdf -interaction=nonstopmode thesis.tex >/dev/null 2>&1 || true
+latexmk -pdf -interaction=nonstopmode Thesis_POC.tex >/dev/null 2>&1 || true
 
 echo
-if grep -qE '^!|LaTeX Error' thesis.log 2>/dev/null; then
-  echo "FAIL: LaTeX reported errors -- see thesis.log"
-  grep -nE '^!|LaTeX Error' thesis.log | head
+if grep -qE '^!|LaTeX Error' Thesis_POC.log 2>/dev/null; then
+  echo "FAIL: LaTeX reported errors -- see Thesis_POC.log"
+  grep -nE '^!|LaTeX Error' Thesis_POC.log | head
   exit 1
 fi
-if grep -q 'LaTeX Warning' thesis.log 2>/dev/null; then
+if grep -q 'LaTeX Warning' Thesis_POC.log 2>/dev/null; then
   echo "WARN: unresolved LaTeX warnings (undefined refs/citations?):"
-  grep -n 'LaTeX Warning' thesis.log | head
+  grep -n 'LaTeX Warning' Thesis_POC.log | head
 fi
-echo "OK: thesis.pdf rebuilt."
+echo "OK: Thesis_POC.pdf rebuilt."
 echo
 echo "Campaign numbers now in the prose (figures/gen_macros.tex):"
 sed -n 's/\\newcommand{\\\([A-Za-z]*\)}{\(.*\)}/  \1 = \2/p' figures/gen_macros.tex

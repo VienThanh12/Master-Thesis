@@ -18,7 +18,7 @@ Workflow for a new citation:
 2. Open the **primary source** (see table below) - not Scholar's "Cite" button alone.
 3. Copy metadata into `bibliography.bib` with a consistent cite key (`authorYYYYkeyword`).
 4. Add `doi` and/or `url`; set `urldate` / `note = {Accessed …}` for web-only sources.
-5. Run `bibtex` and confirm the key resolves in `thesis.tex`.
+5. Run `bibtex` and confirm the key resolves in `Thesis_POC.tex`.
 
 ---
 

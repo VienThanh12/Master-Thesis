@@ -13,7 +13,7 @@ import re
 import sys
 from collections import defaultdict
 
-SRC = sys.argv[1] if len(sys.argv) > 1 else "thesis.tex"
+SRC = sys.argv[1] if len(sys.argv) > 1 else "Thesis_POC.tex"
 lines = open(SRC, encoding="utf-8").read().split("\n")
 
 # hard word -> plain equivalents

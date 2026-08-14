@@ -1,10 +1,10 @@
 # Literature sweep, August 2026
 
-Candidate sources for `thesis.tex`, found by searching for work published after the current
+Candidate sources for `Thesis_POC.tex`, found by searching for work published after the current
 bibliography was assembled.
 
 > **Status, 10 August 2026.** The core set (§10, items 1–7) has been **applied**: eleven entries
-> added to `bibliography.bib` and the accompanying prose written into `thesis.tex`. The build is
+> added to `bibliography.bib` and the accompanying prose written into `Thesis_POC.tex`. The build is
 > clean at 141 pages with no undefined citations. One deviation: the C++ profiles threat was
 > written into the external-validity prose of §"Threats to validity" rather than added as a row
 > to `tab:threats`, because the companion figure `25_threats_validity.drawio` is hand-laid-out
@@ -75,7 +75,7 @@ primary source is marked rather than filled in.
 
 ## 2. C++ is changing under the thesis's feet
 
-**Why this matters.** §"C++ for latency-critical systems" (thesis.tex:645–680) says safety in
+**Why this matters.** §"C++ for latency-critical systems" (Thesis_POC.tex:645–680) says safety in
 C++ "remains the programmer's responsibility rather than a property the compiler enforces", and
 that C++ "mitigates these defects with tooling rather than with language guarantees". Both
 sentences are true of C++23 as shipped, which is what the C++ implementation targets. But the
@@ -153,15 +153,15 @@ about C++29 is wanted, confirm against WG21 P5000 ("Direction for ISO C++29") fi
 
 ### 2.5 Where it goes
 
-- **§"C++ for latency-critical systems" (thesis.tex:645–680)**, as a new paragraph after the
+- **§"C++ for latency-critical systems" (Thesis_POC.tex:645–680)**, as a new paragraph after the
   tooling paragraph at line 672. Roughly: the committee is addressing this, here is the shape of
   it, here is why the comparison in this thesis is against C++23 as deployed, and here is why the
   concurrency half of RQ2 is unaffected either way.
-- **§"Threats to validity" (thesis.tex:3586)**, under external validity. There is currently no
+- **§"Threats to validity" (Thesis_POC.tex:3586)**, under external validity. There is currently no
   row for "the object of comparison is itself moving". It belongs in `tab:threats` as a
   construct- or external-validity row: control is that the comparison is pinned to a named
   standard and compiler version; residual is that a future C++ closes part of the gap.
-- **Conclusion / future work (thesis.tex:3774)**, as a natural re-run condition: repeat the RQ2
+- **Conclusion / future work (Thesis_POC.tex:3774)**, as a natural re-run condition: repeat the RQ2
   catalogue once an implementation ships an enforced lifetime profile.
 
 ---
@@ -201,9 +201,9 @@ it non-exploitable via guard pages. This is a clean, citable instance of the the
 argument that the guarantee is bounded by `unsafe`, and it pairs with the thesis's design choice
 of keeping the core `unsafe`-free.
 
-**Where it goes:** update the sentence at thesis.tex:667–668 that currently cites
+**Where it goes:** update the sentence at Thesis_POC.tex:667–668 that currently cites
 `google2022android`; §"Discussion on the research questions" for RQ4; and the engineering
-guidelines section (thesis.tex:3300).
+guidelines section (Thesis_POC.tex:3300).
 
 ### 3.2 Watson et al., "It Is Time to Standardize Principles and Practices for Software Memory Safety" — VERIFIED
 
@@ -218,7 +218,7 @@ as Cambridge technical report UCAM-CL-TR-996.
 **Why it is worth adding:** the memory-safety motivation in the thesis currently rests on a
 Microsoft conference talk, Google blog posts, and government reports. This is the same argument
 in a peer-reviewed venue with named academic authors, and it is the strongest single citation
-available for the claim. Straight upgrade for the citation cluster at thesis.tex:3425–3429 and
+available for the claim. Straight upgrade for the citation cluster at Thesis_POC.tex:3425–3429 and
 the motivation in Chapter 1.
 
 ### 3.3 NSA and CISA, "Memory Safe Languages: Reducing Vulnerabilities in Modern Software Development" — VERIFIED
@@ -252,7 +252,7 @@ month before this thesis is due. It does not name a language — that point must
 and is the honest reading — but it is the instrument that actually applies to the subject of the
 case study.
 
-**Where it goes:** §"Motivation and industrial context" (thesis.tex:291), alongside the existing
+**Where it goes:** §"Motivation and industrial context" (Thesis_POC.tex:291), alongside the existing
 ONCD and CISA citations. One or two sentences, no more.
 
 ---
@@ -323,7 +323,7 @@ group in the thesis's own domain.
 
 Reports average control latency below 450 µs for real-time control loops on an OAI-based gNB.
 Useful as a published, in-domain number for what "real-time" means in the RAN control plane —
-§"Tail latency and predictability in RAN" (thesis.tex:1088) currently has no external anchor of
+§"Tail latency and predictability in RAN" (Thesis_POC.tex:1088) currently has no external anchor of
 this kind.
 
 ### 4.5 Škoudlil et al., async Rust and bounded response times — VERIFIED
@@ -364,8 +364,8 @@ synchronisation primitives means poor data structuring causes "unwanted blocking
 threads, negatively influencing the timing" — which is an argument for the thesis's shard-owned
 state, not against Rust.
 
-**Where it goes:** §"Related work" (thesis.tex:3506–3520), in the passage on Arvidsson and Kaller;
-and §"Concurrency models for control-plane software" (thesis.tex:801) where the choice not to use
+**Where it goes:** §"Related work" (Thesis_POC.tex:3506–3520), in the passage on Arvidsson and Kaller;
+and §"Concurrency models for control-plane software" (Thesis_POC.tex:801) where the choice not to use
 an async runtime is made. Pair it with the cooperative-scheduling mechanism paper in §7.7.
 
 ---
@@ -458,7 +458,7 @@ it as optional supporting material rather than load-bearing evidence.
 The clearest available statement of why the C ABI is the constraint: no toolchain compiles both
 languages in one source file, so interoperation goes through platform C ABIs, and "the more
 C++-specific facilities are relied upon, the greater the challenge becomes". It also assesses
-`cxx` — already mentioned at thesis.tex:844 — as "restrictive and opinionated" by its own
+`cxx` — already mentioned at Thesis_POC.tex:844 — as "restrictive and opinionated" by its own
 description and incomplete for arbitrary interoperation. Good support for the thesis's decision
 to use a plain `extern "C"` seam, which is currently justified on the thesis's own terms.
 
@@ -513,7 +513,7 @@ finds in this whole file (§7.2 and §7.6).
 
 ### 7.1 A citable foundation for the load generator
 
-The thesis already handles coordinated omission correctly (thesis.tex:629, 638, 3693), but the
+The thesis already handles coordinated omission correctly (Thesis_POC.tex:629, 638, 3693), but the
 citation carrying it is `tene_hdrhistogram`, a conference talk. That is a weak load-bearing
 reference for a methodology chapter. There is a canonical peer-reviewed alternative.
 

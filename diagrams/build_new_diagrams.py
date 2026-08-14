@@ -135,7 +135,7 @@ def benchmark_harness():
             "figures/tab_*.tex",
             "figures/gen_macros.tex",
         ]),
-        (672, 186, "thesis.tex", [
+        (672, 186, "Thesis_POC.tex", [
             "The prose refers to",
             "the generated macros",
             "by name, so text and",

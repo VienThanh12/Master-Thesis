@@ -40,12 +40,13 @@ divergence is logged. See [`spec/SPECIFICATION.md`](spec/SPECIFICATION.md).
 ├── bench/             Latency/throughput/resource benchmark harness + plotting (RQ1, RQ3)
 │   ├── campaign.sh    Full measurement campaign (repeats, interleaving, bootstrap CI)
 │   ├── latency_budget.sh  Split the end-to-end op into work vs. cross-thread handoff
-│   └── refresh_thesis.sh  Regenerate all figures/tables and rebuild thesis.pdf
+│   └── refresh_thesis.sh  Regenerate all figures/tables and rebuild Thesis_POC.pdf
 ├── faults/            Fault-injection taxonomy: injected C++ defects vs. Rust compile errors (RQ2)
 ├── ffi/               Incremental-adoption prototype: C++ host over a Rust component via a C ABI (RQ4)
 ├── figures/           Generated figures + LaTeX tables consumed by the thesis
 ├── diagrams/          Source diagrams (SVG/PDF)
-├── thesis.tex         Thesis source (LaTeX, canonical)
+├── Thesis_POC.tex     Thesis source (LaTeX, canonical)
+├── Thesis_v1.tex      Supervisor-facing chapter skeleton
 ├── thesis-vi.tex      Vietnamese translation draft (XeLaTeX)
 ├── Thesis_Plan_v2.tex Revised thesis plan
 ├── bibliography.bib
@@ -61,7 +62,7 @@ Each component directory has its own `README.md` with build/run instructions.
 | ---- | -------- |
 | C++23 compiler (g++ 13+ / clang 17+), CMake 3.20+, Ninja | [`cpp/`](cpp/) |
 | Rust stable (1.75+; developed on 1.96), `cargo` | [`rust/`](rust/) |
-| `latexmk`, TeX Live (bundled `UH_DS_MSc.cls`) | `thesis.tex` |
+| `latexmk`, TeX Live (bundled `UH_DS_MSc.cls`) | `Thesis_POC.tex` |
 | Python 3 + `matplotlib` (optional: `lizard`) | [`bench/`](bench/) plotting and complexity proxies |
 | AddressSanitizer / ThreadSanitizer (`g++`) | [`faults/`](faults/) |
 
@@ -113,13 +114,13 @@ bench/refresh_thesis.sh
 
 This runs `bench/plot_figures.py` (and `bench/complexity.py` when `lizard` is available),
 writes into [`figures/`](figures/), rebuilds the colloquium deck via `build_deck.py`, and calls
-`latexmk -pdf thesis.tex`. Campaign summary numbers land in `figures/gen_macros.tex`; the prose
+`latexmk -pdf Thesis_POC.tex`. Campaign summary numbers land in `figures/gen_macros.tex`; the prose
 and the slides both refer to them by macro name, so text, slides, and data stay in sync.
 
 To build the thesis document alone:
 
 ```bash
-latexmk -pdf thesis.tex
+latexmk -pdf Thesis_POC.tex
 ```
 
 For thesis-grade performance numbers, provision a clean testbed and run the full

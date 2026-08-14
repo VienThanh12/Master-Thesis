@@ -12,7 +12,7 @@ primary control against implementation bias.
 
 ## Next up (as of 9 Aug 2026)
 
-Implementation, analysis, and writing are finished: `thesis.pdf` builds at 143 pages with zero
+Implementation, analysis, and writing are finished: `Thesis_POC.pdf` builds at 143 pages with zero
 LaTeX errors and zero undefined references or citations, and every quoted number regenerates
 from the raw logs. What is left is one measurement, one review round, and housekeeping. The plan
 document (`Thesis_Plan_v2.pdf`, dated 9 Aug 2026) puts measurement in September, RQ1/RQ3
@@ -55,19 +55,19 @@ needs.
 - [x] Install LaTeX toolchain (TinyTeX in ~/.TinyTeX; `pdflatex`, `bibtex`, `latexmk` on PATH)
 - [x] Obtain the `UH_DS_MSc.cls` class file (local reconstruction from UH_*_MSc family; see note)
 - [x] Create `bibliography.bib` with all cited references (65 entries as of Aug 2026)
-- [x] Verify `thesis.tex` compiles to PDF end-to-end (143 pages as of Aug 2026, all
+- [x] Verify `Thesis_POC.tex` compiles to PDF end-to-end (143 pages as of Aug 2026, all
       refs/citations resolve; bibliography style is now `IEEEtran`, numbered in citation order)
 - [x] Initialize git repository; add `.gitignore` (build artifacts, LaTeX aux files)
 - [ ] (Optional) Replace reconstructed `UH_DS_MSc.cls` with the official one from Overleaf/Moodle
 - [ ] Confirm the cover-page programme label ("Master's Programme in Computer Science") is correct
 - [x] Decide repo layout: `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/`, `figures/` at
-      repo root; `thesis.tex` + `bibliography.bib` at root. No separate `experiments/` or
+      repo root; `Thesis_POC.tex` + `bibliography.bib` at root. No separate `experiments/` or
       `analysis/` dirs (folded into `bench/`).
 
 ### Build instructions
 ```bash
 # Toolchain is TinyTeX; PATH set in ~/.bashrc (open a new terminal or `source ~/.bashrc`)
-latexmk -pdf thesis.tex      # build -> thesis.pdf
+latexmk -pdf Thesis_POC.tex      # build -> Thesis_POC.pdf
 latexmk -C                   # clean build artifacts
 ```
 
@@ -266,11 +266,11 @@ latexmk -C                   # clean build artifacts
       19% longer but 15% lower in total complexity; C++ `worker_loop` is CCN 13 vs Rust's max of 6.
 - [x] Draft evidence-based migration/language-selection guidelines (RQ4 inputs ready; §8.4)
 - [ ] Extend `bench/refresh_thesis.sh` to rebuild every document that quotes the numbers, not
-      only `thesis.tex`. `plain_thesis.tex` inputs the same `figures/gen_*.tex`, so its prose
+      only `Thesis_POC.tex`. `plain_Thesis_POC.tex` inputs the same `figures/gen_*.tex`, so its prose
       updates while its PDF does not, which is exactly how a companion document goes stale
       without anyone noticing.
 
-## Phase 9 - Writing (fill placeholders in thesis.tex)
+## Phase 9 - Writing (fill placeholders in Thesis_POC.tex)
 - [x] Build `bibliography.bib` (3gpp38401, 3gpp38300, msrc2019memory, google2022android,
       klabnik2023rust, jung2018rustbelt, astrauskas2020unsafe, tene_hdrhistogram, pereira2017energy)
 - [x] Complete "Implementation details" section with concrete data structures/locking
@@ -288,10 +288,10 @@ latexmk -C                   # clean build artifacts
       Keywords row; check page 3 visually after editing it.
 
 ## Phase 9b - Companion documents (assign a status, then keep them in step)
-The repo now carries four documents besides `thesis.tex`. Only `thesis.tex` is the submission
+The repo now carries four documents besides `Thesis_POC.tex`. Only `Thesis_POC.tex` is the submission
 artefact; the rest are unlabelled, which is how two of them drifted without it being visible.
-- [x] `plain_thesis.tex` - plain-language variant (121 pages) for a reader with no 5G
-      background. Same argument, same data, same generated macros; builds clean. `thesis.tex`
+- [x] `plain_Thesis_POC.tex` - plain-language variant (121 pages) for a reader with no 5G
+      background. Same argument, same data, same generated macros; builds clean. `Thesis_POC.tex`
       stays the reference version, and its header already says so.
 - [ ] `thesis-vi.tex` - Vietnamese translation (75 pages), currently **broken and stale**. All
       113 citations (33 distinct keys) render as `[?]` because bibtex has never been run for this
@@ -300,17 +300,17 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       are hand-copied and now predate the 15-repeat campaign, the latency decomposition, and the
       corrected RQ3 reading. Decide whether it is a deliverable: if yes, run bibtex and port the
       results across; if no, record that in the notes so it stops reading as unfinished work.
-- [ ] `thesis_wbm.tex` - 27-page bullet digest of all ten chapters, useful for a supervisor
+- [ ] `Thesis_v1.tex` - 27-page bullet digest of all ten chapters, useful for a supervisor
       read-through. Its abstract is still the template placeholder, "Abstract to be written last."
 - [ ] `Thesis_Plan_v2.tex` - the 5-page plan, reset to a pre-work baseline ("Work has not started
       yet") and dated 9 Aug 2026. If it is handed in later than that date, the date and the status
       table have to move together.
-- [ ] Make the title-page fields agree across variants: `thesis_wbm.tex` has
-      `\censors{Keijo Heljanko}{}{}` while `thesis.tex` still has `\censors{}{}{}`. One of the two
+- [ ] Make the title-page fields agree across variants: `Thesis_v1.tex` has
+      `\censors{Keijo Heljanko}{}{}` while `Thesis_POC.tex` still has `\censors{}{}{}`. One of the two
       is wrong, and the same programme/study-track labels are duplicated in four files.
 - [ ] Housekeeping: `thesis_wbm_full_backup.tex` is a tracked 208 kB leftover still on
       `\bibliographystyle{abbrv}`. Delete it or move it out of the repo root, so the one-word
-      difference from `thesis_wbm.tex` cannot be edited by mistake.
+      difference from `Thesis_v1.tex` cannot be edited by mistake.
 
 ## Phase 10 - Finalization
 - [ ] Full proofread + supervisor review round(s)
@@ -389,7 +389,7 @@ numbers land:
   but replacing either removes the last soft spot in the bibliography. See `ASSESSMENT.md`
   criterion 2.
 - `UH_DS_MSc.cls` is a LOCAL RECONSTRUCTION adapted from `UH_TCM_MSc.cls` (which states it
-  is "based heavily on the UH_DS_MSc.cls"). It defines every command thesis.tex uses
+  is "based heavily on the UH_DS_MSc.cls"). It defines every command Thesis_POC.tex uses
   (`\prof`, `\censors`, `\mytableofcontents`, `\mynomenclature`, `\myappendixtitle`,
   `\depositeplace`, `\additionalinformation`, `\quoting`, `\keywords`, `\classification`).
   The genuine class lives behind the UH Overleaf/Moodle login; swap it in for final submission.

@@ -16,19 +16,19 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 
 | Document | Source | Status | Role |
 | --- | --- | --- | --- |
-| **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `thesis_wbm.tex`. |
-| **`thesis_wbm.pdf`** | `thesis_wbm.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through. This is what goes to the supervisor alongside the plan. |
-| **`thesis.pdf`** | `thesis.tex` | **Full draft — not yet final** | Canonical long-form thesis (~113–127 pages). Rich figures, generated numbers, full argument. **Everything still needs review** before submission. |
+| **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v1.tex`. |
+| **`Thesis_v1.pdf`** | `Thesis_v1.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through. This is what goes to the supervisor alongside the plan. |
+| **`Thesis_POC.pdf`** | `Thesis_POC.tex` | **Full draft — not yet final** | Canonical long-form thesis (~113–127 pages). Rich figures, generated numbers, full argument. **Everything still needs review** before submission. |
 | `plain_thesis.tex` / `thesis-vi.tex` | variants | Secondary / stale | Do not edit unless explicitly asked. `thesis-vi.tex` is broken (missing bib). |
-| Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `thesis.tex`. |
+| Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Thesis_POC.tex`. |
 
 ### Sync rule
 
 When you change **claims, RQs, scope, methodology, or contributions**:
 
-1. Update **`thesis_wbm.tex`** if the supervisor skeleton should reflect it.
+1. Update **`Thesis_v1.tex`** if the supervisor skeleton should reflect it.
 2. Update **`Thesis_Plan_v2.tex`** if the plan’s status, timeline, or framing changes.
-3. Update **`thesis.tex`** for the full argument, figures, tables, and cross-references.
+3. Update **`Thesis_POC.tex`** for the full argument, figures, tables, and cross-references.
 4. Rebuild affected PDFs and run the verification steps in §5.
 
 When you change **measured numbers**:
@@ -114,7 +114,7 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 
 ---
 
-## 4. Chapter map (`thesis.tex`)
+## 4. Chapter map (`Thesis_POC.tex`)
 
 | Ch. | Title | Primary criterion |
 | --- | --- | --- |
@@ -129,8 +129,8 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 | 9 | Conclusion and future work | 5 |
 | App. | Fault-injection example | 4 |
 
-`thesis_wbm.tex` mirrors this structure as **one bullet per argument move** per chapter.
-Chapters 6–9 in `thesis_wbm.tex` are intentionally **empty placeholders** until supervisor
+`Thesis_v1.tex` mirrors this structure as **one bullet per argument move** per chapter.
+Chapters 6–9 in `Thesis_v1.tex` are intentionally **empty placeholders** until supervisor
 review of the skeleton is complete — do not fill them without explicit author request.
 
 ---
@@ -149,7 +149,7 @@ ffi/build.sh   # CAUTION: this re-measures; see the note below before running it
 bench/refresh_thesis.sh
 
 # Supervisor documents (when their sources changed)
-latexmk -pdf thesis_wbm.tex
+latexmk -pdf Thesis_v1.tex
 latexmk -pdf Thesis_Plan_v2.tex
 ```
 
@@ -171,7 +171,7 @@ load.
 
 **Acceptance gates**
 
-- `thesis.log`: **zero errors**, zero undefined references/citations.
+- `Thesis_POC.log`: **zero errors**, zero undefined references/citations.
 - Figure/table macros in prose match `figures/gen_macros.tex`.
 - No figure contradicts its table (see `ASSESSMENT.md` refinement pass for past failures).
 - `build_deck.py` rebuilds and reports “Layout: all added shapes inside the template content band”.
@@ -181,12 +181,12 @@ load.
 
 ## 6. What agents should not do
 
-- **Do not** treat `thesis.pdf` as supervisor-approved; only `Thesis_Plan_v2.pdf` and `thesis_wbm.pdf` are in that bucket today.
+- **Do not** treat `Thesis_POC.pdf` as supervisor-approved; only `Thesis_Plan_v2.pdf` and `Thesis_v1.pdf` are in that bucket today.
 - **Do not** hand-edit generated files under `figures/` except source diagrams in `diagrams/`.
 - **Do not** transcribe measured numbers into `build_deck.py`; it reads them from the generated artefacts and fails loudly when one is missing.
 - **Do not** claim testbed-grade tail latency from the virtualised host.
 - **Do not** remove boundary defect classes or sanitiser-only C++ outcomes to tidy the narrative.
-- **Do not** expand `thesis_wbm.tex` chapters 6–9 without explicit instruction.
+- **Do not** expand `Thesis_v1.tex` chapters 6–9 without explicit instruction.
 - **Do not** commit secrets, Nokia-internal identifiers, or confidential traces.
 - **Do not** create git commits unless the author explicitly asks.
 
@@ -211,11 +211,11 @@ When preparing material for **Keijo Heljanko** (supervisor) and Nokia instructor
 (**Christoph Luneburg**, **Petteri Kotimaa**):
 
 1. `Thesis_Plan_v2.pdf` — plan, status, timeline (dated; status table must match repo reality).
-2. `thesis_wbm.pdf` — chapter skeleton; chapters 1–5 + appendix populated; 6–9 reserved.
-3. Optionally reference `thesis.pdf` as the **working full draft** (clearly labelled not final).
+2. `Thesis_v1.pdf` — chapter skeleton; chapters 1–5 + appendix populated; 6–9 reserved.
+3. Optionally reference `Thesis_POC.pdf` as the **working full draft** (clearly labelled not final).
 
-After supervisor feedback on the skeleton, expand `thesis_wbm.tex` chapters 6–9 and port
-refinements into `thesis.tex` in the same edit pass so the two do not diverge.
+After supervisor feedback on the skeleton, expand `Thesis_v1.tex` chapters 6–9 and port
+refinements into `Thesis_POC.tex` in the same edit pass so the two do not diverge.
 
 ---
 
