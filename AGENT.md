@@ -49,7 +49,7 @@ with any grading canvas if present).
 | --- | --- | --- | --- | --- |
 | **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (5 inside + 2 outside guarantee). |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace two arXiv load-bearing cites (`Bugden`, `Zhang` deadlock) with peer-reviewed equivalents. |
-| **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **Bare-metal tail campaign** (WSL2 is not testbed-grade for RQ1 tail). More repeats on testbed; hardware counters + allocation profiles for unexplained RSS / op-level gap. |
+| **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **Bare-metal tail campaign.** Results come from a dedicated but virtualised KVM Xeon guest, where the far tail below saturation cannot be resolved. Also missing: hardware counters and allocation profiles for the unexplained peak-RSS and operation-level results. |
 | **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.5** | RQ1 tail still open; Figures 7.1/7.3 cannot separate curves on current host. Lifts with same campaign as criterion 3. |
 | **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Maintain register: “cannot tell” ≠ “equivalent”. H1 is *ambiguous in framing*, not simply supported. |
 | **6** | **Academic text** | Precise prose, no contradictions, clean structure | **5** | Housekeeping: fill `\censors{}{}{}` when faculty assigns examiners; swap in official `UH_DS_MSc.cls`. |
@@ -77,7 +77,7 @@ Before considering a change done, ask:
 **3 — Method & data**
 
 - [ ] Does the edit respect the frozen spec, matched pair, interleaved design, Holm correction?
-- [ ] Are WSL2 numbers labelled **preliminary** where tail latency is discussed?
+- [ ] Is the virtualised host's limit stated wherever tail latency is discussed?
 - [ ] If claiming significance: exact paired permutation test, pre-committed interval-vs-*p* rule (§5.5)?
 
 **4 — Results presentation**
@@ -107,8 +107,8 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 1. **Frozen specification** — both implementations built from one language-neutral spec; forced-idiom log for unavoidable divergences (`spec/SPECIFICATION.md`).
 2. **Fairness controls** — same algorithms, shard count, SplitMix64/FNV-1a hashing, jemalloc + system-allocator control, matched `-O2` / `opt-level = 2`, conformance transcripts diffed line by line.
 3. **RQ2 is falsifiable** — five in-guarantee defect classes + two boundary classes; catalogue must not contain only defects Rust prevents.
-4. **Honest performance claims** — end-to-end sweep measures mostly handoff (~0.04% operation); median language comparison on that path is structurally uninformative; tail requires bare metal.
-5. **Peak RSS** — real, Holm-significant at 15 repeats, **allocator effect larger than language effect**; sign reproduces under both allocators; do not revert to “allocator only.”
+4. **Honest performance claims** — the end-to-end sweep is dominated by the cross-thread handoff and the operation is a fraction of a percent of it (`\BudgetCoreShareMax`), so a median comparison on that path cannot bound a language effect; the far tail still requires bare metal. Past saturation the languages *do* diverge (`\OverloadThrRatio`), and that result is resolved.
+5. **Peak RSS** — a real language effect that reproduces under both allocators, but the **allocator effect is the larger one**; do not revert to “allocator only” or drop the language effect. Quote the generated macros rather than remembered numbers.
 6. **FFI** — interleaved native vs seam calls; tax bounded, not “free”; `unsafe` confined to seam; core stays `unsafe`-free.
 7. **No over-claim on Rust** — eliminates data races and aliasing errors, not race conditions or lock-order deadlocks.
 
@@ -158,6 +158,7 @@ latexmk -pdf Thesis_Plan_v2.tex
 - `thesis.log`: **zero errors**, zero undefined references/citations.
 - Figure/table macros in prose match `figures/gen_macros.tex`.
 - No figure contradicts its table (see `ASSESSMENT.md` refinement pass for past failures).
+- `build_deck.py` rebuilds and reports “Layout: all added shapes inside the template content band”.
 - If abstract changed: visually inspect page 3 (abstract form + CCS + keywords).
 
 ---
@@ -166,7 +167,8 @@ latexmk -pdf Thesis_Plan_v2.tex
 
 - **Do not** treat `thesis.pdf` as supervisor-approved; only `Thesis_Plan_v2.pdf` and `thesis_wbm.pdf` are in that bucket today.
 - **Do not** hand-edit generated files under `figures/` except source diagrams in `diagrams/`.
-- **Do not** claim testbed-grade tail latency from WSL2 data.
+- **Do not** transcribe measured numbers into `build_deck.py`; it reads them from the generated artefacts and fails loudly when one is missing.
+- **Do not** claim testbed-grade tail latency from the virtualised host.
 - **Do not** remove boundary defect classes or sanitiser-only C++ outcomes to tidy the narrative.
 - **Do not** expand `thesis_wbm.tex` chapters 6–9 without explicit instruction.
 - **Do not** commit secrets, Nokia-internal identifiers, or confidential traces.

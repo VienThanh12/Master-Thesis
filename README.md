@@ -49,7 +49,7 @@ divergence is logged. See [`spec/SPECIFICATION.md`](spec/SPECIFICATION.md).
 ├── thesis-vi.tex      Vietnamese translation draft (XeLaTeX)
 ├── Thesis_Plan_v2.tex Revised thesis plan
 ├── bibliography.bib
-├── build_deck.py      Nokia-branded slide-deck generator
+├── build_deck.py      Nokia-branded slide-deck generator (reads figures/ + faults/ results)
 └── TODO.md            Development checklist and open items
 ```
 
@@ -112,9 +112,9 @@ bench/refresh_thesis.sh
 ```
 
 This runs `bench/plot_figures.py` (and `bench/complexity.py` when `lizard` is available),
-writes into [`figures/`](figures/), and calls `latexmk -pdf thesis.tex`. Campaign summary
-numbers land in `figures/gen_macros.tex`; the prose refers to them by macro name, so text and
-data stay in sync.
+writes into [`figures/`](figures/), rebuilds the colloquium deck via `build_deck.py`, and calls
+`latexmk -pdf thesis.tex`. Campaign summary numbers land in `figures/gen_macros.tex`; the prose
+and the slides both refer to them by macro name, so text, slides, and data stay in sync.
 
 To build the thesis document alone:
 

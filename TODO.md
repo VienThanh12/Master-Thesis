@@ -291,13 +291,18 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       quoted number from the raw logs and rebuilds the PDF in one command
 - [ ] Fill `\censors{}{}{}` on the title page once the faculty assigns examiners
 - [ ] Swap the reconstructed `UH_DS_MSc.cls` for the official one (see Notes)
-- [ ] Rebuild the colloquium deck (`build_deck.py` -> `Rust_vs_Cpp_Nokia_RAN_thesis.pptx`, last
-      built 14 Jul). Its numbers are hardcoded medians over **four** repeats, and three slides now
-      contradict the thesis: "RQ3: resource use is comparable across languages" (peak RSS is now
-      the campaign's one resolved language effect), and both RQ1 slides still say the languages
-      "diverge only in the far tail", the reading §7.5.1 explicitly refuses. It also has no slide
-      for the latency decomposition, which is the study's most consequential result. Have the
-      script read `figures/gen_macros.tex` so the deck cannot drift from the data again.
+- [x] Rebuild the colloquium deck (`build_deck.py` -> `Rust_vs_Cpp_Nokia_RAN_thesis.pptx`).
+      Done Aug 2026, 28 slides. Every measured number is now read at build time from
+      `figures/gen_macros.tex`, `figures/gen_complexity.tex`, the `figures/tab_*.tex` bodies the
+      thesis itself `\input`s, `faults/results/taxonomy.csv`, and the newest
+      `bench/results/env-*.txt`; a macro the deck asks for and the data does not provide is a hard
+      error rather than a stale literal. `bench/refresh_thesis.sh` now rebuilds the deck, so the
+      drift cannot recur. The three contradicting slides are corrected (RQ3 now reports the peak-RSS
+      language effect against the larger allocator effect; RQ1 is split into median, decomposition,
+      and overload rather than "diverge only in the far tail"), and five slides were added: the
+      measurement host and what it cannot carry, the pre-committed statistical treatment, the
+      latency decomposition, the overload divergence, and the contended-primitive mechanism test.
+      `build_deck.py` also gates its own layout against the template's content band.
 - [ ] Final PDF + submission
 
 ### After the bare-metal campaign, re-check these

@@ -47,6 +47,16 @@ else
   echo "  SKIP: lizard not installed (pip install lizard); keeping existing figures/tab_complexity.tex"
 fi
 
+# The colloquium deck quotes the same generated macros and table bodies as the
+# prose, so it is rebuilt here for the same reason: a fresh campaign must not
+# leave a slide contradicting the thesis. It drifted once already.
+echo "== rebuilding the colloquium deck =="
+if [ -x "$root/.venv-pptx/bin/python" ]; then
+  "$root/.venv-pptx/bin/python" "$root/build_deck.py" || echo "  WARN: deck build failed"
+else
+  echo "  SKIP: .venv-pptx not present; keeping existing Rust_vs_Cpp_Nokia_RAN_thesis.pptx"
+fi
+
 echo "== rebuilding thesis.pdf =="
 cd "$root"
 latexmk -pdf -interaction=nonstopmode thesis.tex >/dev/null 2>&1 || true
