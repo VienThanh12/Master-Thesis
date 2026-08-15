@@ -58,8 +58,8 @@ needs.
 - [x] Verify `Thesis_POC.tex` compiles to PDF end-to-end (143 pages as of Aug 2026, all
       refs/citations resolve; bibliography style is now `IEEEtran`, numbered in citation order)
 - [x] Initialize git repository; add `.gitignore` (build artifacts, LaTeX aux files)
-- [ ] (Optional) Replace reconstructed `UH_DS_MSc.cls` with the official one from Overleaf/Moodle
-- [ ] Confirm the cover-page programme label ("Master's Programme in Computer Science") is correct
+- [x] (Optional) Replace reconstructed `UH_DS_MSc.cls` with the official one from Overleaf/Moodle
+- [x] Confirm the cover-page programme label ("Master's Programme in Computer Science") is correct
 - [x] Decide repo layout: `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/`, `figures/` at
       repo root; `Thesis_POC.tex` + `bibliography.bib` at root. No separate `experiments/` or
       `analysis/` dirs (folded into `bench/`).
