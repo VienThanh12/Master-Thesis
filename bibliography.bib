@@ -95,9 +95,12 @@
 @misc{tene_hdrhistogram,
   author       = {Tene, Gil},
   title        = {{HdrHistogram}: A High Dynamic Range Histogram},
-  howpublished = {Project documentation},
-  note         = {Accessed August 2026},
-  url          = {https://hdrhistogram.github.io/HdrHistogram/}
+  howpublished = {Project documentation and reference implementation},
+  note         = {Section ``Corrected vs.\ raw value recording calls'' documents the
+                  \texttt{recordValueWithExpectedInterval} correction applied when a
+                  response time exceeds the expected interval between requests.
+                  Accessed August 2026},
+  url          = {https://github.com/HdrHistogram/HdrHistogram}
 }
 
 @inproceedings{pereira2017energy,
@@ -127,9 +130,7 @@
 }
 
 @techreport{cisa2023memorysafe,
-  author      = {{Cybersecurity and Infrastructure Security Agency and
-                  National Security Agency and Federal Bureau of Investigation
-                  and others}},
+  author      = {{Cybersecurity and Infrastructure Security Agency}},
   title       = {The Case for Memory Safe Roadmaps: Why Both {C}-Suite
                  Executives and Technical Experts Need to Take Memory Safe
                  Coding Seriously},
@@ -322,7 +323,7 @@
   type        = {Technical Specification (TS)},
   number      = {38.331},
   note        = {V17.5.0, Release 17},
-  month       = jun,
+  month       = jul,
   year        = {2023},
   url         = {https://www.3gpp.org/ftp/Specs/archive/38_series/38.331/38331-h50.zip}
 }
@@ -361,7 +362,7 @@
   note        = {V18.0.0, Release 18. Clause 7.4 sets the control plane latency
                  target, for the transition from a battery-efficient state to the
                  start of continuous data transfer, at 10~ms},
-  month       = mar,
+  month       = apr,
   year        = {2024},
   url         = {https://www.3gpp.org/ftp/Specs/archive/38_series/38.913/38913-i00.zip}
 }
@@ -379,9 +380,9 @@
 }
 
 @inproceedings{agache2020firecracker,
-  author    = {Agache, Alexandru and Brooker, Marc and Iordache, Alexandra and
-               Liguori, Anthony and Neugebauer, Rolf and Piwonka, Phil and
-               Popa, Diana-Maria},
+  author    = {Agache, Alexandru and Brooker, Marc and Florescu, Andreea and
+               Iordache, Alexandra and Liguori, Anthony and Neugebauer, Rolf and
+               Piwonka, Phil and Popa, Diana-Maria},
   title     = {Firecracker: Lightweight Virtualization for Serverless
                 Applications},
   booktitle = {Proceedings of the 17th USENIX Symposium on Networked Systems
@@ -590,7 +591,8 @@
                Zhang, Xiaoxi and Li, Weichao and Tao, Xiaofeng},
   title     = {{rpkt}: A Generic, Safe, and Efficient Userspace Packet
                Processing Library in {Rust}},
-  booktitle = {Network and Parallel Computing (NPC)},
+  booktitle = {Network and Parallel Computing (NPC 2024)},
+  series    = {Lecture Notes in Computer Science},
   pages     = {454--465},
   year      = {2025},
   doi       = {10.1007/978-981-96-2864-3_36},
@@ -954,12 +956,12 @@
 }
 
 @article{watson2025memorysafety,
-  author    = {Watson, Robert N. M. and Baldwin, John and Chen, Tony and Chisnall, David and
+  author    = {Watson, Robert N. M. and Baldwin, John and Chisnall, David and Chen, Tony and
                Clarke, Jessica and Davis, Brooks and Filardo, Nathaniel Wesley and
-               Gutstein, Brett and Jenkinson, Graeme and Kern, Christoph and Laurie, Ben and
+               Gutstein, Brett and Jenkinson, Graeme and Laurie, Ben and
                Mazzinghi, Alfredo and Moore, Simon W. and Neumann, Peter G. and Okhravi, Hamed
-               and Rebert, Alex and Richardson, Alex and Sewell, Peter and Tratt, Laurence and
-               Vijayaraghavan, Muralidaran and Vincent, Hugo and Witaszczyk, Konrad},
+               and Richardson, Alex and Rebert, Alex and Sewell, Peter and Tratt, Laurence and
+               Vijayaraghavan, Murali and Vincent, Hugo and Witaszczyk, Konrad},
   title     = {It Is Time to Standardize Principles and Practices for Software Memory Safety},
   journal   = {Communications of the ACM},
   volume    = {68},
@@ -984,5 +986,6 @@
   author       = {Larkin, Nic},
   title        = {Alsoran: A {5G} {gNodeB} Centralized Unit Written in {Rust}},
   howpublished = {Open-source software repository},
+  note         = {Proof of concept; development discontinued. Accessed August 2026},
   url          = {https://github.com/nplrkn/alsoran}
 }

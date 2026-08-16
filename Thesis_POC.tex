@@ -346,8 +346,8 @@ roadmaps'' and to migrate away from memory-unsafe languages such as C and
 C++~\cite{cisa2023memorysafe,oncd2024building}. In the market this subsystem is sold into it has
 also become a regulatory matter. The EU Cyber Resilience Act places secure-by-design and
 lifecycle vulnerability-handling obligations on manufacturers of products with digital elements,
-with reporting obligations applying from September 2026 and the remainder from December
-2027~\cite{eu2024cra}. It names no programming language, and it would be wrong to read it as
+with the vulnerability-reporting obligations applying from September 2026 and most of the
+remainder from December 2027~\cite{eu2024cra}. It names no programming language, and it would be wrong to read it as
 requiring one; what it changes is that the recurring defect classes of a memory-unsafe language
 become a compliance exposure as well as an engineering one. Rust in particular has moved from a niche
 language into operating-system kernels, cloud infrastructure, and increasingly into
@@ -802,7 +802,8 @@ discipline that even \texttt{unsafe} code must respect has been given a precise 
 semantics~\cite{jung2020stacked}. Empirical evidence supports the model in practice. In real
 codebases \texttt{unsafe} is used sparingly and in localised
 ways~\cite{astrauskas2020unsafe,qin2020rust}, and a study of all Rust memory-safety CVEs found
-that every one of them involved \texttt{unsafe} code~\cite{xu2021rustcve}. Safe Rust, in other
+that every one of them but a single compiler bug involved \texttt{unsafe}
+code~\cite{xu2021rustcve}. Safe Rust, in other
 words, keeps its promise.
 
 The caveat is that unsafety propagates through dependencies. Fewer than a third of libraries
@@ -3435,7 +3436,8 @@ saturation and, above it, converts into a deficit rather than a gain.
 The sign of that result is worth defending, because the closest prior work in the domain
 reports the opposite one. Karlb\"ack and Or\"o measure peak resident set on a RAN workload and
 find Rust the \emph{lowest} of the three languages and C++ the highest, with the gap widening
-as concurrency rises, a pattern they flag as unexplained~\cite{karlback2021ran}. The two
+as concurrency rises, a pattern they call surprising and attribute tentatively to the initial
+stack size of the green threads~\cite{karlback2021ran}. The two
 findings are compatible once it is seen that they measure different quantities. Their C++ runs
 on Boost.Fibers, which allocates a stack per fiber, so ten thousand concurrent sequences cost
 ten thousand stacks; their Rust runs on Tokio, where a task is a heap-allocated future of a few
@@ -3692,9 +3694,10 @@ combining runtime measurements with development-efficiency metrics, and conclude
 the choice where performance is critical~\cite{karlback2021ran}. Their control deserves to be
 quoted rather than characterised, because it is the clearest statement in this literature of the
 confound the present study is built to remove. The authors record that they deliberately did not
-write the same program three times, making ``an effort \ldots{} to utilize the different
-strengths of each language, and stay away from using exactly the same
-implementation''~\cite{karlback2021ran}. For the question they ask, which is what a team would
+write the same program three times: they ``aimed for providing the best solution in each language,
+instead of trying to make the code as identical as possible between the languages'', and
+``stayed away from using the exact same solution in each
+language''~\cite{karlback2021ran}. For the question they ask, which is what a team would
 obtain by writing idiomatic code in each language, that is the right choice. It is the wrong
 control for the question asked here. The concurrency runtime then varies with the language
 (Boost.Fibers over libevent, goroutines, and Tokio respectively), so no measured difference can
