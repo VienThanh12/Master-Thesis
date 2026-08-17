@@ -1158,3 +1158,375 @@ Two notes on style. The existing bibliography uses `IEEEtran`, which renders `@m
 without the emphasis that `@techreport` gets — check how the WG21 and CVE entries look in the
 compiled PDF before committing to the entry types. And the thesis cites 3GPP specifications as
 `@techreport`, so `nsacisa2025msl` follows that pattern for consistency.
+
+---
+
+# Third sweep, 17 August 2026 — the research gap re-audited
+
+The first two sweeps looked for sources that improve the argument. This one attacks it. The gap
+statement in `Thesis_Plan_v2.tex` §2 and `Thesis_POC.tex` §`sec:gap` rests on two Ericsson
+master's theses plus an unqualified negative claim (*"Neither isolates the language"*, *"The gap
+is therefore…"*). The question asked here was the adversarial one: **is that still true in
+August 2026, and is "two theses" the right count?**
+
+Short answer: the gap survives, the count does not. There are **five** Ericsson-hosted Nordic
+theses in this space, not two, and one of them already builds a matched C++/Rust pair across an
+FFI seam and compares it statistically. The differentiator has to move from *"nobody builds a
+matched pair"* to *"nobody does it for a stateful concurrent subsystem, past saturation, with a
+two-sided defect boundary"* — which is what this thesis actually does, so the correction costs
+nothing and removes a claim an examiner could break in one search.
+
+## A. Method, and a warning about it
+
+Queried programmatically: Crossref, OpenAlex, Semantic Scholar, arXiv, DBLP, **DiVA** (Swedish
+university repositories) and **Finna** (all Finnish repositories). Query strings covered the
+three axes the gap claims — matched-pair control, tail behaviour past saturation, measured
+adoption cost — plus the domain and the async-runtime confound.
+
+Two lessons worth keeping, because they change how this search must be run:
+
+1. **Free-text "Rust" queries are unusable in the general indexes.** Crossref and OpenAlex
+   relevance-rank wheat rust, iron rust and rust-resistance genomics above the programming
+   language. Only DBLP (computer science only) and OpenAlex with
+   `title_and_abstract.search` restricted queries return usable result sets. A search protocol
+   that says "Google Scholar and ACM DL" will silently under-report here.
+2. **The closest prior work is invisible to every citation index.** Neither `karlback2021ran`
+   nor `arvidsson2025async` appears in Crossref, OpenAlex, DBLP or Semantic Scholar. Forward or
+   backward citation chaining from them is therefore impossible, and no amount of database
+   searching finds them or their siblings. They are only reachable through **repository**
+   search. The thesis's documented search protocol (`Thesis_POC.tex`:1339–1351) names four
+   indexed databases and citation chaining; it should also name DiVA and Finna, or it does not
+   describe the search that actually found the closest work.
+
+## B. The main finding: the neighbouring work is a cluster of five, not a pair
+
+All metadata below was read from the DiVA repository record (CSV export of the primary record),
+and every URN was resolved through `urn.kb.se` on 17 August 2026. **VERIFIED** as grey
+literature — that is, the record is confirmed; peer review is absent by definition and must be
+stated wherever they are cited.
+
+⚠ **Abstracts were read in full; the theses themselves were not.** Every finding attributed below
+comes from the author's own abstract. Before any of this reaches thesis prose, read at least
+Emberg & Wadsten and Olsson & Stenström end to end: the claims that matter — that neither reports
+tail behaviour past saturation, and what concurrency model each holds — are absence claims that an
+abstract cannot settle.
+
+| Thesis | Level, year | Host | What it does | Result |
+| --- | --- | --- | --- | --- |
+| Karlbäck & Orö (`karlback2021ran`) | MSc 2021, LiU | Ericsson | C++/Rust/Go, RAN apps, idiomatic-per-language by design | C++ preferred where performance critical; **Rust lowest peak RSS** |
+| Olsson, V. (`olsson2023ranmgmt`) | MSc 2023, KTH | Ericsson AB | Rust vs **C** for RAN **node management** software | Execution speed "on par or better"; **peak memory generally higher in Rust**; safety materially better |
+| Olsson, J. & Stenström (`olsson2023asyncpackets`) | MSc 2023, LiU | Ericsson | Rust async (**Glommio, thread-per-core**) vs DPDK Eventdev C apps | Rust throughput **20–50%** of DPDK, "latency far worse"; concludes async Rust "currently not a viable approach" |
+| Emberg & Wadsten (`emberg2023asn1`) | MSc 2023, LiU | Ericsson (Linköping) | **Matched C++ and Rust ASN.1 decompilers**, both calling third-party C++ (in Rust via a C wrapper), Mann–Whitney comparison + developer interviews | Session 1: comparable. Session 2 (after further optimisation): **Rust worse by 85–91%**. Concludes Rust likely more resource-efficient *in practice* |
+| Arvidsson & Kaller (`arvidsson2025async`) | MSc 2025, LiU | Ericsson | Five async frameworks, 5G control-plane procedures, median + p99 | Boost.Fibers fastest at every load; Rust p99 rises more steeply past a threshold rate |
+
+Two further non-vendor theses from 2026 land on the thesis's own methods:
+
+| Thesis | Level, year | What it does | Why it matters here |
+| --- | --- | --- | --- |
+| Sundvisson & Hofer (`sundvisson2026drivers`) | BSc 2026, BTH | Two **functionally equivalent** C and Rust user-space BME280 drivers; 48 h stress, Valgrind, `unsafe` audit, LD_PRELOAD fault injection, 12 h AFL++, sequential probability ratio testing | C **0.178%** faster — "detectable at 99% confidence but well within a ±1% equivalence zone"; Rust **+29% memory**; five small `unsafe` blocks at syscalls |
+| Andersson (`andersson2026stdmemsafety`) | BSc 2026, LiU | Reproduces CWE classes in C++/Rust/Python to establish **the stage at which each fault is detected** (compile-time / runtime / silent) | Same framing as RQ2, minus concurrency, minus the boundary classes, minus a domain |
+
+### What each of the three new ones does to the argument
+
+**Emberg & Wadsten is the one that bites.** It is the closest prior work *by method* and it is
+uncited. It builds one component twice in C++ and Rust, routes the Rust side through a C
+wrapper to reach third-party C++ — an FFI seam, i.e. RQ4's object — and compares the two
+statistically. The sentence "Neither isolates the language" is safe only because it is scoped to
+the other two theses; as a claim about the literature it is now false. What Emberg & Wadsten do
+*not* have is what should carry the gap instead: a stateful, concurrent subsystem, a fixed
+concurrency model, a load sweep past saturation, tail percentiles under coordinated-omission
+control, paired tests with family-wise correction, and a defect catalogue that spans the
+boundary of the guarantee.
+
+There is also a methodological gift in it. Their two benchmarking sessions **reversed the
+verdict**: comparable performance after a normal code review, Rust 85–91% worse after both sides
+were optimised further. That is precisely the single-author skill-asymmetry threat the plan names
+and bounds with the frozen specification and the parity suite — currently asserted, and now
+citable as something that has demonstrably happened in this exact domain.
+
+**Olsson (KTH) resolves the peak-RSS disagreement in the thesis's favour.** §`sec:rqdiscussion`
+defends the sign of the RSS result against Karlbäck & Orö, who found Rust *lowest*. A second
+Ericsson RAN thesis, on a different subsystem, reports peak memory "generally higher in Rust".
+That turns a one-against-one disagreement into two-against-one with a mechanism already
+identified (Karlbäck's C++ runs on Boost.Fibers, one stack per fiber, so their figure measures
+per-context runtime cost). Sundvisson & Hofer's +29% is a third instance, outside telecom.
+Do not overstate this: none of the three isolates the allocator, which is the thesis's larger
+effect.
+
+**Olsson & Stenström is the third exhibit for the confound, and the strongest.** Rust async over
+Glommio against DPDK Eventdev in C, in Ericsson's own packet-processing setting, reaching 20–50%
+of DPDK throughput with "far worse" latency. Read carelessly this is a devastating result for
+Rust; read correctly it is a comparison of Glommio against a kernel-bypass framework tuned for a
+decade, in which the language is the least of the differences. It belongs in the gap section
+because it makes the pattern unmistakable: **every** telecom-domain comparison to date varies the
+runtime with the language, and the effect sizes it produces (20–50%, not 2–5%) show how much of
+the measurement the runtime owns. It also documents that the thread-per-core-plus-async
+combination has already been tried at Ericsson and failed on latency — which is a reason the
+thesis's thread-per-shard-without-async design is the interesting control, and a strong item for
+future work.
+
+## C. Peer-reviewed additions, all metadata verified via Crossref
+
+**VERIFIED** — publisher-deposited record read; abstracts read where quoted.
+
+1. **Suchert & Castrillon, Bench 2022** (LNCS 13852:160–175, publ. 2023). Manually translated
+   the **STAMP** transactional benchmark suite to Rust, plus a `c2rust`-transpiled version.
+   Finding: "idiomatic implementations using safe Rust are generally slower than both C and
+   transpiled code, they guarantee memory safety and improve code quality." A matched pair on a
+   **concurrent** workload, contrary result, peer-reviewed. Better neighbour for `tab:related`
+   than any of the general-purpose benchmark rows.
+2. **Gonzalez, Mvondo & Bromberg, PLOS@SOSP 2023** (pp. 18–25). Rust UDP tunnelling driver in
+   the Linux kernel against an equivalent C driver: latency **+0.1906%** (p = 1.464e-15),
+   throughput **−0.00090%** (p = 6.004e-5). A matched networking pair whose difference is
+   statistically overwhelming and practically nil — the cleanest published instance of the
+   distinction the thesis's pre-committed interval-vs-*p* rule (§5.5) exists to enforce.
+3. **Pirelli & Candea, ICSE 2023** (pp. 2173–2184). Argues safety without run-time overhead is
+   achievable through type invariants, and shows **safe network device drivers with no run-time
+   overhead** in extended Rust and C#. The peer-reviewed counterweight to `emmerich2019drivers`:
+   the thesis currently presents the "not literally free" side of this question only.
+4. **Li, Guo, Yang, Wang & Xu, ACM TOCS 44(2), 2026** — "Rust Meets Linux: Lessons from an
+   Evolving Experiment". Same author list as `li2024rustforlinux` (USENIX ATC '24): this is the
+   journal version, and it sharpens the conclusion — "If not properly managed, Rust's safety
+   features even introduce notable runtime overhead and increased development complexity."
+   Citation **upgrade**, and a contrary result the thesis should carry rather than soften.
+   *Article number not confirmed; Crossref reports pages 1–33 — check before citing with a page
+   range.*
+5. **Hughes & Tratt, PACMPL 9(OOPSLA2):3588–3614, 2025** — "Garbage Collection for Rust: The
+   Finalizer Frontier". Opens with the fact the RQ2 boundary needs: Rust's lack of GC makes
+   shared-ownership data structures "awkward, inefficient, or both". Peer-reviewed support for
+   the reference-cycle leak class, one of the two boundary classes that came back with the C++
+   tooling ahead.
+6. **Hong & Ryu, CACM 68(11):58–65, 2025** — "Automatically Translating C to Rust". Peer-reviewed
+   home for the RQ4 translation story, in place of leaning on preprints (§6.2).
+7. **Zhuang, SoftwareX 35:102771, 2026** — FlowPrioritize, a priority-scheduling library for
+   async Rust runtimes. Supporting evidence, alongside `skoudlil2025asyncrust`, that priority and
+   determinism are things async Rust runtimes must be *given*, not properties they have.
+8. **Okawa & Yamaguchi, CANDARW 2024** (pp. 355–359) — finds Rust "significantly lower" in some
+   cases and proposes mitigation. Minor, small venue; use only if a second general contrary
+   result is wanted next to `emmerich2019drivers`.
+
+Also surfaced, peer-reviewed, relevant but optional: Cui et al., ICSE 2024 (safety requirements
+in unsafe Rust, 10.1145/3597503.3639136); Zhang et al., QRS 2024 (bugs beyond memory safety,
+10.1109/QRS62785.2024.00035); Gülmez et al., SecDev 2023 (in-process isolation for unsafe Rust,
+10.1109/SecDev56634.2023.00020 — a third source on the point `rivera2021galeed` and
+`kirth2022pkrusafe` already make); Poos et al., ICSOFT 2025 (controlled experiment on ownership
+and error localisation, but Rust against **Java**, 10.5220/0013647500003964).
+
+## D. What has to change in the documents
+
+Ordered by risk, highest first.
+
+1. **`Thesis_Plan_v2.tex` §2, sentence 1** — "Two master's theses at Ericsson are the closest
+   prior work" is factually wrong now. Minimum fix: "at least five", naming the two that carry
+   the argument and citing the rest.
+2. **`Thesis_Plan_v2.tex` §2, final paragraph** — replace the unqualified "Neither isolates the
+   language … The gap is therefore" with the three-axis formulation already used in
+   `Thesis_POC.tex` §`sec:relatedwork` ("Individually, none of the three axes is unoccupied…").
+   The plan currently makes a stronger claim than the full draft does, which is the wrong way
+   round for a supervisor-facing document.
+3. **`Thesis_POC.tex` §`sec:gap` and §`sec:relatedwork`** — add Emberg & Wadsten as the closest
+   work by method, and Olsson & Stenström as the third instance of the runtime confound. New
+   rows for `tab:related`: Emberg & Wadsten (matched pair **yes**, overload tail no, adoption
+   cost **dev. effort + seam**), Suchert & Castrillon (matched pair yes, others no), Gonzalez et
+   al. (matched pair yes, others no), Olsson & Stenström (matched pair no, tail no, no).
+   ⚠ `diagrams/29_research_gap.drawio` is hand-laid-out: adding study columns means editing the
+   diagram, or the figure and the table will contradict each other. Same constraint as recorded
+   for `tab:threats` in the first sweep — decide deliberately, do not half-do it.
+4. **`Thesis_v1.tex`** ch. 1 and ch. 4 bullets — both say "the closest prior work does not
+   isolate the language" and cite the two theses. Same correction, one bullet each.
+5. **§`sec:rqdiscussion`, peak RSS** — add `olsson2023ranmgmt` (same domain, same direction) and
+   optionally `sundvisson2026drivers`. Keep the allocator-dominates finding intact.
+6. **§`sec:threats`, skill asymmetry** — cite Emberg & Wadsten's session-to-session reversal as
+   the documented instance of the threat.
+7. **§`sec:methodperf` / methodology search protocol** — add DiVA and Finna to the named sources,
+   and state that the closest prior work is grey literature absent from the citation indexes.
+   This is a strength, not an embarrassment: it is why the comparison has not been made yet.
+
+## E. Negative results, recorded so they are not searched for again
+
+- **There is no Nokia-side or Finnish counterpart.** Finna, which federates Aaltodoc, Trepo,
+  Helda, JYX, LUTPub, UTUPub, Osuva, Oulu and Theseus, returns nothing on Rust with RAN, 5G,
+  telecom or tail latency. The Finnish Rust literature is device drivers (Meyer, Tampere 2024),
+  embedded schedulers (Abu Hanif, Tampere 2025), memory-management overviews and course
+  material. The entire domain-specific prior work is Swedish and Ericsson-hosted.
+- **No peer-reviewed study, in any venue, compares Rust and C++ implementations of a stateful,
+  concurrent control-plane subsystem under overload.** The three axes are occupied separately
+  (matched pairs: Emmerich, Li, Narayanan, Suchert, Gonzalez, Pirelli; control-plane percentile
+  latency: Arvidsson, Michaelides; adoption cost: Karlbäck, Emberg, Li TOCS, Hong) and never
+  together. This is the sentence the gap should rest on.
+- **No 2026 work closes the gap.** arXiv returns nothing on Rust plus gNB / radio access /
+  control plane in 2026; the nearest is `Zink et al., RBFRT` (2025), a Rust runtime-control API
+  for Intel Tofino switches — networking control software in Rust, no C++ counterpart, no
+  language comparison. Venue unconfirmed, do not cite as peer-reviewed.
+- The generic web result set for "Rust vs C++ 2026" is unchanged from §8: vendor blogs and SEO
+  content, now including two claiming 20–45% p99 *improvements* after a Rust rewrite. Still not
+  citable. Still consistent with the thesis's allocation findings, and still not evidence.
+- DBLP's publication API ignores `author:Name:` prefix syntax and returns nothing; use free-text
+  queries. Semantic Scholar's search endpoint rate-limits hard (HTTP 429) at more than roughly
+  one query per five seconds without a key; its single-paper `DOI:` lookup is the reliable path.
+
+## F. BibTeX for the additions
+
+Every field below was read from the DiVA record or the Crossref deposit. Thesis levels are as
+recorded by the repository; the two 2026 entries are **bachelor's** theses and must be described
+as such wherever they appear.
+
+```bibtex
+@mastersthesis{olsson2023ranmgmt,
+  author    = {Olsson, Viktor},
+  title     = {{Rust} Programming Language as an Alternative to {C} for {RAN}
+               Management Applications},
+  school    = {KTH Royal Institute of Technology, School of Electrical Engineering
+               and Computer Science},
+  year      = {2023},
+  type      = {Master's thesis},
+  note      = {Carried out at Ericsson AB},
+  url       = {https://urn.kb.se/resolve?urn=urn:nbn:se:kth:diva-325822}
+}
+
+@mastersthesis{olsson2023asyncpackets,
+  author    = {Olsson, Josef and Stenstr{\"o}m, Isak},
+  title     = {{Rust} Async for Thread-per-Core Packet Processing},
+  school    = {Link{\"o}ping University, Department of Computer and Information
+               Science},
+  year      = {2023},
+  type      = {Master's thesis},
+  note      = {Carried out at Ericsson AB. Report
+               LIU-IDA/LITH-EX-A--23/052--SE},
+  url       = {https://urn.kb.se/resolve?urn=urn:nbn:se:liu:diva-197029}
+}
+
+@mastersthesis{emberg2023asn1,
+  author    = {Emberg, Cecilia and Wadsten, Anna},
+  title     = {Attainable Safety and Long-Term Resource-Efficiency Using {Rust}:
+               Evaluating the Viability of {Rust} in Terms of Development Effort
+               and Performance for the Decompilation of {ASN.1} Messages},
+  school    = {Link{\"o}ping University, Department of Computer and Information
+               Science},
+  year      = {2023},
+  type      = {Master's thesis},
+  note      = {Carried out at Ericsson, Link{\"o}ping. Report
+               LIU-IDA/LITH-EX-A--23/078--SE},
+  url       = {https://urn.kb.se/resolve?urn=urn:nbn:se:liu:diva-195552}
+}
+
+@mastersthesis{sundvisson2026drivers,
+  author    = {Sundvisson, Alexander and Hofer, Silas},
+  title     = {User-Space Device Drivers on Embedded {Linux}: A Comparative Case
+               Study of {C} and {Rust}},
+  school    = {Blekinge Institute of Technology, Department of Software
+               Engineering},
+  year      = {2026},
+  type      = {Bachelor's thesis},
+  url       = {https://urn.kb.se/resolve?urn=urn:nbn:se:bth-29775}
+}
+
+@mastersthesis{andersson2026stdmemsafety,
+  author    = {Andersson, Oliver},
+  title     = {Programming Language Standards and Their Impact on Memory Safety:
+               {C++}, {Rust} and {Python}},
+  school    = {Link{\"o}ping University, Department of Computer and Information
+               Science},
+  year      = {2026},
+  type      = {Bachelor's thesis},
+  note      = {Report LIU-IDA/LITH-EX-G--26/057--SE},
+  url       = {https://urn.kb.se/resolve?urn=urn:nbn:se:liu:diva-226479}
+}
+
+@inproceedings{suchert2023stamp,
+  author    = {Suchert, Felix and Castrillon, Jeronimo},
+  title     = {{STAMP-Rust}: Language and Performance Comparison to {C} on
+               Transactional Benchmarks},
+  booktitle = {Benchmarking, Measuring, and Optimizing (Bench 2022)},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {13852},
+  pages     = {160--175},
+  publisher = {Springer},
+  year      = {2023},
+  doi       = {10.1007/978-3-031-31180-2_10},
+  url       = {https://doi.org/10.1007/978-3-031-31180-2_10}
+}
+
+@inproceedings{gonzalez2023rustudp,
+  author    = {Gonzalez, Am{\'e}lie and Mvondo, Djob and Bromberg,
+               Y{\'e}rom-David},
+  title     = {Takeaways of Implementing a Native {Rust} {UDP} Tunneling Network
+               Driver in the {Linux} Kernel},
+  booktitle = {Proceedings of the 12th Workshop on Programming Languages and
+               Operating Systems (PLOS)},
+  pages     = {18--25},
+  year      = {2023},
+  doi       = {10.1145/3623759.3624547},
+  url       = {https://doi.org/10.1145/3623759.3624547}
+}
+
+@inproceedings{pirelli2023safelowlevel,
+  author    = {Pirelli, Solal and Candea, George},
+  title     = {Safe Low-Level Code Without Overhead is Practical},
+  booktitle = {Proceedings of the 45th IEEE/ACM International Conference on
+               Software Engineering (ICSE)},
+  pages     = {2173--2184},
+  year      = {2023},
+  doi       = {10.1109/ICSE48619.2023.00183},
+  url       = {https://doi.org/10.1109/ICSE48619.2023.00183}
+}
+
+@article{li2026rustlinux,
+  author  = {Li, Hongyu and Guo, Liwei and Yang, Yexuan and Wang, Shangguang and
+             Xu, Mengwei},
+  title   = {{Rust} Meets {Linux}: Lessons from an Evolving Experiment},
+  journal = {ACM Transactions on Computer Systems},
+  volume  = {44},
+  number  = {2},
+  year    = {2026},
+  doi     = {10.1145/3789260},
+  url     = {https://doi.org/10.1145/3789260}
+}
+
+@article{hughes2025gcrust,
+  author  = {Hughes, Jacob and Tratt, Laurence},
+  title   = {Garbage Collection for {Rust}: The Finalizer Frontier},
+  journal = {Proceedings of the ACM on Programming Languages},
+  volume  = {9},
+  number  = {OOPSLA2},
+  pages   = {3588--3614},
+  year    = {2025},
+  doi     = {10.1145/3763179},
+  url     = {https://doi.org/10.1145/3763179}
+}
+
+@article{hong2025ctorust,
+  author  = {Hong, Jaemin and Ryu, Sukyoung},
+  title   = {Automatically Translating {C} to {Rust}},
+  journal = {Communications of the ACM},
+  volume  = {68},
+  number  = {11},
+  pages   = {58--65},
+  year    = {2025},
+  doi     = {10.1145/3737696},
+  url     = {https://doi.org/10.1145/3737696}
+}
+
+@article{zhuang2026flowprioritize,
+  author  = {Zhuang, Kaiyi},
+  title   = {{FlowPrioritize}: A Model-Driven Priority Scheduling Library for
+             Asynchronous {Rust} Runtimes},
+  journal = {SoftwareX},
+  volume  = {35},
+  pages   = {102771},
+  year    = {2026},
+  doi     = {10.1016/j.softx.2026.102771},
+  url     = {https://doi.org/10.1016/j.softx.2026.102771}
+}
+
+@inproceedings{okawa2024ruststudy,
+  author    = {Okawa, Shunsuke and Yamaguchi, Saneyasu},
+  title     = {A Performance Study on {Rust} and {C} Programs},
+  booktitle = {Proceedings of the 12th International Symposium on Computing and
+               Networking Workshops (CANDARW)},
+  pages     = {355--359},
+  year      = {2024},
+  doi       = {10.1109/CANDARW64572.2024.00066},
+  url       = {https://doi.org/10.1109/CANDARW64572.2024.00066}
+}
+```
