@@ -330,7 +330,7 @@ purpose-built hardware once provided. This shift is accelerated by Open-RAN disa
 which turns the base station into virtualised, multi-vendor software connected by open
 interfaces~\cite{polese2023oran}, so that the control plane a vendor ships increasingly
 competes on software-engineering quality (reliability, predictable timing, security, and the
-pace at which a large codebase can be evolved safely) rather than on bespoke hardware. In
+pace at which a large codebase can be evolved safely) and no longer on bespoke hardware. In
 this setting a latency regression or a memory-corruption defect is not a localised bug but a
 network-wide reliability and security risk, and a language-selection question stops being
 academic and becomes a concrete engineering decision.
@@ -395,7 +395,7 @@ single mishandled pointer, a UE context freed on release while an in-flight sign
 still references it, produces a use-after-free. In C++ this compiles cleanly and may pass
 ordinary testing, only to corrupt an unrelated UE's state or crash the worker thread under
 precisely the high-concurrency conditions the system exists to handle; the same latent race
-can equally show up as an unpredictable tail-latency spike rather than an outright crash. In
+can equally show up as an unpredictable tail-latency spike instead of an outright crash. In
 safe Rust the same design does not compile: ownership and borrowing reject the dangling
 reference at build time. This one scenario captures why the thesis measures both
 \emph{safety} (which defects are prevented, and when) and \emph{predictability} (tail
@@ -444,7 +444,7 @@ migration ahead of raw average performance:
 \end{description}
 
 The questions are approached with three prior expectations, stated here so that the evaluation
-can confirm or refute them rather than merely describe results after the fact. \textbf{H1:} for
+can confirm or refute them instead of merely describing results after the fact. \textbf{H1:} for
 this workload the two languages are performance-equivalent in the operationally relevant region
 below saturation, with any difference confined to the far tail. \textbf{H2:} safe Rust prevents
 at compile time the memory-safety and concurrency defect classes that C++ leaves to
@@ -454,7 +454,7 @@ cost of incremental adoption is engineering effort rather than performance. Thes
 revisited against the evidence in Section~\ref{sec:hypotheses}.
 
 \section{Research approach at a glance}
-The four questions are answered constructively rather than by literature synthesis. The core
+The four questions are answered constructively, not by literature synthesis. The core
 artifact is a pair of functionally equivalent UECM implementations, one in modern C++ and one in
 Rust, built from a single frozen specification, so that any measured difference is attributable
 to the language and its idioms rather than to divergent designs. RQ1 and RQ3 are answered by
@@ -466,7 +466,7 @@ a catalogue of representative C++ defects is written deliberately and each is co
 Rust counterpart to record whether it is rejected at compile time, caught only at runtime, or
 missed entirely. The catalogue deliberately spans both defect classes Rust is expected to
 prevent and classes it is expected not to, so that the study can locate the boundary of the
-guarantee rather than only confirm it. RQ4 is answered by building a working C++-to-Rust FFI
+guarantee instead of only confirming it. RQ4 is answered by building a working C++-to-Rust FFI
 prototype and measuring
 the size of the interoperability seam, the scope of \texttt{unsafe}, and the per-call crossing
 cost. The full protocol (testbed, workloads, and statistical treatment) is given in
@@ -494,12 +494,12 @@ unresolvable on the available host. That null is also less informative than it l
 operation here is $\BudgetCoreShareMax\%$ the work the language performs and the rest a
 cross-thread handoff the operating system performs, so the sweep bounds the design rather than the
 language. Measured separately, the operation itself is $\BudgetCoreRatio\times$ faster in Rust, for
-reasons traceable to the standard library's hash-map layout rather than to the safety model, while
+reasons traceable to the standard library's hash-map layout and not to the safety model, while
 the Rust process carries a few MiB more resident memory under both allocators. Past saturation the
 two are not equivalent at all, and the ordering reverses: the C++ build sustains
 $\OverloadThrRatio\times$ the throughput of the Rust build, reproducibly and while consuming more
 CPU per completed operation, for reasons that point at the two standard libraries' blocking queue
-and completion primitives rather than at either safety model. The main limitations are the use of a
+and completion primitives, not at either safety model. The main limitations are the use of a
 synthetic workload, a single simplified subsystem, single-author implementation bias, and a
 virtualised measurement host; these are treated in detail in
 Chapter~\ref{chapter:discussion}.
@@ -704,7 +704,7 @@ that waits for each response before issuing the next request suffers \emph{coord
 omission}: when the system stalls, the generator stalls with it and simply fails to record
 the many requests that would have arrived during the stall, systematically hiding the very
 tail it is meant to expose. Figure~\ref{fig:coord} contrasts the two generator models.
-The distinction beneath this is a modelling one rather than an
+The distinction beneath this is a modelling one, not an
 implementation detail. In a closed system a new request is triggered only by the completion of a
 previous one, whereas in an open system arrivals are independent of completions, and the two
 produce systematically different response-time behaviour on the same service process, with the
@@ -778,7 +778,7 @@ specification together with ``an experimental implementation \ldots{} being cond
 C++ compiler'', and treating the design and specification of the initial profiles as work still
 to be done~\cite{vandevoorde2026profiles}. The concurrency profile, which is the one that would
 bear on the concurrency defect classes catalogued in Chapter~\ref{chapter:context}, is placed
-after that initial set rather than within it: ``more profiles should be defined and implemented,
+after that initial set and not within it: ``more profiles should be defined and implemented,
 notably a concurrency profile''~\cite{vandevoorde2026profiles}. And a rule that is enforced when
 switched on is a different kind of object from a property the type system carries
 unconditionally, particularly where the enforcement is a run-time check rather than a
@@ -1167,7 +1167,7 @@ Together these seven form the catalogue injected in Chapter~\ref{chapter:eval}, 
 between the two groups is what lets the study report a boundary rather than a verdict. Buffer
 overflow is described above for completeness but is not injected, because neither
 implementation performs raw pointer arithmetic on the context store, so an injected instance
-would be an artificial construct rather than a plausible bug in this subsystem.
+would be an artificial construct and not a plausible bug in this subsystem.
 Table~\ref{tab:defectmap} collects the catalogue with the outcome expected of each case
 \emph{before} the study was run, which is the form in which the runner records it: an
 expectation written down in advance can be violated in either direction and reported as a
@@ -1179,7 +1179,7 @@ discrepancy, whereas one formed after the fact cannot.
 \caption[The injected catalogue and its incarnations in UECM]{The injected defect catalogue: each class in the form it would plausibly take in UE
 Context Management, and the outcome recorded for it in advance of the study. The last column
 is a prediction rather than a result; Table~\ref{tab:taxonomy} reports what was measured, and
-the fault runner flags a mismatch in either direction rather than absorbing it into the
+the fault runner flags a mismatch in either direction instead of absorbing it into the
 conclusion. Buffer overflow is listed for completeness and is not injected, because neither
 implementation does pointer arithmetic on the context store.\label{tab:defectmap}}
 \renewcommand{\arraystretch}{1.0}
@@ -1348,7 +1348,7 @@ rules out the most common form of language comparison in the literature, in whic
 independently written programs, or two unrelated projects, are measured and their differences
 attributed to the language; such comparisons confound the language with the design, the
 libraries, and the intent and skill of their authors. The thesis therefore adopts a
-constructive (design-science) strategy: rather than locating two pre-existing systems, it
+constructive (design-science) strategy: instead of locating two pre-existing systems, it
 \emph{builds} the object of study as a matched pair of implementations derived from one frozen
 specification, so that the comparison is between two encodings of the same design rather than
 between two designs. The artifact, the specification, the two implementations, and the
@@ -1393,10 +1393,10 @@ differ between C++ and Rust, and no end-to-end measurement can separate them. Th
 therefore operates at two levels. The single-threaded operation processor is called directly,
 with no queue in the path, and the same operation is then called through the full threaded
 service; the difference between the two is the handoff. Both are batch means over a long loop
-rather than per-call medians, deliberately: a clock read costs tens of nanoseconds, the same
+and not per-call medians, deliberately: a clock read costs tens of nanoseconds, the same
 order as the operation itself, so per-call timestamps would measure the instrument rather than
 the code. The two languages are interleaved across repeats and compared with the same exact
-paired test as the sweep, so the two levels differ in what they measure rather than in how they
+paired test as the sweep, so the two levels differ in what they measure, not in how they
 are analysed.
 
 Reporting both is what lets the study separate two questions that the research questions as
@@ -1450,7 +1450,7 @@ and intra-procedural, which is the shape at which static analysis is strongest, 
 well-configured analyser could plausibly reach some of them; the concurrency cases, whose
 manifestation depends on an interleaving, are the shape at which it is weakest. The study
 therefore reports the tooling it ran, which is the sanitiser-based practice described in
-Section~\ref{sec:cpplatency}, rather than a ceiling on what C++ tooling can achieve. What no
+Section~\ref{sec:cpplatency}, and not a ceiling on what C++ tooling can achieve. What no
 analyser would change is the property the comparison turns on: a warning a build can be
 configured to ignore is a different kind of object from a compilation that cannot succeed, and
 it is that difference, rather than a count of detected defects, that the method measures.
@@ -1459,7 +1459,7 @@ The comparison is controlled in the same way as the performance one. Because the
 variable is again only the language while the injected fault is held fixed, the difference in
 outcome is attributable to the language's guarantees rather than to the specific bug. That
 outcome is one of three: compile-time rejection, runtime detection, or a silent miss. The result
-is a taxonomy rather than a performance number: the method establishes the \emph{kind} of
+is a taxonomy, not a performance number: the method establishes the \emph{kind} of
 protection each language offers.
 
 One design decision determines whether that taxonomy can be trusted. A catalogue drawn only
@@ -1470,7 +1470,7 @@ constructed in two groups. The first contains classes that lie inside Rust's sta
 the second contains classes deliberately chosen from just outside it, where ownership and the
 \texttt{Send}/\texttt{Sync} discipline give no protection. Each case carries a recorded
 expectation, prevented or not prevented, and the runner reports a violation in either
-direction, so an unexpected outcome would surface as a discrepancy rather than being absorbed
+direction, so an unexpected outcome would surface as a discrepancy instead of being absorbed
 into the narrative. What this buys is a boundary rather than a score: the study can state not
 only which defect classes the language removes but which comparable ones it leaves in place,
 and the second half of that statement is the part a practitioner planning a migration
@@ -1508,7 +1508,7 @@ design and human learning.
 \section{Fairness as a controlled-variable strategy}
 Because every research question attributes a difference to the language, the validity of the
 whole study depends on holding everything else equal, and fairness is treated as the study's
-central experimental control rather than as an afterthought. It is enforced at several levels.
+central experimental control and not as an afterthought. It is enforced at several levels.
 The \emph{specification} is frozen before any code is written and fixes the public API, the
 state machine, the data structures and their algorithmic strategy, and the sharding and
 concurrency model (Section~\ref{sec:fairness}). The \emph{run-time substrate} is equalised by
@@ -1520,13 +1520,13 @@ difference reflects how each language executes the same work rather than a diffe
 work is done. Where the two languages genuinely cannot express the same construct, the deviation
 is not hidden but recorded in a forced-idiom log so it can be weighed explicitly in the
 discussion. What remains uncontrolled, principally single-author skill asymmetry, is
-acknowledged as a threat to validity (Chapter~\ref{chapter:discussion}) rather than claimed to
+acknowledged as a threat to validity (Chapter~\ref{chapter:discussion}), not claimed to
 be eliminated.
 
 Table~\ref{tab:controls} states the strategy variable by variable, and its third column is the
 part that matters most. A controlled experiment is credible in proportion to the honesty of
-its account of what it failed to control, and three of the rows below record a residual rather
-than a clean fix: the languages cannot always express the same construct, they do not ship the
+its account of what it failed to control, and three of the rows below record a residual and not
+a clean fix: the languages cannot always express the same construct, they do not ship the
 same hash-map layout, and one person wrote both implementations. Both escape valves are part of
 the design rather than exceptions to it: the forced-idiom log records where the languages cannot
 be held identical, and the last row names the one variable left with no control at all.
@@ -1545,7 +1545,7 @@ which there is no control at all.\label{tab:controls}}
 \hline\hline
 Variable & How it is held fixed & What the control does not reach \\
 \hline
-Design & One specification, frozen before any code is written, fixing the public API, the state machine, the data structures and their algorithmic strategy, and the sharding granularity (\S\ref{sec:fairness}) & Where the two languages cannot express the same construct, the divergence is logged rather than removed (Table~\ref{tab:idioms}) \\
+Design & One specification, frozen before any code is written, fixing the public API, the state machine, the data structures and their algorithmic strategy, and the sharding granularity (\S\ref{sec:fairness}) & Where the two languages cannot express the same construct, the divergence is logged, not removed (Table~\ref{tab:idioms}) \\
 Concurrency model & Thread-per-shard over bounded blocking MPSC queues on both sides, with no asynchronous runtime on either & --- \\
 Hashing & SplitMix64 for shard selection and FNV-1a inside the shard, pinned identically, so neither standard library's default hasher becomes an accidental advantage & The container itself is still each language's own hash map, and the two differ in layout (\S\ref{sec:budget}) \\
 Allocator & The same \texttt{jemalloc} linked on both sides, with a system-allocator build kept on each as a control & --- \\
@@ -1563,7 +1563,7 @@ Author & No control & One person wrote both implementations and is not equally e
 Performance measurements are non-deterministic, so single-run numbers are avoided throughout.
 Each configuration (language $\times$ allocator $\times$ load level) is measured over many
 independent repeats, and the four variants are \emph{interleaved} within each repeat so that
-slow drift, thermal effects, and background activity perturb them equally rather than biasing
+slow drift, thermal effects, and background activity perturb them equally instead of biasing
 one. Results are summarised by the median with a nonparametric bootstrap $95\%$ confidence
 interval~\cite{efron1993bootstrap} rather than by the mean with a standard deviation, because
 latency distributions are
@@ -1573,7 +1573,7 @@ which warns that reporting a single number invites conclusions that run-to-run v
 not support~\cite{georges2007rigorous}. Tail percentiles (p99, p99.9, p99.99) are read from the
 HDR histograms, whose logarithmic bucketing retains three significant figures of resolution
 across the whole range so that high percentiles are not quantised away. Intervals are reported
-in full rather than as a symmetric half-width, because a bootstrap interval on the median of a
+in full, not as a symmetric half-width, because a bootstrap interval on the median of a
 heavy-tailed sample is markedly asymmetric and a half-width wide enough to cover its upper
 bound would place the lower bound below zero.
 
@@ -1617,7 +1617,7 @@ rate without assuming independence between the tests.
 Two decisions about how that family is read are taken here rather than after the results,
 because either could otherwise be made to suit whatever the data turned out to be.
 
-The first is which comparisons enter it, and the answer turns on the operating point rather than
+The first is which comparisons enter it, and the answer turns on the operating point, not
 on the metric. The representative operating point is chosen below saturation, where every variant
 completes work as fast as it is offered, so achieved throughput there is pinned to the offered
 load by construction and cannot express a language effect whatever the languages do. Testing it
@@ -1625,7 +1625,7 @@ would re-measure the operating point rather than the code. It would also not be 
 divides its budget across the whole family, so two comparisons that cannot resolve anything would
 make the correction harsher on the ones that can. Below saturation, therefore, throughput is
 reported with its interval in the resource table, where its job is to confirm that the operating
-point is sustained rather than nominal.
+point is sustained and not merely nominal.
 
 Above saturation that reasoning inverts, and the design has to follow it. Once the offered rate
 is no longer being met, what each variant still sustains is pinned to nothing and becomes the one
@@ -1634,12 +1634,12 @@ offers. A second operating point is therefore fixed in the overload region, defi
 deepest swept load at which \emph{every} variant has stopped meeting the offered rate, and
 sustained throughput and CPU utilisation are tested at it (Section~\ref{sec:overload}). Two
 commitments go with that, both taken here for the same reason as the rest of this section. The
-overload comparisons join the same Holm family rather than forming a second one, so the
+overload comparisons join the same Holm family instead of forming a second one, so the
 correction covers everything the thesis reports and the division into two operating points
 cannot be read as a split chosen once the $p$-values were known. And no latency percentile is
 tested above saturation at all: with a fixed intended send schedule, a producer that cannot keep
 up falls behind cumulatively, so the percentiles there measure accumulated backlog against a
-measurement window that truncates it, which makes them a lower bound rather than an estimate.
+measurement window that truncates it, which makes them a lower bound and not an estimate.
 Attaching a $p$-value to a lower bound would test the harness rather than the software.
 
 The second is what to conclude when the interval and the $p$-value disagree, which at modest
@@ -1836,7 +1836,7 @@ Each UE context stores its identifier, lifecycle state (a four-value enumeration
 RRC transaction id, a fixed 32-byte dummy security context, a dynamic list of up to eight data
 radio bearers, and two counters (messages handled and an activity sequence number). The data
 radio bearer list is deliberately a growable container (\texttt{std::vector} / \texttt{Vec})
-rather than a fixed array, so that the allocator study (RQ3) observes realistic per-context
+and not a fixed array, so that the allocator study (RQ3) observes realistic per-context
 allocation. Reads return an immutable snapshot (a \texttt{UeContextView}) copied out of the
 worker rather than a reference into live shard state, which preserves the shared-nothing
 guarantee and keeps the two implementations semantically identical.
@@ -1881,11 +1881,11 @@ Two behaviours deserve explicit mention because the table alone hides them. The
 \texttt{Released} state is never actually stored: \texttt{release\_context} erases the entry
 from the shard map outright, so \texttt{Released} is a transient terminal label in the
 specification rather than a resting value an implementation can be found in, and a second
-release therefore returns \texttt{NotFound} rather than \texttt{InvalidState}.
+release therefore returns \texttt{NotFound} instead of \texttt{InvalidState}.
 And \texttt{abort\_reconfigure} restores the \emph{state} to \texttt{Connected} but does not
 restore the serving cell that \texttt{begin\_reconfigure} overwrote with the handover target.
 This is a deliberate simplification, the model carries no saved pre-handover cell to roll back
-to, but it is a semantic commitment rather than an oversight, and both implementations make it
+to, but it is a semantic commitment and not an oversight, and both implementations make it
 identically, which is what the parity suite of Section~\ref{sec:parity} checks.
 
 \begin{table}
@@ -1955,7 +1955,7 @@ place where a concurrency defect could be introduced, and the correctness argume
 that the two condition variables are never confused, that the predicates match the
 notifications, that no wakeup is lost, is carried by the author rather than by the compiler or
 the library. This is the same asymmetry the fault-injection study of Chapter~\ref{chapter:eval}
-measures, appearing here in ordinary, non-defective code rather than in a deliberately injected
+measures, appearing here in ordinary, non-defective code instead of in a deliberately injected
 bug.
 
 \begin{figure}
@@ -2334,15 +2334,15 @@ going to buy have been obtained without it: the saturation knee, the shape of th
 (Section~\ref{sec:overload}), and the replication of the resource comparisons across the allocator
 control (Section~\ref{sec:resources}). What remains is the far tail \emph{below} saturation,
 where the confidence interval on a single variant's p99 is still several times the spread between
-all four variants, and where steal and scheduler preemption are the plausible cause rather than
+all four variants, and where steal and scheduler preemption are the plausible cause, not
 anything either language does. That one result is therefore reported as unresolved rather than as
-a null, and the mechanism to resolve it belongs to the machine rather than to the analysis.
+a null, and the mechanism to resolve it belongs to the machine and not to the analysis.
 
 \paragraph{Measurement discipline common to both.}
 Independently of the host, each sweep point is repeated \NRepeats{} times and reported as a
 median with a bootstrap $95\%$ confidence interval rather than as a single run, and the four
 language$\times$allocator variants are interleaved within each repeat so that thermal or
-background drift affects them equally rather than biasing one. That interleaving is what makes
+background drift affects them equally instead of biasing one. That interleaving is what makes
 a contended host tolerable for a \emph{comparative} conclusion even though it invalidates the
 absolute numbers: interference is shared, not assigned. Throughput is counted over the measured
 phase alone, with the warm-up iterations excluded from both the numerator and the denominator,
@@ -2516,7 +2516,7 @@ histogram (mean, p50, p90, p99, p99.9, maximum, in nanoseconds), the resource co
 through \texttt{getrusage} (peak resident set size, user and system CPU seconds, CPU
 utilisation), and the per-operation-kind counts. Retaining the kind counts in every record is
 what makes a divergence between the two languages visible as a parity failure
-(Section~\ref{sec:parity}) rather than being mistaken for a performance difference.
+(Section~\ref{sec:parity}) instead of being mistaken for a performance difference.
 
 \paragraph{The component decomposition and contended primitives.}
 The second measurement level of Section~\ref{sec:methodperf} yields a much smaller dataset of a
@@ -2534,9 +2534,9 @@ logs, the AddressSanitizer and ThreadSanitizer output for the C++ program and th
 output for the safe-Rust counterpart, together with one row in a machine-readable taxonomy
 recording the two sanitiser outcomes, the detection stage, the compiler result with the
 diagnostic codes that fired, and the expectation registered before the study. Carrying the
-expectation in the data rather than in the prose is what allows the runner to report a mismatch
+expectation in the data instead of in the prose is what allows the runner to report a mismatch
 in either direction; the table and figure in Section~\ref{sec:safetyresults} are generated from
-that file rather than transcribed from it.
+that file, not transcribed from it.
 
 \paragraph{What travels with the data.}
 Every campaign writes an environment record beside its results, capturing host and kernel,
@@ -2615,7 +2615,7 @@ It does mean that one half of RQ1, how the two languages behave in the high perc
 the service is still meeting its offered load, is answered by this campaign only in the
 negative: that tail is not yet measurable. It leaves the other half untouched. How they behave
 once the service stops coping is resolved decisively on this same host, and
-Section~\ref{sec:overload} reports it. Closing the remaining gap needs the bare-metal protocol rather than more repeats on this
+Section~\ref{sec:overload} reports it. Closing the remaining gap needs the bare-metal protocol and not more repeats on this
 host, because the dispersion is systematic interference rather than sampling noise, and
 Section~\ref{sec:budget} shows that the quantity a language could affect lies more than three
 orders of magnitude below the one this measurement resolves.
@@ -2646,8 +2646,8 @@ below zero.\label{tab:latency}}
 \paragraph{Testing the comparison rather than eyeballing it.}
 Overlapping intervals are a weak instrument in both directions, so the comparison is also tested
 directly, by the procedure fixed in Section~\ref{sec:stats} and reported in
-Table~\ref{tab:significance}. What licenses the pairing is a property of this campaign rather
-than of the statistic: because the four variants are interleaved inside every repeat, the
+Table~\ref{tab:significance}. What licenses the pairing is a property of this campaign and
+not of the statistic: because the four variants are interleaved inside every repeat, the
 $i$-th run of each was measured in the same block under the same ambient conditions, so the
 interference that block carried is common to the pair and cancels in their difference. That is
 the second thing the interleaving discipline buys, beyond the fairness argument it was adopted
@@ -2750,7 +2750,7 @@ That shape is not peculiar to this system or to this pair of languages. Revisiti
 decomposition of transaction-processing cost on a shared-nothing database structured, as this
 service is, with one partition per worker thread, Zhou et al.\ report that once the
 per-operation work has been optimised the remaining cost is dominated by communication across
-isolation boundaries rather than by the operation itself~\cite{zhou2025oltp}. A mature
+isolation boundaries and not by the operation itself~\cite{zhou2025oltp}. A mature
 shared-nothing design tends to end up communication- and scheduler-bound, and the table above is
 that pattern appearing in a control-plane service. It is worth saying because it makes the result
 below a general property of the design rather than an artefact of this measurement.
@@ -2773,7 +2773,7 @@ equivalent. \BudgetCoreFaster{} runs the bare operation about $\BudgetCoreRatio\
 the difference is present in the great majority of repeats, and the paired test puts it two
 orders of magnitude below the conventional threshold. This decomposition is a separate
 experiment from the sweep and is not part of its Holm family: it runs \BudgetRepeats{} repeats
-rather than \NRepeats{}, so its own attainable floor is $0.000061$ rather than the
+instead of \NRepeats{}, so its own attainable floor is $0.000061$ rather than the
 $\CorrectedFloor$ quoted in Section~\ref{sec:stats}, and no correction is applied to it. The
 same holds for the interoperability comparison of Section~\ref{sec:migrationresults}. This is
 the only place in the whole performance campaign where a
@@ -2863,7 +2863,7 @@ coping is a property of the design.
 What happens \emph{after} the knee is not shared. The four curves separate as soon as the
 offered rate stops being met, and they separate by language rather than by allocator, which is
 the one thing the sweep was built to be able to detect and the one regime in which it can.
-Section~\ref{sec:overload} measures that separation rather than leaving it to the eye.
+Section~\ref{sec:overload} measures that separation instead of leaving it to the eye.
 
 \begin{figure}
 \centering
@@ -3019,7 +3019,7 @@ sustained load. Peak resident set size separates the four variants cleanly, and 
 whichever way the family is read: its intervals exclude zero, and its effect keeps its sign under
 both allocators.
 
-Two effects are present in it rather than one, and they are not of comparable size. Linking
+Two effects are present in it, not one, and they are not of comparable size. Linking
 \texttt{jemalloc} costs $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB in either language, while the Rust
 build costs $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more than the C++ build under either allocator,
 with a bootstrap interval of $\RssLangCILo$ to $\RssLangCIHi$~MiB. So resource use follows both,
@@ -3029,7 +3029,7 @@ a consequence of the fairness controls rather than a fact about \texttt{jemalloc
 saying so avoids overstating it. Both builds pin the arena count identically so that neither
 language's default could become an accidental advantage, and pinning it high is what makes the
 arena metadata a large fixed cost on both sides. A deployment tuning \texttt{jemalloc} for
-footprint rather than for comparability would not pay it.
+footprint instead of for comparability would not pay it.
 
 The one row in the robust block of Table~\ref{tab:significance} that does not clear the
 correction is peak RSS under
@@ -3047,7 +3047,7 @@ most $\CpuDiffAbsMax$ percentage points, consistently under both allocators and 
 correction under both. Section~\ref{sec:overload} finds the sign inverted past saturation and the
 magnitude much larger. Achieved throughput adds nothing here for the reason
 Section~\ref{sec:stats} gives: at a below-saturation point it is pinned to the offered load, and
-it is reported only to confirm that the point is sustained rather than nominal, which it is to
+it is reported only to confirm that the point is sustained and not merely nominal, which it is to
 within $\ReprLoadShortfall\%$.
 
 Two qualifications keep the memory finding the size it actually is. It is a difference in fixed
@@ -3094,7 +3094,7 @@ decided by the choice of test cases, confirming the expected result but never ab
 it. With it, the study measures a boundary rather than demonstrating a claim. The fault runner
 holds the expectation recorded for each case in advance and reports a violation in either
 direction, so a case that unexpectedly compiled, or unexpectedly failed to, would surface
-rather than being absorbed into the conclusion.
+instead of being absorbed into the conclusion.
 
 \paragraph{Procedure.}
 For each C++ defect the study builds and runs the program under both AddressSanitizer (ASan)
@@ -3112,7 +3112,7 @@ and the raw tool logs are published with the thesis.
 The outcomes are shown in Table~\ref{tab:taxonomy}, measured with \texttt{g++~13.3}
 (\texttt{-std=c++23}, \texttt{-O0} so the optimizer cannot elide an injected defect) and
 \texttt{rustc~1.97} (edition~2021). That C++ toolchain is the local development machine's
-rather than the measurement host's \texttt{g++~15.1.1}, and the catalogue was run there
+and not the measurement host's \texttt{g++~15.1.1}, and the catalogue was run there
 deliberately: whether a program compiles, and what a sanitiser reports when it runs, are
 properties of the toolchain rather than of the machine hosting it, which is the concrete
 content of calling this result environment-insensitive in
@@ -3332,7 +3332,7 @@ but that it is irrelevant \emph{until the service stops coping}, at which point 
 much work still gets done. A comparison that stopped at nominal load, as most in this literature
 do, would have concluded the opposite with the same apparatus.
 
-That reframes the closest prior work rather than merely agreeing with it. Arvidsson and Kaller
+That reframes the closest prior work instead of merely agreeing with it. Arvidsson and Kaller
 measure this quantity for 5G control-plane procedures and find Rust's 99th percentile degrading
 faster beyond a threshold request rate, which they trace to stackless
 \texttt{async}/\texttt{await} permitting a context switch immediately before an I/O operation
@@ -3349,7 +3349,7 @@ blocking primitives recorded in Table~\ref{tab:idioms}. Section~\ref{sec:content
 whether those primitives alone explain the gap and finds they do not reproduce the full-service
 ordering at significance, which narrows the cause to additional work on the C++ handoff path
 rather than to the safety model. Recording that the prediction resolved against its own first
-hypothesis, and that the follow-up microbenchmark refined rather than confirmed the attribution,
+hypothesis, and that the follow-up microbenchmark refined the attribution instead of confirming it,
 is more useful to the next study than quietly substituting the explanation that survived.
 
 \paragraph{RQ2 (safety).} The result does not depend on the environment, and what makes it
@@ -3380,7 +3380,7 @@ the first.
 
 The practical consequence is that adopting Rust retires one category of concurrency defect
 completely while leaving another untouched. The category left untouched is the one that fails
-silently, corrupting a counter or a state decision rather than crashing. A migration plan that
+silently, corrupting a counter or a state decision instead of crashing. A migration plan that
 treats ``memory-safe'' as ``concurrency-safe'' would therefore mis-budget its review and testing
 effort. That is why this boundary is reported as a first-class result rather than a caveat.
 Figure~\ref{fig:boundary} states the whole result in one picture, with the two halves of the
@@ -3431,7 +3431,7 @@ are candidates to test, not conclusions to import. What can be said is narrower 
 useful to a vendor sizing a control-plane node: adopting Rust here costs a few megabytes of
 fixed footprint per process, and buys a faster core operation
 (Section~\ref{sec:budget}) that this workload's structure never converts into throughput below
-saturation and, above it, converts into a deficit rather than a gain.
+saturation and, above it, converts into a deficit instead of a gain.
 
 The sign of that result is worth defending, because the closest prior work in the domain
 reports the opposite one. Karlb\"ack and Or\"o measure peak resident set on a RAN workload and
@@ -3445,7 +3445,7 @@ hundred bytes. What their figures capture is therefore the per-context cost of t
 runtime, which is precisely why it grows with the number of contexts. The design measured here
 has no green threads on either side: a fixed thread-per-shard pool leaves no per-context
 allocation to differ, and what remains is the fixed footprint reported above, constant in the
-number of UEs rather than proportional to it. Their disagreement with this result is thus
+number of UEs and not proportional to it. Their disagreement with this result is thus
 between two concurrency runtimes rather than between two languages, which is as direct a
 demonstration as the literature offers of why this study holds the concurrency model fixed. It
 also sharpens the caveat attached to the present number: it licenses nothing about Rust's
@@ -3454,7 +3454,7 @@ memory behaviour under a task-per-UE design, which is a different experiment.
 \paragraph{RQ4 (migration).} The prototype shows that incremental adoption is technically
 cheap: a C++ host can call an unmodified Rust core across a thin C-ABI seam whose cost on a
 real operation is bounded at $\FfiOpBoundPct\%$, confining all \texttt{unsafe} to the seam.
-That bound comes from the matched comparison of Section~\ref{sec:migrationresults} rather than
+That bound comes from the matched comparison of Section~\ref{sec:migrationresults}, not
 from setting an empty crossing
 against a full round-trip; the two are not the same experiment, and on this host a single
 unpaired pass of each was enough to invert the apparent ordering. The dominant cost is
@@ -3470,7 +3470,7 @@ and it is true as measured: the core crate contains no \texttt{unsafe}, and ever
 operation sits in twelve reviewable sites. It is not a claim that the core is protected at run
 time. Host and component share an address space, and a memory error on the C++ side can corrupt
 Rust-owned data regardless of how the Rust side was checked, which is why the remedies proposed
-in the literature isolate the two heaps with hardware support rather than relying on interface
+in the literature isolate the two heaps with hardware support instead of relying on interface
 discipline~\cite{rivera2021galeed,kirth2022pkrusafe}. The defect classes that arise at such
 boundaries have been catalogued in their own right~\cite{li2022crosslang}. So what a migration
 of this shape buys is narrower than ``the Rust part is safe'': it is that the migrated
@@ -3524,7 +3524,7 @@ themselves, is what distinguishes a test from a description.
         not do that: it set an empty crossing against a full round-trip and inferred the
         answer, which is a comparison between two different experiments and would have given
         the right conclusion for the wrong reason. The accompanying claim, that the real cost
-        is engineering effort, is supported structurally rather than statistically: the seam is
+        is engineering effort, is supported structurally and not statistically: the seam is
         small and mechanical, but designing its C-compatible surface was the part of the
         prototype that required actual design decisions.
 \end{description}
@@ -3549,13 +3549,13 @@ those designed out first, and that redesign, not the FFI, is the schedule risk.
 
 \paragraph{Put the ABI in its own crate and keep the core \texttt{unsafe}-free.}
 Concentrating every raw-pointer operation in a separate seam crate depending on an unmodified
-core (Section~\ref{sec:migrationresults}) is worth adopting as a rule rather than treating as an
+core (Section~\ref{sec:migrationresults}) is worth adopting as a rule instead of treating as an
 accident of this prototype: it keeps the dependency-propagation problem Evans et al.\
 describe~\cite{evans2020rust} away from the safety-critical code, and makes the reviewable
 surface of the migration a fixed, countable thing. Two qualifications belong with it. It bounds
 what has to be \emph{reviewed}, not what can be \emph{corrupted}: while the host remains C++ the
 two share a heap, so a team needing the stronger property must look at in-process
-isolation~\cite{rivera2021galeed,kirth2022pkrusafe} rather than at interface discipline alone.
+isolation~\cite{rivera2021galeed,kirth2022pkrusafe} and not at interface discipline alone.
 And the generated part of a seam is not above suspicion, since binding generators have their own
 defect history~\cite{cai2026interop}; review it as code rather than trusting it as tooling
 output.
@@ -3671,7 +3671,7 @@ right~\cite{enberg2019threadpercore}; the RAN context on O-RAN
 disaggregation~\cite{polese2023oran}. Rust already has mobile-network precedent in the
 datapath~\cite{qazi2017pepc} and, on the control-plane side, an open-source proof-of-concept
 gNB-CU with a separated CU-CP and CU-UP over E1, which establishes that the ASN.1 and SCTP
-protocol surface is no barrier in principle, but is an existence proof rather than a comparison:
+protocol surface is no barrier in principle, but is an existence proof and not a comparison:
 it reports no latency and has no C++ counterpart built to the same
 specification~\cite{alsoran}. Control-plane latency is an active target in the core network
 too~\cite{liu2023l25gc,park2025ctrlbench}. The adoption evidence points at the learning curve
@@ -3692,7 +3692,7 @@ deserve separate treatment.
 Karlb\"ack and Or\"o compare Rust and Go against C++ for RAN applications on x86 and ARM,
 combining runtime measurements with development-efficiency metrics, and conclude that C++ remains
 the choice where performance is critical~\cite{karlback2021ran}. Their control deserves to be
-quoted rather than characterised, because it is the clearest statement in this literature of the
+quoted and not characterised, because it is the clearest statement in this literature of the
 confound the present study is built to remove. The authors record that they deliberately did not
 write the same program three times: they ``aimed for providing the best solution in each language,
 instead of trying to make the code as identical as possible between the languages'', and
@@ -3727,7 +3727,7 @@ runtime yields response times that match classical response-time analysis, which
 work-stealing configuration does not~\cite{skoudlil2025asyncrust}. The tail behaviour at issue is
 therefore a property of the runtime, and one that changes when the runtime does. That confound is
 precisely what the frozen specification and the shared thread-per-shard model in this thesis are
-designed to remove. The two studies are therefore complementary rather than contradictory:
+designed to remove. The two studies are therefore complementary, not contradictory:
 theirs establishes that a tail difference is observable in this domain, and this one is
 constructed to determine whether the language is what causes it.
 
@@ -3739,8 +3739,8 @@ substantially more instructions per packet than its C reference and is measurabl
 absolute terms, its safety checks being absorbed by out-of-order execution rather than being
 literally free~\cite{emmerich2019drivers}. The ``zero-cost''
 framing~\cite{balasubramanian2017rust} is therefore better read as workload-dependent than as
-universal. That is precisely why tail behaviour must be measured on the target workload rather
-than assumed.
+universal. That is precisely why tail behaviour must be measured on the target workload and
+not assumed.
 
 The safety story is likewise not absolute. Empirical studies of real-world Rust find that memory-
 and thread-safety bugs still occur in practice, with blocking bugs and misused synchronisation
@@ -3757,7 +3757,7 @@ apply to it.
 Table~\ref{tab:related} positions this thesis against the studies closest to it along the
 three axes on which it claims to differ: whether the comparison controls for design by
 building both systems from one specification, whether it reports tail behaviour under overload
-rather than average-case performance, and whether it measures the cost of adoption rather than
+rather than average-case performance, and whether it measures the cost of adoption instead of
 describing it. Individually, none of the three axes is unoccupied: matched implementations
 exist in systems software~\cite{emmerich2019drivers,li2021ipc,narayanan2020redleaf},
 percentile latency has been reported for 5G control-plane
@@ -3770,10 +3770,10 @@ concurrent control-plane workload, which is the narrower gap this work occupies.
 \small
 \caption[Positioning against the closest prior work]{Positioning against the closest prior work. ``Matched pair'' means both systems are
 built from one specification so that the language is the only systematic difference; ``tail
-under overload'' means high percentiles are reported past the saturation point rather than
-average or nominal-load performance; ``adoption cost'' means the cost of incremental migration
+under overload'' means high percentiles are reported past the saturation point and not at
+average or nominal load; ``adoption cost'' means the cost of incremental migration
 is measured rather than surveyed. ``Partial'' marks percentiles reported across a load sweep
-that stops at a latency requirement rather than continuing past
+that stops at a latency requirement instead of continuing past
 saturation.\label{tab:related}}
 \renewcommand{\arraystretch}{1.2}
 \small
@@ -3820,7 +3820,7 @@ margin.
 \caption[Threats to validity, their mitigations, and what remains]{Threats to validity by the kind of inference each endangers, the control applied, and
 what that control leaves behind. Only the residuals in the last column are live risks; the
 middle column is what has already been done about each. The one row for which no control was
-available at all, the missing hardware counters behind the RQ3 result, says so rather than
+available at all, the missing hardware counters behind the RQ3 result, says so instead of
 softening it.\label{tab:threats}}
 % Single-spaced with a slightly opened row height: at the body's 1.5 spacing this,
 % the densest table in the thesis, overruns the page. \singlespacing reselects the
@@ -3867,7 +3867,7 @@ overload mechanism.\label{fig:threats}}
 
 \paragraph{Internal validity: is the language really the only difference?}
 The central threat is implementation bias between the two versions. It is mitigated
-structurally rather than by assertion, by the controlled-variable strategy of
+structurally and not by assertion, by the controlled-variable strategy of
 Section~\ref{sec:fairness} and Table~\ref{tab:controls}: one frozen specification, the same
 allocator and matched optimisation levels, hash functions pinned on both sides so that neither
 standard library's default becomes an accidental advantage, divergences the languages force
@@ -3881,7 +3881,7 @@ mitigated, not eliminated.
 
 \paragraph{Construct validity: do the metrics measure what the questions ask?}
 RQ1 asks about predictability and is answered with high percentiles, the maximum, and jitter
-rather than the mean, which is the standard way of measuring it in this
+and not the mean, which is the standard way of measuring it in this
 literature~\cite{dean2013tail}. Two of those metrics are instrumented but not yet reported: the
 harness records p99.99 and inter-operation jitter and persists the histograms the far tail has
 to be pooled from, but the campaign this thesis reports predates that instrumentation, so RQ1 is
@@ -3889,7 +3889,7 @@ currently answered with p99 and p99.9 and the maximum. That is a gap in the evid
 in the design, and it closes with the same bare-metal campaign the tail claims already wait on.
 The residual risk in the metrics themselves is that p99.9 on a synthetic workload is not
 the same quantity as a missed procedure deadline in a live network. A second and larger
-construct gap in RQ1 was found rather than anticipated. The end-to-end latency the sweep reports
+construct gap in RQ1 was found, not anticipated. The end-to-end latency the sweep reports
 is $\BudgetCoreShareMax\%$ operation and the rest cross-thread handoff
 (Section~\ref{sec:budget}), so it measures the delivered cost of the design faithfully and the
 cost of the language barely at all. Which of those RQ1 is asking about depends on the reader: a
@@ -3941,8 +3941,8 @@ reported as unresolved rather than as a null. It interacts with the pairing in a
 pairing removes the interference that is \emph{common} to a repeat, which is why run-level
 statistics such as peak RSS, CPU, and sustained throughput come through cleanly, but it cannot
 remove interference that lands on one run and not its partner, which is exactly the regime the
-tail percentiles live in. That is also why the overload comparison is made on throughput rather
-than on latency: a run-level average is the statistic pairing can rescue on a host like this one.
+tail percentiles live in. That is also why the overload comparison is made on throughput and
+not on latency: a run-level average is the statistic pairing can rescue on a host like this one.
 
 Second, a corrected $p$-value below $0.05$ is necessary here but visibly not sufficient, and the
 converse also holds. On an earlier campaign, before the two \texttt{jemalloc} builds were held to
@@ -3955,7 +3955,7 @@ size under \texttt{jemalloc} has an interval far from zero and $18$ of $20$ repe
 while its $p$-value sits near unity, because a handful of runs report a resident set some $30$~MiB
 below their variant's median and a statistic computed from the mean of paired differences cannot
 survive them. That row is read from its interval, under the rule fixed in
-Section~\ref{sec:stats} rather than chosen once the disagreement appeared. The bimodality is a
+Section~\ref{sec:stats} and not chosen once the disagreement appeared. The bimodality is a
 defect in the measurement, not in either allocator: it affects both languages in equal numbers and
 appears at every load level, and diagnosing it, rather than averaging over it, is the honest
 remedy and is left as instrumentation work.
@@ -3983,33 +3983,33 @@ variant dispatch, and in the map operations that the microbenchmark strips away.
 The study covers one subsystem, one workload, one concurrency structure, and one machine, and
 each of those bounds the reach of the conclusions differently. The safety and migration
 results (RQ2, RQ4) generalise most readily, because they are properties of the compilers and
-of the C ABI rather than of this subsystem: any C++ codebase writing these defect classes gets
+of the C ABI and not of this subsystem: any C++ codebase writing these defect classes gets
 the same compile-time outcome, and any narrow, scalar-typed interface gets a similarly cheap
 seam. The performance results generalise least. UECM was deliberately chosen to be small and
 partitionable, and its shared-nothing design removes lock contention from the hot path;
 a subsystem with genuinely shared mutable state, deep call graphs, or heavy allocation
 churn could exercise the two languages' abstraction and allocation costs quite differently. The
-workload is synthetic and spec-justified rather than replayed from production traffic, so its
-operation mix is plausible rather than validated. And nothing here speaks to PHY or L2
+workload is synthetic and spec-justified, not replayed from production traffic, so its
+operation mix is plausible but unvalidated. And nothing here speaks to PHY or L2
 processing, to the data-heavy user plane, or to the operational concerns (upgrade,
 observability, multi-tenancy) that a production deployment would raise. The defensible claim
 is therefore narrow and carries a condition: for stateful, concurrent, partitionable
 control-plane services of this kind, and while they are meeting their offered load, the language
 choice is not a performance decision. Once they are not, it is one, and the overload result is
-the least transferable finding in the study rather than the most, because it depends on the queue
+the least transferable finding in the study and not the most, because it depends on the queue
 bound, on one request being outstanding per producer, and on two particular standard-library
 primitives. Extending either claim beyond this class requires rerunning the framework, which is
 why the framework rather than the numbers is offered as the reusable contribution.
 
-A final limit on reach is temporal rather than structural, and it applies to the comparison
-itself rather than to any one result: one of the two objects being compared is moving. The C++
+A final limit on reach is temporal and not structural, and it applies to the comparison
+itself, not to any one result: one of the two objects being compared is moving. The C++
 side is pinned to C++23 as specified and shipped, and to the compiler versions recorded in
 Section~\ref{sec:testbed}, while the standards committee is actively pursuing enforced safety
 profiles (Section~\ref{sec:cpplatency}). This does not qualify anything measured here, because
 none of that work is standardised or generally implemented, and the concurrency profile that
 would reach the boundary classes of RQ2 is placed after an initial set that is itself still to be
 specified~\cite{vandevoorde2026profiles}. It does mean the RQ2 result should be read as a
-statement about these languages as they stand rather than as a permanent one. An implemented and
+statement about these languages as they stand, not as a permanent one. An implemented and
 enforced lifetime profile would narrow the memory-safety half of the catalogue; an implemented
 concurrency profile would bear on the half deliberately placed outside Rust's guarantee. This is
 again a case where the framework is what survives: the catalogue is designed to be re-run against
@@ -4033,10 +4033,10 @@ placed on evidence the host cannot fully support. Tail-latency numbers measured 
 machine with non-zero CPU steal are not a sound basis for a production commitment, and saying so
 in the text is only effective if the qualification travels with the numbers when they are quoted
 elsewhere; that is part
-of why the summary table records an evidence status per research question rather than a
+of why the summary table records an evidence status per research question and not a
 finding alone. Beyond the immediate results, a migration recommendation also carries
 organisational consequences, retraining, hiring, and a period of reduced velocity, that fall
-on people rather than on systems, and the honest framing of the RQ4 finding is that the cost
+on people and not on systems, and the honest framing of the RQ4 finding is that the cost
 was relocated from run time to human effort rather than removed.
 
 \chapter{Conclusion and Future Work\label{chapter:conclusions}}

@@ -325,6 +325,14 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       reporting instruction: scope, purpose, tool and version, how the output was verified,
       what the author took from it, and where responsibility lies. Keep it in step with reality
       if the workflow changes; consider whether `Thesis_Plan_v2.tex` needs the same page.
+- [x] Prose de-tic pass (Aug 2026). `.aitells.py` sweeps the draft for language-model
+      stylistic fingerprints, the way `.vocab.py` sweeps for hard Latinate words. It found one:
+      "rather than" 241 times against 8 for "instead of", repeated inside 58 paragraphs. The
+      58 were cut to at most one each (241 -> 162, ~46 per 10k words) using a mix of "instead
+      of", ", not", and "and not" so no single replacement becomes the next tic. Direct
+      quotations were left alone. Everything else came back clean: no promotional vocabulary,
+      no "it is worth noting", sentence-length stdev 14.7 on a mean of 27.6. Re-run
+      `.aitells.py Thesis_POC.tex` after any large writing pass.
 - [ ] Full proofread + supervisor review round(s)
 - [x] Verify all cross-references, citations, tables, figures resolve (0 errors, 0 undefined)
 - [x] Reproducibility check: `bench/refresh_thesis.sh` regenerates every figure, table, and
