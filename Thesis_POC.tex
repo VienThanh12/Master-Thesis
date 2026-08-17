@@ -196,24 +196,25 @@ overload, both versions pass the same parity tests, and the evaluation adds faul
 FFI prototype.
 
 \noindent\textbf{Results.}
-Safe Rust prevents all five injected memory-safety and data-race defect classes at compile time; in
-C++ each compiles and is caught, if at all, only at runtime under a sanitiser. Five boundary
-classes misbehave in both, and on two the C++ tooling reports what Rust's does not. The FFI seam
-keeps the core \texttt{unsafe}-free at a cost bounded at $\FfiOpBoundPct\%$ of one operation.
-Performance divides at saturation. Below it the two are equivalent at the median, but an end-to-end
-operation is only $\BudgetCoreShareMax\%$ language work and the rest cross-thread handoff, so the
-sweep bounds the design, not the language. Measured apart, Rust's operation is
-$\BudgetCoreRatio\times$ faster, its process a few MiB larger. Past saturation the two diverge
-sharply and in the other direction: \OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$
-the throughput of \OverloadSustainedSlower{} in \OverloadThrAgree{} interleaved repeats under both
-allocators. The far tail below saturation remains unresolved on a virtualised host.
+Safe Rust rejects all five injected memory-safety and data-race defect classes at compile
+time. In C++ the same five build cleanly and show up only at runtime, if a sanitiser catches
+them. Five further classes fail in both languages. On two of them C++ tooling reports what
+Rust does not. The seam to C++ leaves the core \texttt{unsafe}-free and costs at most
+$\FfiOpBoundPct\%$ of one operation. Performance changes at saturation. Below it median
+latency matches, yet an end-to-end call spends only $\BudgetCoreShareMax\%$ on language
+work. Cross-thread handoff takes the rest, so the sweep reflects the design more than the
+language. Timed alone, Rust's operation is $\BudgetCoreRatio\times$ faster and the process
+is a few MiB larger. Above saturation the order flips: \OverloadSustainedFaster{} holds
+$\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{} in \OverloadThrAgree{}
+interleaved repeats with both allocators. The far tail below saturation cannot be settled
+on a virtualised host.
 
 \noindent\textbf{Conclusions.}
-The barrier to adopting Rust here is engineering effort and the learning curve, not run-time
-performance at nominal load; the gain is freedom from data races, not from concurrency defects
-generally. The overload result qualifies that: for a service that must degrade gracefully, the
-deciding factor is not the safety model but the standard library's synchronisation primitives,
-which a nominal-load comparison would never see.
+The main cost of adopting Rust is engineering effort and the learning curve, not run-time
+performance at nominal load. The gain is freedom from data races, not from concurrency
+defects in general. Overload narrows that claim: a service that must degrade gracefully
+depends on the standard library's synchronisation primitives, not on the safety model, and
+a nominal-load test would not expose the gap.
 \end{abstract}
 \end{otherlanguage}
 }
