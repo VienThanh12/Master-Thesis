@@ -804,18 +804,15 @@ These guarantees rest on more than assertion. The soundness of the safe fragment
 language, including the role of \texttt{unsafe} as an explicitly marked escape hatch, has
 been established formally by the RustBelt project~\cite{jung2018rustbelt}, and the aliasing
 discipline that even \texttt{unsafe} code must respect has been given a precise operational
-semantics~\cite{jung2020stacked}. Empirical evidence supports the model in practice. In real
+semantics~\cite{jung2020stacked}. Empirical evidence supports the model in practice: in real
 codebases \texttt{unsafe} is used sparingly and in localised
 ways~\cite{astrauskas2020unsafe,qin2020rust}, and a study of all Rust memory-safety CVEs found
 that every one of them but a single compiler bug involved \texttt{unsafe}
-code~\cite{xu2021rustcve}. Safe Rust, in other
-words, keeps its promise.
-
-The caveat is that unsafety propagates through dependencies. Fewer than a third of libraries
-use \texttt{unsafe} directly, but a much larger fraction cannot be fully statically checked
-because \texttt{unsafe} hides somewhere in their call chain~\cite{evans2020rust}. That is a
-further argument for keeping the safety-critical core of a subsystem \texttt{unsafe}-free, as
-this thesis does.
+code~\cite{xu2021rustcve}. The caveat is that unsafety propagates through dependencies. Fewer
+than a third of libraries use \texttt{unsafe} directly, but a much larger fraction cannot be
+fully statically checked because it hides somewhere in their call
+chain~\cite{evans2020rust}, which is a further argument for keeping the safety-critical core of a
+subsystem \texttt{unsafe}-free, as this thesis does.
 
 One property matters crucially in a latency-critical setting: this safety is enforced by the
 type system and borrow checker rather than by runtime instrumentation, and is intended to be
@@ -825,19 +822,9 @@ C~\cite{balasubramanian2017rust}. Whether that zero-cost claim holds for a telec
 control-plane workload is precisely the property this thesis evaluates.
 
 Concretely, the borrow checker rejects at compile time the very use-after-free sketched in the
-introduction. The following program does not build, because \texttt{ctx} is moved (dropped)
-while a reference to it is still live:
-
-\begin{lstlisting}[language=Rust]
-let ctx = UeContext::new(42);
-let r = &ctx;      // immutable borrow of ctx
-drop(ctx);         // move/free ctx ...
-use_ctx(r);        // error[E0505]: cannot move out of `ctx`
-                   //              because it is borrowed
-\end{lstlisting}
-
-\noindent Figure~\ref{fig:borrowuaf} puts the same defect in its UE Context Management form
-beside the C++ version, which compiles and is caught, if at all, only at runtime.
+introduction: a program that frees a context while a reference to it is still live does not
+build. Figure~\ref{fig:borrowuaf} puts that defect in its UE Context Management form beside the
+C++ version, which compiles and is caught, if at all, only at runtime.
 
 \begin{figure}
 \centering
@@ -858,6 +845,20 @@ Error handling is likewise explicit: fallible operations return a \texttt{Result
 the caller must handle, rather than raising an exception that unwinds through hidden control
 flow. Both the cost and the control flow of the failure path therefore stay visible, which is
 an advantage in latency-sensitive code where surprises in the tail are what matter.
+
+Rust is not the only memory-safe language, and the reason the comparison here is drawn against
+C++ rather than against a managed runtime belongs with this model. Java, C\# and Go achieve
+memory safety through a runtime and garbage collection, which is an excellent trade for much
+software and a poor one for a tail-latency-critical control plane: collection pauses are a
+recognised source of tail latency in large systems~\cite{dean2013tail}, and a managed runtime
+cedes the control over memory layout and scheduling this domain relies on. C, at the other
+extreme, is as memory-unsafe as C++ while offering fewer abstractions for building large
+systems. Rust is the first widely supported language to combine compile-time memory and thread
+safety with the absence of a garbage collector and throughput and memory use alongside C and
+C++~\cite{jung2021safe,balasubramanian2017rust,bugden2022rust}. That is why managed languages
+are out of scope and why the meaningful comparison for RAN control-plane software is C++ against
+Rust.
+
 Table~\ref{tab:langmodel} sets the two languages' mechanisms side by side. The distinction it
 is built around is not which hazards each language names, since both name much the same ones,
 but \emph{when} and \emph{by what} each is ruled out, and the last two rows mark where the
@@ -891,35 +892,6 @@ Atomicity of a composed operation & Not checked & Not checked \\
 \hline
 \end{tabular}
 \end{table}
-
-\section{The systems-language landscape}
-Rust is not the only memory-safe language, but it occupies a distinctive position for this
-problem. Managed languages such as Java, C\#, and Go achieve memory safety through a runtime
-and garbage collection. That is an excellent trade for much software. It is a poor fit for
-a tail-latency-critical control plane: garbage collection introduces pauses and timing
-variability that are a recognised source of tail latency in large systems~\cite{dean2013tail},
-and a managed runtime also cedes the low-level control over memory layout and scheduling that
-this domain relies on. At the other extreme, C is as memory-unsafe as C++ while offering fewer
-abstractions for building large systems. Rust is the first widely supported language to
-combine memory and thread safety, enforced at compile time, with the absence of a garbage
-collector and performance intended to be competitive with C++~\cite{jung2021safe,
-balasubramanian2017rust}. Cross-language benchmark surveys place Rust's throughput and memory
-use alongside C and C++ while it retains its safety guarantees~\cite{bugden2022rust}. That
-combination is exactly why the meaningful comparison for RAN
-control-plane software is C++ against Rust, and why managed languages are out of scope here.
-Figure~\ref{fig:landscape} places the candidates on the two axes that decide it, low-level
-control and compile-time safety.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.82\linewidth]{diagrams/pdf/09_language_landscape.pdf}
-\caption[The systems-language landscape: control against safety]{The systems-language landscape along two axes: low-level control over memory and
-scheduling (horizontal) and memory/thread safety (vertical). Managed languages (Java, C\#, Go,
-Python) are safe but pay a garbage-collection cost that hurts tail latency; C and C++ give
-bare-metal control but leave safety to the programmer. Rust occupies the sweet spot of
-compile-time safety with no garbage collector, which is why the meaningful comparison for a RAN control plane
-is C++ against Rust.\label{fig:landscape}}
-\end{figure}
 
 \section{Concurrency models for control-plane software}
 How concurrency is structured shapes both correctness and tail latency. The dominant model is
