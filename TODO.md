@@ -31,10 +31,12 @@ needs.
    fallbacks named in the plan are a cloud bare-metal instance or a Nokia lab host.
 3. **Do the harness work before that visit, not during it** (Phase 7a). Three things are in this
    category, and all three are cheap now and expensive later:
-   - p99.99 and a jitter statistic. Both benches emit only fixed percentiles and never persist
-     the HDR histogram, so neither can be recovered from a finished campaign. Left alone, the
-     bare-metal data comes back with the same hole as the WSL2 data, on the one question the
-     visit exists to answer.
+   - p99.99 and a jitter statistic. **The instrumentation is done** (Aug 2026: `--jitter`,
+     `--hist-out`, `bench/pool_hist.py`; see Phase 5). What is not done is *using* it — no
+     reported campaign carries the sidecars, so the numbers still cannot be quoted. Run a
+     campaign with both flags before the visit rather than discovering on the day that the
+     bare-metal data came back with the same hole as the WSL2 data, on the one question the
+     visit exists to answer. Costed as item 2 of "Highest-value work still available".
    - `perf` counters. Two results are currently significant but unexplained (peak RSS) or resting
      on a plausibility argument (the 1.9x operation gap, attributed to `std::unordered_map` being
      node-based against Rust's open-addressed `HashMap`).
@@ -54,8 +56,9 @@ needs.
 ## Phase 0 - Environment & repository setup
 - [x] Install LaTeX toolchain (TinyTeX in ~/.TinyTeX; `pdflatex`, `bibtex`, `latexmk` on PATH)
 - [x] Obtain the `UH_DS_MSc.cls` class file (local reconstruction from UH_*_MSc family; see note)
-- [x] Create `bibliography.bib` with all cited references (65 entries as of Aug 2026)
-- [x] Verify `Thesis_POC.tex` compiles to PDF end-to-end (143 pages as of Aug 2026, all
+- [x] Create `bibliography.bib` with all cited references (97 active entries as of 17 Aug 2026,
+      all cited, no orphans; one superseded entry is commented out)
+- [x] Verify `Thesis_POC.tex` compiles to PDF end-to-end (161 pages as of 17 Aug 2026, all
       refs/citations resolve; bibliography style is now `IEEEtran`, numbered in citation order)
 - [x] Initialize git repository; add `.gitignore` (build artifacts, LaTeX aux files)
 - [x] (Optional) Replace reconstructed `UH_DS_MSc.cls` with the official one from Overleaf/Moodle
@@ -522,10 +525,18 @@ to "localised", closing the residual `tab:threats` names as its most exposed.
 
 ### 2. Re-run the campaign with jitter and HDR sidecars on the host already in hand
 
-**Why.** RQ1 asks about "mean, p99, p99.9 tail latency, **and jitter**". Jitter is in the
-question and absent from the answer; §8.6 has to say so. The instrumentation landed in Aug 2026
-(`--jitter`, `--hist-out`, `bench/pool_hist.py`) but the reported campaign predates it, and
-`bench/results/` confirms only the Aug 14 WSL smoke carries `.hist.jsonl`.
+**Why.** The instrumentation landed in Aug 2026 (`--jitter`, `--hist-out`,
+`bench/pool_hist.py`) but the reported campaign predates it, and `bench/results/` confirms only
+the Aug 14 WSL smoke carries `.hist.jsonl`. So jitter and p99.99 are measurable and unmeasured.
+
+Note what this item is **not**, because an earlier version of this note had it wrong. RQ1 no
+longer names jitter: as worded in the plan, `Thesis_v1.tex` and `Thesis_POC.tex` it asks about the
+median, p99, p99.9 and the maximum, which is exactly what the reported campaign delivers, and
+§8.6 says so deliberately rather than confessing a hole. The question and the answer therefore
+already match; this re-run is an *upgrade to predictability evidence*, not the discharge of an
+unkept promise. Do not re-argue it as one, and do not widen RQ1 to name jitter again unless the
+statistic is in hand — narrowing the question to what the campaign delivers was the right call and
+should not be undone by a TODO item.
 
 This is filed under "after the bare-metal campaign" at the end of Phase 10, and it does not
 belong there. Jitter is an IPDV dispersion statistic, not a far-tail percentile: the reading rule
