@@ -1286,7 +1286,7 @@ Defect class & Incarnation in UE Context Management & How it fails & Expected in
 \multicolumn{4}{@{}l}{\emph{Memory-safety family: object lifetime and bounds}} \\
 Use-after-free & An in-flight signalling handler dereferences a context that a concurrent \texttt{release} has already erased from the map & Corruption or crash & Prevented \\
 Double-free & A retransmitted release is not made idempotent, so the release path frees the context's resources a second time & Corruption or crash & Prevented \\
-Buffer overflow & No plausible incarnation here: the context store is reached only through container APIs & --- & Not injected \\
+Buffer overflow & No plausible incarnation here: the context store is reached only through container APIs & n/a & Not injected \\
 \hline
 \multicolumn{4}{@{}l}{\emph{Concurrency family: unsynchronised or ill-ordered access}} \\
 Iterator invalidation & A bearer is added while the context's data-radio-bearer list is being iterated & Corruption or crash & Prevented \\
@@ -1673,12 +1673,12 @@ which there is no control at all.\label{tab:controls}}
 Variable & How it is held fixed & What the control does not reach \\
 \hline
 Design & One specification, frozen before any code is written, fixing the public API, the state machine, the data structures and their algorithmic strategy, and the sharding granularity (\S\ref{sec:fairness}) & Where the two languages cannot express the same construct, the divergence is logged, not removed (Table~\ref{tab:idioms}) \\
-Concurrency model & Thread-per-shard over bounded blocking MPSC queues on both sides, with no asynchronous runtime on either & --- \\
+Concurrency model & Thread-per-shard over bounded blocking MPSC queues on both sides, with no asynchronous runtime on either & Nothing outstanding \\
 Hashing & SplitMix64 for shard selection and FNV-1a inside the shard, pinned identically, so neither standard library's default hasher becomes an accidental advantage & The container itself is still each language's own hash map, and the two differ in layout (\S\ref{sec:budget}) \\
-Allocator & The same \texttt{jemalloc} linked on both sides, with a system-allocator build kept on each as a control & --- \\
+Allocator & The same \texttt{jemalloc} linked on both sides, with a system-allocator build kept on each as a control & Nothing outstanding \\
 Optimisation & \texttt{-O2} against \texttt{opt-level~=~2} & Nominal parity is not identical code generation \\
 Workload & One deterministic driver; for a given seed and active-UE population both implementations execute the same operation sequence, checked by per-kind counts & Synthetic and spec-justified rather than replayed from production traffic \\
-Instrumentation & The same HDR histogram algorithm and configuration, the same open-loop schedule, the same repeat and interleaving discipline & --- \\
+Instrumentation & The same HDR histogram algorithm and configuration, the same open-loop schedule, the same repeat and interleaving discipline & Nothing outstanding \\
 Behaviour & A language-neutral conformance suite whose canonical transcripts are diffed op for op (\S\ref{sec:parity}) & Parity bounds behaviour, not performance \\
 \hline
 Author & No control & One person wrote both implementations and is not equally expert in both \\
@@ -2240,7 +2240,7 @@ making shutdown idempotent.
 The window those two calls delimit is a precondition on every operation, and it is stated as one:
 an operation submitted before \texttt{start()} or after \texttt{shutdown()} is a caller error, not
 a runtime condition, so it is reported out of band rather than widening the closed
-\texttt{OpError} set of Section~\ref{sec:parity} --- C++ throws \texttt{std::logic\_error}, Rust
+\texttt{OpError} set of Section~\ref{sec:parity}: C++ throws \texttt{std::logic\_error}, Rust
 panics. Making it explicit was not a formality. The specification originally prohibited the call
 without either implementation checking, and the two languages did not fail alike in the gap; the
 episode is reported with the safety results in Section~\ref{sec:safetyresults}, because a defect
@@ -2441,9 +2441,9 @@ specification by the same person who wrote the implementations. A third implemen
 same written specification therefore acts as an independent oracle. It is written in Python,
 shares no code with either language, and first has to reproduce all $\ConfHandOps$ hand-derived
 expectations before it is allowed to generate any of its own. It then generates randomised
-operation sequences under several profiles --- realistic lifecycles, adversarial sequences
+operation sequences under several profiles (realistic lifecycles, adversarial sequences
 weighted towards illegal transitions, sequences that sit on the capacity limits, and sequences
-that stress shard assignment --- with every expected result computed by the model. A campaign
+that stress shard assignment), with every expected result computed by the model. A campaign
 of roughly $\ConfGenOps$ generated operations produced no divergence: the two implementations
 agree with each other and with an independent reading of the specification, on sequences nobody
 chose. Because the generator is seeded and deterministic, any future divergence is a
@@ -3356,7 +3356,7 @@ never the second, and the detector stays silent at exactly the moment the bug ma
 positive control that inverts the same two locks without ever blocking is reported every time,
 which is what establishes that the detector was live rather than misconfigured. The honest
 statement for this class is therefore that the tool catches the inversion the program survives
-and is unreliable on the one that deadlocks --- a materially different proposition for a
+and is unreliable on the one that deadlocks, which is a materially different proposition for a
 continuous-integration pipeline than a clean catch.
 
 The distinction all of this exposes is precise, and it is the distinction the phrase ``thread
@@ -3374,8 +3374,8 @@ checkers answer it. Loom, which enumerates thread interleavings exhaustively und
 model, and Shuttle, which samples them with probabilistic concurrency testing, both report both
 of the original boundary defects: Loom reports the deadlock as a closed cycle and fails the
 lost-update assertion, and Shuttle does the same. Each is paired with a control in which the
-defect is fixed --- consistent lock order, and the read-modify-write held in one critical
-section --- and both controls come out clean, so the reports are attributable to the defects
+defect is fixed (consistent lock order, and the read-modify-write held in one critical
+section), and both controls come out clean, so the reports are attributable to the defects
 rather than to the tools.
 
 The cost is the part worth recording. Neither defect program runs under either checker as
@@ -3393,8 +3393,8 @@ Chapter~\ref{chapter:discussion}.
 Every outcome above comes from a defect written on purpose, which is the standing weakness of
 the method: whoever assembles a catalogue already knows what safe Rust prevents. One case in
 this study does not carry that weakness. A design review of the specification found that its
-concurrency section prohibited submitting an operation outside the service's running window ---
-before \texttt{start()}, or after \texttt{shutdown()} --- while neither implementation checked
+concurrency section prohibited submitting an operation outside the service's running window
+(before \texttt{start()}, or after \texttt{shutdown()}), while neither implementation checked
 for it. The prohibition was addressed to the caller with no mechanism behind it, and in that gap
 the two languages did not fail alike. The C++ submit path indexes the shard vector that
 \texttt{shutdown()} has cleared, which AddressSanitizer reports as a heap-use-after-free; called
@@ -3405,9 +3405,9 @@ having designed for it.
 What makes the case evidentially different is its provenance rather than its severity. It sat in
 code written to be correct, in the arm whose safety claim rests on ThreadSanitizer, reachable
 through the public API by calling documented operations in a documented order. It also survived
-every check this study runs --- six C++ test binaries, twenty-five Rust tests, $223$
+every check this study runs (six C++ test binaries, twenty-five Rust tests, $223$
 hand-written and $9\,006$ generated conformance operations, and three sanitiser configurations
-reported clean --- for a single reason: none of them ever called an operation outside the running
+reported clean), for a single reason: none of them ever called an operation outside the running
 window. ASan finds this defect only once a test drives it, which is exactly the property the cost
 argument above attributes to runtime detection, observed here on the study's own artefact instead
 of on a planted one.
@@ -3419,7 +3419,7 @@ slice bounds check, which is a runtime guarantee and therefore the same kind of 
 C++ sanitiser offers rather than the compile-time kind Table~\ref{tab:taxonomy} records. The
 honest claim is that checking by default turned a specification gap into a panic, not that a
 type system caught a lifecycle error. What is left is still the distinction this chapter keeps
-returning to --- a panic that names its cause on every build, against a heap-use-after-free that
+returning to: a panic that names its cause on every build, against a heap-use-after-free that
 needs an instrumented binary and a test that thinks to look. Both implementations now reject the
 call explicitly, in both directions, and both suites cover it.
 
@@ -3470,7 +3470,7 @@ run whose first inversion blocks never completes the second edge of the cycle.\p
 
 Read as a whole the table makes two things visible at once: above the boundary rule the entire
 Rust column is a compile-time rejection while the C++ columns are a patchwork of runtime
-detections and outright misses, and below it the Rust column joins them --- and on two rows
+detections and outright misses, and below it the Rust column joins them, and on two rows
 falls behind. The outcomes are generated from the runner's machine-readable log
 (\texttt{faults/results/taxonomy.csv}), and the model-checking outcomes from
 \texttt{faults/results/model\_checking.csv}.
@@ -3659,7 +3659,7 @@ The one case that reaches past the ten programs is the lifecycle defect of
 Section~\ref{sec:safetyresults}. It was found in the implementation rather than written for
 the catalogue, and it revises the picture in two directions at once. It strengthens the cost
 argument. A real defect in code written to be correct survived the entire verification
-apparatus of this study --- tests, parity vectors, and three sanitisers --- purely because
+apparatus of this study (tests, parity vectors, and three sanitisers) purely because
 nothing exercised the path; runtime detection conditional on test coverage is a weaker
 proposition in practice than it looks in a table where every row is driven deliberately. It also
 narrows what may be credited to Rust, because the language's contribution there was a bounds

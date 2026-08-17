@@ -3,7 +3,7 @@ description: Thesis quality bar, document roles, and grade criteria for this rep
 alwaysApply: true
 ---
 
-# Thesis repository — agent rules
+# Thesis repository: agent rules
 
 **Before any thesis, plan, benchmark, or artefact edit: read `AGENT.md` in the repo root.**
 
@@ -13,12 +13,12 @@ alwaysApply: true
 | --- | --- |
 | `Thesis_Plan_v2.tex` / `.pdf` | **Supervisor-facing, reviewed** |
 | `Thesis_v1.tex` / `.pdf` | **Supervisor-facing, reviewed** (skeleton; ch. 6–9 empty unless author asks) |
-| `Thesis_POC.tex` / `.pdf` | **Full draft** — canonical but still needs review |
-| `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Evidence — must match thesis claims |
+| `Thesis_POC.tex` / `.pdf` | **Full draft**, canonical but still needs review |
+| `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Evidence; must match thesis claims |
 
 When claims, RQs, methodology, or numbers change: sync plan + v1 + `Thesis_POC.tex`; regenerate via `bench/refresh_thesis.sh` (never hand-edit `figures/gen_macros.tex`).
 
-## Grade criteria (Finnish 1–5) — every edit must protect these
+## Grade criteria (Finnish 1–5): every edit must protect these
 
 | # | Criterion | Grade | Blocker to 5 |
 | --- | --- | --- | --- |
@@ -31,12 +31,32 @@ When claims, RQs, methodology, or numbers change: sync plan + v1 + `Thesis_POC.t
 
 Full notes: `ASSESSMENT.md`. Checklist per edit: `AGENT.md` §2.
 
+## Prose style (criterion 6): do not write like a language model
+
+The author screens prose with `.aitells.py`, `.vocab.py` and `.readability.py`. They report counts,
+not errors: frequency is the signal, so aim low rather than at zero.
+
+- **No em dashes in thesis prose.** Not `---`, not a literal `—`. Use a comma, a colon, a
+  semicolon, parentheses, or two sentences. A dash aside is the single most recognisable tell and
+  the author removes them on sight.
+- `--` is legitimate only for numeric ranges (`$2$--$15$`) and compound proper names
+  (Herfindahl--Hirschman). TikZ `--` is path syntax: never touch it.
+- Keep the other patterns `.aitells.py` counts rare: transition openers (Moreover, Furthermore,
+  Notably, Crucially, Ultimately), hedge preambles ("it is worth noting"), promotional adjectives
+  (robust, crucial, comprehensive, seamless), signature verbs (delve, leverage, underscore,
+  showcase, foster), "plays a role", "serves as", "the fact that", and A-A-A triads.
+- Vary sentence length. A stdev below about 8 words reads as machine-uniform; human academic prose
+  runs 10 to 16.
+
+Internal `.md` notes are exempt, but never paste them into a `.tex` file unrewritten. After any
+prose edit, run `./.aitells.py` on the file you touched.
+
 ## Non-negotiable claims
 
 - Frozen spec + parity suite; interleaved design + Holm-corrected paired tests.
 - The measurement host is a virtualised KVM guest: the **far tail below saturation** is unresolved there. The overload divergence and the resource results are resolved.
 - Peak RSS: real language + allocator effect; allocator effect is larger.
-- End-to-end sweep ≈ handoff cost; the operation is a fraction of a percent of it — do not bound a language effect from that sweep.
+- End-to-end sweep ≈ handoff cost; the operation is a fraction of a percent of it, so do not bound a language effect from that sweep.
 - Rust: data races/aliasing at compile time; **not** race conditions or deadlocks.
 - Quote numbers via `figures/gen_macros.tex` macros; never transcribe them into prose, slides, or scripts.
 

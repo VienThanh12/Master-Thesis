@@ -179,9 +179,25 @@ git checkout -- ffi/results/metrics.json ffi/results/op_cost.jsonl
 (compile-time prevented, sanitiser-detected, undetected) and do not move with host
 load.
 
+**Prose checks (run after any writing, not just after measurement)**
+
+```bash
+./.aitells.py Thesis_POC.tex      # language-model fingerprints: dash asides, transition
+                                  # openers, promotional adjectives, sentence-length uniformity
+./.vocab.py Thesis_POC.tex        # hard Latinate words
+./.readability.py Thesis_POC.tex  # sentence and paragraph load
+```
+
+All three report counts rather than errors, so read them as frequency. The one hard rule is the
+first: **no em dashes in thesis prose**, neither `---` nor a literal `—`. As of 17 August 2026
+`.aitells.py` reports four dash hits in `Thesis_POC.tex`, all correct typography (one compound
+proper name, three numeric ranges). If that number rises, the new ones are yours. The full style
+constraint is in the prose-style section of `.cursor/rules/thesis-quality.mdc`.
+
 **Acceptance gates**
 
 - `Thesis_POC.log`: **zero errors**, zero undefined references/citations.
+- `./.aitells.py` on every file whose prose changed: no em-dash asides introduced.
 - Figure/table macros in prose match `figures/gen_macros.tex`.
 - No figure contradicts its table (see `ASSESSMENT.md` refinement pass for past failures).
 - `build_deck.py` rebuilds and reports “Layout: all added shapes inside the template content band”.
