@@ -25,6 +25,17 @@ target_include_directories(uecm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 find_package(Threads REQUIRED)
 target_link_libraries(uecm PUBLIC Threads::Threads)
 
+# --- Attribution probe, not a compared configuration --------------------------
+# Swaps the node-based std::unordered_map for an open-addressed table with the
+# same pinned hash, to test whether the core-operation gap against Rust is the
+# container rather than the language. The reported C++ arm keeps the standard
+# map; see include/uecm/flat_map.hpp.
+option(UECM_FLAT_MAP "PROBE ONLY: open-addressed intra-shard map" OFF)
+if(UECM_FLAT_MAP)
+  message(STATUS "uecm: PROBE build -- open-addressed map, not the reported configuration")
+  target_compile_definitions(uecm PUBLIC UECM_FLAT_MAP)
+endif()
+
 # --- Optional jemalloc (spec §3: identical allocator across languages) --------
 option(UECM_USE_JEMALLOC "Link jemalloc to isolate language effects from allocator" OFF)
 if(UECM_USE_JEMALLOC)

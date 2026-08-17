@@ -3,6 +3,9 @@
 - C++ compiler: `g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0` (`-std=c++23`)
 - Rust compiler: `rustc 1.97.1 (8bab26f4f 2026-07-14)` (`--edition 2021`)
 - ASLR wrapper: `setarch x86_64 -R`
+- `TSAN_OPTIONS`: `detect_deadlocks=1:second_deadlock_stack=1`
+- TSan deadlock-detector control (`deadlock_control.cpp`, inversion without blocking):
+  **detected (detector live; the undetected verdict below is a real outcome)**
 
 | Defect class | C++ ASan | C++ TSan | C++ detection stage | Rust outcome |
 |---|---|---|---|---|

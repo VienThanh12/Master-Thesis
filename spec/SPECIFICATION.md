@@ -469,6 +469,65 @@ during implementation, with the requirement id and the reason. Examples that wil
 - Optimisation parity: `[profile.release] opt-level = 2` pinned in `Cargo.toml` to match the
   C++ `-O2` build (§3).
 
+**Attribution probes (recorded 2026-08, not compared configurations):**
+
+These builds exist to test an attribution, not to be reported. The compared pair keeps
+each language's standard containers, because the study compares the languages as a
+developer actually finds them; a probe holds the language fixed and changes one
+container, so that a measured difference can be assigned to the container or not.
+
+- **C++ open-addressed intra-shard map** (`-DUECM_FLAT_MAP=ON`,
+  `cpp/include/uecm/flat_map.hpp`). Same pinned FNV-1a hash, power-of-two capacity,
+  7/8 load factor and linear probing, so the analogue is to Rust's `hashbrown` rather
+  than to open addressing in general. Passes all five C++ test binaries and keeps
+  byte-for-byte transcript parity with Rust on all seven conformance vectors, which is
+  expected by construction since no `ShardCore` operation iterates the map.
+
+  **Result (10 interleaved repeats, WSL2 development host, indicative only):** median
+  core-operation cost 16.4 ns for `std::unordered_map`, 15.3 ns for the open-addressed
+  probe, 8.9 ns for Rust. The swap closes roughly **15%** of the C++-to-Rust gap, which
+  falls from 1.84x to 1.72x.
+
+  This does not support the explanation currently given for the core-operation result.
+  Node-based layout is a real cost and it is in the measured direction, but on this
+  evidence it is a minority of the difference rather than the cause of it. Two things
+  bound the reading: the probe uses plain linear probing where `hashbrown` probes
+  sixteen slots at a time with SIMD, so a production flat map would likely close more;
+  and this is an unpaired informal run on the development laptop, not the measurement
+  host. The proper version runs through `bench/latency_budget.sh` with its interleaved
+  repeats and paired test. Until then the thesis should not lean on the node-based
+  account, and cache-miss counters are no longer the only way to test it.
+
+- **Rust mutex-and-condvar shard queue** (`--features mutex-queue`,
+  `rust/src/mutex_queue.rs`). Replaces `std::sync::mpsc::sync_channel` with the design
+  the C++ arm uses: one mutex, a `VecDeque`, and separate not-full and not-empty
+  condition variables. Introduces no `unsafe` — the auto traits already hold, because
+  every mutable field sits behind the mutex — so the core's safety story is unchanged.
+  Passes all 16 Rust tests including the capacity-1 blocking-backpressure case, is
+  clippy-clean, and keeps transcript parity with C++ on all seven vectors.
+
+  **Result (5 interleaved repeats at the overload rate, WSL2, indicative only):**
+  sustained throughput 43.5 kops/s for C++, 30.8 for Rust on the standard channel, and
+  30.4 for Rust on the probe queue. Matching the queue design closes **none** of the
+  divergence; the ratio moves from 1.41x to 1.43x, which is noise in the wrong
+  direction.
+
+  The queue is therefore exonerated. Together with the contended-primitive
+  microbenchmark, which already showed the primitives alone do not reproduce the
+  ordering, that leaves the other entry in this log as the live candidate: the
+  tagged-struct dispatch and the larger request payload the C++ side carries. Note the
+  host caveat — 14 logical CPUs here against 16 vCPUs on the measurement guest, and the
+  absolute ratio is correspondingly smaller (1.4x here, `\OverloadThrRatio` there) — but
+  the probe is a within-host comparison of two Rust builds, which is what it needs to be.
+
+**Both probes returned negative, which is the finding.** The two mechanisms the thesis
+offers for its two most notable performance results are, when tested by substitution
+rather than argued from structure, largely unsupported: the container accounts for a
+minority of the core-operation gap and the queue for none of the overload divergence.
+Neither result is overturned — the differences are real and reproduce — but their stated
+causes need revising, and both were testable without the hardware counters the text
+names as the only route.
+
 **Benchmark harness (recorded 2026-07, `bench/`):**
 - Latency capture: C++ uses a from-scratch, header-only HDR histogram
   (`cpp/bench/hdr.hpp`, a port of the canonical HdrHistogram bucketing algorithm);
@@ -493,6 +552,27 @@ during implementation, with the requirement id and the reason. Examples that wil
   (`ru_maxrss`, `ru_utime`+`ru_stime`), emitted in JSON/CSV. The Rust side's single
   `unsafe` `getrusage` FFI call lives only in the benchmark example (`libc`
   dev-dependency); the library remains `unsafe`-free and dependency-free.
+- Allocator-internal accounting (RQ3, added Aug 2026): each run also reports
+  jemalloc's own `stats.allocated`, `stats.active`, `stats.metadata`,
+  `stats.resident`, `stats.mapped` and `stats.retained`, under the `je` key. This
+  splits peak RSS into live allocation, arena and tcache bookkeeping, and space
+  retained but unmapped, which `ru_maxrss` cannot do. Both languages read the same
+  six counters from the same allocator after writing `epoch` to refresh them, so the
+  two are differenceable — the same one-instrument principle already applied to
+  `lizard` for the complexity proxies and to `jeprof` for the allocation profiles.
+  This is a *recorded deviation* in how the counters are reached: C++ calls `mallctl`
+  declared as a weak symbol (the Ubuntu runtime ships in `libjemalloc.so.2` while the
+  header is a separate dev package, and the system-allocator arms deliberately do not
+  link jemalloc at all), while Rust uses `tikv-jemalloc-ctl` with its `stats` feature.
+  The system-allocator arms report every field as `null`, never `0`, since a zero
+  would read as "no arena metadata" rather than "not measured" — the same convention
+  `bench/counters.sh` uses for uncountable PMU events.
+  Note the pre-existing asymmetry this inherits and does not introduce: the C++ arm
+  links the distribution's jemalloc while the Rust arm builds 5.3.1 from source
+  through `tikv-jemalloc-sys`, so a metadata difference between the two arms is a
+  difference between two builds of the allocator as well as between two programs.
+  `bench/campaign.sh` pins `thp:never,narenas:16` on both sides, which removes the
+  larger part of that confound but not the version difference.
 - Load sweep: `bench/load_sweep.sh` sweeps offered rate × the four variants and writes a
   latency/throughput/RSS/CPU-vs-load CSV (`bench/plot_sweep.py` renders it).
 - Dependency hygiene: the Rust core library stays dependency-free: `hdrhistogram`

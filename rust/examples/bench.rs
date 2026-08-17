@@ -350,6 +350,55 @@ fn write_hist_sidecar(
     }
 }
 
+/// jemalloc's own accounting (RQ3), in bytes, or `None` under the system allocator.
+///
+/// `getrusage` gives one number for the whole process, which establishes that one
+/// build holds more memory than the other without saying what the extra is. These
+/// six counters are the split jemalloc already tracks: live allocation, pages
+/// handed out, arena and tcache bookkeeping, physically backed bytes, mapped
+/// address space, and space unmapped but not returned.
+///
+/// The C++ arm reads the same six through `mallctl`, so the two can be
+/// differenced. This is not the sampled heap profile `bench/alloc_profile.sh`
+/// collects: that attributes bytes to allocation sites and needs a prof-enabled
+/// build plus `jeprof`, while this attributes bytes to allocator structures and
+/// runs anywhere.
+#[cfg(feature = "jemalloc")]
+fn je_stats() -> Option<[u64; 6]> {
+    use tikv_jemalloc_ctl::{epoch, stats};
+    // Statistics are cached until `epoch` is advanced; without this the read
+    // returns whatever the last refresh saw.
+    epoch::advance().ok()?;
+    Some([
+        stats::allocated::read().ok()? as u64,
+        stats::active::read().ok()? as u64,
+        stats::metadata::read().ok()? as u64,
+        stats::resident::read().ok()? as u64,
+        stats::mapped::read().ok()? as u64,
+        stats::retained::read().ok()? as u64,
+    ])
+}
+
+#[cfg(not(feature = "jemalloc"))]
+fn je_stats() -> Option<[u64; 6]> {
+    None
+}
+
+/// A JSON object, or nulls when there is no jemalloc to interrogate. The key is
+/// always present so a consumer can tell "measured as absent" from "field missing
+/// because the harness predates this".
+fn je_json() -> String {
+    match je_stats() {
+        Some([allocated, active, metadata, resident, mapped, retained]) => format!(
+            "\"je\":{{\"available\":true,\"allocated\":{allocated},\"active\":{active},\
+\"metadata\":{metadata},\"resident\":{resident},\"mapped\":{mapped},\"retained\":{retained}}}"
+        ),
+        None => "\"je\":{\"available\":false,\"allocated\":null,\"active\":null,\
+\"metadata\":null,\"resident\":null,\"mapped\":null,\"retained\":null}"
+            .to_string(),
+    }
+}
+
 /// Process resource usage (RQ3): (peak RSS kB, user CPU s, sys CPU s), via getrusage.
 /// The one `unsafe` FFI call is confined to this benchmark tool; the UECM library
 /// itself contains zero `unsafe`.
@@ -679,11 +728,11 @@ fn main() {
 \"throughput_ops_s\":{:.1},\
 \"lat_ns\":{{\"p25\":{},\"p50\":{},\"p75\":{},\"p90\":{},\"p99\":{},\"p999\":{},\"p9999\":{},\
 \"max\":{},\"mean\":{:.1},\"stdev\":{:.1}}}{},\
-\"rss_peak_kb\":{},\"cpu_user_s\":{:.3},\"cpu_sys_s\":{:.3},\"cpu_pct\":{:.1},\"kinds\":{{{}}}}}",
+\"rss_peak_kb\":{},\"cpu_user_s\":{:.3},\"cpu_sys_s\":{:.3},\"cpu_pct\":{:.1},{},\"kinds\":{{{}}}}}",
             ALLOC_NAME, a.workload, a.shards, a.producers, a.rate, total_ops, errs, wall_s,
             measured_wall_s, thr,
             p25, p50, p75, p90, p99, p999, p9999, h.max(), h.mean(), h.stdev(), jitter_json,
-            rss_peak_kb, cpu_user_s, cpu_sys_s, cpu_pct, kinds,
+            rss_peak_kb, cpu_user_s, cpu_sys_s, cpu_pct, je_json(), kinds,
         );
     } else {
         println!(
@@ -742,6 +791,19 @@ fn main() {
             cpu_sys_s,
             cpu_pct
         );
+        if let Some([allocated, active, metadata, resident, mapped, retained]) = je_stats() {
+            const MIB: f64 = 1048576.0;
+            println!(
+                "  jemalloc: allocated={:.1} MB  active={:.1} MB  metadata={:.1} MB  \
+resident={:.1} MB  mapped={:.1} MB  retained={:.1} MB",
+                allocated as f64 / MIB,
+                active as f64 / MIB,
+                metadata as f64 / MIB,
+                resident as f64 / MIB,
+                mapped as f64 / MIB,
+                retained as f64 / MIB
+            );
+        }
         if a.workload == "mixed" {
             print!("  op kinds:");
             for k in 0..KIND_COUNT {

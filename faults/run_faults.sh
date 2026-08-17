@@ -35,6 +35,13 @@ if command -v setarch >/dev/null 2>&1; then
   fi
 fi
 
+# Pin the lock-order-inversion detector on rather than inheriting a default that
+# differs between runtimes: the upstream sanitizers wiki documents
+# detect_deadlocks as off, while the libtsan shipped with g++ 13.3 has it on. An
+# outcome that depends on which of those the host happens to provide is not
+# evidence. `second_deadlock_stack` reports both edges of a cycle.
+export TSAN_OPTIONS="${TSAN_OPTIONS:-detect_deadlocks=1:second_deadlock_stack=1}"
+
 # Defect list: id | source stem | expected sanitizer (asan|tsan) | expected Rust outcome
 #
 # The script always runs BOTH sanitizers; the third field only picks the "C++
@@ -121,6 +128,20 @@ run_rust() {
   fi
 }
 
+# --- positive control for the deadlock detector ---------------------------------
+# lock_order_deadlock is recorded as undetected. That outcome only carries
+# information if the detector was live, so a case it is known to catch is run
+# first. `deadlock_control.cpp` inverts the same two locks without ever blocking,
+# which is the shape TSan does report. If this comes back anything but
+# "detected", the undetected verdict in the table below is uninformative and the
+# script says so instead of letting it pass as a result.
+control_outcome=$(run_cpp_san deadlock_control thread tsan)
+if [ "$control_outcome" = "detected" ]; then
+  control_note="detected (detector live; the undetected verdict below is a real outcome)"
+else
+  control_note="$control_outcome [CONTROL FAILED -- cannot interpret 'undetected' for lock_order_deadlock]"
+fi
+
 # --- environment banner --------------------------------------------------------
 cxx_ver=$("$CXX" --version 2>/dev/null | head -1)
 rustc_ver=$("$RUSTC" --version 2>/dev/null)
@@ -128,6 +149,8 @@ echo "== RQ2 fault-injection study =="
 echo "C++ compiler : $cxx_ver (-std=$CXXSTD)"
 echo "Rust compiler: $rustc_ver (--edition 2021)"
 echo "ASLR wrapper : ${run_prefix[*]:-none}"
+echo "TSAN_OPTIONS : $TSAN_OPTIONS"
+echo "TSan deadlock-detector control: $control_note"
 echo
 
 csv="$out_dir/taxonomy.csv"
@@ -140,6 +163,9 @@ echo "defect,cpp_asan,cpp_tsan,cpp_detection,rust_compile,rust_expected" >"$csv"
   echo "- C++ compiler: \`$cxx_ver\` (\`-std=$CXXSTD\`)"
   echo "- Rust compiler: \`$rustc_ver\` (\`--edition 2021\`)"
   echo "- ASLR wrapper: \`${run_prefix[*]:-none}\`"
+  echo "- \`TSAN_OPTIONS\`: \`$TSAN_OPTIONS\`"
+  echo "- TSan deadlock-detector control (\`deadlock_control.cpp\`, inversion without blocking):"
+  echo "  **$control_note**"
   echo
   echo "| Defect class | C++ ASan | C++ TSan | C++ detection stage | Rust outcome |"
   echo "|---|---|---|---|---|"
@@ -188,6 +214,10 @@ done
 echo
 if [ "$violations" -gt 0 ]; then
   echo "WARNING: $violations case(s) did not match the recorded expectation (marked [UNEXPECTED])."
+fi
+if [ "$control_outcome" != "detected" ]; then
+  echo "WARNING: the TSan deadlock-detector control did not fire ($control_outcome)."
+  echo "         'undetected' for lock_order_deadlock cannot be read as a finding on this host."
 fi
 echo "Wrote: $md"
 echo "Wrote: $csv"

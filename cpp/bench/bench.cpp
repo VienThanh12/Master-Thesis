@@ -29,6 +29,7 @@
 #include <sys/resource.h>
 
 #include "hdr.hpp"
+#include "jestats.hpp"
 #include "uecm/service.hpp"
 #include "workload.hpp"
 
@@ -362,6 +363,9 @@ int main(int argc, char** argv) {
   const double cpu_user_s = ru.ru_utime.tv_sec + ru.ru_utime.tv_usec / 1e6;
   const double cpu_sys_s = ru.ru_stime.tv_sec + ru.ru_stime.tv_usec / 1e6;
   const double cpu_pct = wall_s > 0 ? (cpu_user_s + cpu_sys_s) / wall_s * 100.0 : 0.0;
+  // Read after shutdown so the worker tcaches have been flushed, and so this
+  // matches the point getrusage is sampled at.
+  const std::string je_json = bench::je_json(bench::je_snapshot());
 
   // Quantiles, not percentiles: the Rust side passes these same literals to
   // hdrhistogram's value_at_quantile, so both languages select the same sample.
@@ -395,12 +399,12 @@ int main(int argc, char** argv) {
         "\"lat_ns\":{\"p25\":%lld,\"p50\":%lld,\"p75\":%lld,\"p90\":%lld,\"p99\":%lld,"
         "\"p999\":%lld,\"p9999\":%lld,\"max\":%lld,\"mean\":%.1f,\"stdev\":%.1f}%s,"
         "\"rss_peak_kb\":%ld,\"cpu_user_s\":%.3f,\"cpu_sys_s\":%.3f,"
-        "\"cpu_pct\":%.1f,\"kinds\":{",
+        "\"cpu_pct\":%.1f,%s,\"kinds\":{",
         alloc, a.workload.c_str(), (unsigned long long)a.shards, (unsigned long long)a.producers,
         a.rate, (long long)total_ops, (unsigned long long)errors.load(), wall_s, measured_wall_s,
         thr, (long long)p25, (long long)p50, (long long)p75, (long long)p90, (long long)p99,
         (long long)p999, (long long)p9999, (long long)merged.max(), merged.mean(), merged.stdev(),
-        jitter_json.c_str(), rss_peak_kb, cpu_user_s, cpu_sys_s, cpu_pct);
+        jitter_json.c_str(), rss_peak_kb, cpu_user_s, cpu_sys_s, cpu_pct, je_json.c_str());
     for (int k = 0; k < bench::kWKindCount; ++k)
       std::printf("%s\"%s\":%llu", k ? "," : "", kind_name(k),
                   (unsigned long long)merged_counts[static_cast<std::size_t>(k)]);
@@ -429,6 +433,12 @@ int main(int argc, char** argv) {
                   (long long)merged_jitter->total());
     std::printf("  resource: peak_rss=%.1f MB  cpu=%.2fs (user %.2f + sys %.2f)  cpu%%=%.0f\n",
                 rss_peak_kb / 1024.0, cpu_user_s + cpu_sys_s, cpu_user_s, cpu_sys_s, cpu_pct);
+    if (const auto js = bench::je_snapshot(); js.available) {
+      std::printf("  jemalloc: allocated=%.1f MB  active=%.1f MB  metadata=%.1f MB  "
+                  "resident=%.1f MB  mapped=%.1f MB  retained=%.1f MB\n",
+                  js.allocated / 1048576.0, js.active / 1048576.0, js.metadata / 1048576.0,
+                  js.resident / 1048576.0, js.mapped / 1048576.0, js.retained / 1048576.0);
+    }
     if (a.workload == "mixed") {
       std::printf("  op kinds:");
       for (int k = 0; k < bench::kWKindCount; ++k)

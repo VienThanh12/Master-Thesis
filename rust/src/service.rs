@@ -13,9 +13,18 @@
 //!   `activity_seq` counter is shared (via `Arc<AtomicU64>`).
 
 use std::sync::atomic::AtomicU64;
-use std::sync::mpsc::{channel, sync_channel, Receiver, SyncSender};
+use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::thread::JoinHandle;
+
+// The shard queue. The standard bounded channel is the measured configuration;
+// the mutex-and-two-condvars alternative mirrors the C++ design and exists only
+// to localise the overload divergence. See mutex_queue.rs for why. The one-shot
+// completion above is unaffected either way.
+#[cfg(not(feature = "mutex-queue"))]
+use std::sync::mpsc::{sync_channel, Receiver, SyncSender};
+#[cfg(feature = "mutex-queue")]
+use crate::mutex_queue::{bounded as sync_channel, Receiver, SyncSender};
 
 use crate::config::Config;
 use crate::error::OpResult;

@@ -372,6 +372,344 @@ numbers land:
 
 ---
 
+## Phase 11 - Value-adding additions (candidate backlog, 14 Aug 2026)
+
+Everything above treats the bare-metal visit as the gate on the remaining open questions. Three
+of those questions are not actually gated on it. They are gated on **changing a variable rather
+than measuring the same variable better**, and that can be done on the existing KVM guest.
+
+The distinction matters for scheduling: the testbed is one visit in September, while these are
+afternoons. Items 1-4 are the ones that change what the thesis can claim; 5-9 are enrichment;
+10-12 are credibility and housekeeping. Nothing here is committed - this is a menu with costs
+attached, not a plan.
+
+> **Status, 14 Aug 2026.** Items 1, 3, 4 and 8 were started in this pass and the
+> harness work for all four is done and verified. Three of them returned results
+> already, and two of those change what the thesis can say. The per-item notes below
+> record what landed and what is still open. Items 2, 5-7 and 9-12 are untouched.
+
+### 1. Decompose "language" into language and standard library
+
+**Why.** Two of the campaign's three resolved performance differences are attributed to
+standard-library data structures, and neither attribution is measured:
+
+- §7.5.2, the core operation: Rust is $\BudgetCoreRatio\times$ faster, attributed to
+  `std::unordered_map` being node-based by standard requirement against Rust's open-addressed
+  `HashMap`. The thesis says confirming it "would need the cache-miss counters".
+- §7.5.4/§7.5.5, the overload divergence at $\OverloadLoad$~kops/s: the thesis's strongest single
+  finding, and `tab:threats` concedes it "is attributed but not localised". The two candidates
+  are already in the forced-idiom log (spec §12): a hand-written mutex + two condition variables
+  on the C++ side against `std::sync::mpsc::sync_channel` on the Rust side, plus tagged-struct
+  dispatch against a typed enum.
+
+Counters would be *observational* evidence for both. Swapping the structure is a *controlled*
+experiment, it is strictly stronger, and it does not need a PMU.
+
+**What to build.** Two probe arms, each behind a build flag, each required to stay
+conformance-clean:
+
+- C++ `-DUECM_FLAT_MAP=ON`: an open-addressed intra-shard map using the same pinned FNV-1a hash.
+  Re-run `bench/latency_budget.sh`. If the $\BudgetCoreRatio\times$ gap collapses, the
+  attribution is confirmed by construction.
+- Rust `--features mutex-queue`: a `BoundedQueue` mirroring the C++ mutex + two-condvar design,
+  replacing `sync_channel` in `Service`. Re-run the overload point only (not the whole sweep).
+  If the $\OverloadThrRatio\times$ divergence collapses, the mechanism is localised.
+
+**What must not happen.** These are *additional* arms, not a replacement for the measured pair.
+The fairness argument is explicitly "each language as a developer actually finds it", and the
+reported comparison has to keep the standard containers on both sides. The probe answers a
+different question: how much of the measured difference is the language and how much is the
+library that ships with it. Log both in spec §12 as probes.
+
+**Payoff.** Potentially the thesis's most interesting result: that two of its three resolved
+differences are library artefacts rather than language artefacts. That *strengthens* RQ3 (the
+safety model costs even less than measured) and converts the overload finding from "attributed"
+to "localised", closing the residual `tab:threats` names as its most exposed.
+
+- [x] **Both probes built, verified, and run.** `-DUECM_FLAT_MAP=ON`
+      (`cpp/include/uecm/flat_map.hpp`) and `--features mutex-queue`
+      (`rust/src/mutex_queue.rs`). Both keep byte-for-byte transcript parity with the
+      other language on all seven vectors, pass every test binary, and are clippy-clean.
+      The Rust probe adds no `unsafe`. The default builds are untouched and still pass
+      everything, so the reported pair has not moved.
+- [x] **Both came back negative, and that is the result.** On the development host the
+      container closes ~15% of the core-operation gap (1.84x to 1.72x) and the queue
+      closes none of the overload divergence (1.41x to 1.43x). Numbers, caveats, and the
+      reasoning are recorded in `spec/SPECIFICATION.md` §12 under "Attribution probes".
+- [ ] **Re-run both on the measurement host, paired.** These were unpaired runs on the
+      WSL2 laptop (10 repeats for the map, 5 for the queue) — enough to show direction,
+      not enough to quote. Route the map probe through `bench/latency_budget.sh` and the
+      queue probe through `bench/campaign.sh` at the overload point, so both get the
+      interleaving and the paired test.
+- [ ] **Then revise the two attributions in the prose.** §7.5.2 explains the
+      core-operation gap by `std::unordered_map` being node-based and says confirming it
+      "would need the cache-miss counters"; on this evidence that mechanism is a minority
+      of the effect, and counters were never the only route to testing it. The overload
+      section and the `tab:threats` row for its attribution can now name the queue as
+      ruled out rather than as a candidate, which narrows the residual to dispatch and
+      request size.
+- [ ] **Consider a third arm for the map**, a production flat map
+      (`boost::unordered_flat_map` or `absl::flat_hash_map`), since the probe uses plain
+      linear probing where `hashbrown` probes sixteen slots at a time with SIMD. That
+      bounds how much of the remaining gap is container quality rather than language.
+
+### 2. Re-run the campaign with jitter and HDR sidecars on the host already in hand
+
+**Why.** RQ1 asks about "mean, p99, p99.9 tail latency, **and jitter**". Jitter is in the
+question and absent from the answer; §8.6 has to say so. The instrumentation landed in Aug 2026
+(`--jitter`, `--hist-out`, `bench/pool_hist.py`) but the reported campaign predates it, and
+`bench/results/` confirms only the Aug 14 WSL smoke carries `.hist.jsonl`.
+
+This is filed under "after the bare-metal campaign" at the end of Phase 10, and it does not
+belong there. Jitter is an IPDV dispersion statistic, not a far-tail percentile: the reading rule
+in §5.5 withholds the tail on a shared host, but it does not withhold a dispersion measure of the
+same runs. Pooled p99.99 would at least become *descriptively* reportable with the host's limits
+attached, against ~17 observations per run today.
+
+**Cost.** One campaign is ~2.5 h wall clock on the KVM guest (the 1120-run Aug 12 pair started
+13:10 and 15:45). Say an afternoon including the `pool_hist.py --verify` pass.
+
+**Watch.** `--jitter` costs ~264 KiB per producer of peak RSS. Absolute RSS from this campaign is
+therefore not comparable against the Aug 12 numbers, so either re-run RQ3 from the same campaign
+or keep the arms consistent. `NTests` must still read 14; jitter stays descriptive, out of the
+Holm family, for the reason §5.5 already gives.
+
+### 3. Read jemalloc's own statistics instead of only `ru_maxrss`
+
+**Why.** RQ3's peak-RSS effect is the campaign's one solid quantitative result and §7.5.4 says
+plainly that "the split between arena pre-reservation, per-thread caches, and static footprint is
+not resolved here". `tab:threats` gives it the only row in the table whose control column reads
+"None available on this host".
+
+That is true of `jeprof`, which needs the testbed. It is not true of jemalloc's `mallctl`
+interface, which is compiled in by default and needs no profiling build, no symboliser, and no
+PMU. Writing `epoch` and then reading `stats.allocated`, `stats.active`, `stats.metadata`,
+`stats.resident`, `stats.mapped` and `stats.retained` decomposes the resident set into live
+allocation against arena metadata against retained-but-unmapped - which is exactly the split the
+thesis says is unresolved.
+
+It is also the one instrument that measures both languages the same way (`mallctl` in C++,
+`tikv-jemalloc-ctl` in Rust, same underlying allocator), which is the choice already made for
+`lizard` in the complexity pass and for `jeprof` over heaptrack/dhat in `alloc_profile.sh`.
+
+**Second payoff.** §7.5.4 describes a measurement defect: a handful of runs report a resident set
+"some 30 MiB below their variant's median" while being otherwise indistinguishable, and that
+bimodality is what keeps peak RSS under jemalloc from clearing Holm. Note that ~30 MiB is close to
+the whole measured allocator effect ($\RssAllocDiffLo$-$\RssAllocDiffHi$ MiB). If the low runs
+turn out to be runs where fewer arenas were ever touched, `stats.metadata` will show it directly,
+and a named cause is worth more than the current "instrumentation work" placeholder.
+
+**Note.** Only the two jemalloc arms can report this. The system-allocator arms emit nulls, never
+zeros - the same convention `counters.sh` already uses.
+
+- [x] **Instrumented in both languages and verified.** `cpp/bench/jestats.hpp` (weak
+      `mallctl`, no dev header needed) and `je_stats()` in `rust/examples/bench.rs`
+      (`tikv-jemalloc-ctl` with its `stats` feature). Both emit a `je` object in the run
+      JSON and a line in the human-readable output; both system-allocator arms emit
+      nulls. Recorded in spec §12.
+- [x] **First reading, and it answers the question.** Under the campaign's own allocator
+      configuration (`thp:never,narenas:16`) at 7 shards and 5000 active UEs: C++ holds
+      0.5 MB live with 4.1 MB of arena metadata, Rust holds **0.3 MB live** with
+      **6.2 MB of metadata**. So the Rust build's larger resident set is not more
+      application data — it holds less — it is **2.1 MB more allocator bookkeeping**,
+      which sits inside the measured `\RssLangDiffLo`-`\RssLangDiffHi` MiB language
+      effect. §7.5.4's "the split ... is not resolved here" is resolvable without the
+      testbed.
+- [ ] **Re-measure on the KVM host across the campaign**, since the above is one run per
+      arm on the laptop. Then check the 30 MiB bimodality against `stats.metadata`: if
+      the low-RSS runs are runs where fewer arenas were touched, the measurement defect
+      behind peak RSS failing Holm under jemalloc has a named cause.
+- [ ] **Name the confound when writing it up.** The C++ arm links the distribution's
+      jemalloc while the Rust arm builds 5.3.1 from source, so part of a metadata
+      difference is two builds of the allocator, not two programs. Pinning `narenas`
+      removes the larger part but not the version difference.
+- [ ] **Aggregate it.** `bench/aggregate.py` and `plot_figures.py` do not read the `je`
+      fields yet, so nothing reaches a table. Decide whether this becomes a column in
+      `tab:resource` or a short subsection of its own.
+
+### 4. Finish RQ2's second half for the two boundary classes
+
+**Why.** RQ2 asks which defects are eliminated at compile time "and **at what stage and cost are
+the remaining ones detected**". For the five in-guarantee classes both halves are answered. For
+the two boundary classes the catalogue records only that neither language prevents them:
+`lock_order_deadlock` is C++ "hung (undetected)" against Rust "compiles and deadlocks", and
+`lost_update` is clean under both sanitisers against Rust "compiles, wrong result". The
+detection-stage half is simply blank for the two classes that carry the falsifiability of the
+whole design.
+
+**Risk, and it is a real one.** The C++ deadlock case is recorded as undetected, but
+ThreadSanitizer ships a lock-order-inversion detector that is off by default under the flag the
+runner uses: `TSAN_OPTIONS=detect_deadlocks=1` (`second_deadlock_stack=1` for both stacks). If
+that flag turns the row from undetected to detected, the current taxonomy understates C++'s
+tooling, and an examiner who knows sanitizers is exactly the person who would find it. This needs
+checking before anything else in this list. Valgrind's Helgrind is the cross-check.
+
+**The interesting half.** On the Rust side the equivalent question is whether the ecosystem
+catches at test time what the compiler does not catch at build time. Loom (exhaustive under the
+C11 model) and Shuttle (randomised, PCT) both intercept the standard synchronisation primitives,
+and both are aimed precisely at deadlock and lost-update. Running them against the two boundary
+cases converts "the defects safe Rust does not prevent are caught later rather than never" from
+an argued position into a measured one.
+
+**Why the outcome is worth having either way.** The plausible result is that C++ detects
+lock-order inversion with a sanitiser flag while Rust needs a rewrite of the test into a model
+checker's primitives - a boundary class where C++ tooling is *ahead*. That is the kind of finding
+the two-sided catalogue was designed to be able to produce, and reporting it is what makes the
+five in-guarantee results credible.
+
+- [x] **Checked, and the taxonomy is safe: no correction needed.** `taxonomy.csv` is
+      byte-identical after the change. But the reason is not the one assumed. The
+      detector is *already on by default* in the libtsan g++ 13.3 ships (upstream
+      documents it as off, so this varies by runtime), and it still does not fire on the
+      injected case.
+- [x] **The mechanism is the interesting part, and it is now evidenced.** TSan builds its
+      lock-order graph from acquisitions that *succeed*. `deadlock.cpp` blocks on its
+      first inversion, so the second edge never completes, the cycle never closes, and
+      the detector stays silent — precisely when the bug manifests. A new positive
+      control, `faults/cpp/deadlock_control.cpp`, inverts the same two locks without
+      blocking and *is* reported, which proves the detector was live. So the honest
+      statement for this class is that the tool catches the inversion the program
+      survives and misses the one that deadlocks.
+- [x] **`run_faults.sh` now pins `TSAN_OPTIONS=detect_deadlocks=1:second_deadlock_stack=1`**
+      rather than inheriting a default that differs between runtimes, runs the control
+      before the catalogue, prints its outcome in the banner and `taxonomy.md`, and warns
+      loudly if the control fails — because then "undetected" would carry no information.
+- [ ] **Write the near-miss finding into §7.5.6.** It converts a blank cell into a result
+      and pre-empts the examiner who asks whether the flag was set. One or two sentences.
+- [ ] **Still open: the Rust half.** Run Loom and Shuttle against the two boundary cases
+      to see whether the ecosystem catches at test time what the compiler does not catch
+      at build time. That is the other half of RQ2's "at what stage and cost".
+
+### 5. Three more boundary defect classes
+
+The catalogue holds five in-guarantee classes and two outside. `tab:threats` concedes "seven
+programs remain seven programs", and future work already names leaks. Three candidates, each
+cheap (two small programs and a taxonomy row) and each a case where **safe Rust does not help**:
+
+- **Leak through a reference cycle** - `Rc`/`RefCell` cycle against `shared_ptr` cycle. Leaks are
+  safe in Rust by explicit design; this is the cleanest possible statement of a guarantee
+  boundary, and both languages fail identically.
+- **Integer overflow in a release build** - `opt-level = 2` leaves `overflow-checks` off, so Rust
+  wraps silently where C++ signed overflow is undefined. Defined-but-wrong against
+  undefined-and-wrong is a sharper distinction than "Rust is safer", and it maps onto a real
+  case: CVE-2026-64467 in `rust_binder` is a `usize`-versus-`u64` stride error
+  (`LITERATURE_NOTES.md` §5.1).
+- **Panic / exception safety across the shard boundary** - a panicking worker poisons a `Mutex`
+  and kills a shard; the C++ analogue throws out of `worker_loop`. Directly relevant to a
+  carrier-grade availability argument, and neither language's type system addresses it.
+
+The two `rust_binder` CVEs are already verified in `LITERATURE_NOTES.md` and would let §7.5.6
+cite production instances of its own boundary argument rather than only demonstrating it.
+
+### 6. One robustness arm against the compiler, not just the language
+
+`tab:threats` has no row separating the language from its toolchain. Every performance number is
+g++ 13.3 / libstdc++ against rustc 1.97, so "C++ is slower on the core operation" is, strictly, a
+statement about one implementation of each. A single clang++ / libc++ arm at the representative
+load and the overload point would bound that confound. Same for `-O3` / `opt-level = 3` and LTO,
+which test whether the matched `-O2` choice is load-bearing. Cheap, and it either adds a
+robustness sentence or finds something.
+
+### 7. The RQ4 cost axes that were never measured
+
+RQ4 asks about "effort, FFI interoperability, and risk" and the thesis answers the middle one
+well. Three axes are absent and all are near-free to collect:
+
+- **Compile time**, clean and incremental, both languages. The single most cited practical
+  objection to Rust adoption, entirely missing, and it matters more to a Nokia RAN build than the
+  seam's 192 ns does.
+- **Binary size and static footprint**, which belongs next to peak RSS under RQ3.
+- **Dependency and `unsafe` supply chain**: `cargo audit`, and `cargo geiger` over the tree. The
+  core being dependency-free is currently an assertion in spec §12; it is quantifiable, and it is
+  a genuine finding when the usual objection to Rust is transitive-dependency risk.
+
+Vander Stoep's 2025 Android data (`LITERATURE_NOTES.md` §3.1: ~4x lower rollback rate, ~25% less
+review time) is the published counterpart to the effort axis and is already verified.
+
+### 8. Report equivalence bounds, not only null results
+
+**Why.** The thesis's most-repeated sentence is that this measurement "cannot tell", and the
+register is right. But a non-significant paired test is the *weakest* possible way to say it: it
+supports no claim at all, which is why §5.5 has to spend a paragraph on the *p*-floor.
+
+Equivalence testing gives the positive version. The TOST procedure (Schuirmann) tests
+$H_0: |\Delta| \ge \delta$ against a pre-specified margin and, when it rejects, licenses
+"equivalent within $\pm\delta$" - which is a real claim, and is not the over-claim the register
+forbids, because the margin is stated.
+
+**The good version of this.** Rather than argue about the right $\delta$, invert it: report the
+**smallest margin at which equivalence holds at 95%**. That is a single number per metric, read
+straight off the bootstrap interval already computed, and it turns every null in
+`tab:significance` into a bound. "The paired median difference is within $\pm1.6$ µs" says
+something; "*p* = 0.7" does not.
+
+**Implementation.** The permutation machinery in `bench/plot_figures.py` already does this: shift
+the paired differences by $\pm\delta$ and run the existing one-sided test each way, take the
+larger *p*. No new dependency, no distributional assumption, and it composes with the existing
+Holm family rather than replacing it.
+
+**Also worth adding while in that file.** A power/repeat-count calculation for the testbed visit.
+§5.5 states the *p*-floor at $2/2^n$ but nothing about the *n* needed to detect an effect of a
+given size, so the September repeat count is currently guesswork.
+
+- [x] **Implemented and run.** `paired_tost()` (two one-sided permutation tests against a
+      margin, reusing the existing enumeration) and `equivalence_bound()` (the tightest
+      margin supported, from a 90% bootstrap interval on the paired differences) are in
+      `bench/plot_figures.py`. Every row of the family now carries a bound, emitted to
+      `figures/tab_equivalence.tex` plus `\NEqvUnresolved`, `\EqvBoundPFifty` and
+      `\EqvBoundTailMax`. Every pre-existing macro is unchanged and the build is still
+      143 pages with zero errors and zero undefined references.
+- [x] **The output makes the case for the testbed better than the current text does.**
+      Median latency is equivalent within **±2.0 µs**, a tight positive claim where there
+      was only a *p*-value. The tail is bounded at **252-1298 µs** depending on the row —
+      against a median of roughly 43 µs. So "cannot tell" now has a number on it: the
+      difference could be thirty times the median. That is a far stronger argument for
+      the bare-metal campaign than "the intervals overlap".
+- [ ] **Adopt it in the document, or stop generating it.** `tab_equivalence.tex` is
+      written but nothing `\input`s it — exactly the trap flagged in item 12 below. It
+      needs a float and a caption in §7.5 and a sentence in §5.5 explaining why an
+      equivalence bound is not the over-claim the register forbids, or it should be
+      dropped. This is a claim-level change, so it is the author's call, not the script's.
+- [ ] **Still open: the power calculation** for choosing the September repeat count.
+
+### 9. Sensitivity of the ordering to the configuration
+
+`tab:params` fixes shard count, queue capacity, and active-UE population. The external-validity
+row concedes "one subsystem, one workload, one machine" and the performance results "do not
+travel". A cheap partial answer: does the *ordering* survive a sweep of the knobs? Queue capacity
+is the interesting one, because it interacts directly with item 1's overload hypothesis. The
+`signal` workload also exists in both benches and has never been run as a campaign, so a second
+workload is available for the price of one flag.
+
+### 10. Finish the literature backlog, and add what this list turns up
+
+`LITERATURE_NOTES.md` §10 items 1-7 are applied; **item 8 is not** - the RQ2 and RQ4 enrichment
+(§5, §6) and the sharding justification from Pallas and Aquifer (§7.5). It is marked a judgement
+call, and items 1 and 4 above change that calculation: if Loom and Shuttle are run, the
+verification-landscape sources in §5.2 stop being enrichment and become the related work for a
+result. Two additions of the same kind not yet in that file: Schuirmann for TOST (item 8), and
+the Loom/Shuttle tooling itself (item 4).
+
+### 11. A citable, archived reproduction package
+
+The repository is public and `bench/refresh_thesis.sh` regenerates every quoted number, which is
+already better than most. What is missing is a fixed point: a tagged release archived with a DOI,
+plus a `REPRODUCE.md` giving the exact command sequence and expected runtimes per artefact.
+Criteria 3 and 4 both reward it, it takes an afternoon, and it also fixes what the thesis means
+by "the artefacts" once the repository keeps moving after submission.
+
+### 12. Housekeeping found while surveying
+
+- `bench/plot_figures.py` generates `fig_tail_percentiles.pdf`, `fig_resources.pdf`,
+  `fig_taxonomy.pdf` and `fig_ffi_cost.pdf`, and `thesis.tex` includes none of them. Either place
+  them or stop generating them; a generated figure nobody reads is a maintenance trap.
+- Several `diagrams/pdf/*` are likewise unused where TikZ or a table took over the role.
+- `AGENT.md` and `ASSESSMENT.md` both still list `\censors{}{}{}` as the title-page item, but
+  `thesis.tex` now uses `\supervisors` with an unset `\examiners`. Same task, wrong command name
+  in two places.
+
+---
+
 ### Notes / open questions
 - Timeline: writing and implementation complete; remaining work is spec freeze, bare-metal
   campaign, supervisor review, and submission. `Thesis_Plan_v2.pdf` schedules these as

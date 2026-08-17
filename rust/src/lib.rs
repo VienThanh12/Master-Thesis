@@ -9,6 +9,11 @@ pub mod config;
 pub mod error;
 pub mod hash;
 pub mod message;
+// Attribution probe, not a compared configuration: a bounded queue built the way
+// the C++ side builds one, so the overload divergence can be assigned to the
+// standard channel or ruled out. Compiled only under `--features mutex-queue`.
+#[cfg(feature = "mutex-queue")]
+pub mod mutex_queue;
 pub mod service;
 pub mod shard_core;
 pub mod types;

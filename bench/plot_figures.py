@@ -125,6 +125,93 @@ def paired_permutation_test(a, b):
     return (statistics.median(diffs), at_least_as_extreme / float(total_assignments), n)
 
 
+def paired_tost(a, b, delta):
+    """Two one-sided paired permutation tests against an equivalence margin.
+
+    A non-significant paired test supports nothing. It is consistent with a real
+    effect the campaign was too small to see, which is why Section 5.5 has to
+    spend a paragraph on the attainable floor, and why the honest reading of the
+    tail is "cannot tell" rather than "equivalent". TOST asks the answerable
+    question instead: not whether the difference is zero, which no experiment can
+    establish, but whether it is small enough not to matter.
+
+    The null is that the true difference is at least as large as ``delta`` in one
+    direction or the other, and the two one-sided tests reject it from both sides.
+    Rejecting both licenses "equivalent within +/- delta", which is a positive
+    claim with its own stated limit -- not the over-claim of calling a null result
+    equivalence.
+
+    Under the shift null the differences minus the margin are symmetric about
+    zero, so sign flipping is exactly as valid here as in the two-sided test
+    above, and the same enumeration is reused. The returned p is the larger of
+    the two one-sided values, which is the TOST p-value.
+    """
+    pairs = [(x, y) for x, y in zip(a, b) if x is not None and y is not None]
+    n = len(pairs)
+    if n == 0 or delta <= 0:
+        return (float("nan"), n)
+    diffs = [y - x for x, y in pairs]
+
+    def one_sided(shifted, upper):
+        """P(permuted sum at least as extreme as observed), in one direction."""
+        observed = sum(shifted)
+        count = 0
+        if n <= EXACT_MAX:
+            total_assignments = 1 << n
+            for mask in range(total_assignments):
+                total = 0.0
+                for i, d in enumerate(shifted):
+                    total += -d if (mask >> i) & 1 else d
+                if (total <= observed + 1e-12) if upper else (total >= observed - 1e-12):
+                    count += 1
+        else:
+            rng = random.Random(20260814)
+            total_assignments = PERM_SAMPLES
+            for _ in range(total_assignments):
+                total = sum(d if rng.getrandbits(1) else -d for d in shifted)
+                if (total <= observed + 1e-12) if upper else (total >= observed - 1e-12):
+                    count += 1
+        return count / float(total_assignments)
+
+    # H0+: true difference >= +delta, rejected when the shifted sum is small.
+    # H0-: true difference <= -delta, rejected when the shifted sum is large.
+    p_upper = one_sided([d - delta for d in diffs], upper=True)
+    p_lower = one_sided([d + delta for d in diffs], upper=False)
+    return (max(p_upper, p_lower), n)
+
+
+def equivalence_bound(a, b, alpha=0.05, n_boot=2000, seed=12345):
+    """Smallest margin at which the paired difference can be called equivalent.
+
+    Choosing an equivalence margin invites an argument about the margin, and a
+    margin picked once the data is in is not a margin at all. Inverting the test
+    avoids both: rather than asking whether the difference is inside some chosen
+    delta, report the tightest delta the data supports and let the reader apply
+    their own threshold to it.
+
+    This uses the standard confidence-interval reading of TOST -- equivalence at
+    level alpha holds exactly when the (1 - 2*alpha) interval lies inside
+    [-delta, +delta] -- so the bound is the larger absolute endpoint of a 90%
+    bootstrap interval on the paired difference. Note the 90%: a 95% interval
+    would give a two-sided test at 0.025 per side and overstate the bound.
+
+    Returns the bound in the metric's own units, so "the paired median difference
+    is within +/- 1.6 microseconds" replaces "p = 0.7", which said nothing.
+    """
+    paired = [y - x for x, y in zip(a, b) if x is not None and y is not None]
+    if not paired:
+        return float("nan")
+    rng = random.Random(seed)
+    n = len(paired)
+    medians = []
+    for _ in range(n_boot):
+        medians.append(statistics.median([paired[rng.randrange(n)] for _ in range(n)]))
+    medians.sort()
+    lo = medians[int(alpha * n_boot)]
+    hi = medians[min(n_boot - 1, int((1.0 - alpha) * n_boot))]
+    return max(abs(lo), abs(hi))
+
+
 def attainable_floor(n):
     """Smallest two-sided p the paired test can return at n pairs.
 
@@ -1084,6 +1171,17 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
                 f"{max(max(abs(r['lo']), abs(r['hi'])) for r in p50_rows):.0f}"
                 if p50_rows else "0"
             ),
+            # Equivalence bounds: the tightest margin each unresolved comparison
+            # supports. These say what a p-value cannot, which is how large the
+            # difference could be given that the test did not find one.
+            "NEqvUnresolved": str(sum(1 for r in sig_results if r["holm"] >= 0.05)),
+            "EqvBoundPFifty": (
+                f"{max(r['eqv'] for r in p50_rows):.1f}" if p50_rows else "0"
+            ),
+            "EqvBoundTailMax": (
+                f"{max(r['eqv'] for r in sig_results if r['kind'] == 'tail'):.0f}"
+                if any(r["kind"] == "tail" for r in sig_results) else "0"
+            ),
         })
         if rss_rows:
             macros.update({
@@ -1347,6 +1445,11 @@ def significance_results(rows, load, overload=None):
                     "point": point, "load": point_load,
                     "diff": diff, "lo": lo, "hi": hi, "p": p, "n": n,
                     "agree": agree,
+                    # The tightest margin within which this comparison can be
+                    # called equivalent. Reported for every row, including the
+                    # ones that reach significance, where it doubles as an upper
+                    # bound on how large the effect can be.
+                    "eqv": equivalence_bound(cpp, rust),
                     # Whether the paired interval sits wholly on one side of zero.
                     # Recorded per row so the prose can apply one rule to the whole
                     # family instead of picking the rows it likes.
@@ -1508,6 +1611,33 @@ def write_significance_table(results, outdir):
     return out
 
 
+def write_equivalence_table(results, outdir):
+    """Emit the body of tab:equivalence: the tightest bound each comparison supports.
+
+    Kept as its own table rather than a column bolted onto tab:significance,
+    because it answers the opposite question and mixing the two invites the
+    reader to treat a small p and a tight bound as the same kind of evidence.
+    tab:significance asks whether a difference is there; this asks how large it
+    could be if it is. A row can be interesting in one and dull in the other:
+    a null with a tight bound is a real result, and a null with a wide one is
+    the campaign saying it could not see.
+    """
+    results = [r for r in results if r.get("point", "repr") == "repr"]
+    if not results:
+        return None
+
+    def row(r):
+        d = r["decimals"]
+        verdict = "significant" if r["holm"] < 0.05 else "not resolved"
+        return (f"{r['metric']} & {r['alloc']} & {abs(r['diff']):.{d}f} & "
+                f"{r['eqv']:.{d}f} & {verdict}")
+
+    out = os.path.join(outdir, "tab_equivalence.tex")
+    with open(out, "w") as f:
+        f.write(" \\\\\n".join(row(r) for r in results) + "\n")
+    return out
+
+
 def write_overload_table(rows, results, outdir, overload):
     """Emit the body of tab:overload: what each variant still sustains past saturation.
 
@@ -1659,6 +1789,9 @@ def main():
         produced.append(sig_tab)
         n_sig = sum(1 for r in sig if r["holm"] < 0.05)
         print(f"significance: {len(sig)} paired tests, {n_sig} significant after Holm")
+    eqv_tab = write_equivalence_table(sig, outdir)
+    if eqv_tab:
+        produced.append(eqv_tab)
 
     for p in produced:
         print("wrote", os.path.relpath(p, here))

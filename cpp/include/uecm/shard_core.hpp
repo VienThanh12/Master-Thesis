@@ -8,7 +8,20 @@
 #include "uecm/hash.hpp"
 #include "uecm/types.hpp"
 
+#ifdef UECM_FLAT_MAP
+#include "uecm/flat_map.hpp"
+#endif
+
 namespace uecm {
+
+// The intra-shard store. std::unordered_map is the measured configuration; the
+// open-addressed alternative exists only to attribute the core-operation result
+// and is never the reported arm. See flat_map.hpp for why.
+#ifdef UECM_FLAT_MAP
+using ContextMap = FlatMap<UeId, UeContext, FnvHash>;
+#else
+using ContextMap = std::unordered_map<UeId, UeContext, FnvHash>;
+#endif
 
 // ShardCore is the single-threaded operation processor for one shard: it owns the
 // shard's contexts and implements the state machine + map operations (spec §5, §6).
@@ -41,7 +54,7 @@ class ShardCore {
 
   Config cfg_;
   std::atomic<std::uint64_t>& activity_seq_;
-  std::unordered_map<UeId, UeContext, FnvHash> map_;
+  ContextMap map_;
 };
 
 }  // namespace uecm
