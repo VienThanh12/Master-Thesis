@@ -3975,9 +3975,9 @@ rather than only argued. Section~\ref{sec:contention} isolates the bounded queue
 primitives under the same seven-producer pattern; they do not reproduce the full-service ordering
 at significance ($p = \ContentionP$), which rules out those two constructs alone as the whole
 explanation even though they are where the forced-idiom log predicted contention would matter.
-The residual risk is therefore narrower than before: the cause likely includes additional work on
-the C++ handoff path---the larger tagged \texttt{Request}, variant dispatch, and map operations
-that the microbenchmark strips away---rather than being unknowable.
+The residual risk is therefore narrower than before. The cause is not unknowable. It likely
+includes additional work on the C++ handoff path, in the larger tagged \texttt{Request}, in
+variant dispatch, and in the map operations that the microbenchmark strips away.
 
 \paragraph{External validity: how far do the results travel?}
 The study covers one subsystem, one workload, one concurrency structure, and one machine, and
