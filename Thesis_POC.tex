@@ -187,8 +187,9 @@ evaluation adds a fault-injection study and an FFI prototype.
 
 \noindent\textbf{Results.}
 All five injected memory-safety and data-race defect classes are prevented at compile time in safe
-Rust; in C++ each compiles and is caught, if at all, only at runtime under the right sanitiser. Two
-boundary classes, a lock-order deadlock and a lost update, misbehave in both. The FFI seam keeps
+Rust; in C++ each compiles and is caught, if at all, only at runtime under the right sanitiser. Five
+boundary classes misbehave in both, and on two the C++ tooling reports what Rust's does not.
+The FFI seam keeps
 the core \texttt{unsafe}-free at a cost bounded at $\FfiOpBoundPct\%$ of one operation. On
 performance the answer divides at saturation. Below it the two are equivalent where it matters, and
 an end-to-end operation is only $\BudgetCoreShareMax\%$ language work and the rest cross-thread
@@ -527,8 +528,8 @@ migration guidelines for language selection in cloud-native RAN evolution
 (Section~\ref{sec:guidelines}). The headline findings are as follows. On \emph{safety} (RQ2),
 every injected memory-safety and data-race defect class is prevented at compile time in safe
 Rust, whereas in C++ each compiles and is caught, if at all, only at runtime and only with the
-right sanitiser, while two deliberately chosen boundary classes are prevented by neither
-language; this result is final. On \emph{migration} (RQ4), the FFI seam is small, keeps the core free of
+right sanitiser, while five deliberately chosen boundary classes are prevented by neither
+language, and on two of those the C++ tooling is ahead; this result is final. On \emph{migration} (RQ4), the FFI seam is small, keeps the core free of
 \texttt{unsafe}, and costs at most $\FfiOpBoundPct\%$ of one operation when measured against
 that same operation called natively, so the real adoption cost is API design, not run-time
 overhead; this result is also final. On \emph{performance} (RQ1, RQ3), the answer divides at
@@ -1190,7 +1191,7 @@ good vehicle for studying them:
 
 These five classes lie squarely within the guarantees Rust claims to provide, which makes them
 the natural test of whether that claim holds. Testing only them, however, would build the
-expected answer into the choice of test cases, so two further classes are carried into the
+expected answer into the choice of test cases, so five further classes are carried into the
 study for the opposite reason, because there is good reason to expect that safe Rust does
 \emph{not} prevent them:
 
@@ -1205,9 +1206,27 @@ study for the opposite reason, because there is good reason to expect that safe 
         \emph{data race}: the atomicity violation lives in the composition of the operations,
         not in the memory accesses themselves, and it corrupts a value silently instead of
         crashing.
+  \item \textbf{Leak through a reference cycle.} A context and the peer it is being handed
+        over to hold owning references to each other, so neither reference count reaches zero
+        and neither is ever destroyed. Reference counting cannot collect a cycle in either
+        language, and leaking is safe in Rust by explicit design. This is the cleanest
+        statement of a boundary in the catalogue, because both languages fail identically.
+  \item \textbf{Integer overflow in a release build.} A bearer's TEID stride computation
+        exceeds the width of its type. In C++ signed overflow is \emph{undefined}, so the
+        program has no meaning; in Rust it is \emph{defined} to wrap, because the
+        \texttt{opt-level~=~2} profile this study compares leaves \texttt{overflow-checks}
+        off, so the program has a meaning and the meaning is wrong. The pattern is not
+        hypothetical: CVE-2026-64467 in \texttt{rust\_binder} is a stride error of this shape.
+  \item \textbf{Worker failure blast radius.} One shard worker fails part-way through a
+        procedure. The concurrency model of Section~\ref{sec:concurrency} makes a shard
+        a failure domain by construction, and neither language's type system enforces that it
+        behaves as one: in C++ an exception escaping the thread callable terminates the whole
+        process, and in Rust the panic is confined to its thread but poisons the state it held,
+        so the damage propagates along the data instead. Directly relevant to a carrier-grade
+        availability argument, and addressed by nothing in either type system.
 \end{itemize}
 
-Together these seven form the catalogue injected in Chapter~\ref{chapter:eval}, and the split
+Together these ten form the catalogue injected in Chapter~\ref{chapter:eval}, and the split
 between the two groups is what lets the study report a boundary rather than a verdict. Buffer
 overflow is described above for completeness but is not injected, because neither
 implementation performs raw pointer arithmetic on the context store, so an injected instance
@@ -1224,9 +1243,10 @@ discrepancy, whereas one formed after the fact cannot.
 Context Management, and the outcome recorded for it in advance of the study. The last column
 is a prediction rather than a result; Table~\ref{tab:taxonomy} reports what was measured, and
 the fault runner flags a mismatch in either direction instead of absorbing it into the
-conclusion. Buffer overflow is listed for completeness and is not injected, because neither
+conclusion. Buffer overflow is listed for completeness and not injected: neither
 implementation does pointer arithmetic on the context store.\label{tab:defectmap}}
-\renewcommand{\arraystretch}{1.0}
+\footnotesize
+\renewcommand{\arraystretch}{0.95}
 \begin{tabular}{@{}R{0.19\linewidth} R{0.40\linewidth} R{0.14\linewidth} R{0.16\linewidth}@{}}
 \hline\hline
 Defect class & Incarnation in UE Context Management & How it fails & Expected in safe Rust \\
@@ -1239,11 +1259,14 @@ Buffer overflow & No plausible incarnation here: the context store is reached on
 \multicolumn{4}{@{}l}{\emph{Concurrency family: unsynchronised or ill-ordered access}} \\
 Iterator invalidation & A bearer is added while the context's data-radio-bearer list is being iterated & Corruption or crash & Prevented \\
 Data race & Two workers update the same context field, a counter or a state flag, without synchronisation & Torn or lost value & Prevented \\
-Unguarded shared mutation & A context is shared by reference across threads and mutated with no ownership rule governing it & Torn or lost value & Prevented \\
+Unguarded shared mutation & A context is shared across threads and mutated with no ownership rule governing it & Torn or lost value & Prevented \\
 \hline
 \multicolumn{4}{@{}l}{\emph{Boundary group: included because safe Rust is expected \emph{not} to prevent them}} \\
 Lock-order deadlock & Opposing handovers lock source-then-target and target-then-source & Hang & Not prevented \\
-Lost update & A counter's read-modify-write is split across two separate critical sections, so each access is synchronised but their composition is not atomic & Silently wrong value & Not prevented \\
+Lost update & A counter's read-modify-write is split across two critical sections, so each access is synchronised but their composition is not atomic & Silently wrong value & Not prevented \\
+Reference-cycle leak & A context and its handover peer hold owning references to each other, so neither reference count reaches zero & Unbounded growth & Not prevented \\
+Integer overflow (release build) & A bearer's TEID stride computation exceeds the width of its type & Silently wrong value & Not prevented \\
+Worker-failure blast radius & One shard worker fails part-way through a procedure while holding shard state & Outage beyond one shard & Not prevented \\
 \hline
 \end{tabular}
 \end{table}
@@ -1473,9 +1496,17 @@ A catalogue of representative C++ defects is written \emph{deliberately}, drawn 
 that affect this subsystem (Chapter~\ref{chapter:context}). Each is a small self-contained
 program flavoured with the domain: a stale pointer into the context map, a double release, a
 mutation during iteration, an unsynchronised shared update. Each C++ defect is then built and
-run under AddressSanitizer and ThreadSanitizer, recording which tool, if any, detects it and at
-what stage. The analogous construct is written in safe Rust and compiled, recording the
-compiler's outcome and, where it compiles, the behaviour of the resulting program.
+run under AddressSanitizer, ThreadSanitizer and UndefinedBehaviorSanitizer, recording which
+tool, if any, detects it and at what stage. The analogous construct is written in safe Rust and
+compiled, recording the compiler's outcome and, where it compiles, the behaviour of the
+resulting program. For the boundary classes, where by construction the compiler has nothing to
+say, the Rust side is additionally put to two model checkers, Loom and Shuttle, so that the
+``at what stage'' half of RQ2 is answered for them rather than left blank.
+
+One case is repeated rather than run once. Whether ThreadSanitizer reports the lock-order
+inversion depends on the schedule, so a single run records whichever outcome the machine
+happened to give; the runner therefore executes that case twelve times and reports the rate,
+distinguishing an intermittent detection from a reliable one.
 
 \paragraph{Why the C++ side is tooled with sanitisers only.}
 No static analyser is run against the C++ catalogue, and that is a decision rather than an
@@ -2334,6 +2365,38 @@ workloads add a second, independent parity signal: the mixed workload's per-oper
 counts are verified to be identical across languages for a given seed and active-UE
 population, confirming that both implementations are driven along exactly the same code paths.
 
+Two things bound what that establishes, and both are addressed rather than conceded. A
+cross-diff of two implementations cannot distinguish ``both correct'' from ``both wrong in the
+same way'', which is the failure mode a shared specification and a single author make most
+likely; and the expected results in the hand-written vectors were derived from the
+specification by the same person who wrote the implementations. A third implementation of the
+same written specification therefore acts as an independent oracle. It is written in Python,
+shares no code with either language, and first has to reproduce all $223$ hand-derived
+expectations before it is allowed to generate any of its own. It then generates randomised
+operation sequences under several profiles --- realistic lifecycles, adversarial sequences
+weighted towards illegal transitions, sequences that sit on the capacity limits, and sequences
+that stress shard assignment --- with every expected result computed by the model. A campaign
+of roughly $793\,000$ generated operations produced no divergence: the two implementations
+agree with each other and with an independent reading of the specification, on sequences nobody
+chose. Because the generator is seeded and deterministic, any future divergence is a
+permanently reproducible regression rather than an anecdote.
+
+Three further checks bound the suite from other directions. The specification's transition
+matrix is enumerated exhaustively rather than sampled: every operation applied to a context in
+every state it can occupy, asserting the exact error, the resulting state on success, and the
+absence of any field change on failure, including the error precedences the specification
+leaves unordered. The C++ implementation is then run under AddressSanitizer, ThreadSanitizer
+and UndefinedBehaviorSanitizer across that whole suite, and reports nothing, which matters for
+fairness: safe Rust carries data-race and memory-safety freedom by construction, so without
+this the C++ arm's equivalent property would rest on not having failed yet rather than on
+having been checked. Miri, run over the Rust state-machine suite, likewise reports no
+undefined behaviour. Finally, the suite's reach is measured rather than asserted, because a
+negative result from a sanitiser is only as broad as the code that ran: line coverage of the
+C++ library is $94.6\%$ and of the Rust library $98.2\%$, with both implementations' core
+operation processors and service facades fully covered. The two figures are not comparable with
+each other --- \texttt{gcov} counts C++ lines and \texttt{llvm-cov} counts Rust regions --- but
+each bounds the claims made about its own implementation.
+
 \chapter{Experimental Setup and Evaluation\label{chapter:eval}}
 
 \section{Testbed configuration\label{sec:testbed}}
@@ -2572,11 +2635,12 @@ same structure over \FfiOpRepeats{} repeats. All three are paired by constructio
 the exact paired test of Section~\ref{sec:stats} requires.
 
 \paragraph{The fault-injection catalogue.}
-This dataset is categorical rather than numeric. Each of the seven defect cases yields three tool
-logs, the AddressSanitizer and ThreadSanitizer output for the C++ program and the \texttt{rustc}
-output for the safe-Rust counterpart, together with one row in a machine-readable taxonomy
-recording the two sanitiser outcomes, the detection stage, the compiler result with the
-diagnostic codes that fired, and the expectation registered before the study. Carrying the
+This dataset is categorical rather than numeric. Each of the ten defect cases yields four tool
+logs, the AddressSanitizer, ThreadSanitizer and UndefinedBehaviorSanitizer output for the C++
+program and the \texttt{rustc} output for the safe-Rust counterpart, together with one row in a
+machine-readable taxonomy recording the three sanitiser outcomes, the detection stage, the
+compiler result with the diagnostic codes that fired, and the expectation registered before the
+study. The two original boundary cases yield a second table from the model checkers. Carrying the
 expectation in the data instead of in the prose is what allows the runner to report a mismatch
 in either direction; the table and figure in Section~\ref{sec:safetyresults} are generated from
 that file, not transcribed from it.
@@ -3139,11 +3203,11 @@ Variant & throughput (kops/s) & peak RSS (MiB) & CPU (\%) \\
 \end{table}
 
 \subsection{Safety via fault injection (RQ2)}\label{sec:safetyresults}
-Instead of claiming that Rust has no bugs, the catalogue of seven defects set out in
+Instead of claiming that Rust has no bugs, the catalogue of ten defects set out in
 Table~\ref{tab:defectmap} is deliberately injected, each as a small self-contained program
 flavoured with the subsystem's domain so that it maps onto a plausible bug in the service. Its
 division into two groups is what the method of Section~\ref{sec:methodfaults} turns on: five
-classes from inside the region Rust claims to govern, and two chosen precisely because safe
+classes from inside the region Rust claims to govern, and five chosen precisely because safe
 Rust is expected \emph{not} to prevent them. Without the second group the outcome would be
 decided by the choice of test cases, confirming the expected result but never able to disturb
 it. With it, the study measures a boundary rather than demonstrating a claim. The fault runner
@@ -3152,8 +3216,11 @@ direction, so a case that unexpectedly compiled, or unexpectedly failed to, woul
 instead of being absorbed into the conclusion.
 
 \paragraph{Procedure.}
-For each C++ defect the study builds and runs the program under both AddressSanitizer (ASan)
-and ThreadSanitizer (TSan) and records which tool, if any, detects it. No static analyser is
+For each C++ defect the study builds and runs the program under AddressSanitizer (ASan),
+ThreadSanitizer (TSan) and UndefinedBehaviorSanitizer (UBSan), and records which tool, if any,
+detects it. The third is not a refinement of the other two but a separate axis: signed overflow
+is invisible to both ASan and TSan, so without its own column the integer-overflow class would
+be recorded as undetected in C++ when in fact it is caught. No static analyser is
 run, for the reason set out in Section~\ref{sec:methodfaults}: its output is neither a
 compile-time rejection nor an observation of an execution, so it does not belong to any of the
 three outcomes the taxonomy records. The C++ columns of Table~\ref{tab:taxonomy} therefore
@@ -3175,8 +3242,10 @@ Section~\ref{sec:testbed}. Within its scope the result is unambiguous: every one
 the five memory-safety and data-race defects is a compile error in safe Rust, so none can be
 written at all, whereas in C++ each is valid code whose defect manifests only at runtime, and
 only if a test actually exercises the buggy path. The memory-safety defects are caught by ASan;
-the concurrency defects are caught only by TSan and are invisible to ASan, underlining that no
-single C++ sanitiser covers the whole catalogue. Runtime detection further requires building a
+the concurrency defects are caught only by TSan and are invisible to ASan; the overflow in the
+boundary group is caught only by UBSan and is invisible to both. No single C++ sanitiser covers
+the catalogue, and the three between them still leave four of the ten classes untouched.
+Runtime detection further requires building a
 dedicated instrumented binary and paying the sanitiser's time and memory overhead, whereas the
 Rust errors are reported on every ordinary build regardless of test coverage. The parenthesised
 codes are the \texttt{rustc} diagnostics that fire (for example \texttt{E0499}, conflicting
@@ -3184,46 +3253,97 @@ mutable borrows; \texttt{E0502}, a mutable borrow while a shared borrow is live;
 use of a moved value; \texttt{E0373}, a closure outliving borrowed data as it escapes to another
 thread).
 
-The two boundary cases behave as predicted and delimit the claim. Both compile in safe Rust and
-both misbehave. The deadlock case hangs in both languages and had to be killed by the harness
-timeout; ThreadSanitizer does flag it in C++, reporting a lock-order inversion, while
-AddressSanitizer issues no report at all because nothing is corrupted. The lost-update case
-terminates in both languages with a silently wrong answer: against an expected total of
-$40\,000$ increments the safe-Rust program recorded $35\,030$, losing $4\,970$, and the C++
-program under ThreadSanitizer recorded $25\,448$, losing $14\,552$.
+All five boundary cases behave as predicted and delimit the claim. Every one compiles in safe
+Rust and every one misbehaves. The deadlock case hangs in both languages and had to be killed
+by the harness timeout. The lost-update case terminates in both languages with a silently wrong
+answer: against an expected total of $40\,000$ increments the safe-Rust program recorded
+$35\,030$, losing $4\,970$, and the C++ program under ThreadSanitizer recorded $25\,448$,
+losing $14\,552$. The reference cycle leaks in both, the release-build overflow produces a
+wrong TEID in both, and a failure inside one shard worker takes down more than that shard in
+both.
 
-The distinction these expose is precise, and it is the distinction the phrase ``thread safety''
-routinely blurs. Rust's concurrency guarantee is the absence of \emph{data races}, meaning
-unsynchronised concurrent access to the same location; it is not a guarantee about
-\emph{lock-acquisition order} and not a guarantee about the \emph{atomicity of a composed
-operation}. The lost update is the sharper of the two cases, because neither sanitiser reports
-it either: with every access properly locked there is no race for a race detector to find. It
-is therefore the one class in the catalogue that nothing in either language's toolchain
-addresses, and the one that fails most quietly, corrupting a counter rather than crashing. The
-consequence for practice is developed in Chapter~\ref{chapter:discussion}.
+Two of the five are cases where the C++ tooling is \emph{ahead}, which is the outcome the
+two-sided catalogue was built to be able to produce. LeakSanitizer, which ships inside ASan,
+reports the C++ reference cycle as an unreachable allocation at exit; the safe-Rust cycle leaks
+in silence, because leaking is safe in Rust by explicit design and nothing in the default
+toolchain looks for it. UBSan reports the C++ overflow, because signed overflow is undefined;
+the Rust overflow is \emph{defined} to wrap at \texttt{opt-level~=~2}, which leaves
+\texttt{overflow-checks} off, so the program has a meaning and the meaning is wrong. That
+second contrast is worth stating carefully, because it does not reduce to which language is
+safer: defined-but-wrong is easier to debug than undefined-and-wrong and no less incorrect, and
+neither is what ``memory safe'' is usually taken to promise.
+
+The deadlock result needs a qualification the earlier reading of it did not have.
+ThreadSanitizer does flag the inversion in C++, but only on a minority of runs: four of twelve
+repeats here, six of twenty in a longer trial, while the program deadlocks on every one. The
+mechanism is specific and it generalises beyond this catalogue. TSan builds its lock-order
+graph from acquisitions that \emph{succeed}, so the cycle closes only when some thread completes
+an inversion without blocking; a run in which the first inversion blocks produces one edge and
+never the second, and the detector stays silent at exactly the moment the bug manifests. A
+positive control that inverts the same two locks without ever blocking is reported every time,
+which is what establishes that the detector was live rather than misconfigured. The honest
+statement for this class is therefore that the tool catches the inversion the program survives
+and is unreliable on the one that deadlocks --- a materially different proposition for a
+continuous-integration pipeline than a clean catch.
+
+The distinction all of this exposes is precise, and it is the distinction the phrase ``thread
+safety'' routinely blurs. Rust's concurrency guarantee is the absence of \emph{data races},
+meaning unsynchronised concurrent access to the same location; it is not a guarantee about
+\emph{lock-acquisition order}, nor about the \emph{atomicity of a composed operation}, nor
+about leaks, wrapping arithmetic, or fault containment. The lost update remains the quietest
+case, because no sanitiser reports it: with every access properly locked there is no race for a
+race detector to find.
+
+\paragraph{Where the boundary classes are caught, and at what cost.}
+RQ2 asks not only which defects are prevented but at what stage the rest are detected, and for
+the boundary group the sanitiser columns leave that half largely blank. Two Rust model
+checkers answer it. Loom, which enumerates thread interleavings exhaustively under the C11
+model, and Shuttle, which samples them with probabilistic concurrency testing, both report both
+of the original boundary defects: Loom reports the deadlock as a closed cycle and fails the
+lost-update assertion, and Shuttle does the same. Each is paired with a control in which the
+defect is fixed --- consistent lock order, and the read-modify-write held in one critical
+section --- and both controls come out clean, so the reports are attributable to the defects
+rather than to the tools.
+
+The cost is the part worth recording. Neither defect program runs under either checker as
+written. Each had to be re-imported against the checker's own synchronisation and thread types,
+because a tool that does not intercept the primitive cannot schedule it, and each had to be
+shrunk to model size: the lost-update model drops from twenty thousand iterations per thread to
+one, and the deadlock model loses the sleep that widens its window on real hardware. So the
+answer for the Rust half of the boundary is \emph{detected at test time, after a rewrite},
+against a C++ half where the sanitiser takes the program unchanged and, for these two classes,
+finds one unreliably and the other not at all. The two halves point in opposite directions, and
+neither language's story here is the simple one. The consequence for practice is developed in
+Chapter~\ref{chapter:discussion}.
 
 \begin{table}
 \centering
 \small
 \caption[Defect-class taxonomy: measured outcomes]{Defect-class taxonomy: measured outcomes for the injected catalogue. C++ under
-\texttt{g++~13.3} with ASan/TSan; Rust under \texttt{rustc~1.97}, edition~2021. ``Compile
+\texttt{g++~13.3} with ASan/TSan/UBSan; Rust under \texttt{rustc~1.97}, edition~2021. ``Compile
 error'' means the safe-Rust program does not build, so the defect cannot be written. The lower
 block is the boundary group: defect classes chosen because safe Rust is \emph{not} expected to
-prevent them, and does not.\label{tab:taxonomy}}
-\begin{tabular}{@{}l l l l@{}}
+prevent them, and does not. Two of those five are the ones on which the C++ tooling is
+ahead.\label{tab:taxonomy}}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}l l l l l@{}}
 \hline\hline
-Defect class & ASan & TSan & Safe-Rust outcome \\
+Defect class & ASan & TSan & UBSan & Safe-Rust outcome \\
 \hline
-\multicolumn{4}{@{}l}{\emph{Within the guarantee}} \\
-Use-after-free            & detected     & detected     & compile error (E0499) \\
-Double-free               & detected     & not detected & compile error (E0382) \\
-Iterator invalidation     & detected     & detected     & compile error (E0502) \\
-Data race                 & not detected & detected     & compile error (E0373$^{\dagger}$) \\
-Unguarded shared mutation & not detected & detected     & compile error (E0502$^{\dagger}$) \\
+\multicolumn{5}{@{}l}{\emph{Within the guarantee}} \\
+Use-after-free            & detected     & detected     & not detected & compile error (E0499) \\
+Double-free               & detected     & not detected & not detected & compile error (E0382) \\
+Iterator invalidation     & detected     & detected     & not detected & compile error (E0502) \\
+Data race                 & not detected & detected     & not detected & compile error (E0373$^{\dagger}$) \\
+Unguarded shared mutation & not detected & detected     & not detected & compile error (E0502$^{\dagger}$) \\
 \hline
-\multicolumn{4}{@{}l}{\emph{Boundary of the guarantee}} \\
-Lock-order deadlock       & not detected$^{\ddagger}$ & detected     & compiles; deadlocks \\
-Lost update               & not detected & not detected & compiles; wrong result \\
+\multicolumn{5}{@{}l}{\emph{Boundary of the guarantee}} \\
+Lock-order deadlock$^{\ddagger}$ & not detected & intermittent$^{\S}$ & not detected & compiles; deadlocks \\
+Lost update               & not detected & not detected & not detected & compiles; wrong result \\
+Reference-cycle leak      & detected     & not detected & not detected & compiles; leaks \\
+Integer overflow (release) & not detected & not detected & detected     & compiles; wrong result \\
+Worker-failure blast radius & not detected & not detected & not detected & compiles; shard outage \\
 \hline
 \end{tabular}
 
@@ -3232,15 +3352,21 @@ Lost update               & not detected & not detected & compiles; wrong result
 $^{\dagger}$ Several diagnostics fire for these cases; the first is shown (the data race also
 raises \texttt{E0382} and \texttt{E0502}, the unguarded mutation \texttt{E0524} and
 \texttt{E0597}). \quad
-$^{\ddagger}$ AddressSanitizer issues no report because nothing is corrupted: the
-instrumented binary simply deadlocks and is killed by the harness timeout.\par}
+$^{\ddagger}$ Neither ASan nor UBSan issues a report, because nothing is corrupted and nothing
+is undefined: the instrumented binary simply deadlocks and is killed by the harness
+timeout. \quad
+$^{\S}$ ThreadSanitizer reports the lock-order inversion on a minority of runs, measured at
+$4$ of $12$ repeats here and $6$ of $20$ in a longer trial, while the program deadlocks on
+every one. The detector builds its lock-order graph from acquisitions that \emph{succeed}, so a
+run whose first inversion blocks never completes the second edge of the cycle.\par}
 \end{table}
 
 Read as a whole the table makes two things visible at once: above the boundary rule the entire
 Rust column is a compile-time rejection while the C++ columns are a patchwork of runtime
-detections and outright misses, and below it the Rust column joins them. The outcomes are
-generated from the runner's machine-readable log
-(\texttt{faults/results/taxonomy.csv}).
+detections and outright misses, and below it the Rust column joins them --- and on two rows
+falls behind. The outcomes are generated from the runner's machine-readable log
+(\texttt{faults/results/taxonomy.csv}), and the model-checking outcomes from
+\texttt{faults/results/model\_checking.csv}.
 
 \subsection{Migration (RQ4)}\label{sec:migrationresults}
 Incremental adoption is assessed with a working prototype that models the realistic
@@ -3346,7 +3472,8 @@ operation: resolved. Far tail: unresolved on this host. Mechanism: tested; primi
 insufficient \\
 RQ2 & All five injected memory-safety and data-race classes are prevented at compile time in
 safe Rust, where in C++ each compiles and is caught, if at all, only at runtime and by no single
-sanitiser. The guarantee stops there: the two boundary classes compile in both languages. &
+sanitiser. The guarantee stops there: the five boundary classes compile in both languages, and
+on the leak and the release-build overflow the C++ tooling reports what Rust's does not. &
 Final \\
 RQ3 & A memory penalty that reproduces: $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak RSS in
 the Rust build under \emph{both} allocators, an order of magnitude less than the allocator's own
@@ -3414,7 +3541,7 @@ its scope the guarantee is absolute in one specific sense, and the difference fr
 kind rather than of degree: a compiler that refuses to build a program rules the defect out of
 every execution, where a sanitiser rules it out only of the executions an instrumented test
 happens to take. What is absolute is the execution coverage, not the breadth of the catalogue;
-the scope itself remains the seven programs written for it.
+the scope itself remains the ten programs written for it.
 That aligns with the CVE evidence that Rust memory-safety bugs invariably involve
 \texttt{unsafe}~\cite{xu2021rustcve} and with the caution that unsafety can still propagate
 through dependencies~\cite{evans2020rust}, which is why keeping the core \texttt{unsafe}-free
@@ -3452,10 +3579,11 @@ of one, named in each panel.
 outright, grouped by the \emph{mechanism} that rejects them rather than by defect
 family: ownership and borrowing for lifetime and aliasing errors,
 which is why iterator invalidation sits with them, and the \texttt{Send}/\texttt{Sync}
-discipline for unsynchronised access to a location. On the right are the two classes the
-catalogue included to find the edge, which neither compiler prevents. The phrase ``thread
-safety'' spans both sides of the line; the guarantee covers only the
-left.\label{fig:boundary}}
+discipline for unsynchronised access to a location. On the right are the classes the
+catalogue included to find the edge, which neither compiler prevents; the diagram shows the two
+concurrency cases, and the leak, the release-build overflow and the worker-failure case added
+later sit alongside them. The phrase ``thread safety'' spans both sides of the line; the
+guarantee covers only the left.\label{fig:boundary}}
 \end{figure}
 
 \paragraph{RQ3 (overhead).} The answer splits by resource, and the splits do not all point the
@@ -3569,9 +3697,10 @@ themselves, is what distinguishes a test from a description.
         that safe Rust prevents at compile time ``the memory-safety and concurrency defect
         classes that C++ leaves to best-effort detection''. For the five injected classes of
         that kind it holds without exception. The fault-injection study still refutes
-        the broader reading the wording invites: the two boundary classes are concurrency
-        defects, they are exactly the sort C++ leaves to best-effort detection, and safe Rust
-        does not prevent them either. H2 is therefore accepted for memory safety and
+        the broader reading the wording invites: the five boundary classes are exactly the sort
+        C++ leaves to best-effort detection, safe Rust does not prevent them either, and on the
+        leak and the release-build overflow the C++ tooling is the one that reports. H2 is
+        therefore accepted for memory safety and
         data-race freedom and rejected for concurrency correctness at large, and the latter is
         the reading practitioners tend to assume.
   \item[H3: supported, and tested the right way on the second attempt.] The hypothesis was
@@ -3896,7 +4025,7 @@ Implementation bias between the two versions & Frozen specification, shared allo
 \multicolumn{3}{@{}l}{\emph{Construct: do the metrics measure what the questions ask?}} \\
 The sweep measures the design, not the language & The operation is measured apart from the handoff and both are reported (\S\ref{sec:budget}) & One operation on one data structure is narrower than the sweep it supplements \\
 The overload result is attributed but not localised & Narrowed to two entries in the forced-idiom log (\S\ref{sec:overload}); the contended-primitive microbenchmark (\S\ref{sec:contention}) rules out those two alone as the full explanation & The full handoff path under load still includes variant dispatch and larger requests on the C++ side \\
-A defect catalogue is a sample the author chose & Two classes drawn from outside the guarantee, with expectations recorded in advance & Seven programs remain seven programs \\
+A defect catalogue is a sample the author chose & Five classes drawn from outside the guarantee, with expectations recorded in advance & Ten programs remain ten programs \\
 RQ3 captures resource cost but not its origin & None available on this host & The memory result is established but unexplained \\
 RQ4 measures the seam, not the safety of the whole & The distinction is stated wherever the result is quoted & One address space: a compile-time property of the Rust side bounds nothing at run time \\
 \hline
@@ -3953,11 +4082,11 @@ vendor sizing a node wants the first, a language comparison wants the second. Th
 reports both and keeps them apart, but the question as originally worded did not distinguish
 them.
 
-RQ2 asks which defect classes a language prevents and is answered by a catalogue of seven
+RQ2 asks which defect classes a language prevents and is answered by a catalogue of ten
 hand-written programs. A catalogue is a sample, and a sample chosen by the author could flatter
-either language. Including the two boundary classes is the direct mitigation, since it forces the
-catalogue to contain cases the expected conclusion does not cover. Seven programs, however,
-remain seven programs.
+either language. Including the five boundary classes is the direct mitigation, since it forces the
+catalogue to contain cases the expected conclusion does not cover, and two of them returned the
+opposite result. Ten programs, however, remain ten programs.
 
 RQ3 measures peak RSS and aggregate CPU, which capture resource cost but not its origin. No
 hardware counters, allocation profiles, or cache statistics were collected, so the study can say
@@ -4106,10 +4235,13 @@ language effects be isolated from design and skill differences.
 Three conclusions follow from the evidence. First, on safety the difference is one of
 \emph{kind}, and it has a definite edge. Safe Rust rejects all five injected memory-safety and
 data-race classes at compile time, turning runtime hazards that C++ can only hope to catch with
-sanitiser-instrumented tests into errors that cannot be written at all; but the two boundary
-classes, a lock-order deadlock and a lost update, compile and misbehave in safe Rust exactly as
-they do in C++. The guarantee is therefore best described precisely: Rust eliminates data
-races, not race conditions, and aliasing errors, not lock-ordering errors. Second, on migration
+sanitiser-instrumented tests into errors that cannot be written at all; but all five boundary
+classes compile and misbehave in safe Rust exactly as they do in C++, and on two of them the C++
+tooling is the one that reports. The guarantee is therefore best described precisely: Rust
+eliminates data races, not race conditions, and aliasing errors, not lock-ordering errors,
+leaks, wrapping arithmetic or fault containment. Where the boundary defects are caught, they are
+caught at test time and only after being rewritten into a model checker's primitives, which is a
+real cost and a different one from the sanitiser's. Second, on migration
 the cost is dominated by API design and the learning curve rather than by any run-time tax: an
 unmodified Rust core can be driven from C++ across a thin, \texttt{unsafe}-isolated seam whose
 cost on a real operation, measured against the same operation called natively, is bounded at
@@ -4180,8 +4312,10 @@ profiles on the same visit. Beyond that:
   an explanation, and what would confirm or refute the cache-locality account offered in
   Section~\ref{sec:budget} for the operation-level gap. It is the clearest instrumentation gap
   in the study as it stands.
-\item Extend the fault catalogue further along the boundary mapped here, towards leaks, panics,
-  and misuse of \texttt{unsafe}.
+\item Extend the fault catalogue further along the boundary mapped here. Leaks, wrapping
+  arithmetic and worker failure are now in it; misuse of \texttt{unsafe} and the behaviour of
+  the boundary classes under a whole-program model checker rather than a hand-shrunk model are
+  the obvious next steps.
 \item Evaluate Rust async runtimes against the thread-per-shard model used here. That would
   separate the tail divergence Arvidsson and Kaller attribute to stackless
   \texttt{async}/\texttt{await}~\cite{arvidsson2025async} from the language itself, under the

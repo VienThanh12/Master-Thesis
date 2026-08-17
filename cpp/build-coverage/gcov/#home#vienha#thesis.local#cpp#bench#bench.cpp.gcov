@@ -1,0 +1,1166 @@
+        -:    0:Source:/home/vienha/thesis.local/cpp/bench/bench.cpp
+        -:    1:// UECM latency/throughput benchmark (C++ side), spec §3/§10.
+        -:    2://
+        -:    3:// Two workloads (both identical to the Rust bench for fairness):
+        -:    4://   --workload signal (default): preload `preload` contexts per producer, then issue
+        -:    5://     `ops` handle_signaling calls to random ids. Isolates the hot signaling path.
+        -:    6://   --workload mixed: pinned RAN lifecycle generator (see bench/workload.hpp),
+        -:    7://     attach/signaling/bearer/handover/release over `--active-ues` UEs per producer.
+        -:    8://
+        -:    9:// Each measured op's service latency is recorded into a per-thread HDR histogram.
+        -:   10:// Coordinated omission: --rate R (ops/sec/producer) paces sends to a fixed schedule
+        -:   11:// and records latency from the intended send time with HDR correction; otherwise the
+        -:   12:// loop is closed.
+        -:   13:
+        -:   14:#include <algorithm>
+        -:   15:#include <array>
+        -:   16:#include <atomic>
+        -:   17:#include <chrono>
+        -:   18:#include <cstdint>
+        -:   19:#include <cstdio>
+        -:   20:#include <cstdlib>
+        -:   21:#include <cstring>
+        -:   22:#include <mutex>
+        -:   23:#include <numeric>
+        -:   24:#include <optional>
+        -:   25:#include <string>
+        -:   26:#include <thread>
+        -:   27:#include <vector>
+        -:   28:
+        -:   29:#include <sys/resource.h>
+        -:   30:
+        -:   31:#include "hdr.hpp"
+        -:   32:#include "jestats.hpp"
+        -:   33:#include "uecm/service.hpp"
+        -:   34:#include "workload.hpp"
+        -:   35:
+        -:   36:#ifndef UECM_ALLOC_NAME
+        -:   37:#define UECM_ALLOC_NAME "system"
+        -:   38:#endif
+        -:   39:
+        -:   40:using namespace uecm;
+        -:   41:using bench::HdrHistogram;
+        -:   42:using bench::SplitMix64;
+        -:   43:using bench::WKind;
+        -:   44:using bench::WOp;
+        -:   45:using bench::Workload;
+        -:   46:using clock_type = std::chrono::steady_clock;
+        -:   47:
+        -:   48:namespace {
+        -:   49:
+        -:   50:struct Args {
+        -:   51:  std::string workload = "signal";
+        -:   52:  std::uint64_t shards = 8;
+        -:   53:  std::uint32_t queue_capacity = 1024;
+        -:   54:  std::uint64_t producers = 0;  // 0 => = shards
+        -:   55:  std::uint64_t preload = 10000;
+        -:   56:  std::uint64_t active_ues = 10000;
+        -:   57:  std::uint64_t ops = 200000;
+        -:   58:  std::uint64_t warmup = 0;  // 0 => auto
+        -:   59:  std::uint64_t seed = 42;
+        -:   60:  double rate = 0.0;  // ops/sec/producer; 0 => closed loop
+        -:   61:  double max_run_s = 0.0;  // wall-clock cap on the measured phase; 0 => uncapped
+        -:   62:  bool json = false;
+        -:   63:  bool jitter = false;       // record inter-operation jitter (IPDV) as well
+        -:   64:  std::string hist_out;      // append the full HDR bucket contents here
+        -:   65:  std::string run_id;        // opaque tag echoed into the sidecar (campaign repeat)
+        -:   66:};
+        -:   67:
+function _ZN12_GLOBAL__N_16to_u64EPKc called 0 returned 0% blocks executed 0%
+    #####:   68:std::uint64_t to_u64(const char* s) { return std::strtoull(s, nullptr, 10); }
+call    0 never executed
+        -:   69:
+function _ZN12_GLOBAL__N_15parseEiPPc called 0 returned 0% blocks executed 0%
+    #####:   70:Args parse(int argc, char** argv) {
+    #####:   71:  Args a;
+call    0 never executed
+    #####:   72:  for (int i = 1; i < argc; ++i) {
+branch  0 never executed
+branch  1 never executed (fallthrough)
+    #####:   73:    std::string k = argv[i];
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+function _ZZN12_GLOBAL__N_15parseEiPPcENKUlvE_clEv called 0 returned 0% blocks executed 0%
+    #####:   74:    auto val = [&]() -> const char* { return (i + 1 < argc) ? argv[++i] : "0"; };
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:   75:    if (k == "--workload") a.workload = val();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+call    5 never executed
+call    6 never executed
+branch  7 never executed (fallthrough)
+branch  8 never executed (throw)
+    #####:   76:    else if (k == "--shards") a.shards = to_u64(val());
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+call    5 never executed
+call    6 never executed
+    #####:   77:    else if (k == "--queue-capacity") a.queue_capacity = static_cast<std::uint32_t>(to_u64(val()));
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+call    5 never executed
+call    6 never executed
+    #####:   78:    else if (k == "--producers") a.producers = to_u64(val());
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+call    5 never executed
+call    6 never executed
+    #####:   79:    else if (k == "--preload") a.preload = to_u64(val());
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+call    5 never executed
+call    6 never executed
+    #####:   80:    else if (k == "--active-ues") a.active_ues = to_u64(val());
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+call    5 never executed
+call    6 never executed
+    #####:   81:    else if (k == "--ops") a.ops = to_u64(val());
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+call    5 never executed
+call    6 never executed
+    #####:   82:    else if (k == "--warmup") a.warmup = to_u64(val());
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+call    5 never executed
+call    6 never executed
+    #####:   83:    else if (k == "--seed") a.seed = to_u64(val());
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+call    5 never executed
+call    6 never executed
+    #####:   84:    else if (k == "--rate") a.rate = std::strtod(val(), nullptr);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+call    5 never executed
+call    6 never executed
+    #####:   85:    else if (k == "--max-run-s") a.max_run_s = std::strtod(val(), nullptr);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+call    5 never executed
+call    6 never executed
+    #####:   86:    else if (k == "--jitter") a.jitter = true;
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+    #####:   87:    else if (k == "--hist-out") a.hist_out = val();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+call    5 never executed
+call    6 never executed
+branch  7 never executed (fallthrough)
+branch  8 never executed (throw)
+    #####:   88:    else if (k == "--run-id") a.run_id = val();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+call    5 never executed
+call    6 never executed
+branch  7 never executed (fallthrough)
+branch  8 never executed (throw)
+    #####:   89:    else if (k == "--json") a.json = true;
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+    #####:   90:    else { std::fprintf(stderr, "unknown arg: %s\n", k.c_str()); std::exit(2); }
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+call    4 never executed
+    #####:   91:  }
+call    0 never executed
+call    1 never executed
+    #####:   92:  if (a.producers == 0) a.producers = a.shards;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:   93:  if (a.warmup == 0) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:   94:    a.warmup = a.ops / 10;
+    #####:   95:    if (a.workload == "mixed") {
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+    #####:   96:      const std::uint64_t bootstrap = 2 * a.active_ues;  // populate slots first
+    #####:   97:      if (bootstrap > a.warmup) a.warmup = bootstrap;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+        -:   98:    }
+        -:   99:  }
+    #####:  100:  return a;
+    =====:  101:}
+call    0 never executed
+        -:  102:
+        -:  103:constexpr std::int64_t kHdrLow = 1;
+        -:  104:constexpr std::int64_t kHdrHigh = 3600LL * 1000 * 1000 * 1000;  // 3.6 s in ns
+        -:  105:constexpr int kHdrSig = 3;
+        -:  106:
+        -:  107:using KindCounts = std::array<std::uint64_t, bench::kWKindCount>;
+        -:  108:
+        -:  109:// Execute one generated op; returns true on Ok.
+function _ZN12_GLOBAL__N_17exec_opERN4uecm7ServiceERKN5bench3WOpEm called 0 returned 0% blocks executed 0%
+    #####:  110:bool exec_op(Service& svc, const WOp& op, UeId id) {
+    #####:  111:  switch (op.kind) {
+branch  0 never executed
+branch  1 never executed
+branch  2 never executed
+branch  3 never executed
+branch  4 never executed
+branch  5 never executed
+branch  6 never executed
+branch  7 never executed
+branch  8 never executed
+    #####:  112:    case WKind::Create:
+    #####:  113:      return svc.create_context(id, CreateParams{static_cast<std::uint32_t>(op.slot), {}}).has_value();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+call    4 never executed
+    #####:  114:    case WKind::Setup:
+    #####:  115:      return svc.setup_connection(id).has_value();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+call    4 never executed
+    #####:  116:    case WKind::Signal:
+    #####:  117:      return svc.handle_signaling(id, SignalingMsg{1, 4, {}}).has_value();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+call    4 never executed
+    #####:  118:    case WKind::AddDrb:
+    #####:  119:      return svc.add_drb(id, DrbEntry{op.drb_id, 0, static_cast<std::uint32_t>(op.slot)}).has_value();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+call    4 never executed
+    #####:  120:    case WKind::BeginReconf:
+    #####:  121:      return svc.begin_reconfigure(id, ReconfigParams{static_cast<std::uint32_t>(op.slot + 1)}).has_value();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+call    4 never executed
+    #####:  122:    case WKind::CompleteReconf:
+    #####:  123:      return svc.complete_reconfigure(id).has_value();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+call    4 never executed
+    #####:  124:    case WKind::AbortReconf:
+    #####:  125:      return svc.abort_reconfigure(id).has_value();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+call    4 never executed
+    #####:  126:    case WKind::Release:
+    #####:  127:      return svc.release_context(id).has_value();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+        -:  128:  }
+    #####:  129:  return false;
+        -:  130:}
+        -:  131:
+function _ZN12_GLOBAL__N_19kind_nameEi called 0 returned 0% blocks executed 0%
+    #####:  132:const char* kind_name(int k) {
+    #####:  133:  switch (static_cast<WKind>(k)) {
+branch  0 never executed
+branch  1 never executed
+branch  2 never executed
+branch  3 never executed
+branch  4 never executed
+branch  5 never executed
+branch  6 never executed
+branch  7 never executed
+branch  8 never executed
+    #####:  134:    case WKind::Create: return "create";
+    #####:  135:    case WKind::Setup: return "setup";
+    #####:  136:    case WKind::Signal: return "signal";
+    #####:  137:    case WKind::AddDrb: return "adddrb";
+    #####:  138:    case WKind::BeginReconf: return "begin_reconf";
+    #####:  139:    case WKind::CompleteReconf: return "complete_reconf";
+    #####:  140:    case WKind::AbortReconf: return "abort_reconf";
+    #####:  141:    case WKind::Release: return "release";
+        -:  142:  }
+    #####:  143:  return "?";
+        -:  144:}
+        -:  145:
+        -:  146:// Append one record holding the full bucket contents of the run's histograms.
+        -:  147://
+        -:  148:// The JSON line carries the sparse occupied buckets as [value, count] pairs,
+        -:  149:// where value is the bucket's highest equivalent value: the same lattice the
+        -:  150:// Rust crate's iter_recorded() yields, so the two languages persist onto one
+        -:  151:// grid rather than onto two internal bucket indices that happen to agree. This
+        -:  152:// is what makes the far tail recoverable after the fact. p99.99 rests on ~17
+        -:  153:// observations in a single run at the campaign's representative load, so it is
+        -:  154:// only decision-grade once repeats are pooled, and pooling needs the buckets
+        -:  155:// rather than the summary percentiles.
+function _ZN12_GLOBAL__N_118write_hist_sidecarERKNS_4ArgsEPKclRKN5bench12HdrHistogramEPS7_ called 0 returned 0% blocks executed 0%
+    #####:  156:void write_hist_sidecar(const Args& a, const char* alloc, std::int64_t total_ops,
+        -:  157:                        const HdrHistogram& lat, const HdrHistogram* jit) {
+    #####:  158:  std::FILE* f = std::fopen(a.hist_out.c_str(), "a");
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+    #####:  159:  if (f == nullptr) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  160:    std::fprintf(stderr, "warning: cannot open --hist-out '%s'\n", a.hist_out.c_str());
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+    #####:  161:    return;
+        -:  162:  }
+    #####:  163:  std::fprintf(f,
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+        -:  164:               "{\"run_id\":\"%s\",\"lang\":\"cpp\",\"alloc\":\"%s\",\"workload\":\"%s\","
+        -:  165:               "\"shards\":%llu,\"producers\":%llu,\"rate\":%.1f,\"seed\":%llu,"
+        -:  166:               "\"ops_total\":%lld,\"hdr\":{\"low\":%lld,\"high\":%lld,\"sig\":%d}",
+    #####:  167:               a.run_id.c_str(), alloc, a.workload.c_str(), (unsigned long long)a.shards,
+    #####:  168:               (unsigned long long)a.producers, a.rate, (unsigned long long)a.seed,
+call    0 never executed
+        -:  169:               (long long)total_ops, (long long)kHdrLow, (long long)kHdrHigh, kHdrSig);
+function _ZZN12_GLOBAL__N_118write_hist_sidecarERKNS_4ArgsEPKclRKN5bench12HdrHistogramEPS7_ENKUlS4_S8_E_clES4_S8_ called 0 returned 0% blocks executed 0%
+    #####:  170:  auto dump = [&](const char* key, const HdrHistogram& h) {
+        -:  171:    // `total` can exceed ops_total: under --rate the coordinated-omission
+        -:  172:    // correction backfills synthetic samples into the histogram, which is by
+        -:  173:    // design and is not a miscount of retired operations.
+    #####:  174:    std::fprintf(f, ",\"%s\":{\"total\":%lld,\"max\":%lld,\"pairs\":[", key,
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  175:                 (long long)h.total(), (long long)h.max());
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+    #####:  176:    bool first = true;
+function _ZZZN12_GLOBAL__N_118write_hist_sidecarERKNS_4ArgsEPKclRKN5bench12HdrHistogramEPS7_ENKUlS4_S8_E_clES4_S8_ENKUlllE_clEll called 0 returned 0% blocks executed 0%
+    #####:  177:    h.for_each_recorded([&](std::int64_t v, std::int64_t c) {
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  178:      std::fprintf(f, "%s[%lld,%lld]", first ? "" : ",", (long long)v, (long long)c);
+branch  0 never executed (fallthrough)
+branch  1 never executed
+call    2 never executed
+    #####:  179:      first = false;
+    #####:  180:    });
+    #####:  181:    std::fprintf(f, "]}");
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  182:  };
+    #####:  183:  dump("lat", lat);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  184:  if (jit != nullptr) dump("jitter", *jit);
+branch  0 never executed (fallthrough)
+branch  1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+    #####:  185:  std::fprintf(f, "}\n");
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  186:  std::fclose(f);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  187:}
+        -:  188:
+        -:  189:}  // namespace
+        -:  190:
+function main called 0 returned 0% blocks executed 0%
+    #####:  191:int main(int argc, char** argv) {
+    #####:  192:  const Args a = parse(argc, argv);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  193:  if (a.workload != "signal" && a.workload != "mixed") {
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+call    5 never executed
+branch  6 never executed (fallthrough)
+branch  7 never executed (throw)
+branch  8 never executed (fallthrough)
+branch  9 never executed
+branch 10 never executed (fallthrough)
+branch 11 never executed
+    #####:  194:    std::fprintf(stderr, "unknown --workload '%s' (use signal|mixed)\n", a.workload.c_str());
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+    #####:  195:    return 2;
+        -:  196:  }
+        -:  197:
+    #####:  198:  Config cfg;
+    #####:  199:  cfg.n_shards = a.shards;
+    #####:  200:  cfg.queue_capacity = a.queue_capacity;
+    #####:  201:  Service svc(cfg);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  202:  svc.start();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  203:
+    #####:  204:  const std::uint64_t range = a.preload == 0 ? 1 : a.preload;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+        -:  205:
+        -:  206:  // --- Preload (signal workload only; not measured) -------------------------
+    #####:  207:  if (a.workload == "signal") {
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+    #####:  208:    std::vector<std::thread> ts;
+    #####:  209:    for (std::uint64_t p = 0; p < a.producers; ++p) {
+branch  0 never executed
+branch  1 never executed (fallthrough)
+function _ZZ4mainENKUlvE_clEv called 0 returned 0% blocks executed 0%
+    #####:  210:      ts.emplace_back([&, p]() {
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  211:        const std::uint64_t base = p * 100000000ULL + 1;
+    #####:  212:        for (std::uint64_t i = 0; i < range; ++i) {
+branch  0 never executed
+branch  1 never executed (fallthrough)
+    #####:  213:          const UeId id = base + i;
+    #####:  214:          svc.create_context(id, CreateParams{static_cast<std::uint32_t>(p), {}});
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+    #####:  215:          svc.setup_connection(id);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  216:        }
+    #####:  217:      });
+        -:  218:    }
+    #####:  219:    for (auto& t : ts) t.join();
+call    0 never executed
+call    1 never executed
+call    2 never executed
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+call    6 never executed
+call    7 never executed
+branch  8 never executed
+branch  9 never executed (fallthrough)
+    #####:  220:  }
+call    0 never executed
+call    1 never executed
+        -:  221:
+        -:  222:  // --- Measured phase --------------------------------------------------------
+    #####:  223:  HdrHistogram merged(kHdrLow, kHdrHigh, kHdrSig);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  224:  // Allocated only under --jitter. One histogram is ~264 KiB, so allocating it
+        -:  225:  // unconditionally would add producers x 264 KiB to peak RSS: the same order as
+        -:  226:  // the language RSS difference RQ3 reports, measured by the instrument rather
+        -:  227:  // than by the subject. The Rust side gates it identically.
+    #####:  228:  std::optional<HdrHistogram> merged_jitter;
+    #####:  229:  if (a.jitter) merged_jitter.emplace(kHdrLow, kHdrHigh, kHdrSig);
+branch  0 never executed (fallthrough)
+branch  1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+    #####:  230:  KindCounts merged_counts{};
+    #####:  231:  std::mutex merge_mtx;
+    #####:  232:  std::atomic<std::uint64_t> errors{0};
+    #####:  233:  const std::int64_t interval_ns =
+    #####:  234:      a.rate > 0.0 ? static_cast<std::int64_t>(1e9 / a.rate) : 0;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+        -:  235:  // Above saturation a producer can never retire its full op budget, so the
+        -:  236:  // measured phase is also bounded in wall-clock time; throughput is then
+        -:  237:  // computed from the ops actually retired, which is what exposes the knee.
+    #####:  238:  const std::int64_t max_run_ns =
+    #####:  239:      a.max_run_s > 0.0 ? static_cast<std::int64_t>(a.max_run_s * 1e9) : 0;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+        -:  240:
+    #####:  241:  const auto wall_start = clock_type::now();
+call    0 never executed
+        -:  242:  // Throughput must be counted over the measured phase only. `total_ops` excludes
+        -:  243:  // the warm-up iterations, so dividing it by the whole run's wall time would
+        -:  244:  // understate achieved throughput by exactly the warm-up fraction. Each producer
+        -:  245:  // stamps the instant its measured phase starts and ends; the measured window is
+        -:  246:  // the union of those intervals. Distinct indices, so no synchronisation needed.
+    #####:  247:  std::vector<clock_type::time_point> meas_start(a.producers, clock_type::time_point::max());
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+    #####:  248:  std::vector<clock_type::time_point> meas_end(a.producers, clock_type::time_point::min());
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+    #####:  249:  std::vector<std::uint64_t> meas_ops(a.producers, 0);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  250:  {
+    #####:  251:    std::vector<std::thread> ts;
+    #####:  252:    for (std::uint64_t p = 0; p < a.producers; ++p) {
+branch  0 never executed
+branch  1 never executed (fallthrough)
+function _ZZ4mainENKUlvE0_clEv called 0 returned 0% blocks executed 0%
+    #####:  253:      ts.emplace_back([&, p]() {
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  254:        HdrHistogram hist(kHdrLow, kHdrHigh, kHdrSig);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  255:        std::optional<HdrHistogram> jhist;
+    #####:  256:        if (a.jitter) jhist.emplace(kHdrLow, kHdrHigh, kHdrSig);
+branch  0 never executed (fallthrough)
+branch  1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+    #####:  257:        std::int64_t prev_lat = -1;  // no predecessor yet; first measured op is skipped
+    #####:  258:        KindCounts counts{};
+    #####:  259:        SplitMix64 rng{a.seed + p};
+    #####:  260:        Workload wl(a.active_ues, a.seed + p);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  261:        const std::uint64_t base = p * 100000000ULL + 1;
+    #####:  262:        const SignalingMsg msg{1, 4, {}};
+    #####:  263:        std::uint64_t local_errors = 0;
+    #####:  264:        std::uint64_t local_measured = 0;
+        -:  265:
+    #####:  266:        auto schedule = clock_type::now();
+call    0 never executed
+    #####:  267:        const std::uint64_t total_iters = a.warmup + a.ops;
+    #####:  268:        clock_type::time_point meas_deadline = clock_type::time_point::max();
+    #####:  269:        for (std::uint64_t n = 0; n < total_iters; ++n) {
+branch  0 never executed
+branch  1 never executed (fallthrough)
+    #####:  270:          const bool measured = n >= a.warmup;
+    #####:  271:          if (n == a.warmup) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  272:            meas_start[p] = clock_type::now();
+call    0 never executed
+call    1 never executed
+    #####:  273:            if (max_run_ns > 0)
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  274:              meas_deadline = meas_start[p] + std::chrono::nanoseconds(max_run_ns);
+call    0 never executed
+call    1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+        -:  275:          }
+        -:  276:
+        -:  277:          // Select the op for this step.
+    #####:  278:          WOp op{WKind::Signal, 0, 0};
+        -:  279:          UeId id;
+    #####:  280:          if (a.workload == "mixed") {
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+    #####:  281:            op = wl.next();
+call    0 never executed
+    #####:  282:            id = base + op.slot;
+        -:  283:          } else {
+    #####:  284:            op.kind = WKind::Signal;
+    #####:  285:            id = base + (rng.next() % range);
+call    0 never executed
+        -:  286:          }
+        -:  287:
+    #####:  288:          clock_type::time_point intended;
+    #####:  289:          if (interval_ns > 0) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  290:            intended = schedule;
+    #####:  291:            std::this_thread::sleep_until(intended);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  292:            schedule += std::chrono::nanoseconds(interval_ns);
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+        -:  293:          }
+    #####:  294:          const auto t0 = clock_type::now();
+call    0 never executed
+        -:  295:          bool ok;
+    #####:  296:          if (a.workload == "mixed") {
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+    #####:  297:            ok = exec_op(svc, op, id);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  298:          } else {
+    #####:  299:            ok = svc.handle_signaling(id, msg).has_value();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+        -:  300:          }
+    #####:  301:          const auto t1 = clock_type::now();
+call    0 never executed
+    #####:  302:          if (!ok) ++local_errors;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+        -:  303:
+    #####:  304:          if (measured) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  305:            ++counts[static_cast<std::size_t>(op.kind)];
+call    0 never executed
+    #####:  306:            ++local_measured;
+        -:  307:            std::int64_t lat;
+    #####:  308:            if (interval_ns > 0)
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  309:              lat = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - intended).count();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+call    4 never executed
+        -:  310:            else
+    #####:  311:              lat = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+call    4 never executed
+    #####:  312:            if (lat < 1) lat = 1;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  313:            if (interval_ns > 0) hist.record_corrected(lat, interval_ns);
+branch  0 never executed (fallthrough)
+branch  1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+    #####:  314:            else hist.record(lat);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  315:            // Inter-operation jitter (IPDV, RFC 3393): the absolute difference
+        -:  316:            // between consecutive measured latencies within this producer. Never
+        -:  317:            // across producers, and only over real observations -- the synthetic
+        -:  318:            // samples the coordinated-omission correction backfills are not
+        -:  319:            // operations, so differencing them would invent variation.
+    #####:  320:            if (a.jitter) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  321:              if (prev_lat >= 0) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  322:                std::int64_t d = lat > prev_lat ? lat - prev_lat : prev_lat - lat;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  323:                if (d < 1) d = 1;  // same floor the latency path uses
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  324:                jhist->record(d);
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+        -:  325:              }
+    #####:  326:              prev_lat = lat;
+        -:  327:            }
+    #####:  328:            if (max_run_ns > 0 && t1 >= meas_deadline) break;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+call    5 never executed
+branch  6 never executed (fallthrough)
+branch  7 never executed
+branch  8 never executed (fallthrough)
+branch  9 never executed
+        -:  329:          }
+        -:  330:        }
+    #####:  331:        meas_end[p] = clock_type::now();
+call    0 never executed
+call    1 never executed
+    #####:  332:        meas_ops[p] = local_measured;
+call    0 never executed
+    #####:  333:        errors.fetch_add(local_errors, std::memory_order_relaxed);
+    #####:  334:        std::lock_guard<std::mutex> lk(merge_mtx);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  335:        merged.add(hist);
+call    0 never executed
+    #####:  336:        if (jhist) merged_jitter->add(*jhist);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed
+call    3 never executed
+call    4 never executed
+call    5 never executed
+    #####:  337:        for (int k = 0; k < bench::kWKindCount; ++k) merged_counts[static_cast<std::size_t>(k)] += counts[static_cast<std::size_t>(k)];
+call    0 never executed
+call    1 never executed
+branch  2 never executed
+branch  3 never executed (fallthrough)
+    #####:  338:      });
+call    0 never executed
+call    1 never executed
+call    2 never executed
+call    3 never executed
+call    4 never executed
+call    5 never executed
+call    6 never executed
+        -:  339:    }
+    #####:  340:    for (auto& t : ts) t.join();
+call    0 never executed
+call    1 never executed
+call    2 never executed
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+call    6 never executed
+call    7 never executed
+branch  8 never executed
+branch  9 never executed (fallthrough)
+    #####:  341:  }
+call    0 never executed
+call    1 never executed
+    #####:  342:  const auto wall_end = clock_type::now();
+call    0 never executed
+    #####:  343:  svc.shutdown();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  344:
+        -:  345:  const double wall_ns =
+    #####:  346:      std::chrono::duration_cast<std::chrono::nanoseconds>(wall_end - wall_start).count();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+call    4 never executed
+    #####:  347:  const double wall_s = wall_ns / 1e9;
+    #####:  348:  const auto meas_lo = *std::min_element(meas_start.begin(), meas_start.end());
+call    0 never executed
+call    1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+call    5 never executed
+    #####:  349:  const auto meas_hi = *std::max_element(meas_end.begin(), meas_end.end());
+call    0 never executed
+call    1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+call    5 never executed
+        -:  350:  const double measured_wall_s =
+    #####:  351:      meas_hi > meas_lo
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+    #####:  352:          ? std::chrono::duration_cast<std::chrono::nanoseconds>(meas_hi - meas_lo).count() / 1e9
+branch  0 never executed (fallthrough)
+branch  1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+call    5 never executed
+call    6 never executed
+    #####:  353:          : wall_s;
+        -:  354:  const std::int64_t total_ops = static_cast<std::int64_t>(
+    #####:  355:      std::accumulate(meas_ops.begin(), meas_ops.end(), std::uint64_t{0}));
+call    0 never executed
+call    1 never executed
+call    2 never executed
+    #####:  356:  const double thr = measured_wall_s > 0 ? total_ops / measured_wall_s : 0.0;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  357:  const char* alloc = UECM_ALLOC_NAME;
+        -:  358:
+        -:  359:  // Process resource usage (RQ3): peak RSS + total CPU across all threads.
+    #####:  360:  struct rusage ru{};
+    #####:  361:  getrusage(RUSAGE_SELF, &ru);
+call    0 never executed
+    #####:  362:  const long rss_peak_kb = ru.ru_maxrss;  // Linux: kilobytes
+    #####:  363:  const double cpu_user_s = ru.ru_utime.tv_sec + ru.ru_utime.tv_usec / 1e6;
+    #####:  364:  const double cpu_sys_s = ru.ru_stime.tv_sec + ru.ru_stime.tv_usec / 1e6;
+    #####:  365:  const double cpu_pct = wall_s > 0 ? (cpu_user_s + cpu_sys_s) / wall_s * 100.0 : 0.0;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+        -:  366:  // Read after shutdown so the worker tcaches have been flushed, and so this
+        -:  367:  // matches the point getrusage is sampled at.
+    #####:  368:  const std::string je_json = bench::je_json(bench::je_snapshot());
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+        -:  369:
+        -:  370:  // Quantiles, not percentiles: the Rust side passes these same literals to
+        -:  371:  // hdrhistogram's value_at_quantile, so both languages select the same sample.
+    #####:  372:  const std::int64_t p25 = merged.value_at_quantile(0.25);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  373:  const std::int64_t p50 = merged.value_at_quantile(0.50);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  374:  const std::int64_t p75 = merged.value_at_quantile(0.75);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  375:  const std::int64_t p90 = merged.value_at_quantile(0.90);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  376:  const std::int64_t p99 = merged.value_at_quantile(0.99);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  377:  const std::int64_t p999 = merged.value_at_quantile(0.999);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  378:  const std::int64_t p9999 = merged.value_at_quantile(0.9999);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  379:
+    #####:  380:  std::string jitter_json;
+call    0 never executed
+    #####:  381:  if (a.jitter) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+        -:  382:    char jbuf[320];
+    #####:  383:    std::snprintf(jbuf, sizeof(jbuf),
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+call    4 never executed
+call    5 never executed
+        -:  384:                  ",\"jitter_ns\":{\"p50\":%lld,\"p99\":%lld,\"p999\":%lld,\"max\":%lld,"
+        -:  385:                  "\"mean\":%.1f,\"stdev\":%.1f,\"n\":%lld}",
+    #####:  386:                  (long long)merged_jitter->value_at_quantile(0.50),
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  387:                  (long long)merged_jitter->value_at_quantile(0.99),
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+    #####:  388:                  (long long)merged_jitter->value_at_quantile(0.999),
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+    #####:  389:                  (long long)merged_jitter->max(), merged_jitter->mean(),
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+call    4 never executed
+    #####:  390:                  merged_jitter->stdev(), (long long)merged_jitter->total());
+call    0 never executed
+call    1 never executed
+    #####:  391:    jitter_json = jbuf;
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  392:  }
+        -:  393:
+    #####:  394:  if (a.json) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  395:    std::printf(
+call    0 never executed
+call    1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+call    5 never executed
+call    6 never executed
+branch  7 never executed (fallthrough)
+branch  8 never executed (throw)
+        -:  396:        "{\"lang\":\"cpp\",\"alloc\":\"%s\",\"workload\":\"%s\",\"shards\":%llu,\"producers\":%llu,"
+        -:  397:        "\"rate\":%.1f,\"ops_total\":%lld,\"errors\":%llu,\"wall_s\":%.6f,"
+        -:  398:        "\"measured_wall_s\":%.6f,\"throughput_ops_s\":%.1f,"
+        -:  399:        "\"lat_ns\":{\"p25\":%lld,\"p50\":%lld,\"p75\":%lld,\"p90\":%lld,\"p99\":%lld,"
+        -:  400:        "\"p999\":%lld,\"p9999\":%lld,\"max\":%lld,\"mean\":%.1f,\"stdev\":%.1f}%s,"
+        -:  401:        "\"rss_peak_kb\":%ld,\"cpu_user_s\":%.3f,\"cpu_sys_s\":%.3f,"
+        -:  402:        "\"cpu_pct\":%.1f,%s,\"kinds\":{",
+    #####:  403:        alloc, a.workload.c_str(), (unsigned long long)a.shards, (unsigned long long)a.producers,
+    #####:  404:        a.rate, (long long)total_ops, (unsigned long long)errors.load(), wall_s, measured_wall_s,
+call    0 never executed
+        -:  405:        thr, (long long)p25, (long long)p50, (long long)p75, (long long)p90, (long long)p99,
+    #####:  406:        (long long)p999, (long long)p9999, (long long)merged.max(), merged.mean(), merged.stdev(),
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+        -:  407:        jitter_json.c_str(), rss_peak_kb, cpu_user_s, cpu_sys_s, cpu_pct, je_json.c_str());
+    #####:  408:    for (int k = 0; k < bench::kWKindCount; ++k)
+branch  0 never executed
+branch  1 never executed (fallthrough)
+    #####:  409:      std::printf("%s\"%s\":%llu", k ? "," : "", kind_name(k),
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+    #####:  410:                  (unsigned long long)merged_counts[static_cast<std::size_t>(k)]);
+call    0 never executed
+    #####:  411:    std::printf("}}\n");
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  412:  } else {
+    #####:  413:    std::printf("UECM bench [cpp, alloc=%s, workload=%s]\n", alloc, a.workload.c_str());
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+    #####:  414:    std::printf("  shards=%llu producers=%llu active_ues=%llu ops/prod=%llu rate=%.0f\n",
+    #####:  415:                (unsigned long long)a.shards, (unsigned long long)a.producers,
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  416:                (unsigned long long)(a.workload == "mixed" ? a.active_ues : a.preload),
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  417:                (unsigned long long)a.ops, a.rate);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  418:    std::printf("  ops_total=%lld errors=%llu wall=%.3fs (measured %.3fs) throughput=%.0f ops/s\n",
+    #####:  419:                (long long)total_ops, (unsigned long long)errors.load(), wall_s, measured_wall_s,
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  420:                thr);
+    #####:  421:    std::printf(
+call    0 never executed
+        -:  422:        "  latency ns: p50=%lld p90=%lld p99=%lld p99.9=%lld p99.99=%lld max=%lld mean=%.1f\n",
+        -:  423:        (long long)p50, (long long)p90, (long long)p99, (long long)p999, (long long)p9999,
+    #####:  424:        (long long)merged.max(), merged.mean());
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+    #####:  425:    std::printf("  dispersion ns: iqr=%lld (p25=%lld p75=%lld) stdev=%.1f\n",
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  426:                (long long)(p75 - p25), (long long)p25, (long long)p75, merged.stdev());
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  427:    if (a.jitter)
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  428:      std::printf("  jitter ns (IPDV): p50=%lld p99=%lld p99.9=%lld max=%lld mean=%.1f n=%lld\n",
+call    0 never executed
+call    1 never executed
+    #####:  429:                  (long long)merged_jitter->value_at_quantile(0.50),
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+    #####:  430:                  (long long)merged_jitter->value_at_quantile(0.99),
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+    #####:  431:                  (long long)merged_jitter->value_at_quantile(0.999),
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+    #####:  432:                  (long long)merged_jitter->max(), merged_jitter->mean(),
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+call    4 never executed
+    #####:  433:                  (long long)merged_jitter->total());
+call    0 never executed
+call    1 never executed
+    #####:  434:    std::printf("  resource: peak_rss=%.1f MB  cpu=%.2fs (user %.2f + sys %.2f)  cpu%%=%.0f\n",
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  435:                rss_peak_kb / 1024.0, cpu_user_s + cpu_sys_s, cpu_user_s, cpu_sys_s, cpu_pct);
+    #####:  436:    if (const auto js = bench::je_snapshot(); js.available) {
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+    #####:  437:      std::printf("  jemalloc: allocated=%.1f MB  active=%.1f MB  metadata=%.1f MB  "
+        -:  438:                  "resident=%.1f MB  mapped=%.1f MB  retained=%.1f MB\n",
+    #####:  439:                  js.allocated / 1048576.0, js.active / 1048576.0, js.metadata / 1048576.0,
+    #####:  440:                  js.resident / 1048576.0, js.mapped / 1048576.0, js.retained / 1048576.0);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  441:    }
+    #####:  442:    if (a.workload == "mixed") {
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+    #####:  443:      std::printf("  op kinds:");
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  444:      for (int k = 0; k < bench::kWKindCount; ++k)
+branch  0 never executed
+branch  1 never executed (fallthrough)
+    #####:  445:        std::printf(" %s=%llu", kind_name(k), (unsigned long long)merged_counts[static_cast<std::size_t>(k)]);
+call    0 never executed
+call    1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+    #####:  446:      std::printf("\n");
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  447:    }
+        -:  448:  }
+        -:  449:
+    #####:  450:  if (!a.hist_out.empty())
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed
+    #####:  451:    write_hist_sidecar(a, alloc, total_ops, merged,
+branch  0 never executed (fallthrough)
+branch  1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+    #####:  452:                       merged_jitter ? &*merged_jitter : nullptr);
+call    0 never executed
+call    1 never executed
+        -:  453:
+    #####:  454:  return errors.load() == 0 ? 0 : 1;
+    #####:  455:}
+call    0 never executed
+call    1 never executed
+call    2 never executed
+call    3 never executed
+call    4 never executed
+call    5 never executed
+call    6 never executed
+call    7 never executed
+call    8 never executed
+call    9 never executed
+call   10 never executed
+call   11 never executed
+call   12 never executed
+call   13 never executed
+call   14 never executed
+call   15 never executed
+call   16 never executed
+call   17 never executed

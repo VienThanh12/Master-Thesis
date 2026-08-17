@@ -1,0 +1,363 @@
+        -:    0:Source:/home/vienha/thesis.local/cpp/src/shard_core.cpp
+        -:    1:#include "uecm/shard_core.hpp"
+        -:    2:
+        -:    3:#include <utility>
+        -:    4:
+        -:    5:namespace uecm {
+        -:    6:
+function _ZN4uecm9ShardCoreC2ERKNS_6ConfigERSt6atomicImE called 510 returned 100% blocks executed 80%
+      510:    7:ShardCore::ShardCore(const Config& cfg, std::atomic<std::uint64_t>& activity_seq)
+      510:    8:    : cfg_(cfg), activity_seq_(activity_seq) {
+call    0 returned 100%
+      510:    9:  map_.reserve(cfg_.initial_shard_capacity);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+      510:   10:}
+call    0 never executed
+        -:   11:
+function _ZN4uecm9ShardCore14create_contextEmRKNS_12CreateParamsE called 45109 returned 100% blocks executed 88%
+    45109:   12:OpResult<void> ShardCore::create_context(UeId ue_id, const CreateParams& params) {
+    45109:   13:  if (ue_id == 0) return std::unexpected(OpError::InvalidArgument);
+branch  0 taken 1% (fallthrough)
+branch  1 taken 100%
+call    2 returned 100%
+call    3 returned 100%
+    45080:   14:  if (map_.size() >= cfg_.max_contexts_per_shard)
+call    0 returned 100%
+branch  1 taken 1% (fallthrough)
+branch  2 taken 99%
+      474:   15:    return std::unexpected(OpError::CapacityExceeded);
+call    0 returned 100%
+call    1 returned 100%
+    44606:   16:  if (map_.find(ue_id) != map_.end())
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 1% (fallthrough)
+branch  6 taken 100%
+      179:   17:    return std::unexpected(OpError::AlreadyExists);
+call    0 returned 100%
+call    1 returned 100%
+        -:   18:
+    44428:   19:  UeContext ctx;
+    44428:   20:  ctx.ue_id = ue_id;
+    44428:   21:  ctx.state = UeState::Idle;
+    44428:   22:  ctx.serving_cell_id = params.serving_cell_id;
+    44428:   23:  ctx.security_key = params.security_key;
+    44428:   24:  ctx.last_activity_seq = next_seq();
+call    0 returned 100%
+    44446:   25:  map_.emplace(ue_id, std::move(ctx));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+    44389:   26:  return {};
+call    0 returned 100%
+    44389:   27:}
+call    0 returned 100%
+call    1 never executed
+        -:   28:
+function _ZN4uecm9ShardCore16setup_connectionEm called 44032 returned 100% blocks executed 100%
+    44032:   29:OpResult<void> ShardCore::setup_connection(UeId ue_id) {
+    44032:   30:  if (ue_id == 0) return std::unexpected(OpError::InvalidArgument);
+branch  0 taken 1% (fallthrough)
+branch  1 taken 100%
+call    2 returned 100%
+call    3 returned 100%
+    44010:   31:  auto it = map_.find(ue_id);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+    43983:   32:  if (it == map_.end()) return std::unexpected(OpError::NotFound);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 1% (fallthrough)
+branch  3 taken 100%
+call    4 returned 100%
+call    5 returned 100%
+    43894:   33:  if (it->second.state != UeState::Idle)
+call    0 returned 100%
+branch  1 taken 1% (fallthrough)
+branch  2 taken 100%
+      153:   34:    return std::unexpected(OpError::InvalidState);
+call    0 returned 100%
+call    1 returned 100%
+    43738:   35:  it->second.state = UeState::Connected;
+call    0 returned 100%
+    43737:   36:  it->second.last_activity_seq = next_seq();
+call    0 returned 100%
+call    1 returned 100%
+    43771:   37:  return {};
+call    0 returned 100%
+        -:   38:}
+        -:   39:
+function _ZN4uecm9ShardCore16handle_signalingEmRKNS_12SignalingMsgE called 126181 returned 100% blocks executed 100%
+   126181:   40:OpResult<SignalingAck> ShardCore::handle_signaling(UeId ue_id, const SignalingMsg& msg) {
+   126181:   41:  if (ue_id == 0) return std::unexpected(OpError::InvalidArgument);
+branch  0 taken 1% (fallthrough)
+branch  1 taken 100%
+call    2 returned 100%
+call    3 returned 100%
+   126146:   42:  if (msg.payload_len > MAX_SIGNALING_PAYLOAD)
+branch  0 taken 1% (fallthrough)
+branch  1 taken 100%
+       98:   43:    return std::unexpected(OpError::InvalidArgument);
+call    0 returned 100%
+call    1 returned 100%
+   126048:   44:  auto it = map_.find(ue_id);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+   125850:   45:  if (it == map_.end()) return std::unexpected(OpError::NotFound);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 1% (fallthrough)
+branch  3 taken 100%
+call    4 returned 100%
+call    5 returned 100%
+   125715:   46:  if (it->second.state != UeState::Connected)
+call    0 returned 100%
+branch  1 taken 1% (fallthrough)
+branch  2 taken 100%
+       82:   47:    return std::unexpected(OpError::InvalidState);
+call    0 returned 100%
+call    1 returned 100%
+   125594:   48:  it->second.messages_handled += 1;
+call    0 returned 100%
+   125562:   49:  it->second.last_activity_seq = next_seq();
+call    0 returned 100%
+call    1 returned 100%
+   125949:   50:  return SignalingAck{true, it->second.messages_handled};
+call    0 returned 100%
+call    1 returned 100%
+        -:   51:}
+        -:   52:
+function _ZN4uecm9ShardCore7add_drbEmRKNS_8DrbEntryE called 1386 returned 100% blocks executed 100%
+     1386:   53:OpResult<void> ShardCore::add_drb(UeId ue_id, const DrbEntry& drb) {
+     1386:   54:  if (ue_id == 0) return std::unexpected(OpError::InvalidArgument);
+branch  0 taken 2% (fallthrough)
+branch  1 taken 98%
+call    2 returned 100%
+call    3 returned 100%
+     1353:   55:  auto it = map_.find(ue_id);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+     1353:   56:  if (it == map_.end()) return std::unexpected(OpError::NotFound);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 6% (fallthrough)
+branch  3 taken 94%
+call    4 returned 100%
+call    5 returned 100%
+     1269:   57:  UeContext& ctx = it->second;
+call    0 returned 100%
+     1269:   58:  if (ctx.state != UeState::Connected)
+branch  0 taken 8% (fallthrough)
+branch  1 taken 92%
+      100:   59:    return std::unexpected(OpError::InvalidState);
+call    0 returned 100%
+call    1 returned 100%
+     1169:   60:  if (ctx.drbs.size() >= MAX_DRBS)
+call    0 returned 100%
+branch  1 taken 2% (fallthrough)
+branch  2 taken 98%
+       29:   61:    return std::unexpected(OpError::CapacityExceeded);
+call    0 returned 100%
+call    1 returned 100%
+     2839:   62:  for (const auto& d : ctx.drbs) {
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 returned 100%
+branch  5 taken 67%
+branch  6 taken 33% (fallthrough)
+     1915:   63:    if (d.drb_id == drb.drb_id) return std::unexpected(OpError::AlreadyExists);
+branch  0 taken 11% (fallthrough)
+branch  1 taken 89%
+call    2 returned 100%
+call    3 returned 100%
+        -:   64:  }
+      924:   65:  ctx.drbs.push_back(drb);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+      924:   66:  ctx.last_activity_seq = next_seq();
+call    0 returned 100%
+      924:   67:  return {};
+call    0 returned 100%
+        -:   68:}
+        -:   69:
+function _ZN4uecm9ShardCore17begin_reconfigureEmRKNS_14ReconfigParamsE called 725 returned 100% blocks executed 100%
+      725:   70:OpResult<void> ShardCore::begin_reconfigure(UeId ue_id, const ReconfigParams& params) {
+      725:   71:  if (ue_id == 0) return std::unexpected(OpError::InvalidArgument);
+branch  0 taken 4% (fallthrough)
+branch  1 taken 96%
+call    2 returned 100%
+call    3 returned 100%
+      696:   72:  auto it = map_.find(ue_id);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+      696:   73:  if (it == map_.end()) return std::unexpected(OpError::NotFound);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 12% (fallthrough)
+branch  3 taken 88%
+call    4 returned 100%
+call    5 returned 100%
+      610:   74:  if (it->second.state != UeState::Connected)
+call    0 returned 100%
+branch  1 taken 15% (fallthrough)
+branch  2 taken 85%
+       93:   75:    return std::unexpected(OpError::InvalidState);
+call    0 returned 100%
+call    1 returned 100%
+      517:   76:  it->second.state = UeState::Reconfiguring;
+call    0 returned 100%
+      517:   77:  it->second.serving_cell_id = params.target_cell_id;
+call    0 returned 100%
+      517:   78:  it->second.last_activity_seq = next_seq();
+call    0 returned 100%
+call    1 returned 100%
+      517:   79:  return {};
+call    0 returned 100%
+        -:   80:}
+        -:   81:
+function _ZN4uecm9ShardCore20complete_reconfigureEm called 480 returned 100% blocks executed 100%
+      480:   82:OpResult<void> ShardCore::complete_reconfigure(UeId ue_id) {
+      480:   83:  if (ue_id == 0) return std::unexpected(OpError::InvalidArgument);
+branch  0 taken 9% (fallthrough)
+branch  1 taken 91%
+call    2 returned 100%
+call    3 returned 100%
+      437:   84:  auto it = map_.find(ue_id);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+      437:   85:  if (it == map_.end()) return std::unexpected(OpError::NotFound);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 18% (fallthrough)
+branch  3 taken 82%
+call    4 returned 100%
+call    5 returned 100%
+      360:   86:  if (it->second.state != UeState::Reconfiguring)
+call    0 returned 100%
+branch  1 taken 47% (fallthrough)
+branch  2 taken 53%
+      170:   87:    return std::unexpected(OpError::InvalidState);
+call    0 returned 100%
+call    1 returned 100%
+      190:   88:  it->second.state = UeState::Connected;
+call    0 returned 100%
+      190:   89:  it->second.last_activity_seq = next_seq();
+call    0 returned 100%
+call    1 returned 100%
+      190:   90:  return {};
+call    0 returned 100%
+        -:   91:}
+        -:   92:
+function _ZN4uecm9ShardCore17abort_reconfigureEm called 495 returned 100% blocks executed 100%
+      495:   93:OpResult<void> ShardCore::abort_reconfigure(UeId ue_id) {
+      495:   94:  if (ue_id == 0) return std::unexpected(OpError::InvalidArgument);
+branch  0 taken 7% (fallthrough)
+branch  1 taken 93%
+call    2 returned 100%
+call    3 returned 100%
+      459:   95:  auto it = map_.find(ue_id);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+      459:   96:  if (it == map_.end()) return std::unexpected(OpError::NotFound);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 16% (fallthrough)
+branch  3 taken 84%
+call    4 returned 100%
+call    5 returned 100%
+      385:   97:  if (it->second.state != UeState::Reconfiguring)
+call    0 returned 100%
+branch  1 taken 47% (fallthrough)
+branch  2 taken 53%
+      182:   98:    return std::unexpected(OpError::InvalidState);
+call    0 returned 100%
+call    1 returned 100%
+      203:   99:  it->second.state = UeState::Connected;
+call    0 returned 100%
+      203:  100:  it->second.last_activity_seq = next_seq();
+call    0 returned 100%
+call    1 returned 100%
+      203:  101:  return {};
+call    0 returned 100%
+        -:  102:}
+        -:  103:
+function _ZN4uecm9ShardCore15release_contextEm called 20809 returned 100% blocks executed 100%
+    20809:  104:OpResult<void> ShardCore::release_context(UeId ue_id) {
+    20809:  105:  if (ue_id == 0) return std::unexpected(OpError::InvalidArgument);
+branch  0 taken 1% (fallthrough)
+branch  1 taken 100%
+call    2 returned 100%
+call    3 returned 100%
+    20778:  106:  auto it = map_.find(ue_id);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+    20769:  107:  if (it == map_.end()) return std::unexpected(OpError::NotFound);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 1% (fallthrough)
+branch  3 taken 100%
+call    4 returned 100%
+call    5 returned 100%
+    20671:  108:  map_.erase(it);  // Idle/Connected/Reconfiguring -> Released -> removed
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+    20671:  109:  return {};
+call    0 returned 100%
+        -:  110:}
+        -:  111:
+function _ZNK4uecm9ShardCore6lookupEm called 51135 returned 100% blocks executed 90%
+    51135:  112:OpResult<UeContextView> ShardCore::lookup(UeId ue_id) const {
+    51135:  113:  if (ue_id == 0) return std::unexpected(OpError::InvalidArgument);
+branch  0 taken 1% (fallthrough)
+branch  1 taken 100%
+call    2 returned 100%
+call    3 returned 100%
+    51064:  114:  auto it = map_.find(ue_id);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+    51046:  115:  if (it == map_.end()) return std::unexpected(OpError::NotFound);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 5% (fallthrough)
+branch  3 taken 95%
+call    4 returned 100%
+call    5 returned 100%
+    48631:  116:  const UeContext& c = it->second;
+call    0 returned 100%
+    48628:  117:  UeContextView v;
+    48628:  118:  v.ue_id = c.ue_id;
+    48628:  119:  v.state = c.state;
+    48628:  120:  v.serving_cell_id = c.serving_cell_id;
+    48628:  121:  v.rrc_transaction_id = c.rrc_transaction_id;
+    48628:  122:  v.security_key = c.security_key;
+    48628:  123:  v.drbs = c.drbs;  // copy by value (§4.4)
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+    48609:  124:  v.messages_handled = c.messages_handled;
+    48609:  125:  v.last_activity_seq = c.last_activity_seq;
+    48609:  126:  return v;
+call    0 returned 100%
+    48622:  127:}
+call    0 returned 100%
+call    1 never executed
+        -:  128:
+        -:  129:}  // namespace uecm

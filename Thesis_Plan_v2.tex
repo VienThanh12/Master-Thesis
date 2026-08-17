@@ -120,9 +120,12 @@ is already known, it targets four less-explored dimensions:
 
 RQ2 is deliberately two-sided: a catalogue containing only defects Rust
 prevents would confirm its own premise, so it spans the boundary: five
-classes safe Rust rejects and two it does not. Memory-safety defects in real
+classes safe Rust rejects and five it does not. Memory-safety defects in real
 Rust code invariably trace back to \texttt{unsafe}~\cite{xu2021rustcve}, while
 deadlock remains an open problem for the language~\cite{zhang2026deadlock}.
+Two of the five boundary classes returned the opposite of the expected result,
+with the C++ tooling reporting what Rust's does not, which is the kind of
+finding a one-sided catalogue could not have produced.
 
 \section{Methodology}
 
@@ -133,7 +136,10 @@ differences. Both implementations use identical algorithms, a shared-nothing
 sharded worker-thread model, the same allocator, and comparable build
 optimisation. Holding the concurrency model fixed matters because
 thread-per-core structuring itself changes tail
-latency~\cite{enberg2019threadpercore}. Both must pass the same parity suite.
+latency~\cite{enberg2019threadpercore}. Both must pass the same parity suite,
+whose expected results come from an independent third implementation of the
+specification rather than from either language, so that agreement between the
+two cannot be mistaken for correctness of both.
 
 The workload is swept from nominal load to overload on pinned cores, with
 interleaved repeats and interval estimates rather than single

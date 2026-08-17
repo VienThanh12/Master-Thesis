@@ -1,0 +1,924 @@
+        -:    0:Source:/home/vienha/thesis.local/cpp/tools/conformance_runner.cpp
+        -:    1:// Shared conformance/parity runner (C++ side), spec §11.
+        -:    2://
+        -:    3:// Reads a language-neutral vector file (see spec/conformance/README.md), executes
+        -:    4:// each operation against the threaded Service, and emits a canonical "actual"
+        -:    5:// transcript (one line per operation) to stdout. Each actual is also compared
+        -:    6:// against the expected result in the file; mismatches are reported on stderr and
+        -:    7:// cause a non-zero exit code. The stdout transcript is what run.sh diffs across
+        -:    8:// the C++ and Rust implementations.
+        -:    9:
+        -:   10:#include <cstdint>
+        -:   11:#include <cstdlib>
+        -:   12:#include <fstream>
+        -:   13:#include <iostream>
+        -:   14:#include <memory>
+        -:   15:#include <sstream>
+        -:   16:#include <string>
+        -:   17:#include <unordered_map>
+        -:   18:#include <vector>
+        -:   19:
+        -:   20:#include "uecm/hash.hpp"
+        -:   21:#include "uecm/service.hpp"
+        -:   22:
+        -:   23:using namespace uecm;
+        -:   24:
+        -:   25:namespace {
+        -:   26:
+function _ZN12_GLOBAL__N_14trimERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE called 27216 returned 100% blocks executed 85%
+    27216:   27:std::string trim(const std::string& s) {
+    27216:   28:  const auto b = s.find_first_not_of(" \t\r\n");
+call    0 returned 100%
+    27778:   29:  if (b == std::string::npos) return "";
+branch  0 taken 1% (fallthrough)
+branch  1 taken 99%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+    26935:   30:  const auto e = s.find_last_not_of(" \t\r\n");
+call    0 returned 100%
+    26935:   31:  return s.substr(b, e - b + 1);
+call    0 returned 100%
+        -:   32:}
+        -:   33:
+function _ZN12_GLOBAL__N_110state_nameEN4uecm7UeStateE called 1559 returned 100% blocks executed 71%
+     1559:   34:const char* state_name(UeState s) {
+     1559:   35:  switch (s) {
+branch  0 taken 19%
+branch  1 taken 66%
+branch  2 taken 16%
+branch  3 taken 0%
+branch  4 taken 0%
+      292:   36:    case UeState::Idle:          return "Idle";
+     1025:   37:    case UeState::Connected:     return "Connected";
+      242:   38:    case UeState::Reconfiguring: return "Reconfiguring";
+    #####:   39:    case UeState::Released:      return "Released";
+        -:   40:  }
+    #####:   41:  return "Unknown";
+        -:   42:}
+        -:   43:
+        -:   44:template <class T>
+        -:   45:std::string result_str(const OpResult<T>& r, std::string ok) {
+        -:   46:  if (r.has_value()) return ok;
+        -:   47:  return std::string("Err(") + std::string(to_string(r.error())) + ")";
+        -:   48:}
+        -:   49:
+function _ZN12_GLOBAL__N_18void_strERKSt8expectedIvN4uecm7OpErrorEE called 5431 returned 100% blocks executed 59%
+     5431:   50:std::string void_str(const OpResult<void>& r) {
+    11807:   51:  if (r.has_value()) return "Ok";
+call    0 returned 100%
+branch  1 taken 59% (fallthrough)
+branch  2 taken 41%
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 never executed
+     6729:   52:  return std::string("Err(") + std::string(to_string(r.error())) + ")";
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+call    8 returned 100%
+branch  9 taken 100% (fallthrough)
+branch 10 taken 0% (throw)
+call   11 returned 100%
+branch 12 taken 100% (fallthrough)
+branch 13 taken 0% (throw)
+call   14 returned 100%
+call   15 returned 100%
+call   16 returned 100%
+call   17 never executed
+call   18 never executed
+call   19 never executed
+        -:   53:}
+        -:   54:
+        -:   55:struct Line {
+        -:   56:  std::string op;
+        -:   57:  std::vector<std::string> pos;
+        -:   58:  std::unordered_map<std::string, std::string> kv;
+        -:   59:  std::string expected;
+        -:   60:  bool has_arrow = false;
+        -:   61:};
+        -:   62:
+function _ZN12_GLOBAL__N_15parseERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE called 9274 returned 100% blocks executed 69%
+     9274:   63:Line parse(const std::string& raw) {
+     9274:   64:  Line ln;
+call    0 returned 100%
+     9274:   65:  std::string body = raw;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+     9274:   66:  const auto hash = body.find('#');
+call    0 returned 100%
+     9274:   67:  if (hash != std::string::npos) body = body.substr(0, hash);
+branch  0 taken 2% (fallthrough)
+branch  1 taken 98%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+call    5 returned 100%
+call    6 returned 100%
+     9274:   68:  body = trim(body);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+call    4 returned 100%
+     9274:   69:  if (body.empty()) { ln.op = ""; return ln; }
+call    0 returned 100%
+branch  1 taken 3% (fallthrough)
+branch  2 taken 97%
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+        -:   70:
+     8993:   71:  const auto arrow = body.find("=>");
+call    0 returned 100%
+     8993:   72:  std::string lhs = body;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+     8993:   73:  if (arrow != std::string::npos) {
+branch  0 taken 100% (fallthrough)
+branch  1 taken 1%
+     8971:   74:    ln.has_arrow = true;
+     8971:   75:    lhs = trim(body.substr(0, arrow));
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 returned 100%
+call    8 returned 100%
+call    9 never executed
+     8971:   76:    ln.expected = trim(body.substr(arrow + 2));
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 returned 100%
+call    8 returned 100%
+call    9 never executed
+        -:   77:  }
+     8993:   78:  std::istringstream is(lhs);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+     8993:   79:  std::string tok;
+call    0 returned 100%
+     8993:   80:  bool first = true;
+    34147:   81:  while (is >> tok) {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+branch  6 taken 74%
+branch  7 taken 26% (fallthrough)
+    25154:   82:    if (first) { ln.op = tok; first = false; continue; }
+branch  0 taken 36% (fallthrough)
+branch  1 taken 64%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+    16161:   83:    const auto eq = tok.find('=');
+call    0 returned 100%
+    16161:   84:    if (eq == std::string::npos) ln.pos.push_back(tok);
+branch  0 taken 54% (fallthrough)
+branch  1 taken 46%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+     7489:   85:    else ln.kv[tok.substr(0, eq)] = tok.substr(eq + 1);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+call    9 returned 100%
+call   10 returned 100%
+call   11 returned 100%
+call   12 never executed
+call   13 never executed
+        -:   86:  }
+     8993:   87:  return ln;
+     9274:   88:}
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 never executed
+call    5 never executed
+call    6 never executed
+call    7 never executed
+call    8 never executed
+        -:   89:
+function _ZN12_GLOBAL__N_13u64ERKSt13unordered_mapINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES6_St4hashIS6_ESt8equal_toIS6_ESaISt4pairIKS6_S6_EEERSC_m called 7489 returned 100% blocks executed 92%
+     7489:   90:std::uint64_t u64(const std::unordered_map<std::string, std::string>& kv,
+        -:   91:                  const std::string& k, std::uint64_t dflt) {
+     7489:   92:  auto it = kv.find(k);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+    7489*:   93:  return it == kv.end() ? dflt : std::strtoull(it->second.c_str(), nullptr, 10);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 0% (fallthrough)
+branch  3 taken 100%
+call    4 returned 100%
+call    5 returned 100%
+call    6 returned 100%
+        -:   94:}
+        -:   95:
+        -:   96:}  // namespace
+        -:   97:
+function main called 22 returned 100% blocks executed 59%
+       22:   98:int main(int argc, char** argv) {
+       22:   99:  if (argc < 2) {
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+    #####:  100:    std::cerr << "usage: conformance_runner <vector-file>\n";
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  101:    return 2;
+        -:  102:  }
+       22:  103:  std::ifstream in(argv[1]);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+       22:  104:  if (!in) {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+branch  3 taken 0% (fallthrough)
+branch  4 taken 100%
+    #####:  105:    std::cerr << "cannot open " << argv[1] << "\n";
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+call    6 never executed
+branch  7 never executed (fallthrough)
+branch  8 never executed (throw)
+    #####:  106:    return 2;
+        -:  107:  }
+        -:  108:
+       22:  109:  Config cfg;  // defaults (spec §9)
+       22:  110:  std::unique_ptr<Service> svc;
+function _ZZ4mainENKUlvE_clEv called 8457 returned 100% blocks executed 100%
+     8457:  111:  auto ensure = [&]() {
+     8457:  112:    if (!svc) { svc = std::make_unique<Service>(cfg); svc->start(); }
+call    0 returned 100%
+branch  1 taken 1% (fallthrough)
+branch  2 taken 100%
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 returned 100%
+call    8 returned 100%
+call    9 returned 100%
+     8457:  113:  };
+        -:  114:
+       22:  115:  std::string raw;
+call    0 returned 100%
+       22:  116:  int lineno = 0, mismatches = 0, ops = 0;
+     9296:  117:  while (std::getline(in, raw)) {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+branch  6 taken 100%
+branch  7 taken 1% (fallthrough)
+     9274:  118:    ++lineno;
+     9274:  119:    Line ln = parse(raw);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+     9274:  120:    if (ln.op.empty()) continue;
+call    0 returned 100%
+branch  1 taken 3% (fallthrough)
+branch  2 taken 97%
+        -:  121:
+     8993:  122:    if (ln.op == "config") {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+branch  3 taken 1% (fallthrough)
+branch  4 taken 100%
+       22:  123:      if (svc) {
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+    #####:  124:        std::cerr << "line " << lineno << ": config after operations\n";
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+call    6 never executed
+branch  7 never executed (fallthrough)
+branch  8 never executed (throw)
+    #####:  125:        return 2;
+        -:  126:      }
+       44:  127:      cfg.n_shards = u64(ln.kv, "n_shards", cfg.n_shards);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+       44:  128:      cfg.queue_capacity = static_cast<std::uint32_t>(u64(ln.kv, "queue_capacity", cfg.queue_capacity));
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+       44:  129:      cfg.max_contexts_per_shard = u64(ln.kv, "max_contexts_per_shard", cfg.max_contexts_per_shard);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+       22:  130:      continue;
+        -:  131:    }
+        -:  132:
+     8971:  133:    const UeId id = ln.pos.empty() ? 0 : std::strtoull(ln.pos[0].c_str(), nullptr, 10);
+call    0 returned 100%
+branch  1 taken 3% (fallthrough)
+branch  2 taken 97%
+call    3 returned 100%
+call    4 returned 100%
+call    5 returned 100%
+     8971:  134:    std::string actual;
+call    0 returned 100%
+        -:  135:
+     8971:  136:    if (ln.op == "shard") {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+branch  3 taken 6% (fallthrough)
+branch  4 taken 94%
+      514:  137:      actual = std::to_string(shard_index(id, cfg.n_shards));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+     8457:  138:    } else if (ln.op == "count") {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+branch  3 taken 4% (fallthrough)
+branch  4 taken 96%
+      299:  139:      ensure();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+      299:  140:      actual = std::to_string(svc->count());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+call    8 returned 100%
+     8158:  141:    } else if (ln.op == "create") {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+branch  3 taken 16% (fallthrough)
+branch  4 taken 84%
+     1314:  142:      ensure();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+     2628:  143:      CreateParams p; p.serving_cell_id = static_cast<std::uint32_t>(u64(ln.kv, "cell", 0));
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+     1314:  144:      actual = void_str(svc->create_context(id, p));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+call    8 returned 100%
+     6844:  145:    } else if (ln.op == "setup") {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+branch  3 taken 11% (fallthrough)
+branch  4 taken 89%
+      758:  146:      ensure();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+      758:  147:      actual = void_str(svc->setup_connection(id));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+call    8 returned 100%
+     6086:  148:    } else if (ln.op == "signal") {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+branch  3 taken 12% (fallthrough)
+branch  4 taken 88%
+      701:  149:      ensure();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+      701:  150:      SignalingMsg m;
+     1402:  151:      m.kind = static_cast<std::uint8_t>(u64(ln.kv, "kind", 0));
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+      701:  152:      m.payload_len = static_cast<std::uint16_t>(u64(ln.kv, "len", 0));
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+      701:  153:      auto r = svc->handle_signaling(id, m);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+      701:  154:      if (r.has_value())
+call    0 returned 100%
+branch  1 taken 63% (fallthrough)
+branch  2 taken 37%
+     878*:  155:        actual = "Ok(accepted=" + std::string(r->accepted ? "true" : "false") +
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0%
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+call    9 returned 100%
+branch 10 taken 100% (fallthrough)
+branch 11 taken 0% (throw)
+call   12 returned 100%
+call   13 returned 100%
+call   14 returned 100%
+call   15 never executed
+call   16 never executed
+call   17 never executed
+     1317:  156:                 ",handled=" + std::to_string(r->new_messages_handled) + ")";
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+branch  8 taken 100% (fallthrough)
+branch  9 taken 0% (throw)
+call   10 returned 100%
+call   11 returned 100%
+call   12 returned 100%
+call   13 returned 100%
+call   14 never executed
+call   15 never executed
+        -:  157:      else
+      786:  158:        actual = std::string("Err(") + std::string(to_string(r.error())) + ")";
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+call    8 returned 100%
+branch  9 taken 100% (fallthrough)
+branch 10 taken 0% (throw)
+call   11 returned 100%
+branch 12 taken 100% (fallthrough)
+branch 13 taken 0% (throw)
+call   14 returned 100%
+call   15 returned 100%
+call   16 returned 100%
+call   17 returned 100%
+call   18 returned 100%
+call   19 never executed
+call   20 never executed
+call   21 never executed
+     5385:  159:    } else if (ln.op == "adddrb") {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+branch  3 taken 25% (fallthrough)
+branch  4 taken 75%
+     1339:  160:      ensure();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+     1339:  161:      DrbEntry d;
+     2678:  162:      d.drb_id = static_cast<std::uint8_t>(u64(ln.kv, "id", 0));
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+     2678:  163:      d.qos_flow_id = static_cast<std::uint8_t>(u64(ln.kv, "qfi", 0));
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+     1339:  164:      d.teid = static_cast<std::uint32_t>(u64(ln.kv, "teid", 0));
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+     1339:  165:      actual = void_str(svc->add_drb(id, d));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+call    8 returned 100%
+     4046:  166:    } else if (ln.op == "begin_reconf") {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+branch  3 taken 17% (fallthrough)
+branch  4 taken 83%
+      690:  167:      ensure();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+     1380:  168:      ReconfigParams p; p.target_cell_id = static_cast<std::uint32_t>(u64(ln.kv, "cell", 0));
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+      690:  169:      actual = void_str(svc->begin_reconfigure(id, p));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+call    8 returned 100%
+     3356:  170:    } else if (ln.op == "complete_reconf") {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+branch  3 taken 14% (fallthrough)
+branch  4 taken 86%
+      466:  171:      ensure();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+      466:  172:      actual = void_str(svc->complete_reconfigure(id));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+call    8 returned 100%
+     2890:  173:    } else if (ln.op == "abort_reconf") {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+branch  3 taken 17% (fallthrough)
+branch  4 taken 83%
+      483:  174:      ensure();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+      483:  175:      actual = void_str(svc->abort_reconfigure(id));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+call    8 returned 100%
+     2407:  176:    } else if (ln.op == "release") {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+branch  3 taken 16% (fallthrough)
+branch  4 taken 84%
+      381:  177:      ensure();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+      381:  178:      actual = void_str(svc->release_context(id));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+call    8 returned 100%
+     2026:  179:    } else if (ln.op == "lookup") {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0%
+     2026:  180:      ensure();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+     2026:  181:      auto r = svc->lookup(id);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+     2026:  182:      if (r.has_value())
+call    0 returned 100%
+branch  1 taken 77% (fallthrough)
+branch  2 taken 23%
+     3118:  183:        actual = "Ok(state=" + std::string(state_name(r->state)) +
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+call    8 returned 100%
+branch  9 taken 100% (fallthrough)
+branch 10 taken 0% (throw)
+call   11 returned 100%
+call   12 returned 100%
+call   13 returned 100%
+call   14 never executed
+call   15 never executed
+call   16 never executed
+     6236:  184:                 ",cell=" + std::to_string(r->serving_cell_id) +
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+call    8 returned 100%
+call    9 returned 100%
+call   10 returned 100%
+call   11 never executed
+call   12 never executed
+call   13 never executed
+     6236:  185:                 ",drbs=" + std::to_string(r->drbs.size()) +
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+call    8 returned 100%
+branch  9 taken 100% (fallthrough)
+branch 10 taken 0% (throw)
+call   11 returned 100%
+call   12 returned 100%
+call   13 returned 100%
+call   14 never executed
+call   15 never executed
+call   16 never executed
+     4677:  186:                 ",messages_handled=" + std::to_string(r->messages_handled) + ")";
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+branch  8 taken 100% (fallthrough)
+branch  9 taken 0% (throw)
+call   10 returned 100%
+call   11 returned 100%
+call   12 returned 100%
+call   13 returned 100%
+call   14 never executed
+call   15 never executed
+        -:  187:      else
+     1401:  188:        actual = std::string("Err(") + std::string(to_string(r.error())) + ")";
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+call    8 returned 100%
+branch  9 taken 100% (fallthrough)
+branch 10 taken 0% (throw)
+call   11 returned 100%
+branch 12 taken 100% (fallthrough)
+branch 13 taken 0% (throw)
+call   14 returned 100%
+call   15 returned 100%
+call   16 returned 100%
+call   17 returned 100%
+call   18 returned 100%
+call   19 never executed
+call   20 never executed
+call   21 never executed
+     2026:  189:    } else {
+call    0 returned 100%
+call    1 never executed
+    #####:  190:      std::cerr << "line " << lineno << ": unknown op '" << ln.op << "'\n";
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+call    6 never executed
+branch  7 never executed (fallthrough)
+branch  8 never executed (throw)
+call    9 never executed
+branch 10 never executed (fallthrough)
+branch 11 never executed (throw)
+call   12 never executed
+branch 13 never executed (fallthrough)
+branch 14 never executed (throw)
+    #####:  191:      return 2;
+        -:  192:    }
+        -:  193:
+     8971:  194:    ++ops;
+     8971:  195:    std::cout << actual << "\n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+    8971*:  196:    if (ln.has_arrow && actual != ln.expected) {
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+call    2 returned 100%
+branch  3 taken 0% (fallthrough)
+branch  4 taken 100%
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+    #####:  197:      ++mismatches;
+    #####:  198:      std::cerr << "MISMATCH line " << lineno << ": expected '" << ln.expected
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  199:                << "' got '" << actual << "'\n";
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+call    6 never executed
+branch  7 never executed (fallthrough)
+branch  8 never executed (throw)
+call    9 never executed
+branch 10 never executed (fallthrough)
+branch 11 never executed (throw)
+call   12 never executed
+branch 13 never executed (fallthrough)
+branch 14 never executed (throw)
+call   15 never executed
+branch 16 never executed (fallthrough)
+branch 17 never executed (throw)
+        -:  200:    }
+     9274:  201:  }
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0%
+call    3 returned 100%
+branch  4 taken 97%
+branch  5 taken 3%
+branch  6 taken 0%
+call    7 never executed
+call    8 never executed
+        -:  202:
+       22:  203:  if (svc) svc->shutdown();
+call    0 returned 100%
+branch  1 taken 91% (fallthrough)
+branch  2 taken 9%
+call    3 returned 100%
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+       22:  204:  std::cerr << "conformance_runner(cpp): " << argv[1] << ": " << ops << " ops, "
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+call    9 returned 100%
+branch 10 taken 100% (fallthrough)
+branch 11 taken 0% (throw)
+call   12 returned 100%
+branch 13 taken 100% (fallthrough)
+branch 14 taken 0% (throw)
+       22:  205:            << mismatches << " mismatches\n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+       22:  206:  return mismatches == 0 ? 0 : 1;
+       22:  207:}
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 never executed
+call    4 never executed
+call    5 never executed

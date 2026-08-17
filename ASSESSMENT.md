@@ -60,8 +60,12 @@ measured difference can be attributed to the language. The entire study design f
 that critique.
 
 RQ2 is constructed so that it can refute itself: five defect classes from inside Rust's
-guarantee and two chosen from outside it. Building in cases that can disturb the expected answer
-is a graduate-level instinct.
+guarantee and five chosen from outside it. Building in cases that can disturb the expected answer
+is a graduate-level instinct, and here it paid: two of the five boundary classes came back with
+the **C++ tooling ahead** (LeakSanitizer reports the reference cycle safe Rust leaks silently;
+UBSan reports the overflow Rust defines to wrap), and a third result changed direction on
+re-measurement — the lock-order deadlock is detected by ThreadSanitizer *intermittently*, about
+30% of runs, not reliably and not never.
 
 Traceability is complete: RQ1–RQ4 map to objectives O1–O5, to hypotheses H1–H3, to stated
 success criteria, to explicit scope boundaries, and finally to Table 5.1, which pairs each
@@ -124,6 +128,18 @@ a system-allocator control retained, and optimisation levels are matched.
 Functional equivalence is tested, not assumed: a language-neutral conformance suite emits
 canonical transcripts from both implementations and diffs them op-for-op, with the workload's
 per-operation-kind counts as a second independent parity signal.
+
+More than that, the suite no longer rests on the two implementations agreeing with each other.
+A cross-diff cannot separate *both correct* from *both wrong in the same way*, which is exactly
+the risk when one author works from one specification, so a **third implementation of the
+specification** (`spec/conformance/model.py`, Python, sharing no code with either) supplies the
+expected results. It must reproduce all 223 hand-derived expectations before it is allowed to
+generate any of its own; roughly 793 000 generated operations across five profiles have found no
+divergence. The §5.2 transition matrix is enumerated exhaustively rather than sampled, on both
+sides. The reach of all this is measured rather than asserted — 94.6% C++ and 98.2% Rust library
+line coverage — which is what bounds the accompanying negative results: the C++ suite runs clean
+under ASan, TSan and UBSan, and the Rust suite clean under Miri, but a dynamic tool only reports
+on code that runs.
 
 Methods are grounded in method literature rather than improvised — Georges et al. for
 statistics, Natella et al. for fault injection, Tene for coordinated omission, design science

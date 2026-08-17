@@ -1,0 +1,719 @@
+        -:    0:Source:/usr/include/c++/13/bits/invoke.h
+        -:    1:// Implementation of INVOKE -*- C++ -*-
+        -:    2:
+        -:    3:// Copyright (C) 2016-2023 Free Software Foundation, Inc.
+        -:    4://
+        -:    5:// This file is part of the GNU ISO C++ Library.  This library is free
+        -:    6:// software; you can redistribute it and/or modify it under the
+        -:    7:// terms of the GNU General Public License as published by the
+        -:    8:// Free Software Foundation; either version 3, or (at your option)
+        -:    9:// any later version.
+        -:   10:
+        -:   11:// This library is distributed in the hope that it will be useful,
+        -:   12:// but WITHOUT ANY WARRANTY; without even the implied warranty of
+        -:   13:// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        -:   14:// GNU General Public License for more details.
+        -:   15:
+        -:   16:// Under Section 7 of GPL version 3, you are granted additional
+        -:   17:// permissions described in the GCC Runtime Library Exception, version
+        -:   18:// 3.1, as published by the Free Software Foundation.
+        -:   19:
+        -:   20:// You should have received a copy of the GNU General Public License and
+        -:   21:// a copy of the GCC Runtime Library Exception along with this program;
+        -:   22:// see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+        -:   23:// <http://www.gnu.org/licenses/>.
+        -:   24:
+        -:   25:/** @file include/bits/invoke.h
+        -:   26: *  This is an internal header file, included by other library headers.
+        -:   27: *  Do not attempt to use it directly. @headername{functional}
+        -:   28: */
+        -:   29:
+        -:   30:#ifndef _GLIBCXX_INVOKE_H
+        -:   31:#define _GLIBCXX_INVOKE_H 1
+        -:   32:
+        -:   33:#pragma GCC system_header
+        -:   34:
+        -:   35:#if __cplusplus < 201103L
+        -:   36:# include <bits/c++0x_warning.h>
+        -:   37:#else
+        -:   38:
+        -:   39:#include <type_traits>
+        -:   40:#include <bits/move.h> // forward
+        -:   41:
+        -:   42:namespace std _GLIBCXX_VISIBILITY(default)
+        -:   43:{
+        -:   44:_GLIBCXX_BEGIN_NAMESPACE_VERSION
+        -:   45:
+        -:   46:  /**
+        -:   47:   *  @addtogroup utilities
+        -:   48:   *  @{
+        -:   49:   */
+        -:   50:
+        -:   51:  // Used by __invoke_impl instead of std::forward<_Tp> so that a
+        -:   52:  // reference_wrapper is converted to an lvalue-reference.
+        -:   53:  template<typename _Tp, typename _Up = typename __inv_unwrap<_Tp>::type>
+        -:   54:    constexpr _Up&&
+        -:   55:    __invfwd(typename remove_reference<_Tp>::type& __t) noexcept
+        -:   56:    { return static_cast<_Up&&>(__t); }
+        -:   57:
+        -:   58:  template<typename _Res, typename _Fn, typename... _Args>
+        -:   59:    constexpr _Res
+ 1714758*:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+ 1714758*:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+------------------
+_ZSt13__invoke_implISt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES4_INS5_12SignalingAckES6_ES4_INS5_13UeContextViewES6_ES4_ImS6_EEEEENS1_12_Result_base8_DeleterEERNS1_13_State_baseV27_SetterISD_OSD_EEJEET_St14__invoke_otherOT0_DpOT1_:
+function _ZSt13__invoke_implISt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES4_INS5_12SignalingAckES6_ES4_INS5_13UeContextViewES6_ES4_ImS6_EEEEENS1_12_Result_base8_DeleterEERNS1_13_State_baseV27_SetterISD_OSD_EEJEET_St14__invoke_otherOT0_DpOT1_ called 286655 returned 100% blocks executed 100%
+   286655:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+   286655:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 returned 100%
+call    1 returned 100%
+------------------
+_ZSt13__invoke_implIvZ4mainEUlvE0_JEET_St14__invoke_otherOT0_DpOT1_:
+function _ZSt13__invoke_implIvZ4mainEUlvE0_JEET_St14__invoke_otherOT0_DpOT1_ called 0 returned 0% blocks executed 0%
+    #####:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+    #####:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 never executed
+call    1 never executed
+------------------
+_ZSt13__invoke_implIvZ4mainEUlvE_JEET_St14__invoke_otherOT0_DpOT1_:
+function _ZSt13__invoke_implIvZ4mainEUlvE_JEET_St14__invoke_otherOT0_DpOT1_ called 0 returned 0% blocks executed 0%
+    #####:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+    #####:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 never executed
+call    1 never executed
+------------------
+_ZSt13__invoke_implIvZN12_GLOBAL__N_133concurrent_lookups_are_consistentEvEUlvE_JEET_St14__invoke_otherOT0_DpOT1_:
+function _ZSt13__invoke_implIvZN12_GLOBAL__N_133concurrent_lookups_are_consistentEvEUlvE_JEET_St14__invoke_otherOT0_DpOT1_ called 3 returned 100% blocks executed 100%
+        3:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+        3:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 returned 100%
+call    1 returned 100%
+------------------
+_ZSt13__invoke_implIvZN12_GLOBAL__N_119fifo_within_a_shardEvEUlmE_JmEET_St14__invoke_otherOT0_DpOT1_:
+function _ZSt13__invoke_implIvZN12_GLOBAL__N_119fifo_within_a_shardEvEUlmE_JmEET_St14__invoke_otherOT0_DpOT1_ called 4 returned 100% blocks executed 100%
+        4:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+        4:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+------------------
+_ZSt13__invoke_implIvZN12_GLOBAL__N_126backpressure_loses_nothingEvEUliE_JiEET_St14__invoke_otherOT0_DpOT1_:
+function _ZSt13__invoke_implIvZN12_GLOBAL__N_126backpressure_loses_nothingEvEUliE_JiEET_St14__invoke_otherOT0_DpOT1_ called 6 returned 100% blocks executed 100%
+        6:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+        6:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+------------------
+_ZSt13__invoke_implIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRS6_EESD_St14__invoke_otherOT0_DpOT1_:
+function _ZSt13__invoke_implIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRS6_EESD_St14__invoke_otherOT0_DpOT1_ called 333494 returned 100% blocks executed 100%
+   333494:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+   333494:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+------------------
+_ZSt13__invoke_implIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRS8_EESD_St14__invoke_otherOT0_DpOT1_:
+function _ZSt13__invoke_implIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRS8_EESD_St14__invoke_otherOT0_DpOT1_ called 373891 returned 100% blocks executed 100%
+   373891:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+   373891:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+------------------
+_ZSt13__invoke_implIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRSA_EESD_St14__invoke_otherOT0_DpOT1_:
+function _ZSt13__invoke_implIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRSA_EESD_St14__invoke_otherOT0_DpOT1_ called 143352 returned 100% blocks executed 100%
+   143352:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+   143352:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+------------------
+_ZSt13__invoke_implIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRSB_EESD_St14__invoke_otherOT0_DpOT1_:
+function _ZSt13__invoke_implIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRSB_EESD_St14__invoke_otherOT0_DpOT1_ called 5313 returned 100% blocks executed 100%
+     5313:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+     5313:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+------------------
+_ZSt13__invoke_implIvZL10concurrentvEUliE_JiEET_St14__invoke_otherOT0_DpOT1_:
+function _ZSt13__invoke_implIvZL10concurrentvEUliE_JiEET_St14__invoke_otherOT0_DpOT1_ called 8 returned 100% blocks executed 100%
+        8:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+        8:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+------------------
+_ZSt13__invoke_implIvZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JS6_St17integral_constantImLm0EEEESE_St14__invoke_otherOSG_DpOT1_:
+function _ZSt13__invoke_implIvZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JS6_St17integral_constantImLm0EEEESE_St14__invoke_otherOSG_DpOT1_ called 222712 returned 100% blocks executed 100%
+   222712:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+   222712:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+------------------
+_ZSt13__invoke_implIvZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JS8_St17integral_constantImLm1EEEESE_St14__invoke_otherOSG_DpOT1_:
+function _ZSt13__invoke_implIvZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JS8_St17integral_constantImLm1EEEESE_St14__invoke_otherOSG_DpOT1_ called 249650 returned 100% blocks executed 100%
+   249650:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+   249650:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+------------------
+_ZSt13__invoke_implIvZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JSA_St17integral_constantImLm2EEEESE_St14__invoke_otherOSG_DpOT1_:
+function _ZSt13__invoke_implIvZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JSA_St17integral_constantImLm2EEEESE_St14__invoke_otherOSG_DpOT1_ called 95681 returned 100% blocks executed 100%
+    95681:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+    95681:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+------------------
+_ZSt13__invoke_implIvZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JSB_St17integral_constantImLm3EEEESE_St14__invoke_otherOSG_DpOT1_:
+function _ZSt13__invoke_implIvZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JSB_St17integral_constantImLm3EEEESE_St14__invoke_otherOSG_DpOT1_ called 3548 returned 100% blocks executed 100%
+     3548:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+     3548:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+------------------
+_ZSt13__invoke_implIvZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JNS1_16__variant_cookieESt17integral_constantImLm18446744073709551615EEEESE_St14__invoke_otherOSG_DpOT1_:
+function _ZSt13__invoke_implIvZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JNS1_16__variant_cookieESt17integral_constantImLm18446744073709551615EEEESE_St14__invoke_otherOSG_DpOT1_ called 0 returned 0% blocks executed 0%
+    #####:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+    #####:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 never executed
+call    1 never executed
+call    2 never executed
+call    3 never executed
+------------------
+_ZSt13__invoke_implIvZN4uecm7Service5startEvEUlvE_JEET_St14__invoke_otherOT0_DpOT1_:
+function _ZSt13__invoke_implIvZN4uecm7Service5startEvEUlvE_JEET_St14__invoke_otherOT0_DpOT1_ called 441 returned 100% blocks executed 100%
+      441:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+      441:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 returned 100%
+call    1 returned 100%
+------------------
+_ZSt13__invoke_implISt10unique_ptrINSt13__future_base7_ResultIvEENS1_12_Result_base8_DeleterEERNS1_13_State_baseV27_SetterIvvEEJEET_St14__invoke_otherOT0_DpOT1_:
+function _ZSt13__invoke_implISt10unique_ptrINSt13__future_base7_ResultIvEENS1_12_Result_base8_DeleterEERNS1_13_State_baseV27_SetterIvvEEJEET_St14__invoke_otherOT0_DpOT1_ called 0 returned 0% blocks executed 0%
+    #####:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+    #####:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 never executed
+call    1 never executed
+------------------
+_ZSt13__invoke_implIvZN12_GLOBAL__N_18run_onceERKNS0_4ArgsEEUlvE0_JEET_St14__invoke_otherOT0_DpOT1_:
+function _ZSt13__invoke_implIvZN12_GLOBAL__N_18run_onceERKNS0_4ArgsEEUlvE0_JEET_St14__invoke_otherOT0_DpOT1_ called 0 returned 0% blocks executed 0%
+    #####:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+    #####:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 never executed
+call    1 never executed
+------------------
+_ZSt13__invoke_implIvZN12_GLOBAL__N_18run_onceERKNS0_4ArgsEEUlvE_JEET_St14__invoke_otherOT0_DpOT1_:
+function _ZSt13__invoke_implIvZN12_GLOBAL__N_18run_onceERKNS0_4ArgsEEUlvE_JEET_St14__invoke_otherOT0_DpOT1_ called 0 returned 0% blocks executed 0%
+    #####:   60:    __invoke_impl(__invoke_other, _Fn&& __f, _Args&&... __args)
+    #####:   61:    { return std::forward<_Fn>(__f)(std::forward<_Args>(__args)...); }
+call    0 never executed
+call    1 never executed
+------------------
+        -:   62:
+        -:   63:  template<typename _Res, typename _MemFun, typename _Tp, typename... _Args>
+        -:   64:    constexpr _Res
+        -:   65:    __invoke_impl(__invoke_memfun_ref, _MemFun&& __f, _Tp&& __t,
+        -:   66:		  _Args&&... __args)
+        -:   67:    { return (__invfwd<_Tp>(__t).*__f)(std::forward<_Args>(__args)...); }
+        -:   68:
+        -:   69:  template<typename _Res, typename _MemFun, typename _Tp, typename... _Args>
+        -:   70:    constexpr _Res
+  287451*:   71:    __invoke_impl(__invoke_memfun_deref, _MemFun&& __f, _Tp&& __t,
+        -:   72:		  _Args&&... __args)
+        -:   73:    {
+  287451*:   74:      return ((*std::forward<_Tp>(__t)).*__f)(std::forward<_Args>(__args)...);
+        -:   75:    }
+------------------
+_ZSt13__invoke_implIvMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS0_12_Result_baseENS4_8_DeleterEEvEEPbEPS1_JS9_SA_EET_St21__invoke_memfun_derefOT0_OT1_DpOT2_:
+function _ZSt13__invoke_implIvMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS0_12_Result_baseENS4_8_DeleterEEvEEPbEPS1_JS9_SA_EET_St21__invoke_memfun_derefOT0_OT1_DpOT2_ called 0 returned 0% blocks executed 0%
+    #####:   71:    __invoke_impl(__invoke_memfun_deref, _MemFun&& __f, _Tp&& __t,
+        -:   72:		  _Args&&... __args)
+        -:   73:    {
+    #####:   74:      return ((*std::forward<_Tp>(__t)).*__f)(std::forward<_Args>(__args)...);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed
+call    3 never executed
+call    4 never executed
+call    5 never executed
+        -:   75:    }
+------------------
+_ZSt13__invoke_implIvMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS0_12_Result_baseENS4_8_DeleterEEvEEPbEPS1_JS9_SA_EET_St21__invoke_memfun_derefOT0_OT1_DpOT2_:
+function _ZSt13__invoke_implIvMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS0_12_Result_baseENS4_8_DeleterEEvEEPbEPS1_JS9_SA_EET_St21__invoke_memfun_derefOT0_OT1_DpOT2_ called 287451 returned 99% blocks executed 88%
+   287451:   71:    __invoke_impl(__invoke_memfun_deref, _MemFun&& __f, _Tp&& __t,
+        -:   72:		  _Args&&... __args)
+        -:   73:    {
+  287451*:   74:      return ((*std::forward<_Tp>(__t)).*__f)(std::forward<_Args>(__args)...);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+call    3 returned 100%
+call    4 returned 100%
+call    5 returned 99%
+        -:   75:    }
+------------------
+        -:   76:
+        -:   77:  template<typename _Res, typename _MemPtr, typename _Tp>
+        -:   78:    constexpr _Res
+        -:   79:    __invoke_impl(__invoke_memobj_ref, _MemPtr&& __f, _Tp&& __t)
+        -:   80:    { return __invfwd<_Tp>(__t).*__f; }
+        -:   81:
+        -:   82:  template<typename _Res, typename _MemPtr, typename _Tp>
+        -:   83:    constexpr _Res
+        -:   84:    __invoke_impl(__invoke_memobj_deref, _MemPtr&& __f, _Tp&& __t)
+        -:   85:    { return (*std::forward<_Tp>(__t)).*__f; }
+        -:   86:
+        -:   87:  /// Invoke a callable object.
+        -:   88:  template<typename _Callable, typename... _Args>
+        -:   89:    constexpr typename __invoke_result<_Callable, _Args...>::type
+  859836*:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+  859836*:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+  856276*:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIZL10concurrentvEUliE_JiEENSt15__invoke_resultIT_JDpT0_EE4typeEOS2_DpOS3_:
+function _ZSt8__invokeIZL10concurrentvEUliE_JiEENSt15__invoke_resultIT_JDpT0_EE4typeEOS2_DpOS3_ called 8 returned 100% blocks executed 100%
+        8:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+        8:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+        8:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIZN12_GLOBAL__N_18run_onceERKNS0_4ArgsEEUlvE_JEENSt15__invoke_resultIT_JDpT0_EE4typeEOS6_DpOS7_:
+function _ZSt8__invokeIZN12_GLOBAL__N_18run_onceERKNS0_4ArgsEEUlvE_JEENSt15__invoke_resultIT_JDpT0_EE4typeEOS6_DpOS7_ called 0 returned 0% blocks executed 0%
+    #####:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+    #####:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 never executed
+call    1 never executed
+    #####:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIZN12_GLOBAL__N_18run_onceERKNS0_4ArgsEEUlvE0_JEENSt15__invoke_resultIT_JDpT0_EE4typeEOS6_DpOS7_:
+function _ZSt8__invokeIZN12_GLOBAL__N_18run_onceERKNS0_4ArgsEEUlvE0_JEENSt15__invoke_resultIT_JDpT0_EE4typeEOS6_DpOS7_ called 0 returned 0% blocks executed 0%
+    #####:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+    #####:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 never executed
+call    1 never executed
+    #####:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS0_12_Result_baseENS4_8_DeleterEEvEEPbEJPS1_S9_SA_EENSt15__invoke_resultIT_JDpT0_EE4typeEOSF_DpOSG_:
+function _ZSt8__invokeIMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS0_12_Result_baseENS4_8_DeleterEEvEEPbEJPS1_S9_SA_EENSt15__invoke_resultIT_JDpT0_EE4typeEOSF_DpOSG_ called 0 returned 0% blocks executed 0%
+    #####:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+    #####:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 never executed
+call    1 never executed
+call    2 never executed
+call    3 never executed
+call    4 never executed
+    #####:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIZN4uecm7Service5startEvEUlvE_JEENSt15__invoke_resultIT_JDpT0_EE4typeEOS4_DpOS5_:
+function _ZSt8__invokeIZN4uecm7Service5startEvEUlvE_JEENSt15__invoke_resultIT_JDpT0_EE4typeEOS4_DpOS5_ called 441 returned 100% blocks executed 100%
+      441:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+      441:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 returned 100%
+call    1 returned 100%
+      441:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JNS1_16__variant_cookieESt17integral_constantImLm18446744073709551615EEEENSt15__invoke_resultISE_JDpT0_EE4typeESF_DpOSM_:
+function _ZSt8__invokeIZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JNS1_16__variant_cookieESt17integral_constantImLm18446744073709551615EEEENSt15__invoke_resultISE_JDpT0_EE4typeESF_DpOSM_ called 0 returned 0% blocks executed 0%
+    #####:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+    #####:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 never executed
+call    1 never executed
+call    2 never executed
+call    3 never executed
+    #####:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JSB_St17integral_constantImLm3EEEENSt15__invoke_resultISE_JDpT0_EE4typeESF_DpOSL_:
+function _ZSt8__invokeIZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JSB_St17integral_constantImLm3EEEENSt15__invoke_resultISE_JDpT0_EE4typeESF_DpOSL_ called 3548 returned 100% blocks executed 100%
+     3548:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+     3548:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+     3548:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JSA_St17integral_constantImLm2EEEENSt15__invoke_resultISE_JDpT0_EE4typeESF_DpOSL_:
+function _ZSt8__invokeIZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JSA_St17integral_constantImLm2EEEENSt15__invoke_resultISE_JDpT0_EE4typeESF_DpOSL_ called 95695 returned 100% blocks executed 100%
+    95695:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+    95695:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+    95721:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JS8_St17integral_constantImLm1EEEENSt15__invoke_resultISE_JDpT0_EE4typeESF_DpOSL_:
+function _ZSt8__invokeIZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JS8_St17integral_constantImLm1EEEENSt15__invoke_resultISE_JDpT0_EE4typeESF_DpOSL_ called 249736 returned 100% blocks executed 100%
+   249736:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+   249736:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+   249502:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JS6_St17integral_constantImLm0EEEENSt15__invoke_resultISE_JDpT0_EE4typeESF_DpOSL_:
+function _ZSt8__invokeIZNSt8__detail9__variant15_Move_ctor_baseILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEC4EOSC_EUlOT_T0_E_JS6_St17integral_constantImLm0EEEENSt15__invoke_resultISE_JDpT0_EE4typeESF_DpOSL_ called 222704 returned 100% blocks executed 100%
+   222704:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+   222704:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+   222736:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS0_12_Result_baseENS4_8_DeleterEEvEEPbEJPS1_S9_SA_EENSt15__invoke_resultIT_JDpT0_EE4typeEOSF_DpOSG_:
+function _ZSt8__invokeIMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS0_12_Result_baseENS4_8_DeleterEEvEEPbEJPS1_S9_SA_EENSt15__invoke_resultIT_JDpT0_EE4typeEOSF_DpOSG_ called 287691 returned 99% blocks executed 100%
+   287691:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+   287691:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 returned 99%
+   284307:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIZN12_GLOBAL__N_126backpressure_loses_nothingEvEUliE_JiEENSt15__invoke_resultIT_JDpT0_EE4typeEOS3_DpOS4_:
+function _ZSt8__invokeIZN12_GLOBAL__N_126backpressure_loses_nothingEvEUliE_JiEENSt15__invoke_resultIT_JDpT0_EE4typeEOS3_DpOS4_ called 6 returned 100% blocks executed 100%
+        6:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+        6:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+        6:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIZN12_GLOBAL__N_119fifo_within_a_shardEvEUlmE_JmEENSt15__invoke_resultIT_JDpT0_EE4typeEOS3_DpOS4_:
+function _ZSt8__invokeIZN12_GLOBAL__N_119fifo_within_a_shardEvEUlmE_JmEENSt15__invoke_resultIT_JDpT0_EE4typeEOS3_DpOS4_ called 4 returned 100% blocks executed 100%
+        4:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+        4:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+        4:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIZN12_GLOBAL__N_133concurrent_lookups_are_consistentEvEUlvE_JEENSt15__invoke_resultIT_JDpT0_EE4typeEOS3_DpOS4_:
+function _ZSt8__invokeIZN12_GLOBAL__N_133concurrent_lookups_are_consistentEvEUlvE_JEENSt15__invoke_resultIT_JDpT0_EE4typeEOS3_DpOS4_ called 3 returned 100% blocks executed 100%
+        3:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+        3:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 returned 100%
+call    1 returned 100%
+        3:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIZ4mainEUlvE_JEENSt15__invoke_resultIT_JDpT0_EE4typeEOS2_DpOS3_:
+function _ZSt8__invokeIZ4mainEUlvE_JEENSt15__invoke_resultIT_JDpT0_EE4typeEOS2_DpOS3_ called 0 returned 0% blocks executed 0%
+    #####:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+    #####:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 never executed
+call    1 never executed
+    #####:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+_ZSt8__invokeIZ4mainEUlvE0_JEENSt15__invoke_resultIT_JDpT0_EE4typeEOS2_DpOS3_:
+function _ZSt8__invokeIZ4mainEUlvE0_JEENSt15__invoke_resultIT_JDpT0_EE4typeEOS2_DpOS3_ called 0 returned 0% blocks executed 0%
+    #####:   90:    __invoke(_Callable&& __fn, _Args&&... __args)
+        -:   91:    noexcept(__is_nothrow_invocable<_Callable, _Args...>::value)
+        -:   92:    {
+        -:   93:      using __result = __invoke_result<_Callable, _Args...>;
+        -:   94:      using __type = typename __result::type;
+        -:   95:      using __tag = typename __result::__invoke_type;
+    #####:   96:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 never executed
+call    1 never executed
+    #####:   97:					std::forward<_Args>(__args)...);
+        -:   98:    }
+------------------
+        -:   99:
+        -:  100:#if __cplusplus >= 201703L
+        -:  101:  // INVOKE<R>: Invoke a callable object and convert the result to R.
+        -:  102:  template<typename _Res, typename _Callable, typename... _Args>
+        -:  103:    constexpr enable_if_t<is_invocable_r_v<_Res, _Callable, _Args...>, _Res>
+ 1143465*:  104:    __invoke_r(_Callable&& __fn, _Args&&... __args)
+        -:  105:    noexcept(is_nothrow_invocable_r_v<_Res, _Callable, _Args...>)
+        -:  106:    {
+        -:  107:      using __result = __invoke_result<_Callable, _Args...>;
+        -:  108:      using __type = typename __result::type;
+        -:  109:      using __tag = typename __result::__invoke_type;
+        -:  110:      if constexpr (is_void_v<_Res>)
+   856775:  111:	std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+        -:  112:					std::forward<_Args>(__args)...);
+        -:  113:      else
+        -:  114:	return std::__invoke_impl<__type>(__tag{},
+        -:  115:					  std::forward<_Callable>(__fn),
+  286690*:  116:					  std::forward<_Args>(__args)...);
+   855898:  117:    }
+------------------
+_ZSt10__invoke_rISt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEERNS1_13_State_baseV27_SetterIvvEEJEENSt9enable_ifIX16is_invocable_r_vIT_T0_DpT1_EESA_E4typeEOSB_DpOSC_:
+function _ZSt10__invoke_rISt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEERNS1_13_State_baseV27_SetterIvvEEJEENSt9enable_ifIX16is_invocable_r_vIT_T0_DpT1_EESA_E4typeEOSB_DpOSC_ called 0 returned 0% blocks executed 0%
+    #####:  104:    __invoke_r(_Callable&& __fn, _Args&&... __args)
+        -:  105:    noexcept(is_nothrow_invocable_r_v<_Res, _Callable, _Args...>)
+        -:  106:    {
+        -:  107:      using __result = __invoke_result<_Callable, _Args...>;
+        -:  108:      using __type = typename __result::type;
+        -:  109:      using __tag = typename __result::__invoke_type;
+        -:  110:      if constexpr (is_void_v<_Res>)
+        -:  111:	std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+        -:  112:					std::forward<_Args>(__args)...);
+        -:  113:      else
+        -:  114:	return std::__invoke_impl<__type>(__tag{},
+        -:  115:					  std::forward<_Callable>(__fn),
+    #####:  116:					  std::forward<_Args>(__args)...);
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+call    4 never executed
+call    5 never executed
+        -:  117:    }
+------------------
+_ZSt10__invoke_rISt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEERNS1_13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES8_INS9_12SignalingAckESA_ES8_INS9_13UeContextViewESA_ES8_ImSA_EEEOSH_EEJEENSt9enable_ifIX16is_invocable_r_vIT_T0_DpT1_EESM_E4typeEOSN_DpOSO_:
+function _ZSt10__invoke_rISt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEERNS1_13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES8_INS9_12SignalingAckESA_ES8_INS9_13UeContextViewESA_ES8_ImSA_EEEOSH_EEJEENSt9enable_ifIX16is_invocable_r_vIT_T0_DpT1_EESM_E4typeEOSN_DpOSO_ called 286690 returned 99% blocks executed 100%
+   286690:  104:    __invoke_r(_Callable&& __fn, _Args&&... __args)
+        -:  105:    noexcept(is_nothrow_invocable_r_v<_Res, _Callable, _Args...>)
+        -:  106:    {
+        -:  107:      using __result = __invoke_result<_Callable, _Args...>;
+        -:  108:      using __type = typename __result::type;
+        -:  109:      using __tag = typename __result::__invoke_type;
+        -:  110:      if constexpr (is_void_v<_Res>)
+        -:  111:	std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+        -:  112:					std::forward<_Args>(__args)...);
+        -:  113:      else
+        -:  114:	return std::__invoke_impl<__type>(__tag{},
+        -:  115:					  std::forward<_Callable>(__fn),
+   286690:  116:					  std::forward<_Args>(__args)...);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+        -:  117:    }
+------------------
+_ZSt10__invoke_rIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRSB_EENSt9enable_ifIX16is_invocable_r_vISD_T0_DpT1_EESD_E4typeEOSI_DpOSJ_:
+function _ZSt10__invoke_rIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRSB_EENSt9enable_ifIX16is_invocable_r_vISD_T0_DpT1_EESD_E4typeEOSI_DpOSJ_ called 5313 returned 100% blocks executed 100%
+     5313:  104:    __invoke_r(_Callable&& __fn, _Args&&... __args)
+        -:  105:    noexcept(is_nothrow_invocable_r_v<_Res, _Callable, _Args...>)
+        -:  106:    {
+        -:  107:      using __result = __invoke_result<_Callable, _Args...>;
+        -:  108:      using __type = typename __result::type;
+        -:  109:      using __tag = typename __result::__invoke_type;
+        -:  110:      if constexpr (is_void_v<_Res>)
+     5313:  111:	std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+        -:  112:					std::forward<_Args>(__args)...);
+        -:  113:      else
+        -:  114:	return std::__invoke_impl<__type>(__tag{},
+        -:  115:					  std::forward<_Callable>(__fn),
+        -:  116:					  std::forward<_Args>(__args)...);
+     5310:  117:    }
+------------------
+_ZSt10__invoke_rIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRSA_EENSt9enable_ifIX16is_invocable_r_vISD_T0_DpT1_EESD_E4typeEOSI_DpOSJ_:
+function _ZSt10__invoke_rIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRSA_EENSt9enable_ifIX16is_invocable_r_vISD_T0_DpT1_EESD_E4typeEOSI_DpOSJ_ called 143408 returned 100% blocks executed 100%
+   143408:  104:    __invoke_r(_Callable&& __fn, _Args&&... __args)
+        -:  105:    noexcept(is_nothrow_invocable_r_v<_Res, _Callable, _Args...>)
+        -:  106:    {
+        -:  107:      using __result = __invoke_result<_Callable, _Args...>;
+        -:  108:      using __type = typename __result::type;
+        -:  109:      using __tag = typename __result::__invoke_type;
+        -:  110:      if constexpr (is_void_v<_Res>)
+   143408:  111:	std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+        -:  112:					std::forward<_Args>(__args)...);
+        -:  113:      else
+        -:  114:	return std::__invoke_impl<__type>(__tag{},
+        -:  115:					  std::forward<_Callable>(__fn),
+        -:  116:					  std::forward<_Args>(__args)...);
+   143290:  117:    }
+------------------
+_ZSt10__invoke_rIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRS8_EENSt9enable_ifIX16is_invocable_r_vISD_T0_DpT1_EESD_E4typeEOSI_DpOSJ_:
+function _ZSt10__invoke_rIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRS8_EENSt9enable_ifIX16is_invocable_r_vISD_T0_DpT1_EESD_E4typeEOSI_DpOSJ_ called 374306 returned 100% blocks executed 100%
+   374306:  104:    __invoke_r(_Callable&& __fn, _Args&&... __args)
+        -:  105:    noexcept(is_nothrow_invocable_r_v<_Res, _Callable, _Args...>)
+        -:  106:    {
+        -:  107:      using __result = __invoke_result<_Callable, _Args...>;
+        -:  108:      using __type = typename __result::type;
+        -:  109:      using __tag = typename __result::__invoke_type;
+        -:  110:      if constexpr (is_void_v<_Res>)
+   374306:  111:	std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+        -:  112:					std::forward<_Args>(__args)...);
+        -:  113:      else
+        -:  114:	return std::__invoke_impl<__type>(__tag{},
+        -:  115:					  std::forward<_Callable>(__fn),
+        -:  116:					  std::forward<_Args>(__args)...);
+   373868:  117:    }
+------------------
+_ZSt10__invoke_rIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRS6_EENSt9enable_ifIX16is_invocable_r_vISD_T0_DpT1_EESD_E4typeEOSI_DpOSJ_:
+function _ZSt10__invoke_rIvZNSt8__detail9__variant16_Variant_storageILb0EJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEE8_M_resetEvEUlOT_E_JRS6_EENSt9enable_ifIX16is_invocable_r_vISD_T0_DpT1_EESD_E4typeEOSI_DpOSJ_ called 333748 returned 100% blocks executed 100%
+   333748:  104:    __invoke_r(_Callable&& __fn, _Args&&... __args)
+        -:  105:    noexcept(is_nothrow_invocable_r_v<_Res, _Callable, _Args...>)
+        -:  106:    {
+        -:  107:      using __result = __invoke_result<_Callable, _Args...>;
+        -:  108:      using __type = typename __result::type;
+        -:  109:      using __tag = typename __result::__invoke_type;
+        -:  110:      if constexpr (is_void_v<_Res>)
+   333748:  111:	std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+        -:  112:					std::forward<_Args>(__args)...);
+        -:  113:      else
+        -:  114:	return std::__invoke_impl<__type>(__tag{},
+        -:  115:					  std::forward<_Callable>(__fn),
+        -:  116:					  std::forward<_Args>(__args)...);
+   333430:  117:    }
+------------------
+        -:  118:#else // C++11 or C++14
+        -:  119:  // This is a non-SFINAE-friendly std::invoke_r<R>(fn, args...) for C++11/14.
+        -:  120:  // It's used in std::function, std::bind, and std::packaged_task. Only
+        -:  121:  // std::function is constrained on is_invocable_r, but that is checked on
+        -:  122:  // construction so doesn't need to be checked again when calling __invoke_r.
+        -:  123:  // Consequently, these __invoke_r overloads do not check for invocable
+        -:  124:  // arguments, nor check that the invoke result is convertible to R.
+        -:  125:
+        -:  126:  // INVOKE<R>: Invoke a callable object and convert the result to R.
+        -:  127:  template<typename _Res, typename _Callable, typename... _Args>
+        -:  128:    constexpr __enable_if_t<!is_void<_Res>::value, _Res>
+        -:  129:    __invoke_r(_Callable&& __fn, _Args&&... __args)
+        -:  130:    {
+        -:  131:      using __result = __invoke_result<_Callable, _Args...>;
+        -:  132:      using __type = typename __result::type;
+        -:  133:#if __has_builtin(__reference_converts_from_temporary)
+        -:  134:      static_assert(!__reference_converts_from_temporary(_Res, __type),
+        -:  135:		    "INVOKE<R> must not create a dangling reference");
+        -:  136:#endif
+        -:  137:      using __tag = typename __result::__invoke_type;
+        -:  138:      return std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+        -:  139:					std::forward<_Args>(__args)...);
+        -:  140:    }
+        -:  141:
+        -:  142:  // INVOKE<R> when R is cv void
+        -:  143:  template<typename _Res, typename _Callable, typename... _Args>
+        -:  144:    _GLIBCXX14_CONSTEXPR __enable_if_t<is_void<_Res>::value, _Res>
+        -:  145:    __invoke_r(_Callable&& __fn, _Args&&... __args)
+        -:  146:    {
+        -:  147:      using __result = __invoke_result<_Callable, _Args...>;
+        -:  148:      using __type = typename __result::type;
+        -:  149:      using __tag = typename __result::__invoke_type;
+        -:  150:      std::__invoke_impl<__type>(__tag{}, std::forward<_Callable>(__fn),
+        -:  151:				 std::forward<_Args>(__args)...);
+        -:  152:    }
+        -:  153:#endif // C++11 or C++14
+        -:  154:
+        -:  155:_GLIBCXX_END_NAMESPACE_VERSION
+        -:  156:} // namespace std
+        -:  157:
+        -:  158:#endif // C++11
+        -:  159:
+        -:  160:#endif // _GLIBCXX_INVOKE_H

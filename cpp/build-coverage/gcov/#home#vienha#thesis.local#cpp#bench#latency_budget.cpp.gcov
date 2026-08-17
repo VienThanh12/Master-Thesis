@@ -1,0 +1,301 @@
+        -:    0:Source:/home/vienha/thesis.local/cpp/bench/latency_budget.cpp
+        -:    1:// Latency-budget decomposition for the C++ implementation.
+        -:    2://
+        -:    3:// The load sweep measures an end-to-end operation: a caller builds a request,
+        -:    4:// routes it to a shard's bounded queue, blocks on a completion handle, and a
+        -:    5:// worker thread executes the operation and writes the result back. That path
+        -:    6:// bundles two costs of very different character, and the sweep cannot separate
+        -:    7:// them:
+        -:    8://
+        -:    9://   1. the operation's own work -- a pinned hash lookup, a state-machine guard,
+        -:   10://      and a field update, all inside one thread;
+        -:   11://   2. the cross-thread submit-and-complete handoff -- an enqueue, a wakeup, a
+        -:   12://      context switch, and a completion, none of which is language-specific and
+        -:   13://      all of which is charged to the scheduler.
+        -:   14://
+        -:   15:// Both are measured here on the same host, in one process, with one caller
+        -:   16:// thread. ShardCore is the single-threaded operation processor, so calling it
+        -:   17:// directly gives (1) with no queue in the path; Service wraps the same core in
+        -:   18:// the full threaded machinery, so calling it gives (1) + (2). Their difference
+        -:   19:// is the handoff.
+        -:   20://
+        -:   21:// Both figures are batch means over a long loop rather than per-call medians.
+        -:   22:// That is deliberate: a clock read costs tens of nanoseconds, the same order as
+        -:   23:// the core operation itself, so per-call timestamps would measure the
+        -:   24:// instrument. The decomposition only needs the relative magnitude of the two
+        -:   25:// terms, which a batch mean resolves cleanly.
+        -:   26://
+        -:   27:// The map is preloaded to the same occupancy the sweep runs at, so the hash
+        -:   28:// lookup does the same amount of work here as it does there.
+        -:   29://
+        -:   30:// Mirrors rust/examples/latency_budget.rs operation for operation.
+        -:   31:#include <atomic>
+        -:   32:#include <chrono>
+        -:   33:#include <cstdint>
+        -:   34:#include <cstdio>
+        -:   35:#include <cstdlib>
+        -:   36:#include <cstring>
+        -:   37:#include <string>
+        -:   38:
+        -:   39:#include "uecm/config.hpp"
+        -:   40:#include "uecm/service.hpp"
+        -:   41:#include "uecm/shard_core.hpp"
+        -:   42:#include "uecm/types.hpp"
+        -:   43:
+        -:   44:namespace {
+        -:   45:
+        -:   46:using namespace uecm;
+        -:   47:using Clock = std::chrono::steady_clock;
+        -:   48:
+        -:   49:// The UE every timed operation targets. Hot in cache by construction, as the
+        -:   50:// sweep's own hot path is.
+        -:   51:constexpr UeId kHotUe = 1;
+        -:   52:
+        -:   53:// Keeps the optimizer from discarding a result whose value is never used.
+        -:   54:// The compiler must assume the inline asm reads the operand.
+        -:   55:template <class T>
+function _ZN12_GLOBAL__N_14keepISt8expectedIN4uecm12SignalingAckENS2_7OpErrorEEEEvRT_ called 0 returned 0% blocks executed 0%
+    #####:   56:inline void keep(T& value) {
+    #####:   57:  asm volatile("" : "+r,m"(value) : : "memory");
+call    0 never executed
+    #####:   58:}
+        -:   59:
+function _ZN12_GLOBAL__N_111ns_per_callENSt6chrono10time_pointINS0_3_V212steady_clockENS0_8durationIlSt5ratioILl1ELl1000000000EEEEEES8_m called 0 returned 0% blocks executed 0%
+    #####:   60:double ns_per_call(Clock::time_point t0, Clock::time_point t1, std::uint64_t iters) {
+    #####:   61:  const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+call    4 never executed
+    #####:   62:  return static_cast<double>(ns) / static_cast<double>(iters);
+        -:   63:}
+        -:   64:
+        -:   65:// Mean nanoseconds per call for the operation with no queue in the path.
+function _ZN12_GLOBAL__N_112measure_coreERKN4uecm6ConfigEmm called 0 returned 0% blocks executed 0%
+    #####:   66:double measure_core(const Config& cfg, std::uint64_t per_shard, std::uint64_t iters) {
+    #####:   67:  std::atomic<std::uint64_t> seq{0};
+    #####:   68:  ShardCore core(cfg, seq);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   69:  const CreateParams params{};
+    #####:   70:  for (UeId ue = 1; ue <= (per_shard ? per_shard : 1); ++ue) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+branch  2 never executed
+branch  3 never executed (fallthrough)
+    #####:   71:    core.create_context(ue, params);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   72:    core.setup_connection(ue);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:   73:  }
+    #####:   74:  const SignalingMsg msg{};
+        -:   75:
+    #####:   76:  const std::uint64_t warm = iters / 20 > 1000 ? iters / 20 : 1000;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:   77:  for (std::uint64_t i = 0; i < warm; ++i) {
+branch  0 never executed
+branch  1 never executed (fallthrough)
+    #####:   78:    auto r = core.handle_signaling(kHotUe, msg);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   79:    keep(r);
+call    0 never executed
+        -:   80:  }
+        -:   81:
+    #####:   82:  const auto t0 = Clock::now();
+call    0 never executed
+    #####:   83:  for (std::uint64_t i = 0; i < iters; ++i) {
+branch  0 never executed
+branch  1 never executed (fallthrough)
+    #####:   84:    auto r = core.handle_signaling(kHotUe, msg);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   85:    keep(r);
+call    0 never executed
+        -:   86:  }
+    #####:   87:  const auto t1 = Clock::now();
+call    0 never executed
+    #####:   88:  return ns_per_call(t0, t1, iters);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   89:}
+call    0 never executed
+call    1 never executed
+        -:   90:
+        -:   91:// Mean nanoseconds per call for the same operation through the full service.
+        -:   92:// A single caller thread, so the queue is never contended: this is the floor of
+        -:   93:// the handoff cost, not its value under the sweep's offered load.
+function _ZN12_GLOBAL__N_115measure_serviceERKN4uecm6ConfigEmm called 0 returned 0% blocks executed 0%
+    #####:   94:double measure_service(const Config& cfg, std::uint64_t active_ues, std::uint64_t iters) {
+    #####:   95:  Service svc(cfg);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   96:  svc.start();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   97:  const CreateParams params{};
+    #####:   98:  for (UeId ue = 1; ue <= (active_ues ? active_ues : 1); ++ue) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+branch  2 never executed
+branch  3 never executed (fallthrough)
+    #####:   99:    svc.create_context(ue, params);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  100:    svc.setup_connection(ue);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  101:  }
+    #####:  102:  const SignalingMsg msg{};
+        -:  103:
+    #####:  104:  const std::uint64_t warm = iters / 20 > 100 ? iters / 20 : 100;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  105:  for (std::uint64_t i = 0; i < warm; ++i) {
+branch  0 never executed
+branch  1 never executed (fallthrough)
+    #####:  106:    auto r = svc.handle_signaling(kHotUe, msg);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  107:    keep(r);
+call    0 never executed
+        -:  108:  }
+        -:  109:
+    #####:  110:  const auto t0 = Clock::now();
+call    0 never executed
+    #####:  111:  for (std::uint64_t i = 0; i < iters; ++i) {
+branch  0 never executed
+branch  1 never executed (fallthrough)
+    #####:  112:    auto r = svc.handle_signaling(kHotUe, msg);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  113:    keep(r);
+call    0 never executed
+        -:  114:  }
+    #####:  115:  const auto t1 = Clock::now();
+call    0 never executed
+    #####:  116:  const double ns = ns_per_call(t0, t1, iters);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  117:  svc.shutdown();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  118:  return ns;
+    #####:  119:}
+call    0 never executed
+call    1 never executed
+        -:  120:
+function _ZN12_GLOBAL__N_17arg_u64EiPPcPKcm called 0 returned 0% blocks executed 0%
+    #####:  121:std::uint64_t arg_u64(int argc, char** argv, const char* name, std::uint64_t fallback) {
+    #####:  122:  for (int i = 1; i + 1 < argc; ++i) {
+branch  0 never executed
+branch  1 never executed (fallthrough)
+    #####:  123:    if (std::strcmp(argv[i], name) == 0) return std::strtoull(argv[i + 1], nullptr, 10);
+branch  0 never executed (fallthrough)
+branch  1 never executed
+call    2 never executed
+        -:  124:  }
+    #####:  125:  return fallback;
+        -:  126:}
+        -:  127:
+function _ZN12_GLOBAL__N_18has_flagEiPPcPKc called 0 returned 0% blocks executed 0%
+    #####:  128:bool has_flag(int argc, char** argv, const char* name) {
+    #####:  129:  for (int i = 1; i < argc; ++i) {
+branch  0 never executed
+branch  1 never executed (fallthrough)
+    #####:  130:    if (std::strcmp(argv[i], name) == 0) return true;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+        -:  131:  }
+    #####:  132:  return false;
+        -:  133:}
+        -:  134:
+        -:  135:}  // namespace
+        -:  136:
+function main called 0 returned 0% blocks executed 0%
+    #####:  137:int main(int argc, char** argv) {
+    #####:  138:  const std::uint64_t shards = arg_u64(argc, argv, "--shards", 8);
+call    0 never executed
+    #####:  139:  const std::uint64_t active_ues = arg_u64(argc, argv, "--active-ues", 5000);
+call    0 never executed
+    #####:  140:  const std::uint64_t core_iters = arg_u64(argc, argv, "--core-iters", 2000000);
+call    0 never executed
+    #####:  141:  const std::uint64_t svc_iters = arg_u64(argc, argv, "--svc-iters", 50000);
+call    0 never executed
+    #####:  142:  const bool json = has_flag(argc, argv, "--json");
+call    0 never executed
+        -:  143:
+    #####:  144:  Config cfg{};
+    #####:  145:  cfg.n_shards = shards;
+    #####:  146:  const std::uint64_t per_shard = active_ues / (shards ? shards : 1);
+branch  0 never executed (fallthrough)
+branch  1 never executed
+        -:  147:
+    #####:  148:  const double core_ns = measure_core(cfg, per_shard, core_iters);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  149:  const double svc_ns = measure_service(cfg, active_ues, svc_iters);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  150:  const double handoff_ns = svc_ns - core_ns;
+        -:  151:
+    #####:  152:  if (json) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  153:    std::printf(
+        -:  154:        "{\"lang\":\"cpp\",\"shards\":%llu,\"active_ues\":%llu,"
+        -:  155:        "\"core_iters\":%llu,\"svc_iters\":%llu,"
+        -:  156:        "\"core_ns\":%.1f,\"service_ns\":%.1f,\"handoff_ns\":%.1f,"
+        -:  157:        "\"core_share_pct\":%.2f}\n",
+        -:  158:        (unsigned long long)shards, (unsigned long long)active_ues,
+        -:  159:        (unsigned long long)core_iters, (unsigned long long)svc_iters, core_ns, svc_ns,
+    #####:  160:        handoff_ns, 100.0 * core_ns / svc_ns);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  161:  } else {
+    #####:  162:    std::printf("C++ latency budget (%llu shards, %llu active UEs)\n",
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  163:                (unsigned long long)shards, (unsigned long long)active_ues);
+    #####:  164:    std::printf("  core operation (no queue)   : %12.1f ns/call\n", core_ns);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  165:    std::printf("  full service round-trip     : %12.1f ns/call\n", svc_ns);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  166:    std::printf("  cross-thread handoff        : %12.1f ns/call\n", handoff_ns);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  167:    std::printf("  operation's share of the end-to-end cost: %.2f%%\n",
+    #####:  168:                100.0 * core_ns / svc_ns);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  169:  }
+    #####:  170:  return 0;
+        -:  171:}

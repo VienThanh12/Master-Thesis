@@ -1,0 +1,73 @@
+        -:    0:Source:/home/vienha/thesis.local/cpp/include/uecm/service.hpp
+        -:    1:#pragma once
+        -:    2:#include <atomic>
+        -:    3:#include <cstdint>
+        -:    4:#include <memory>
+        -:    5:#include <thread>
+        -:    6:#include <vector>
+        -:    7:
+        -:    8:#include "uecm/bounded_queue.hpp"
+        -:    9:#include "uecm/config.hpp"
+        -:   10:#include "uecm/error.hpp"
+        -:   11:#include "uecm/message.hpp"
+        -:   12:#include "uecm/shard_core.hpp"
+        -:   13:#include "uecm/types.hpp"
+        -:   14:
+        -:   15:namespace uecm {
+        -:   16:
+        -:   17:// The threaded UE Context Management service (spec §7): shared-nothing,
+        -:   18:// thread-per-shard. Callers use the typed API below; each call is routed to the
+        -:   19:// owning shard's queue and executed by that shard's single worker thread, and
+        -:   20:// the caller blocks on the one-shot completion.
+        -:   21:class Service {
+        -:   22: public:
+        -:   23:  explicit Service(const Config& cfg = {});
+        -:   24:  ~Service();
+        -:   25:
+        -:   26:  Service(const Service&) = delete;
+        -:   27:  Service& operator=(const Service&) = delete;
+        -:   28:
+        -:   29:  void start();     // spawn one worker per shard
+        -:   30:  void shutdown();   // drain, stop workers, join (idempotent)
+        -:   31:
+        -:   32:  // Typed API (spec §6). Each call blocks until its completion is signaled.
+        -:   33:  OpResult<void>          create_context(UeId ue_id, const CreateParams& params);
+        -:   34:  OpResult<void>          setup_connection(UeId ue_id);
+        -:   35:  OpResult<SignalingAck>  handle_signaling(UeId ue_id, const SignalingMsg& msg);
+        -:   36:  OpResult<void>          add_drb(UeId ue_id, const DrbEntry& drb);
+        -:   37:  OpResult<void>          begin_reconfigure(UeId ue_id, const ReconfigParams& params);
+        -:   38:  OpResult<void>          complete_reconfigure(UeId ue_id);
+        -:   39:  OpResult<void>          abort_reconfigure(UeId ue_id);
+        -:   40:  OpResult<void>          release_context(UeId ue_id);
+        -:   41:  OpResult<UeContextView> lookup(UeId ue_id);
+        -:   42:  std::uint64_t           count();  // sum across shards (routed per shard)
+        -:   43:
+function _ZNK4uecm7Service8n_shardsEv called 4 returned 100% blocks executed 100%
+        4:   44:  std::uint64_t n_shards() const noexcept { return cfg_.n_shards; }
+        -:   45:
+        -:   46: private:
+        -:   47:  struct Shard {
+function _ZN4uecm7Service5ShardC2ERKNS_6ConfigERSt6atomicImE called 441 returned 100% blocks executed 83%
+      441:   48:    explicit Shard(const Config& cfg, std::atomic<std::uint64_t>& seq)
+      441:   49:        : queue(cfg.queue_capacity), core(std::make_unique<ShardCore>(cfg, seq)) {}
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 never executed
+        -:   50:    BoundedQueue<Request> queue;
+        -:   51:    std::unique_ptr<ShardCore> core;
+        -:   52:    std::thread worker;
+        -:   53:  };
+        -:   54:
+        -:   55:  Response submit(OpKind kind, UeId ue_id, Request&& req);
+        -:   56:  void worker_loop(Shard& shard);
+        -:   57:
+        -:   58:  Config cfg_;
+        -:   59:  std::atomic<std::uint64_t> activity_seq_{0};
+        -:   60:  std::vector<std::unique_ptr<Shard>> shards_;
+        -:   61:  bool running_ = false;
+        -:   62:};
+        -:   63:
+        -:   64:}  // namespace uecm

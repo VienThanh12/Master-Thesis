@@ -1,0 +1,871 @@
+        -:    0:Source:/home/vienha/thesis.local/cpp/tests/test_invariants.cpp
+        -:    1:// Specification invariants that the shared conformance vectors cannot express.
+        -:    2://
+        -:    3:// The .vec transcript only carries the canonical result string of each op, so it
+        -:    4:// can see a context's state, cell, DRB *count* and message counter, and nothing
+        -:    5:// else. The properties below need the typed API: the fields the transcript never
+        -:    6:// prints (security_key, rrc_transaction_id, per-DRB contents), the requirement
+        -:    7:// that a rejected op mutates nothing at all (§6.1), the activity-sequence
+        -:    8:// discipline (§10.3, §11.2), and the structural invariants of §10.1.
+        -:    9:
+        -:   10:#include <atomic>
+        -:   11:#include <cstdint>
+        -:   12:#include <memory>
+        -:   13:#include <vector>
+        -:   14:
+        -:   15:#include "test_util.hpp"
+        -:   16:#include "uecm/hash.hpp"
+        -:   17:#include "uecm/shard_core.hpp"
+        -:   18:
+        -:   19:using namespace uecm;
+        -:   20:
+        -:   21:namespace {
+        -:   22:
+        -:   23:// Reading .error() on a successful expected is undefined, so every negative
+        -:   24:// assertion goes through this instead of dereferencing directly.
+        -:   25:template <class T>
+       12:   26:bool is_err(const OpResult<T>& r, OpError e) {
+      12*:   27:  return !r.has_value() && r.error() == e;
+        -:   28:}
+------------------
+_ZN12_GLOBAL__N_16is_errIN4uecm12SignalingAckEEEbRKSt8expectedIT_NS1_7OpErrorEES5_:
+function _ZN12_GLOBAL__N_16is_errIN4uecm12SignalingAckEEEbRKSt8expectedIT_NS1_7OpErrorEES5_ called 3 returned 100% blocks executed 88%
+        3:   26:bool is_err(const OpResult<T>& r, OpError e) {
+       3*:   27:  return !r.has_value() && r.error() == e;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0%
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0%
+        -:   28:}
+------------------
+_ZN12_GLOBAL__N_16is_errIvEEbRKSt8expectedIT_N4uecm7OpErrorEES4_:
+function _ZN12_GLOBAL__N_16is_errIvEEbRKSt8expectedIT_N4uecm7OpErrorEES4_ called 9 returned 100% blocks executed 88%
+        9:   26:bool is_err(const OpResult<T>& r, OpError e) {
+       9*:   27:  return !r.has_value() && r.error() == e;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0%
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0%
+        -:   28:}
+------------------
+        -:   29:
+function _ZN12_GLOBAL__N_112keyed_paramsEjh called 505 returned 100% blocks executed 100%
+      505:   30:CreateParams keyed_params(std::uint32_t cell, std::uint8_t seed) {
+      505:   31:  CreateParams p;
+      505:   32:  p.serving_cell_id = cell;
+    17170:   33:  for (std::size_t i = 0; i < p.security_key.size(); ++i)
+branch  0 taken 97%
+branch  1 taken 3% (fallthrough)
+    16160:   34:    p.security_key[i] = static_cast<std::uint8_t>(seed + i);
+call    0 returned 100%
+      505:   35:  return p;
+        -:   36:}
+        -:   37:
+function _ZN12_GLOBAL__N_112same_contextERKN4uecm13UeContextViewES3_ called 2 returned 100% blocks executed 88%
+        2:   38:bool same_context(const UeContextView& a, const UeContextView& b) {
+        2:   39:  if (a.ue_id != b.ue_id || a.state != b.state ||
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+        2:   40:      a.serving_cell_id != b.serving_cell_id ||
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+        2:   41:      a.rrc_transaction_id != b.rrc_transaction_id ||
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+        2:   42:      a.security_key != b.security_key ||
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0%
+        2:   43:      a.messages_handled != b.messages_handled ||
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+       6*:   44:      a.last_activity_seq != b.last_activity_seq ||
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0%
+branch  4 taken 0% (fallthrough)
+branch  5 taken 100%
+branch  6 taken 0% (fallthrough)
+branch  7 taken 100%
+        2:   45:      a.drbs.size() != b.drbs.size())
+call    0 returned 100%
+call    1 returned 100%
+    #####:   46:    return false;
+        4:   47:  for (std::size_t i = 0; i < a.drbs.size(); ++i) {
+call    0 returned 100%
+branch  1 taken 50%
+branch  2 taken 50% (fallthrough)
+        2:   48:    if (a.drbs[i].drb_id != b.drbs[i].drb_id ||
+call    0 returned 100%
+call    1 returned 100%
+       4*:   49:        a.drbs[i].qos_flow_id != b.drbs[i].qos_flow_id ||
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+call    2 returned 100%
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0%
+branch  6 taken 0% (fallthrough)
+branch  7 taken 100%
+        2:   50:        a.drbs[i].teid != b.drbs[i].teid)
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 0% (fallthrough)
+branch  3 taken 100%
+    #####:   51:      return false;
+        -:   52:  }
+        2:   53:  return true;
+        -:   54:}
+        -:   55:
+        -:   56:// §6.1: "On any error, the context MUST remain unchanged (no partial mutation)."
+        -:   57:// Every field is compared, including last_activity_seq: a rejected op must not
+        -:   58:// consume a sequence number either.
+function _ZN12_GLOBAL__N_126rejected_ops_do_not_mutateEv called 1 returned 100% blocks executed 59%
+        1:   59:void rejected_ops_do_not_mutate() {
+        1:   60:  std::atomic<std::uint64_t> seq{0};
+        1:   61:  ShardCore core(Config{}, seq);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   62:
+        1:   63:  CHECK(core.create_context(10, keyed_params(7, 0x40)).has_value());
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+call    5 returned 100%
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+        1:   64:  CHECK(core.setup_connection(10).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:   65:  CHECK(core.handle_signaling(10, SignalingMsg{1, 8, {}}).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:   66:  CHECK(core.add_drb(10, DrbEntry{1, 5, 111}).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        -:   67:
+        1:   68:  const UeContextView before = core.lookup(10).value();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 returned 100%
+call    8 never executed
+        -:   69:
+        -:   70:  // Every operation that must be rejected from Connected.
+        1:   71:  CHECK(is_err(core.setup_connection(10), OpError::InvalidState));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:   72:  CHECK(is_err(core.complete_reconfigure(10), OpError::InvalidState));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:   73:  CHECK(is_err(core.abort_reconfigure(10), OpError::InvalidState));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:   74:  CHECK(is_err(core.create_context(10, keyed_params(99, 0x99)), OpError::AlreadyExists));
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+call    5 returned 100%
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+        1:   75:  CHECK(is_err(core.handle_signaling(10, SignalingMsg{1, 65, {}}), OpError::InvalidArgument));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:   76:  CHECK(is_err(core.add_drb(10, DrbEntry{1, 0, 222}), OpError::AlreadyExists));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        -:   77:
+        1:   78:  CHECK(same_context(before, core.lookup(10).value()));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+branch  8 taken 100% (fallthrough)
+branch  9 taken 0% (throw)
+call   10 returned 100%
+branch 11 taken 100% (fallthrough)
+branch 12 taken 0% (throw)
+call   13 returned 100%
+call   14 never executed
+        -:   79:
+        -:   80:  // The same from Reconfiguring, where a rejected begin_reconfigure must not
+        -:   81:  // commit its target cell.
+        1:   82:  CHECK(core.begin_reconfigure(10, ReconfigParams{33}).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:   83:  const UeContextView mid = core.lookup(10).value();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 returned 100%
+call    8 never executed
+        1:   84:  CHECK(mid.serving_cell_id == 33);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        1:   85:  CHECK(is_err(core.begin_reconfigure(10, ReconfigParams{44}), OpError::InvalidState));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:   86:  CHECK(is_err(core.setup_connection(10), OpError::InvalidState));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:   87:  CHECK(is_err(core.handle_signaling(10, SignalingMsg{1, 0, {}}), OpError::InvalidState));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:   88:  CHECK(is_err(core.add_drb(10, DrbEntry{2, 0, 0}), OpError::InvalidState));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:   89:  CHECK(same_context(mid, core.lookup(10).value()));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+branch  8 taken 100% (fallthrough)
+branch  9 taken 0% (throw)
+call   10 returned 100%
+branch 11 taken 100% (fallthrough)
+branch 12 taken 0% (throw)
+call   13 returned 100%
+call   14 never executed
+        1:   90:}
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 never executed
+call    4 never executed
+call    5 never executed
+        -:   91:
+        -:   92:// §10.3 + §11.2: the sequence counter is stamped on successful mutations only,
+        -:   93:// and per context the stamps are strictly increasing.
+function _ZN12_GLOBAL__N_123activity_seq_disciplineEv called 1 returned 100% blocks executed 60%
+        1:   94:void activity_seq_discipline() {
+        1:   95:  std::atomic<std::uint64_t> seq{0};
+        1:   96:  ShardCore core(Config{}, seq);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   97:
+        1:   98:  CHECK(core.create_context(20, keyed_params(1, 0)).has_value());
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+call    5 returned 100%
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+        1:   99:  const std::uint64_t after_create = core.lookup(20).value().last_activity_seq;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+        -:  100:
+        -:  101:  // Read-only ops must not stamp anything (§6.1).
+        1:  102:  (void)core.lookup(20);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+        1:  103:  (void)core.count();
+call    0 returned 100%
+        1:  104:  CHECK(core.lookup(20).value().last_activity_seq == after_create);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+branch  8 taken 100% (fallthrough)
+branch  9 taken 0% (throw)
+call   10 returned 100%
+call   11 never executed
+        -:  105:
+        -:  106:  // A rejected op must not stamp anything either.
+        1:  107:  CHECK(is_err(core.handle_signaling(20, SignalingMsg{1, 0, {}}), OpError::InvalidState));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:  108:  CHECK(core.lookup(20).value().last_activity_seq == after_create);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+branch  8 taken 100% (fallthrough)
+branch  9 taken 0% (throw)
+call   10 returned 100%
+call   11 never executed
+        -:  109:
+        -:  110:  // Successful mutations advance the stamp, strictly, in order.
+        1:  111:  std::uint64_t prev = after_create;
+        1:  112:  CHECK(core.setup_connection(20).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        6:  113:  for (int i = 0; i < 5; ++i) {
+branch  0 taken 83%
+branch  1 taken 17% (fallthrough)
+        5:  114:    CHECK(core.handle_signaling(20, SignalingMsg{1, 4, {}}).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        5:  115:    const std::uint64_t now = core.lookup(20).value().last_activity_seq;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+        5:  116:    CHECK(now > prev);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        5:  117:    prev = now;
+        -:  118:  }
+        1:  119:}
+call    0 returned 100%
+call    1 never executed
+        -:  120:
+        -:  121:// §4.2/§4.4: the fields the conformance transcript never prints must survive a
+        -:  122:// round trip through the store, and the DRB list must keep insertion order and
+        -:  123:// its full contents (the transcript only shows drbs=<count>).
+function _ZN12_GLOBAL__N_125context_fields_round_tripEv called 1 returned 100% blocks executed 70%
+        1:  124:void context_fields_round_trip() {
+        1:  125:  std::atomic<std::uint64_t> seq{0};
+        1:  126:  ShardCore core(Config{}, seq);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:  127:
+        1:  128:  const CreateParams p = keyed_params(4242, 0x80);
+call    0 returned 100%
+        1:  129:  CHECK(core.create_context(30, p).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:  130:  CHECK(core.setup_connection(30).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        -:  131:
+        9:  132:  for (std::uint8_t i = 0; i < static_cast<std::uint8_t>(MAX_DRBS); ++i) {
+branch  0 taken 89%
+branch  1 taken 11% (fallthrough)
+        8:  133:    CHECK(core.add_drb(30, DrbEntry{static_cast<std::uint8_t>(i + 1),
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        -:  134:                                    static_cast<std::uint8_t>(i + 20),
+        -:  135:                                    100u + i})
+        -:  136:              .has_value());
+        -:  137:  }
+        -:  138:
+        1:  139:  const UeContextView v = core.lookup(30).value();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 returned 100%
+call    8 never executed
+        1:  140:  CHECK(v.ue_id == 30);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        1:  141:  CHECK(v.serving_cell_id == 4242);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        1:  142:  CHECK(v.security_key == p.security_key);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+        1:  143:  CHECK(v.rrc_transaction_id == 0);  // §4.3: zero on creation
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        1:  144:  CHECK(v.drbs.size() == MAX_DRBS);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        9:  145:  for (std::size_t i = 0; i < v.drbs.size(); ++i) {
+call    0 returned 100%
+branch  1 taken 89%
+branch  2 taken 11% (fallthrough)
+        8:  146:    CHECK(v.drbs[i].drb_id == static_cast<std::uint8_t>(i + 1));
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        8:  147:    CHECK(v.drbs[i].qos_flow_id == static_cast<std::uint8_t>(i + 20));
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        8:  148:    CHECK(v.drbs[i].teid == 100u + i);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        -:  149:  }
+        -:  150:
+        -:  151:  // §10.1 I4: drb_ids are unique and the list never exceeds MAX_DRBS.
+        9:  152:  for (std::size_t i = 0; i < v.drbs.size(); ++i)
+call    0 returned 100%
+branch  1 taken 89%
+branch  2 taken 11% (fallthrough)
+       36:  153:    for (std::size_t j = i + 1; j < v.drbs.size(); ++j)
+call    0 returned 100%
+branch  1 taken 78%
+branch  2 taken 22% (fallthrough)
+       28:  154:      CHECK(v.drbs[i].drb_id != v.drbs[j].drb_id);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+        1:  155:  CHECK(is_err(core.add_drb(30, DrbEntry{99, 0, 0}), OpError::CapacityExceeded));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:  156:  CHECK(core.lookup(30).value().drbs.size() == MAX_DRBS);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+call    8 returned 100%
+branch  9 taken 100% (fallthrough)
+branch 10 taken 0% (throw)
+call   11 returned 100%
+call   12 never executed
+        1:  157:}
+call    0 returned 100%
+call    1 returned 100%
+call    2 never executed
+call    3 never executed
+        -:  158:
+        -:  159:// §4.4: lookup hands out a snapshot, never an alias into live shard state.
+        -:  160:// Later mutations must not be visible through a view taken earlier. In C++ this
+        -:  161:// is a property of the copy that has to be tested; in Rust the borrow checker
+        -:  162:// makes the aliasing version not compile at all (see rust/tests/invariants.rs).
+function _ZN12_GLOBAL__N_125lookup_returns_a_snapshotEv called 1 returned 100% blocks executed 62%
+        1:  163:void lookup_returns_a_snapshot() {
+        1:  164:  std::atomic<std::uint64_t> seq{0};
+        1:  165:  ShardCore core(Config{}, seq);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:  166:
+        1:  167:  CHECK(core.create_context(40, keyed_params(1, 0)).has_value());
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+call    5 returned 100%
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+        1:  168:  CHECK(core.setup_connection(40).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:  169:  CHECK(core.add_drb(40, DrbEntry{1, 1, 1}).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:  170:  const UeContextView snap = core.lookup(40).value();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 returned 100%
+call    8 never executed
+        -:  171:
+        1:  172:  CHECK(core.handle_signaling(40, SignalingMsg{1, 0, {}}).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:  173:  CHECK(core.add_drb(40, DrbEntry{2, 2, 2}).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:  174:  CHECK(core.begin_reconfigure(40, ReconfigParams{777}).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        -:  175:
+        1:  176:  CHECK(snap.messages_handled == 0);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        1:  177:  CHECK(snap.drbs.size() == 1);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        1:  178:  CHECK(snap.state == UeState::Connected);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        1:  179:  CHECK(snap.serving_cell_id == 1);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        -:  180:
+        -:  181:  // The snapshot also survives the context being destroyed entirely.
+        1:  182:  CHECK(core.release_context(40).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:  183:  CHECK(snap.ue_id == 40);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+       1*:  184:  CHECK(snap.drbs.size() == 1 && snap.drbs[0].teid == 1);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0%
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0%
+call    7 returned 100%
+branch  8 taken 100% (fallthrough)
+branch  9 taken 0% (throw)
+        1:  185:}
+call    0 returned 100%
+call    1 returned 100%
+call    2 never executed
+call    3 never executed
+        -:  186:
+        -:  187:// §10.1 I1: every live ue_id is stored in exactly one shard, namely
+        -:  188:// shard_index(ue_id). Routing is the service's job, so this drives a bank of
+        -:  189:// ShardCores the way the service does and checks that no id is reachable
+        -:  190:// anywhere else.
+function _ZN12_GLOBAL__N_132ids_live_only_in_their_own_shardEv called 1 returned 100% blocks executed 77%
+        1:  191:void ids_live_only_in_their_own_shard() {
+        1:  192:  constexpr std::uint64_t kShards = 5;  // non-power-of-two on purpose
+        1:  193:  std::atomic<std::uint64_t> seq{0};
+        1:  194:  std::vector<std::unique_ptr<ShardCore>> cores;
+        6:  195:  for (std::uint64_t i = 0; i < kShards; ++i)
+branch  0 taken 83%
+branch  1 taken 17% (fallthrough)
+        5:  196:    cores.push_back(std::make_unique<ShardCore>(Config{}, seq));
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+        -:  197:
+        1:  198:  constexpr std::uint64_t kIds = 500;
+      501:  199:  for (std::uint64_t id = 1; id <= kIds; ++id) {
+branch  0 taken 100%
+branch  1 taken 1% (fallthrough)
+      500:  200:    const std::uint64_t owner = shard_index(id, kShards);
+call    0 returned 100%
+      500:  201:    CHECK(cores[owner]->create_context(id, keyed_params(0, 0)).has_value());
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+call    8 returned 100%
+branch  9 taken 100% (fallthrough)
+branch 10 taken 0% (throw)
+        -:  202:  }
+        -:  203:
+        1:  204:  std::uint64_t total = 0;
+        6:  205:  for (auto& c : cores) total += c->count();
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 returned 100%
+call    5 returned 100%
+call    6 returned 100%
+branch  7 taken 83%
+branch  8 taken 17% (fallthrough)
+        1:  206:  CHECK(total == kIds);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        -:  207:
+      501:  208:  for (std::uint64_t id = 1; id <= kIds; ++id) {
+branch  0 taken 100%
+branch  1 taken 1% (fallthrough)
+      500:  209:    const std::uint64_t owner = shard_index(id, kShards);
+call    0 returned 100%
+      500:  210:    std::uint64_t found = 0;
+     3000:  211:    for (std::uint64_t s = 0; s < kShards; ++s)
+branch  0 taken 83%
+branch  1 taken 17% (fallthrough)
+     2500:  212:      if (cores[s]->lookup(id).has_value()) ++found;
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+call    5 returned 100%
+call    6 returned 100%
+branch  7 taken 20% (fallthrough)
+branch  8 taken 80%
+      500:  213:    CHECK(found == 1);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+      500:  214:    CHECK(cores[owner]->lookup(id).has_value());
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 returned 100%
+branch  8 taken 100% (fallthrough)
+branch  9 taken 0% (throw)
+call   10 returned 100%
+call   11 never executed
+        -:  215:  }
+        1:  216:}
+call    0 returned 100%
+call    1 never executed
+        -:  217:
+        -:  218:}  // namespace
+        -:  219:
+function main called 1 returned 100% blocks executed 100%
+        1:  220:int main() {
+        1:  221:  rejected_ops_do_not_mutate();
+call    0 returned 100%
+        1:  222:  activity_seq_discipline();
+call    0 returned 100%
+        1:  223:  context_fields_round_trip();
+call    0 returned 100%
+        1:  224:  lookup_returns_a_snapshot();
+call    0 returned 100%
+        1:  225:  ids_live_only_in_their_own_shard();
+call    0 returned 100%
+        1:  226:  return uecm::test::summary("test_invariants");
+call    0 returned 100%
+        -:  227:}

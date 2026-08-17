@@ -46,7 +46,12 @@ enum Cond {
     Reconfiguring,
 }
 
-const CONDS: [Cond; 4] = [Cond::Absent, Cond::Idle, Cond::Connected, Cond::Reconfiguring];
+const CONDS: [Cond; 4] = [
+    Cond::Absent,
+    Cond::Idle,
+    Cond::Connected,
+    Cond::Reconfiguring,
+];
 
 // The operations of §6 that take a `ue_id`. `count()` is the tenth but takes no
 // id and cannot fail, so it is checked separately in `count_tracks_live_contexts`.

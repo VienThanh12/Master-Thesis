@@ -1,0 +1,143 @@
+        -:    0:Source:/home/vienha/thesis.local/cpp/bench/jestats.hpp
+        -:    1:#pragma once
+        -:    2:// jemalloc's own accounting, read through mallctl (RQ3).
+        -:    3://
+        -:    4:// Why this exists. Peak RSS from getrusage is a single number for the whole
+        -:    5:// process, so it can establish that the Rust build holds more memory than the
+        -:    6:// C++ build without saying what the extra is. Section 7.5.4 records exactly that
+        -:    7:// gap: the split between arena pre-reservation, per-thread caches, and static
+        -:    8:// footprint is left unresolved. jemalloc already tracks that split internally.
+        -:    9://
+        -:   10:// This is not the heap profile that bench/alloc_profile.sh collects. That needs a
+        -:   11:// prof-enabled build and jeprof to symbolise, and attributes bytes to allocation
+        -:   12:// sites; this needs neither and attributes bytes to allocator structures. They
+        -:   13:// answer different halves of the same question, and this half runs anywhere.
+        -:   14://
+        -:   15:// Both languages read the same six counters from the same allocator -- the C++
+        -:   16:// side through mallctl here, the Rust side through tikv-jemalloc-ctl -- so the
+        -:   17:// numbers can be differenced. Using two allocator-specific tools instead would
+        -:   18:// reproduce the mismatched-instrument problem that alloc_profile.sh was written
+        -:   19:// to avoid.
+        -:   20://
+        -:   21:// mallctl is declared weak rather than included from <jemalloc/jemalloc.h>: the
+        -:   22:// runtime ships in libjemalloc.so.2 while the header is a separate dev package,
+        -:   23:// and the system-allocator arms deliberately do not link jemalloc at all. When
+        -:   24:// the symbol is absent every field reports null, never zero -- a zero here would
+        -:   25:// be read as "no arena metadata" rather than "not measured".
+        -:   26:#include <cstddef>
+        -:   27:#include <cstdint>
+        -:   28:#include <cstdio>
+        -:   29:#include <string>
+        -:   30:
+        -:   31:extern "C" int mallctl(const char* name, void* oldp, std::size_t* oldlenp, void* newp,
+        -:   32:                       std::size_t newlen) __attribute__((weak));
+        -:   33:
+        -:   34:namespace bench {
+        -:   35:
+        -:   36:struct JeStats {
+        -:   37:  bool available = false;
+        -:   38:  // All in bytes. See the jemalloc(3) STATS section for the exact definitions.
+        -:   39:  std::uint64_t allocated = 0;  // requested by the application and not yet freed
+        -:   40:  std::uint64_t active = 0;     // in pages handed to the application
+        -:   41:  std::uint64_t metadata = 0;   // arena and tcache bookkeeping -- the fixed cost
+        -:   42:  std::uint64_t resident = 0;   // physically backed, the allocator's own view of RSS
+        -:   43:  std::uint64_t mapped = 0;     // address space in active extents
+        -:   44:  std::uint64_t retained = 0;   // unmapped but not returned to the OS
+        -:   45:};
+        -:   46:
+function _ZN5bench11je_read_u64EPKcPm called 0 returned 0% blocks executed 0%
+    #####:   47:inline bool je_read_u64(const char* name, std::uint64_t* out) {
+    #####:   48:  std::size_t sz = sizeof(*out);
+    #####:   49:  return mallctl(name, out, &sz, nullptr, 0) == 0;
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:   50:}
+        -:   51:
+        -:   52:// jemalloc's statistics are cached and only refreshed when `epoch` is written,
+        -:   53:// so a read without this returns whatever the last refresh saw.
+function _ZN5bench11je_snapshotEv called 0 returned 0% blocks executed 0%
+    #####:   54:inline JeStats je_snapshot() {
+    #####:   55:  JeStats s;
+    #####:   56:  if (&mallctl == nullptr) return s;  // system-allocator arm: nothing to read
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:   57:  std::uint64_t epoch = 1;
+    #####:   58:  std::size_t esz = sizeof(epoch);
+    #####:   59:  if (mallctl("epoch", &epoch, &esz, &epoch, sizeof(epoch)) != 0) return s;
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+        -:   60:  // stats.* exist only in a --enable-stats build. That is jemalloc's default, but
+        -:   61:  // a build without it fails the read rather than returning a wrong number, so
+        -:   62:  // every field is required before the snapshot counts as available.
+    #####:   63:  const bool ok = je_read_u64("stats.allocated", &s.allocated) &&
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   64:                  je_read_u64("stats.active", &s.active) &&
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+    #####:   65:                  je_read_u64("stats.metadata", &s.metadata) &&
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+    #####:   66:                  je_read_u64("stats.resident", &s.resident) &&
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+    #####:   67:                  je_read_u64("stats.mapped", &s.mapped) &&
+branch  0 never executed (fallthrough)
+branch  1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+branch  5 never executed (fallthrough)
+branch  6 never executed
+    #####:   68:                  je_read_u64("stats.retained", &s.retained);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+branch  3 never executed (fallthrough)
+branch  4 never executed
+    #####:   69:  s.available = ok;
+    #####:   70:  return s;
+        -:   71:}
+        -:   72:
+        -:   73:// A JSON object, or nulls when the allocator cannot be interrogated. The key is
+        -:   74:// always present so a consumer can tell "measured as absent" from "field missing
+        -:   75:// because the harness predates this".
+function _ZN5bench7je_jsonB5cxx11ERKNS_7JeStatsE called 0 returned 0% blocks executed 0%
+    #####:   76:inline std::string je_json(const JeStats& s) {
+    #####:   77:  if (!s.available) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+        -:   78:    return "\"je\":{\"available\":false,\"allocated\":null,\"active\":null,"
+    #####:   79:           "\"metadata\":null,\"resident\":null,\"mapped\":null,\"retained\":null}";
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:   80:  }
+        -:   81:  char buf[320];
+    #####:   82:  std::snprintf(buf, sizeof(buf),
+        -:   83:                "\"je\":{\"available\":true,\"allocated\":%llu,\"active\":%llu,"
+        -:   84:                "\"metadata\":%llu,\"resident\":%llu,\"mapped\":%llu,\"retained\":%llu}",
+    #####:   85:                (unsigned long long)s.allocated, (unsigned long long)s.active,
+    #####:   86:                (unsigned long long)s.metadata, (unsigned long long)s.resident,
+    #####:   87:                (unsigned long long)s.mapped, (unsigned long long)s.retained);
+    #####:   88:  return buf;
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:   89:}
+        -:   90:
+        -:   91:}  // namespace bench

@@ -136,8 +136,12 @@ def read_table(stem):
 
 #: How the fault-injection runner spells an outcome, and how a slide should.
 #: "clean" means the sanitiser ran and reported nothing, which is the point of
-#: the row, so it is spelled out rather than left as a dash.
-_SANITISER_LABEL = {"detected": "detected", "clean": "no report", "hung": "hung"}
+#: the row, so it is spelled out rather than left as a dash. "flaky" is kept
+#: separate from "detected": the lock-order case is reported on a minority of
+#: runs because TSan closes a cycle only from acquisitions that succeed, and a
+#: detector that fires sometimes is a different proposition from one that fires.
+_SANITISER_LABEL = {"detected": "detected", "clean": "no report", "hung": "hung",
+                    "flaky": "intermittent"}
 
 #: Display name and UECM incarnation per catalogue entry, keyed on the identifier
 #: faults/results/taxonomy.csv uses. Both the catalogue slide and the results
@@ -157,6 +161,12 @@ DEFECTS = {
                             "Two procedures take the same two shard locks in opposite orders"),
     "lost_update": ("Lost update",
                     "A counter's read-modify-write is split across two critical sections"),
+    "leak_cycle": ("Leak through a reference cycle",
+                   "A context and its handover peer hold owning references to each other"),
+    "integer_overflow": ("Integer overflow in a release build",
+                         "A bearer's TEID stride computation exceeds the width of its type"),
+    "worker_failure_blast_radius": ("Worker failure blast radius",
+                                    "One shard worker fails mid-procedure and the others do not survive it"),
 }
 
 
@@ -186,6 +196,8 @@ def read_taxonomy():
                 "incarnation": incarnation,
                 "asan": _SANITISER_LABEL.get(rec["cpp_asan"].strip(), rec["cpp_asan"]),
                 "tsan": _SANITISER_LABEL.get(rec["cpp_tsan"].strip(), rec["cpp_tsan"]),
+                "ubsan": _SANITISER_LABEL.get(rec.get("cpp_ubsan", "").strip(),
+                                              rec.get("cpp_ubsan", "")),
                 "rust": rust.replace(",", ", "),
                 "boundary": rec["rust_expected"].strip() == "not-prevented",
             })
@@ -264,6 +276,7 @@ BOUNDARY = [d for d in TAXONOMY if d["boundary"]]
 #: is counted from the outcomes rather than asserted.
 ASAN_MISSES = sum(1 for d in IN_GUARANTEE if d["asan"] != "detected")
 TSAN_MISSES = sum(1 for d in IN_GUARANTEE if d["tsan"] != "detected")
+UBSAN_MISSES = sum(1 for d in IN_GUARANTEE if d["ubsan"] != "detected")
 
 
 def ffi_value(metric):
@@ -939,7 +952,7 @@ add_figure(s, _png, crop_top=_crop)
 # Slide 14: RQ2 outcomes (generated figure)
 # =====================================================================
 s = headline(1, "RQ2: a difference of kind, with a definite edge",
-             f"{ENV.get('gpp', 'g++')} with ASan/TSan versus {ENV.get('rustc', 'rustc')}")
+             f"{ENV.get('gpp', 'g++')} with ASan/TSan/UBSan versus {ENV.get('rustc', 'rustc')}")
 add_figure(s, result_figure("fig_taxonomy"), width=Cm(12.0), height=Cm(9.2),
            top=Cm(3.5))
 add_notes(s, [
@@ -948,10 +961,10 @@ add_notes(s, [
      "for the guarantee to hold."),
     ("In C++ each one compiles",
      f"and is caught, if at all, only at run time and by no single tool: ASan misses "
-     f"{ASAN_MISSES} of them and TSan misses {TSAN_MISSES}."),
+     f"{ASAN_MISSES} of them, TSan {TSAN_MISSES}, UBSan {UBSAN_MISSES}."),
     (f"The last {len(BOUNDARY)} rows are the boundary",
-     "Rust removes data races, not race conditions; aliasing errors, not lock-ordering "
-     "errors. Both languages fail there."),
+     "Rust removes data races, not race conditions, lock-order errors, leaks, wrapping "
+     "arithmetic or fault containment. On two, the C++ tooling is ahead."),
 ], top=Cm(3.6), left=Cm(13.6), width=Cm(10.64), height=Cm(9.2), gap=Cm(0.42),
    vertical=True)
 

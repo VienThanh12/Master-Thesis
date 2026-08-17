@@ -112,7 +112,10 @@ latexmk -C                   # clean build artifacts
 - [x] Unit/conformance tests green (16/16 across `conformance.rs`, `invariants.rs`,
       `concurrency.rs`); `cargo clippy --all-targets -D warnings` clean; `cargo fmt` applied
 - [x] Wire jemalloc allocator (`--features jemalloc`, `tikv-jemallocator` global allocator) + HdrHistogram (`hdrhistogram` crate) in `rust/examples/bench.rs`
-- [ ] (Optional) Miri UB/data-race pass once a nightly toolchain is available
+- [x] Miri UB/data-race pass (`rust/miri.sh`, nightly + `miri` component). Clean: 14 tests,
+      zero undefined-behaviour reports, Stacked Borrows with strict provenance. Confirms rather
+      than discovers, since the core has no `unsafe`; its value is symmetry with `cpp/sanitise.sh`
+      so neither arm is the one without dynamic-analysis evidence attached.
 - [x] Run against shared parity-test contract (spec §11): `conformance_runner` passes all 7 vectors; transcript matches C++ byte-for-byte
 
 ## Phase 5 - Parity verification
@@ -136,6 +139,29 @@ latexmk -C                   # clean build artifacts
       specified `x mod n_shards` with `x & (n_shards-1)` passes `basic.vec`, `shards.vec`,
       `test_shard_core` and `test_service` unchanged, and is caught only by the new
       `shards13.vec` and the new KAT.
+- [x] **Independent oracle + generated vectors** (Aug 2026). The cross-diff proved the two
+      implementations agree; it could not distinguish "both correct" from "both wrong the same
+      way", and the 223 expectations were hand-derived by the same author who wrote both sides.
+      `spec/conformance/model.py` is a third implementation of the spec in Python, validated by
+      the §8 KATs and by reproducing all 223 hand-derived expectations before it is allowed to
+      generate any. `genvec.py` generates seeded random sequences under five profiles with
+      model-derived expectations; `run.sh` gained three phases and a check that the generated
+      family reaches every §6.6 code. **~793 000 generated operations, no divergence.**
+      Deterministic PRNG, so a failing seed is a permanent regression test.
+- [x] **Exhaustive state × operation matrix**, mirrored: `cpp/tests/test_state_matrix.cpp` (439
+      checks) and `rust/tests/state_matrix.rs` (9 tests). Every op against every state, asserting
+      the exact error, the post-state on success, and no field change on failure; plus the four
+      error precedences the spec leaves unordered, `ue_id == 0` on every op, and that `Released`
+      is not a resting state. C++ is now 6 test binaries, Rust 25 tests.
+- [x] **Dynamic analysis of the parity suite.** `cpp/sanitise.sh` runs every test binary and every
+      vector under ASan+UBSan, TSan and UBSan: all clean. This matters for fairness — safe Rust
+      carries the property by construction, so without it the C++ arm's equivalent rests on not
+      having failed yet. `rust/miri.sh` is the Rust counterpart.
+- [x] **Coverage measured, because a sanitiser only reports on code that runs.** 94.6% of C++
+      library lines (`cpp/coverage.sh`, gcov) and 98.2% of Rust library lines (`rust/coverage.sh`,
+      llvm-cov), with `ShardCore` and `Service` at 100% on both sides. The two are **not**
+      comparable with each other; each bounds the claims about its own implementation. Uncovered:
+      the C++ `BoundedQueue` template's uninstantiated members and Rust's derive-generated `types.rs`.
 
 ## Phase 6 - Benchmarking framework & workload generator
 - [x] Build synthetic workload generator (UE lifecycle: attach, signaling, bearer setup, handover begin/complete/abort, release), pinned deterministic model, identical op-stream in C++/Rust (`--workload mixed`)
@@ -590,17 +616,63 @@ five in-guarantee results credible.
       blocking and *is* reported, which proves the detector was live. So the honest
       statement for this class is that the tool catches the inversion the program
       survives and misses the one that deadlocks.
+- [x] **CORRECTION (Aug 2026): "it still does not fire" was wrong, and the reason it
+      looked right is instructive.** The detection is *nondeterministic*, and the
+      previous verdict was a single run. Measured over repeats, TSan reports the
+      lock-order inversion in **4/12, 6/20 and 7/20 runs** across three trials — roughly
+      30% — while the program deadlocks on every one. The mechanism recorded above is
+      half right: `deadlock.cpp` **loops**, so on some runs a thread completes an
+      inversion without blocking, the cycle closes and the report fires; on others the
+      first inversion blocks and only one edge is ever recorded. What was wrong was
+      treating one observation of the silent case as the outcome of the class.
+      The rate is stable at a 3 s bound and at 25 s, so the report, when it comes, comes
+      early. `run_faults.sh` now repeats this case twelve times, records `flaky` as an
+      outcome distinct from `detected`, and reports the rate; the thesis table carries a
+      footnote and §7.5.6 states it. **Lesson worth keeping: a categorical outcome that
+      depends on a schedule needs repeats before it goes in a tracked artefact.**
 - [x] **`run_faults.sh` now pins `TSAN_OPTIONS=detect_deadlocks=1:second_deadlock_stack=1`**
       rather than inheriting a default that differs between runtimes, runs the control
       before the catalogue, prints its outcome in the banner and `taxonomy.md`, and warns
       loudly if the control fails — because then "undetected" would carry no information.
-- [ ] **Write the near-miss finding into §7.5.6.** It converts a blank cell into a result
-      and pre-empts the examiner who asks whether the flag was set. One or two sentences.
-- [ ] **Still open: the Rust half.** Run Loom and Shuttle against the two boundary cases
-      to see whether the ecosystem catches at test time what the compiler does not catch
-      at build time. That is the other half of RQ2's "at what stage and cost".
+- [x] **Written into §7.5.6.** The intermittency, the mechanism, and the positive control
+      are all in the results section now, with the rate in the table footnote.
+- [x] **Done: the Rust half.** `faults/rust-model-checking/` runs Loom (exhaustive, C11
+      model) and Shuttle (PCT, sampled) against both boundary cases; `run_model_checking.sh`
+      classifies them and writes `results/model_checking.{md,csv}`.
+      **Both checkers report both defects**, and all four controls (consistent lock order;
+      read-modify-write in one critical section) come out clean.
+      **The cost is the finding, and it is what §4 predicted.** Neither defect program runs
+      under either checker as written: each had to be re-imported against the checker's own
+      `sync`/`thread` types, and shrunk to model size (lost update from 20 000 iterations
+      per thread to one; the deadlock loses its `thread::sleep`). So the Rust answer is
+      *detected at test time, after a rewrite*, against a C++ side that needs no rewrite and
+      finds one of the two unreliably and the other not at all. The two halves point in
+      opposite directions, which is the two-sided result the catalogue was designed to be
+      able to produce.
+      The crate is separate from `rust/` on purpose: spec §12's dependency-free core is
+      load-bearing for RQ4 and should not be weakened for models that never touch the library.
 
-### 5. Three more boundary defect classes
+### 5. Three more boundary defect classes — DONE (Aug 2026)
+
+- [x] **All three added; the catalogue is now 5 in-guarantee + 5 boundary.** `leak_cycle`,
+      `integer_overflow` and `worker_failure_blast_radius`, with C++ and Rust counterparts,
+      taxonomy rows, `tab:defectmap` and `tab:taxonomy` entries, and prose in §4 and §7.5.6.
+- [x] **A UBSan column was needed and is now there.** Signed overflow is invisible to both
+      ASan and TSan, so without a third sanitiser the overflow class would have been recorded
+      as undetected in C++ when it is caught. `run_faults.sh` now runs all three.
+- [x] **Two of the three came back with the C++ tooling ahead**, which is the outcome a
+      two-sided catalogue exists to be able to produce: LSan reports the C++ reference cycle
+      while safe Rust leaks silently, and UBSan reports the C++ overflow while Rust's defined
+      wrap says nothing. Do not drop these rows to tidy the narrative.
+- [x] **A latent bug in the runner surfaced and is fixed.** `run_cpp_san` classified any
+      `rc >= 124` as "hung", which also catches `128 + signal`, so a program aborting by
+      design (glibc's double-free check, `std::terminate`) was recorded as a timeout. Now only
+      124 and 137 count as hung.
+- [x] `integer_overflow` is built with `-O -C overflow-checks=off`, matching the `opt-level = 2`
+      profile the thesis compares. Built with the `rustc` defaults it panics, and the table
+      would then record a detection the measured configuration does not have.
+
+Original note, kept for the reasoning:
 
 The catalogue holds five in-guarantee classes and two outside. `tab:threats` concedes "seven
 programs remain seven programs", and future work already names leaks. Three candidates, each

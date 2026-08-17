@@ -1,0 +1,156 @@
+        -:    0:Source:/home/vienha/thesis.local/cpp/bench/workload.hpp
+        -:    1:// Pinned synthetic RAN control-plane workload generator (spec §10, bench model).
+        -:    2://
+        -:    3:// Models the UE lifecycle a gNB-CU-CP performs: attach (create -> setup), signaling
+        -:    4:// activity, bearer setup (add_drb), handover (begin_reconfigure -> complete/abort),
+        -:    5:// and release (detach). The generator is a pure, deterministic function of
+        -:    6:// (active_ues, seed): it keeps a lightweight per-slot expected-state model so every
+        -:    7:// emitted op is valid by construction, and it advances that model optimistically so
+        -:    8:// the *sequence of op kinds* is identical in C++ and Rust for the same parameters.
+        -:    9:// That makes the per-kind op counts a cross-language parity signal.
+        -:   10://
+        -:   11:// PRNG draw order (MUST match the Rust generator exactly):
+        -:   12://   1 draw  -> slot = next() % active_ues
+        -:   13://   + if the slot is Connected or Reconfiguring: 1 more draw for the action roll.
+        -:   14:// Empty/Idle slots consume no action draw (their transition is forced).
+        -:   15:
+        -:   16:#pragma once
+        -:   17:#include <cstdint>
+        -:   18:#include <vector>
+        -:   19:
+        -:   20:#include "uecm/config.hpp"
+        -:   21:
+        -:   22:namespace bench {
+        -:   23:
+        -:   24:struct SplitMix64 {
+        -:   25:  std::uint64_t s;
+function _ZN5bench10SplitMix644nextEv called 0 returned 0% blocks executed 0%
+    #####:   26:  std::uint64_t next() {
+    #####:   27:    std::uint64_t z = (s += 0x9E3779B97F4A7C15ULL);
+    #####:   28:    z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
+    #####:   29:    z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
+    #####:   30:    return z ^ (z >> 31);
+        -:   31:  }
+        -:   32:};
+        -:   33:
+        -:   34:enum class WKind : std::uint8_t {
+        -:   35:  Create = 0,
+        -:   36:  Setup = 1,
+        -:   37:  Signal = 2,
+        -:   38:  AddDrb = 3,
+        -:   39:  BeginReconf = 4,
+        -:   40:  CompleteReconf = 5,
+        -:   41:  AbortReconf = 6,
+        -:   42:  Release = 7,
+        -:   43:};
+        -:   44:inline constexpr int kWKindCount = 8;
+        -:   45:
+        -:   46:struct WOp {
+        -:   47:  WKind kind;
+        -:   48:  std::uint64_t slot;
+        -:   49:  std::uint8_t drb_id;
+        -:   50:};
+        -:   51:
+        -:   52:// Expected per-slot state (mirrors uecm::UeState plus an "Empty" for no context).
+        -:   53:enum : std::uint8_t { kEmpty = 0, kIdle = 1, kConnected = 2, kReconfiguring = 3 };
+        -:   54:
+        -:   55:class Workload {
+        -:   56: public:
+function _ZN5bench8WorkloadC2Emm called 0 returned 0% blocks executed 0%
+    #####:   57:  Workload(std::uint64_t active_ues, std::uint64_t seed)
+    #####:   58:      : n_(active_ues == 0 ? 1 : active_ues),
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:   59:        rng_{seed},
+    #####:   60:        state_(n_, kEmpty),
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+    #####:   61:        ndrbs_(n_, 0) {}
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+        -:   62:
+function _ZN5bench8Workload4nextEv called 0 returned 0% blocks executed 0%
+    #####:   63:  WOp next() {
+    #####:   64:    const std::uint64_t slot = rng_.next() % n_;
+call    0 never executed
+    #####:   65:    WOp op{WKind::Signal, slot, 0};
+    #####:   66:    switch (state_[slot]) {
+call    0 never executed
+branch  1 never executed
+branch  2 never executed
+branch  3 never executed
+branch  4 never executed
+    #####:   67:      case kEmpty:
+    #####:   68:        op.kind = WKind::Create;
+    #####:   69:        state_[slot] = kIdle;
+call    0 never executed
+    #####:   70:        break;
+    #####:   71:      case kIdle:
+    #####:   72:        op.kind = WKind::Setup;
+    #####:   73:        state_[slot] = kConnected;
+call    0 never executed
+    #####:   74:        break;
+    #####:   75:      case kConnected: {
+    #####:   76:        const std::uint64_t r = rng_.next() % 100;
+call    0 never executed
+    #####:   77:        if (r < 70) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:   78:          op.kind = WKind::Signal;  // steady-state signaling dominates
+    #####:   79:        } else if (r < 80) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:   80:          if (ndrbs_[slot] < uecm::MAX_DRBS) {
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed
+    #####:   81:            op.kind = WKind::AddDrb;
+    #####:   82:            op.drb_id = ndrbs_[slot];
+call    0 never executed
+    #####:   83:            ++ndrbs_[slot];
+call    0 never executed
+        -:   84:          } else {
+    #####:   85:            op.kind = WKind::Signal;
+        -:   86:          }
+    #####:   87:        } else if (r < 95) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:   88:          op.kind = WKind::BeginReconf;
+    #####:   89:          state_[slot] = kReconfiguring;
+call    0 never executed
+        -:   90:        } else {
+    #####:   91:          op.kind = WKind::Release;
+    #####:   92:          state_[slot] = kEmpty;
+call    0 never executed
+    #####:   93:          ndrbs_[slot] = 0;
+call    0 never executed
+        -:   94:        }
+    #####:   95:        break;
+        -:   96:      }
+    #####:   97:      case kReconfiguring:
+        -:   98:      default: {
+    #####:   99:        const std::uint64_t r = rng_.next() % 100;
+call    0 never executed
+    #####:  100:        op.kind = (r < 80) ? WKind::CompleteReconf : WKind::AbortReconf;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  101:        state_[slot] = kConnected;
+call    0 never executed
+    #####:  102:        break;
+        -:  103:      }
+        -:  104:    }
+    #####:  105:    return op;
+        -:  106:  }
+        -:  107:
+        -:  108: private:
+        -:  109:  std::uint64_t n_;
+        -:  110:  SplitMix64 rng_;
+        -:  111:  std::vector<std::uint8_t> state_;
+        -:  112:  std::vector<std::uint8_t> ndrbs_;
+        -:  113:};
+        -:  114:
+        -:  115:}  // namespace bench

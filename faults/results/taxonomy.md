@@ -7,12 +7,26 @@
 - TSan deadlock-detector control (`deadlock_control.cpp`, inversion without blocking):
   **detected (detector live; the undetected verdict below is a real outcome)**
 
-| Defect class | C++ ASan | C++ TSan | C++ detection stage | Rust outcome |
-|---|---|---|---|---|
-| use_after_free | detected | detected | runtime (ASan+TSan) | compile-time prevented (E0499) |
-| double_free | detected | clean | runtime (ASan) | compile-time prevented (E0382) |
-| iterator_invalidation | detected | detected | runtime (ASan+TSan) | compile-time prevented (E0502) |
-| data_race | clean | detected | runtime (TSan) | compile-time prevented (E0373,E0382,E0502) |
-| unguarded_shared_mutation | clean | detected | runtime (TSan) | compile-time prevented (E0502,E0524,E0597) |
-| lock_order_deadlock | hung | hung | undetected (hung) | not prevented (compiles; deadlocks) |
-| lost_update | clean | clean | undetected | not prevented (compiles; wrong result) |
+`integer_overflow` is built with `-O -C overflow-checks=off` so it matches
+the `opt-level = 2` profile the thesis compares (spec §3). With the `rustc`
+defaults it would panic, and the table would record a detection the measured
+configuration does not have.
+
+`lock_order_deadlock` is run 12 times under TSan rather than once.
+Its detection is schedule-dependent: TSan closes a lock-order cycle only from
+acquisitions that *succeed*, so a run whose first inversion blocks never
+produces the second edge. `flaky` records that, where a single run would
+record whichever outcome the scheduler happened to give.
+
+| Defect class | C++ ASan | C++ TSan | C++ UBSan | C++ detection stage | Rust outcome | Note |
+|---|---|---|---|---|---|---|
+| use_after_free | detected | detected | clean | runtime (ASan+TSan) | compile-time prevented (E0499) | - |
+| double_free | detected | clean | clean | runtime (ASan) | compile-time prevented (E0382) | - |
+| iterator_invalidation | detected | detected | clean | runtime (ASan+TSan) | compile-time prevented (E0502) | - |
+| data_race | clean | detected | clean | runtime (TSan) | compile-time prevented (E0373,E0382,E0502) | - |
+| unguarded_shared_mutation | clean | detected | clean | runtime (TSan) | compile-time prevented (E0502,E0524,E0597) | - |
+| lock_order_deadlock | hung | flaky | hung | runtime, intermittent (TSan) | not prevented (compiles; deadlocks) | TSan reported in 7/12 runs |
+| lost_update | clean | clean | clean | undetected | not prevented (compiles; wrong result) | - |
+| leak_cycle | detected | clean | clean | runtime (ASan) | not prevented (compiles; ran clean) | - |
+| integer_overflow | clean | clean | detected | runtime (UBSan) | not prevented (compiles; wrong result) | - |
+| worker_failure_blast_radius | clean | clean | clean | undetected | not prevented (compiles; wrong result) | - |

@@ -54,6 +54,21 @@ if(NOT UECM_SANITIZER STREQUAL "off")
   add_link_options(${_san_flags})
 endif()
 
+# --- Coverage -----------------------------------------------------------------
+# Instruments for gcov so cpp/coverage.sh can report what fraction of the
+# implementation the parity suite actually executes. A test suite's authority
+# rests on its reach, and "all tests pass" says nothing about reach; this is the
+# number that does.
+#
+# -O0 because the optimiser inlines and merges lines until per-line attribution
+# stops meaning anything. Another detection build, never a measurement one.
+option(UECM_COVERAGE "Instrument for gcov line coverage (implies -O0)" OFF)
+if(UECM_COVERAGE)
+  message(STATUS "uecm: COVERAGE build -- instrumented for gcov, do not benchmark")
+  add_compile_options(--coverage -O0 -g)
+  add_link_options(--coverage)
+endif()
+
 # --- Core library -------------------------------------------------------------
 add_library(uecm STATIC
   src/shard_core.cpp

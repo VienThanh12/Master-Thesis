@@ -1,0 +1,83 @@
+        -:    0:Source:/home/vienha/thesis.local/cpp/include/uecm/shard_core.hpp
+        -:    1:#pragma once
+        -:    2:#include <atomic>
+        -:    3:#include <cstdint>
+        -:    4:#include <unordered_map>
+        -:    5:
+        -:    6:#include "uecm/config.hpp"
+        -:    7:#include "uecm/error.hpp"
+        -:    8:#include "uecm/hash.hpp"
+        -:    9:#include "uecm/types.hpp"
+        -:   10:
+        -:   11:#ifdef UECM_FLAT_MAP
+        -:   12:#include "uecm/flat_map.hpp"
+        -:   13:#endif
+        -:   14:
+        -:   15:namespace uecm {
+        -:   16:
+        -:   17:// The intra-shard store. std::unordered_map is the measured configuration; the
+        -:   18:// open-addressed alternative exists only to attribute the core-operation result
+        -:   19:// and is never the reported arm. See flat_map.hpp for why.
+        -:   20:#ifdef UECM_FLAT_MAP
+        -:   21:using ContextMap = FlatMap<UeId, UeContext, FnvHash>;
+        -:   22:#else
+        -:   23:using ContextMap = std::unordered_map<UeId, UeContext, FnvHash>;
+        -:   24:#endif
+        -:   25:
+        -:   26:// ShardCore is the single-threaded operation processor for one shard: it owns the
+        -:   27:// shard's contexts and implements the state machine + map operations (spec §5, §6).
+        -:   28://
+        -:   29:// It is intentionally NOT thread-safe on its own: in the full service exactly one
+        -:   30:// worker thread ever calls these methods for a given shard (shared-nothing, §7), so
+        -:   31:// no locking is needed. The threaded queue/worker wrapper is added on top of this.
+        -:   32:class ShardCore {
+        -:   33: public:
+        -:   34:  explicit ShardCore(const Config& cfg, std::atomic<std::uint64_t>& activity_seq);
+        -:   35:
+        -:   36:  // Mutating operations (spec §6).
+        -:   37:  OpResult<void>         create_context(UeId ue_id, const CreateParams& params);
+        -:   38:  OpResult<void>         setup_connection(UeId ue_id);
+        -:   39:  OpResult<SignalingAck> handle_signaling(UeId ue_id, const SignalingMsg& msg);
+        -:   40:  OpResult<void>         add_drb(UeId ue_id, const DrbEntry& drb);
+        -:   41:  OpResult<void>         begin_reconfigure(UeId ue_id, const ReconfigParams& params);
+        -:   42:  OpResult<void>         complete_reconfigure(UeId ue_id);
+        -:   43:  OpResult<void>         abort_reconfigure(UeId ue_id);
+        -:   44:  OpResult<void>         release_context(UeId ue_id);
+        -:   45:
+        -:   46:  // Read-only operations.
+        -:   47:  OpResult<UeContextView> lookup(UeId ue_id) const;
+     1885:   48:  std::uint64_t           count() const noexcept { return map_.size(); }
+------------------
+_ZNK4uecm9ShardCore5countEv:
+function _ZNK4uecm9ShardCore5countEv called 1 returned 100% blocks executed 100%
+        1:   48:  std::uint64_t           count() const noexcept { return map_.size(); }
+call    0 returned 100%
+------------------
+_ZNK4uecm9ShardCore5countEv:
+function _ZNK4uecm9ShardCore5countEv called 1774 returned 100% blocks executed 100%
+     1774:   48:  std::uint64_t           count() const noexcept { return map_.size(); }
+call    0 returned 100%
+------------------
+_ZNK4uecm9ShardCore5countEv:
+function _ZNK4uecm9ShardCore5countEv called 104 returned 100% blocks executed 100%
+      104:   48:  std::uint64_t           count() const noexcept { return map_.size(); }
+call    0 returned 100%
+------------------
+_ZNK4uecm9ShardCore5countEv:
+function _ZNK4uecm9ShardCore5countEv called 6 returned 100% blocks executed 100%
+        6:   48:  std::uint64_t           count() const noexcept { return map_.size(); }
+call    0 returned 100%
+------------------
+        -:   49:
+        -:   50: private:
+function _ZN4uecm9ShardCore8next_seqEv called 214920 returned 100% blocks executed 100%
+   214920:   51:  std::uint64_t next_seq() noexcept {
+   429840:   52:    return activity_seq_.fetch_add(1, std::memory_order_relaxed);
+        -:   53:  }
+        -:   54:
+        -:   55:  Config cfg_;
+        -:   56:  std::atomic<std::uint64_t>& activity_seq_;
+        -:   57:  ContextMap map_;
+        -:   58:};
+        -:   59:
+        -:   60:}  // namespace uecm

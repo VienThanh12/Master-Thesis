@@ -11,7 +11,7 @@ Regenerate with `faults/run_model_checking.sh`. Outcomes are categorical.
 | Defect class | Loom | Shuttle | Diagnostic |
 |---|---|---|---|
 | `lock_order_deadlock` | reported | reported | `deadlock; threads = [(Id(0), Blocked(Location(None))), (Id` |
-| `lost_update` | reported | reported | `assertion `left == right` failed: lost update: messages_ha` |
+| `lost_update` | reported | reported | `assertion left == right failed: lost update: messages_hand` |
 
 ## Controls
 

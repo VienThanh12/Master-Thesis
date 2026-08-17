@@ -1,0 +1,2537 @@
+        -:    0:Source:/usr/include/c++/13/expected
+        -:    1:// <expected> -*- C++ -*-
+        -:    2:
+        -:    3:// Copyright The GNU Toolchain Authors.
+        -:    4://
+        -:    5:// This file is part of the GNU ISO C++ Library.  This library is free
+        -:    6:// software; you can redistribute it and/or modify it under the
+        -:    7:// terms of the GNU General Public License as published by the
+        -:    8:// Free Software Foundation; either version 3, or (at your option)
+        -:    9:// any later version.
+        -:   10:
+        -:   11:// This library is distributed in the hope that it will be useful,
+        -:   12:// but WITHOUT ANY WARRANTY; without even the implied warranty of
+        -:   13:// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        -:   14:// GNU General Public License for more details.
+        -:   15:
+        -:   16:// Under Section 7 of GPL version 3, you are granted additional
+        -:   17:// permissions described in the GCC Runtime Library Exception, version
+        -:   18:// 3.1, as published by the Free Software Foundation.
+        -:   19:
+        -:   20:// You should have received a copy of the GNU General Public License and
+        -:   21:// a copy of the GCC Runtime Library Exception along with this program;
+        -:   22:// see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+        -:   23:// <http://www.gnu.org/licenses/>.
+        -:   24:
+        -:   25:/** @file include/expected
+        -:   26: *  This is a Standard C++ Library header.
+        -:   27: */
+        -:   28:
+        -:   29:#ifndef _GLIBCXX_EXPECTED
+        -:   30:#define _GLIBCXX_EXPECTED
+        -:   31:
+        -:   32:#pragma GCC system_header
+        -:   33:
+        -:   34:#if __cplusplus > 202002L && __cpp_concepts >= 202002L
+        -:   35:
+        -:   36:#include <initializer_list>
+        -:   37:#include <bits/exception.h>	// exception
+        -:   38:#include <bits/invoke.h>	// __invoke
+        -:   39:#include <bits/stl_construct.h>	// construct_at
+        -:   40:#include <bits/utility.h>	// in_place_t
+        -:   41:
+        -:   42:namespace std _GLIBCXX_VISIBILITY(default)
+        -:   43:{
+        -:   44:_GLIBCXX_BEGIN_NAMESPACE_VERSION
+        -:   45:
+        -:   46:  /**
+        -:   47:   * @defgroup expected_values Expected values
+        -:   48:   * @addtogroup utilities
+        -:   49:   * @since C++23
+        -:   50:   * @{
+        -:   51:   */
+        -:   52:
+        -:   53:#define __cpp_lib_expected 202211L
+        -:   54:
+        -:   55:  /// Discriminated union that holds an expected value or an error value.
+        -:   56:  /**
+        -:   57:   * @since C++23
+        -:   58:   */
+        -:   59:  template<typename _Tp, typename _Er>
+        -:   60:    class expected;
+        -:   61:
+        -:   62:  /// Wrapper type used to pass an error value to a `std::expected`.
+        -:   63:  /**
+        -:   64:   * @since C++23
+        -:   65:   */
+        -:   66:  template<typename _Er>
+        -:   67:    class unexpected;
+        -:   68:
+        -:   69:  /// Exception thrown by std::expected when the value() is not present.
+        -:   70:  /**
+        -:   71:   * @since C++23
+        -:   72:   */
+        -:   73:  template<typename _Er>
+        -:   74:    class bad_expected_access;
+        -:   75:
+        -:   76:  template<>
+        -:   77:    class bad_expected_access<void> : public exception
+        -:   78:    {
+        -:   79:    protected:
+    #####:   80:      bad_expected_access() noexcept { }
+------------------
+_ZNSt19bad_expected_accessIvEC2Ev:
+function _ZNSt19bad_expected_accessIvEC2Ev called 0 returned 0% blocks executed 0%
+    #####:   80:      bad_expected_access() noexcept { }
+call    0 never executed
+------------------
+_ZNSt19bad_expected_accessIvEC2Ev:
+function _ZNSt19bad_expected_accessIvEC2Ev called 0 returned 0% blocks executed 0%
+    #####:   80:      bad_expected_access() noexcept { }
+call    0 never executed
+------------------
+_ZNSt19bad_expected_accessIvEC2Ev:
+function _ZNSt19bad_expected_accessIvEC2Ev called 0 returned 0% blocks executed 0%
+    #####:   80:      bad_expected_access() noexcept { }
+call    0 never executed
+------------------
+        -:   81:      bad_expected_access(const bad_expected_access&) = default;
+        -:   82:      bad_expected_access(bad_expected_access&&) = default;
+        -:   83:      bad_expected_access& operator=(const bad_expected_access&) = default;
+        -:   84:      bad_expected_access& operator=(bad_expected_access&&) = default;
+    #####:   85:      ~bad_expected_access() = default;
+------------------
+_ZNSt19bad_expected_accessIvED0Ev:
+function _ZNSt19bad_expected_accessIvED0Ev called 0 returned 0% blocks executed 0%
+    #####:   85:      ~bad_expected_access() = default;
+call    0 never executed
+call    1 never executed
+------------------
+_ZNSt19bad_expected_accessIvED2Ev:
+function _ZNSt19bad_expected_accessIvED2Ev called 0 returned 0% blocks executed 0%
+    #####:   85:      ~bad_expected_access() = default;
+call    0 never executed
+------------------
+_ZNSt19bad_expected_accessIvED0Ev:
+function _ZNSt19bad_expected_accessIvED0Ev called 0 returned 0% blocks executed 0%
+    #####:   85:      ~bad_expected_access() = default;
+call    0 never executed
+call    1 never executed
+------------------
+_ZNSt19bad_expected_accessIvED2Ev:
+function _ZNSt19bad_expected_accessIvED2Ev called 0 returned 0% blocks executed 0%
+    #####:   85:      ~bad_expected_access() = default;
+call    0 never executed
+------------------
+_ZNSt19bad_expected_accessIvED0Ev:
+function _ZNSt19bad_expected_accessIvED0Ev called 0 returned 0% blocks executed 0%
+    #####:   85:      ~bad_expected_access() = default;
+call    0 never executed
+call    1 never executed
+------------------
+_ZNSt19bad_expected_accessIvED2Ev:
+function _ZNSt19bad_expected_accessIvED2Ev called 0 returned 0% blocks executed 0%
+    #####:   85:      ~bad_expected_access() = default;
+call    0 never executed
+------------------
+        -:   86:
+        -:   87:    public:
+        -:   88:
+        -:   89:      [[nodiscard]]
+        -:   90:      const char*
+    #####:   91:      what() const noexcept override
+    #####:   92:      { return "bad access to std::expected without expected value"; }
+------------------
+_ZNKSt19bad_expected_accessIvE4whatEv:
+function _ZNKSt19bad_expected_accessIvE4whatEv called 0 returned 0% blocks executed 0%
+    #####:   91:      what() const noexcept override
+    #####:   92:      { return "bad access to std::expected without expected value"; }
+------------------
+_ZNKSt19bad_expected_accessIvE4whatEv:
+function _ZNKSt19bad_expected_accessIvE4whatEv called 0 returned 0% blocks executed 0%
+    #####:   91:      what() const noexcept override
+    #####:   92:      { return "bad access to std::expected without expected value"; }
+------------------
+_ZNKSt19bad_expected_accessIvE4whatEv:
+function _ZNKSt19bad_expected_accessIvE4whatEv called 0 returned 0% blocks executed 0%
+    #####:   91:      what() const noexcept override
+    #####:   92:      { return "bad access to std::expected without expected value"; }
+------------------
+        -:   93:    };
+        -:   94:
+        -:   95:  template<typename _Er>
+        -:   96:    class bad_expected_access : public bad_expected_access<void> {
+        -:   97:    public:
+        -:   98:      explicit
+    #####:   99:      bad_expected_access(_Er __e) : _M_unex(std::move(__e)) { }
+------------------
+_ZNSt19bad_expected_accessIN4uecm7OpErrorEEC2ES1_:
+function _ZNSt19bad_expected_accessIN4uecm7OpErrorEEC2ES1_ called 0 returned 0% blocks executed 0%
+    #####:   99:      bad_expected_access(_Er __e) : _M_unex(std::move(__e)) { }
+call    0 never executed
+call    1 never executed
+------------------
+_ZNSt19bad_expected_accessIN4uecm7OpErrorEEC2ES1_:
+function _ZNSt19bad_expected_accessIN4uecm7OpErrorEEC2ES1_ called 0 returned 0% blocks executed 0%
+    #####:   99:      bad_expected_access(_Er __e) : _M_unex(std::move(__e)) { }
+call    0 never executed
+call    1 never executed
+------------------
+_ZNSt19bad_expected_accessIN4uecm7OpErrorEEC2ES1_:
+function _ZNSt19bad_expected_accessIN4uecm7OpErrorEEC2ES1_ called 0 returned 0% blocks executed 0%
+    #####:   99:      bad_expected_access(_Er __e) : _M_unex(std::move(__e)) { }
+call    0 never executed
+call    1 never executed
+------------------
+        -:  100:
+        -:  101:      // XXX const char* what() const noexcept override;
+        -:  102:
+        -:  103:      [[nodiscard]]
+        -:  104:      _Er&
+        -:  105:      error() & noexcept
+        -:  106:      { return _M_unex; }
+        -:  107:
+        -:  108:      [[nodiscard]]
+        -:  109:      const _Er&
+        -:  110:      error() const & noexcept
+        -:  111:      { return _M_unex; }
+        -:  112:
+        -:  113:      [[nodiscard]]
+        -:  114:      _Er&&
+        -:  115:      error() && noexcept
+        -:  116:      { return std::move(_M_unex); }
+        -:  117:
+        -:  118:      [[nodiscard]]
+        -:  119:      const _Er&&
+        -:  120:      error() const && noexcept
+        -:  121:      { return std::move(_M_unex); }
+        -:  122:
+        -:  123:    private:
+        -:  124:      _Er _M_unex;
+        -:  125:    };
+        -:  126:
+        -:  127:  /// Tag type for constructing unexpected values in a std::expected
+        -:  128:  /**
+        -:  129:   * @since C++23
+        -:  130:   */
+        -:  131:  struct unexpect_t
+        -:  132:  {
+        -:  133:    explicit unexpect_t() = default;
+        -:  134:  };
+        -:  135:
+        -:  136:  /// Tag for constructing unexpected values in a std::expected
+        -:  137:  /**
+        -:  138:   * @since C++23
+        -:  139:   */
+        -:  140:  inline constexpr unexpect_t unexpect{};
+        -:  141:
+        -:  142:/// @cond undocumented
+        -:  143:namespace __expected
+        -:  144:{
+        -:  145:  template<typename _Tp>
+        -:  146:    constexpr bool __is_expected = false;
+        -:  147:  template<typename _Tp, typename _Er>
+        -:  148:    constexpr bool __is_expected<expected<_Tp, _Er>> = true;
+        -:  149:
+        -:  150:  template<typename _Tp>
+        -:  151:    constexpr bool __is_unexpected = false;
+        -:  152:  template<typename _Tp>
+        -:  153:    constexpr bool __is_unexpected<unexpected<_Tp>> = true;
+        -:  154:
+        -:  155:  template<typename _Fn, typename _Tp>
+        -:  156:    using __result = remove_cvref_t<invoke_result_t<_Fn&&, _Tp&&>>;
+        -:  157:  template<typename _Fn, typename _Tp>
+        -:  158:    using __result_xform = remove_cv_t<invoke_result_t<_Fn&&, _Tp&&>>;
+        -:  159:  template<typename _Fn>
+        -:  160:    using __result0 = remove_cvref_t<invoke_result_t<_Fn&&>>;
+        -:  161:  template<typename _Fn>
+        -:  162:    using __result0_xform = remove_cv_t<invoke_result_t<_Fn&&>>;
+        -:  163:
+        -:  164:  template<typename _Er>
+        -:  165:    concept __can_be_unexpected
+        -:  166:      = is_object_v<_Er> && (!is_array_v<_Er>)
+        -:  167:	  && (!__expected::__is_unexpected<_Er>)
+        -:  168:	  && (!is_const_v<_Er>) && (!is_volatile_v<_Er>);
+        -:  169:
+        -:  170:  // Tag types for in-place construction from an invocation result.
+        -:  171:  struct __in_place_inv { };
+        -:  172:  struct __unexpect_inv { };
+        -:  173:}
+        -:  174:/// @endcond
+        -:  175:
+        -:  176:  template<typename _Er>
+        -:  177:    class unexpected
+        -:  178:    {
+        -:  179:      static_assert( __expected::__can_be_unexpected<_Er> );
+        -:  180:
+        -:  181:    public:
+        -:  182:      constexpr unexpected(const unexpected&) = default;
+        -:  183:      constexpr unexpected(unexpected&&) = default;
+        -:  184:
+        -:  185:      template<typename _Err = _Er>
+        -:  186:	requires (!is_same_v<remove_cvref_t<_Err>, unexpected>)
+        -:  187:	  && (!is_same_v<remove_cvref_t<_Err>, in_place_t>)
+        -:  188:	  && is_constructible_v<_Er, _Err>
+        -:  189:	constexpr explicit
+function _ZNSt10unexpectedIN4uecm7OpErrorEEC2IS1_EEOT_ called 5081 returned 100% blocks executed 100%
+     5081:  190:	unexpected(_Err&& __e)
+        -:  191:	noexcept(is_nothrow_constructible_v<_Er, _Err>)
+     5081:  192:	: _M_unex(std::forward<_Err>(__e))
+call    0 returned 100%
+     5081:  193:	{ }
+        -:  194:
+        -:  195:      template<typename... _Args>
+        -:  196:	requires is_constructible_v<_Er, _Args...>
+        -:  197:	constexpr explicit
+        -:  198:	unexpected(in_place_t, _Args&&... __args)
+        -:  199:	noexcept(is_nothrow_constructible_v<_Er, _Args...>)
+        -:  200:	: _M_unex(std::forward<_Args>(__args)...)
+        -:  201:	{ }
+        -:  202:
+        -:  203:      template<typename _Up, typename... _Args>
+        -:  204:	requires is_constructible_v<_Er, initializer_list<_Up>&, _Args...>
+        -:  205:	constexpr explicit
+        -:  206:	unexpected(in_place_t, initializer_list<_Up> __il, _Args&&... __args)
+        -:  207:	noexcept(is_nothrow_constructible_v<_Er, initializer_list<_Up>&,
+        -:  208:					    _Args...>)
+        -:  209:	: _M_unex(__il, std::forward<_Args>(__args)...)
+        -:  210:	{ }
+        -:  211:
+        -:  212:      constexpr unexpected& operator=(const unexpected&) = default;
+        -:  213:      constexpr unexpected& operator=(unexpected&&) = default;
+        -:  214:
+        -:  215:
+        -:  216:      [[nodiscard]]
+        -:  217:      constexpr const _Er&
+        -:  218:      error() const & noexcept { return _M_unex; }
+        -:  219:
+        -:  220:      [[nodiscard]]
+        -:  221:      constexpr _Er&
+        -:  222:      error() & noexcept { return _M_unex; }
+        -:  223:
+        -:  224:      [[nodiscard]]
+        -:  225:      constexpr const _Er&&
+        -:  226:      error() const && noexcept { return std::move(_M_unex); }
+        -:  227:
+        -:  228:      [[nodiscard]]
+        -:  229:      constexpr _Er&&
+function _ZNOSt10unexpectedIN4uecm7OpErrorEE5errorEv called 5081 returned 100% blocks executed 100%
+     5081:  230:      error() && noexcept { return std::move(_M_unex); }
+call    0 returned 100%
+        -:  231:
+        -:  232:      constexpr void
+        -:  233:      swap(unexpected& __other) noexcept(is_nothrow_swappable_v<_Er>)
+        -:  234:      requires is_swappable_v<_Er>
+        -:  235:      {
+        -:  236:	using std::swap;
+        -:  237:	swap(_M_unex, __other._M_unex);
+        -:  238:      }
+        -:  239:
+        -:  240:      template<typename _Err>
+        -:  241:	[[nodiscard]]
+        -:  242:	friend constexpr bool
+        -:  243:	operator==(const unexpected& __x, const unexpected<_Err>& __y)
+        -:  244:	{ return __x._M_unex == __y.error(); }
+        -:  245:
+        -:  246:      friend constexpr void
+        -:  247:      swap(unexpected& __x, unexpected& __y) noexcept(noexcept(__x.swap(__y)))
+        -:  248:      requires is_swappable_v<_Er>
+        -:  249:      { __x.swap(__y); }
+        -:  250:
+        -:  251:    private:
+        -:  252:      _Er _M_unex;
+        -:  253:    };
+        -:  254:
+        -:  255:  template<typename _Er> unexpected(_Er) -> unexpected<_Er>;
+        -:  256:
+        -:  257:/// @cond undocumented
+        -:  258:namespace __expected
+        -:  259:{
+        -:  260:  template<typename _Tp>
+        -:  261:    struct _Guard
+        -:  262:    {
+        -:  263:      static_assert( is_nothrow_move_constructible_v<_Tp> );
+        -:  264:
+        -:  265:      constexpr explicit
+        -:  266:      _Guard(_Tp& __x)
+        -:  267:      : _M_guarded(__builtin_addressof(__x)), _M_tmp(std::move(__x)) // nothrow
+        -:  268:      { std::destroy_at(_M_guarded); }
+        -:  269:
+        -:  270:      constexpr
+        -:  271:      ~_Guard()
+        -:  272:      {
+        -:  273:	if (_M_guarded) [[unlikely]]
+        -:  274:	  std::construct_at(_M_guarded, std::move(_M_tmp));
+        -:  275:      }
+        -:  276:
+        -:  277:      _Guard(const _Guard&) = delete;
+        -:  278:      _Guard& operator=(const _Guard&) = delete;
+        -:  279:
+        -:  280:      constexpr _Tp&&
+        -:  281:      release() noexcept
+        -:  282:      {
+        -:  283:	_M_guarded = nullptr;
+        -:  284:	return std::move(_M_tmp);
+        -:  285:      }
+        -:  286:
+        -:  287:    private:
+        -:  288:      _Tp* _M_guarded;
+        -:  289:      _Tp _M_tmp;
+        -:  290:    };
+        -:  291:
+        -:  292:  // reinit-expected helper from [expected.object.assign]
+        -:  293:  template<typename _Tp, typename _Up, typename _Vp>
+        -:  294:    constexpr void
+        -:  295:    __reinit(_Tp* __newval, _Up* __oldval, _Vp&& __arg)
+        -:  296:    noexcept(is_nothrow_constructible_v<_Tp, _Vp>)
+        -:  297:    {
+        -:  298:      if constexpr (is_nothrow_constructible_v<_Tp, _Vp>)
+        -:  299:	{
+        -:  300:	  std::destroy_at(__oldval);
+        -:  301:	  std::construct_at(__newval, std::forward<_Vp>(__arg));
+        -:  302:	}
+        -:  303:      else if constexpr (is_nothrow_move_constructible_v<_Tp>)
+        -:  304:	{
+        -:  305:	  _Tp __tmp(std::forward<_Vp>(__arg)); // might throw
+        -:  306:	  std::destroy_at(__oldval);
+        -:  307:	  std::construct_at(__newval, std::move(__tmp));
+        -:  308:	}
+        -:  309:      else
+        -:  310:	{
+        -:  311:	  _Guard<_Up> __guard(*__oldval);
+        -:  312:	  std::construct_at(__newval, std::forward<_Vp>(__arg)); // might throw
+        -:  313:	  __guard.release();
+        -:  314:	}
+        -:  315:    }
+        -:  316:}
+        -:  317:/// @endcond
+        -:  318:
+        -:  319:  template<typename _Tp, typename _Er>
+        -:  320:    class expected
+        -:  321:    {
+        -:  322:      static_assert( ! is_reference_v<_Tp> );
+        -:  323:      static_assert( ! is_function_v<_Tp> );
+        -:  324:      static_assert( ! is_same_v<remove_cv_t<_Tp>, in_place_t> );
+        -:  325:      static_assert( ! is_same_v<remove_cv_t<_Tp>, unexpect_t> );
+        -:  326:      static_assert( ! __expected::__is_unexpected<remove_cv_t<_Tp>> );
+        -:  327:      static_assert( __expected::__can_be_unexpected<_Er> );
+        -:  328:
+        -:  329:      template<typename _Up, typename _Err, typename _Unex = unexpected<_Er>>
+        -:  330:	static constexpr bool __cons_from_expected
+        -:  331:	  = __or_v<is_constructible<_Tp, expected<_Up, _Err>&>,
+        -:  332:		   is_constructible<_Tp, expected<_Up, _Err>>,
+        -:  333:		   is_constructible<_Tp, const expected<_Up, _Err>&>,
+        -:  334:		   is_constructible<_Tp, const expected<_Up, _Err>>,
+        -:  335:		   is_convertible<expected<_Up, _Err>&, _Tp>,
+        -:  336:		   is_convertible<expected<_Up, _Err>, _Tp>,
+        -:  337:		   is_convertible<const expected<_Up, _Err>&, _Tp>,
+        -:  338:		   is_convertible<const expected<_Up, _Err>, _Tp>,
+        -:  339:		   is_constructible<_Unex, expected<_Up, _Err>&>,
+        -:  340:		   is_constructible<_Unex, expected<_Up, _Err>>,
+        -:  341:		   is_constructible<_Unex, const expected<_Up, _Err>&>,
+        -:  342:		   is_constructible<_Unex, const expected<_Up, _Err>>
+        -:  343:		  >;
+        -:  344:
+        -:  345:      template<typename _Up, typename _Err>
+        -:  346:	constexpr static bool __explicit_conv
+        -:  347:	  = __or_v<__not_<is_convertible<_Up, _Tp>>,
+        -:  348:		   __not_<is_convertible<_Err, _Er>>
+        -:  349:		  >;
+        -:  350:
+        -:  351:      template<typename _Up>
+        -:  352:	static constexpr bool __same_val
+        -:  353:	  = is_same_v<typename _Up::value_type, _Tp>;
+        -:  354:
+        -:  355:      template<typename _Up>
+        -:  356:	static constexpr bool __same_err
+        -:  357:	  = is_same_v<typename _Up::error_type, _Er>;
+        -:  358:
+        -:  359:    public:
+        -:  360:      using value_type = _Tp;
+        -:  361:      using error_type = _Er;
+        -:  362:      using unexpected_type = unexpected<_Er>;
+        -:  363:
+        -:  364:      template<typename _Up>
+        -:  365:	using rebind = expected<_Up, error_type>;
+        -:  366:
+        -:  367:      constexpr
+        -:  368:      expected()
+        -:  369:      noexcept(is_nothrow_default_constructible_v<_Tp>)
+        -:  370:      requires is_default_constructible_v<_Tp>
+        -:  371:      : _M_val(), _M_has_value(true)
+        -:  372:      { }
+        -:  373:
+        -:  374:      expected(const expected&) = default;
+        -:  375:
+        -:  376:      constexpr
+        -:  377:      expected(const expected& __x)
+        -:  378:      noexcept(__and_v<is_nothrow_copy_constructible<_Tp>,
+        -:  379:		       is_nothrow_copy_constructible<_Er>>)
+        -:  380:      requires is_copy_constructible_v<_Tp> && is_copy_constructible_v<_Er>
+        -:  381:      && (!is_trivially_copy_constructible_v<_Tp>
+        -:  382:	  || !is_trivially_copy_constructible_v<_Er>)
+        -:  383:      : _M_has_value(__x._M_has_value)
+        -:  384:      {
+        -:  385:	if (_M_has_value)
+        -:  386:	  std::construct_at(__builtin_addressof(_M_val), __x._M_val);
+        -:  387:	else
+        -:  388:	  std::construct_at(__builtin_addressof(_M_unex), __x._M_unex);
+        -:  389:      }
+        -:  390:
+        -:  391:      expected(expected&&) = default;
+        -:  392:
+        -:  393:      constexpr
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEC2EOS3_ called 191162 returned 100% blocks executed 100%
+   191162:  394:      expected(expected&& __x)
+        -:  395:      noexcept(__and_v<is_nothrow_move_constructible<_Tp>,
+        -:  396:		       is_nothrow_move_constructible<_Er>>)
+        -:  397:      requires is_move_constructible_v<_Tp> && is_move_constructible_v<_Er>
+        -:  398:      && (!is_trivially_move_constructible_v<_Tp>
+        -:  399:	  || !is_trivially_move_constructible_v<_Er>)
+   191162:  400:      : _M_has_value(__x._M_has_value)
+        -:  401:      {
+   191162:  402:	if (_M_has_value)
+branch  0 taken 99% (fallthrough)
+branch  1 taken 1%
+   189273:  403:	  std::construct_at(__builtin_addressof(_M_val),
+   189316:  404:			    std::move(__x)._M_val);
+call    0 returned 100%
+call    1 returned 100%
+        -:  405:	else
+     1872:  406:	  std::construct_at(__builtin_addressof(_M_unex),
+     1846:  407:			    std::move(__x)._M_unex);
+call    0 returned 101%
+call    1 returned 100%
+   191324:  408:      }
+        -:  409:
+        -:  410:      template<typename _Up, typename _Gr>
+        -:  411:	requires is_constructible_v<_Tp, const _Up&>
+        -:  412:	      && is_constructible_v<_Er, const _Gr&>
+        -:  413:	      && (!__cons_from_expected<_Up, _Gr>)
+        -:  414:	constexpr explicit(__explicit_conv<const _Up&, const _Gr&>)
+        -:  415:	expected(const expected<_Up, _Gr>& __x)
+        -:  416:	noexcept(__and_v<is_nothrow_constructible<_Tp, const _Up&>,
+        -:  417:			 is_nothrow_constructible<_Er, const _Gr&>>)
+        -:  418:	: _M_has_value(__x._M_has_value)
+        -:  419:	{
+        -:  420:	  if (_M_has_value)
+        -:  421:	    std::construct_at(__builtin_addressof(_M_val), __x._M_val);
+        -:  422:	  else
+        -:  423:	    std::construct_at(__builtin_addressof(_M_unex), __x._M_unex);
+        -:  424:	}
+        -:  425:
+        -:  426:      template<typename _Up, typename _Gr>
+        -:  427:	requires is_constructible_v<_Tp, _Up>
+        -:  428:	      && is_constructible_v<_Er, _Gr>
+        -:  429:	      && (!__cons_from_expected<_Up, _Gr>)
+        -:  430:	constexpr explicit(__explicit_conv<_Up, _Gr>)
+        -:  431:	expected(expected<_Up, _Gr>&& __x)
+        -:  432:	noexcept(__and_v<is_nothrow_constructible<_Tp, _Up>,
+        -:  433:			 is_nothrow_constructible<_Er, _Gr>>)
+        -:  434:	: _M_has_value(__x._M_has_value)
+        -:  435:	{
+        -:  436:	  if (_M_has_value)
+        -:  437:	    std::construct_at(__builtin_addressof(_M_val),
+        -:  438:			      std::move(__x)._M_val);
+        -:  439:	  else
+        -:  440:	    std::construct_at(__builtin_addressof(_M_unex),
+        -:  441:			      std::move(__x)._M_unex);
+        -:  442:	}
+        -:  443:
+        -:  444:      template<typename _Up = _Tp>
+        -:  445:	requires (!is_same_v<remove_cvref_t<_Up>, expected>)
+        -:  446:	  && (!is_same_v<remove_cvref_t<_Up>, in_place_t>)
+        -:  447:	  && (!__expected::__is_unexpected<remove_cvref_t<_Up>>)
+        -:  448:	  && is_constructible_v<_Tp, _Up>
+        -:  449:	constexpr explicit(!is_convertible_v<_Up, _Tp>)
+   176251:  450:	expected(_Up&& __v)
+        -:  451:	noexcept(is_nothrow_constructible_v<_Tp, _Up>)
+   176251:  452:	: _M_val(std::forward<_Up>(__v)), _M_has_value(true)
+   176223:  453:	{ }
+------------------
+_ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEC2IS1_EEOT_:
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEC2IS1_EEOT_ called 48608 returned 100% blocks executed 100%
+    48608:  450:	expected(_Up&& __v)
+        -:  451:	noexcept(is_nothrow_constructible_v<_Tp, _Up>)
+    48608:  452:	: _M_val(std::forward<_Up>(__v)), _M_has_value(true)
+call    0 returned 100%
+call    1 returned 100%
+    48621:  453:	{ }
+------------------
+_ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEC2IS1_EEOT_:
+function _ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEC2IS1_EEOT_ called 125869 returned 100% blocks executed 100%
+   125869:  450:	expected(_Up&& __v)
+        -:  451:	noexcept(is_nothrow_constructible_v<_Tp, _Up>)
+   125869:  452:	: _M_val(std::forward<_Up>(__v)), _M_has_value(true)
+call    0 returned 100%
+   125828:  453:	{ }
+------------------
+_ZNSt8expectedImN4uecm7OpErrorEEC2ImEEOT_:
+function _ZNSt8expectedImN4uecm7OpErrorEEC2ImEEOT_ called 1774 returned 100% blocks executed 100%
+     1774:  450:	expected(_Up&& __v)
+        -:  451:	noexcept(is_nothrow_constructible_v<_Tp, _Up>)
+     1774:  452:	: _M_val(std::forward<_Up>(__v)), _M_has_value(true)
+call    0 returned 100%
+     1774:  453:	{ }
+------------------
+        -:  454:
+        -:  455:      template<typename _Gr = _Er>
+        -:  456:	requires is_constructible_v<_Er, const _Gr&>
+        -:  457:	constexpr explicit(!is_convertible_v<const _Gr&, _Er>)
+        -:  458:	expected(const unexpected<_Gr>& __u)
+        -:  459:	noexcept(is_nothrow_constructible_v<_Er, const _Gr&>)
+        -:  460:	: _M_unex(__u.error()), _M_has_value(false)
+        -:  461:	{ }
+        -:  462:
+        -:  463:      template<typename _Gr = _Er>
+        -:  464:	requires is_constructible_v<_Er, _Gr>
+        -:  465:	constexpr explicit(!is_convertible_v<_Gr, _Er>)
+     2761:  466:	expected(unexpected<_Gr>&& __u)
+        -:  467:	noexcept(is_nothrow_constructible_v<_Er, _Gr>)
+     2761:  468:	: _M_unex(std::move(__u).error()), _M_has_value(false)
+     2761:  469:	{ }
+------------------
+_ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEC2IS2_EEOSt10unexpectedIT_E:
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEC2IS2_EEOSt10unexpectedIT_E called 2482 returned 100% blocks executed 100%
+     2482:  466:	expected(unexpected<_Gr>&& __u)
+        -:  467:	noexcept(is_nothrow_constructible_v<_Er, _Gr>)
+     2482:  468:	: _M_unex(std::move(__u).error()), _M_has_value(false)
+call    0 returned 100%
+call    1 returned 100%
+     2482:  469:	{ }
+------------------
+_ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEC2IS2_EEOSt10unexpectedIT_E:
+function _ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEC2IS2_EEOSt10unexpectedIT_E called 279 returned 100% blocks executed 100%
+      279:  466:	expected(unexpected<_Gr>&& __u)
+        -:  467:	noexcept(is_nothrow_constructible_v<_Er, _Gr>)
+      279:  468:	: _M_unex(std::move(__u).error()), _M_has_value(false)
+call    0 returned 100%
+call    1 returned 100%
+      279:  469:	{ }
+------------------
+        -:  470:
+        -:  471:      template<typename... _Args>
+        -:  472:	requires is_constructible_v<_Tp, _Args...>
+        -:  473:	constexpr explicit
+        -:  474:	expected(in_place_t, _Args&&... __args)
+        -:  475:	noexcept(is_nothrow_constructible_v<_Tp, _Args...>)
+        -:  476:	: _M_val(std::forward<_Args>(__args)...), _M_has_value(true)
+        -:  477:	{ }
+        -:  478:
+        -:  479:      template<typename _Up, typename... _Args>
+        -:  480:	requires is_constructible_v<_Tp, initializer_list<_Up>&, _Args...>
+        -:  481:	constexpr explicit
+        -:  482:	expected(in_place_t, initializer_list<_Up> __il, _Args&&... __args)
+        -:  483:	noexcept(is_nothrow_constructible_v<_Tp, initializer_list<_Up>&,
+        -:  484:					    _Args...>)
+        -:  485:	: _M_val(__il, std::forward<_Args>(__args)...), _M_has_value(true)
+        -:  486:	{ }
+        -:  487:
+        -:  488:      template<typename... _Args>
+        -:  489:	requires is_constructible_v<_Er, _Args...>
+        -:  490:	constexpr explicit
+        -:  491:	expected(unexpect_t, _Args&&... __args)
+        -:  492:	noexcept(is_nothrow_constructible_v<_Er, _Args...>)
+        -:  493:	: _M_unex(std::forward<_Args>(__args)...), _M_has_value(false)
+        -:  494:	{ }
+        -:  495:
+        -:  496:      template<typename _Up, typename... _Args>
+        -:  497:	requires is_constructible_v<_Er, initializer_list<_Up>&, _Args...>
+        -:  498:	constexpr explicit
+        -:  499:	expected(unexpect_t, initializer_list<_Up> __il, _Args&&... __args)
+        -:  500:	noexcept(is_nothrow_constructible_v<_Er, initializer_list<_Up>&,
+        -:  501:					    _Args...>)
+        -:  502:	: _M_unex(__il, std::forward<_Args>(__args)...), _M_has_value(false)
+        -:  503:	{ }
+        -:  504:
+        -:  505:      constexpr ~expected() = default;
+        -:  506:
+  241955*:  507:      constexpr ~expected()
+        -:  508:      requires (!is_trivially_destructible_v<_Tp>)
+        -:  509:	    || (!is_trivially_destructible_v<_Er>)
+        -:  510:      {
+  241955*:  511:	if (_M_has_value)
+  237659*:  512:	  std::destroy_at(__builtin_addressof(_M_val));
+        -:  513:	else
+    4296*:  514:	  std::destroy_at(__builtin_addressof(_M_unex));
+  241945*:  515:      }
+------------------
+_ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev:
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev called 198995 returned 100% blocks executed 100%
+   198995:  507:      constexpr ~expected()
+        -:  508:      requires (!is_trivially_destructible_v<_Tp>)
+        -:  509:	    || (!is_trivially_destructible_v<_Er>)
+        -:  510:      {
+   198995:  511:	if (_M_has_value)
+branch  0 taken 100% (fallthrough)
+branch  1 taken -0%
+   199047:  512:	  std::destroy_at(__builtin_addressof(_M_val));
+call    0 returned 100%
+        -:  513:	else
+    #####:  514:	  std::destroy_at(__builtin_addressof(_M_unex));
+call    0 returned -0%
+   199017:  515:      }
+------------------
+_ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev:
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev called 2 returned 100% blocks executed 75%
+        2:  507:      constexpr ~expected()
+        -:  508:      requires (!is_trivially_destructible_v<_Tp>)
+        -:  509:	    || (!is_trivially_destructible_v<_Er>)
+        -:  510:      {
+        2:  511:	if (_M_has_value)
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+        2:  512:	  std::destroy_at(__builtin_addressof(_M_val));
+call    0 returned 100%
+        -:  513:	else
+    #####:  514:	  std::destroy_at(__builtin_addressof(_M_unex));
+call    0 never executed
+        2:  515:      }
+------------------
+_ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev:
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev called 0 returned 0% blocks executed 0%
+    #####:  507:      constexpr ~expected()
+        -:  508:      requires (!is_trivially_destructible_v<_Tp>)
+        -:  509:	    || (!is_trivially_destructible_v<_Er>)
+        -:  510:      {
+    #####:  511:	if (_M_has_value)
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  512:	  std::destroy_at(__builtin_addressof(_M_val));
+call    0 never executed
+        -:  513:	else
+    #####:  514:	  std::destroy_at(__builtin_addressof(_M_unex));
+call    0 never executed
+    #####:  515:      }
+------------------
+_ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev:
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev called 98 returned 100% blocks executed 100%
+       98:  507:      constexpr ~expected()
+        -:  508:      requires (!is_trivially_destructible_v<_Tp>)
+        -:  509:	    || (!is_trivially_destructible_v<_Er>)
+        -:  510:      {
+       98:  511:	if (_M_has_value)
+branch  0 taken 81% (fallthrough)
+branch  1 taken 19%
+       79:  512:	  std::destroy_at(__builtin_addressof(_M_val));
+call    0 returned 100%
+        -:  513:	else
+       19:  514:	  std::destroy_at(__builtin_addressof(_M_unex));
+call    0 returned 100%
+       98:  515:      }
+------------------
+_ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev:
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev called 10109 returned 100% blocks executed 100%
+    10109:  507:      constexpr ~expected()
+        -:  508:      requires (!is_trivially_destructible_v<_Tp>)
+        -:  509:	    || (!is_trivially_destructible_v<_Er>)
+        -:  510:      {
+    10109:  511:	if (_M_has_value)
+branch  0 taken 77% (fallthrough)
+branch  1 taken 23%
+     7777:  512:	  std::destroy_at(__builtin_addressof(_M_val));
+call    0 returned 100%
+        -:  513:	else
+     2332:  514:	  std::destroy_at(__builtin_addressof(_M_unex));
+call    0 returned 100%
+    10102:  515:      }
+------------------
+_ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev:
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev called 29735 returned 100% blocks executed 100%
+    29735:  507:      constexpr ~expected()
+        -:  508:      requires (!is_trivially_destructible_v<_Tp>)
+        -:  509:	    || (!is_trivially_destructible_v<_Er>)
+        -:  510:      {
+    29735:  511:	if (_M_has_value)
+branch  0 taken 100% (fallthrough)
+branch  1 taken -0%
+    29738:  512:	  std::destroy_at(__builtin_addressof(_M_val));
+call    0 returned 100%
+        -:  513:	else
+    #####:  514:	  std::destroy_at(__builtin_addressof(_M_unex));
+call    0 returned -0%
+    29710:  515:      }
+------------------
+_ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev:
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev called 3016 returned 100% blocks executed 100%
+     3016:  507:      constexpr ~expected()
+        -:  508:      requires (!is_trivially_destructible_v<_Tp>)
+        -:  509:	    || (!is_trivially_destructible_v<_Er>)
+        -:  510:      {
+     3016:  511:	if (_M_has_value)
+branch  0 taken 34% (fallthrough)
+branch  1 taken 66%
+     1016:  512:	  std::destroy_at(__builtin_addressof(_M_val));
+call    0 returned 100%
+        -:  513:	else
+     2000:  514:	  std::destroy_at(__builtin_addressof(_M_unex));
+call    0 returned 100%
+     3016:  515:      }
+------------------
+        -:  516:
+        -:  517:      // assignment
+        -:  518:
+        -:  519:      expected& operator=(const expected&) = delete;
+        -:  520:
+        -:  521:      constexpr expected&
+        -:  522:      operator=(const expected& __x)
+        -:  523:      noexcept(__and_v<is_nothrow_copy_constructible<_Tp>,
+        -:  524:		       is_nothrow_copy_constructible<_Er>,
+        -:  525:		       is_nothrow_copy_assignable<_Tp>,
+        -:  526:		       is_nothrow_copy_assignable<_Er>>)
+        -:  527:      requires is_copy_assignable_v<_Tp> && is_copy_constructible_v<_Tp>
+        -:  528:	    && is_copy_assignable_v<_Er> && is_copy_constructible_v<_Er>
+        -:  529:	    && (is_nothrow_move_constructible_v<_Tp>
+        -:  530:		|| is_nothrow_move_constructible_v<_Er>)
+        -:  531:      {
+        -:  532:	if (__x._M_has_value)
+        -:  533:	  this->_M_assign_val(__x._M_val);
+        -:  534:	else
+        -:  535:	  this->_M_assign_unex(__x._M_unex);
+        -:  536:	return *this;
+        -:  537:      }
+        -:  538:
+        -:  539:      constexpr expected&
+        -:  540:      operator=(expected&& __x)
+        -:  541:      noexcept(__and_v<is_nothrow_move_constructible<_Tp>,
+        -:  542:		       is_nothrow_move_constructible<_Er>,
+        -:  543:		       is_nothrow_move_assignable<_Tp>,
+        -:  544:		       is_nothrow_move_assignable<_Er>>)
+        -:  545:      requires is_move_assignable_v<_Tp> && is_move_constructible_v<_Tp>
+        -:  546:	    && is_move_assignable_v<_Er> && is_move_constructible_v<_Er>
+        -:  547:	    && (is_nothrow_move_constructible_v<_Tp>
+        -:  548:		|| is_nothrow_move_constructible_v<_Er>)
+        -:  549:      {
+        -:  550:	if (__x._M_has_value)
+        -:  551:	  _M_assign_val(std::move(__x._M_val));
+        -:  552:	else
+        -:  553:	  _M_assign_unex(std::move(__x._M_unex));
+        -:  554:	return *this;
+        -:  555:      }
+        -:  556:
+        -:  557:      template<typename _Up = _Tp>
+        -:  558:	requires (!is_same_v<expected, remove_cvref_t<_Up>>)
+        -:  559:	      && (!__expected::__is_unexpected<remove_cvref_t<_Up>>)
+        -:  560:	      && is_constructible_v<_Tp, _Up> && is_assignable_v<_Tp&, _Up>
+        -:  561:	      && (is_nothrow_constructible_v<_Tp, _Up>
+        -:  562:		  || is_nothrow_move_constructible_v<_Tp>
+        -:  563:		  || is_nothrow_move_constructible_v<_Er>)
+        -:  564:	constexpr expected&
+        -:  565:	operator=(_Up&& __v)
+        -:  566:	{
+        -:  567:	  _M_assign_val(std::forward<_Up>(__v));
+        -:  568:	  return *this;
+        -:  569:	}
+        -:  570:
+        -:  571:      template<typename _Gr>
+        -:  572:	requires is_constructible_v<_Er, const _Gr&>
+        -:  573:	      && is_assignable_v<_Er&, const _Gr&>
+        -:  574:	      && (is_nothrow_constructible_v<_Er, const _Gr&>
+        -:  575:		  || is_nothrow_move_constructible_v<_Tp>
+        -:  576:		  || is_nothrow_move_constructible_v<_Er>)
+        -:  577:	constexpr expected&
+        -:  578:	operator=(const unexpected<_Gr>& __e)
+        -:  579:	{
+        -:  580:	  _M_assign_unex(__e.error());
+        -:  581:	  return *this;
+        -:  582:	}
+        -:  583:
+        -:  584:      template<typename _Gr>
+        -:  585:	requires is_constructible_v<_Er, _Gr>
+        -:  586:	      && is_assignable_v<_Er&, _Gr>
+        -:  587:	      && (is_nothrow_constructible_v<_Er, _Gr>
+        -:  588:		  || is_nothrow_move_constructible_v<_Tp>
+        -:  589:		  || is_nothrow_move_constructible_v<_Er>)
+        -:  590:	constexpr expected&
+        -:  591:	operator=(unexpected<_Gr>&& __e)
+        -:  592:	{
+        -:  593:	  _M_assign_unex(std::move(__e).error());
+        -:  594:	  return *this;
+        -:  595:	}
+        -:  596:
+        -:  597:      // modifiers
+        -:  598:
+        -:  599:      template<typename... _Args>
+        -:  600:	requires is_nothrow_constructible_v<_Tp, _Args...>
+        -:  601:	constexpr _Tp&
+        -:  602:	emplace(_Args&&... __args) noexcept
+        -:  603:	{
+        -:  604:	  if (_M_has_value)
+        -:  605:	    std::destroy_at(__builtin_addressof(_M_val));
+        -:  606:	  else
+        -:  607:	    {
+        -:  608:	      std::destroy_at(__builtin_addressof(_M_unex));
+        -:  609:	      _M_has_value = true;
+        -:  610:	    }
+        -:  611:	  std::construct_at(__builtin_addressof(_M_val),
+        -:  612:			    std::forward<_Args>(__args)...);
+        -:  613:	  return _M_val;
+        -:  614:	}
+        -:  615:
+        -:  616:      template<typename _Up, typename... _Args>
+        -:  617:	requires is_nothrow_constructible_v<_Tp, initializer_list<_Up>&,
+        -:  618:					    _Args...>
+        -:  619:	constexpr _Tp&
+        -:  620:	emplace(initializer_list<_Up> __il, _Args&&... __args) noexcept
+        -:  621:	{
+        -:  622:	  if (_M_has_value)
+        -:  623:	    std::destroy_at(__builtin_addressof(_M_val));
+        -:  624:	  else
+        -:  625:	    {
+        -:  626:	      std::destroy_at(__builtin_addressof(_M_unex));
+        -:  627:	      _M_has_value = true;
+        -:  628:	    }
+        -:  629:	  std::construct_at(__builtin_addressof(_M_val),
+        -:  630:			    __il, std::forward<_Args>(__args)...);
+        -:  631:	  return _M_val;
+        -:  632:	}
+        -:  633:
+        -:  634:      // swap
+        -:  635:      constexpr void
+        -:  636:      swap(expected& __x)
+        -:  637:      noexcept(__and_v<is_nothrow_move_constructible<_Tp>,
+        -:  638:		       is_nothrow_move_constructible<_Er>,
+        -:  639:		       is_nothrow_swappable<_Tp&>,
+        -:  640:		       is_nothrow_swappable<_Er&>>)
+        -:  641:      requires is_swappable_v<_Tp> && is_swappable_v<_Er>
+        -:  642:	    && is_move_constructible_v<_Tp>
+        -:  643:	    && is_move_constructible_v<_Er>
+        -:  644:	    && (is_nothrow_move_constructible_v<_Tp>
+        -:  645:		|| is_nothrow_move_constructible_v<_Er>)
+        -:  646:      {
+        -:  647:	if (_M_has_value)
+        -:  648:	  {
+        -:  649:	    if (__x._M_has_value)
+        -:  650:	      {
+        -:  651:		using std::swap;
+        -:  652:		swap(_M_val, __x._M_val);
+        -:  653:	      }
+        -:  654:	    else
+        -:  655:	      this->_M_swap_val_unex(__x);
+        -:  656:	  }
+        -:  657:	else
+        -:  658:	  {
+        -:  659:	    if (__x._M_has_value)
+        -:  660:	      __x._M_swap_val_unex(*this);
+        -:  661:	    else
+        -:  662:	      {
+        -:  663:		using std::swap;
+        -:  664:		swap(_M_unex, __x._M_unex);
+        -:  665:	      }
+        -:  666:	  }
+        -:  667:      }
+        -:  668:
+        -:  669:      // observers
+        -:  670:
+        -:  671:      [[nodiscard]]
+        -:  672:      constexpr const _Tp*
+        -:  673:      operator->() const noexcept
+        -:  674:      {
+        -:  675:	__glibcxx_assert(_M_has_value);
+        -:  676:	return __builtin_addressof(_M_val);
+        -:  677:      }
+        -:  678:
+        -:  679:      [[nodiscard]]
+        -:  680:      constexpr _Tp*
+    85209:  681:      operator->() noexcept
+        -:  682:      {
+   85209*:  683:	__glibcxx_assert(_M_has_value);
+    85210:  684:	return __builtin_addressof(_M_val);
+        -:  685:      }
+------------------
+_ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv:
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv called 39930 returned 100% blocks executed 67%
+    39930:  681:      operator->() noexcept
+        -:  682:      {
+   39930*:  683:	__glibcxx_assert(_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+    39934:  684:	return __builtin_addressof(_M_val);
+        -:  685:      }
+------------------
+_ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEptEv:
+function _ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEptEv called 2 returned 100% blocks executed 67%
+        2:  681:      operator->() noexcept
+        -:  682:      {
+       2*:  683:	__glibcxx_assert(_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+        2:  684:	return __builtin_addressof(_M_val);
+        -:  685:      }
+------------------
+_ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv:
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv called 5 returned 100% blocks executed 67%
+        5:  681:      operator->() noexcept
+        -:  682:      {
+       5*:  683:	__glibcxx_assert(_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+        5:  684:	return __builtin_addressof(_M_val);
+        -:  685:      }
+------------------
+_ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEptEv:
+function _ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEptEv called 2 returned 100% blocks executed 67%
+        2:  681:      operator->() noexcept
+        -:  682:      {
+       2*:  683:	__glibcxx_assert(_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+        2:  684:	return __builtin_addressof(_M_val);
+        -:  685:      }
+------------------
+_ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv:
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv called 10 returned 100% blocks executed 67%
+       10:  681:      operator->() noexcept
+        -:  682:      {
+      10*:  683:	__glibcxx_assert(_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+       10:  684:	return __builtin_addressof(_M_val);
+        -:  685:      }
+------------------
+_ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv:
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv called 6236 returned 100% blocks executed 67%
+     6236:  681:      operator->() noexcept
+        -:  682:      {
+    6236*:  683:	__glibcxx_assert(_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+     6236:  684:	return __builtin_addressof(_M_val);
+        -:  685:      }
+------------------
+_ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEptEv:
+function _ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEptEv called 878 returned 100% blocks executed 67%
+      878:  681:      operator->() noexcept
+        -:  682:      {
+     878*:  683:	__glibcxx_assert(_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+      878:  684:	return __builtin_addressof(_M_val);
+        -:  685:      }
+------------------
+_ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv:
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv called 35770 returned 100% blocks executed 67%
+    35770:  681:      operator->() noexcept
+        -:  682:      {
+   35770*:  683:	__glibcxx_assert(_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+    35768:  684:	return __builtin_addressof(_M_val);
+        -:  685:      }
+------------------
+_ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEptEv:
+function _ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEptEv called 2376 returned 100% blocks executed 67%
+     2376:  681:      operator->() noexcept
+        -:  682:      {
+    2376*:  683:	__glibcxx_assert(_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+     2375:  684:	return __builtin_addressof(_M_val);
+        -:  685:      }
+------------------
+        -:  686:
+        -:  687:      [[nodiscard]]
+        -:  688:      constexpr const _Tp&
+        -:  689:      operator*() const & noexcept
+        -:  690:      {
+        -:  691:	__glibcxx_assert(_M_has_value);
+        -:  692:	return _M_val;
+        -:  693:      }
+        -:  694:
+        -:  695:      [[nodiscard]]
+        -:  696:      constexpr _Tp&
+        -:  697:      operator*() & noexcept
+        -:  698:      {
+        -:  699:	__glibcxx_assert(_M_has_value);
+        -:  700:	return _M_val;
+        -:  701:      }
+        -:  702:
+        -:  703:      [[nodiscard]]
+        -:  704:      constexpr const _Tp&&
+        -:  705:      operator*() const && noexcept
+        -:  706:      {
+        -:  707:	__glibcxx_assert(_M_has_value);
+        -:  708:	return std::move(_M_val);
+        -:  709:      }
+        -:  710:
+        -:  711:      [[nodiscard]]
+        -:  712:      constexpr _Tp&&
+        -:  713:      operator*() && noexcept
+        -:  714:      {
+        -:  715:	__glibcxx_assert(_M_has_value);
+        -:  716:	return std::move(_M_val);
+        -:  717:      }
+        -:  718:
+        -:  719:      [[nodiscard]]
+        -:  720:      constexpr explicit
+   170805:  721:      operator bool() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEcvbEv:
+function _ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEcvbEv called 119324 returned 100% blocks executed 100%
+   119324:  721:      operator bool() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEcvbEv:
+function _ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEcvbEv called 39929 returned 100% blocks executed 100%
+    39929:  721:      operator bool() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEcvbEv:
+function _ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEcvbEv called 5968 returned 100% blocks executed 100%
+     5968:  721:      operator bool() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEcvbEv:
+function _ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEcvbEv called 5584 returned 100% blocks executed 100%
+     5584:  721:      operator bool() const noexcept { return _M_has_value; }
+------------------
+        -:  722:
+        -:  723:      [[nodiscard]]
+    5825*:  724:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE9has_valueEv called 1 returned 100% blocks executed 100%
+        1:  724:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE9has_valueEv called 1 returned 100% blocks executed 100%
+        1:  724:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE9has_valueEv called 2 returned 100% blocks executed 100%
+        2:  724:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE9has_valueEv called 4 returned 100% blocks executed 100%
+        4:  724:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE9has_valueEv called 14 returned 100% blocks executed 100%
+       14:  724:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE9has_valueEv called 61 returned 100% blocks executed 100%
+       61:  724:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE9has_valueEv called 2026 returned 100% blocks executed 100%
+     2026:  724:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE9has_valueEv called 701 returned 100% blocks executed 100%
+      701:  724:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE9has_valueEv called 5 returned 100% blocks executed 100%
+        5:  724:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE9has_valueEv called 0 returned 0% blocks executed 0%
+    #####:  724:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE9has_valueEv called 3000 returned 100% blocks executed 100%
+     3000:  724:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE9has_valueEv called 10 returned 100% blocks executed 100%
+       10:  724:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+        -:  725:
+        -:  726:      constexpr const _Tp&
+        -:  727:      value() const &
+        -:  728:      {
+        -:  729:	if (_M_has_value) [[likely]]
+        -:  730:	  return _M_val;
+        -:  731:	_GLIBCXX_THROW_OR_ABORT(bad_expected_access<_Er>(_M_unex));
+        -:  732:      }
+        -:  733:
+        -:  734:      constexpr _Tp&
+function _ZNRSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE5valueEv called 15 returned 100% blocks executed 50%
+       15:  735:      value() &
+        -:  736:      {
+       15:  737:	if (_M_has_value) [[likely]]
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+       15:  738:	  return _M_val;
+    #####:  739:	const auto& __unex = _M_unex;
+    #####:  740:	_GLIBCXX_THROW_OR_ABORT(bad_expected_access<_Er>(__unex));
+call    0 never executed
+call    1 never executed
+call    2 never executed
+        -:  741:      }
+        -:  742:
+        -:  743:      constexpr const _Tp&&
+        -:  744:      value() const &&
+        -:  745:      {
+        -:  746:	if (_M_has_value) [[likely]]
+        -:  747:	  return std::move(_M_val);
+        -:  748:	_GLIBCXX_THROW_OR_ABORT(bad_expected_access<_Er>(std::move(_M_unex)));
+        -:  749:      }
+        -:  750:
+        -:  751:      constexpr _Tp&&
+     1825:  752:      value() &&
+        -:  753:      {
+     1825:  754:	if (_M_has_value) [[likely]]
+     1825:  755:	  return std::move(_M_val);
+    #####:  756:	_GLIBCXX_THROW_OR_ABORT(bad_expected_access<_Er>(std::move(_M_unex)));
+        -:  757:      }
+------------------
+_ZNOSt8expectedImN4uecm7OpErrorEE5valueEv:
+function _ZNOSt8expectedImN4uecm7OpErrorEE5valueEv called 1774 returned 100% blocks executed 43%
+     1774:  752:      value() &&
+        -:  753:      {
+     1774:  754:	if (_M_has_value) [[likely]]
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+     1774:  755:	  return std::move(_M_val);
+call    0 returned 100%
+    #####:  756:	_GLIBCXX_THROW_OR_ABORT(bad_expected_access<_Er>(std::move(_M_unex)));
+call    0 never executed
+call    1 never executed
+call    2 never executed
+call    3 never executed
+        -:  757:      }
+------------------
+_ZNOSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE5valueEv:
+function _ZNOSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE5valueEv called 36 returned 100% blocks executed 43%
+       36:  752:      value() &&
+        -:  753:      {
+       36:  754:	if (_M_has_value) [[likely]]
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+       36:  755:	  return std::move(_M_val);
+call    0 returned 100%
+    #####:  756:	_GLIBCXX_THROW_OR_ABORT(bad_expected_access<_Er>(std::move(_M_unex)));
+call    0 never executed
+call    1 never executed
+call    2 never executed
+call    3 never executed
+        -:  757:      }
+------------------
+_ZNOSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE5valueEv:
+function _ZNOSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE5valueEv called 15 returned 100% blocks executed 43%
+       15:  752:      value() &&
+        -:  753:      {
+       15:  754:	if (_M_has_value) [[likely]]
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+       15:  755:	  return std::move(_M_val);
+call    0 returned 100%
+    #####:  756:	_GLIBCXX_THROW_OR_ABORT(bad_expected_access<_Er>(std::move(_M_unex)));
+call    0 never executed
+call    1 never executed
+call    2 never executed
+call    3 never executed
+        -:  757:      }
+------------------
+        -:  758:
+        -:  759:      constexpr const _Er&
+function _ZNKRSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE5errorEv called 3 returned 100% blocks executed 67%
+        3:  760:      error() const & noexcept
+        -:  761:      {
+       3*:  762:	__glibcxx_assert(!_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+        3:  763:	return _M_unex;
+        -:  764:      }
+        -:  765:
+        -:  766:      constexpr _Er&
+      747:  767:      error() & noexcept
+        -:  768:      {
+     747*:  769:	__glibcxx_assert(!_M_has_value);
+      747:  770:	return _M_unex;
+        -:  771:      }
+------------------
+_ZNRSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE5errorEv:
+function _ZNRSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE5errorEv called 3 returned 100% blocks executed 67%
+        3:  767:      error() & noexcept
+        -:  768:      {
+       3*:  769:	__glibcxx_assert(!_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+        3:  770:	return _M_unex;
+        -:  771:      }
+------------------
+_ZNRSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE5errorEv:
+function _ZNRSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE5errorEv called 4 returned 100% blocks executed 67%
+        4:  767:      error() & noexcept
+        -:  768:      {
+       4*:  769:	__glibcxx_assert(!_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+        4:  770:	return _M_unex;
+        -:  771:      }
+------------------
+_ZNRSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE5errorEv:
+function _ZNRSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE5errorEv called 11 returned 100% blocks executed 67%
+       11:  767:      error() & noexcept
+        -:  768:      {
+      11*:  769:	__glibcxx_assert(!_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+       11:  770:	return _M_unex;
+        -:  771:      }
+------------------
+_ZNRSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE5errorEv:
+function _ZNRSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEE5errorEv called 467 returned 100% blocks executed 67%
+      467:  767:      error() & noexcept
+        -:  768:      {
+     467*:  769:	__glibcxx_assert(!_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+      467:  770:	return _M_unex;
+        -:  771:      }
+------------------
+_ZNRSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE5errorEv:
+function _ZNRSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEE5errorEv called 262 returned 100% blocks executed 67%
+      262:  767:      error() & noexcept
+        -:  768:      {
+     262*:  769:	__glibcxx_assert(!_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+      262:  770:	return _M_unex;
+        -:  771:      }
+------------------
+        -:  772:
+        -:  773:      constexpr const _Er&&
+        -:  774:      error() const && noexcept
+        -:  775:      {
+        -:  776:	__glibcxx_assert(!_M_has_value);
+        -:  777:	return std::move(_M_unex);
+        -:  778:      }
+        -:  779:
+        -:  780:      constexpr _Er&&
+        -:  781:      error() && noexcept
+        -:  782:      {
+        -:  783:	__glibcxx_assert(!_M_has_value);
+        -:  784:	return std::move(_M_unex);
+        -:  785:      }
+        -:  786:
+        -:  787:      template<typename _Up>
+        -:  788:	constexpr _Tp
+        -:  789:	value_or(_Up&& __v) const &
+        -:  790:	noexcept(__and_v<is_nothrow_copy_constructible<_Tp>,
+        -:  791:			 is_nothrow_convertible<_Up, _Tp>>)
+        -:  792:	{
+        -:  793:	  static_assert( is_copy_constructible_v<_Tp> );
+        -:  794:	  static_assert( is_convertible_v<_Up, _Tp> );
+        -:  795:
+        -:  796:	  if (_M_has_value)
+        -:  797:	    return _M_val;
+        -:  798:	  return static_cast<_Tp>(std::forward<_Up>(__v));
+        -:  799:	}
+        -:  800:
+        -:  801:      template<typename _Up>
+        -:  802:	constexpr _Tp
+        -:  803:	value_or(_Up&& __v) &&
+        -:  804:	noexcept(__and_v<is_nothrow_move_constructible<_Tp>,
+        -:  805:			 is_nothrow_convertible<_Up, _Tp>>)
+        -:  806:	{
+        -:  807:	  static_assert( is_move_constructible_v<_Tp> );
+        -:  808:	  static_assert( is_convertible_v<_Up, _Tp> );
+        -:  809:
+        -:  810:	  if (_M_has_value)
+        -:  811:	    return std::move(_M_val);
+        -:  812:	  return static_cast<_Tp>(std::forward<_Up>(__v));
+        -:  813:	}
+        -:  814:
+        -:  815:      template<typename _Gr = _Er>
+        -:  816:	constexpr _Er
+        -:  817:	error_or(_Gr&& __e) const&
+        -:  818:	{
+        -:  819:	  static_assert( is_copy_constructible_v<_Er> );
+        -:  820:	  static_assert( is_convertible_v<_Gr, _Er> );
+        -:  821:
+        -:  822:	  if (_M_has_value)
+        -:  823:	    return std::forward<_Gr>(__e);
+        -:  824:	  return _M_unex;
+        -:  825:	}
+        -:  826:
+        -:  827:      template<typename _Gr = _Er>
+        -:  828:	constexpr _Er
+        -:  829:	error_or(_Gr&& __e) &&
+        -:  830:	{
+        -:  831:	  static_assert( is_move_constructible_v<_Er> );
+        -:  832:	  static_assert( is_convertible_v<_Gr, _Er> );
+        -:  833:
+        -:  834:	  if (_M_has_value)
+        -:  835:	    return std::forward<_Gr>(__e);
+        -:  836:	  return std::move(_M_unex);
+        -:  837:	}
+        -:  838:
+        -:  839:      // monadic operations
+        -:  840:
+        -:  841:      template<typename _Fn> requires is_constructible_v<_Er, _Er&>
+        -:  842:	constexpr auto
+        -:  843:	and_then(_Fn&& __f) &
+        -:  844:	{
+        -:  845:	  using _Up = __expected::__result<_Fn, _Tp&>;
+        -:  846:	  static_assert(__expected::__is_expected<_Up>,
+        -:  847:			"the function passed to std::expected<T, E>::and_then "
+        -:  848:			"must return a std::expected");
+        -:  849:	  static_assert(is_same_v<typename _Up::error_type, _Er>,
+        -:  850:			"the function passed to std::expected<T, E>::and_then "
+        -:  851:			"must return a std::expected with the same error_type");
+        -:  852:
+        -:  853:	  if (has_value())
+        -:  854:	    return std::__invoke(std::forward<_Fn>(__f), _M_val);
+        -:  855:	  else
+        -:  856:	    return _Up(unexpect, _M_unex);
+        -:  857:	}
+        -:  858:
+        -:  859:      template<typename _Fn> requires is_constructible_v<_Er, const _Er&>
+        -:  860:	constexpr auto
+        -:  861:	and_then(_Fn&& __f) const &
+        -:  862:	{
+        -:  863:	  using _Up = __expected::__result<_Fn, const _Tp&>;
+        -:  864:	  static_assert(__expected::__is_expected<_Up>,
+        -:  865:			"the function passed to std::expected<T, E>::and_then "
+        -:  866:			"must return a std::expected");
+        -:  867:	  static_assert(is_same_v<typename _Up::error_type, _Er>,
+        -:  868:			"the function passed to std::expected<T, E>::and_then "
+        -:  869:			"must return a std::expected with the same error_type");
+        -:  870:
+        -:  871:	  if (has_value())
+        -:  872:	    return std::__invoke(std::forward<_Fn>(__f), _M_val);
+        -:  873:	  else
+        -:  874:	    return _Up(unexpect, _M_unex);
+        -:  875:	}
+        -:  876:
+        -:  877:      template<typename _Fn> requires is_constructible_v<_Er, _Er>
+        -:  878:	constexpr auto
+        -:  879:	and_then(_Fn&& __f) &&
+        -:  880:	{
+        -:  881:	  using _Up = __expected::__result<_Fn, _Tp&&>;
+        -:  882:	  static_assert(__expected::__is_expected<_Up>,
+        -:  883:			"the function passed to std::expected<T, E>::and_then "
+        -:  884:			"must return a std::expected");
+        -:  885:	  static_assert(is_same_v<typename _Up::error_type, _Er>,
+        -:  886:			"the function passed to std::expected<T, E>::and_then "
+        -:  887:			"must return a std::expected with the same error_type");
+        -:  888:
+        -:  889:	  if (has_value())
+        -:  890:	    return std::__invoke(std::forward<_Fn>(__f), std::move(_M_val));
+        -:  891:	  else
+        -:  892:	    return _Up(unexpect, std::move(_M_unex));
+        -:  893:	}
+        -:  894:
+        -:  895:
+        -:  896:      template<typename _Fn> requires is_constructible_v<_Er, const _Er>
+        -:  897:	constexpr auto
+        -:  898:	and_then(_Fn&& __f) const &&
+        -:  899:	{
+        -:  900:	  using _Up = __expected::__result<_Fn, const _Tp&&>;
+        -:  901:	  static_assert(__expected::__is_expected<_Up>,
+        -:  902:			"the function passed to std::expected<T, E>::and_then "
+        -:  903:			"must return a std::expected");
+        -:  904:	  static_assert(is_same_v<typename _Up::error_type, _Er>,
+        -:  905:			"the function passed to std::expected<T, E>::and_then "
+        -:  906:			"must return a std::expected with the same error_type");
+        -:  907:
+        -:  908:	  if (has_value())
+        -:  909:	    return std::__invoke(std::forward<_Fn>(__f), std::move(_M_val));
+        -:  910:	  else
+        -:  911:	    return _Up(unexpect, std::move(_M_unex));
+        -:  912:	}
+        -:  913:
+        -:  914:      template<typename _Fn> requires is_constructible_v<_Tp, _Tp&>
+        -:  915:	constexpr auto
+        -:  916:	or_else(_Fn&& __f) &
+        -:  917:	{
+        -:  918:	  using _Gr = __expected::__result<_Fn, _Er&>;
+        -:  919:	  static_assert(__expected::__is_expected<_Gr>,
+        -:  920:			"the function passed to std::expected<T, E>::or_else "
+        -:  921:			"must return a std::expected");
+        -:  922:	  static_assert(is_same_v<typename _Gr::value_type, _Tp>,
+        -:  923:			"the function passed to std::expected<T, E>::or_else "
+        -:  924:			"must return a std::expected with the same value_type");
+        -:  925:
+        -:  926:	  if (has_value())
+        -:  927:	    return _Gr(in_place, _M_val);
+        -:  928:	  else
+        -:  929:	    return std::__invoke(std::forward<_Fn>(__f), _M_unex);
+        -:  930:	}
+        -:  931:
+        -:  932:      template<typename _Fn> requires is_constructible_v<_Tp, const _Tp&>
+        -:  933:	constexpr auto
+        -:  934:	or_else(_Fn&& __f) const &
+        -:  935:	{
+        -:  936:	  using _Gr = __expected::__result<_Fn, const _Er&>;
+        -:  937:	  static_assert(__expected::__is_expected<_Gr>,
+        -:  938:			"the function passed to std::expected<T, E>::or_else "
+        -:  939:			"must return a std::expected");
+        -:  940:	  static_assert(is_same_v<typename _Gr::value_type, _Tp>,
+        -:  941:			"the function passed to std::expected<T, E>::or_else "
+        -:  942:			"must return a std::expected with the same value_type");
+        -:  943:
+        -:  944:	  if (has_value())
+        -:  945:	    return _Gr(in_place, _M_val);
+        -:  946:	  else
+        -:  947:	    return std::__invoke(std::forward<_Fn>(__f), _M_unex);
+        -:  948:	}
+        -:  949:
+        -:  950:
+        -:  951:      template<typename _Fn> requires is_constructible_v<_Tp, _Tp>
+        -:  952:	constexpr auto
+        -:  953:	or_else(_Fn&& __f) &&
+        -:  954:	{
+        -:  955:	  using _Gr = __expected::__result<_Fn, _Er&&>;
+        -:  956:	  static_assert(__expected::__is_expected<_Gr>,
+        -:  957:			"the function passed to std::expected<T, E>::or_else "
+        -:  958:			"must return a std::expected");
+        -:  959:	  static_assert(is_same_v<typename _Gr::value_type, _Tp>,
+        -:  960:			"the function passed to std::expected<T, E>::or_else "
+        -:  961:			"must return a std::expected with the same value_type");
+        -:  962:
+        -:  963:	  if (has_value())
+        -:  964:	    return _Gr(in_place, std::move(_M_val));
+        -:  965:	  else
+        -:  966:	    return std::__invoke(std::forward<_Fn>(__f), std::move(_M_unex));
+        -:  967:	}
+        -:  968:
+        -:  969:      template<typename _Fn> requires is_constructible_v<_Tp, const _Tp>
+        -:  970:	constexpr auto
+        -:  971:	or_else(_Fn&& __f) const &&
+        -:  972:	{
+        -:  973:	  using _Gr = __expected::__result<_Fn, const _Er&&>;
+        -:  974:	  static_assert(__expected::__is_expected<_Gr>,
+        -:  975:			"the function passed to std::expected<T, E>::or_else "
+        -:  976:			"must return a std::expected");
+        -:  977:	  static_assert(is_same_v<typename _Gr::value_type, _Tp>,
+        -:  978:			"the function passed to std::expected<T, E>::or_else "
+        -:  979:			"must return a std::expected with the same value_type");
+        -:  980:
+        -:  981:	  if (has_value())
+        -:  982:	    return _Gr(in_place, std::move(_M_val));
+        -:  983:	  else
+        -:  984:	    return std::__invoke(std::forward<_Fn>(__f), std::move(_M_unex));
+        -:  985:	}
+        -:  986:
+        -:  987:      template<typename _Fn> requires is_constructible_v<_Er, _Er&>
+        -:  988:	constexpr auto
+        -:  989:	transform(_Fn&& __f) &
+        -:  990:	{
+        -:  991:	  using _Up = __expected::__result_xform<_Fn, _Tp&>;
+        -:  992:	  using _Res = expected<_Up, _Er>;
+        -:  993:
+        -:  994:	  if (has_value())
+        -:  995:	    return _Res(__in_place_inv{}, [&]() {
+        -:  996:			  return std::__invoke(std::forward<_Fn>(__f),
+        -:  997:					       _M_val);
+        -:  998:			});
+        -:  999:	  else
+        -: 1000:	    return _Res(unexpect, _M_unex);
+        -: 1001:	}
+        -: 1002:
+        -: 1003:      template<typename _Fn> requires is_constructible_v<_Er, const _Er&>
+        -: 1004:	constexpr auto
+        -: 1005:	transform(_Fn&& __f) const &
+        -: 1006:	{
+        -: 1007:	  using _Up = __expected::__result_xform<_Fn, const _Tp&>;
+        -: 1008:	  using _Res = expected<_Up, _Er>;
+        -: 1009:
+        -: 1010:	  if (has_value())
+        -: 1011:	    return _Res(__in_place_inv{}, [&]() {
+        -: 1012:			  return std::__invoke(std::forward<_Fn>(__f),
+        -: 1013:					       _M_val);
+        -: 1014:			});
+        -: 1015:	  else
+        -: 1016:	    return _Res(unexpect, _M_unex);
+        -: 1017:	}
+        -: 1018:
+        -: 1019:      template<typename _Fn> requires is_constructible_v<_Er, _Er>
+        -: 1020:	constexpr auto
+        -: 1021:	transform(_Fn&& __f) &&
+        -: 1022:	{
+        -: 1023:	  using _Up = __expected::__result_xform<_Fn, _Tp>;
+        -: 1024:	  using _Res = expected<_Up, _Er>;
+        -: 1025:
+        -: 1026:	  if (has_value())
+        -: 1027:	    return _Res(__in_place_inv{}, [&]() {
+        -: 1028:			  return std::__invoke(std::forward<_Fn>(__f),
+        -: 1029:					       std::move(_M_val));
+        -: 1030:			});
+        -: 1031:	  else
+        -: 1032:	    return _Res(unexpect, std::move(_M_unex));
+        -: 1033:	}
+        -: 1034:
+        -: 1035:      template<typename _Fn> requires is_constructible_v<_Er, const _Er>
+        -: 1036:	constexpr auto
+        -: 1037:	transform(_Fn&& __f) const &&
+        -: 1038:	{
+        -: 1039:	  using _Up = __expected::__result_xform<_Fn, const _Tp>;
+        -: 1040:	  using _Res = expected<_Up, _Er>;
+        -: 1041:
+        -: 1042:	  if (has_value())
+        -: 1043:	    return _Res(__in_place_inv{}, [&]() {
+        -: 1044:			  return std::__invoke(std::forward<_Fn>(__f),
+        -: 1045:					       std::move(_M_val));
+        -: 1046:			});
+        -: 1047:	  else
+        -: 1048:	    return _Res(unexpect, std::move(_M_unex));
+        -: 1049:	}
+        -: 1050:
+        -: 1051:      template<typename _Fn> requires is_constructible_v<_Tp, _Tp&>
+        -: 1052:	constexpr auto
+        -: 1053:	transform_error(_Fn&& __f) &
+        -: 1054:	{
+        -: 1055:	  using _Gr = __expected::__result_xform<_Fn, _Er&>;
+        -: 1056:	  using _Res = expected<_Tp, _Gr>;
+        -: 1057:
+        -: 1058:	  if (has_value())
+        -: 1059:	    return _Res(in_place, _M_val);
+        -: 1060:	  else
+        -: 1061:	    return _Res(__unexpect_inv{}, [&]() {
+        -: 1062:			  return std::__invoke(std::forward<_Fn>(__f),
+        -: 1063:					       _M_unex);
+        -: 1064:			});
+        -: 1065:	}
+        -: 1066:
+        -: 1067:      template<typename _Fn> requires is_constructible_v<_Tp, const _Tp&>
+        -: 1068:	constexpr auto
+        -: 1069:	transform_error(_Fn&& __f) const &
+        -: 1070:	{
+        -: 1071:	  using _Gr = __expected::__result_xform<_Fn, const _Er&>;
+        -: 1072:	  using _Res = expected<_Tp, _Gr>;
+        -: 1073:
+        -: 1074:	  if (has_value())
+        -: 1075:	    return _Res(in_place, _M_val);
+        -: 1076:	  else
+        -: 1077:	    return _Res(__unexpect_inv{}, [&]() {
+        -: 1078:			  return std::__invoke(std::forward<_Fn>(__f),
+        -: 1079:					       _M_unex);
+        -: 1080:			});
+        -: 1081:	}
+        -: 1082:
+        -: 1083:      template<typename _Fn> requires is_constructible_v<_Tp, _Tp>
+        -: 1084:	constexpr auto
+        -: 1085:	transform_error(_Fn&& __f) &&
+        -: 1086:	{
+        -: 1087:	  using _Gr = __expected::__result_xform<_Fn, _Er&&>;
+        -: 1088:	  using _Res = expected<_Tp, _Gr>;
+        -: 1089:
+        -: 1090:	  if (has_value())
+        -: 1091:	    return _Res(in_place, std::move(_M_val));
+        -: 1092:	  else
+        -: 1093:	    return _Res(__unexpect_inv{}, [&]() {
+        -: 1094:			  return std::__invoke(std::forward<_Fn>(__f),
+        -: 1095:					       std::move(_M_unex));
+        -: 1096:			});
+        -: 1097:	}
+        -: 1098:
+        -: 1099:      template<typename _Fn> requires is_constructible_v<_Tp, const _Tp>
+        -: 1100:	constexpr auto
+        -: 1101:	transform_error(_Fn&& __f) const &&
+        -: 1102:	{
+        -: 1103:	  using _Gr = __expected::__result_xform<_Fn, const _Er&&>;
+        -: 1104:	  using _Res = expected<_Tp, _Gr>;
+        -: 1105:
+        -: 1106:	  if (has_value())
+        -: 1107:	    return _Res(in_place, std::move(_M_val));
+        -: 1108:	  else
+        -: 1109:	    return _Res(__unexpect_inv{}, [&]() {
+        -: 1110:			  return std::__invoke(std::forward<_Fn>(__f),
+        -: 1111:					       std::move(_M_unex));
+        -: 1112:			});
+        -: 1113:	}
+        -: 1114:
+        -: 1115:      // equality operators
+        -: 1116:
+        -: 1117:      template<typename _Up, typename _Er2>
+        -: 1118:	requires (!is_void_v<_Up>)
+        -: 1119:	friend constexpr bool
+        -: 1120:	operator==(const expected& __x, const expected<_Up, _Er2>& __y)
+        -: 1121:	// FIXME: noexcept(noexcept(bool(*__x == *__y))
+        -: 1122:		  // && noexcept(bool(__x.error() == __y.error())))
+        -: 1123:	{
+        -: 1124:	  if (__x.has_value())
+        -: 1125:	    return __y.has_value() && bool(*__x == *__y);
+        -: 1126:	  else
+        -: 1127:	    return !__y.has_value() && bool(__x.error() == __y.error());
+        -: 1128:	}
+        -: 1129:
+        -: 1130:      template<typename _Up>
+        -: 1131:	friend constexpr bool
+        -: 1132:	operator==(const expected& __x, const _Up& __v)
+        -: 1133:	// FIXME: noexcept(noexcept(bool(*__x == __v)))
+        -: 1134:	{ return __x.has_value() && bool(*__x == __v); }
+        -: 1135:
+        -: 1136:      template<typename _Er2>
+        -: 1137:	friend constexpr bool
+        -: 1138:	operator==(const expected& __x, const unexpected<_Er2>& __e)
+        -: 1139:	// FIXME: noexcept(noexcept(bool(__x.error() == __e.error())))
+        -: 1140:	{ return !__x.has_value() && bool(__x.error() == __e.error()); }
+        -: 1141:
+        -: 1142:      friend constexpr void
+        -: 1143:      swap(expected& __x, expected& __y)
+        -: 1144:      noexcept(noexcept(__x.swap(__y)))
+        -: 1145:      requires requires {__x.swap(__y);}
+        -: 1146:      { __x.swap(__y); }
+        -: 1147:
+        -: 1148:    private:
+        -: 1149:      template<typename, typename> friend class expected;
+        -: 1150:
+        -: 1151:      template<typename _Vp>
+        -: 1152:	constexpr void
+        -: 1153:	_M_assign_val(_Vp&& __v)
+        -: 1154:	{
+        -: 1155:	  if (_M_has_value)
+        -: 1156:	    _M_val = std::forward<_Vp>(__v);
+        -: 1157:	  else
+        -: 1158:	    {
+        -: 1159:	      __expected::__reinit(__builtin_addressof(_M_val),
+        -: 1160:				   __builtin_addressof(_M_unex),
+        -: 1161:				   std::forward<_Vp>(__v));
+        -: 1162:	      _M_has_value = true;
+        -: 1163:	    }
+        -: 1164:	}
+        -: 1165:
+        -: 1166:      template<typename _Vp>
+        -: 1167:	constexpr void
+        -: 1168:	_M_assign_unex(_Vp&& __v)
+        -: 1169:	{
+        -: 1170:	  if (_M_has_value)
+        -: 1171:	    {
+        -: 1172:	      __expected::__reinit(__builtin_addressof(_M_unex),
+        -: 1173:				   __builtin_addressof(_M_val),
+        -: 1174:				   std::forward<_Vp>(__v));
+        -: 1175:	      _M_has_value = false;
+        -: 1176:	    }
+        -: 1177:	  else
+        -: 1178:	    _M_unex = std::forward<_Vp>(__v);
+        -: 1179:	}
+        -: 1180:
+        -: 1181:      // Swap two expected objects when only one has a value.
+        -: 1182:      // Precondition: this->_M_has_value && !__rhs._M_has_value
+        -: 1183:      constexpr void
+        -: 1184:      _M_swap_val_unex(expected& __rhs)
+        -: 1185:      noexcept(__and_v<is_nothrow_move_constructible<_Er>,
+        -: 1186:		       is_nothrow_move_constructible<_Tp>>)
+        -: 1187:      {
+        -: 1188:	if constexpr (is_nothrow_move_constructible_v<_Er>)
+        -: 1189:	  {
+        -: 1190:	    __expected::_Guard<_Er> __guard(__rhs._M_unex);
+        -: 1191:	    std::construct_at(__builtin_addressof(__rhs._M_val),
+        -: 1192:			      std::move(_M_val)); // might throw
+        -: 1193:	    __rhs._M_has_value = true;
+        -: 1194:	    std::destroy_at(__builtin_addressof(_M_val));
+        -: 1195:	    std::construct_at(__builtin_addressof(_M_unex),
+        -: 1196:			      __guard.release());
+        -: 1197:	    _M_has_value = false;
+        -: 1198:	  }
+        -: 1199:	else
+        -: 1200:	  {
+        -: 1201:	    __expected::_Guard<_Tp> __guard(_M_val);
+        -: 1202:	    std::construct_at(__builtin_addressof(_M_unex),
+        -: 1203:			      std::move(__rhs._M_unex)); // might throw
+        -: 1204:	    _M_has_value = false;
+        -: 1205:	    std::destroy_at(__builtin_addressof(__rhs._M_unex));
+        -: 1206:	    std::construct_at(__builtin_addressof(__rhs._M_val),
+        -: 1207:			      __guard.release());
+        -: 1208:	    __rhs._M_has_value = true;
+        -: 1209:	  }
+        -: 1210:      }
+        -: 1211:
+        -: 1212:      using __in_place_inv = __expected::__in_place_inv;
+        -: 1213:      using __unexpect_inv = __expected::__unexpect_inv;
+        -: 1214:
+        -: 1215:      template<typename _Fn>
+        -: 1216:	explicit constexpr
+        -: 1217:	expected(__in_place_inv, _Fn&& __fn)
+        -: 1218:	: _M_val(std::forward<_Fn>(__fn)()), _M_has_value(true)
+        -: 1219:	{ }
+        -: 1220:
+        -: 1221:      template<typename _Fn>
+        -: 1222:	explicit constexpr
+        -: 1223:	expected(__unexpect_inv, _Fn&& __fn)
+        -: 1224:	: _M_unex(std::forward<_Fn>(__fn)()), _M_has_value(false)
+        -: 1225:	{ }
+        -: 1226:
+        -: 1227:      union {
+        -: 1228:	_Tp _M_val;
+        -: 1229:	_Er _M_unex;
+        -: 1230:      };
+        -: 1231:
+        -: 1232:      bool _M_has_value;
+        -: 1233:    };
+        -: 1234:
+        -: 1235:  // Partial specialization for std::expected<cv void, E>
+        -: 1236:  template<typename _Tp, typename _Er> requires is_void_v<_Tp>
+        -: 1237:    class expected<_Tp, _Er>
+        -: 1238:    {
+        -: 1239:      static_assert( __expected::__can_be_unexpected<_Er> );
+        -: 1240:
+        -: 1241:      template<typename _Up, typename _Err, typename _Unex = unexpected<_Er>>
+        -: 1242:	static constexpr bool __cons_from_expected
+        -: 1243:	  = __or_v<is_constructible<_Unex, expected<_Up, _Err>&>,
+        -: 1244:		   is_constructible<_Unex, expected<_Up, _Err>>,
+        -: 1245:		   is_constructible<_Unex, const expected<_Up, _Err>&>,
+        -: 1246:		   is_constructible<_Unex, const expected<_Up, _Err>>
+        -: 1247:		  >;
+        -: 1248:
+        -: 1249:      template<typename _Up>
+        -: 1250:	static constexpr bool __same_val
+        -: 1251:	  = is_same_v<typename _Up::value_type, _Tp>;
+        -: 1252:
+        -: 1253:      template<typename _Up>
+        -: 1254:	static constexpr bool __same_err
+        -: 1255:	  = is_same_v<typename _Up::error_type, _Er>;
+        -: 1256:
+        -: 1257:    public:
+        -: 1258:      using value_type = _Tp;
+        -: 1259:      using error_type = _Er;
+        -: 1260:      using unexpected_type = unexpected<_Er>;
+        -: 1261:
+        -: 1262:      template<typename _Up>
+        -: 1263:	using rebind = expected<_Up, error_type>;
+        -: 1264:
+        -: 1265:      constexpr
+function _ZNSt8expectedIvN4uecm7OpErrorEEC2Ev called 110602 returned 100% blocks executed 100%
+   110602: 1266:      expected() noexcept
+   110602: 1267:      : _M_void(), _M_has_value(true)
+   110602: 1268:      { }
+        -: 1269:
+        -: 1270:      expected(const expected&) = default;
+        -: 1271:
+        -: 1272:      constexpr
+        -: 1273:      expected(const expected& __x)
+        -: 1274:      noexcept(is_nothrow_copy_constructible_v<_Er>)
+        -: 1275:      requires is_copy_constructible_v<_Er>
+        -: 1276:	    && (!is_trivially_copy_constructible_v<_Er>)
+        -: 1277:      : _M_void(), _M_has_value(__x._M_has_value)
+        -: 1278:      {
+        -: 1279:	if (!_M_has_value)
+        -: 1280:	  std::construct_at(__builtin_addressof(_M_unex), __x._M_unex);
+        -: 1281:      }
+        -: 1282:
+        -: 1283:      expected(expected&&) = default;
+        -: 1284:
+        -: 1285:      constexpr
+        -: 1286:      expected(expected&& __x)
+        -: 1287:      noexcept(is_nothrow_move_constructible_v<_Er>)
+        -: 1288:      requires is_move_constructible_v<_Er>
+        -: 1289:	    && (!is_trivially_move_constructible_v<_Er>)
+        -: 1290:      : _M_void(), _M_has_value(__x._M_has_value)
+        -: 1291:      {
+        -: 1292:	if (!_M_has_value)
+        -: 1293:	  std::construct_at(__builtin_addressof(_M_unex),
+        -: 1294:			    std::move(__x)._M_unex);
+        -: 1295:      }
+        -: 1296:
+        -: 1297:      template<typename _Up, typename _Gr>
+        -: 1298:	requires is_void_v<_Up>
+        -: 1299:	      && is_constructible_v<_Er, const _Gr&>
+        -: 1300:	      && (!__cons_from_expected<_Up, _Gr>)
+        -: 1301:	constexpr explicit(!is_convertible_v<const _Gr&, _Er>)
+        -: 1302:	expected(const expected<_Up, _Gr>& __x)
+        -: 1303:	noexcept(is_nothrow_constructible_v<_Er, const _Gr&>)
+        -: 1304:	: _M_void(), _M_has_value(__x._M_has_value)
+        -: 1305:	{
+        -: 1306:	  if (!_M_has_value)
+        -: 1307:	    std::construct_at(__builtin_addressof(_M_unex), __x._M_unex);
+        -: 1308:	}
+        -: 1309:
+        -: 1310:      template<typename _Up, typename _Gr>
+        -: 1311:	requires is_void_v<_Up>
+        -: 1312:	      && is_constructible_v<_Er, _Gr>
+        -: 1313:	      && (!__cons_from_expected<_Up, _Gr>)
+        -: 1314:	constexpr explicit(!is_convertible_v<_Gr, _Er>)
+        -: 1315:	expected(expected<_Up, _Gr>&& __x)
+        -: 1316:	noexcept(is_nothrow_constructible_v<_Er, _Gr>)
+        -: 1317:	: _M_void(), _M_has_value(__x._M_has_value)
+        -: 1318:	{
+        -: 1319:	  if (!_M_has_value)
+        -: 1320:	    std::construct_at(__builtin_addressof(_M_unex),
+        -: 1321:			      std::move(__x)._M_unex);
+        -: 1322:	}
+        -: 1323:
+        -: 1324:      template<typename _Gr = _Er>
+        -: 1325:	requires is_constructible_v<_Er, const _Gr&>
+        -: 1326:	constexpr explicit(!is_convertible_v<const _Gr&, _Er>)
+        -: 1327:	expected(const unexpected<_Gr>& __u)
+        -: 1328:	noexcept(is_nothrow_constructible_v<_Er, const _Gr&>)
+        -: 1329:	: _M_unex(__u.error()), _M_has_value(false)
+        -: 1330:	{ }
+        -: 1331:
+        -: 1332:      template<typename _Gr = _Er>
+        -: 1333:	requires is_constructible_v<_Er, _Gr>
+        -: 1334:	constexpr explicit(!is_convertible_v<_Gr, _Er>)
+function _ZNSt8expectedIvN4uecm7OpErrorEEC2IS1_EEOSt10unexpectedIT_E called 2320 returned 100% blocks executed 100%
+     2320: 1335:	expected(unexpected<_Gr>&& __u)
+        -: 1336:	noexcept(is_nothrow_constructible_v<_Er, _Gr>)
+     2320: 1337:	: _M_unex(std::move(__u).error()), _M_has_value(false)
+call    0 returned 100%
+call    1 returned 100%
+     2320: 1338:	{ }
+        -: 1339:
+        -: 1340:      constexpr explicit
+        -: 1341:      expected(in_place_t) noexcept
+        -: 1342:      : expected()
+        -: 1343:      { }
+        -: 1344:
+        -: 1345:      template<typename... _Args>
+        -: 1346:	requires is_constructible_v<_Er, _Args...>
+        -: 1347:	constexpr explicit
+        -: 1348:	expected(unexpect_t, _Args&&... __args)
+        -: 1349:	noexcept(is_nothrow_constructible_v<_Er, _Args...>)
+        -: 1350:	: _M_unex(std::forward<_Args>(__args)...), _M_has_value(false)
+        -: 1351:	{ }
+        -: 1352:
+        -: 1353:      template<typename _Up, typename... _Args>
+        -: 1354:	requires is_constructible_v<_Er, initializer_list<_Up>&, _Args...>
+        -: 1355:	constexpr explicit
+        -: 1356:	expected(unexpect_t, initializer_list<_Up> __il, _Args&&... __args)
+        -: 1357:	noexcept(is_nothrow_constructible_v<_Er, initializer_list<_Up>&,
+        -: 1358:					    _Args...>)
+        -: 1359:	: _M_unex(__il, std::forward<_Args>(__args)...), _M_has_value(false)
+        -: 1360:	{ }
+        -: 1361:
+        -: 1362:      constexpr ~expected() = default;
+        -: 1363:
+        -: 1364:      constexpr ~expected() requires (!is_trivially_destructible_v<_Er>)
+        -: 1365:      {
+        -: 1366:	if (!_M_has_value)
+        -: 1367:	  std::destroy_at(__builtin_addressof(_M_unex));
+        -: 1368:      }
+        -: 1369:
+        -: 1370:      // assignment
+        -: 1371:
+        -: 1372:      expected& operator=(const expected&) = delete;
+        -: 1373:
+        -: 1374:      constexpr expected&
+        -: 1375:      operator=(const expected& __x)
+        -: 1376:      noexcept(__and_v<is_nothrow_copy_constructible<_Er>,
+        -: 1377:		       is_nothrow_copy_assignable<_Er>>)
+        -: 1378:      requires is_copy_constructible_v<_Er>
+        -: 1379:	    && is_copy_assignable_v<_Er>
+        -: 1380:      {
+        -: 1381:	if (__x._M_has_value)
+        -: 1382:	  emplace();
+        -: 1383:	else
+        -: 1384:	  _M_assign_unex(__x._M_unex);
+        -: 1385:	return *this;
+        -: 1386:      }
+        -: 1387:
+        -: 1388:      constexpr expected&
+        -: 1389:      operator=(expected&& __x)
+        -: 1390:      noexcept(__and_v<is_nothrow_move_constructible<_Er>,
+        -: 1391:		       is_nothrow_move_assignable<_Er>>)
+        -: 1392:      requires is_move_constructible_v<_Er>
+        -: 1393:	    && is_move_assignable_v<_Er>
+        -: 1394:      {
+        -: 1395:	if (__x._M_has_value)
+        -: 1396:	  emplace();
+        -: 1397:	else
+        -: 1398:	  _M_assign_unex(std::move(__x._M_unex));
+        -: 1399:	return *this;
+        -: 1400:      }
+        -: 1401:
+        -: 1402:      template<typename _Gr>
+        -: 1403:	requires is_constructible_v<_Er, const _Gr&>
+        -: 1404:	      && is_assignable_v<_Er&, const _Gr&>
+        -: 1405:	constexpr expected&
+        -: 1406:	operator=(const unexpected<_Gr>& __e)
+        -: 1407:	{
+        -: 1408:	  _M_assign_unex(__e.error());
+        -: 1409:	  return *this;
+        -: 1410:	}
+        -: 1411:
+        -: 1412:      template<typename _Gr>
+        -: 1413:	requires is_constructible_v<_Er, _Gr>
+        -: 1414:	      && is_assignable_v<_Er&, _Gr>
+        -: 1415:	constexpr expected&
+        -: 1416:	operator=(unexpected<_Gr>&& __e)
+        -: 1417:	{
+        -: 1418:	  _M_assign_unex(std::move(__e.error()));
+        -: 1419:	  return *this;
+        -: 1420:	}
+        -: 1421:
+        -: 1422:      // modifiers
+        -: 1423:
+        -: 1424:      constexpr void
+        -: 1425:      emplace() noexcept
+        -: 1426:      {
+        -: 1427:	if (!_M_has_value)
+        -: 1428:	  {
+        -: 1429:	    std::destroy_at(__builtin_addressof(_M_unex));
+        -: 1430:	    _M_has_value = true;
+        -: 1431:	  }
+        -: 1432:      }
+        -: 1433:
+        -: 1434:      // swap
+        -: 1435:      constexpr void
+        -: 1436:      swap(expected& __x)
+        -: 1437:      noexcept(__and_v<is_nothrow_swappable<_Er&>,
+        -: 1438:		       is_nothrow_move_constructible<_Er>>)
+        -: 1439:      requires is_swappable_v<_Er> && is_move_constructible_v<_Er>
+        -: 1440:      {
+        -: 1441:	if (_M_has_value)
+        -: 1442:	  {
+        -: 1443:	    if (!__x._M_has_value)
+        -: 1444:	      {
+        -: 1445:		std::construct_at(__builtin_addressof(_M_unex),
+        -: 1446:				  std::move(__x._M_unex)); // might throw
+        -: 1447:		std::destroy_at(__builtin_addressof(__x._M_unex));
+        -: 1448:		_M_has_value = false;
+        -: 1449:		__x._M_has_value = true;
+        -: 1450:	      }
+        -: 1451:	  }
+        -: 1452:	else
+        -: 1453:	  {
+        -: 1454:	    if (__x._M_has_value)
+        -: 1455:	      {
+        -: 1456:		std::construct_at(__builtin_addressof(__x._M_unex),
+        -: 1457:				  std::move(_M_unex)); // might throw
+        -: 1458:		std::destroy_at(__builtin_addressof(_M_unex));
+        -: 1459:		_M_has_value = true;
+        -: 1460:		__x._M_has_value = false;
+        -: 1461:	      }
+        -: 1462:	    else
+        -: 1463:	      {
+        -: 1464:		using std::swap;
+        -: 1465:		swap(_M_unex, __x._M_unex);
+        -: 1466:	      }
+        -: 1467:	  }
+        -: 1468:      }
+        -: 1469:
+        -: 1470:      // observers
+        -: 1471:
+        -: 1472:      [[nodiscard]]
+        -: 1473:      constexpr explicit
+   104287: 1474:      operator bool() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIvN4uecm7OpErrorEEcvbEv:
+function _ZNKSt8expectedIvN4uecm7OpErrorEEcvbEv called 99497 returned 100% blocks executed 100%
+    99497: 1474:      operator bool() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIvN4uecm7OpErrorEEcvbEv:
+function _ZNKSt8expectedIvN4uecm7OpErrorEEcvbEv called 4790 returned 100% blocks executed 100%
+     4790: 1474:      operator bool() const noexcept { return _M_has_value; }
+------------------
+        -: 1475:
+        -: 1476:      [[nodiscard]]
+    8268*: 1477:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv called 4 returned 100% blocks executed 100%
+        4: 1477:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv called 22 returned 100% blocks executed 100%
+       22: 1477:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv called 278 returned 100% blocks executed 100%
+      278: 1477:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv called 5431 returned 100% blocks executed 100%
+     5431: 1477:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv called 2002 returned 100% blocks executed 100%
+     2002: 1477:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv called 0 returned 0% blocks executed 0%
+    #####: 1477:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+_ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv:
+function _ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv called 531 returned 100% blocks executed 100%
+      531: 1477:      constexpr bool has_value() const noexcept { return _M_has_value; }
+------------------
+        -: 1478:
+        -: 1479:      constexpr void
+        -: 1480:      operator*() const noexcept { __glibcxx_assert(_M_has_value); }
+        -: 1481:
+        -: 1482:      constexpr void
+        -: 1483:      value() const&
+        -: 1484:      {
+        -: 1485:	if (_M_has_value) [[likely]]
+        -: 1486:	  return;
+        -: 1487:	_GLIBCXX_THROW_OR_ABORT(bad_expected_access<_Er>(_M_unex));
+        -: 1488:      }
+        -: 1489:
+        -: 1490:      constexpr void
+        -: 1491:      value() &&
+        -: 1492:      {
+        -: 1493:	if (_M_has_value) [[likely]]
+        -: 1494:	  return;
+        -: 1495:	_GLIBCXX_THROW_OR_ABORT(bad_expected_access<_Er>(std::move(_M_unex)));
+        -: 1496:      }
+        -: 1497:
+        -: 1498:      constexpr const _Er&
+     2252: 1499:      error() const & noexcept
+        -: 1500:      {
+    2252*: 1501:	__glibcxx_assert(!_M_has_value);
+     2252: 1502:	return _M_unex;
+        -: 1503:      }
+------------------
+_ZNKRSt8expectedIvN4uecm7OpErrorEE5errorEv:
+function _ZNKRSt8expectedIvN4uecm7OpErrorEE5errorEv called 2243 returned 100% blocks executed 67%
+     2243: 1499:      error() const & noexcept
+        -: 1500:      {
+    2243*: 1501:	__glibcxx_assert(!_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+     2243: 1502:	return _M_unex;
+        -: 1503:      }
+------------------
+_ZNKRSt8expectedIvN4uecm7OpErrorEE5errorEv:
+function _ZNKRSt8expectedIvN4uecm7OpErrorEE5errorEv called 9 returned 100% blocks executed 67%
+        9: 1499:      error() const & noexcept
+        -: 1500:      {
+       9*: 1501:	__glibcxx_assert(!_M_has_value);
+call    0 returned 100%
+branch  1 taken 0% (fallthrough)
+branch  2 taken 100%
+branch  3 never executed (fallthrough)
+branch  4 never executed
+branch  5 taken 0% (fallthrough)
+branch  6 taken 100%
+call    7 never executed
+        9: 1502:	return _M_unex;
+        -: 1503:      }
+------------------
+        -: 1504:
+        -: 1505:      constexpr _Er&
+       65: 1506:      error() & noexcept
+        -: 1507:      {
+      65*: 1508:	__glibcxx_assert(!_M_has_value);
+       65: 1509:	return _M_unex;
+        -: 1510:      }
+        -: 1511:
+        -: 1512:      constexpr const _Er&&
+        -: 1513:      error() const && noexcept
+        -: 1514:      {
+        -: 1515:	__glibcxx_assert(!_M_has_value);
+        -: 1516:	return std::move(_M_unex);
+        -: 1517:      }
+        -: 1518:
+        -: 1519:      constexpr _Er&&
+        -: 1520:      error() && noexcept
+        -: 1521:      {
+        -: 1522:	__glibcxx_assert(!_M_has_value);
+        -: 1523:	return std::move(_M_unex);
+        -: 1524:      }
+        -: 1525:
+        -: 1526:      template<typename _Gr = _Er>
+        -: 1527:	constexpr _Er
+        -: 1528:	error_or(_Gr&& __e) const&
+        -: 1529:	{
+        -: 1530:	  static_assert( is_copy_constructible_v<_Er> );
+        -: 1531:	  static_assert( is_convertible_v<_Gr, _Er> );
+        -: 1532:
+        -: 1533:	  if (_M_has_value)
+        -: 1534:	    return std::forward<_Gr>(__e);
+        -: 1535:	  return _M_unex;
+        -: 1536:	}
+        -: 1537:
+        -: 1538:      template<typename _Gr = _Er>
+        -: 1539:	constexpr _Er
+        -: 1540:	error_or(_Gr&& __e) &&
+        -: 1541:	{
+        -: 1542:	  static_assert( is_move_constructible_v<_Er> );
+        -: 1543:	  static_assert( is_convertible_v<_Gr, _Er> );
+        -: 1544:
+        -: 1545:	  if (_M_has_value)
+        -: 1546:	    return std::forward<_Gr>(__e);
+        -: 1547:	  return std::move(_M_unex);
+        -: 1548:	}
+        -: 1549:
+        -: 1550:      // monadic operations
+        -: 1551:
+        -: 1552:      template<typename _Fn> requires is_constructible_v<_Er, _Er&>
+        -: 1553:	constexpr auto
+        -: 1554:	and_then(_Fn&& __f) &
+        -: 1555:	{
+        -: 1556:	  using _Up = __expected::__result0<_Fn>;
+        -: 1557:	  static_assert(__expected::__is_expected<_Up>);
+        -: 1558:	  static_assert(is_same_v<typename _Up::error_type, _Er>);
+        -: 1559:
+        -: 1560:	  if (has_value())
+        -: 1561:	    return std::__invoke(std::forward<_Fn>(__f));
+        -: 1562:	  else
+        -: 1563:	    return _Up(unexpect, _M_unex);
+        -: 1564:	}
+        -: 1565:
+        -: 1566:     template<typename _Fn> requires is_constructible_v<_Er, const _Er&>
+        -: 1567:	constexpr auto
+        -: 1568:	and_then(_Fn&& __f) const &
+        -: 1569:	{
+        -: 1570:	  using _Up = __expected::__result0<_Fn>;
+        -: 1571:	  static_assert(__expected::__is_expected<_Up>);
+        -: 1572:	  static_assert(is_same_v<typename _Up::error_type, _Er>);
+        -: 1573:
+        -: 1574:	  if (has_value())
+        -: 1575:	    return std::__invoke(std::forward<_Fn>(__f));
+        -: 1576:	  else
+        -: 1577:	    return _Up(unexpect, _M_unex);
+        -: 1578:	}
+        -: 1579:
+        -: 1580:      template<typename _Fn> requires is_constructible_v<_Er, _Er>
+        -: 1581:	constexpr auto
+        -: 1582:	and_then(_Fn&& __f) &&
+        -: 1583:	{
+        -: 1584:	  using _Up = __expected::__result0<_Fn>;
+        -: 1585:	  static_assert(__expected::__is_expected<_Up>);
+        -: 1586:	  static_assert(is_same_v<typename _Up::error_type, _Er>);
+        -: 1587:
+        -: 1588:	  if (has_value())
+        -: 1589:	    return std::__invoke(std::forward<_Fn>(__f));
+        -: 1590:	  else
+        -: 1591:	    return _Up(unexpect, std::move(_M_unex));
+        -: 1592:	}
+        -: 1593:
+        -: 1594:       template<typename _Fn> requires is_constructible_v<_Er, const _Er>
+        -: 1595:	constexpr auto
+        -: 1596:	and_then(_Fn&& __f) const &&
+        -: 1597:	{
+        -: 1598:	  using _Up = __expected::__result0<_Fn>;
+        -: 1599:	  static_assert(__expected::__is_expected<_Up>);
+        -: 1600:	  static_assert(is_same_v<typename _Up::error_type, _Er>);
+        -: 1601:
+        -: 1602:	  if (has_value())
+        -: 1603:	    return std::__invoke(std::forward<_Fn>(__f));
+        -: 1604:	  else
+        -: 1605:	    return _Up(unexpect, std::move(_M_unex));
+        -: 1606:	}
+        -: 1607:
+        -: 1608:      template<typename _Fn>
+        -: 1609:	constexpr auto
+        -: 1610:	or_else(_Fn&& __f) &
+        -: 1611:	{
+        -: 1612:	  using _Gr = __expected::__result<_Fn, _Er&>;
+        -: 1613:	  static_assert(__expected::__is_expected<_Gr>);
+        -: 1614:	  static_assert(is_same_v<typename _Gr::value_type, _Tp>);
+        -: 1615:
+        -: 1616:	  if (has_value())
+        -: 1617:	    return _Gr();
+        -: 1618:	  else
+        -: 1619:	    return std::__invoke(std::forward<_Fn>(__f), _M_unex);
+        -: 1620:	}
+        -: 1621:
+        -: 1622:      template<typename _Fn>
+        -: 1623:	constexpr auto
+        -: 1624:	or_else(_Fn&& __f) const &
+        -: 1625:	{
+        -: 1626:	  using _Gr = __expected::__result<_Fn, const _Er&>;
+        -: 1627:	  static_assert(__expected::__is_expected<_Gr>);
+        -: 1628:	  static_assert(is_same_v<typename _Gr::value_type, _Tp>);
+        -: 1629:
+        -: 1630:	  if (has_value())
+        -: 1631:	    return _Gr();
+        -: 1632:	  else
+        -: 1633:	    return std::__invoke(std::forward<_Fn>(__f), _M_unex);
+        -: 1634:	}
+        -: 1635:
+        -: 1636:      template<typename _Fn>
+        -: 1637:	constexpr auto
+        -: 1638:	or_else(_Fn&& __f) &&
+        -: 1639:	{
+        -: 1640:	  using _Gr = __expected::__result<_Fn, _Er&&>;
+        -: 1641:	  static_assert(__expected::__is_expected<_Gr>);
+        -: 1642:	  static_assert(is_same_v<typename _Gr::value_type, _Tp>);
+        -: 1643:
+        -: 1644:	  if (has_value())
+        -: 1645:	    return _Gr();
+        -: 1646:	  else
+        -: 1647:	    return std::__invoke(std::forward<_Fn>(__f), std::move(_M_unex));
+        -: 1648:	}
+        -: 1649:
+        -: 1650:      template<typename _Fn>
+        -: 1651:	constexpr auto
+        -: 1652:	or_else(_Fn&& __f) const &&
+        -: 1653:	{
+        -: 1654:	  using _Gr = __expected::__result<_Fn, const _Er&&>;
+        -: 1655:	  static_assert(__expected::__is_expected<_Gr>);
+        -: 1656:	  static_assert(is_same_v<typename _Gr::value_type, _Tp>);
+        -: 1657:
+        -: 1658:	  if (has_value())
+        -: 1659:	    return _Gr();
+        -: 1660:	  else
+        -: 1661:	    return std::__invoke(std::forward<_Fn>(__f), std::move(_M_unex));
+        -: 1662:	}
+        -: 1663:
+        -: 1664:      template<typename _Fn> requires is_constructible_v<_Er, _Er&>
+        -: 1665:	constexpr auto
+        -: 1666:	transform(_Fn&& __f) &
+        -: 1667:	{
+        -: 1668:	  using _Up = __expected::__result0_xform<_Fn>;
+        -: 1669:	  using _Res = expected<_Up, _Er>;
+        -: 1670:
+        -: 1671:	  if (has_value())
+        -: 1672:	    return _Res(__in_place_inv{}, std::forward<_Fn>(__f));
+        -: 1673:	  else
+        -: 1674:	    return _Res(unexpect, _M_unex);
+        -: 1675:	}
+        -: 1676:
+        -: 1677:      template<typename _Fn> requires is_constructible_v<_Er, const _Er&>
+        -: 1678:	constexpr auto
+        -: 1679:	transform(_Fn&& __f) const &
+        -: 1680:	{
+        -: 1681:	  using _Up = __expected::__result0_xform<_Fn>;
+        -: 1682:	  using _Res = expected<_Up, _Er>;
+        -: 1683:
+        -: 1684:	  if (has_value())
+        -: 1685:	    return _Res(__in_place_inv{}, std::forward<_Fn>(__f));
+        -: 1686:	  else
+        -: 1687:	    return _Res(unexpect, _M_unex);
+        -: 1688:	}
+        -: 1689:
+        -: 1690:      template<typename _Fn> requires is_constructible_v<_Er, _Er>
+        -: 1691:	constexpr auto
+        -: 1692:	transform(_Fn&& __f) &&
+        -: 1693:	{
+        -: 1694:	  using _Up = __expected::__result0_xform<_Fn>;
+        -: 1695:	  using _Res = expected<_Up, _Er>;
+        -: 1696:
+        -: 1697:	  if (has_value())
+        -: 1698:	    return _Res(__in_place_inv{}, std::forward<_Fn>(__f));
+        -: 1699:	  else
+        -: 1700:	    return _Res(unexpect, std::move(_M_unex));
+        -: 1701:	}
+        -: 1702:
+        -: 1703:      template<typename _Fn> requires is_constructible_v<_Er, const _Er>
+        -: 1704:	constexpr auto
+        -: 1705:	transform(_Fn&& __f) const &&
+        -: 1706:	{
+        -: 1707:	  using _Up = __expected::__result0_xform<_Fn>;
+        -: 1708:	  using _Res = expected<_Up, _Er>;
+        -: 1709:
+        -: 1710:	  if (has_value())
+        -: 1711:	    return _Res(__in_place_inv{}, std::forward<_Fn>(__f));
+        -: 1712:	  else
+        -: 1713:	    return _Res(unexpect, std::move(_M_unex));
+        -: 1714:	}
+        -: 1715:
+        -: 1716:      template<typename _Fn>
+        -: 1717:	constexpr auto
+        -: 1718:	transform_error(_Fn&& __f) &
+        -: 1719:	{
+        -: 1720:	  using _Gr = __expected::__result_xform<_Fn, _Er&>;
+        -: 1721:	  using _Res = expected<_Tp, _Gr>;
+        -: 1722:
+        -: 1723:	  if (has_value())
+        -: 1724:	    return _Res();
+        -: 1725:	  else
+        -: 1726:	    return _Res(__unexpect_inv{}, [&]() {
+        -: 1727:			  return std::__invoke(std::forward<_Fn>(__f),
+        -: 1728:					       _M_unex);
+        -: 1729:			});
+        -: 1730:	}
+        -: 1731:
+        -: 1732:      template<typename _Fn>
+        -: 1733:	constexpr auto
+        -: 1734:	transform_error(_Fn&& __f) const &
+        -: 1735:	{
+        -: 1736:	  using _Gr = __expected::__result_xform<_Fn, const _Er&>;
+        -: 1737:	  using _Res = expected<_Tp, _Gr>;
+        -: 1738:
+        -: 1739:	  if (has_value())
+        -: 1740:	    return _Res();
+        -: 1741:	  else
+        -: 1742:	    return _Res(__unexpect_inv{}, [&]() {
+        -: 1743:			  return std::__invoke(std::forward<_Fn>(__f),
+        -: 1744:					       _M_unex);
+        -: 1745:			});
+        -: 1746:	}
+        -: 1747:
+        -: 1748:      template<typename _Fn>
+        -: 1749:	constexpr auto
+        -: 1750:	transform_error(_Fn&& __f) &&
+        -: 1751:	{
+        -: 1752:	  using _Gr = __expected::__result_xform<_Fn, _Er&&>;
+        -: 1753:	  using _Res = expected<_Tp, _Gr>;
+        -: 1754:
+        -: 1755:	  if (has_value())
+        -: 1756:	    return _Res();
+        -: 1757:	  else
+        -: 1758:	    return _Res(__unexpect_inv{}, [&]() {
+        -: 1759:			  return std::__invoke(std::forward<_Fn>(__f),
+        -: 1760:					       std::move(_M_unex));
+        -: 1761:			});
+        -: 1762:	}
+        -: 1763:
+        -: 1764:      template<typename _Fn>
+        -: 1765:	constexpr auto
+        -: 1766:	transform_error(_Fn&& __f) const &&
+        -: 1767:	{
+        -: 1768:	  using _Gr = __expected::__result_xform<_Fn, const _Er&&>;
+        -: 1769:	  using _Res = expected<_Tp, _Gr>;
+        -: 1770:
+        -: 1771:	  if (has_value())
+        -: 1772:	    return _Res();
+        -: 1773:	  else
+        -: 1774:	    return _Res(__unexpect_inv{}, [&]() {
+        -: 1775:			  return std::__invoke(std::forward<_Fn>(__f),
+        -: 1776:					       std::move(_M_unex));
+        -: 1777:			});
+        -: 1778:	}
+        -: 1779:
+        -: 1780:      // equality operators
+        -: 1781:
+        -: 1782:      template<typename _Up, typename _Er2>
+        -: 1783:	requires is_void_v<_Up>
+        -: 1784:	friend constexpr bool
+        -: 1785:	operator==(const expected& __x, const expected<_Up, _Er2>& __y)
+        -: 1786:	// FIXME: noexcept(noexcept(bool(__x.error() == __y.error())))
+        -: 1787:	{
+        -: 1788:	  if (__x.has_value())
+        -: 1789:	    return __y.has_value();
+        -: 1790:	  else
+        -: 1791:	    return !__y.has_value() && bool(__x.error() == __y.error());
+        -: 1792:	}
+        -: 1793:
+        -: 1794:      template<typename _Er2>
+        -: 1795:	friend constexpr bool
+        -: 1796:	operator==(const expected& __x, const unexpected<_Er2>& __e)
+        -: 1797:	// FIXME: noexcept(noexcept(bool(__x.error() == __e.error())))
+        -: 1798:	{ return !__x.has_value() && bool(__x.error() == __e.error()); }
+        -: 1799:
+        -: 1800:      friend constexpr void
+        -: 1801:      swap(expected& __x, expected& __y)
+        -: 1802:      noexcept(noexcept(__x.swap(__y)))
+        -: 1803:      requires requires { __x.swap(__y); }
+        -: 1804:      { __x.swap(__y); }
+        -: 1805:
+        -: 1806:    private:
+        -: 1807:      template<typename, typename> friend class expected;
+        -: 1808:
+        -: 1809:      template<typename _Vp>
+        -: 1810:	constexpr void
+        -: 1811:	_M_assign_unex(_Vp&& __v)
+        -: 1812:	{
+        -: 1813:	  if (_M_has_value)
+        -: 1814:	    {
+        -: 1815:	      std::construct_at(__builtin_addressof(_M_unex),
+        -: 1816:				std::forward<_Vp>(__v));
+        -: 1817:	      _M_has_value = false;
+        -: 1818:	    }
+        -: 1819:	  else
+        -: 1820:	    _M_unex = std::forward<_Vp>(__v);
+        -: 1821:	}
+        -: 1822:
+        -: 1823:      using __in_place_inv = __expected::__in_place_inv;
+        -: 1824:      using __unexpect_inv = __expected::__unexpect_inv;
+        -: 1825:
+        -: 1826:      template<typename _Fn>
+        -: 1827:	explicit constexpr
+        -: 1828:	expected(__in_place_inv, _Fn&& __fn)
+        -: 1829:	: _M_void(), _M_has_value(true)
+        -: 1830:	{ std::forward<_Fn>(__fn)(); }
+        -: 1831:
+        -: 1832:      template<typename _Fn>
+        -: 1833:	explicit constexpr
+        -: 1834:	expected(__unexpect_inv, _Fn&& __fn)
+        -: 1835:	: _M_unex(std::forward<_Fn>(__fn)()), _M_has_value(false)
+        -: 1836:	{ }
+        -: 1837:
+        -: 1838:      union {
+        -: 1839:	struct { } _M_void;
+        -: 1840:	_Er _M_unex;
+        -: 1841:      };
+        -: 1842:
+        -: 1843:      bool _M_has_value;
+        -: 1844:    };
+        -: 1845:  /// @}
+        -: 1846:
+        -: 1847:_GLIBCXX_END_NAMESPACE_VERSION
+        -: 1848:} // namespace std
+        -: 1849:
+        -: 1850:#endif // C++23
+        -: 1851:#endif // _GLIBCXX_EXPECTED

@@ -42,10 +42,22 @@ fi
 # evidence. `second_deadlock_stack` reports both edges of a cycle.
 export TSAN_OPTIONS="${TSAN_OPTIONS:-detect_deadlocks=1:second_deadlock_stack=1}"
 
-# Defect list: id | source stem | expected sanitizer (asan|tsan) | expected Rust outcome
+# The deadlock case hangs by construction, so every run is bounded.
+RUN_TIMEOUT="${RUN_TIMEOUT:-25}"
+# Bound for a repeated case. Shorter because repeated cases are the ones that
+# hang, and paying 25 s a repeat would dominate the run for no extra
+# information: the detection rate is the same at 3 s as at 25 s.
+REPEAT_TIMEOUT="${REPEAT_TIMEOUT:-3}"
+# How many times to repeat the sanitizer named in a case's third field. Only
+# lock_order_deadlock needs it; see run_cpp_san.
+DEADLOCK_REPEATS="${DEADLOCK_REPEATS:-12}"
+
+# Defect list:
+#   id | source stem | expected sanitizer (asan|tsan|ubsan) | expected Rust outcome | rustc flags | repeats
 #
-# The script always runs BOTH sanitizers; the third field only picks the "C++
-# detection" column. The fourth field records what safe Rust is *expected* to do:
+# The script always runs ALL THREE sanitizers; the third field only picks the
+# "C++ detection" column. The fourth field records what safe Rust is *expected*
+# to do:
 #
 #   prevented      -- the Rust counterpart must fail to compile (that failure is the result)
 #   not-prevented  -- the Rust counterpart is expected to compile and to exhibit the
@@ -54,48 +66,105 @@ export TSAN_OPTIONS="${TSAN_OPTIONS:-detect_deadlocks=1:second_deadlock_stack=1}
 #                     of the guarantee and are as much a part of the answer to RQ2 as
 #                     the prevented ones; the script fails loudly if either
 #                     expectation is violated in either direction.
+#
+# The fifth field is extra `rustc` flags for that case, empty for almost all of
+# them. It exists for `integer_overflow`, where the outcome depends on the build
+# profile: `debug-assertions` on turns the wrap into a panic, and a panic is a
+# detection. The thesis compares an `opt-level = 2` Rust build against `-O2`
+# (spec §3), and that profile leaves `overflow-checks` off, so the case must be
+# built the way the measured configuration is built or the table would record a
+# detection the compared arm does not have.
 defects=(
-  "use_after_free|uaf|asan|prevented"
-  "double_free|double_free|asan|prevented"
-  "iterator_invalidation|iterator_invalidation|asan|prevented"
-  "data_race|data_race|tsan|prevented"
-  "unguarded_shared_mutation|unguarded_mutation|tsan|prevented"
-  "lock_order_deadlock|deadlock|tsan|not-prevented"
-  "lost_update|lost_update|tsan|not-prevented"
+  "use_after_free|uaf|asan|prevented|"
+  "double_free|double_free|asan|prevented|"
+  "iterator_invalidation|iterator_invalidation|asan|prevented|"
+  "data_race|data_race|tsan|prevented|"
+  "unguarded_shared_mutation|unguarded_mutation|tsan|prevented|"
+  "lock_order_deadlock|deadlock|tsan|not-prevented||$DEADLOCK_REPEATS"
+  "lost_update|lost_update|tsan|not-prevented|"
+  "leak_cycle|leak_cycle|asan|not-prevented|"
+  "integer_overflow|integer_overflow|ubsan|not-prevented|-O -C debug-assertions=off -C overflow-checks=off"
+  "worker_failure_blast_radius|worker_failure|none|not-prevented|"
 )
 
-# The deadlock case hangs by construction, so every run is bounded.
-RUN_TIMEOUT="${RUN_TIMEOUT:-25}"
 timeout_prefix=()
 if command -v timeout >/dev/null 2>&1; then
   timeout_prefix=(timeout -k 5 "$RUN_TIMEOUT")
 fi
 
-# --- run one C++ variant under a sanitizer; echo detected|clean|buildfail ------
+# --- run one C++ variant under a sanitizer -------------------------------------
+# Sets `last_outcome` to detected|flaky|clean|hung|buildfail and `last_rate` to
+# "k/N" when the case was repeated. Two globals rather than an echoed result,
+# because a command substitution would run this in a subshell and the rate
+# would not survive it.
+#
+# Repeats exist because one outcome here is schedule-dependent. TSan builds its
+# lock-order graph from acquisitions that *succeed*, and `deadlock.cpp` loops:
+# on some runs an inversion completes without blocking, closes the cycle and is
+# reported; on others the first inversion blocks and the cycle never closes. A
+# single run therefore records whichever happened that day, and the tracked
+# taxonomy would flip between commits for no reason anyone could see. Measuring
+# the rate turns that into the finding it actually is.
+last_rate=""
+last_outcome=""
 run_cpp_san() {
-  local stem="$1" san="$2" tag="$3"
+  local stem="$1" san="$2" tag="$3" repeats="${4:-1}"
   local src="$cpp_dir/$stem.cpp"
   local bin="$bin_dir/${stem}.${tag}"
   local log="$out_dir/${stem}.${tag}.log"
+  last_rate=""
+  last_outcome=""
   # -O0: keep injected defects faithful; the optimizer can otherwise elide them
   # (e.g. new/delete elision removes a double-free at -O1).
   if ! "$CXX" -std="$CXXSTD" -g -O0 -fno-omit-frame-pointer \
         -fsanitize="$san" -pthread -o "$bin" "$src" >"$log" 2>&1; then
-    echo "buildfail"
+    last_outcome="buildfail"
     return
   fi
-  # Sanitizers abort() on detection -> nonzero exit; capture output either way.
-  # The deadlock case never returns, so the run is bounded by `timeout`.
-  "${timeout_prefix[@]}" "${run_prefix[@]}" "$bin" >>"$log" 2>&1
-  local rc=$?
-  [ $rc -ge 124 ] && echo "  [run timed out after ${RUN_TIMEOUT}s -- hung]" >>"$log"
-  if grep -Eq "(AddressSanitizer|ThreadSanitizer|runtime error|SUMMARY: .*Sanitizer)" "$log"; then
-    echo "detected"
-  elif [ $rc -ge 124 ]; then
-    echo "hung"
-  else
-    echo "clean"
+
+  # A repeated case is one that hangs, so it gets the short bound: the report,
+  # when it comes, comes within the first few iterations (verified: the rate is
+  # the same at 3 s and at 25 s).
+  local bound=("${timeout_prefix[@]}")
+  [ "$repeats" -gt 1 ] && bound=(timeout -k 2 "$REPEAT_TIMEOUT")
+
+  local hits=0 hung_runs=0 i
+  for (( i = 0; i < repeats; i++ )); do
+    local run_log="$log"
+    [ "$repeats" -gt 1 ] && run_log="$log.run$i"
+    : >"$run_log"
+    # Several of these defects abort by design -- glibc's double-free check,
+    # std::terminate, a sanitizer halting. A shell announces a signal-killed
+    # child on its own stderr, so the run goes through an inner bash whose
+    # stderr is discarded; here the abort is the expected outcome.
+    bash -c '"$@"' _ "${bound[@]}" "${run_prefix[@]}" "$bin" >>"$run_log" 2>&1
+    local rc=$?
+    # 124 is `timeout` firing; 137 is the follow-up SIGKILL from -k. Anything
+    # else above 128 is the program dying on a signal, which is a different
+    # outcome: an abort() from glibc's double-free check or from
+    # std::terminate is the defect manifesting, not the run hanging.
+    if [ $rc -eq 124 ] || [ $rc -eq 137 ]; then
+      hung_runs=$((hung_runs + 1))
+      echo "  [run timed out -- hung]" >>"$run_log"
+    fi
+    if grep -Eq "(AddressSanitizer|ThreadSanitizer|runtime error|SUMMARY: .*Sanitizer)" "$run_log"; then
+      hits=$((hits + 1))
+    fi
+    # Keep the first repeat as the representative log under the plain name.
+    [ "$repeats" -gt 1 ] && [ "$i" -eq 0 ] && cp "$run_log" "$log"
+  done
+
+  if [ "$repeats" -gt 1 ]; then
+    last_rate="$hits/$repeats"
+    if   [ "$hits" -eq 0 ];          then last_outcome="clean"
+    elif [ "$hits" -eq "$repeats" ]; then last_outcome="detected"
+    else                                  last_outcome="flaky"; fi
+    return
   fi
+
+  if   [ "$hits" -gt 0 ];      then last_outcome="detected"
+  elif [ "$hung_runs" -gt 0 ]; then last_outcome="hung"
+  else                              last_outcome="clean"; fi
 }
 
 # --- compile one Rust counterpart; echo "rejected:E0499,E0502" or "compiles:<behaviour>" ---
@@ -105,10 +174,12 @@ run_cpp_san() {
 # defect actually survives into the running program.
 run_rust() {
   local stem="$1"
+  local extra_flags="${2:-}"
   local src="$rust_dir/$stem.rs"
   local log="$out_dir/${stem}.rust.log"
   local bin="$bin_dir/${stem}_rs"
-  if ! "$RUSTC" --edition 2021 --crate-type bin -o "$bin" "$src" >"$log" 2>&1; then
+  # shellcheck disable=SC2086  # extra_flags is a deliberate word-split flag list
+  if ! "$RUSTC" --edition 2021 --crate-type bin $extra_flags -o "$bin" "$src" >"$log" 2>&1; then
     local codes
     codes=$(grep -oE 'E[0-9]{4}' "$log" | sort -u | paste -sd, -)
     [ -z "$codes" ] && codes="compile-error"
@@ -135,7 +206,8 @@ run_rust() {
 # which is the shape TSan does report. If this comes back anything but
 # "detected", the undetected verdict in the table below is uninformative and the
 # script says so instead of letting it pass as a result.
-control_outcome=$(run_cpp_san deadlock_control thread tsan)
+run_cpp_san deadlock_control thread tsan
+control_outcome="$last_outcome"
 if [ "$control_outcome" = "detected" ]; then
   control_note="detected (detector live; the undetected verdict below is a real outcome)"
 else
@@ -155,7 +227,7 @@ echo
 
 csv="$out_dir/taxonomy.csv"
 md="$out_dir/taxonomy.md"
-echo "defect,cpp_asan,cpp_tsan,cpp_detection,rust_compile,rust_expected" >"$csv"
+echo "defect,cpp_asan,cpp_tsan,cpp_ubsan,cpp_detection,rust_compile,rust_expected,note" >"$csv"
 
 {
   echo "# RQ2 defect-class taxonomy"
@@ -167,27 +239,66 @@ echo "defect,cpp_asan,cpp_tsan,cpp_detection,rust_compile,rust_expected" >"$csv"
   echo "- TSan deadlock-detector control (\`deadlock_control.cpp\`, inversion without blocking):"
   echo "  **$control_note**"
   echo
-  echo "| Defect class | C++ ASan | C++ TSan | C++ detection stage | Rust outcome |"
-  echo "|---|---|---|---|---|"
+  echo "\`integer_overflow\` is built with \`-O -C overflow-checks=off\` so it matches"
+  echo "the \`opt-level = 2\` profile the thesis compares (spec §3). With the \`rustc\`"
+  echo "defaults it would panic, and the table would record a detection the measured"
+  echo "configuration does not have."
+  echo
+  echo "\`lock_order_deadlock\` is run $DEADLOCK_REPEATS times under TSan rather than once."
+  echo "Its detection is schedule-dependent: TSan closes a lock-order cycle only from"
+  echo "acquisitions that *succeed*, so a run whose first inversion blocks never"
+  echo "produces the second edge. \`flaky\` records that, where a single run would"
+  echo "record whichever outcome the scheduler happened to give."
+  echo
+  echo "| Defect class | C++ ASan | C++ TSan | C++ UBSan | C++ detection stage | Rust outcome | Note |"
+  echo "|---|---|---|---|---|---|---|"
 } >"$md"
 
-printf "%-26s %-10s %-10s %-22s %s\n" "defect" "cpp/asan" "cpp/tsan" "cpp detection" "rust"
-printf "%-26s %-10s %-10s %-22s %s\n" "------" "--------" "--------" "-------------" "----"
+printf "%-28s %-9s %-9s %-9s %-30s %s\n" "defect" "cpp/asan" "cpp/tsan" "cpp/ubsan" "cpp detection" "rust"
+printf "%-28s %-9s %-9s %-9s %-30s %s\n" "------" "--------" "--------" "---------" "-------------" "----"
+
+# A sanitizer counts as having caught the defect if it reported on every run or
+# on some of them; the two are kept apart in the columns and merged only here.
+hit() { [ "$1" = "detected" ] || [ "$1" = "flaky" ]; }
 
 violations=0
 for row in "${defects[@]}"; do
-  IFS='|' read -r id stem expect expect_rust <<<"$row"
-  asan=$(run_cpp_san "$stem" address asan)
-  tsan=$(run_cpp_san "$stem" thread  tsan)
-  rust=$(run_rust "$stem")
+  IFS='|' read -r id stem expect expect_rust rust_flags repeats <<<"$row"
+  repeats="${repeats:-1}"
+  note=""
 
-  # C++ detection stage: which tool caught it (runtime), else undetected.
-  if [ "$asan" = "detected" ] || [ "$tsan" = "detected" ]; then
+  # Repeats apply only to the sanitizer named in field 3: that is the one whose
+  # outcome the case is about, and repeating the other two would triple the
+  # runtime to re-confirm two cells that are not in question.
+  run_cpp_san "$stem" address   asan  "$([ "$expect" = asan  ] && echo "$repeats" || echo 1)"
+  asan="$last_outcome"
+  [ -n "$last_rate" ] && note="ASan reported in $last_rate runs"
+  run_cpp_san "$stem" thread    tsan  "$([ "$expect" = tsan  ] && echo "$repeats" || echo 1)"
+  tsan="$last_outcome"
+  [ -n "$last_rate" ] && note="TSan reported in $last_rate runs"
+  # UBSan is a third axis rather than a refinement of the other two: signed
+  # overflow is invisible to both ASan and TSan, so without this column the
+  # integer_overflow class would read as undetected in C++ when it is not.
+  run_cpp_san "$stem" undefined ubsan "$([ "$expect" = ubsan ] && echo "$repeats" || echo 1)"
+  ubsan="$last_outcome"
+  [ -n "$last_rate" ] && note="UBSan reported in $last_rate runs"
+  rust=$(run_rust "$stem" "$rust_flags")
+
+  # C++ detection stage: which tool caught it, and whether reliably. "flaky" is
+  # kept distinct from "detected" on purpose -- a detector that fires on a
+  # minority of runs is a materially different proposition for a CI pipeline,
+  # and collapsing the two would report it as a clean catch.
+  if hit "$asan" || hit "$tsan" || hit "$ubsan"; then
     tool=""
-    [ "$asan" = "detected" ] && tool="ASan"
-    [ "$tsan" = "detected" ] && tool="${tool:+$tool+}TSan"
-    detection="runtime ($tool)"
-  elif [ "$asan" = "hung" ] || [ "$tsan" = "hung" ]; then
+    hit "$asan"  && tool="ASan"
+    hit "$tsan"  && tool="${tool:+$tool+}TSan"
+    hit "$ubsan" && tool="${tool:+$tool+}UBSan"
+    if [ "$asan" = "flaky" ] || [ "$tsan" = "flaky" ] || [ "$ubsan" = "flaky" ]; then
+      detection="runtime, intermittent ($tool)"
+    else
+      detection="runtime ($tool)"
+    fi
+  elif [ "$asan" = "hung" ] || [ "$tsan" = "hung" ] || [ "$ubsan" = "hung" ]; then
     detection="undetected (hung)"
   else
     detection="undetected"
@@ -206,9 +317,10 @@ for row in "${defects[@]}"; do
     [ "$expect_rust" = "not-prevented" ] || { rust_label="$rust_label [UNEXPECTED]"; violations=$((violations+1)); }
   fi
 
-  printf "%-26s %-10s %-10s %-22s %s\n" "$id" "$asan" "$tsan" "$detection" "$rust_label"
-  echo "$id,$asan,$tsan,\"$detection\",\"$rust_label\",$expect_rust" >>"$csv"
-  echo "| $id | $asan | $tsan | $detection | $rust_label |" >>"$md"
+  printf "%-28s %-9s %-9s %-9s %-30s %s\n" "$id" "$asan" "$tsan" "$ubsan" "$detection" "$rust_label"
+  [ -n "$note" ] && printf "%-28s   %s\n" "" "($note)"
+  echo "$id,$asan,$tsan,$ubsan,\"$detection\",\"$rust_label\",$expect_rust,\"$note\"" >>"$csv"
+  echo "| $id | $asan | $tsan | $ubsan | $detection | $rust_label | ${note:--} |" >>"$md"
 done
 
 echo

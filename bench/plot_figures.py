@@ -536,25 +536,36 @@ def fig_taxonomy(taxonomy_csv, outdir):
     boundary = [r for r in rows if "compile-time" not in r["rust_compile"]]
     rows = prevented + boundary
     defects = [r["defect"].replace("_", " ") for r in rows]
-    cols = ["C++ ASan", "C++ TSan", "Safe Rust"]
+    # UBSan is a third axis, not a refinement of the other two: signed overflow
+    # is invisible to ASan and TSan alike, so without its own column the
+    # integer-overflow row would read as undetected in C++ when it is not.
+    cols = ["C++ ASan", "C++ TSan", "C++ UBSan", "Safe Rust"]
 
-    # code: 2 = prevented at compile time (best), 1 = detected at runtime, 0 = missed.
+    # code: 3 = prevented at compile time (best), 2 = detected at runtime,
+    #       1 = detected at runtime but only intermittently, 0 = missed.
+    def cell(value):
+        v = value.strip()
+        if v == "detected":
+            return 2, "runtime"
+        if v == "flaky":
+            return 1, "sometimes"
+        return 0, "missed"
+
     grid, labels = [], []
     for r in rows:
-        asan_hit = r["cpp_asan"].strip() == "detected"
-        tsan_hit = r["cpp_tsan"].strip() == "detected"
+        asan = cell(r["cpp_asan"])
+        tsan = cell(r["cpp_tsan"])
+        ubsan = cell(r.get("cpp_ubsan", ""))
         rust_prevented = "compile-time" in r["rust_compile"]
-        grid.append([1 if asan_hit else 0, 1 if tsan_hit else 0, 2 if rust_prevented else 0])
-        labels.append([
-            "runtime" if asan_hit else "missed",
-            "runtime" if tsan_hit else "missed",
-            "compile" if rust_prevented else "none",
-        ])
+        grid.append([asan[0], tsan[0], ubsan[0], 3 if rust_prevented else 0])
+        labels.append([asan[1], tsan[1], ubsan[1],
+                       "compile" if rust_prevented else "none"])
 
-    cmap = matplotlib.colors.ListedColormap(["#c0392b", "#e6b800", "#1e8449"])
-    norm = matplotlib.colors.BoundaryNorm([-0.5, 0.5, 1.5, 2.5], cmap.N)
+    cmap = matplotlib.colors.ListedColormap(
+        ["#c0392b", "#e67e22", "#e6b800", "#1e8449"])
+    norm = matplotlib.colors.BoundaryNorm([-0.5, 0.5, 1.5, 2.5, 3.5], cmap.N)
 
-    fig, ax = plt.subplots(figsize=(6.6, 0.46 * len(defects) + 1.7))
+    fig, ax = plt.subplots(figsize=(7.4, 0.46 * len(defects) + 1.9))
     ax.imshow(grid, cmap=cmap, norm=norm, aspect="auto")
     ax.set_xticks(range(len(cols)))
     ax.set_xticklabels(cols, fontsize=9)
@@ -586,10 +597,11 @@ def fig_taxonomy(taxonomy_csv, outdir):
     legend = [
         Patch(facecolor="#1e8449", label="prevented at compile time"),
         Patch(facecolor="#e6b800", label="detected at runtime only"),
+        Patch(facecolor="#e67e22", label="detected on some runs only"),
         Patch(facecolor="#c0392b", label="not detected / not prevented"),
     ]
-    ax.legend(handles=legend, loc="upper center", bbox_to_anchor=(0.5, -0.14),
-              ncol=3, fontsize=7, framealpha=0.9)
+    ax.legend(handles=legend, loc="upper center", bbox_to_anchor=(0.5, -0.12),
+              ncol=2, fontsize=7, framealpha=0.9)
     fig.tight_layout()
     out = os.path.join(outdir, "fig_taxonomy.pdf")
     fig.savefig(out, bbox_inches="tight")

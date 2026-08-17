@@ -1,0 +1,33 @@
+        -:    0:Source:/home/vienha/thesis.local/cpp/include/uecm/error.hpp
+        -:    1:#pragma once
+        -:    2:#include <cstdint>
+        -:    3:#include <expected>
+        -:    4:#include <string_view>
+        -:    5:
+        -:    6:// Closed error set and result type. See spec/SPECIFICATION.md §6.6.
+        -:    7:namespace uecm {
+        -:    8:
+        -:    9:enum class OpError : std::uint8_t {
+        -:   10:  NotFound = 0,
+        -:   11:  AlreadyExists = 1,
+        -:   12:  InvalidState = 2,
+        -:   13:  CapacityExceeded = 3,
+        -:   14:  InvalidArgument = 4,
+        -:   15:};
+        -:   16:
+        -:   17:// OpResult<T> = Ok(T) or Err(OpError). C++23 std::expected.
+        -:   18:template <class T>
+        -:   19:using OpResult = std::expected<T, OpError>;
+        -:   20:
+    2972*:   21:constexpr std::string_view to_string(OpError e) noexcept {
+    2972*:   22:  switch (e) {
+     938*:   23:    case OpError::NotFound:         return "NotFound";
+     383*:   24:    case OpError::AlreadyExists:    return "AlreadyExists";
+     743*:   25:    case OpError::InvalidState:     return "InvalidState";
+     497*:   26:    case OpError::CapacityExceeded: return "CapacityExceeded";
+     411*:   27:    case OpError::InvalidArgument:  return "InvalidArgument";
+        -:   28:  }
+    #####:   29:  return "Unknown";
+        -:   30:}
+        -:   31:
+        -:   32:}  // namespace uecm

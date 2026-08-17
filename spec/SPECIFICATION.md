@@ -421,6 +421,52 @@ that §6 leaves unordered (argument validation before key lookup; capacity befor
 detection, both for `create` and for `add_drb`). Both implementations already agreed on all of
 them, so nothing had to change; the vectors exist so the agreement cannot regress unnoticed.
 
+### 11.4 Independent oracle and generated vectors (added 2026-08)
+
+The suite above establishes that each implementation reproduces the expectations written into a
+vector, and that the two transcripts are byte-identical. Neither distinguishes *both correct*
+from *both wrong in the same way*, which is the failure mode a shared specification and a single
+author make most likely, and the 223 expectations were derived from this document by the same
+person who wrote both implementations.
+
+`spec/conformance/model.py` is therefore a **third implementation of this specification**, in
+Python, sharing no code with `cpp/` or `rust/`. It is validated before it is trusted: known-answer
+tests for the §8.1 and §8.2 functions, then a replay of all seven hand-written vectors, which it
+reproduces exactly. `spec/conformance/genvec.py` then generates randomised operation sequences
+under five profiles with every expected result computed by the model, and `run.sh` runs them
+through both runners. Generation is deterministic (a hand-written SplitMix64, not a library PRNG),
+so a failing seed is a permanently reproducible regression test.
+
+**Status:** roughly 793 000 generated operations across the five profiles, with no divergence
+between the two implementations and the model.
+
+The model also records, in its own header, the four places where this document under-determines
+behaviour and an independent reader could reasonably have written something else: the three
+error precedences named above, plus `abort_reconfigure` restoring `state` but not
+`serving_cell_id`. §5.2 calls the abort path "state restored", which reads as though the cell
+should roll back too; it does not, in either implementation, and `states.vec` pins that. **If
+this specification is amended before the v1.0 freeze, §5.2's wording is the item to settle.**
+
+### 11.5 Dynamic analysis and coverage (added 2026-08)
+
+Three checks bound the suite from directions a transcript cannot reach.
+
+- **Sanitisers (C++).** `cpp/sanitise.sh` builds the whole tree under ASan+UBSan, TSan, and
+  UBSan alone, and runs every test binary and every conformance vector under each. All clean.
+  This matters for the fairness baseline of §3: safe Rust carries data-race and memory-safety
+  freedom by construction, so without this the C++ arm's equivalent property would rest on not
+  having failed yet. Results in `cpp/results/sanitisers.md`.
+- **Miri (Rust).** `rust/miri.sh` runs the state-machine and invariant suites under Miri with
+  strict provenance. No undefined behaviour. This confirms rather than discovers — the core has
+  no `unsafe` (§12) — and exists so the two arms are checked by the strongest dynamic tool each
+  language offers. Results in `rust/results/miri.md`.
+- **Coverage.** A negative result from a sanitiser is only as broad as the code that ran, so the
+  suite's reach is measured: 94.6% of C++ library lines (`cpp/coverage.sh`, gcov) and 98.2% of
+  Rust library lines (`rust/coverage.sh`, llvm-cov), with `ShardCore` and `Service` fully covered
+  on both sides. The two figures are **not comparable with each other** — different tools
+  counting different things over implementations with no line-for-line correspondence — but each
+  bounds the claims made about its own side.
+
 ---
 
 ## 12. Recorded deviations (forced-idiom log)
@@ -464,8 +510,13 @@ during implementation, with the requirement id and the reason. Examples that wil
   the pinned FNV-1a (verified by a test against `fnv1a_64`).
 - `unsafe`: none (`#![forbid]`-clean; verified by grep). Safe Rust guarantees data-race
   freedom at compile time via `Send`/`Sync`, so no runtime sanitizer is required (stronger than
-  the C++ TSan check). Miri (UB/data-race interpreter) can be run as an optional extra once a
-  nightly toolchain is available.
+  the C++ TSan check). Miri has since been run as well (`rust/miri.sh`, §11.5): clean, which
+  confirms the property rather than discovering it, and keeps the two arms symmetrically
+  evidenced.
+- Dependency-freedom is preserved deliberately. The Loom and Shuttle models of the RQ2 boundary
+  classes live in a **separate crate**, `faults/rust-model-checking/`, rather than as
+  dev-dependencies of `rust/`: the dependency-free core is load-bearing for the RQ4 supply-chain
+  argument and should not be weakened for models that never touch the library.
 - Optimisation parity: `[profile.release] opt-level = 2` pinned in `Cargo.toml` to match the
   C++ `-O2` build (§3).
 

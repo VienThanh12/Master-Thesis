@@ -1,0 +1,297 @@
+        -:    0:Source:/home/vienha/thesis.local/cpp/bench/queue_contention.cpp
+        -:    1:// Contended-queue microbenchmark for the C++ implementation.
+        -:    2://
+        -:    3:// Isolates the bounded blocking queue and one-shot completion primitives that
+        -:    4:// the full service uses under overload, without ShardCore work in the path.
+        -:    5:// N producer threads each push a job carrying a std::promise and block on the
+        -:    6:// matching std::future; one consumer thread pops and signals completion.
+        -:    7://
+        -:    8:// Mirrors rust/examples/queue_contention.rs operation for operation.
+        -:    9:#include <atomic>
+        -:   10:#include <chrono>
+        -:   11:#include <cstdint>
+        -:   12:#include <cstdio>
+        -:   13:#include <cstdlib>
+        -:   14:#include <cstring>
+        -:   15:#include <future>
+        -:   16:#include <thread>
+        -:   17:#include <vector>
+        -:   18:
+        -:   19:#include "uecm/bounded_queue.hpp"
+        -:   20:
+        -:   21:namespace {
+        -:   22:
+        -:   23:using Clock = std::chrono::steady_clock;
+        -:   24:
+        -:   25:struct Job {
+        -:   26:  bool stop = false;
+        -:   27:  std::promise<void> done;
+        -:   28:};
+        -:   29:
+        -:   30:struct Args {
+        -:   31:  std::uint64_t producers = 7;
+        -:   32:  std::uint64_t capacity = 1024;
+        -:   33:  std::uint64_t seconds = 2;
+        -:   34:};
+        -:   35:
+function _ZN12_GLOBAL__N_17arg_u64EiPPcPKcm called 0 returned 0% blocks executed 0%
+    #####:   36:std::uint64_t arg_u64(int argc, char** argv, const char* name, std::uint64_t fallback) {
+    #####:   37:  for (int i = 1; i + 1 < argc; ++i) {
+branch  0 never executed
+branch  1 never executed (fallthrough)
+    #####:   38:    if (std::strcmp(argv[i], name) == 0) return std::strtoull(argv[i + 1], nullptr, 10);
+branch  0 never executed (fallthrough)
+branch  1 never executed
+call    2 never executed
+        -:   39:  }
+    #####:   40:  return fallback;
+        -:   41:}
+        -:   42:
+function _ZN12_GLOBAL__N_18has_flagEiPPcPKc called 0 returned 0% blocks executed 0%
+    #####:   43:bool has_flag(int argc, char** argv, const char* name) {
+    #####:   44:  for (int i = 1; i < argc; ++i) {
+branch  0 never executed
+branch  1 never executed (fallthrough)
+    #####:   45:    if (std::strcmp(argv[i], name) == 0) return true;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+        -:   46:  }
+    #####:   47:  return false;
+        -:   48:}
+        -:   49:
+function _ZN12_GLOBAL__N_110parse_argsEiPPc called 0 returned 0% blocks executed 0%
+    #####:   50:Args parse_args(int argc, char** argv) {
+    #####:   51:  Args a;
+    #####:   52:  a.producers = arg_u64(argc, argv, "--producers", a.producers);
+call    0 never executed
+    #####:   53:  a.capacity = arg_u64(argc, argv, "--capacity", a.capacity);
+call    0 never executed
+    #####:   54:  a.seconds = arg_u64(argc, argv, "--seconds", a.seconds);
+call    0 never executed
+    #####:   55:  return a;
+        -:   56:}
+        -:   57:
+        -:   58:struct Result {
+        -:   59:  std::uint64_t completed = 0;
+        -:   60:  double wall_s = 0.0;
+        -:   61:};
+        -:   62:
+function _ZN12_GLOBAL__N_18run_onceERKNS_4ArgsE called 0 returned 0% blocks executed 0%
+    #####:   63:Result run_once(const Args& a) {
+    #####:   64:  uecm::BoundedQueue<Job> queue(a.capacity);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:   65:
+function _ZZN12_GLOBAL__N_18run_onceERKNS_4ArgsEENKUlvE_clEv called 0 returned 0% blocks executed 0%
+    #####:   66:  std::thread consumer([&] {
+        -:   67:    for (;;) {
+    #####:   68:      Job job = queue.pop();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   69:      job.done.set_value();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   70:      if (job.stop) break;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:   71:    }
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed
+call    3 never executed
+    #####:   72:  });
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:   73:
+    #####:   74:  const auto deadline = Clock::now() + std::chrono::seconds(a.seconds);
+call    0 never executed
+call    1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+    #####:   75:  std::atomic<std::uint64_t> completed{0};
+        -:   76:
+    #####:   77:  const auto t0 = Clock::now();
+call    0 never executed
+    #####:   78:  std::vector<std::thread> producers;
+    #####:   79:  producers.reserve(a.producers);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   80:  for (std::uint64_t p = 0; p < a.producers; ++p) {
+branch  0 never executed
+branch  1 never executed (fallthrough)
+function _ZZN12_GLOBAL__N_18run_onceERKNS_4ArgsEENKUlvE0_clEv called 0 returned 0% blocks executed 0%
+    #####:   81:    producers.emplace_back([&] {
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   82:      while (Clock::now() < deadline) {
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+call    4 never executed
+branch  5 never executed
+branch  6 never executed (fallthrough)
+    #####:   83:        Job job;
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   84:        auto fut = job.done.get_future();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   85:        queue.push(std::move(job));
+call    0 never executed
+call    1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+call    5 never executed
+call    6 never executed
+    #####:   86:        fut.get();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   87:        completed.fetch_add(1, std::memory_order_relaxed);
+    #####:   88:      }
+call    0 never executed
+call    1 never executed
+call    2 never executed
+call    3 never executed
+    #####:   89:    });
+        -:   90:  }
+        -:   91:
+    #####:   92:  for (auto& t : producers) t.join();
+call    0 never executed
+call    1 never executed
+call    2 never executed
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+call    6 never executed
+call    7 never executed
+branch  8 never executed
+branch  9 never executed (fallthrough)
+    #####:   93:  const auto t1 = Clock::now();
+call    0 never executed
+        -:   94:
+    #####:   95:  Job stop_job;
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   96:  stop_job.stop = true;
+    #####:   97:  auto stop_fut = stop_job.done.get_future();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   98:  queue.push(std::move(stop_job));
+call    0 never executed
+call    1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+call    5 never executed
+call    6 never executed
+    #####:   99:  stop_fut.get();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  100:  consumer.join();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  101:
+    #####:  102:  Result r;
+call    0 never executed
+    #####:  103:  r.completed = completed.load(std::memory_order_relaxed);
+    #####:  104:  r.wall_s = std::chrono::duration<double>(t1 - t0).count();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+call    6 never executed
+    #####:  105:  if (r.wall_s <= 0.0) r.wall_s = static_cast<double>(a.seconds);
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  106:  return r;
+    #####:  107:}
+call    0 never executed
+call    1 never executed
+call    2 never executed
+call    3 never executed
+call    4 never executed
+call    5 never executed
+call    6 never executed
+call    7 never executed
+call    8 never executed
+call    9 never executed
+        -:  108:
+        -:  109:}  // namespace
+        -:  110:
+function main called 0 returned 0% blocks executed 0%
+    #####:  111:int main(int argc, char** argv) {
+    #####:  112:  const Args a = parse_args(argc, argv);
+call    0 never executed
+    #####:  113:  const bool json = has_flag(argc, argv, "--json");
+call    0 never executed
+        -:  114:
+        -:  115:  // Warm the queue and the scheduler before the timed window.
+    #####:  116:  (void)run_once(a);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  117:
+    #####:  118:  const Result r = run_once(a);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  119:  const double kops = static_cast<double>(r.completed) / r.wall_s / 1000.0;
+    #####:  120:  const double ns_per_op = r.completed > 0
+    #####:  121:                               ? (r.wall_s * 1e9) / static_cast<double>(r.completed)
+branch  0 never executed (fallthrough)
+branch  1 never executed
+        -:  122:                               : 0.0;
+        -:  123:
+    #####:  124:  if (json) {
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  125:    std::printf(
+        -:  126:        "{\"lang\":\"cpp\",\"producers\":%llu,\"capacity\":%llu,\"seconds\":%llu,"
+        -:  127:        "\"completed\":%llu,\"wall_s\":%.4f,\"throughput_kops\":%.2f,"
+        -:  128:        "\"ns_per_op\":%.1f}\n",
+    #####:  129:        (unsigned long long)a.producers, (unsigned long long)a.capacity,
+    #####:  130:        (unsigned long long)a.seconds, (unsigned long long)r.completed, r.wall_s, kops,
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  131:        ns_per_op);
+        -:  132:  } else {
+    #####:  133:    std::printf("C++ queue contention (%llu producers, capacity %llu, %llu s)\n",
+    #####:  134:                (unsigned long long)a.producers, (unsigned long long)a.capacity,
+    #####:  135:                (unsigned long long)a.seconds);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  136:    std::printf("  completed ops : %llu\n", (unsigned long long)r.completed);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  137:    std::printf("  throughput    : %.2f kops/s\n", kops);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  138:    std::printf("  mean ns/op    : %.1f\n", ns_per_op);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:  139:  }
+    #####:  140:  return 0;
+        -:  141:}

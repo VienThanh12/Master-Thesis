@@ -48,7 +48,7 @@ with any grading canvas if present).
 
 | # | Criterion | Target | Current (post-refinement) | What still blocks a 5 |
 | --- | --- | --- | --- | --- |
-| **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (5 inside + 2 outside guarantee). |
+| **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (5 inside + 5 outside guarantee). |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
 | **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **Bare-metal tail campaign.** Results come from a dedicated but virtualised KVM Xeon guest, where the far tail below saturation cannot be resolved. Also missing: hardware counters and allocation profiles for the unexplained peak-RSS and operation-level results. |
 | **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.5** | RQ1 tail still open; Figures 7.1/7.3 cannot separate curves on current host. Lifts with same campaign as criterion 3. |
@@ -67,7 +67,7 @@ Before considering a change done, ask:
 
 - [ ] Does the edit preserve the precise gap (language isolated; spec + concurrency model fixed)?
 - [ ] Are all four RQs still answered in the right chapter with the right artefact?
-- [ ] Does RQ2 still include boundary classes (deadlock, lost update) that can refute the premise?
+- [ ] Does RQ2 still include the five boundary classes (deadlock, lost update, reference-cycle leak, release-build overflow, worker-failure blast radius) that can refute the premise?
 
 **2 — Sources**
 
@@ -107,7 +107,7 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 
 1. **Frozen specification** — both implementations built from one language-neutral spec; forced-idiom log for unavoidable divergences (`spec/SPECIFICATION.md`).
 2. **Fairness controls** — same algorithms, shard count, SplitMix64/FNV-1a hashing, jemalloc + system-allocator control, matched `-O2` / `opt-level = 2`, conformance transcripts diffed line by line.
-3. **RQ2 is falsifiable** — five in-guarantee defect classes + two boundary classes; catalogue must not contain only defects Rust prevents.
+3. **RQ2 is falsifiable** — five in-guarantee defect classes + **five** boundary classes; catalogue must not contain only defects Rust prevents. Two boundary classes (reference-cycle leak, release-build integer overflow) came back with the **C++ tooling ahead**; do not drop them to tidy the narrative. The lock-order deadlock is detected by TSan **intermittently** (about 30% of runs), not reliably and not never.
 4. **Honest performance claims** — the end-to-end sweep is dominated by the cross-thread handoff and the operation is a fraction of a percent of it (`\BudgetCoreShareMax`), so a median comparison on that path cannot bound a language effect; the far tail still requires bare metal. Past saturation the languages *do* diverge (`\OverloadThrRatio`), and that result is resolved.
 5. **Peak RSS** — a real language effect that reproduces under both allocators, but the **allocator effect is the larger one**; do not revert to “allocator only” or drop the language effect. Quote the generated macros rather than remembered numbers.
 6. **FFI** — interleaved native vs seam calls; tax bounded, not “free”; `unsafe` confined to seam; core stays `unsafe`-free.
@@ -140,11 +140,19 @@ review of the skeleton is complete — do not fill them without explicit author 
 
 ```bash
 # Parity and tests
-spec/conformance/run.sh
+spec/conformance/run.sh          # 3 phases: oracle, hand-written vectors, generated vectors
 cd cpp && ctest --test-dir build --output-on-failure
 cd rust && cargo test --release
 faults/run_faults.sh
+faults/run_model_checking.sh     # Loom + Shuttle on the two boundary classes (fast)
 ffi/build.sh   # CAUTION: this re-measures; see the note below before running it
+
+# Deeper checks (slower; categorical, so safe on the virtualised host)
+spec/conformance/run.sh --random 60 --ops 2000   # ~800k generated ops, ~9 min
+cpp/sanitise.sh                  # whole suite under ASan+UBSan / TSan / UBSan, ~50 s
+rust/miri.sh                     # needs `rustup toolchain install nightly --component miri`
+cpp/coverage.sh                  # gcov line coverage of the parity suite
+rust/coverage.sh                 # needs `cargo install cargo-llvm-cov --locked`
 
 # Regenerate figures/tables and rebuild canonical thesis
 bench/refresh_thesis.sh
@@ -201,7 +209,9 @@ load.
 | `TODO.md` | Phase checklist, bare-metal prep, post-campaign re-check list |
 | `LITERATURE_NOTES.md` | Citation upgrades and literature gaps |
 | `bench/TESTBED.md` | Bare-metal protocol (only path to criterion 3/4 → 5 on tail) |
-| `spec/SPECIFICATION.md` | Fairness baseline; freeze before implementation changes |
+| `spec/SPECIFICATION.md` | Fairness baseline; freeze before implementation changes. §11.4–11.5 cover the reference model, generated vectors, sanitisers, Miri and coverage |
+| `spec/conformance/model.py` | Independent Python implementation of the spec; the oracle behind the generated vectors. Never derive its expectations from `cpp/` or `rust/` |
+| `faults/results/model_checking.md` | Loom/Shuttle outcomes for the boundary classes (RQ2's "at what stage and cost") |
 | `README.md` | Repo layout and quick start |
 
 ---

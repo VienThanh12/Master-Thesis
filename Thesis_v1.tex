@@ -208,9 +208,12 @@
         subsystem: use-after-free, double-free, iterator invalidation, data race, and
         unguarded shared mutation. What the guarantee rests on is aliasing control and
         data-race freedom~\cite{jung2021safe}; the catalogue is this study's own.
-  \item Two further classes are included on purpose from outside that guarantee, a lock-order
-        deadlock and a lost update. They keep the study from confirming a foregone conclusion
-        and show instead where the guarantee stops.
+  \item Five further classes are included on purpose from outside that guarantee: a lock-order
+        deadlock, a lost update, a leak through a reference cycle, an integer overflow in a
+        release build, and the blast radius of a failed shard worker. They keep the study from
+        confirming a foregone conclusion and show instead where the guarantee stops. Two of
+        them return the opposite of the expected result, with the C++ tooling reporting what
+        Rust's does not.
   \item Scale is what makes the tail matter. One procedure triggers many operations and one
         site serves many devices, so a p99.9 measured on a single operation becomes a steady
         rate of degraded procedures in the field~\cite{dean2013tail}. This is why the load

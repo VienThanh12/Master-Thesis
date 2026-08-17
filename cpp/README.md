@@ -33,6 +33,11 @@ cpp/
                          discipline (§10.3/§11.2), field round-trips, §10.1 I1/I4
     test_concurrency.cpp §7 queue/completion model: blocking backpressure,
                          FIFO per shard (§10.2 O1), concurrent lookup, lifecycle
+    test_state_matrix.cpp the §5.2 transition matrix enumerated rather than
+                         sampled: every op against every state, asserting the
+                         exact error, the post-state on success, and no field
+                         change on failure; plus the error precedences §6
+                         leaves unordered
 ```
 
 Each `tests/*.cpp` file is a standalone `main()` using the `CHECK` macro from
@@ -53,6 +58,30 @@ Options:
 - `-DUECM_USE_JEMALLOC=ON`: link jemalloc (spec §3, matched allocator); the `bench`
   target then reports `alloc=jemalloc`.
 - `-DUECM_BUILD_TESTS=OFF`: skip tests.
+- `-DUECM_SANITIZER=address|thread|undefined|address+undefined`: instrument the whole
+  tree, library and tests alike. Detection builds (`-O1 -g`), never measurement builds.
+- `-DUECM_COVERAGE=ON`: instrument for gcov (implies `-O0`).
+
+## Dynamic analysis and coverage
+
+```bash
+./sanitise.sh    # every test binary + every conformance vector, under
+                 # ASan+UBSan, TSan and UBSan in turn -> results/sanitisers.md
+./coverage.sh    # gcov line coverage of the library under the parity suite
+                 # -> results/coverage.md
+```
+
+`sanitise.sh` is evidence rather than hygiene. Safe Rust carries data-race and
+memory-safety freedom by construction, so unless the C++ arm is checked for them
+too, "the two implementations behave identically" rests on the C++ side merely not
+having failed yet. `faults/` shows the tools catch these defects when injected
+deliberately; this shows they find nothing in the real implementation. Current
+result: **all clean**.
+
+`coverage.sh` bounds that. A sanitiser reports only on code that runs, so a clean
+run is a statement about the lines the suite reaches. Current result: **94.6%** of
+library lines, with `ShardCore` and `Service` at 100%. Not comparable with the
+Rust figure — different tools counting different things.
 
 ## Benchmark (spec §3/§10)
 ```bash

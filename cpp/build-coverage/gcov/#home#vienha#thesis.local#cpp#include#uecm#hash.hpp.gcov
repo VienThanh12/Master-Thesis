@@ -1,0 +1,115 @@
+        -:    0:Source:/home/vienha/thesis.local/cpp/include/uecm/hash.hpp
+        -:    1:#pragma once
+        -:    2:#include <cstddef>
+        -:    3:#include <cstdint>
+        -:    4:
+        -:    5:// Pinned hashing functions. See spec/SPECIFICATION.md §8.
+        -:    6:// These MUST be bit-for-bit identical to the Rust implementation.
+        -:    7:namespace uecm {
+        -:    8:
+        -:    9:// Shard selection via the SplitMix64 finalizer, then modulo n_shards (§8.1).
+        -:   10:// All arithmetic wraps modulo 2^64 (native for uint64_t).
+   299769:   11:inline std::uint64_t shard_index(std::uint64_t ue_id, std::uint64_t n_shards) noexcept {
+   299769:   12:  std::uint64_t x = ue_id;
+   299769:   13:  x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ULL;
+   299769:   14:  x = (x ^ (x >> 27)) * 0x94D049BB133111EBULL;
+   299769:   15:  x =  x ^ (x >> 31);
+   299769:   16:  return x % n_shards;
+        -:   17:}
+------------------
+_ZN4uecm11shard_indexEmm:
+function _ZN4uecm11shard_indexEmm called 258866 returned 100% blocks executed 100%
+   258866:   11:inline std::uint64_t shard_index(std::uint64_t ue_id, std::uint64_t n_shards) noexcept {
+   258866:   12:  std::uint64_t x = ue_id;
+   258866:   13:  x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ULL;
+   258866:   14:  x = (x ^ (x >> 27)) * 0x94D049BB133111EBULL;
+   258866:   15:  x =  x ^ (x >> 31);
+   258866:   16:  return x % n_shards;
+        -:   17:}
+------------------
+_ZN4uecm11shard_indexEmm:
+function _ZN4uecm11shard_indexEmm called 12830 returned 100% blocks executed 100%
+    12830:   11:inline std::uint64_t shard_index(std::uint64_t ue_id, std::uint64_t n_shards) noexcept {
+    12830:   12:  std::uint64_t x = ue_id;
+    12830:   13:  x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ULL;
+    12830:   14:  x = (x ^ (x >> 27)) * 0x94D049BB133111EBULL;
+    12830:   15:  x =  x ^ (x >> 31);
+    12830:   16:  return x % n_shards;
+        -:   17:}
+------------------
+_ZN4uecm11shard_indexEmm:
+function _ZN4uecm11shard_indexEmm called 8672 returned 100% blocks executed 100%
+     8672:   11:inline std::uint64_t shard_index(std::uint64_t ue_id, std::uint64_t n_shards) noexcept {
+     8672:   12:  std::uint64_t x = ue_id;
+     8672:   13:  x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ULL;
+     8672:   14:  x = (x ^ (x >> 27)) * 0x94D049BB133111EBULL;
+     8672:   15:  x =  x ^ (x >> 31);
+     8672:   16:  return x % n_shards;
+        -:   17:}
+------------------
+_ZN4uecm11shard_indexEmm:
+function _ZN4uecm11shard_indexEmm called 18401 returned 100% blocks executed 100%
+    18401:   11:inline std::uint64_t shard_index(std::uint64_t ue_id, std::uint64_t n_shards) noexcept {
+    18401:   12:  std::uint64_t x = ue_id;
+    18401:   13:  x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ULL;
+    18401:   14:  x = (x ^ (x >> 27)) * 0x94D049BB133111EBULL;
+    18401:   15:  x =  x ^ (x >> 31);
+    18401:   16:  return x % n_shards;
+        -:   17:}
+------------------
+_ZN4uecm11shard_indexEmm:
+function _ZN4uecm11shard_indexEmm called 1000 returned 100% blocks executed 100%
+     1000:   11:inline std::uint64_t shard_index(std::uint64_t ue_id, std::uint64_t n_shards) noexcept {
+     1000:   12:  std::uint64_t x = ue_id;
+     1000:   13:  x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ULL;
+     1000:   14:  x = (x ^ (x >> 27)) * 0x94D049BB133111EBULL;
+     1000:   15:  x =  x ^ (x >> 31);
+     1000:   16:  return x % n_shards;
+        -:   17:}
+------------------
+        -:   18:
+        -:   19:// FNV-1a 64-bit over the 8 little-endian bytes of the key (§8.2).
+   430757:   20:inline std::uint64_t fnv1a_64(std::uint64_t key) noexcept {
+   430757:   21:  std::uint64_t h = 0xcbf29ce484222325ULL;
+  3875313:   22:  for (int i = 0; i < 8; ++i) {
+  3444556:   23:    std::uint8_t b = static_cast<std::uint8_t>((key >> (i * 8)) & 0xFF);  // little-endian
+  3444556:   24:    h = (h ^ b) * 0x100000001b3ULL;
+        -:   25:  }
+   430757:   26:  return h;
+        -:   27:}
+------------------
+_ZN4uecm8fnv1a_64Em:
+function _ZN4uecm8fnv1a_64Em called 430739 returned 100% blocks executed 100%
+   430739:   20:inline std::uint64_t fnv1a_64(std::uint64_t key) noexcept {
+   430739:   21:  std::uint64_t h = 0xcbf29ce484222325ULL;
+  3875151:   22:  for (int i = 0; i < 8; ++i) {
+branch  0 taken 89%
+branch  1 taken 11% (fallthrough)
+  3444412:   23:    std::uint8_t b = static_cast<std::uint8_t>((key >> (i * 8)) & 0xFF);  // little-endian
+  3444412:   24:    h = (h ^ b) * 0x100000001b3ULL;
+        -:   25:  }
+   430739:   26:  return h;
+        -:   27:}
+------------------
+_ZN4uecm8fnv1a_64Em:
+function _ZN4uecm8fnv1a_64Em called 18 returned 100% blocks executed 100%
+       18:   20:inline std::uint64_t fnv1a_64(std::uint64_t key) noexcept {
+       18:   21:  std::uint64_t h = 0xcbf29ce484222325ULL;
+      162:   22:  for (int i = 0; i < 8; ++i) {
+branch  0 taken 89%
+branch  1 taken 11% (fallthrough)
+      144:   23:    std::uint8_t b = static_cast<std::uint8_t>((key >> (i * 8)) & 0xFF);  // little-endian
+      144:   24:    h = (h ^ b) * 0x100000001b3ULL;
+        -:   25:  }
+       18:   26:  return h;
+        -:   27:}
+------------------
+        -:   28:
+        -:   29:// Hash functor for std::unordered_map<UeId, UeContext, FnvHash> (§8.2).
+        -:   30:struct FnvHash {
+   430637:   31:  std::size_t operator()(std::uint64_t key) const noexcept {
+   430637:   32:    return static_cast<std::size_t>(fnv1a_64(key));
+        -:   33:  }
+        -:   34:};
+        -:   35:
+        -:   36:}  // namespace uecm

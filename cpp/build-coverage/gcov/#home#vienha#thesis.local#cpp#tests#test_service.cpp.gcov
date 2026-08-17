@@ -1,0 +1,265 @@
+        -:    0:Source:/home/vienha/thesis.local/cpp/tests/test_service.cpp
+        -:    1:#include <atomic>
+        -:    2:#include <thread>
+        -:    3:#include <vector>
+        -:    4:
+        -:    5:#include "test_util.hpp"
+        -:    6:#include "uecm/service.hpp"
+        -:    7:
+        -:    8:using namespace uecm;
+        -:    9:
+        -:   10:// 1) Functional path through the threaded service (spec §11.3).
+function _ZL10functionalv called 1 returned 100% blocks executed 71%
+        1:   11:static void functional() {
+        1:   12:  Service svc(Config{});
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   13:  svc.start();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   14:
+        1:   15:  CHECK(svc.create_context(1001, CreateParams{7, {}}).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:   16:  CHECK(svc.setup_connection(1001).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:   17:  auto ack = svc.handle_signaling(1001, SignalingMsg{3, 10, {}});
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+       1*:   18:  CHECK(ack.has_value() && ack->accepted && ack->new_messages_handled == 1);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0%
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0%
+call    7 returned 100%
+branch  8 taken 100% (fallthrough)
+branch  9 taken 0%
+call   10 returned 100%
+branch 11 taken 100% (fallthrough)
+branch 12 taken 0% (throw)
+        1:   19:  auto bad = svc.setup_connection(1001);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+       1*:   20:  CHECK(!bad.has_value() && bad.error() == OpError::InvalidState);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0%
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0%
+call    7 returned 100%
+branch  8 taken 100% (fallthrough)
+branch  9 taken 0% (throw)
+        1:   21:  auto v = svc.lookup(1001);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+       1*:   22:  CHECK(v.has_value() && v->state == UeState::Connected);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0%
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0%
+call    7 returned 100%
+branch  8 taken 100% (fallthrough)
+branch  9 taken 0% (throw)
+        1:   23:  CHECK(svc.count() == 1);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+        1:   24:  CHECK(svc.release_context(1001).has_value());
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+        1:   25:  CHECK(svc.count() == 0);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+        -:   26:
+        1:   27:  svc.shutdown();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   28:}
+call    0 returned 100%
+call    1 returned 100%
+call    2 never executed
+call    3 never executed
+        -:   29:
+        -:   30:// 2) Concurrent load across shards: disjoint ue_id ranges per producer thread,
+        -:   31://    so there are no cross-thread key conflicts; verifies routing + lifecycle
+        -:   32://    under real threads (run this binary under TSan to check data-race freedom).
+function _ZL10concurrentv called 1 returned 100% blocks executed 71%
+        1:   33:static void concurrent() {
+        1:   34:  Config cfg;
+        1:   35:  cfg.n_shards = 8;
+        1:   36:  cfg.queue_capacity = 256;  // smaller -> exercises blocking backpressure
+        1:   37:  Service svc(cfg);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   38:  svc.start();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   39:
+        1:   40:  constexpr int kProducers = 8;
+        1:   41:  constexpr std::uint64_t kPerProducer = 5000;
+        1:   42:  std::atomic<std::uint64_t> errors{0};
+        -:   43:
+function _ZZL10concurrentvENKUliE_clEi called 8 returned 88% blocks executed 67%
+        8:   44:  auto work = [&](int p) {
+        8:   45:    const std::uint64_t base = static_cast<std::uint64_t>(p) * 1'000'000ULL + 1;
+    39953:   46:    for (std::uint64_t i = 0; i < kPerProducer; ++i) {
+branch  0 taken 100%
+branch  1 taken 1% (fallthrough)
+    39946:   47:      UeId id = base + i;
+    39946:   48:      if (!svc.create_context(id, CreateParams{static_cast<std::uint32_t>(p), {}}))
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 0% (fallthrough)
+branch  5 taken 100%
+    #####:   49:        ++errors;
+call    0 never executed
+   39936*:   50:      if (!svc.setup_connection(id)) ++errors;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 0% (fallthrough)
+branch  5 taken 100%
+call    6 never executed
+   159297:   51:      for (int k = 0; k < 3; ++k)
+branch  0 taken 75%
+branch  1 taken 25% (fallthrough)
+  119499*:   52:        if (!svc.handle_signaling(id, SignalingMsg{1, 4, {}})) ++errors;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 0% (fallthrough)
+branch  5 taken 100%
+call    6 never executed
+    39798:   53:      auto v = svc.lookup(id);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+   39924*:   54:      if (!v || v->messages_handled != 3) ++errors;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 1%
+call    3 returned 100%
+branch  4 taken -0% (fallthrough)
+branch  5 taken 100%
+branch  6 taken 0% (fallthrough)
+branch  7 taken 100%
+call    8 never executed
+        -:   55:      // release the odd-numbered ids; keep the even ones alive
+    39932:   56:      if (i % 2 == 1)
+branch  0 taken 50% (fallthrough)
+branch  1 taken 50%
+   19989*:   57:        if (!svc.release_context(id)) ++errors;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 0% (fallthrough)
+branch  5 taken 100%
+call    6 never executed
+    39923:   58:    }
+call    0 returned 100%
+call    1 never executed
+        7:   59:  };
+        -:   60:
+        1:   61:  std::vector<std::thread> ts;
+        9:   62:  for (int p = 0; p < kProducers; ++p) ts.emplace_back(work, p);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+branch  3 taken 89%
+branch  4 taken 11% (fallthrough)
+        9:   63:  for (auto& t : ts) t.join();
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 returned 100%
+branch  8 taken 89%
+branch  9 taken 11% (fallthrough)
+        -:   64:
+        2:   65:  CHECK(errors.load() == 0);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        -:   66:  // Half of each producer's ids survive (the even i).
+        1:   67:  const std::uint64_t expected = kProducers * (kPerProducer / 2);
+        1:   68:  CHECK(svc.count() == expected);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+        -:   69:
+        1:   70:  svc.shutdown();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   71:}
+call    0 returned 100%
+call    1 returned 100%
+call    2 never executed
+call    3 never executed
+        -:   72:
+function main called 1 returned 100% blocks executed 100%
+        1:   73:int main() {
+        1:   74:  functional();
+call    0 returned 100%
+        1:   75:  concurrent();
+call    0 returned 100%
+        1:   76:  return uecm::test::summary("test_service");
+call    0 returned 100%
+        -:   77:}

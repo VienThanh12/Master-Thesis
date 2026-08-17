@@ -65,13 +65,70 @@ machinery of §7, FIFO execution (§10.2 O1), the fields `lookup` does not print
 and the activity-sequence discipline of §10.3 — are covered instead by the
 per-language suites, `cpp/tests/test_{invariants,concurrency}.cpp` and
 `rust/tests/{invariants,concurrency}.rs`, which mirror each other case for case.
+The §5.2 transition matrix is enumerated exhaustively rather than sampled in
+`cpp/tests/test_state_matrix.cpp` and `rust/tests/state_matrix.rs`.
+
+## The reference model, and why a cross-diff is not enough
+
+`run.sh` on its own establishes two things: each implementation reproduces the
+expectations written into a vector, and the two transcripts are byte-identical.
+Neither distinguishes **both correct** from **both wrong in the same way** — the
+failure mode a shared specification and a single author make most likely — and
+the expectations in the seven vectors above were derived from the specification
+by the same person who wrote the implementations.
+
+`model.py` is a third implementation of the same written specification, in a
+third language, sharing no code with either. It earns the right to generate
+expectations by first reproducing all 223 hand-derived ones:
+
+```bash
+python3 spec/conformance/model.py --self-test --check 'spec/conformance/vectors/*.vec'
+```
+
+`genvec.py` then generates randomised operation sequences with every expected
+result computed by the model:
+
+```bash
+python3 spec/conformance/genvec.py --seed 7 --ops 500 --profile adversarial --out /tmp/x.vec
+```
+
+Profiles are `lifecycle` (realistic attach/signal/bearer/handover/release runs),
+`adversarial` (weighted towards illegal transitions and boundary arguments),
+`capacity` (tiny shard and DRB limits, to sit on both), `routing` (many shards
+and wide id ranges) and `mixed`. Generation is deterministic — the PRNG is a
+hand-written SplitMix64, not the `random` module — so a seed reproduces
+byte-identically on any machine and a failing seed is a permanent regression
+test rather than an anecdote.
+
+Where the specification under-determines behaviour, `model.py` says so in its
+header rather than quietly copying whichever implementation it was checked
+against. Four such points exist: argument validation before key lookup, capacity
+before duplicate detection on `create` and again on `add_drb`, and
+`abort_reconfigure` restoring `state` but not `serving_cell_id`, which §5.2's
+wording ("state restored") reads as though it should.
 
 ## Running
 
 ```bash
-spec/conformance/run.sh
+spec/conformance/run.sh                    # three phases, ~10 s
+spec/conformance/run.sh --random 60 --ops 2000   # a large campaign, ~9 min
+spec/conformance/run.sh --no-random        # hand-written vectors only
 ```
 
-This builds both runners (`cpp/build/conformance_runner`, `rust/target/release/conformance_runner`),
-runs every `vectors/*.vec` through each, checks both against the expected results, and diffs the
-C++ vs. Rust actual transcripts. Exit code is non-zero if any check or cross-language diff fails.
+Three phases:
+
+1. **Oracle validation** — the model's known-answer tests for the pinned §8
+   functions, then a replay of every hand-written vector.
+2. **Hand-written vectors** — both runners execute each, are checked against its
+   expectations, and the transcripts are diffed.
+3. **Generated vectors** — from pinned seeds across all five profiles, with
+   model-derived expectations, plus a check that the family actually reaches
+   every §6.6 error code (a generator that silently stopped producing
+   `CapacityExceeded` would otherwise still pass and still look broad).
+
+Exit code is non-zero if any check, any cross-language diff, or the oracle
+fails. A failing generated vector is kept on disk and its seed printed.
+
+**Result to date:** a campaign of roughly 793 000 generated operations found no
+divergence between the C++ implementation, the Rust implementation and the
+model.
