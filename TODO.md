@@ -482,11 +482,30 @@ to "localised", closing the residual `tab:threats` names as its most exposed.
       container closes ~15% of the core-operation gap (1.84x to 1.72x) and the queue
       closes none of the overload divergence (1.41x to 1.43x). Numbers, caveats, and the
       reasoning are recorded in `spec/SPECIFICATION.md` §12 under "Attribution probes".
-- [ ] **Re-run both on the measurement host, paired.** These were unpaired runs on the
-      WSL2 laptop (10 repeats for the map, 5 for the queue) — enough to show direction,
-      not enough to quote. Route the map probe through `bench/latency_budget.sh` and the
-      queue probe through `bench/campaign.sh` at the overload point, so both get the
-      interleaving and the paired test.
+- [x] **Third probe added: C++ preallocated ring queue** (`-DUECM_RING_QUEUE=ON`,
+      `cpp/include/uecm/ring_queue.hpp`), because the Rust queue probe could not
+      support the conclusion drawn from it. It matched the C++ arm's synchronisation but
+      not its buffer: `std::queue` is deque-backed and allocates a node every third push
+      (verified at 1008 allocations per 3000 pushes, zero for the ring), while a
+      `VecDeque` allocates nothing after warm-up. The contended-primitive microbenchmark
+      has the same blind spot from the other side, since its 32-byte job fits sixteen per
+      node. The ring probe holds the C++ locking fixed and removes the allocation
+      outright: 43.2 to 43.1 kops/s, -0.2%, ratio 1.44x to 1.43x. **The queue is now
+      exonerated on both design and allocation**, which is a stronger claim than §12
+      previously made on weaker evidence, and dispatch plus the 160-byte request is the
+      last untested candidate.
+- [ ] **Re-run all three on the measurement host, paired.** These were unpaired runs on
+      the WSL2 laptop (10 repeats for the map, 5 for the Rust queue, 7 interleaved for the
+      ring) — enough to show direction, not enough to quote. Route the map probe through
+      `bench/latency_budget.sh` and both queue probes through `bench/campaign.sh` at the
+      overload point, so all get the interleaving and the paired test.
+- [ ] **Test the last candidate.** With the container mostly ruled out and the queue
+      ruled out entirely, dispatch and request size are what remain. The probe is a C++
+      `Request` that carries only the arguments of the operation in flight — a
+      `std::variant` of per-operation argument structs, or a discriminated union — which
+      would bring the 160 bytes down toward Rust's 96 while keeping the tagged-struct
+      dispatch. If the overload divergence closes there, the forced-idiom log has
+      explained the study's strongest result end to end.
 - [ ] **Then revise the two attributions in the prose.** §7.5.2 explains the
       core-operation gap by `std::unordered_map` being node-based and says confirming it
       "would need the cache-miss counters"; on this evidence that mechanism is a minority

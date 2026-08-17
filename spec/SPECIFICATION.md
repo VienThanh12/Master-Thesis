@@ -86,9 +86,9 @@ footprint and copy cost are comparable across languages.
 |-------|------|-------|
 | `ue_id` | `u64` | Primary key; immutable after creation. |
 | `state` | enum `UeState` (Section 5), stored as `u8` | Current lifecycle state. |
-| `serving_cell_id` | `u32` | Current serving cell. |
-| `rrc_transaction_id` | `u16` | Last RRC transaction id used. |
-| `security_key` | fixed array of 32 `u8` | Dummy security context (models AS keys). |
+| `serving_cell_id` | `u32` | Current serving cell. Also written by `begin_reconfigure` (§6.5). |
+| `rrc_transaction_id` | `u16` | **Reserved, inert.** No operation in §6 writes it; it is `0` for the life of the context. |
+| `security_key` | fixed array of 32 `u8` | Dummy security context (models AS keys). Written once at creation, never inspected. |
 | `drbs` | dynamic list of `DrbEntry` | 0..=`MAX_DRBS` established data radio bearers. |
 | `messages_handled` | `u64` | Count of signaling messages applied to this context. |
 | `last_activity_seq` | `u64` | Monotonic per-service sequence stamped on each op. |
@@ -104,10 +104,24 @@ footprint and copy cost are comparable across languages.
 - `MAX_DRBS` = 8 (Section 9). Attempts to exceed it are an error (Section 6.4).
 - `drbs` is a **dynamic** list (`std::vector` / `Vec`) on purpose, so the allocator study
   (RQ3) observes realistic per-context allocation. It is *not* a fixed array.
+- Of a `DrbEntry`, only `drb_id` carries semantics (the uniqueness check of §6.4).
+  `qos_flow_id` and `teid` are stored verbatim and never inspected; they exist to give the
+  entry a realistic width.
 
-### 4.3 Creation parameters
+**Inert fields.** `rrc_transaction_id`, `security_key`, `qos_flow_id` and `teid` are carried
+but never read by any operation. They are part of the record so that its size and copy cost
+model a real UE context, and they are named here as inert so that a third implementation
+cannot conform while giving them behaviour. The per-language `invariants` suites check that
+they round-trip through `lookup` unchanged (§11).
+
+### 4.3 Operation parameters
 `create_context` takes `CreateParams { serving_cell_id: u32, security_key: [u8;32] }`.
 On creation, `state = Idle`, `drbs = empty`, counters `= 0`, `rrc_transaction_id = 0`.
+
+`begin_reconfigure` takes `ReconfigParams { target_cell_id: u32 }`. It is applied
+immediately — `serving_cell_id` becomes `target_cell_id` when the procedure *begins*, not
+when it completes — and it is **not** rolled back by `abort_reconfigure` (§5.2, §6.5). The
+consequence is observable through `lookup` and therefore part of parity (§11.1).
 
 ### 4.4 Read-only view
 `lookup` returns a **`UeContextView`**: an immutable copy/snapshot containing all fields of
@@ -139,9 +153,9 @@ The only ways to change state are via API operations (Section 6). Allowed transi
 | `setup_connection` | `Idle` | `Connected` | RRC setup. |
 | `handle_signaling` | `Connected` | `Connected` | Updates fields, no state change. |
 | `add_drb` | `Connected` | `Connected` | Bearer setup. |
-| `begin_reconfigure` | `Connected` | `Reconfiguring` | Start handover/reconfig. |
+| `begin_reconfigure` | `Connected` | `Reconfiguring` | Start handover/reconfig; also sets `serving_cell_id = target_cell_id` (§4.3). |
 | `complete_reconfigure` | `Reconfiguring` | `Connected` | Success path. |
-| `abort_reconfigure` | `Reconfiguring` | `Connected` | Failure path (state restored). |
+| `abort_reconfigure` | `Reconfiguring` | `Connected` | Failure path. Restores `state` **only**: the serving cell is not rolled back (§6.5). |
 | `release_context` | any (`Idle`/`Connected`/`Reconfiguring`) | `Released` → removed | Idempotent-ish: see 6.5. |
 
 Any event applied from a state not listed above is an **`InvalidState`** error (Section 6.6)
@@ -191,11 +205,22 @@ Where `SignalingMsg { kind: u8, payload_len: u16, payload: bytes<=64 }` and
 
 ### 6.1 Common semantics
 - Every **mutating** operation that succeeds stamps `last_activity_seq` with the next value
-  of a per-service monotonic counter (Section 10.3). Read-only operations (`lookup`,
-  `count`) MUST NOT modify any context (they return the current stored value), keeping the
-  lookup path read-only for the concurrent-lookup workload.
-- On any error, the context MUST remain unchanged (no partial mutation).
-- `ue_id == 0` MUST be rejected with `InvalidArgument` for all operations.
+  of a per-service monotonic counter (Section 10.3). `release_context` is the one exception:
+  it removes the record, so there is nothing to stamp, and it MUST NOT consume a counter
+  value. Read-only operations (`lookup`, `count`) MUST NOT modify any context (they return
+  the current stored value), so the read path never mutates shard state.
+- On any error, the context MUST remain unchanged (no partial mutation), and a failed
+  operation MUST NOT consume a counter value.
+- `ue_id == 0` MUST be rejected with `InvalidArgument` by all nine operations that take one
+  (`count` takes no `ue_id`).
+
+> **What "read-only" does and does not buy.** `lookup` is non-mutating, but it is still
+> routed to the owning shard's worker and executed from the same FIFO queue as the mutating
+> operations (§7). There is no shared-read fast path: read concurrency is `N_SHARDS`-way
+> across shards, and *within* a shard a lookup queues behind whatever precedes it and pays
+> the full request handoff. This is a consequence of the shared-nothing model, not an
+> oversight, and it is why the end-to-end latency of any operation is dominated by the
+> handoff rather than by the operation.
 
 ### 6.2 `create_context`
 - Pre: `ue_id != 0`, key absent, shard has capacity (Section 9 `MAX_CONTEXTS_PER_SHARD`).
@@ -211,14 +236,23 @@ Where `SignalingMsg { kind: u8, payload_len: u16, payload: bytes<=64 }` and
 ### 6.4 `handle_signaling` / `add_drb`
 - Pre: context exists in `Connected`.
 - `handle_signaling`: increments `messages_handled`, returns `SignalingAck { accepted:true,
-  new_messages_handled }`. `payload_len` MUST be `<= 64`; else `InvalidArgument`.
+  new_messages_handled }`. `payload_len` MUST be `<= 64`; else `InvalidArgument`. `kind` and
+  `payload` are **opaque**: the service MUST NOT branch on either, and `accepted` is
+  therefore always `true` on the success path. (The payload is carried so that the request's
+  copy cost is realistic, not so that it can be interpreted.)
 - `add_drb`: appends `drb` if `len(drbs) < MAX_DRBS` and no existing entry has the same
-  `drb_id`; else `CapacityExceeded` / `AlreadyExists` respectively.
+  `drb_id`; else `CapacityExceeded` / `AlreadyExists` respectively. Only `drb_id` is
+  inspected (§4.2).
 - Errors: `NotFound`; `InvalidState` if not `Connected`.
 
 ### 6.5 Reconfiguration and release
-- `begin_reconfigure`: `Connected → Reconfiguring`. `complete_reconfigure` /
-  `abort_reconfigure`: `Reconfiguring → Connected`. Errors `NotFound`, `InvalidState`.
+- `begin_reconfigure`: `Connected → Reconfiguring`, and sets
+  `serving_cell_id = params.target_cell_id` in the same operation.
+- `complete_reconfigure` / `abort_reconfigure`: `Reconfiguring → Connected`. Neither touches
+  `serving_cell_id`, so an **aborted** reconfiguration leaves the context reporting the cell
+  it failed to move to. This is a deliberate simplification — the record carries no saved
+  pre-handover cell to roll back to — and it is pinned by `states.vec` so it cannot drift.
+- Errors for all three: `NotFound`, `InvalidState`.
 - `release_context`: valid from `Idle`/`Connected`/`Reconfiguring`; removes the context and
   returns `Ok(())`. If the context does not exist, returns `NotFound` (NOT ok) so tests can
   distinguish double-release.
@@ -237,6 +271,20 @@ Exactly this closed set, stored as `u8`:
 `OpResult<T>` is `Ok(T)` or `Err(OpError)`. Implementations MUST use their idiomatic result
 type (Rust `Result`, C++ `std::expected`/`tl::expected` or an equivalent status+value); the
 mapping is recorded in Section 12.
+
+### 6.7 `count`
+
+`count()` returns `u64` and cannot fail: it takes no `ue_id`, so none of the §6.6 codes
+applies. An implementation MAY carry it in its result type internally for uniformity with the
+other operations; that is a representation choice, recorded in §12, and MUST NOT introduce an
+error case.
+
+Because the population is partitioned, `count()` is computed by routing one request to **each**
+shard and summing the replies (§7). It is therefore **not a snapshot**: with mutations in
+flight the shards are read at different instants and the sum need not equal the population at
+any single instant. It is exact when the service is quiescent, which is the only condition
+under which §11.1 compares it. Implementations MUST NOT add cross-shard synchronisation to
+make it atomic — that would introduce shared state the concurrency model forbids (§7.2).
 
 ---
 
@@ -270,9 +318,29 @@ and is the fairest structure for comparing the two languages' safe-concurrency s
 
 ### 7.1 Threading and lifecycle
 - `start()` spawns `N_SHARDS` workers. `shutdown()` enqueues a `Stop` sentinel to each shard
-  and joins all workers. After `shutdown()` no further submits are allowed.
+  and joins all workers. Both are idempotent.
 - Worker count == shard count. Pinning is a benchmark concern (see `bench/`), not part of
   this API.
+
+**Lifecycle precondition (normative).** Every operation of §6 requires the service to be
+running: `start()` called, `shutdown()` not yet called. A call outside that window is a
+**caller error, not a runtime condition** — it MUST NOT be reported through `OpError`, which
+stays the closed five-value set of §6.6.
+
+An implementation MUST detect the violation and fail deterministically: it MUST NOT route the
+request, and MUST NOT read shard state that does not exist. The idiomatic mechanism differs
+per language and is recorded in §12 (C++ throws `std::logic_error`; Rust panics). What both
+MUST provide is that the failure is immediate, diagnosable, and free of undefined behaviour.
+
+> Why this is spelled out. Until 2026-08 this section said only that submits after
+> `shutdown()` were "not allowed", and neither implementation checked. The prohibition was on
+> the caller with no mechanism behind it, which is exactly the shape of requirement that the
+> two languages do *not* fail equivalently: in C++ the unchecked path indexed a cleared
+> container, giving a heap-use-after-free after `shutdown()` and a segmentation fault before
+> `start()`, while the same misuse in Rust was already a bounds-check panic. The defect was in
+> code written to be correct, reachable through the public API, and invisible to the whole
+> parity suite, which never calls an operation outside the window. See §12 and the RQ2
+> discussion.
 
 ---
 
@@ -403,7 +471,7 @@ Suite as of 2026-08 (223 checked operations across seven vectors; both implement
 them and produce byte-identical transcripts): `basic.vec` (the §11.3 example + error model + DRB
 fill/overflow + reconfigure begin/complete/abort), `states.vec` (the full §5.2 transition matrix
 plus the §6.1 no-mutation-on-error rule), `errors.vec` (every §6.6 code on every operation that can
-raise it, `ue_id == 0` on all ten operations, the payload boundary, and the precedence between
+raise it, `ue_id == 0` on all nine operations that take one, the payload boundary, and the precedence between
 competing errors), `capacity.vec` (`CapacityExceeded` on `create`, and that §9's limit is per shard
 rather than service-wide), `routing.vec` (§10.1 I1: state stays private to its own shard),
 `shards.vec` and `shards13.vec` (shard assignment for a power-of-two and a non-power-of-two shard
@@ -416,10 +484,16 @@ fields `lookup` does not print (`security_key`, `rrc_transaction_id`, per-DRB co
 activity-sequence discipline of §10.3/§11.2. See `cpp/tests/test_{invariants,concurrency}.cpp` and
 `rust/tests/{invariants,concurrency}.rs`.
 
-One consequence worth recording for §11.1: the vectors now pin several error-precedence decisions
-that §6 leaves unordered (argument validation before key lookup; capacity before duplicate
-detection, both for `create` and for `add_drb`). Both implementations already agreed on all of
-them, so nothing had to change; the vectors exist so the agreement cannot regress unnoticed.
+One consequence worth recording for §11.1: the vectors pin four decisions that §6 originally
+left open, because it gave each operation's errors as a *set* rather than an order. Three are
+error-precedence choices — argument validation before key lookup, and capacity before duplicate
+detection, both for `create` and for `add_drb`. The fourth is not about errors at all:
+`abort_reconfigure` restores `state` but not `serving_cell_id` (§6.5), which is observable
+through `lookup` and so is a parity commitment like any other. Both implementations already
+agreed on all four, so nothing had to change; the vectors exist so the agreement cannot regress
+unnoticed, and §4.3/§6.5 now state the fourth normatively rather than leaving it to be inferred
+from the vector. The independent reference model in `spec/conformance/model.py` documents the
+same four as the points where a third reader could reasonably have diverged.
 
 ### 11.4 Independent oracle and generated vectors (added 2026-08)
 
@@ -493,6 +567,14 @@ during implementation, with the requirement id and the reason. Examples that wil
 - Bounded blocking queue: hand-written `mutex` + two `condition_variable`s
   (`include/uecm/bounded_queue.hpp`).
 - Intra-shard map: `std::unordered_map<UeId, UeContext, FnvHash>` with the pinned FNV-1a hash.
+- `count()`: the worker replies with `OpResult<std::uint64_t>` so that every `Response`
+  alternative is an `OpResult`, and `Service::count()` unwraps it. §6.7 specifies a bare
+  `u64`; this is representation only and no error case is reachable. Rust needs no wrapper
+  and sends `u64` directly.
+- Lifecycle precondition (§7.1): `submit()` and `count()` check the `running_` flag and throw
+  `std::logic_error`. This costs one predictable branch on the submit path, which the Rust arm
+  already paid as a slice bounds check, so the check narrows a small pre-existing asymmetry
+  rather than creating one.
 - `unsafe`-equivalent: none (no manual memory management beyond STL containers).
 - Verified data-race free under ThreadSanitizer.
 
@@ -505,6 +587,11 @@ during implementation, with the requirement id and the reason. Examples that wil
   `recv()` (the analog of `std::future::get`).
 - Bounded blocking queue: `std::sync::mpsc::sync_channel(capacity)` (blocking `send` gives
   the same backpressure as the C++ hand-written queue).
+- Lifecycle precondition (§7.1): `shard_tx()` and `count()` assert `running`. Before the
+  assertion existed the violation was already a panic — the slice index into a cleared `shards`
+  vector — so the change makes the diagnostic explicit rather than changing the outcome. The
+  C++ analogue is a thrown `std::logic_error`; `panic!` and `throw` are the matched idioms
+  here, both unwinding and both deterministic.
 - Intra-shard map: `std::collections::HashMap<UeId, UeContext, FnvBuildHasher>`, where
   `FnvBuildHasher` hashes the key as 8 little-endian bytes so the digest is bit-identical to
   the pinned FNV-1a (verified by a test against `fnv1a_64`).
@@ -563,21 +650,61 @@ container, so that a measured difference can be assigned to the container or not
   divergence; the ratio moves from 1.41x to 1.43x, which is noise in the wrong
   direction.
 
-  The queue is therefore exonerated. Together with the contended-primitive
-  microbenchmark, which already showed the primitives alone do not reproduce the
-  ordering, that leaves the other entry in this log as the live candidate: the
-  tagged-struct dispatch and the larger request payload the C++ side carries. Note the
-  host caveat — 14 logical CPUs here against 16 vCPUs on the measurement guest, and the
-  absolute ratio is correspondingly smaller (1.4x here, `\OverloadThrRatio` there) — but
-  the probe is a within-host comparison of two Rust builds, which is what it needs to be.
+  What this probe alone does *not* establish is that the queue is exonerated, and the
+  first version of this entry claimed it did. The probe matched the C++ arm's
+  *synchronisation* — one mutex, two condition variables, the same predicates — but not
+  its *buffer*. `BoundedQueue` stores elements in a `std::queue`, which is deque-backed,
+  and a `VecDeque` is not: it grows by doubling and never shrinks, so after warm-up the
+  probe allocates nothing where the C++ arm allocates continuously. Ruling the
+  synchronisation out therefore left the allocation untested. The next entry tests it.
 
-**Both probes returned negative, which is the finding.** The two mechanisms the thesis
-offers for its two most notable performance results are, when tested by substitution
-rather than argued from structure, largely unsupported: the container accounts for a
-minority of the core-operation gap and the queue for none of the overload divergence.
-Neither result is overturned — the differences are real and reproduce — but their stated
-causes need revising, and both were testable without the hardware counters the text
-names as the only route.
+- **C++ preallocated ring inside the shard queue** (`-DUECM_RING_QUEUE=ON`,
+  `cpp/include/uecm/ring_queue.hpp`). Replaces the `std::queue` inside `BoundedQueue`
+  with a fixed-capacity ring exposing the same five members, so the locking, the
+  predicates and the notify discipline are byte-identical and only the storage changes.
+  Passes all six C++ test binaries and keeps byte-for-byte transcript parity with Rust
+  on all seven vectors.
+
+  The mechanism it removes is measurable directly, and was verified before the
+  throughput run rather than assumed: with global `operator new`/`delete` counted around
+  3000 pushes and 3000 pops of a real `Request`, the deque-backed queue performs **1008
+  allocations** — libstdc++ sizes a deque node at 512 bytes and a `Request` is 160, so
+  three fit per node and a node is allocated on every third push and freed on every third
+  pop, inside the queue mutex. The ring performs **zero**.
+
+  **Result (7 interleaved repeats at the overload rate, WSL2, indicative only):**
+  sustained throughput 43.2 kops/s deque-backed, 43.1 ring-backed, 30.0 for Rust.
+  Removing the allocation entirely changes the C++ arm by **-0.2%**, far inside the
+  run-to-run spread, and moves the ratio from 1.44x to 1.43x.
+
+  **The queue is now exonerated on both counts**, which the earlier probe could only
+  half-establish: neither its synchronisation design nor its hot-path allocation
+  reproduces the ordering, and the contended-primitive microbenchmark had already shown
+  the primitives alone do not. Note that the microbenchmark shares the second blind spot
+  — its job is 32 bytes, so sixteen fit per deque node and it allocates at a fifth of the
+  service's rate — so it too was weaker evidence than it looked; the ring probe is what
+  closes the question. That leaves one untested entry in this log as the live candidate:
+  the tagged-struct dispatch and the 160-byte request the C++ side moves through the
+  queue against Rust's 96. Host caveat as above — 14 logical CPUs here against 16 vCPUs
+  on the measurement guest, so the absolute ratio is smaller (1.4x here,
+  `\OverloadThrRatio` there) — but both probes are within-host comparisons of two builds
+  of the same language, which is what they need to be.
+
+**All three probes returned negative, which is the finding.** The two mechanisms the
+thesis offers for its two most notable performance results are, when tested by
+substitution rather than argued from structure, largely unsupported: the container
+accounts for a minority of the core-operation gap, and the queue for none of the overload
+divergence — neither its design nor the allocation it performs. Neither result is
+overturned — the differences are real and reproduce — but their stated causes need
+revising, and all three were testable without the hardware counters the text names as the
+only route.
+
+Worth recording as a methodological lesson, because it caught two of the three probes: a
+substitution probe has to substitute *everything* the candidate mechanism covers. The
+Rust queue probe matched a design and not an allocation pattern; the contended-primitive
+microbenchmark isolated primitives but shrank the allocation rate fivefold by using a
+smaller job. Each looked like a controlled experiment and each silently varied a second
+thing along with the first.
 
 **Benchmark harness (recorded 2026-07, `bench/`):**
 - Latency capture: C++ uses a from-scratch, header-only HDR histogram
@@ -634,7 +761,17 @@ names as the only route.
 
 ## 13. Freeze checklist
 
-- [ ] Supervisor review of data model, state machine, and API.
+- [ ] Supervisor review of data model, state machine, and API. *(Internal design review of
+      §4–§6 carried out 2026-08-17 against both implementations. It found no defect in the
+      state machine or the error model, and six places where this document did not describe
+      what the code does; all six are now fixed here: `ReconfigParams` was undefined (§4.3);
+      `rrc_transaction_id` was described as "last used" but is inert (§4.2); the abort path was
+      called "state restored" when the serving cell is not restored (§5.2, §6.5); §6.1 claimed
+      every successful mutation stamps the activity counter, which `release_context` does not;
+      `count()` had no stated return type, atomicity, or snapshot semantics (§6.7); and §7.1
+      prohibited submits outside the running window without a mechanism, which was a
+      heap-use-after-free in C++ and a panic in Rust — now guarded in both. **Supervisor
+      sign-off still pending.**)*
 - [ ] Confirm concurrency model (thread-per-shard + bounded blocking queue) is acceptable.
 - [ ] Confirm default parameters and sweep ranges with the evaluation plan.
 - [x] Confirm the conformance-vector format and seed an initial suite. *(Format + `basic.vec`/`shards.vec` seeded; shared runner passes for both implementations. Supervisor sign-off on the format still pending.)*

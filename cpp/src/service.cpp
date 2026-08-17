@@ -1,11 +1,19 @@
 #include "uecm/service.hpp"
 
+#include <stdexcept>
 #include <utility>
 #include <variant>
 
 #include "uecm/hash.hpp"
 
 namespace uecm {
+namespace {
+// Spec §7.1: operating outside the running window is a caller error, not one of
+// the five OpError codes, so it is reported out of band rather than widening the
+// closed error set.
+constexpr const char* kNotRunning =
+    "uecm::Service: operation submitted while the service is not running (spec §7.1)";
+}  // namespace
 
 Service::Service(const Config& cfg) : cfg_(cfg) {
   if (cfg_.n_shards == 0) cfg_.n_shards = 1;
@@ -81,6 +89,7 @@ void Service::worker_loop(Shard& shard) {
 }
 
 Response Service::submit(OpKind kind, UeId ue_id, Request&& req) {
+  if (!running_) throw std::logic_error(kNotRunning);
   req.kind = kind;
   req.ue_id = ue_id;
   auto fut = req.completion.get_future();
@@ -143,6 +152,7 @@ OpResult<UeContextView> Service::lookup(UeId ue_id) {
 }
 
 std::uint64_t Service::count() {
+  if (!running_) throw std::logic_error(kNotRunning);
   std::uint64_t total = 0;
   for (std::uint64_t i = 0; i < cfg_.n_shards; ++i) {
     Request req;

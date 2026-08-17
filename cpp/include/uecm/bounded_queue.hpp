@@ -5,16 +5,28 @@
 #include <queue>
 #include <utility>
 
+#ifdef UECM_RING_QUEUE
+#include "uecm/ring_queue.hpp"
+#endif
+
 namespace uecm {
 
 // Bounded, blocking multi-producer / single-consumer queue (spec §7).
 // push() blocks when full (backpressure); pop() blocks when empty.
 // Stores move-only element types (Request carries a std::promise).
+//
+// The deque-backed std::queue is the measured configuration; the preallocated ring
+// exists only to attribute the overload divergence and is never the reported arm. It
+// changes the storage and nothing else. See ring_queue.hpp for why.
 template <class T>
 class BoundedQueue {
  public:
   explicit BoundedQueue(std::size_t capacity)
-      : capacity_(capacity == 0 ? 1 : capacity) {}
+      : capacity_(capacity == 0 ? 1 : capacity)
+#ifdef UECM_RING_QUEUE
+        , q_(capacity_)
+#endif
+  {}
 
   void push(T value) {
     std::unique_lock<std::mutex> lk(m_);
@@ -39,7 +51,11 @@ class BoundedQueue {
   std::mutex m_;
   std::condition_variable not_full_;
   std::condition_variable not_empty_;
+#ifdef UECM_RING_QUEUE
+  RingBuffer<T> q_;
+#else
   std::queue<T> q_;
+#endif
 };
 
 }  // namespace uecm

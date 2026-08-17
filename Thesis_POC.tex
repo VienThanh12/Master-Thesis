@@ -1892,12 +1892,15 @@ build.
 \section{Implementation details}\label{sec:impldetails}
 \label{sec:impl}
 Both implementations follow the frozen specification field-for-field, and both are small
-enough to be read end to end. The C++ core is $649$ lines across eight headers and two
-translation units, the Rust core $736$ lines across eight modules. Discarding blank lines and
-comments leaves $516$ and $602$ respectively.
+enough to be read end to end. The C++ core is $\CppRawLines$ lines across eight headers and two
+translation units, the Rust core $\RustRawLines$ lines across eight modules. Discarding blank
+lines and comments leaves $\CppNloc$ and $\RustNloc$ respectively. Both counts describe the
+configuration the campaign measures: the two attribution probes of Section~\ref{sec:idioms} are
+switched on by a build flag, and the conditional blocks that select them are excluded, since
+counting them would describe neither the compared build nor the probe.
 
-The Rust version is therefore the larger of the two, by $13\%$ in raw lines and $17\%$ in code
-lines. That is worth stating plainly rather than leaving it to a footnote, for two reasons. Line
+The Rust version is therefore the larger of the two, by $\RawRise\%$ in raw lines and
+$\NlocRise\%$ in code lines. That is worth stating plainly rather than leaving it to a footnote, for two reasons. Line
 count is one of the software-quality proxies this study set out to collect, and the difference
 is not incidental verbosity: it is the net of several forced idioms pulling in opposite
 directions, which Section~\ref{sec:idioms} decomposes file by file. The remainder of this
@@ -2178,7 +2181,16 @@ Both languages tie this to object destruction, and the mechanism is one of the f
 where the two are near-identical: the C++ destructor calls \texttt{shutdown()}, and Rust's
 \texttt{Drop} implementation does the same, so a service that goes out of scope cannot leave
 detached threads behind. Both guard against double invocation with a \texttt{running} flag,
-making shutdown idempotent. The remaining ownership discipline is what upholds the
+making shutdown idempotent.
+
+The window those two calls delimit is a precondition on every operation, and it is stated as one:
+an operation submitted before \texttt{start()} or after \texttt{shutdown()} is a caller error, not
+a runtime condition, so it is reported out of band rather than widening the closed
+\texttt{OpError} set of Section~\ref{sec:parity} --- C++ throws \texttt{std::logic\_error}, Rust
+panics. Making it explicit was not a formality. The specification originally prohibited the call
+without either implementation checking, and the two languages did not fail alike in the gap; the
+episode is reported with the safety results in Section~\ref{sec:safetyresults}, because a defect
+found in code written to be correct carries evidence an injected one cannot. The remaining ownership discipline is what upholds the
 shared-nothing invariant end to end: a request is moved into the queue rather than copied,
 carrying its completion handle with it, so at no point do the producer and the worker both
 hold a usable reference to the same request. In C++ this is enforced by making
@@ -2221,24 +2233,24 @@ Optimisation level & \texttt{-O2} & \texttt{opt-level = 2} \\
 
 The log also explains the line-count difference reported at the head of this section, and it
 is more informative than the net figure suggests, because the contributions do not all point
-the same way. Table~\ref{tab:loc} decomposes the $87$-line gap by concern. Rust is
+the same way. Table~\ref{tab:loc} decomposes the $\LocGap$-line gap by concern. Rust is
 substantially \emph{shorter} in exactly one place, the bounded queue, where it needs no code
 at all against 45 lines of C++, and longer almost everywhere else, with three contributions
 accounting for most of the excess.
 
-The largest, and the one that best illustrates the trade-off, is hashing. C++ satisfies
+The largest is the service module, for the reason developed in Section~\ref{sec:request}:
+because the C++ response is a single \texttt{variant}, all ten public operations funnel through
+one shared \texttt{submit} helper and each typed wrapper shrinks to two or three lines, while
+Rust's per-variant typed sender admits no such helper without generics, so each operation
+repeats the sequence of creating a completion channel, constructing its variant, sending, and
+receiving. The next, and the one that best illustrates the trade-off, is hashing. C++ satisfies
 \texttt{std::unordered\_map}'s hasher requirement with a five-line functor wrapping a call to
 \texttt{fnv1a\_64}, whereas Rust must supply the whole trait apparatus: a \texttt{FnvHasher}
 holding the running state, a \texttt{Default} implementation seeding it with the offset basis,
 a \texttt{Hasher} implementation providing \texttt{write}, \texttt{write\_u64}, and
 \texttt{finish}, a unit \texttt{FnvBuildHasher}, and a \texttt{BuildHasher} implementation to
 manufacture hashers. Every line of it is boilerplate, and it buys a statically dispatched,
-type-checked hasher rather than a conventionally shaped callable. The service module costs a
-comparable amount for the reason developed in Section~\ref{sec:request}: because the C++
-response is a single \texttt{variant}, all ten public operations funnel through one shared
-\texttt{submit} helper and each typed wrapper shrinks to two or three lines, while Rust's
-per-variant typed sender admits no such helper without generics, so each operation repeats the
-sequence of creating a completion channel, constructing its variant, sending, and receiving.
+type-checked hasher rather than a conventionally shaped callable.
 The third, \texttt{lib.rs}, is the module tree and public re-export list, work that C++ gets
 implicitly from its header structure and \texttt{\#include} graph.
 
@@ -2278,12 +2290,12 @@ precisely the function this measurement flags.
 \small
 \caption[Size and cyclomatic-complexity proxies for the two cores]{Size and cyclomatic-complexity proxies for the two cores, measured with
 \texttt{lizard}~\cite{lizard} applied identically to both languages. Benchmark drivers, tests,
-conformance runners, and the FFI seam are excluded; only the code the parity contract
-constrains is counted. Complexity is one plus the number of decision points in a function.
-The line count is NLOC as \texttt{lizard} defines it, which also discounts brace-only and
-preprocessor lines and therefore runs eight below the non-blank count quoted at the head of
-Section~\ref{sec:impldetails} for C++; the Rust figure agrees
-exactly.\label{tab:complexity}}
+conformance runners, the FFI seam, and the probe-conditional blocks of
+Section~\ref{sec:idioms} are excluded; only the compared code the parity contract constrains is
+counted. Complexity is one plus the number of decision points in a function. The line count is
+NLOC as \texttt{lizard} defines it, which also discounts brace-only and preprocessor lines; it
+is the same measurement quoted at the head of
+Section~\ref{sec:impldetails}.\label{tab:complexity}}
 \begin{tabular}{@{}l r r@{}}
 \hline\hline
 Measure & C++ & Rust \\
@@ -2296,24 +2308,25 @@ Measure & C++ & Rust \\
 \begin{table}
 \centering
 \small
-\caption[Where the line-count difference between the cores comes from]{Where the $87$-line difference between the two cores comes from, by concern (raw
-lines, including comments; C++ figures merge header and translation unit). Rust is shorter
+\caption[Where the line-count difference between the cores comes from]{Where the $\LocGap$-line difference between the two cores comes from, by concern (raw
+lines, including comments; C++ figures merge header and translation unit; probe-conditional
+blocks excluded as in Section~\ref{sec:impldetails}). Rust is shorter
 only where its standard library supplies a primitive C++ lacks.\label{tab:loc}}
 \begin{tabular}{@{}R{0.38\linewidth} r r r@{}}
 \hline\hline
 Concern & C++ & Rust & $\Delta$ \\
 \hline
-Bounded queue                     & $45$  & $0$   & $-45$ \\
+Service (queues, workers, API)    & $234$ & $278$ & $+44$ \\
 Hashing (functor vs.\ trait pair) & $36$  & $70$  & $+34$ \\
-Service (queues, workers, API)    & $221$ & $255$ & $+34$ \\
-Module tree and re-exports        & $0$   & $23$  & $+23$ \\
+Module tree and re-exports        & $0$   & $26$  & $+26$ \\
 Data model                        & $73$  & $85$  & $+12$ \\
 Message types                     & $48$  & $60$  & $+12$ \\
-Shard core (state machine)        & $176$ & $188$ & $+12$ \\
 Configuration                     & $18$  & $29$  & $+11$ \\
+Shard core (state machine)        & $182$ & $188$ & $+6$ \\
 Error model                       & $32$  & $26$  & $-6$ \\
+Bounded queue                     & $45$  & $0$   & $-45$ \\
 \hline
-Total                             & $649$ & $736$ & $+87$ \\
+Total                             & $\CppRawLines$ & $\RustRawLines$ & $+\LocGap$ \\
 \hline
 \end{tabular}
 \end{table}
@@ -2343,8 +2356,9 @@ conventions. A service is created with a fixed shard count and a per-shard queue
 thereafter callers invoke context operations, create, setup, handle-signalling, add-bearer,
 reconfigure begin/complete/abort, release, and state lookup, each identified by the target
 \texttt{ue\_id}. Every operation is \emph{total} and \emph{typed}: it returns a success value or
-a typed \texttt{OpError} drawn from a closed enumeration (for example \texttt{NotFound},
-\texttt{InvalidState}, \texttt{BearerLimit}), and an operation that is illegal for the context's
+a typed \texttt{OpError} drawn from a closed five-value enumeration (\texttt{NotFound},
+\texttt{AlreadyExists}, \texttt{InvalidState}, \texttt{CapacityExceeded} and
+\texttt{InvalidArgument}), and an operation that is illegal for the context's
 current state (Figure~\ref{fig:fsm}) returns the corresponding error and leaves the context
 unchanged rather than mutating it or signalling failure out of band. This choice matters for
 fairness as much as for correctness: because neither implementation uses exceptions or error
@@ -3316,6 +3330,40 @@ finds one unreliably and the other not at all. The two halves point in opposite 
 neither language's story here is the simple one. The consequence for practice is developed in
 Chapter~\ref{chapter:discussion}.
 
+\paragraph{A defect that was not injected.}
+Every outcome above comes from a defect written on purpose, which is the standing weakness of
+the method: whoever assembles a catalogue already knows what safe Rust prevents. One case in
+this study does not carry that weakness. A design review of the specification found that its
+concurrency section prohibited submitting an operation outside the service's running window ---
+before \texttt{start()}, or after \texttt{shutdown()} --- while neither implementation checked
+for it. The prohibition was addressed to the caller with no mechanism behind it, and in that gap
+the two languages did not fail alike. The C++ submit path indexes the shard vector that
+\texttt{shutdown()} has cleared, which AddressSanitizer reports as a heap-use-after-free; called
+before \texttt{start()} it is a segmentation fault on the zero page. In Rust both calls were
+already a panic, from the ordinary bounds check on the same indexing operation, without anyone
+having designed for it.
+
+What makes the case evidentially different is its provenance rather than its severity. It sat in
+code written to be correct, in the arm whose safety claim rests on ThreadSanitizer, reachable
+through the public API by calling documented operations in a documented order. It also survived
+every check this study runs --- six C++ test binaries, twenty-five Rust tests, $223$
+hand-written and $9\,006$ generated conformance operations, and three sanitiser configurations
+reported clean --- for a single reason: none of them ever called an operation outside the running
+window. ASan finds this defect only once a test drives it, which is exactly the property the cost
+argument above attributes to runtime detection, observed here on the study's own artefact instead
+of on a planted one.
+
+The direction in which it must \emph{not} be over-read is the flattering one. Rust did not
+prevent this at compile time, and nothing in the borrow checker knows that a service must be
+started before it is used; what converted undefined behaviour into a diagnosable failure was a
+slice bounds check, which is a runtime guarantee and therefore the same kind of assurance the
+C++ sanitiser offers rather than the compile-time kind Table~\ref{tab:taxonomy} records. The
+honest claim is that checking by default turned a specification gap into a panic, not that a
+type system caught a lifecycle error. What is left is still the distinction this chapter keeps
+returning to --- a panic that names its cause on every build, against a heap-use-after-free that
+needs an instrumented binary and a test that thinks to look. Both implementations now reject the
+call explicitly, in both directions, and both suites cover it.
+
 \begin{table}
 \centering
 \small
@@ -3546,6 +3594,22 @@ That aligns with the CVE evidence that Rust memory-safety bugs invariably involv
 \texttt{unsafe}~\cite{xu2021rustcve} and with the caution that unsafety can still propagate
 through dependencies~\cite{evans2020rust}, which is why keeping the core \texttt{unsafe}-free
 matters.
+
+The one case that reaches past the ten programs is the lifecycle defect of
+Section~\ref{sec:safetyresults}, which was found in the implementation rather than written for
+the catalogue, and it revises the picture in two directions at once. It strengthens the cost
+argument, because a real defect in code written to be correct survived the entire verification
+apparatus of this study --- tests, parity vectors, and three sanitisers --- purely because
+nothing exercised the path; runtime detection conditional on test coverage is a weaker
+proposition in practice than it looks in a table where every row is driven deliberately. It also
+narrows what may be credited to Rust, because the language's contribution there was a bounds
+check rather than a proof: safe Rust turned undefined behaviour into a deterministic panic, which
+is a different and lesser claim than preventing the error, and the honest generalisation is that
+the guarantee worth budgeting for is \emph{checked by default} rather than \emph{ruled out at
+compile time}. The defect's root cause is also worth naming, because it is a risk of the method
+and not of either language: a specification that states a prohibition without assigning a
+mechanism leaves each implementation to fail in its own idiom, and the two idioms here are a
+panic and a use-after-free.
 
 Where the guarantee stops matters just as much to a vendor deciding what Rust buys, and the two
 boundary classes are instructive for different reasons. The lock-order deadlock shows that Rust

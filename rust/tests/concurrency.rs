@@ -240,3 +240,24 @@ fn lifecycle_and_shard_counts() {
         svc.shutdown(); // idempotent
     }
 }
+
+/// §7.1: an operation outside the running window is a caller error, not an
+/// `OpError`, and must fail immediately rather than reading shard state that does
+/// not exist. Both cases were unguarded until 2026-08; the C++ arm reached freed
+/// memory on the second one, which is why these two tests exist in both suites.
+#[test]
+#[should_panic(expected = "not running")]
+fn submit_before_start_panics() {
+    let svc = Service::new(Config::default());
+    let _ = svc.create_context(1001, cp(7));
+}
+
+#[test]
+#[should_panic(expected = "not running")]
+fn submit_after_shutdown_panics() {
+    let mut svc = Service::new(Config::default());
+    svc.start();
+    assert!(svc.create_context(1001, cp(7)).is_ok());
+    svc.shutdown();
+    let _ = svc.release_context(1001);
+}

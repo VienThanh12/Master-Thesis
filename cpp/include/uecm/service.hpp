@@ -30,6 +30,9 @@ class Service {
   void shutdown();   // drain, stop workers, join (idempotent)
 
   // Typed API (spec §6). Each call blocks until its completion is signaled.
+  // Precondition (§7.1): the service is running. Calling before start() or after
+  // shutdown() throws std::logic_error; it is not an OpError, which stays the
+  // closed five-value set of §6.6.
   OpResult<void>          create_context(UeId ue_id, const CreateParams& params);
   OpResult<void>          setup_connection(UeId ue_id);
   OpResult<SignalingAck>  handle_signaling(UeId ue_id, const SignalingMsg& msg);

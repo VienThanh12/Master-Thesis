@@ -144,6 +144,53 @@ Key observations:
   catalogue could never have shown: LSan reports the reference cycle that safe
   Rust leaks silently, and UBSan reports the overflow that Rust defines to wrap.
 
+## One defect that was not injected (2026-08-17)
+
+Everything above was written on purpose, which is the standing objection to a
+fault-injection study: whoever chooses the cases already knows what Rust prevents.
+This entry exists because one defect in this repository was not chosen. It is kept
+apart from the catalogue for that reason — `run_faults.sh` does not build it and it
+does not appear in `results/taxonomy.*`, because it was never a program written to
+fail.
+
+**What it was.** A design review of `spec/SPECIFICATION.md` §4–§6 found that §7.1
+prohibited submitting an operation outside the service's running window — before
+`start()`, or after `shutdown()` — while neither implementation checked for it. The
+prohibition was addressed to the caller with no mechanism behind it.
+
+**How the two arms failed.** `Service::submit` indexes the shard vector that
+`shutdown()` clears:
+
+| Call | C++ (`cpp/`) | Rust (`rust/`) |
+|---|---|---|
+| operation after `shutdown()` | **heap-use-after-free** in `BoundedQueue::push` (ASan) | panic: index out of bounds |
+| operation before `start()` | **SEGV** on the zero page | panic: index out of bounds |
+
+**Why it carries evidence an injected case cannot.** It was in code written to be
+correct, in the arm whose safety claim rests on ThreadSanitizer, and reachable
+through the public API by calling documented operations in a documented order. It
+survived six C++ test binaries, twenty-five Rust tests, 223 hand-written and 9 006
+generated conformance operations, and three clean sanitizer configurations — because
+none of them ever called an operation outside the window. ASan finds it only once a
+test drives it, which is the third condition listed above ("a test input that
+actually exercises the buggy path") observed on this study's own artefact rather than
+on a planted one.
+
+**What it is not.** Rust did not prevent this at compile time. Nothing in the borrow
+checker knows that a service must be started before it is used; what turned undefined
+behaviour into a diagnosable failure was an ordinary slice bounds check — a *runtime*
+guarantee, and therefore the same kind of assurance the C++ sanitizer gives rather
+than the compile-time kind the taxonomy records. Putting it in a "compile error"
+column would be exactly the over-claim the boundary group exists to prevent. The
+defensible statement is that checking by default converted a specification gap into a
+panic.
+
+**Fixed.** Both implementations now reject the call explicitly (C++ throws
+`std::logic_error`, Rust panics), §7.1 states the precondition and the required
+failure mode, and both suites cover both directions:
+`lifecycle_precondition` in `cpp/tests/test_service.cpp`, and the two
+`#[should_panic]` cases in `rust/tests/concurrency.rs`.
+
 ## The lock-order deadlock is detected *intermittently*
 
 Recorded here because it corrects an earlier reading of this same case, and

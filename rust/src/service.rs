@@ -6,6 +6,9 @@
 //! caller blocks on a one-shot completion. The bounded queue provides blocking
 //! backpressure (a full queue blocks the producer), mirroring the C++ design.
 //!
+//! Every operation requires the service to be running (§7.1): a call before
+//! `start()` or after `shutdown()` is a caller error and panics.
+//!
 //! Rust specifics vs. C++:
 //! - Bounded MPSC queue: `std::sync::mpsc::sync_channel(capacity)` (blocking send).
 //! - One-shot completion: a fresh `std::sync::mpsc::channel()` per request.
@@ -34,6 +37,13 @@ use crate::shard_core::ShardCore;
 use crate::types::{
     CreateParams, DrbEntry, ReconfigParams, SignalingAck, SignalingMsg, UeContextView, UeId,
 };
+
+// Spec §7.1: operating outside the running window is a caller error, not one of the
+// five OpError codes, so it is reported out of band. Written as an explicit `if`
+// rather than `assert!` because bench/complexity.py counts branches with lizard,
+// which does not expand macros.
+const NOT_RUNNING: &str =
+    "uecm::Service: operation submitted while the service is not running (spec §7.1)";
 
 struct Shard {
     tx: SyncSender<Request>,
@@ -105,6 +115,9 @@ impl Service {
 
     #[inline]
     fn shard_tx(&self, ue_id: UeId) -> &SyncSender<Request> {
+        if !self.running {
+            panic!("{NOT_RUNNING}");
+        }
         let idx = shard_index(ue_id, self.cfg.n_shards) as usize;
         &self.shards[idx].tx
     }
@@ -197,8 +210,12 @@ impl Service {
         rrx.recv().expect("completion")
     }
 
-    /// Total contexts across all shards (routed per shard, summed).
+    /// Total contexts across all shards (routed per shard, summed). Not a snapshot:
+    /// see §6.7. Panics if the service is not running (§7.1).
     pub fn count(&self) -> u64 {
+        if !self.running {
+            panic!("{NOT_RUNNING}");
+        }
         let mut total = 0;
         for s in &self.shards {
             let (rtx, rrx) = channel();

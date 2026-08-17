@@ -90,6 +90,16 @@ if(UECM_FLAT_MAP)
   target_compile_definitions(uecm PUBLIC UECM_FLAT_MAP)
 endif()
 
+# Swaps the deque-backed std::queue inside BoundedQueue for a preallocated ring, so
+# the shard queue stops calling the allocator on the hot path while its locking stays
+# byte-identical. Tests whether the overload divergence against Rust is allocation
+# under the queue mutex rather than the language. See include/uecm/ring_queue.hpp.
+option(UECM_RING_QUEUE "PROBE ONLY: preallocated ring inside the bounded queue" OFF)
+if(UECM_RING_QUEUE)
+  message(STATUS "uecm: PROBE build -- ring-backed shard queue, not the reported configuration")
+  target_compile_definitions(uecm PUBLIC UECM_RING_QUEUE)
+endif()
+
 # --- Optional jemalloc (spec §3: identical allocator across languages) --------
 option(UECM_USE_JEMALLOC "Link jemalloc to isolate language effects from allocator" OFF)
 if(UECM_USE_JEMALLOC)

@@ -1,4 +1,5 @@
 #include <atomic>
+#include <stdexcept>
 #include <thread>
 #include <vector>
 
@@ -70,8 +71,38 @@ static void concurrent() {
   svc.shutdown();
 }
 
+// 3) Spec §7.1: an operation outside the running window is a caller error, not an
+//    OpError, and must fail immediately rather than reading shard state that does not
+//    exist. Both cases were unguarded until 2026-08: before start() this indexed an
+//    empty vector (segmentation fault), after shutdown() a cleared one
+//    (heap-use-after-free under ASan). Mirrored by the two #[should_panic] cases in
+//    rust/tests/concurrency.rs.
+static void lifecycle_precondition() {
+  auto throws = [](auto&& fn) {
+    try {
+      fn();
+    } catch (const std::logic_error&) {
+      return true;
+    }
+    return false;
+  };
+
+  Service before(Config{});
+  CHECK(throws([&] { (void)before.create_context(1001, CreateParams{}); }));
+  CHECK(throws([&] { (void)before.lookup(1001); }));
+  CHECK(throws([&] { (void)before.count(); }));
+
+  Service after(Config{});
+  after.start();
+  CHECK(after.create_context(1001, CreateParams{}).has_value());
+  after.shutdown();
+  CHECK(throws([&] { (void)after.release_context(1001); }));
+  CHECK(throws([&] { (void)after.count(); }));
+}
+
 int main() {
   functional();
   concurrent();
+  lifecycle_precondition();
   return uecm::test::summary("test_service");
 }

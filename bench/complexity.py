@@ -12,6 +12,9 @@ all.
 Only the two cores are measured. Benchmark drivers, test binaries, the
 conformance runners, and the FFI seam are excluded, because the parity contract
 constrains the cores alone and the drivers exist to be equal by construction.
+The attribution probes of specification section 12 are excluded for the same
+reason -- they are not compared configurations -- which takes a filter rather
+than a file list, because their conditional blocks sit inside compared files.
 
 Usage:
     python3 complexity.py [--outdir ../figures]
@@ -49,17 +52,93 @@ RUST_FILES = [
 ]
 
 
+# The two attribution probes of specification section 12 -- the C++ open-addressed
+# intra-shard map and the Rust mutex-and-condvar shard queue -- are switched on by a
+# build flag, so their scaffolding lives inside files that are otherwise part of the
+# compared core. Counting it would report neither configuration: not the one the
+# campaign measures, and not the probe either. The rule below is purely syntactic, so
+# that the numbers can be checked by eye against the source: a conditional directive
+# naming a probe goes, the branch it selects goes, and the branch the compared build
+# takes stays. Comments are left alone; a comment explaining a build option belongs to
+# the compared source as much as to the probe.
+PROBE_SYMBOLS = ("UECM_FLAT_MAP", "UECM_RING_QUEUE", 'feature = "mutex-queue"')
+
+
+def mentions_probe(line):
+    return any(sym in line for sym in PROBE_SYMBOLS)
+
+
+def strip_probe_cpp(text):
+    out, in_probe_branch, inside = [], False, False
+    for line in text.splitlines(keepends=True):
+        s = line.strip()
+        if s.startswith("#ifdef") and mentions_probe(s):
+            inside, in_probe_branch = True, True
+            continue
+        if inside and s.startswith("#else"):
+            in_probe_branch = False
+            continue
+        if inside and s.startswith("#endif"):
+            inside, in_probe_branch = False, False
+            continue
+        if in_probe_branch:
+            continue
+        out.append(line)
+    return "".join(out)
+
+
+def strip_probe_rust(text):
+    out, drop_guarded_item = [], False
+    for line in text.splitlines(keepends=True):
+        s = line.strip()
+        if s.startswith("#[cfg(") and mentions_probe(s):
+            # `#[cfg(feature = "mutex-queue")]` guards the probe, so the attribute
+            # and the item under it both go; `#[cfg(not(...))]` guards the compared
+            # build, so only the attribute goes.
+            drop_guarded_item = "not(" not in s
+            continue
+        if drop_guarded_item:
+            if not s.endswith(";"):
+                raise SystemExit(
+                    "complexity.py: a probe #[cfg] now guards a multi-line item "
+                    f"({s!r}); teach strip_probe_rust about it before trusting "
+                    "the proxies")
+            drop_guarded_item = False
+            continue
+        out.append(line)
+    return "".join(out)
+
+
+def compared_source(root, rel):
+    """The file as the compared configuration sees it (probe scaffolding removed)."""
+    with open(os.path.join(root, rel), encoding="utf-8") as fh:
+        text = fh.read()
+    strip = strip_probe_cpp if rel.endswith((".hpp", ".cpp")) else strip_probe_rust
+    text = strip(text)
+    leftover = [ln for ln in text.splitlines() if mentions_probe(ln)
+                and (ln.strip().startswith("#[cfg(") or ln.strip().startswith("#if"))]
+    if leftover:
+        raise SystemExit(
+            f"complexity.py: {rel} still contains probe conditionals after "
+            f"filtering: {leftover}")
+    return text
+
+
 def measure(root, files):
     nloc = 0
+    raw = 0
     functions = []
     for rel in files:
-        analysis = lizard.analyze_file(os.path.join(root, rel))
+        source = compared_source(root, rel)
+        raw += len(source.splitlines())
+        analysis = lizard.analyze_file.analyze_source_code(rel, source)
         nloc += analysis.nloc
         functions.extend(analysis.function_list)
     ccns = [f.cyclomatic_complexity for f in functions]
     worst = max(functions, key=lambda f: f.cyclomatic_complexity)
     return {
         "files": len(files),
+        "raw": raw,
         "nloc": nloc,
         "functions": len(functions),
         "ccn_total": sum(ccns),
@@ -112,6 +191,13 @@ def main():
     macros = {
         "CppFuncs": f"{cpp['functions']}",
         "RustFuncs": f"{rust['functions']}",
+        # Raw lines including blanks and comments: the basis of Table tab:loc, which
+        # is decomposed by concern by hand. Emitted so the prose and the table cannot
+        # quote different totals, which they have twice.
+        "CppRawLines": f"{cpp['raw']}",
+        "RustRawLines": f"{rust['raw']}",
+        "LocGap": f"{rust['raw'] - cpp['raw']}",
+        "RawRise": f"{100.0 * (rust['raw'] / cpp['raw'] - 1):.0f}",
         "CppNloc": f"{cpp['nloc']}",
         "RustNloc": f"{rust['nloc']}",
         "CppCcnTotal": f"{cpp['ccn_total']}",

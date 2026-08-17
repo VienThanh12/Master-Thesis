@@ -44,7 +44,7 @@ shard   <id>                            => <idx>     # uses config n_shards (def
 |--------|--------|--------------|
 | `basic.vec` | defaults | The §11.3 example, the error model, DRB fill/overflow, reconfigure begin/complete/abort. |
 | `states.vec` | defaults | The full §5.2 transition matrix: every legal transition, every illegal one from each state, `lookup` observed in `Idle`/`Connected`/`Reconfiguring`, release from `Idle` and from `Reconfiguring`, and the §6.1 rule that a rejected op mutates nothing. |
-| `errors.vec` | defaults | Every §6.6 error code on every operation that can raise it, `ue_id == 0` rejected by all ten operations (§6.1), the payload boundary at 64/65 bytes, and the **precedence** between competing errors. |
+| `errors.vec` | defaults | Every §6.6 error code on every operation that can raise it, `ue_id == 0` rejected by all nine operations that take one (§6.1; `count` takes no id), the payload boundary at 64/65 bytes, and the **precedence** between competing errors. |
 | `capacity.vec` | `n_shards=2`, `max_contexts_per_shard=2` | `CapacityExceeded` on `create`, which no other vector reaches, and that the limit is **per shard**: one shard refuses while another still accepts, and a release frees capacity on that shard only. |
 | `routing.vec` | `n_shards=4` | That the service routes by §8.1 rather than merely computing it: four ids on four different shards, with interleaved lookups asserting per-context state stays private to its own shard (§10.1 I1). |
 | `shards.vec` | `n_shards=8` | Shard assignment for a power-of-two shard count. |
@@ -59,6 +59,10 @@ the errors each operation can return without ordering them, so when two apply at
 once the choice is unspecified. Both implementations happen to agree (argument
 validation before key lookup, capacity before duplicate detection), and the
 vectors pin that agreement so a later change on one side cannot drift silently.
+`states.vec` pins one more decision of the same kind that is not about errors:
+`abort_reconfigure` restores `state` but leaves `serving_cell_id` at the handover
+target, which `lookup` reports. Both are now stated normatively in §4.3/§6.5 of the
+specification rather than being inferable only from these vectors.
 
 Properties that a sequential transcript cannot express — the queue and completion
 machinery of §7, FIFO execution (§10.2 O1), the fields `lookup` does not print,
