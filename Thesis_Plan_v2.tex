@@ -66,7 +66,7 @@ machine-checked foundations~\cite{jung2018rustbelt}.
 
 Its fit for latency-critical telecom control planes is unproven. The ``Rust
 performs like C++'' consensus rests on general-purpose
-benchmarks~\cite{pereira2017energy} that report average-case behaviour; closer
+benchmarks~\cite{pereira2017energy} that report average-case behaviour. Closer
 studies find real costs, both in networking code~\cite{emmerich2019drivers} and
 in specific mechanisms such as bounds and overflow
 checking~\cite{zhang2022runtime}. For a RAN control plane the operative metric
@@ -91,7 +91,7 @@ Stenstr\"om build a thread-per-core packet processor on asynchronous Rust and
 measure between 20\% and 50\% of the throughput of the DPDK application it
 mirrors~\cite{olsson2023asyncpackets}. Arvidsson and Kaller measure median and
 99th-percentile latency for 5G control-plane procedures across five
-asynchronous frameworks: C++ with Boost.Fibers is fastest at every load; the
+asynchronous frameworks: C++ with Boost.Fibers is fastest at every load. The
 Rust runtimes track the shape of its median curve, but their p99 rises more
 steeply past a threshold rate~\cite{arvidsson2025async}. Emberg and Wadsten
 come closest in method, building matched C++ and Rust ASN.1 decompilers,
@@ -102,7 +102,7 @@ Three of the five vary the runtime and concurrency model together with the
 language: Boost.Fibers, goroutines, Tokio, Monoio, Glommio, DPDK Eventdev. A
 measured difference therefore cannot be attributed to the language rather than
 to the framework built on it, and the effect sizes involved, up to a factor of
-five, indicate how much of the measurement the runtime owns; independent
+five, indicate how much of the measurement the runtime owns. Independent
 real-time analysis of those runtimes supports that
 reading~\cite{skoudlil2025asyncrust}. The remaining two report execution time,
 and in one case peak memory, rather than tail behaviour under rising load.
@@ -127,7 +127,7 @@ none of their conclusions has been tested against another organisation's
 software, so their transferability is untested rather than established. And the
 record on the other side is emptier still. A search of Nokia's indexed
 publications returns no study of Rust, and none on memory safety in the radio
-access network; the nearest peer-reviewed position from that side, co-authored
+access network. The nearest peer-reviewed position from that side, co-authored
 by two Nokia researchers, argues for making memory-error sanitisation compilers
 practical on the premise that certifying compilation is
 not~\cite{gjomemo2016mesc}, which is the after-the-fact detection strategy
@@ -184,7 +184,7 @@ interleaved repeats and interval estimates rather than single
 figures~\cite{georges2007rigorous}: medians with nonparametric bootstrap
 confidence intervals~\cite{efron1993bootstrap}, and exact paired permutation
 tests corrected across the family by the Holm procedure~\cite{holm1979simple}.
-Frequency locking belongs to the bare-metal protocol; the virtualised host
+Frequency locking belongs to the bare-metal protocol. The virtualised host
 measured so far does not expose the governor from inside the guest. Latency is
 captured in high-dynamic-range histograms against an intended send schedule, so
 coordinated omission does not hide the
@@ -250,8 +250,8 @@ November & Submit & Final revisions, colloquium presentation, submission. \\
 \end{tabular}
 \end{center}
 
-\textbf{Risks.} If the testbed is delayed, RQ1 and RQ3 may remain preliminary;
-a cloud bare-metal instance or a Nokia lab host is the fallback. If the tail
+\textbf{Risks.} If the testbed is delayed, RQ1 and RQ3 may remain preliminary.
+A cloud bare-metal instance or a Nokia lab host is the fallback. If the tail
 difference proves unresolvable even on bare metal, it is reported as a bounded
 null result with the confidence interval stated, which is a legitimate finding.
 Single-author skill asymmetry is bounded by the frozen specification and parity

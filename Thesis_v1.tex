@@ -143,7 +143,7 @@
         as posed here. Three keep the runtime in play alongside the language, comparing
         Boost.Fibers, goroutines, Tokio, Monoio, Glommio and DPDK Eventdev rather than the
         languages that host
-        them~\cite{karlback2021ran,olsson2023asyncpackets,arvidsson2025async}; the other two
+        them~\cite{karlback2021ran,olsson2023asyncpackets,arvidsson2025async}. The other two
         report execution time and peak memory rather than tail behaviour under rising
         load~\cite{olsson2023ranmgmt,emberg2023asn1}. Emberg and Wadsten come closest in
         method, with a matched C++ and Rust pair joined by a C wrapper, but measure a
@@ -151,7 +151,7 @@
         concurrency model, and build settings fixed for a stateful, concurrent subsystem while
         sweeping past saturation and measuring incremental migration cost.
   \item That evidence is also concentrated in one vendor and untested outside it, while on the
-        other side there is no study of Rust among Nokia's indexed publications at all; the
+        other side there is no study of Rust among Nokia's indexed publications at all. The
         nearest peer-reviewed position from that side argues for making memory-error sanitisation
         practical rather than for replacing it with a compile-time
         guarantee~\cite{gjomemo2016mesc}, which is the strategy this thesis tests against.
@@ -218,7 +218,7 @@
   \item Five defect classes fall inside Rust's guarantee, and each has a natural form in this
         subsystem: use-after-free, double-free, iterator invalidation, data race, and
         unguarded shared mutation. What the guarantee rests on is aliasing control and
-        data-race freedom~\cite{jung2021safe}; the catalogue is this study's own.
+        data-race freedom~\cite{jung2021safe}. The catalogue is this study's own.
   \item Five further classes are included on purpose from outside that guarantee: a lock-order
         deadlock, a lost update, a leak through a reference cycle, an integer overflow in a
         release build, and the blast radius of a failed shard worker. They keep the study from
@@ -269,7 +269,7 @@
         model, because that structuring itself changes tail
         latency~\cite{enberg2019threadpercore}.
   \item RQ1 and RQ3 are answered with an open-loop load sweep that runs from light load into
-        overload on pinned cores; open-loop means the generator keeps to its send schedule
+        overload on pinned cores. Open-loop means the generator keeps to its send schedule
         instead of waiting for replies. Latency is recorded in identically configured HDR
         histograms~\cite{tene_hdrhistogram}, and resource use is sampled through the operating
         system. The results so far come from a dedicated dual-socket Xeon host running as a
