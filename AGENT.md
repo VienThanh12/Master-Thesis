@@ -47,6 +47,12 @@ The thesis is assessed on **six criteria** (simplified from the UH data-science 
 matrix). Current self-assessment is in **`ASSESSMENT.md`** (durable record; keep aligned
 with any grading canvas if present).
 
+The **official CSM matrix (9 April 2024) has seven areas**, the seventh being work during the
+thesis process, which no manuscript can settle. It is reproduced as issued in
+`.cursor/skills/thesis-grade-csm/CRITERIA.md`; the grading procedure, the level anchors from the
+four passes on record, and the build-gate script live in the same skill. Use it for any new
+grading pass so passes stay comparable.
+
 | # | Criterion | Target | Current (post-refinement) | What still blocks a 5 |
 | --- | --- | --- | --- | --- |
 | **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (5 inside + 5 outside guarantee). |
@@ -223,6 +229,7 @@ constraint is in the prose-style section of `.cursor/rules/thesis-quality.mdc`.
 | File | Use |
 | --- | --- |
 | `ASSESSMENT.md` | Full criterion-by-criterion grading notes and blockers |
+| `.cursor/skills/thesis-grade-csm/` | Grading skill: the official seven-area CSM matrix, calibration anchors and discounted false positives from past passes, and `scripts/texaudit.py` for build, cross-reference, bibliography and placeholder gates |
 | `TODO.md` | Phase checklist, bare-metal prep, post-campaign re-check list |
 | `LITERATURE_NOTES.md` | Citation upgrades and literature gaps |
 | `bench/TESTBED.md` | Bare-metal protocol (only path to criterion 3/4 → 5 on tail) |
