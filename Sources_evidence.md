@@ -23,10 +23,11 @@ For every entry this file records three things:
   EUR-Lex, and the DiVA theses. Page numbers below are **PDF page numbers of the file named**,
   which is what you can check fastest; clause and section numbers are given as well.
 
-> **Not yet audited here (17 August 2026).** The thirteen entries added after the third literature
+> **Not yet audited here (17 August 2026).** The fourteen entries added after the third literature
 > sweep — the four additional DiVA theses, `suchert2023stamp`, `gonzalez2023rustudp`,
 > `pirelli2023safelowlevel`, `sundvisson2026drivers`, `okawa2024ruststudy`, `hughes2025gcrust`,
-> `andersson2026stdmemsafety`, `li2026rustlinux`, `hong2025ctorust`, `zhuang2026flowprioritize` —
+> `andersson2026stdmemsafety`, `li2026rustlinux`, `hong2025ctorust`, `zhuang2026flowprioritize`,
+> `gjomemo2016mesc` —
 > have Crossref- or DiVA-verified metadata (`LITERATURE_NOTES.md`, third sweep) but no
 > entry-by-entry evidence section below yet. For the four theses the claims come from the
 > repository abstract, evidence level **B**, not from the full text.
@@ -48,8 +49,8 @@ cite it), `bib_verify.py` (Crossref/DataCite field-by-field diff), `abstracts.py
 
 - **80 entries, 80 cited** at the time of this audit. No orphan entries, no citation without an
   entry. `Thesis_POC.blg` reports 80 citekeys and logs no warnings or errors. *After the third
-  literature sweep of 17 August 2026 the bibliography holds 97 active entries, all 97 cited, still
-  with no orphans and no missing keys; the seventeen added since are listed in the note above and
+  literature sweep of 17 August 2026 the bibliography holds 98 active entries, all 98 cited, still
+  with no orphans and no missing keys; the eighteen added since are listed in the note above and
   are not covered by the entry-by-entry evidence below.*
 - **71 entries are clean as they stand.**
 - **3 entries have a factual metadata error**: one missing author, one extra author, one wrong

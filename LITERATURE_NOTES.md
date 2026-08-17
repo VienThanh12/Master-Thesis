@@ -1163,8 +1163,8 @@ compiled PDF before committing to the entry types. And the thesis cites 3GPP spe
 
 # Third sweep, 17 August 2026 — the research gap re-audited
 
-> **Status: applied, same day.** Everything in §D below is done. Thirteen entries added to
-> `bibliography.bib` (97 active entries, all cited, no orphans); `Thesis_Plan_v2.tex` §2 rewritten;
+> **Status: applied, same day.** Everything in §D below is done. Fourteen entries added to
+> `bibliography.bib` (98 active entries, all cited, no orphans); `Thesis_Plan_v2.tex` §2 rewritten;
 > the three `Thesis_v1.tex` bullets corrected; `Thesis_POC.tex` §`sec:gap`, the search protocol,
 > §`sec:relatedwork`, `tab:related`, the peak-RSS discussion, the skill-asymmetry threat and the
 > future-work list updated; `29_research_gap` rebuilt with five columns and six rows; the deck
@@ -1173,6 +1173,13 @@ compiled PDF before committing to the entry types. And the thesis cites 3GPP spe
 > One defect was found and fixed in passing: `tab:related` had grown taller than the page and was
 > **silently dropping its last three rows**, including this thesis's own; the column widths were
 > rebalanced so the whole table renders.
+>
+> **Second pass, same day.** A head-to-head comparison against the five theses was added as
+> `tab:vendortheses` (object measured, regime reported, each study's own verdict, with this thesis
+> as the last row), together with the single-vendor external-validity argument and the Nokia-side
+> publication check in §E. `gjomemo2016mesc` is the fourteenth entry. The two tables now
+> cross-reference each other in their captions so the overlap reads as a division of labour rather
+> than repetition: `tab:vendortheses` carries the substance, `tab:related` the three gap axes.
 >
 > What is *not* done, and is the one thing left: **read Emberg & Wadsten and Olsson & Stenström in
 > full.** The prose now makes absence claims about them (no tail under overload, no concurrency
@@ -1364,6 +1371,28 @@ Ordered by risk, highest first.
   telecom or tail latency. The Finnish Rust literature is device drivers (Meyer, Tampere 2024),
   embedded schedulers (Abu Hanif, Tampere 2025), memory-management overviews and course
   material. The entire domain-specific prior work is Swedish and Ericsson-hosted.
+- **Checked again on the publication side, 17 August 2026, and the absence holds.** OpenAlex
+  author-affiliation search across Nokia's institutional entities (US ≈18,200 indexed works,
+  Finland ≈8,500, Germany ≈2,100, France ≈1,450) with `title_and_abstract.search`:
+  - `radio access network` → several hundred hits, so the filter demonstrably works and the
+    nulls below are real rather than an artefact of a wrong institution ID. **Check this first if
+    you ever re-run it**; a mistyped ID returns zero for everything and looks like a finding.
+  - `Rust` → **one** hit, counted twice across two entities: *Profiling with Trust: System
+    Monitoring from Trusted Execution Environments* (Research Square **preprint**, two Nokia
+    Finland co-authors). Rust is incidental to it. Not a language comparison, not citable as one.
+  - `memory safety` → **two** hits, both Nokia US: the 2002 Dalí storage manager (unrelated;
+    "safety" in the database-durability sense) and **Gjomemo et al., QRS 2016** — see below.
+- **The one genuinely useful thing that search turned up** is `gjomemo2016mesc`: *Leveraging
+  Static Analysis Tools for Improving Usability of Memory Error Sanitization Compilers*, QRS 2016,
+  pp. 323–334, two of six authors at Nokia. VERIFIED against Crossref. Its premise, quoted from
+  the abstract, is that certifying compilation "has not been practical, leaving code
+  instrumentation as the next best strategy for compilation". That is the after-the-fact detection
+  branch the thesis argues against, stated in a peer-reviewed venue with the host vendor's own
+  co-authors. It converts the Nokia framing from *"our company has not done this"* — which is not
+  a research gap and would read badly — into *"the nearest published position from this side takes
+  the opposite branch"*, which is one. Use it that way and not as corporate score-keeping.
+  Note honestly that two of six authors is a collaboration, not a corporate position: the prose
+  says "co-authored by two Nokia researchers", which is what the record supports.
 - **No peer-reviewed study, in any venue, compares Rust and C++ implementations of a stateful,
   concurrent control-plane subsystem under overload.** The three axes are occupied separately
   (matched pairs: Emmerich, Li, Narayanan, Suchert, Gonzalez, Pirelli; control-plane percentile
@@ -1532,6 +1561,20 @@ as such wherever they appear.
   year    = {2026},
   doi     = {10.1016/j.softx.2026.102771},
   url     = {https://doi.org/10.1016/j.softx.2026.102771}
+}
+
+@inproceedings{gjomemo2016mesc,
+  author    = {Gjomemo, Rigel and Phung, Phu H. and Ballou, Edmund and
+               Namjoshi, Kedar S. and Venkatakrishnan, V. N. and Zuck, Lenore},
+  title     = {Leveraging Static Analysis Tools for Improving Usability of
+               Memory Error Sanitization Compilers},
+  booktitle = {Proceedings of the 2016 IEEE International Conference on Software
+               Quality, Reliability and Security (QRS)},
+  pages     = {323--334},
+  year      = {2016},
+  note      = {Two of the six authors are affiliated with Nokia},
+  doi       = {10.1109/QRS.2016.44},
+  url       = {https://doi.org/10.1109/QRS.2016.44}
 }
 
 @inproceedings{okawa2024ruststudy,
