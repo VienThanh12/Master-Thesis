@@ -1,0 +1,9 @@
+binary,defect_class,checker,role,expected,outcome,diagnostic
+loom_deadlock,lock_order_deadlock,Loom,defect,reported,reported,"deadlock; threads = [(Id(0), Blocked(Location(None))), (Id"
+loom_control_lock_order,lock_order_deadlock,Loom,control,clean,clean,"-"
+shuttle_deadlock,lock_order_deadlock,Shuttle,defect,reported,reported,"Test deadlocked"
+shuttle_control_lock_order,lock_order_deadlock,Shuttle,control,clean,clean,"-"
+loom_lost_update,lost_update,Loom,defect,reported,reported,"assertion `left == right` failed: lost update: messages_ha"
+loom_control_atomic,lost_update,Loom,control,clean,clean,"-"
+shuttle_lost_update,lost_update,Shuttle,defect,reported,reported,"assertion `left == right` failed: lost update: messages_ha"
+shuttle_control_atomic,lost_update,Shuttle,control,clean,clean,"-"

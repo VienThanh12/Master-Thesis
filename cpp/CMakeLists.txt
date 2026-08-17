@@ -15,6 +15,45 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 
 add_compile_options(-Wall -Wextra -Wpedantic)
 
+# --- Sanitisers ---------------------------------------------------------------
+# Instruments the whole tree -- library, tests, and the conformance runner -- so
+# the parity suite itself can be run under dynamic analysis. This answers a
+# fairness question the functional tests cannot: safe Rust rules out data races
+# and memory errors at compile time, so unless the C++ arm is checked for them
+# too, "the two implementations behave identically" rests on the C++ side merely
+# not having failed yet. faults/ shows the tools catch injected defects; this
+# shows they find nothing in the real implementation.
+#
+# Detection builds, not measurement builds: -O1 with frame pointers, because
+# sanitiser output from an -O2 build is much harder to read and the numbers from
+# an instrumented binary are meaningless anyway. Never report timings from one.
+set(UECM_SANITIZER "off" CACHE STRING
+    "Sanitiser to instrument the build with: off|address|thread|undefined|address+undefined")
+set_property(CACHE UECM_SANITIZER PROPERTY STRINGS
+             off address thread undefined address+undefined)
+
+if(NOT UECM_SANITIZER STREQUAL "off")
+  set(_san_flags "")
+  if(UECM_SANITIZER STREQUAL "address")
+    set(_san_flags -fsanitize=address)
+  elseif(UECM_SANITIZER STREQUAL "thread")
+    set(_san_flags -fsanitize=thread)
+  elseif(UECM_SANITIZER STREQUAL "undefined")
+    # Recovering from UB would let a test pass while printing a diagnostic, so
+    # the run has to abort instead.
+    set(_san_flags -fsanitize=undefined -fno-sanitize-recover=undefined)
+  elseif(UECM_SANITIZER STREQUAL "address+undefined")
+    set(_san_flags -fsanitize=address,undefined -fno-sanitize-recover=undefined)
+  else()
+    message(FATAL_ERROR "UECM_SANITIZER: unknown value '${UECM_SANITIZER}'"
+                        " (off|address|thread|undefined|address+undefined)")
+  endif()
+
+  message(STATUS "uecm: SANITISER build (${UECM_SANITIZER}) -- detection only, do not benchmark")
+  add_compile_options(${_san_flags} -O1 -g -fno-omit-frame-pointer)
+  add_link_options(${_san_flags})
+endif()
+
 # --- Core library -------------------------------------------------------------
 add_library(uecm STATIC
   src/shard_core.cpp
@@ -78,7 +117,8 @@ target_link_libraries(queue_contention PRIVATE uecm)
 option(UECM_BUILD_TESTS "Build the C++ conformance/smoke tests" ON)
 if(UECM_BUILD_TESTS)
   enable_testing()
-  foreach(t test_hash test_shard_core test_service test_invariants test_concurrency)
+  foreach(t test_hash test_shard_core test_service test_invariants test_concurrency
+            test_state_matrix)
     add_executable(${t} tests/${t}.cpp)
     target_link_libraries(${t} PRIVATE uecm)
     add_test(NAME ${t} COMMAND ${t})

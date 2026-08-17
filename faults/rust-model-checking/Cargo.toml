@@ -1,0 +1,57 @@
+[package]
+name = "uecm-model-checking"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Loom and Shuttle runs against the two RQ2 boundary defect classes"
+
+# Deliberately a separate crate rather than a dev-dependency of `rust/`.
+# spec/SPECIFICATION.md §12 records that the Rust core library is
+# dependency-free, and that claim is load-bearing for the RQ4 supply-chain
+# argument. Adding loom and shuttle to rust/Cargo.toml would weaken it for the
+# sake of models that never touch the library.
+[dependencies]
+loom = "0.7"
+shuttle = "0.9"
+
+# Each model is a binary rather than a #[test]. Both checkers report a defect by
+# panicking inside a scheduler-owned thread, and unwinding out of one trips a
+# panic-during-cleanup that aborts the process, which #[should_panic] cannot
+# observe. run_model_checking.sh runs each binary as a subprocess and classifies
+# it by exit status and diagnostic, exactly as run_faults.sh classifies the
+# sanitiser cases.
+[[bin]]
+name = "loom_deadlock"
+path = "src/bin/loom_deadlock.rs"
+
+[[bin]]
+name = "loom_lost_update"
+path = "src/bin/loom_lost_update.rs"
+
+[[bin]]
+name = "loom_control_lock_order"
+path = "src/bin/loom_control_lock_order.rs"
+
+[[bin]]
+name = "loom_control_atomic"
+path = "src/bin/loom_control_atomic.rs"
+
+[[bin]]
+name = "shuttle_deadlock"
+path = "src/bin/shuttle_deadlock.rs"
+
+[[bin]]
+name = "shuttle_lost_update"
+path = "src/bin/shuttle_lost_update.rs"
+
+[[bin]]
+name = "shuttle_control_lock_order"
+path = "src/bin/shuttle_control_lock_order.rs"
+
+[[bin]]
+name = "shuttle_control_atomic"
+path = "src/bin/shuttle_control_atomic.rs"
+
+[profile.dev]
+# Loom enumerates interleavings and is slow unoptimised.
+opt-level = 2
