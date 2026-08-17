@@ -67,10 +67,10 @@ for entry in "${CASES[@]}"; do
   IFS='|' read -r bin defect checker expect role <<<"$entry"
   log="$out_dir/mc-$bin.log"
 
-  # Loom aborts on a detected deadlock, and the shell announces the SIGABRT on
-  # its own stderr; the subshell keeps that job-control noise out of the report,
-  # since here an abort is the expected result rather than a problem.
-  ( timeout "$RUN_TIMEOUT" "$crate/target/debug/$bin" >"$log" 2>&1 ) 2>/dev/null
+  # Loom aborts on a detected deadlock. A shell announces a signal-killed child
+  # on its own stderr, so the run goes through an inner bash whose stderr is
+  # discarded: here the abort is the expected result, not a problem to report.
+  bash -c "timeout $RUN_TIMEOUT '$crate/target/debug/$bin' >'$log' 2>&1" 2>/dev/null
   rc=$?
 
   # Classify. A checker reports a defect by panicking; loom's deadlock panic
@@ -88,8 +88,10 @@ for entry in "${CASES[@]}"; do
 
   # Pull out the line that says what the tool found, for the table.
   if [ "$got" = "reported" ]; then
+    # Backticks are stripped: the diagnostic is rendered inside a backtick-
+    # quoted markdown cell, and assertion messages contain their own.
     diag="$(grep -m1 -oE 'deadlock[^"]*|Test deadlocked|assertion .left == right. failed: [^,]*' "$log" \
-            | head -1 | cut -c1-58)"
+            | head -1 | tr -d '`' | cut -c1-58)"
     [ -z "$diag" ] && diag="non-zero exit $rc"
   else
     diag="-"
