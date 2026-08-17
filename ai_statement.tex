@@ -10,6 +10,19 @@
 %% what the use covered, what it was for, which tool, how it performed and how its
 %% output was checked, and what the author took from it.
 
+%% The claim this statement makes about the abstract is gated on the switch below,
+%% so the document can never assert it before it is true. The abstract doubles as
+%% the maturity test in this programme, where AI use is never permitted, so it has
+%% to be written by the author unaided. Once it has been, set the switch to true
+%% here; until then every build prints a warning and the statement says plainly
+%% that the work is outstanding.
+\newif\ifabstractunaided
+\abstractunaidedfalse
+\ifabstractunaided\else
+  \GenericWarning{}{ai_statement: the abstract has not been rewritten unaided.
+    Not submittable. Set \noexpand\abstractunaidedtrue in ai_statement.tex once it has}%
+\fi
+
 \cleardoublepage
 \phantomsection
 \addcontentsline{toc}{chapter}{Statement on the Use of AI Tools}
@@ -29,15 +42,15 @@ Management service, the load generator, the fault-injection catalogue, and the i
 prototype. It wrote the analysis code behind the bootstrap confidence intervals, the exact
 paired permutation tests, and the Holm correction, together with the figure-generating and
 build scripts and the LaTeX sources. It also suggested candidate literature.
-% ==================== ACTION REQUIRED BEFORE SUBMISSION ==========================
-% The abstract of Thesis_POC.tex was drafted with model assistance. The University's
-% thesis guide states that a language model may not be used when preparing the thesis
-% summary, and in this programme the summary also serves as the maturity test, where
-% AI use is never permitted. Rewrite the abstract unaided before submitting; until
-% that is done the closing sentence of this paragraph is not yet true of Thesis_POC.
-% =================================================================================
-The abstract was written by the author unaided, as the University's thesis guide requires of
-the thesis summary.
+The abstract is the one part of this thesis to which that assistance must not extend. The
+University's thesis guide does not permit a language model in preparing the thesis summary,
+which in this programme also serves as the maturity test.
+\ifabstractunaided
+The abstract was accordingly written by the author unaided.
+\else
+In this draft it has not yet been rewritten unaided, and this statement will say so until it
+has been.
+\fi
 
 \noindent\textbf{What the model did not settle.} The research problem, the four research
 questions, and the three hypotheses are the author's, as is the control on which the study's

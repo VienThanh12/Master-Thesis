@@ -255,7 +255,7 @@ functions~\cite{3gpp38401,3gpp38300}. Open-RAN initiatives push this disaggregat
 turning the RAN into virtualised, multi-vendor software connected by open
 interfaces~\cite{polese2023oran}. The resulting control plane, the gNB-CU-CP, is a large,
 stateful, highly concurrent software system. It manages the lifecycle of every connected
-device, drives the RRC signaling procedures~\cite{3gpp38331}, and coordinates mobility and
+device, drives the RRC signalling procedures~\cite{3gpp38331}, and coordinates mobility and
 handovers, all under strict latency budgets. The rates involved are high: a single busy site
 drives on the order of thousands of connection-management and mobility procedures per second,
 each bounded by a budget measured in milliseconds~\cite{3gpp38913}, while a deployed control
@@ -281,7 +281,7 @@ as much as raw speed, is not well understood. This thesis, carried out at Nokia,
 the question directly: it develops two functionally equivalent implementations of a
 representative RAN subsystem, a UE Context Management service modelled on a real Nokia
 gNB-CU-CP component, in modern C++ and in Rust, and compares them under a realistic
-synthetic signaling workload.
+synthetic signalling workload.
 
 \section{Key terms and abbreviations}
 For readers outside the telecom domain, Table~\ref{tab:abbrev} fixes the abbreviations and terms
@@ -308,9 +308,9 @@ gNB-CU / DU & Central Unit / Distributed Unit; the disaggregated halves of a gNB
 gNB-CU-CP & Control-plane part of the central unit; the system class studied here \\
 UE & User Equipment; an end device (phone, modem) attached to the network \\
 UECM & UE Context Management; the per-UE state-management subsystem reimplemented here \\
-RRC & Radio Resource Control; the control-plane signaling protocol between UE and gNB \\
+RRC & Radio Resource Control; the control-plane signalling protocol between UE and gNB \\
 DRB & Data Radio Bearer; a per-UE user-plane data channel set up during a session \\
-Control plane & The signaling and management path, as opposed to the user-plane data path \\
+Control plane & The signalling and management path, as opposed to the user-plane data path \\
 Tail latency & High-percentile latency (p99, p99.9), the worst-case-oriented timing metric \\
 Jitter & How much latency varies from one operation to the next, as opposed to its typical value \\
 Saturation & The offered load beyond which the service can no longer keep up and requests start queueing \\
@@ -374,7 +374,7 @@ control-plane half of the central unit: it hosts RRC and manages the UE context 
 delegating user-plane bearer handling to the CU-UP over the E1
 interface~\cite{3gpp38401,3gpp38300,3gpp38463,3gpp38331}. It does so under the
 millisecond-scale procedure budgets the 5G system places on control
-signaling~\cite{3gpp38913}, and at the very high event rates and connected-device counts a
+signalling~\cite{3gpp38913}, and at the very high event rates and connected-device counts a
 deployed network sustains. Because it is written in C++, it inherits both that language's
 performance and its memory-safety and concurrency hazards. That is precisely where the two
 trends above converge.
@@ -435,7 +435,7 @@ names, and they are cheapest to answer before the next codebase is started rathe
 
 \paragraph{A concrete failure mode.}
 To make the stakes concrete, consider a mobility storm in which many UEs hand over at once. A
-single mishandled pointer, a UE context freed on release while an in-flight signaling message
+single mishandled pointer, a UE context freed on release while an in-flight signalling message
 still references it, produces a use-after-free. In C++ this compiles cleanly and may pass
 ordinary testing, only to corrupt an unrelated UE's state or crash the worker thread under
 precisely the high-concurrency conditions the system exists to handle; the same latent race
@@ -502,7 +502,7 @@ The four questions are answered constructively, not by literature synthesis. The
 artifact is a pair of functionally equivalent UECM implementations, one in modern C++ and one in
 Rust, built from a single frozen specification, so that any measured difference is attributable
 to the language and its idioms rather than to divergent designs. RQ1 and RQ3 are answered by
-driving both implementations with an identical, deterministic synthetic signaling workload in a
+driving both implementations with an identical, deterministic synthetic signalling workload in a
 load sweep from light load through saturation, capturing latency with matched high-dynamic-range
 histograms and resource use through the operating system, and comparing them with nonparametric
 confidence intervals~\cite{georges2007rigorous}. RQ2 is answered by controlled fault injection:
@@ -636,7 +636,7 @@ and their evaluation, and finally to interpretation and conclusions.\label{fig:r
 The NG-RAN architecture splits the gNB into a central unit (gNB-CU) and distributed units,
 with the control plane (gNB-CU-CP) handling RRC and connection management for each
 UE~\cite{3gpp38401,3gpp38300,3gpp38331}. Such control-plane systems must satisfy demanding
-non-functional requirements: very high event rates (UE mobility, signaling storms), strict
+non-functional requirements: very high event rates (UE mobility, signalling storms), strict
 and predictable latency bounds that the 5G service and RAN specifications quantify as
 KPIs~\cite{3gpp22261,3gpp38913}, long-lived software with continuously evolving complexity,
 and heavily concurrent workloads. In these systems the worst-case and tail behaviour,
@@ -654,7 +654,7 @@ the CU-UP~\cite{3gpp38401,3gpp38300,3gpp38463}. Open-RAN initiatives standardise
 further so that each part can be supplied by a different vendor and run as software on
 commodity hardware~\cite{polese2023oran}. Figure~\ref{fig:ngran} places the subsystem studied
 in this thesis, UE Context Management (UECM), inside the gNB-CU-CP: it owns the per-UE
-control-plane state and mediates the RRC signaling and mobility procedures, which is why its
+control-plane state and mediates the RRC signalling and mobility procedures, which is why its
 correctness and timing behaviour are representative of the control plane as a whole.
 
 \begin{figure}
@@ -735,8 +735,8 @@ tail event is routine somewhere at every instant.\label{fig:tailconcept}}
 Real-time systems are conventionally graded by the consequence of a missed deadline: in
 \emph{hard} real-time a miss is a failure, in \emph{firm} real-time a late result is useless
 but not catastrophic, and in \emph{soft} real-time a miss merely degrades quality. A RAN
-control plane is best seen as soft-to-firm real-time: an occasional late signaling response
-degrades service rather than endangering it, but at fleet scale and under signaling storms
+control plane is best seen as soft-to-firm real-time: an occasional late signalling response
+degrades service rather than endangering it, but at fleet scale and under signalling storms
 such degradations accumulate into a network-wide reliability problem. This is compounded by
 queueing behaviour: as offered load approaches service capacity, queueing delay grows
 sharply and the latency tail explodes near saturation. Characterising a system therefore
@@ -800,7 +800,7 @@ specific catalogue is developed in detail in Chapter~\ref{chapter:context} and f
 for the fault-injection study in Chapter~\ref{chapter:eval}.
 
 C++ practice mitigates these defects with tooling rather than with language guarantees, and
-the tooling is inherently partial. Dynamic sanitizers such as AddressSanitizer (ASan),
+the tooling is inherently partial. Dynamic sanitisers such as AddressSanitizer (ASan),
 ThreadSanitizer (TSan), and UndefinedBehaviorSanitizer detect many errors, but only on the
 code paths that a given test actually executes with the right inputs, and they impose runtime
 and memory overheads that make them unsuitable for production; TSan in particular reports only
@@ -1094,11 +1094,11 @@ handling to the CU-UP over the E1 interface~\cite{3gpp38401,3gpp38300,3gpp38463}
 It is a good representative on four counts. It is core RAN L3 functionality, it is performance-
 and latency-sensitive, it is inherently stateful and concurrent, and it is self-contained
 enough to specify precisely and benchmark fairly. The modelled functionality includes UE
-context creation and deletion, state transitions (e.g.\ idle to connected), signaling
+context creation and deletion, state transitions (e.g.\ idle to connected), signalling
 message handling, and concurrent context lookup under load.
 
 Figure~\ref{fig:fsm} shows the UE-context lifecycle state machine that both implementations
-encode identically. Illegal transitions, for example signaling an \texttt{Idle} context, return
+encode identically. Illegal transitions, for example signalling an \texttt{Idle} context, return
 a typed error rather than mutating state. This state machine is exactly what the mixed workload
 of Section~\ref{sec:workload} walks each UE through.
 
@@ -1145,7 +1145,7 @@ keeps both within reach.
 \paragraph{Operation set.}
 The interface exercised by the study is deliberately small and lifecycle-oriented: create and
 release a context; set up a connection (\texttt{Idle}$\rightarrow$\texttt{Connected}); handle an
-in-session signaling message; add a data radio bearer; begin, complete, or abort a
+in-session signalling message; add a data radio bearer; begin, complete, or abort a
 reconfiguration/handover; and look up a context's state under concurrent load. Every operation is
 defined for every state of the machine in Figure~\ref{fig:fsm}: an operation that is illegal in
 the current state returns a typed error and leaves the context unchanged, rather than throwing
@@ -1172,7 +1172,7 @@ Each class has a natural incarnation in UE Context Management, which is why the 
 good vehicle for studying them:
 
 \begin{itemize}
-  \item \textbf{Use-after-free.} A signaling message holds a raw pointer or reference to a UE
+  \item \textbf{Use-after-free.} A signalling message holds a raw pointer or reference to a UE
         context that a concurrent \texttt{release} has already erased from the context map; the
         in-flight handler then dereferences freed storage.
   \item \textbf{Double-free.} A release path runs twice for the same UE, for example because a
@@ -1232,7 +1232,7 @@ implementation does pointer arithmetic on the context store.\label{tab:defectmap
 Defect class & Incarnation in UE Context Management & How it fails & Expected in safe Rust \\
 \hline
 \multicolumn{4}{@{}l}{\emph{Memory-safety family: object lifetime and bounds}} \\
-Use-after-free & An in-flight signaling handler dereferences a context that a concurrent \texttt{release} has already erased from the map & Corruption or crash & Prevented \\
+Use-after-free & An in-flight signalling handler dereferences a context that a concurrent \texttt{release} has already erased from the map & Corruption or crash & Prevented \\
 Double-free & A retransmitted release is not made idempotent, so the release path frees the context's resources a second time & Corruption or crash & Prevented \\
 Buffer overflow & No plausible incarnation here: the context store is reached only through container APIs & --- & Not injected \\
 \hline
@@ -1417,9 +1417,8 @@ and recording latency and resource use at each level. Two design decisions make 
 measurement sound. First, the load generator follows an \emph{open-loop} schedule with a fixed
 intended send time per request, and latency is measured against that intended time rather than
 against the moment the request is actually admitted; this is what corrects for coordinated
-omission, the bias by which a naive closed-loop generator stalls together with the system and
-silently fails to record the very requests that would have exposed the tail
-(Chapter~\ref{chapter:background}). Second, the sweep is pushed past saturation deliberately:
+omission in the sense defined in Chapter~\ref{chapter:background}. Second, the sweep is pushed
+past saturation deliberately:
 the operationally decisive behaviour of a control plane is not its latency at nominal load but
 the onset and shape of the overload cliff, and that is visible only once offered load exceeds
 service capacity. Latency is captured in high-dynamic-range histograms configured identically
@@ -1945,7 +1944,7 @@ Operation & Required state & Resulting state & Errors \\
 \hline
 \texttt{create\_context}       & context absent   & \texttt{Idle}          & \texttt{AlreadyExists}, \texttt{CapacityExceeded} \\
 \texttt{setup\_connection}     & \texttt{Idle}          & \texttt{Connected}     & \texttt{NotFound}, \texttt{InvalidState} \\
-\texttt{handle\_signaling}     & \texttt{Connected}     & \texttt{Connected}     & \texttt{NotFound}, \texttt{InvalidState} \\
+\texttt{handle\_signalling}     & \texttt{Connected}     & \texttt{Connected}     & \texttt{NotFound}, \texttt{InvalidState} \\
 \texttt{add\_drb}              & \texttt{Connected}     & \texttt{Connected}     & \texttt{NotFound}, \texttt{InvalidState}, \texttt{CapacityExceeded}, \texttt{AlreadyExists} \\
 \texttt{begin\_reconfigure}    & \texttt{Connected}     & \texttt{Reconfiguring} & \texttt{NotFound}, \texttt{InvalidState} \\
 \texttt{complete\_reconfigure} & \texttt{Reconfiguring} & \texttt{Connected}     & \texttt{NotFound}, \texttt{InvalidState} \\
@@ -1977,7 +1976,7 @@ to the reference \texttt{fnv1a\_64}.
 Both maps reserve an initial capacity of $4\,096$ entries at start-up so that steady-state
 measurements are not disturbed by rehashing. The remaining configuration is likewise shared:
 the default eight shards, a queue bound of
-$1\,024$ requests per shard, at most eight bearers and a 64-byte signaling payload per
+$1\,024$ requests per shard, at most eight bearers and a 64-byte signalling payload per
 context, and a ceiling of $200\,000$ contexts per shard. Only the shard count is varied from
 these defaults, and only by the campaign, which sets it to match the cores it is given.
 
@@ -2065,7 +2064,7 @@ paired with a single \texttt{std::promise} whose value type must therefore be a
 
 This has three measurable consequences. The first is size: a \texttt{Request} is $160$~bytes
 in C++ against $96$ in Rust, because the C++ struct always carries the create parameters, the
-68-byte signaling message, the bearer entry, and the reconfiguration parameters, whether or
+68-byte signalling message, the bearer entry, and the reconfiguration parameters, whether or
 not the operation in flight uses them, while the Rust enum is sized by its largest variant
 alone. With the default eight shards holding up to $1\,024$ requests each, that is roughly $1.3$~MB of
 queue-resident request storage at full occupancy against $0.8$~MB. The second is a copy cost
@@ -2099,7 +2098,7 @@ struct Request {          // move-only
   OpKind kind{};
   UeId ue_id = 0;
   CreateParams create_params{};
-  SignalingMsg signaling{};
+  SignalingMsg signalling{};
   DrbEntry drb{};
   ReconfigParams reconfig{};
   std::promise<Response> completion;
@@ -2293,7 +2292,7 @@ The Rust library contains \emph{no} \texttt{unsafe} code at all, a property veri
 mechanically over the crate. Safe Rust therefore guarantees data-race freedom for this core at
 compile time through the \texttt{Send} and \texttt{Sync} traits: the shard store is owned by a
 single worker and never shared, the request type is moved across the thread boundary, and the
-one piece of genuinely shared state, the activity counter, is an atomic. No runtime sanitizer
+one piece of genuinely shared state, the activity counter, is an atomic. No runtime sanitiser
 is needed to establish any of this, and no test coverage is required for it to hold. The C++
 implementation performs no manual memory management beyond STL containers and no explicit
 locking outside the queue class, and it was verified data-race free under ThreadSanitizer.
@@ -2310,13 +2309,13 @@ purpose of the fault-injection study in Chapter~\ref{chapter:eval}.
 Both implementations expose the same small, lifecycle-oriented API against the shared
 specification, so that the surface a caller sees is identical up to each language's naming
 conventions. A service is created with a fixed shard count and a per-shard queue bound;
-thereafter callers invoke context operations, create, setup, handle-signaling, add-bearer,
+thereafter callers invoke context operations, create, setup, handle-signalling, add-bearer,
 reconfigure begin/complete/abort, release, and state lookup, each identified by the target
 \texttt{ue\_id}. Every operation is \emph{total} and \emph{typed}: it returns a success value or
 a typed \texttt{OpError} drawn from a closed enumeration (for example \texttt{NotFound},
 \texttt{InvalidState}, \texttt{BearerLimit}), and an operation that is illegal for the context's
 current state (Figure~\ref{fig:fsm}) returns the corresponding error and leaves the context
-unchanged rather than mutating it or signaling failure out of band. This choice matters for
+unchanged rather than mutating it or signalling failure out of band. This choice matters for
 fairness as much as for correctness: because neither implementation uses exceptions or error
 codes as a hidden control-flow channel, the cost and the control flow of the failure path are
 visible and identical on both sides, and the same conformance vectors (Section~\ref{sec:parity})
@@ -2434,9 +2433,9 @@ Adequate for & Parity, fault injection, FFI structure, the saturation knee and t
 A synthetic but spec-justified telecom workload is generated by a deterministic driver shared
 in structure by both implementations, so that the two versions are exercised along identical
 code paths. Two workloads are provided. The \emph{signal} workload preloads a population of
-connected UEs and then hammers the \texttt{handle\_signaling} hot path, isolating steady-state
+connected UEs and then hammers the \texttt{handle\_signalling} hot path, isolating steady-state
 per-message latency. The \emph{mixed} workload is a pinned RAN lifecycle generator that walks
-each UE through a realistic procedure sequence, context creation, connection setup, signaling,
+each UE through a realistic procedure sequence, context creation, connection setup, signalling,
 bearer setup, reconfiguration/handover (begin/complete/abort), and release, using a fixed
 SplitMix64 draw order and a per-slot expected-state model so that every emitted operation is
 valid. Because the draw order is fixed, the per-operation-kind counts are identical in C++ and
@@ -2464,7 +2463,7 @@ asked to do.\label{fig:workload}}
 \paragraph{What ``spec-justified'' claims, and what it does not.}
 The term is used precisely, because the distinction bounds what the workload can support. The
 \emph{sequence} of operations is justified: it is the RRC connection lifecycle the 3GPP
-specifications define for a UE, from establishment through in-session signaling and bearer setup
+specifications define for a UE, from establishment through in-session signalling and bearer setup
 to reconfiguration and release~\cite{3gpp38331,3gpp38401}, and the per-slot expected-state model
 guarantees that every operation the driver emits is legal for the state its context is actually
 in, so the workload never drives the service along a path the specification forbids. The
@@ -2663,6 +2662,15 @@ Section~\ref{sec:overload} reports it. Closing the remaining gap needs the bare-
 host, because the dispersion is systematic interference rather than sampling noise, and
 Section~\ref{sec:budget} shows that the quantity a language could affect lies more than three
 orders of magnitude below the one this measurement resolves.
+
+Two qualifications about the metrics belong here rather than only in the validity discussion. The
+mean that RQ1 names is deliberately not the summary used: on a sample this skewed the median with
+a bootstrap interval is the defensible statistic, for the reason Section~\ref{sec:stats} gives,
+and it is what the table reports. Jitter is a different case. The harness records inter-operation
+jitter and p99.99, and persists the histograms the far tail would have to be pooled from, but the
+campaign reported here predates that instrumentation, so RQ1 is answered below with p99, p99.9,
+and the maximum alone. That is a gap in the evidence rather than in the design, and it closes with
+the same bare-metal campaign the tail claims already wait on.
 
 \begin{table}
 \centering
@@ -3006,7 +3014,10 @@ $\OverloadLoad$~kops/s, the allocator held fixed, Holm-corrected across the same
 counts how many of the \NRepeats{} paired differences agree with the sign of the median, which a
 statistic computed from their mean cannot show. No latency percentile is tested here, for the
 reason fixed in advance in Section~\ref{sec:stats}.\label{tab:overloadtest}}
-\begin{tabular}{@{}l l r c r r@{}}
+% The generated metric names are long enough that six l/r columns overrun the text
+% block; the first column wraps instead, and the inter-column padding is tightened.
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}p{0.24\linewidth} l r c r r@{}}
 \hline\hline
 Metric & Allocator & Effect (Rust $-$ C++) & Repeats & $p$ & Holm \\
 \hline
@@ -3053,7 +3064,7 @@ $\OverloadLoad$~kops/s separates by $\OverloadThrRatio\times$ with the corrected
 family floor. The honest reading is therefore that the overload divergence involves additional
 work the microbenchmark strips away: the larger tagged \texttt{Request} on the C++ side, the
 worker's variant dispatch, and the map operations that still execute in the overload regime.
-What the result still establishes is useful: a orders-of-magnitude difference in the primitives
+What the result still establishes is useful: an orders-of-magnitude difference in the primitives
 alone is ruled out, and the search for the mechanism moves to the rest of the handoff path rather
 than to the safety model.
 
@@ -3077,11 +3088,11 @@ footprint instead of for comparability would not pay it.
 
 The one row in the robust block of Table~\ref{tab:significance} that does not clear the
 correction is peak RSS under
-\texttt{jemalloc}, and the reason is a property of the statistic rather than of the software: the
-interval there is tight and nowhere near zero and $18$ of the $20$ paired repeats agree, but a
-handful of runs report a resident set some $30$~MiB below their variant's median while being
-otherwise indistinguishable in throughput, wall time, and error count, and the permutation
-statistic is a mean of paired differences, which such a run dominates. This is the case the
+\texttt{jemalloc}, and the reason is a property of the statistic rather than of the software. The
+interval there is tight, nowhere near zero, and $18$ of the $20$ paired repeats agree. What
+defeats the test is a handful of runs reporting a resident set some $30$~MiB below their variant's
+median while remaining indistinguishable in throughput, wall time, and error count: the
+permutation statistic is a mean of paired differences, and such a run dominates it. This is the case the
 reading rule of Section~\ref{sec:stats} was written in advance to cover, and
 Section~\ref{sec:threats} takes up both the rule and the measurement defect behind it.
 
@@ -3165,8 +3176,8 @@ the five memory-safety and data-race defects is a compile error in safe Rust, so
 written at all, whereas in C++ each is valid code whose defect manifests only at runtime, and
 only if a test actually exercises the buggy path. The memory-safety defects are caught by ASan;
 the concurrency defects are caught only by TSan and are invisible to ASan, underlining that no
-single C++ sanitizer covers the whole catalogue. Runtime detection further requires building a
-dedicated instrumented binary and paying the sanitizer's time and memory overhead, whereas the
+single C++ sanitiser covers the whole catalogue. Runtime detection further requires building a
+dedicated instrumented binary and paying the sanitiser's time and memory overhead, whereas the
 Rust errors are reported on every ordinary build regardless of test coverage. The parenthesised
 codes are the \texttt{rustc} diagnostics that fire (for example \texttt{E0499}, conflicting
 mutable borrows; \texttt{E0502}, a mutable borrow while a shared borrow is live; \texttt{E0382},
@@ -3249,7 +3260,7 @@ resulting structure and where the \texttt{unsafe} sits.
 plain-C entry points, and a status-code convention; a thin \texttt{extern "C"} seam crate
 concentrates all of the raw-pointer \texttt{unsafe} (twelve sites) and calls the unmodified Rust
 core, which remains free of \texttt{unsafe}. The do-nothing crossing costs $\FfiCrossing$~ns
-against a $\FfiOpSeam$~\textmu s operation; measured against the same signaling operation called
+against a $\FfiOpSeam$~\textmu s operation; measured against the same signalling operation called
 natively, the seam's cost per operation is bounded at $\FfiOpBoundPct\%$.\label{fig:ffiseam}}
 \end{figure}
 
@@ -3263,13 +3274,13 @@ contract, so the C++ side never sees a Rust type.
 The per-call cost is measured twice, because the two measurements answer different questions
 and only the second answers RQ4's. The first is the intrinsic crossing: a do-nothing
 \texttt{extern "C"} call costs $\FfiCrossing$~ns, an ordinary indirect call, and negligible
-next to the microsecond-scale round-trip of a signaling operation. That bounds the
+next to the microsecond-scale round-trip of a signalling operation. That bounds the
 crossing but says nothing about what the seam does to a real operation, because an empty call
 and a full round-trip are not the same experiment: the round-trip is dominated by a
 cross-thread handoff, and an argument that the handoff ``would be paid identically anyway'' is
 reasoning standing in for a measurement.
 
-The measurement is therefore made directly. The same signaling operation, on the same service
+The measurement is therefore made directly. The same signalling operation, on the same service
 configuration and in the same loop, is invoked natively from Rust and then from C++ through the
 seam, interleaved over \FfiOpRepeats{} repeats so the pair is matched. The paired difference is
 $\FfiOpDelta$~ns per operation with a bootstrap interval of $[\FfiOpDeltaLo, \FfiOpDeltaHi]$~ns
@@ -3291,7 +3302,7 @@ guidelines of Chapter~\ref{chapter:discussion}.
 \caption[FFI migration prototype: seam size, safety, and cost]{FFI migration prototype: seam size, safety boundary, and per-call interop cost
 (C++ host calling the Rust component across a C ABI, \texttt{-O2}). The core library is
 unmodified and \texttt{unsafe}-free; all interop is confined to the seam crate. The last
-three rows are the direct comparison: one signaling operation on the same service
+three rows are the direct comparison: one signalling operation on the same service
 configuration and the same loop, invoked natively and then through the seam, so the
 difference isolates what the boundary adds rather than what the operation
 costs.\label{tab:ffi}}
@@ -3356,10 +3367,11 @@ time to memory errors in the C++ host it shares an address space with. & Final \
 campaign answers them differently enough that reporting either alone would misrepresent the
 result.
 
-Below saturation the languages are equivalent for any purpose a deployment would care about. The
-small paired difference at the median that does clear the correction is a fraction of an
-$80\,\mu$s operation that nothing running this service would notice, and the tail in this regime
-is a null this host cannot turn into an ordering. That is consistent with the wider evidence that
+Below saturation the languages are equivalent in central behaviour, and by a margin no deployment
+would notice: the small paired difference at the median that does clear the correction is a
+fraction of an $80\,\mu$s operation. The far tail in this regime is a different matter, and one a
+deployment would also care about; there the result is a null this host cannot turn into an
+ordering, so the equivalence claimed here does not extend to it. That is consistent with the wider evidence that
 Rust's safety checks are largely absorbed by modern out-of-order
 CPUs~\cite{emmerich2019drivers,balasubramanian2017rust}. It is also a weaker statement than it
 appears, for the reason Section~\ref{sec:budget} gives: the operation the
@@ -3398,9 +3410,11 @@ is more useful to the next study than quietly substituting the explanation that 
 
 \paragraph{RQ2 (safety).} The result does not depend on the environment, and what makes it
 interesting is not the half that confirms the expectation but the half that bounds it. Within
-its scope the guarantee is absolute, and the difference from C++ is one of kind rather than of
-degree: a compiler that refuses to build a program rules the defect out of every execution,
-where a sanitiser rules it out only of the executions an instrumented test happens to take.
+its scope the guarantee is absolute in one specific sense, and the difference from C++ is one of
+kind rather than of degree: a compiler that refuses to build a program rules the defect out of
+every execution, where a sanitiser rules it out only of the executions an instrumented test
+happens to take. What is absolute is the execution coverage, not the breadth of the catalogue;
+the scope itself remains the seven programs written for it.
 That aligns with the CVE evidence that Rust memory-safety bugs invariably involve
 \texttt{unsafe}~\cite{xu2021rustcve} and with the caution that unsafety can still propagate
 through dependencies~\cite{evans2020rust}, which is why keeping the core \texttt{unsafe}-free
@@ -3529,7 +3543,7 @@ taken. Stating their disposition explicitly, rather than letting the results spe
 themselves, is what distinguishes a test from a description.
 
 \begin{description}
-  \item[H1: supported below saturation, refuted above it, and too loosely worded throughout.]
+  \item[H1: supported below saturation, refuted above it.]
         The hypothesis had two parts: that the languages are performance-equivalent below
         saturation, and that any difference is confined to the far tail. The first is
         supported. The second is refuted, and not in the direction the wording anticipated:
@@ -3542,15 +3556,15 @@ themselves, is what distinguishes a test from a description.
         remains unresolved on this host.
 
         A second disposition is that the hypothesis is not well posed.
-        ``Performance-equivalent'' was written as though it named one quantity, and
-        Section~\ref{sec:budget} shows it names at least three that answer differently: at the
-        level of the delivered operation below saturation the languages are equivalent, which
-        is what a deployment at nominal load experiences; at the level of the code the
-        compilers emit they are not, and the end-to-end measurement dilutes that difference by
-        more than two orders of magnitude; and at the level of sustained work under overload
-        they are not equivalent either, in the opposite direction. All three are true, and a
-        hypothesis that cannot distinguish them is one this study should have stated more
-        carefully before measuring.
+        ``Performance-equivalent'' was written as though it named one quantity.
+        Section~\ref{sec:budget} shows that it names at least three, and that they answer
+        differently. At the level of the delivered operation below saturation the languages are
+        equivalent, which is what a deployment at nominal load experiences. At the level of the
+        code the compilers emit they are not, and the end-to-end measurement dilutes that
+        difference by more than two orders of magnitude. At the level of sustained work under
+        overload they are not equivalent either, and the difference runs in the opposite
+        direction. All three are true, and a hypothesis that cannot distinguish them is one this
+        study should have stated more carefully before measuring.
   \item[H2: supported in its precise form, refuted in its loose one.] The hypothesis was
         that safe Rust prevents at compile time ``the memory-safety and concurrency defect
         classes that C++ leaves to best-effort detection''. For the five injected classes of
@@ -3881,7 +3895,7 @@ Implementation bias between the two versions & Frozen specification, shared allo
 \hline
 \multicolumn{3}{@{}l}{\emph{Construct: do the metrics measure what the questions ask?}} \\
 The sweep measures the design, not the language & The operation is measured apart from the handoff and both are reported (\S\ref{sec:budget}) & One operation on one data structure is narrower than the sweep it supplements \\
-The overload result is attributed but not localised & The candidates are narrowed to two entries already in the forced-idiom log (\S\ref{sec:overload}); the contended-primitive microbenchmark (\S\ref{sec:contention}) rules out the queue and completion handle alone as the full explanation & The full handoff path under load still includes variant dispatch and larger requests on the C++ side \\
+The overload result is attributed but not localised & Narrowed to two entries in the forced-idiom log (\S\ref{sec:overload}); the contended-primitive microbenchmark (\S\ref{sec:contention}) rules out those two alone as the full explanation & The full handoff path under load still includes variant dispatch and larger requests on the C++ side \\
 A defect catalogue is a sample the author chose & Two classes drawn from outside the guarantee, with expectations recorded in advance & Seven programs remain seven programs \\
 RQ3 captures resource cost but not its origin & None available on this host & The memory result is established but unexplained \\
 RQ4 measures the seam, not the safety of the whole & The distinction is stated wherever the result is quoted & One address space: a compile-time property of the Rust side bounds nothing at run time \\
@@ -3924,13 +3938,11 @@ language that person knows better cannot be excluded. The parity suite bounds th
 mitigated, not eliminated.
 
 \paragraph{Construct validity: do the metrics measure what the questions ask?}
-RQ1 asks about predictability and is answered with high percentiles, the maximum, and jitter
-and not the mean, which is the standard way of measuring it in this
-literature~\cite{dean2013tail}. Two of those metrics are instrumented but not yet reported: the
-harness records p99.99 and inter-operation jitter and persists the histograms the far tail has
-to be pooled from, but the campaign this thesis reports predates that instrumentation, so RQ1 is
-currently answered with p99 and p99.9 and the maximum. That is a gap in the evidence rather than
-in the design, and it closes with the same bare-metal campaign the tail claims already wait on.
+RQ1 asks about predictability and is answered with high percentiles and the maximum rather than
+the mean, which is the standard way of measuring it in this
+literature~\cite{dean2013tail}. Section~\ref{sec:perfresults} records the other half of this:
+inter-operation jitter and p99.99 are instrumented but postdate the reported campaign, so the
+residual threat is that predictability is evidenced at p99 and p99.9 only.
 The residual risk in the metrics themselves is that p99.9 on a synthetic workload is not
 the same quantity as a missed procedure deadline in a live network. A second and larger
 construct gap in RQ1 was found, not anticipated. The end-to-end latency the sweep reports
@@ -4127,8 +4139,8 @@ reproduce that ordering at significance; the gap likely includes additional C++ 
 those two constructs. On memory the Rust build carries a few MiB more fixed footprint under both
 allocators, an order of magnitude less than the allocator choice itself costs.
 
-Taken together these support a narrow but decision-grade claim, and it is narrower than the one
-this thesis expected to make. For stateful, concurrent, partitionable control-plane services of
+Taken together these support a narrow claim, and it is narrower than the one this thesis expected
+to make. For stateful, concurrent, partitionable control-plane services of
 this kind, and \emph{at nominal load}, the choice between modern C++ and Rust is not a performance
 decision; it is a decision about which classes of defect an organisation wants to make
 unwriteable, and about whether it is prepared to pay the engineering and learning cost of getting

@@ -512,3 +512,78 @@ host, overload qualification). Housekeeping unchanged: `\censors{}{}{}`, officia
 3. Re-run `bench/refresh_thesis.sh`; re-read §7.5.1, Table~\ref{tab:findings}, §8.3 H1, and
    abstract.
 4. Submission housekeeping: examiners on title page, official `UH_DS_MSc.cls`.
+
+---
+
+## Fourth pass — 17 August 2026
+
+Graded against the **official seven-area CSM matrix** (9 April 2024) rather than the
+six-criterion simplification used above, and **from `Thesis_POC.tex` alone** — no artefact
+directories, nothing the code would prove that the text does not say. Canvas:
+`~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-aug17.canvas.tsx`.
+
+| Area | Third pass | Fourth pass | Note |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | RQ1 names metrics the results do not deliver |
+| 2. Scholarly framework and sources | 5 | **5** | Unchanged |
+| 3. Research data and method | 4.5 | **4.5** | Method at 5; data still host-bound |
+| 4. Presentation of results | 4.5 | **4.5** | Unchanged |
+| 5. Discussion and conclusions | 5 | **5** | Three over-reaching phrases, now softened |
+| 6. Academic text | 5 | **4.5** | See below — disagreement with the third pass |
+| 7. Work during the thesis process | — | **not assessable** | Supervisor and instructors decide it |
+| **Mean of the six assessable** | 4.8 | **4.75** | |
+
+### Why area 6 moved down
+
+The level-5 descriptor asks for a presentation that is *technically camera-ready* with
+*excellent finishing polish*. The writing meets it; the finishing did not. `ai_statement.tex`
+asserted that the abstract was written unaided while an invisible comment recorded that it was
+model-drafted, so the printed declaration was false about the one artefact where the rule is
+absolute (the summary doubles as the maturity test). Alongside that: a float overflowing its
+page, two overfull boxes, sentences of 93 and 86 words, and one passage explained twice from
+scratch. Area 6 returns to 5 once the abstract is rewritten unaided.
+
+**Discounted as a false positive:** a mechanical pass flagged ~40 "inconsistencies" of the form
+*memory-safety* vs *memory safety* and *compile-time* vs *compile time*. English hyphenates those
+compounds attributively and leaves them open otherwise; the thesis does this correctly.
+
+### Fixed in this pass
+
+- **`ai_statement.tex` can no longer assert an untrue claim.** The sentence about the abstract is
+  gated on `\ifabstractunaided`, default false. Until it is set the statement says plainly that
+  the abstract has not been rewritten unaided, and **every build prints a warning**
+  (`ai_statement: ... Not submittable`). Both documents that share the file are covered:
+  `Thesis_v1.tex`'s abstract is still a placeholder.
+- **The jitter and p99.99 gap is now stated in §"Performance (RQ1, RQ3)"** where the results are,
+  not only in the threats section a chapter later. The threats entry was trimmed to point back
+  instead of repeating the mechanism, and its internal contradiction removed: it previously
+  listed jitter among the metrics answering RQ1 and then said jitter was unreported.
+- **Three over-reaching phrases softened.** "Equivalent for any purpose a deployment would care
+  about" now scopes to central behaviour and says the equivalence does not extend to the far tail;
+  "the guarantee is absolute" now pins what it is absolute over (execution coverage, not catalogue
+  breadth); "decision-grade" is gone from the conclusion.
+- **Layout:** zero overfull boxes and zero floats too large, down from two and one.
+  `tab:overloadtest` wraps its first column; the H1 description label was shortened; one
+  threats-table cell trimmed.
+- **Copy-edit:** the 93-word and 86-word sentences split; the coordinated-omission explanation in
+  the methodology now relies on its Chapter 2 definition instead of restating it;
+  *signaling* → *signalling* (29, matching both the British house style and 3GPP usage);
+  *sanitizer* → *sanitiser* (4, proper nouns such as AddressSanitizer left alone); one "a
+  orders-of-magnitude" → "an".
+
+Build verified on both documents: zero errors, zero undefined references or citations, zero
+overfull boxes, zero floats too large. 147 pages.
+
+### Outstanding
+
+1. **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`. Blocking, and it cannot be
+   delegated — the summary is the maturity test.
+2. **Bare-metal tail campaign** with counters and allocation profiles. Lifts areas 3 and 4.
+3. **Align RQ1's metric list** with what is reported, or report jitter. RQ1 names "mean, p99,
+   p99.9 tail latency, and jitter"; the mean is deliberately replaced by the median and jitter is
+   absent. Note that amending the RQ means syncing the plan and `Thesis_v1.tex`, and the plan is
+   supervisor-approved.
+4. **Optional:** the use-after-free example is worked three times (introduction, background,
+   appendix). Defensible layering for a reader without telecom background — left as the author's
+   call rather than cut.
+5. **Housekeeping:** examiners on the title page, official class file.
