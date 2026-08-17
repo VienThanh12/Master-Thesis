@@ -50,7 +50,8 @@
 % in front of each name.
 \supervisors{Keijo Heljanko, Christoph Luneburg, Petteri Kotimaa}
 % The class prints examiners nowhere, so this is recorded but has no output.
-\examiners{Keijo Heljanko}
+% The faculty has not named the second examiner yet.
+\examiners{Prof. Keijo Heljanko}
 \keywords{Rust, C++, RAN control plane, tail latency, memory safety, fault injection, FFI}
 % Where deposited fills itself in from the class. Additional information is the
 % study track, taken from the software-track-2020 class option.
@@ -145,8 +146,8 @@
         frameworks~\cite{arvidsson2025async}. No controlled study holds the
         specification, concurrency model, and build settings fixed while sweeping past
         saturation and measuring incremental migration cost.
-  \item Four research questions frame the work. RQ1 compares latency predictability (mean,
-        p99, p99.9, jitter) under increasing load and overload with the concurrency model held
+  \item Four research questions frame the work. RQ1 compares latency predictability (median,
+        p99, p99.9, maximum) under increasing load and overload with the concurrency model held
         fixed~\cite{dean2013tail}. RQ2 asks which defect classes Rust removes at compile time,
         at what stage the rest are detected, and which classes it does not prevent. RQ3 asks what
         overhead Rust's safety model imposes on throughput, CPU, and memory. RQ4 asks what

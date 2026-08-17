@@ -12,6 +12,50 @@ target="$rust_dir/target/release"
 CXX="${CXX:-g++}"
 CXXSTD="${CXXSTD:-c++17}"
 
+# The seam's size and width are counted from source and do not depend on the host,
+# unlike everything else this script produces. --counts-only refreshes just those
+# fields of results/metrics.json, so a miscount can be corrected without
+# re-measuring, and without a run on a busy machine overwriting the RQ4 latencies.
+counts_only=0
+[ "${1:-}" = "--counts-only" ] && counts_only=1
+
+# Counted over code, not over comments: the safety contract in the module header
+# names `unsafe extern "C"`, and a counter that matched it reported one entry
+# point and three `unsafe` sites that do not exist.
+strip_comments() { sed -e 's://.*::' -e '/^\s*\*/d' "$@"; }
+count_source() { strip_comments "$2" | grep -cE "$1" || true; }
+
+source_counts() {
+  seam_rs=$(count_source 'pub[[:space:]]+(unsafe[[:space:]]+)?extern[[:space:]]+"C"[[:space:]]+fn' \
+    "$rust_dir/src/lib.rs")
+  loc_rs=$(wc -l < "$rust_dir/src/lib.rs" | tr -d ' ')
+  loc_h=$(wc -l < "$rust_dir/include/uecm_ffi.h" | tr -d ' ')
+  unsafe_lib=$(cat "$here/../rust/src"/*.rs | strip_comments |
+    grep -cE '\bunsafe\b' || true)
+  unsafe_seam=$(count_source '\bunsafe[[:space:]]+(extern[[:space:]]+"C"[[:space:]]+)?fn\b' \
+    "$rust_dir/src/lib.rs")
+}
+
+if [ "$counts_only" -eq 1 ]; then
+  source_counts
+  python3 - "$here/results/metrics.json" \
+    "$seam_rs" "$loc_rs" "$loc_h" "$unsafe_lib" "$unsafe_seam" <<'PY'
+import json, sys
+path, *vals = sys.argv[1:]
+keys = ["entry_points", "seam_loc_rust", "header_loc", "unsafe_core", "unsafe_seam"]
+with open(path) as fh:
+    m = json.load(fh)
+m.update(dict(zip(keys, (int(v) for v in vals))))
+with open(path, "w") as fh:
+    json.dump(m, fh, indent=2)
+    fh.write("\n")
+print("  updated source counts in", path)
+for k in keys:
+    print(f"    {k} = {m[k]}")
+PY
+  exit 0
+fi
+
 echo "== [1/3] Building Rust C-ABI library (cargo build --release) =="
 ( cd "$rust_dir" && cargo build --release )
 ls -1 "$target"/libuecm_ffi.* 2>/dev/null || { echo "ERROR: library not produced"; exit 1; }
@@ -97,15 +141,10 @@ echo "                       exact paired p = $paired_p"
 
 echo
 echo "== Interop-cost metrics (RQ4) =="
-count_matches() { { grep -rhoE "$1" "$2" 2>/dev/null || true; } | wc -l | tr -d ' '; }
-seam_rs=$(count_matches 'extern "C"' "$rust_dir/src/lib.rs")
-loc_rs=$(wc -l < "$rust_dir/src/lib.rs" | tr -d ' ')
-loc_h=$(wc -l < "$rust_dir/include/uecm_ffi.h" | tr -d ' ')
-unsafe_lib=$(count_matches 'unsafe' "$here/../rust/src")
-unsafe_seam=$(count_matches 'unsafe' "$rust_dir/src/lib.rs")
+source_counts
 echo "  C-ABI entry points (extern \"C\" fns) : $seam_rs"
 echo "  seam size: lib.rs = $loc_rs LOC, header = $loc_h LOC"
-echo "  'unsafe' occurrences: core Rust library = $unsafe_lib, FFI seam = $unsafe_seam"
+echo "  'unsafe' functions: core Rust library = $unsafe_lib, FFI seam = $unsafe_seam"
 echo "  (core library was NOT modified to add FFI; all interop is in the seam crate)"
 
 # Persist machine-readable metrics so the thesis figure/table is reproducible.

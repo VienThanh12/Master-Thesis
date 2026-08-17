@@ -245,9 +245,11 @@ latexmk -C                   # clean build artifacts
 - [x] Build a small Rust component behind a C ABI, driven by a C++ host (`ffi/`): seam crate
       `rust-uecm-ffi` (staticlib+cdylib, path-dep on unmodified `rust/`) + hand-written
       `uecm_ffi.h` + `cpp-host/main.cpp`; `ffi/build.sh` builds/links/runs (host PASSes)
-- [x] Measure interop cost: 12 C-ABI entry points (~231 LOC Rust seam + 66 LOC header), 0 `unsafe`
-      in core lib (confined to seam), raw crossing ~1 ns/call, op cost = service round-trip
-      (not FFI-induced); clippy clean. Findings filled into thesis §6.2 (RQ4 Migration)
+- [x] Measure interop cost: 11 C-ABI entry points (231 LOC Rust seam + 66 LOC header), 0 `unsafe`
+      in core lib (9 `unsafe` fns, all in the seam), raw crossing ~1 ns/call, op cost = service
+      round-trip (not FFI-induced); clippy clean. Findings filled into thesis §6.2 (RQ4 Migration).
+      The counts were 12/12 until `ffi/build.sh` was taught to count code rather than comments;
+      `bench/artefact_facts.py` now regenerates them into the prose.
 - [x] Replace the indirect argument for "no measurable per-call tax" with the direct A/B.
       An empty crossing measured against a full round-trip bounds the crossing but is not the
       same experiment; `ffi/build.sh` now also runs the *same* signaling op natively (same

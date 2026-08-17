@@ -154,6 +154,28 @@ fi
 
 echo
 echo "checked operations: $hand_ops hand-written, $gen_ops generated"
+
+# The thesis quotes the size of this campaign, so the campaign records its own
+# size instead of the prose remembering it. bench/artefact_facts.py turns this
+# file into the macros the prose uses; a run that failed writes its counts too,
+# because a stale summary is worse than a summary that says what happened.
+res_dir="$here/results"
+mkdir -p "$res_dir"
+model_ops="$(python3 "$here/model.py" --check "$vec_dir"/*.vec 2>/dev/null |
+  sed -n 's/^model vs hand-written expectations: \([0-9]*\) ops.*/\1/p')"
+cat >"$res_dir/summary.json" <<EOF
+{
+  "hand_written_ops": $hand_ops,
+  "generated_ops": $gen_ops,
+  "model_checked_ops": ${model_ops:-0},
+  "vectors_per_profile": $per_profile,
+  "ops_per_vector": $ops,
+  "profiles": ${#profiles[@]},
+  "passed": $([ "$fail" -eq 0 ] && echo true || echo false)
+}
+EOF
+echo "wrote $(realpath --relative-to="$root" "$res_dir/summary.json")"
+
 if [ "$fail" -eq 0 ]; then
   echo "ALL VECTORS PASS (both implementations agree with the model and with each other)"
 else

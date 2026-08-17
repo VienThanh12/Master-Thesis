@@ -660,8 +660,8 @@ def write_ffi_table(metrics_json, outdir):
         ("C-ABI entry points", f"{m.get('entry_points', 0)}"),
         ("Seam size (Rust \\texttt{lib.rs})", f"{m.get('seam_loc_rust', 0)} LOC"),
         ("Hand-written C header", f"{m.get('header_loc', 0)} LOC"),
-        ("\\texttt{unsafe} in core library", f"{m.get('unsafe_core', 0)}"),
-        ("\\texttt{unsafe} in FFI seam", f"{m.get('unsafe_seam', 0)}"),
+        ("\\texttt{unsafe} functions in core library", f"{m.get('unsafe_core', 0)}"),
+        ("\\texttt{unsafe} functions in FFI seam", f"{m.get('unsafe_seam', 0)}"),
         ("Raw FFI crossing", f"{m.get('ffi_crossing_ns', 0):.2f} ns/call"),
     ]
     # The direct A/B: the same operation, the same service configuration, and the

@@ -47,6 +47,12 @@ else
   echo "  SKIP: lizard not installed (pip install lizard); keeping existing figures/tab_complexity.tex"
 fi
 
+# Record sizes, parity-suite coverage, conformance campaign size, and seam size.
+# Same reason as the proxies above: they are measurements the prose quotes, and
+# they come from the code and the suite rather than from a campaign log.
+echo "== regenerating artefact-level measurements =="
+python3 "$here/artefact_facts.py"
+
 # The colloquium deck quotes the same generated macros and table bodies as the
 # prose, so it is rebuilt here for the same reason: a fresh campaign must not
 # leave a slide contradicting the thesis. It drifted once already.

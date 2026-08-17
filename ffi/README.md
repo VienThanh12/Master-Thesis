@@ -58,10 +58,10 @@ interop-cost metrics.
   signal → add-DRB → lookup → release) works through the C ABI, and the error
   model is transported faithfully (e.g. a duplicate `setup_connection` returns
   `InvalidState`).
-- **Seam size:** 11 C-ABI entry points; ~223 LOC of Rust wrapper + ~66 LOC of C
+- **Seam size:** 11 C-ABI entry points; 231 LOC of Rust wrapper + 66 LOC of C
   header. No generated bindings, no third-party FFI dependency.
-- **Safety boundary:** `unsafe` occurrences: **0 in the core library**, confined
-  to the seam crate. The C++ side sees only an opaque handle.
+- **Safety boundary:** `unsafe` functions: **0 in the core library**, 9 in the
+  seam crate. The C++ side sees only an opaque handle.
 - **Raw FFI crossing cost:** sub-nanosecond per call (`uecm_abi_noop`, ~0.7–1.3
   ns/call), i.e. a normal indirect function call; the boundary itself is
   effectively free.

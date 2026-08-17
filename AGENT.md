@@ -34,7 +34,8 @@ When you change **claims, RQs, scope, methodology, or contributions**:
 
 When you change **measured numbers**:
 
-1. Regenerate via `bench/refresh_thesis.sh` (never hand-edit `figures/gen_macros.tex`).
+1. Regenerate via `bench/refresh_thesis.sh` (never hand-edit `figures/gen_macros.tex`,
+   `figures/gen_complexity.tex`, or `figures/gen_artefacts.tex`).
 2. Re-read every prose claim that cites those macros (Chapters 7–9, abstract, discussion).
 3. Check `ASSESSMENT.md` and `TODO.md` “after bare-metal campaign” items if tail or RSS claims move.
 
@@ -209,6 +210,7 @@ load.
 | `TODO.md` | Phase checklist, bare-metal prep, post-campaign re-check list |
 | `LITERATURE_NOTES.md` | Citation upgrades and literature gaps |
 | `bench/TESTBED.md` | Bare-metal protocol (only path to criterion 3/4 → 5 on tail) |
+| `bench/artefact_facts.py` | Generates `figures/gen_artefacts.tex`: record sizes (compiled probes), parity-suite coverage, conformance campaign size, FFI seam size. Anything measured that no campaign log holds belongs here, not in the prose |
 | `spec/SPECIFICATION.md` | Fairness baseline; freeze before implementation changes. §11.4–11.5 cover the reference model, generated vectors, sanitisers, Miri and coverage |
 | `spec/conformance/model.py` | Independent Python implementation of the spec; the oracle behind the generated vectors. Never derive its expectations from `cpp/` or `rust/` |
 | `faults/results/model_checking.md` | Loom/Shuttle outcomes for the boundary classes (RQ2's "at what stage and cost") |
