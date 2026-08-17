@@ -129,9 +129,9 @@ def paired_tost(a, b, delta):
     """Two one-sided paired permutation tests against an equivalence margin.
 
     A non-significant paired test supports nothing. It is consistent with a real
-    effect the campaign was too small to see, which is why Section 5.5 has to
-    spend a paragraph on the attainable floor, and why the honest reading of the
-    tail is "cannot tell" rather than "equivalent". TOST asks the answerable
+    effect the campaign was too small to see, which is why the statistical
+    treatment has to spend a paragraph on the attainable floor, and why the honest
+    reading of the tail is "cannot tell" rather than "equivalent". TOST asks the answerable
     question instead: not whether the difference is zero, which no experiment can
     establish, but whether it is small enough not to matter.
 
@@ -448,32 +448,96 @@ def has_metric(rows, path):
 
 
 def fig_tail_percentiles(rows, outdir, load):
+    """Percentile fan for the four variants, with the resolution argument beside it.
+
+    Panel (a) carries a bootstrap band on every curve rather than a bare line. Left
+    as lines the four variants lie on top of one another and the figure reads as a
+    claim of equivalence, which is the one reading the performance results refuse: a
+    measurement that cannot separate two things has not shown them to be the same.
+
+    Panel (b) says why it cannot. At each percentile it draws the spread between
+    the four variants against the widest confidence interval any single variant
+    carries there. At the median the spread is the larger of the two and an
+    ordering means something. Above it the interval overtakes the spread, and once
+    the uncertainty about one variant exceeds the gap between all of them, whatever
+    order the curves happen to fall in is the scheduler's and not the language's.
+    The crossover is the point where this host stops resolving the comparison, and
+    it is the concrete form of the limitation the testbed section states.
+    """
     pcts = ["p50", "p90", "p99", "p999"]
     pct_labels = ["p50", "p90", "p99", "p99.9"]
     if has_metric(rows, ("lat_ns", "p9999")):
         pcts.append("p9999")
         pct_labels.append("p99.99")
-    fig, ax = plt.subplots(figsize=(6.2, 4.0))
-    for key in variants_present(rows):
-        label, color, ls, mk = VARIANT_STYLE[key]
-        ys = []
+    variants = variants_present(rows)
+
+    stats = {}
+    for key in variants:
+        sub = _subset(rows, key, load)
         for p in pcts:
-            vals = [
-                r["lat_ns"][p] / NS_PER_US
-                for r in rows
-                if r["lang"] == key[0]
-                and r["alloc"] == key[1]
-                and offered_load(r) == load
-            ]
-            ys.append(statistics.median(vals) if vals else float("nan"))
-        ax.plot(range(len(pcts)), ys, ls, color=color, marker=mk, ms=5, lw=1.6, label=label)
-    ax.set_xticks(range(len(pcts)))
-    ax.set_xticklabels(pct_labels)
-    ax.set_xlabel("Latency percentile")
-    ax.set_ylabel("Latency (\u00b5s)")
-    ax.set_yscale("log")
-    ax.grid(True, which="both", ls=":", alpha=0.4)
-    ax.legend(fontsize=8, framealpha=0.9)
+            stats[(key, p)] = bootstrap_ci([r["lat_ns"][p] / NS_PER_US for r in sub])
+
+    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(9.6, 3.7),
+                                     gridspec_kw={"width_ratios": [1.15, 1.0]})
+
+    # ---- (a) the fan, with a bootstrap band per variant -------------------- #
+    xs = range(len(pcts))
+    for key in variants:
+        label, color, ls, mk = VARIANT_STYLE[key]
+        med = [stats[(key, p)][0] for p in pcts]
+        lo = [stats[(key, p)][1] for p in pcts]
+        hi = [stats[(key, p)][2] for p in pcts]
+        ax_a.plot(xs, med, ls, color=color, marker=mk, ms=4.5, lw=1.5, label=label)
+        ax_a.fill_between(xs, lo, hi, color=color, alpha=0.16, lw=0)
+    ax_a.set_xticks(list(xs))
+    ax_a.set_xticklabels(pct_labels)
+    ax_a.set_xlabel("Latency percentile")
+    ax_a.set_ylabel("Latency (\u00b5s)")
+    ax_a.set_yscale("log")
+    ax_a.set_title("(a) The four variants, with bootstrap bands", fontsize=9.5)
+    ax_a.grid(True, which="both", ls=":", alpha=0.4)
+    ax_a.set_axisbelow(True)
+    ax_a.legend(fontsize=8, framealpha=0.95, loc="lower right")
+
+    # ---- (b) between-variant spread against within-variant uncertainty ---- #
+    spread, widest = [], []
+    for p in pcts:
+        meds = [stats[(key, p)][0] for key in variants]
+        spread.append(max(meds) - min(meds))
+        widest.append(max(stats[(key, p)][2] - stats[(key, p)][1] for key in variants))
+    width = 0.36
+    left = [x - width / 2 for x in xs]
+    right = [x + width / 2 for x in xs]
+    ax_b.bar(left, spread, width=width, color="#4a5c6a",
+             label="spread between the four variants")
+    ax_b.bar(right, widest, width=width, color="#f2d4d0", hatch="//",
+             edgecolor="#a5281b", lw=0.8,
+             label="widest CI on a single variant")
+    ax_b.set_yscale("log")
+    ax_b.set_xticks(list(xs))
+    ax_b.set_xticklabels(pct_labels)
+    ax_b.set_xlabel("Latency percentile")
+    ax_b.set_ylabel("Latency (\u00b5s, log scale)")
+    ax_b.set_title("(b) Where the host stops resolving the comparison", fontsize=9.5)
+    ax_b.grid(True, axis="y", which="both", ls=":", alpha=0.4)
+    ax_b.set_axisbelow(True)
+    ax_b.legend(fontsize=8, framealpha=0.95, loc="upper left")
+    # The ratio between the two bars, annotated at every percentile rather than
+    # only where it exceeds one. Printed throughout, it locates the crossover: at
+    # the median the spread is the larger quantity and an ordering means
+    # something, and above it reporting an ordering would be reporting the
+    # interference.
+    top = max(max(spread), max(widest))
+    for x, s, w in zip(xs, spread, widest):
+        if s <= 0:
+            continue
+        ratio = w / s
+        ax_b.annotate(f"{ratio:.1f}\u00d7" if ratio < 2 else f"{ratio:.0f}\u00d7",
+                      xy=(x, max(s, w)), xytext=(0, 4),
+                      textcoords="offset points", ha="center", fontsize=8.5,
+                      color="#a5281b" if ratio > 1 else "#4a5c6a")
+    ax_b.set_ylim(top=top * 6)
+
     fig.tight_layout()
     out = os.path.join(outdir, "fig_tail_percentiles.pdf")
     fig.savefig(out)
@@ -484,38 +548,105 @@ def fig_tail_percentiles(rows, outdir, load):
 # --------------------------------------------------------------------------- #
 # Figure 4: resource use (peak RSS and CPU utilisation) per variant.
 # --------------------------------------------------------------------------- #
-def fig_resources(rows, outdir, load):
-    variants = variants_present(rows)
-    labels = [VARIANT_STYLE[k][0] for k in variants]
-    colors = [VARIANT_STYLE[k][1] for k in variants]
-    rss_med, cpu_med = [], []
-    for key in variants:
-        rss = [
-            r["rss_peak_kb"] / 1024.0
-            for r in rows
-            if r["lang"] == key[0] and r["alloc"] == key[1] and offered_load(r) == load
-        ]
-        cpu = [
-            r["cpu_pct"]
-            for r in rows
-            if r["lang"] == key[0] and r["alloc"] == key[1] and offered_load(r) == load
-        ]
-        rss_med.append(statistics.median(rss) if rss else 0.0)
-        cpu_med.append(statistics.median(cpu) if cpu else 0.0)
+def _paired_effect(rows, key_a, key_b, load, metric_fn):
+    """Median and bootstrap interval of the paired (b - a) difference at one load.
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.4, 3.6))
-    xs = range(len(variants))
-    short = [l.replace(" (", "\n(") for l in labels]
-    ax1.bar(xs, rss_med, color=colors)
-    ax1.set_xticks(xs)
-    ax1.set_xticklabels(short, fontsize=7)
-    ax1.set_ylabel("Peak RSS (MiB)")
-    ax1.grid(True, axis="y", ls=":", alpha=0.4)
-    ax2.bar(xs, cpu_med, color=colors)
-    ax2.set_xticks(xs)
-    ax2.set_xticklabels(short, fontsize=7)
-    ax2.set_ylabel("CPU utilisation (%)")
-    ax2.grid(True, axis="y", ls=":", alpha=0.4)
+    Pairing is by position, which is pairing by repeat: the campaign's outer loop
+    is the repeat and every variant is measured inside it, so the i-th run of two
+    variants shares its ambient conditions whether the two differ in language or
+    in allocator. That makes the allocator contrast a matched comparison on the
+    same footing as the language contrast, which is what lets the two be drawn
+    against each other.
+    """
+    a = [metric_fn(r) for r in _subset(rows, key_a, load)]
+    b = [metric_fn(r) for r in _subset(rows, key_b, load)]
+    if not a or not b:
+        return None
+    return bootstrap_ci([y - x for x, y in zip(a, b)])
+
+
+def fig_resources(rows, outdir, load):
+    """Resource use at the representative load, and the two effects inside it.
+
+    Panels (a) and (c) group by allocator so that both contrasts the design
+    controls for are visible in one place: the two bars inside a group differ only
+    in language, the two groups differ only in allocator. Confidence intervals are
+    drawn because peak RSS is the one metric here whose intervals separate the
+    variants, and a bar chart without them cannot show that.
+
+    Panel (b) is the finding. Both effects are real and they are not of comparable
+    size: linking jemalloc moves an order of magnitude more memory than switching
+    language does. Drawing them on one linear axis is the whole point, since it is
+    the ratio between the bars rather than either bar that the RQ3 claim rests on.
+    """
+    variants = variants_present(rows)
+    allocs = [a for a in ("system", "jemalloc") if any(k[1] == a for k in variants)]
+    langs = [l for l in ("cpp", "rust") if any(k[0] == l for k in variants)]
+    names = {"cpp": "C++", "rust": "Rust"}
+    alloc_names = {"system": "system allocator", "jemalloc": "jemalloc"}
+    rss_of = lambda r: r["rss_peak_kb"] / 1024.0
+    cpu_of = lambda r: r["cpu_pct"]
+
+    fig, (ax_a, ax_b, ax_c) = plt.subplots(
+        1, 3, figsize=(10.2, 3.5), gridspec_kw={"width_ratios": [1.0, 1.22, 1.0]})
+
+    def grouped(ax, metric_fn, ylabel, title):
+        width = 0.34
+        for i, lang in enumerate(langs):
+            xs, med, err_lo, err_hi = [], [], [], []
+            for j, alloc in enumerate(allocs):
+                key = (lang, alloc)
+                if key not in VARIANT_STYLE:
+                    continue
+                m, lo, hi = bootstrap_ci([metric_fn(r) for r in _subset(rows, key, load)])
+                xs.append(j + (i - (len(langs) - 1) / 2) * width)
+                med.append(m)
+                err_lo.append(max(0.0, m - lo))
+                err_hi.append(max(0.0, hi - m))
+            color = VARIANT_STYLE[(lang, allocs[0])][1]
+            ax.bar(xs, med, width=width, color=color, label=names[lang],
+                   yerr=[err_lo, err_hi], capsize=3,
+                   error_kw={"lw": 1.0, "ecolor": "#333333"})
+        ax.set_xticks(range(len(allocs)))
+        ax.set_xticklabels([alloc_names[a] for a in allocs], fontsize=8.5)
+        ax.set_ylabel(ylabel)
+        ax.set_title(title, fontsize=9.5)
+        ax.grid(True, axis="y", ls=":", alpha=0.4)
+        ax.set_axisbelow(True)
+        ax.legend(fontsize=8, framealpha=0.95)
+
+    grouped(ax_a, rss_of, "Peak RSS (MiB)", "(a) Peak resident set size")
+    grouped(ax_c, cpu_of, "CPU utilisation (%)", "(c) CPU utilisation")
+
+    # ---- (b) the allocator effect against the language effect ------------- #
+    effects = []
+    if len(allocs) > 1:
+        for lang in langs:
+            eff = _paired_effect(rows, (lang, "system"), (lang, "jemalloc"), load, rss_of)
+            if eff:
+                effects.append((f"jemalloc \u2212 system,\nin {names[lang]}", eff, "#7f8c8d"))
+    for alloc in allocs:
+        eff = _paired_effect(rows, ("cpp", alloc), ("rust", alloc), load, rss_of)
+        if eff:
+            effects.append((f"Rust \u2212 C++,\nunder {alloc_names[alloc]}", eff, "#c0392b"))
+
+    ys = list(range(len(effects)))[::-1]
+    for y, (label, (med, lo, hi), color) in zip(ys, effects):
+        ax_b.barh([y], [med], height=0.5, color=color,
+                  xerr=[[max(0.0, med - lo)], [max(0.0, hi - med)]], capsize=3,
+                  error_kw={"lw": 1.0, "ecolor": "#333333"})
+        ax_b.text(hi + max(e[1][2] for e in effects) * 0.03, y, f"{med:.1f}",
+                  va="center", fontsize=8.5)
+    ax_b.set_yticks(ys)
+    ax_b.set_yticklabels([e[0] for e in effects], fontsize=8)
+    ax_b.set_xlabel("Paired difference in peak RSS (MiB)")
+    ax_b.set_title("(b) Allocator effect against language effect", fontsize=9.5)
+    ax_b.axvline(0.0, color="#333333", lw=0.9)
+    ax_b.grid(True, axis="x", ls=":", alpha=0.4)
+    ax_b.set_axisbelow(True)
+    if effects:
+        ax_b.set_xlim(0, max(e[1][2] for e in effects) * 1.22)
+
     fig.tight_layout()
     out = os.path.join(outdir, "fig_resources.pdf")
     fig.savefig(out)
@@ -612,39 +743,128 @@ def fig_taxonomy(taxonomy_csv, outdir):
 # --------------------------------------------------------------------------- #
 # LaTeX tables.
 # --------------------------------------------------------------------------- #
-def fig_ffi(metrics_json, outdir):
-    """Bar chart: raw FFI crossing cost vs end-to-end op round-trip (log scale)."""
+def load_op_cost(path):
+    """Read the interleaved native-vs-seam repeats emitted by ffi/build.sh.
+
+    Returns (native_ns, seam_ns) in run order, so position is repeat index. The
+    runner alternates the two callers inside every repeat, which is what makes the
+    pair matched: a host whose handoff cost drifts over minutes moves both members
+    of a pair together and cancels in their difference.
+    """
+    if not os.path.exists(path):
+        return ([], [])
+    native, seam = [], []
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            rec = json.loads(line)
+            if rec.get("lang") == "cpp-via-seam" and "op_ns" in rec:
+                seam.append(rec["op_ns"])
+            elif rec.get("lang") == "rust" and "service_ns" in rec:
+                native.append(rec["service_ns"])
+    n = min(len(native), len(seam))
+    return (native[:n], seam[:n])
+
+
+def fig_ffi(metrics_json, outdir, op_cost_path=None):
+    """The seam's cost on a real operation, measured rather than argued.
+
+    The earlier version of this figure put the empty crossing beside a full
+    round-trip and reported the ratio. That comparison bounds the crossing and
+    nothing else, because an \\texttt{extern "C"} call with no work behind it and a
+    cross-thread round-trip are not the same experiment, and the migration results
+    decline to reason from one to the other. What answers RQ4 is the same operation
+    invoked natively and then through the seam, interleaved.
+
+    Panel (a) draws each repeat as its own line, which is the argument for
+    interleaving: the run-to-run spread of the handoff is wide enough that single
+    passes of each would have supported almost any conclusion, and one pass taken
+    while preparing the section made the seam look faster by a third. Panel (b)
+    reduces the pairs to their difference. It reports no detected cost together
+    with the bound on what the measurement could have missed, because a
+    non-significant paired test on its own establishes nothing.
+    """
     if not os.path.exists(metrics_json):
         return None
     m = json.load(open(metrics_json))
-    crossing = m.get("ffi_crossing_ns", 0.0)
-    roundtrip = m.get("op_roundtrip_ns", 0.0)
-    if crossing <= 0 or roundtrip <= 0:
+    if op_cost_path is None:
+        op_cost_path = os.path.join(os.path.dirname(metrics_json), "op_cost.jsonl")
+    native, seam = load_op_cost(op_cost_path)
+    if len(native) < 2:
+        print(f"note: no interleaved native-vs-seam repeats at {op_cost_path}; "
+              f"fig_ffi_cost.pdf not written (the RQ4 figure is the paired "
+              f"comparison, not the empty crossing)")
         return None
-    labels = ["Raw FFI crossing\n(uecm_abi_noop)", "End-to-end signaling op\n(submit+complete)"]
-    vals = [crossing, roundtrip]
-    colors = ["#1e8449", "#1f77b4"]
 
-    fig, ax = plt.subplots(figsize=(6.0, 3.6))
-    bars = ax.bar(range(2), vals, color=colors, width=0.55)
-    ax.set_yscale("log")
-    ax.set_xticks(range(2))
-    ax.set_xticklabels(labels, fontsize=9)
-    ax.set_ylabel("Cost per call (ns, log scale)")
-    ax.grid(True, axis="y", which="both", ls=":", alpha=0.4)
-    for b, v in zip(bars, vals):
-        txt = f"{v:.2f} ns" if v < 100 else f"{v/1000.0:.1f} \u00b5s"
-        ax.text(b.get_x() + b.get_width() / 2, v * 1.15, txt,
-                ha="center", va="bottom", fontsize=9, fontweight="bold")
-    # Quoted as an order of magnitude rather than a bare ratio: both terms are
-    # microbenchmarks with their own dispersion, so a six-figure ratio would be
-    # precision the measurement does not have. This also keeps the figure and
-    # the prose stating the same thing.
-    orders = round(math.log10(roundtrip / crossing))
-    ax.set_title(
-        f"FFI crossing is ~{orders} orders of magnitude below one service op",
-        fontsize=9)
-    ax.set_ylim(top=roundtrip * 4)
+    native_us = [v / NS_PER_US for v in native]
+    seam_us = [v / NS_PER_US for v in seam]
+    diffs = [s - n for n, s in zip(native, seam)]
+    med, lo, hi = bootstrap_ci(diffs)
+
+    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(9.6, 3.6),
+                                     gridspec_kw={"width_ratios": [1.0, 1.15]})
+
+    # ---- (a) one line per interleaved repeat ------------------------------ #
+    for n_us, s_us in zip(native_us, seam_us):
+        colour = "#c0392b" if s_us > n_us else "#2c7fb8"
+        ax_a.plot([0, 1], [n_us, s_us], "-", color=colour, lw=1.0, alpha=0.55,
+                  marker="o", ms=3.0)
+    ax_a.plot([0, 1], [statistics.median(native_us), statistics.median(seam_us)],
+              "-", color="#111111", lw=2.2, marker="D", ms=6, zorder=5,
+              label="median of the repeats")
+    n_up = sum(1 for n_us, s_us in zip(native_us, seam_us) if s_us > n_us)
+    for colour, count, sense in (("#c0392b", n_up, "dearer"),
+                                 ("#2c7fb8", len(native) - n_up, "cheaper")):
+        ax_a.plot([], [], "-", color=colour, lw=1.2,
+                  label=f"seam {sense} on {count} repeats")
+    ax_a.set_xlim(-0.35, 1.35)
+    ax_a.set_xticks([0, 1])
+    ax_a.set_xticklabels(["called natively\nfrom Rust",
+                          "called from C++\nthrough the seam"], fontsize=8.5)
+    ax_a.set_ylabel("One signalling operation (\u00b5s)")
+    ax_a.set_title(f"(a) {len(native)} interleaved repeats", fontsize=9.5)
+    ax_a.grid(True, axis="y", ls=":", alpha=0.4)
+    ax_a.set_axisbelow(True)
+    lo_y, hi_y = ax_a.get_ylim()
+    ax_a.set_ylim(lo_y, hi_y + (hi_y - lo_y) * 0.24)
+    ax_a.legend(fontsize=8, framealpha=0.95, loc="upper right")
+
+    # ---- (b) the paired difference against zero --------------------------- #
+    span = max(abs(lo), abs(hi)) * 1.6
+    ax_b.axvspan(lo, hi, color="#f2d4d0", alpha=0.55, lw=0,
+                 label="95% CI: what the measurement could have missed")
+    ax_b.axvline(0.0, color="#333333", lw=1.1, ls="--")
+    ax_b.errorbar([med], [0], xerr=[[med - lo], [hi - med]], fmt="D",
+                  color="#1e8449", ms=7, lw=1.6, capsize=4,
+                  label="paired difference (seam \u2212 native)")
+    crossing = m.get("ffi_crossing_ns", 0.0)
+    if crossing > 0:
+        # The empty crossing plotted on the axis the operation is measured on:
+        # it lands indistinguishably from zero, which is the honest way to show
+        # that it was never the quantity in question.
+        ax_b.plot([crossing], [0], marker="|", ms=14, color="#111111", mew=1.4)
+        ax_b.annotate(f"the empty crossing, {crossing:.2f} ns",
+                      xy=(crossing, -0.06), xytext=(-span * 0.52, -0.55),
+                      textcoords="data", ha="center", fontsize=8,
+                      color="#111111",
+                      arrowprops=dict(arrowstyle="->", color="#111111", lw=0.9,
+                                      shrinkB=2))
+    native_med = statistics.median(native)
+    ax_b.set_xlim(-span, span)
+    ax_b.set_ylim(-1.15, 0.95)
+    ax_b.set_yticks([])
+    ax_b.set_xlabel("Seam cost per operation (ns)")
+    ax_b.set_title("(b) No cost detected, and the bound on it", fontsize=9.5)
+    ax_b.grid(True, axis="x", ls=":", alpha=0.4)
+    ax_b.set_axisbelow(True)
+    ax_b.annotate(f"upper bound {100.0 * hi / native_med:.1f}% of the operation\n"
+                  f"$p = {m.get('op_paired_p', float('nan')):.3f}$",
+                  xy=(0.03, 0.88), xycoords="axes fraction", ha="left",
+                  va="top", fontsize=8, color="#a5281b")
+    ax_b.legend(fontsize=8, framealpha=0.95, loc="lower right")
+
     fig.tight_layout()
     out = os.path.join(outdir, "fig_ffi_cost.pdf")
     fig.savefig(out)
@@ -914,6 +1134,191 @@ def fig_budget(budget, sig_results, outdir):
 
     fig.tight_layout()
     out = os.path.join(outdir, "fig_budget.pdf")
+    fig.savefig(out)
+    plt.close(fig)
+    return out
+
+
+#: Blocks of the paired-effect figure, in the order tab:significance uses them and
+#: with the same meaning. The figure and the table have to agree on the grouping,
+#: because the grouping is where the statistical treatment's reading rule applies.
+EFFECT_BLOCKS = [
+    ("robust", "robust to interference on single operations", "#1f4e79"),
+    ("tail", "determined by it: high percentiles", "#9aa5ad"),
+]
+
+
+def fig_effects(sig_results, outdir):
+    """The whole Holm family as paired effects, one row per test.
+
+    The significance table carries five columns of numbers per row and asks the
+    reader to hold fourteen rows in mind at once. Three things are hard to see that
+    way and easy to see here: which effects clear the correction, whether an effect
+    keeps its sign when the allocator changes, and how much wider the tail
+    intervals are than the robust ones.
+
+    Effects are normalised by the C++ median because the family mixes
+    microseconds, mebibytes, percentage points and kops/s, and a shared axis is the
+    only way to put them side by side. The tables keep each metric's own units, so
+    nothing here replaces them.
+
+    The tail rows are drawn but greyed. They are computed from exactly the
+    operations interference falls on, so an interval excluding zero is not read as
+    a finding, and the figure has to show that rule being applied rather than
+    quietly drop the rows it inconveniences.
+    """
+    if not sig_results:
+        return None
+    points = []
+    for point, title in (("repr", "Below saturation"), ("overload", "Past saturation")):
+        sel = [r for r in sig_results if r.get("point", "repr") == point]
+        if sel:
+            points.append((point, title, sel))
+    if not points:
+        return None
+
+    fig, axes = plt.subplots(1, len(points), figsize=(9.6, 3.9),
+                             gridspec_kw={"width_ratios": [1.0] * len(points)})
+    if len(points) == 1:
+        axes = [axes]
+
+    for ax, (point, title, sel), panel in zip(axes, points, "abcdefg"):
+        # Rows in table order: block by block, and inside a block in the order the
+        # metrics were tested, with the two allocators of a metric adjacent so the
+        # cross-allocator check is a glance rather than a search.
+        ordered, seen = [], []
+        for r in sel:
+            if _plain(r["metric"]) not in seen:
+                seen.append(_plain(r["metric"]))
+        for kind, _heading, _colour in EFFECT_BLOCKS:
+            for metric in seen:
+                for r in sel:
+                    if r["kind"] == kind and _plain(r["metric"]) == metric:
+                        ordered.append(r)
+        ys = list(range(len(ordered)))[::-1]
+        colour_of = {kind: colour for kind, _h, colour in EFFECT_BLOCKS}
+
+        for y, r in zip(ys, ordered):
+            base = r.get("base") or 0.0
+            if base == 0:
+                continue
+            scale = 100.0 / abs(base)
+            med, lo, hi = r["diff"] * scale, r["lo"] * scale, r["hi"] * scale
+            colour = colour_of.get(r["kind"], "#1f4e79")
+            clears = r.get("holm", 1.0) < 0.05
+            ax.errorbar([med], [y], xerr=[[med - lo], [hi - med]], fmt="o",
+                        color=colour, ms=6, lw=1.5, capsize=3,
+                        markerfacecolor=colour if clears else "white",
+                        markeredgewidth=1.4, zorder=3)
+        # A band behind the tail rows, so the block is visible without a second
+        # axis or a legend entry that would have to be read first.
+        ax.axvline(0.0, color="#333333", lw=1.0, ls="--", zorder=1)
+        ax.set_yticks(ys)
+        ax.set_yticklabels([f"{_plain(r['metric'])}, {r['alloc']}" for r in ordered],
+                           fontsize=8.5)
+        # Room below the bottom row for the legend, and room to the right of the
+        # widest interval for the block label, so neither is laid over data.
+        ax.set_ylim(-1.9 if point == "repr" else -0.7, len(ordered) - 0.3)
+        x0, x1 = ax.get_xlim()
+        ax.set_xlim(x0, x1 + (x1 - x0) * 0.22)
+        tail_ys = [y for y, r in zip(ys, ordered) if r["kind"] == "tail"]
+        if tail_ys:
+            ax.axhspan(min(tail_ys) - 0.5, max(tail_ys) + 0.5,
+                       color="#eceff1", zorder=0)
+            ax.annotate("not read\nas findings",
+                        xy=(0.985, (min(tail_ys) + max(tail_ys)) / 2.0),
+                        xycoords=("axes fraction", "data"),
+                        ha="right", va="center", fontsize=8, color="#5b6770")
+        ax.set_xlabel("Paired effect, Rust $-$ C++ (% of the C++ median)")
+        load_kops = ordered[0]["load"] / 1000.0 if ordered else 0.0
+        ax.set_title(f"({panel}) {title}, {load_kops:.0f} kops/s", fontsize=9.5)
+        ax.grid(True, axis="x", ls=":", alpha=0.4)
+        ax.set_axisbelow(True)
+
+    handles = [
+        plt.Line2D([], [], marker="o", ls="none", color="#1f4e79", ms=6,
+                   markerfacecolor="#1f4e79", label="clears the Holm correction"),
+        plt.Line2D([], [], marker="o", ls="none", color="#1f4e79", ms=6,
+                   markerfacecolor="white", markeredgewidth=1.4,
+                   label="does not clear it"),
+    ]
+    axes[0].legend(handles=handles, fontsize=8, framealpha=0.95, loc="lower left")
+
+    fig.tight_layout()
+    out = os.path.join(outdir, "fig_effects.pdf")
+    fig.savefig(out)
+    plt.close(fig)
+    return out
+
+
+def fig_overload(rows, outdir, overload):
+    """The divergence past saturation, and the reading that rules out idleness.
+
+    Grouped by allocator on purpose. The two bars inside a group differ only in
+    language and the two groups differ only in allocator, so the figure shows in
+    its layout what the paired tests establish in numbers: the separation follows
+    the language and not the allocator.
+
+    Panel (b) is what makes the gap interpretable rather than merely large. A
+    variant completing less work might simply be doing less, and total CPU alone
+    cannot tell the two apart. Divided through by the work that actually completed
+    it can: the variant that sustains less spends more CPU per operation it
+    finishes, which is effort without completion rather than idleness.
+    """
+    if overload is None:
+        return None
+    variants = variants_present(rows)
+    allocs = [a for a in ("system", "jemalloc")
+              if any(k[1] == a for k in variants) and _subset(rows, ("cpp", a), overload)]
+    langs = [l for l in ("cpp", "rust") if any(k[0] == l for k in variants)]
+    if not allocs or len(langs) < 2:
+        return None
+    names = {"cpp": "C++", "rust": "Rust"}
+    alloc_names = {"system": "system allocator", "jemalloc": "jemalloc"}
+    thr_kops = lambda r: r["throughput_ops_s"] / 1000.0
+    # CPU spent per unit of work that actually completed. Formed per repeat rather
+    # than as a ratio of the two medians, so the interval it carries is the
+    # dispersion of the quantity itself.
+    cpu_per_kops = lambda r: (r["cpu_pct"] / thr_kops(r) if thr_kops(r) > 0 else None)
+
+    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(9.2, 3.5))
+
+    def grouped(ax, metric_fn, ylabel, title, annotate):
+        width = 0.34
+        for i, lang in enumerate(langs):
+            xs, med, err_lo, err_hi = [], [], [], []
+            for j, alloc in enumerate(allocs):
+                vals = [metric_fn(r) for r in _subset(rows, (lang, alloc), overload)]
+                m, lo, hi = bootstrap_ci([v for v in vals if v is not None])
+                xs.append(j + (i - (len(langs) - 1) / 2) * width)
+                med.append(m)
+                err_lo.append(max(0.0, m - lo))
+                err_hi.append(max(0.0, hi - m))
+            colour = VARIANT_STYLE[(lang, allocs[0])][1]
+            bars = ax.bar(xs, med, width=width, color=colour, label=names[lang],
+                          yerr=[err_lo, err_hi], capsize=3,
+                          error_kw={"lw": 1.0, "ecolor": "#333333"})
+            if annotate:
+                for b, m in zip(bars, med):
+                    ax.text(b.get_x() + b.get_width() / 2, m, f"{m:.0f}",
+                            ha="center", va="bottom", fontsize=8.5)
+        ax.set_xticks(range(len(allocs)))
+        ax.set_xticklabels([alloc_names[a] for a in allocs], fontsize=8.5)
+        ax.set_ylabel(ylabel)
+        ax.set_title(title, fontsize=9.5)
+        ax.grid(True, axis="y", ls=":", alpha=0.4)
+        ax.set_axisbelow(True)
+        ax.legend(fontsize=8, framealpha=0.95)
+
+    grouped(ax_a, thr_kops, "Sustained throughput (kops/s)",
+            "(a) Work still completed", annotate=True)
+    grouped(ax_b, cpu_per_kops, "CPU (%) per sustained kops/s",
+            "(b) Cost of the work that completed", annotate=False)
+    # Headroom for the value labels, which otherwise collide with the frame.
+    ax_a.set_ylim(top=ax_a.get_ylim()[1] * 1.14)
+
+    fig.tight_layout()
+    out = os.path.join(outdir, "fig_overload.pdf")
     fig.savefig(out)
     plt.close(fig)
     return out
@@ -1457,6 +1862,11 @@ def significance_results(rows, load, overload=None):
                     "point": point, "load": point_load,
                     "diff": diff, "lo": lo, "hi": hi, "p": p, "n": n,
                     "agree": agree,
+                    # The C++ median this effect is a difference from. Carried so a
+                    # figure can put metrics measured in microseconds, mebibytes,
+                    # percent and kops/s on one axis as a share of their own
+                    # baseline; the tables keep the metric's own units.
+                    "base": statistics.median(cpp),
                     # The tightest margin within which this comparison can be
                     # called equivalent. Reported for every row, including the
                     # ones that reach significance, where it doubles as an upper
@@ -1782,6 +2192,12 @@ def main():
     budget_fig = fig_budget(budget, sig, outdir)
     if budget_fig:
         produced.append(budget_fig)
+    effects_fig = fig_effects(sig, outdir)
+    if effects_fig:
+        produced.append(effects_fig)
+    overload_fig = fig_overload(rows, outdir, overload)
+    if overload_fig:
+        produced.append(overload_fig)
     lat_tab = write_latency_table(rows, outdir, load)[0]
     res_tab = write_resource_table(rows, outdir, load)
     jitter_tab = write_jitter_table(rows, outdir, load)
