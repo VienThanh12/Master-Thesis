@@ -370,17 +370,34 @@ python3 bench/plot_figures.py --campaign results/campaign-XXXX.jsonl \
     --taxonomy ../faults/results/taxonomy.csv --load 16000
 ```
 
-Produces (vector PDF, embedded by `Thesis_POC.tex`):
+Produces (vector PDF, all nine embedded by `Thesis_POC.tex`):
 - `fig_latency_vs_load.pdf`: p99 latency vs offered load, median + bootstrap 95% CI band.
 - `fig_throughput_vs_load.pdf`: achieved vs offered throughput (saturation knee).
-- `fig_tail_percentiles.pdf`: latency-by-percentile at the representative load.
-- `fig_resources.pdf`: peak RSS + CPU utilisation per variant (RQ3).
+- `fig_tail_percentiles.pdf`: latency by percentile at the representative load, with
+  bootstrap bands, beside the between-variant spread against the within-variant interval.
+  The second panel is where the host stops resolving the comparison (RQ1).
+- `fig_effects.pdf`: the whole Holm-corrected family as paired effects, normalised by the
+  C++ median so metrics in different units share an axis. Filled markers clear the
+  correction; the high-percentile rows are shaded because the pre-committed reading rule
+  does not treat their intervals as findings (RQ1, RQ3).
+- `fig_budget.pdf`: the end-to-end round-trip decomposed, against what the sweep can resolve.
+- `fig_overload.pdf`: past-saturation divergence. Sustained throughput, and total CPU divided
+  by the work that completed, which is what separates effort from idleness (RQ1).
+- `fig_resources.pdf`: peak RSS and CPU per variant, plus the allocator effect drawn against
+  the language effect as paired differences (RQ3).
 - `fig_taxonomy.pdf`: fault-injection outcome matrix from `taxonomy.csv` (RQ2).
-- `fig_ffi_cost.pdf`: FFI crossing vs end-to-end op cost from `../ffi/results/metrics.json` (RQ4).
+- `fig_ffi_cost.pdf`: the seam's cost on one real operation. Interleaved native-vs-seam
+  repeats from `../ffi/results/op_cost.jsonl`, then their paired difference with the bound on
+  what the measurement could have missed (RQ4). Skipped, with a note, when the paired repeats
+  are absent: the empty crossing alone does not answer RQ4.
 - `tab_latency.tex`, `tab_resource.tex`, `tab_significance.tex`, `tab_budget.tex`,
   `tab_ffi.tex`: table bodies `\input` by the thesis.
 - `gen_macros.tex`: every campaign number the prose quotes, defined as a LaTeX macro so
   the narrative updates with the data instead of going stale.
+
+Every figure that shows a comparison shows its uncertainty with it. A bar chart or a line
+plot without an interval cannot distinguish "the same" from "not separable here", and that
+distinction is load-bearing for RQ1.
 
 `tab_significance.tex` is blocked into statistics that pairing rescues (peak RSS, CPU,
 p50) and high percentiles that it does not, because a paired interval excluding zero

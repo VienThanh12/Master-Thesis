@@ -824,9 +824,19 @@ by "the artefacts" once the repository keeps moving after submission.
 
 ### 12. Housekeeping found while surveying
 
-- `bench/plot_figures.py` generates `fig_tail_percentiles.pdf`, `fig_resources.pdf`,
-  `fig_taxonomy.pdf` and `fig_ffi_cost.pdf`, and `thesis.tex` includes none of them. Either place
-  them or stop generating them; a generated figure nobody reads is a maintenance trap.
+- ~~`bench/plot_figures.py` generates `fig_tail_percentiles.pdf`, `fig_resources.pdf`,
+  `fig_taxonomy.pdf` and `fig_ffi_cost.pdf`, and `thesis.tex` includes none of them.~~ **Done
+  (Aug 2026).** All four are placed, and two were rebuilt first because they were not fit to
+  place as they stood: the percentile fan had no intervals, so four overlapping lines read as a
+  claim of equivalence, and `fig_ffi_cost` was titled with the crossing-vs-round-trip ratio that
+  §6.4.8 explicitly declines to reason from. Two figures were added with them: `fig_effects.pdf`
+  (the Holm family as paired effects on one normalised axis) and `fig_overload.pdf` (the
+  past-saturation divergence, which was the study's strongest result and had no figure at all).
+  Chapter 6 now runs nine plots of measured data against eleven tables, where it ran three.
+  Regenerating `tab_ffi.tex` in the same pass also fixed a live figure/table/prose disagreement:
+  the committed table said 12 entry points and 12 `unsafe` functions where `gen_artefacts.tex`
+  and the prose said 11 and 9. `build_deck.py` needed the matching row labels and full-width
+  boxes for the two figures that grew wider.
 - Several `diagrams/pdf/*` are likewise unused where TikZ or a table took over the role.
 - `AGENT.md` and `ASSESSMENT.md` both still list `\censors{}{}{}` as the title-page item, but
   `thesis.tex` now uses `\supervisors` with an unset `\examiners`. Same task, wrong command name

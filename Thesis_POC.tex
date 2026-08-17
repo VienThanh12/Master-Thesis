@@ -1879,7 +1879,7 @@ directions, which Section~\ref{sec:idioms} decomposes file by file. The remainde
 section works outward from the data model to the concurrency machinery, and reports the measured
 consequences of each language-forced divergence as it arises.
 
-\subsection{The UE context and its memory layout}\label{sec:uecontext}
+\subsection{The UE context and the state machine}\label{sec:uecontext}
 Each UE context stores its identifier, lifecycle state (a four-value enumeration
 \texttt{Idle}, \texttt{Connected}, \texttt{Reconfiguring}, \texttt{Released}), serving cell,
 RRC transaction id, a fixed 32-byte dummy security context, a dynamic list of up to eight data
@@ -1917,15 +1917,14 @@ dynamic \texttt{Vec}/\texttt{std::vector} on purpose, to exercise the allocator 
 alias into live shard state, preserving the shared-nothing guarantee.\label{fig:datamodel}}
 \end{figure}
 
-\subsection{The state machine as implemented}
-The lifecycle of Figure~\ref{fig:fsm} is realised as a single guarded transition per
-operation, and Table~\ref{tab:transitions} gives the implemented table in full. Two properties
-hold uniformly and are what make the two implementations comparable op for op. First, every
-operation validates before it mutates: the guard sequence checks the identifier, then locates
-the context, then tests the state, and returns the corresponding \texttt{OpError} before
-touching any field, so a rejected operation leaves the context bit-identical to what it was.
-Second, no operation can partially succeed, because each performs at most one mutation after
-the last guard has passed.
+That record is driven by the lifecycle of Figure~\ref{fig:fsm}, realised as a single guarded
+transition per operation, with Table~\ref{tab:transitions} giving the implemented table in full.
+Two properties hold uniformly and are what make the two implementations comparable op for op.
+First, every operation validates before it mutates: the guard sequence checks the identifier,
+then locates the context, then tests the state, and returns the corresponding \texttt{OpError}
+before touching any field, so a rejected operation leaves the context bit-identical to what it
+was. Second, no operation can partially succeed, because each performs at most one mutation
+after the last guard has passed.
 
 Two behaviours deserve explicit mention because the table alone hides them. The
 \texttt{Released} state is never actually stored: \texttt{release\_context} erases the entry
@@ -1962,7 +1961,7 @@ Operation & Required state & Resulting state & Errors \\
 \end{tabular}
 \end{table}
 
-\subsection{Shard selection and the intra-shard store}
+\subsection{Sharding, the store, and the bounded queue}
 To prevent the standard library hashers from becoming an accidental language advantage, both
 sides pin their hashing. Shard assignment applies the SplitMix64 finalizer to the
 \texttt{ue\_id}, three xor-shift and multiply rounds with the constants
@@ -1987,18 +1986,16 @@ $1\,024$ requests per shard, at most eight bearers and a 64-byte signalling payl
 context, and a ceiling of $200\,000$ contexts per shard. Only the shard count is varied from
 these defaults, and only by the campaign, which sets it to match the cores it is given.
 
-\subsection{The bounded queue}
-The bounded blocking queue is where the two standard libraries diverge most sharply, and
-Figure~\ref{lst:queue} shows why. Rust's standard library provides the primitive the
-specification calls for directly: \texttt{sync\_channel(capacity)} is a bounded multi-producer,
-single-consumer channel whose \texttt{send} blocks when the queue is full and whose
-\texttt{recv} blocks when it is empty, which is precisely the required backpressure semantics
-in a single call. The C++ standard library, through C++23, offers no bounded blocking queue at
-all, so the same semantics must be assembled by hand from a \texttt{mutex}, two
-\texttt{condition\_variable}s, and a \texttt{std::queue}, and the result is the 45-line class
-reproduced on the left.
+The bounded blocking queue is where the two standard libraries diverge most sharply. Rust
+provides the primitive the specification calls for directly: \texttt{sync\_channel(capacity)} is
+a bounded multi-producer, single-consumer channel whose \texttt{send} blocks when the queue is
+full and whose \texttt{recv} blocks when it is empty, which is precisely the required
+backpressure semantics in a single call. The C++ standard library, through C++23, offers no
+bounded blocking queue at all, so the same semantics are assembled by hand from a
+\texttt{mutex}, two \texttt{condition\_variable}s and a \texttt{std::queue}, in a class of $45$
+lines.
 
-The point of the comparison is not that the C++ code is badly written; it is short, it uses
+The point of the comparison is not that the C++ code is badly written. It is short, it uses
 the predicate form of \texttt{wait} so spurious wakeups are handled correctly, and it releases
 the lock before notifying. The point is that it exists at all. Every one of those lines is a
 place where a concurrency defect could be introduced, and the correctness argument for it,
@@ -2008,60 +2005,10 @@ the library. This is the same asymmetry the fault-injection study of Chapter~\re
 measures, appearing here in ordinary, non-defective code instead of in a deliberately injected
 bug.
 
-\begin{figure}
-\begin{minipage}[t]{0.52\linewidth}
-\textbf{\footnotesize C++: hand-written, 45 lines}
-\begin{lstlisting}[language=C++]
-template <class T> class BoundedQueue {
- public:
-  void push(T value) {
-    std::unique_lock lk(m_);
-    not_full_.wait(lk, [&]{
-        return q_.size() < capacity_; });
-    q_.push(std::move(value));
-    lk.unlock();
-    not_empty_.notify_one();
-  }
-  T pop() {
-    std::unique_lock lk(m_);
-    not_empty_.wait(lk, [&]{
-        return !q_.empty(); });
-    T value = std::move(q_.front());
-    q_.pop();
-    lk.unlock();
-    not_full_.notify_one();
-    return value;
-  }
- private:
-  const std::size_t capacity_;
-  std::mutex m_;
-  std::condition_variable not_full_;
-  std::condition_variable not_empty_;
-  std::queue<T> q_;
-};
-\end{lstlisting}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.44\linewidth}
-\textbf{\footnotesize Rust: standard library}
-\begin{lstlisting}[language=Rust]
-let (tx, rx) =
-    sync_channel(cfg.queue_capacity);
-
-// tx.send(req) blocks when full
-// rx.recv()    blocks when empty
-\end{lstlisting}
-\end{minipage}
-\caption[The bounded blocking MPSC queue in both languages]{The bounded blocking MPSC queue in both languages (C++ abridged only by the omission
-of the constructor). The semantics are identical; the C++ standard library simply does not
-supply the primitive, so it is assembled by hand from a mutex and two condition variables,
-and its correctness is argued rather than
-guaranteed.\label{lst:queue}}
-\end{figure}
-
-\subsection{Requests, responses, and the cost of a tagged struct}\label{sec:tagged}
+\subsection{Requests, responses, and the service lifecycle}\label{sec:tagged}
 \label{sec:request}
-The message type carried through that queue is the second forced divergence, shown in
-Figure~\ref{lst:request}. Rust models a request as an \texttt{enum} with one variant per
+The message type carried through that queue is the second forced divergence. Rust models a
+request as an \texttt{enum} with one variant per
 operation; each variant carries exactly its own arguments plus a \texttt{Sender} parameterised
 by exactly that operation's result type. C++ has no equivalent of a payload-carrying
 enumeration in the standard idiom used here, so a request is a tagged struct: an
@@ -2086,59 +2033,6 @@ files. In Rust the same invariant is discharged by construction: because the sen
 in each variant is already typed, there is no response union, nothing to unwrap, and no
 runtime dispatch on the way back.
 
-\begin{figure}
-\begin{minipage}[t]{0.50\linewidth}
-\textbf{\footnotesize C++: tagged struct + variant (\CppRequestBytes~B)}
-\begin{lstlisting}[language=C++]
-enum class OpKind : std::uint8_t {
-  CreateContext, SetupConnection,
-  HandleSignaling, AddDrb, /* ... */
-  Lookup, Count, Stop };
-
-using Response = std::variant<
-    OpResult<void>,
-    OpResult<SignalingAck>,
-    OpResult<UeContextView>,
-    OpResult<std::uint64_t>>;
-
-struct Request {          // move-only
-  OpKind kind{};
-  UeId ue_id = 0;
-  CreateParams create_params{};
-  SignalingMsg signalling{};
-  DrbEntry drb{};
-  ReconfigParams reconfig{};
-  std::promise<Response> completion;
-};
-\end{lstlisting}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.46\linewidth}
-\textbf{\footnotesize Rust: enum + typed sender (\RustRequestBytes~B)}
-\begin{lstlisting}[language=Rust]
-pub enum Request {
-    Create { ue_id: UeId,
-        params: CreateParams,
-        resp: Sender<OpResult<()>> },
-    Signal { ue_id: UeId,
-        msg: SignalingMsg,
-        resp: Sender<
-            OpResult<SignalingAck>> },
-    Lookup { ue_id: UeId,
-        resp: Sender<
-            OpResult<UeContextView>> },
-    // ... one variant per operation
-    Stop,
-}
-\end{lstlisting}
-\end{minipage}
-\caption[The request message in both languages]{The request message in both languages (abridged: C++ elides four \texttt{OpKind}
-values, Rust seven variants). The C++ tagged struct carries every argument field on every
-request and returns a union that the caller must unwrap; the Rust enum carries only the
-arguments of the operation in flight and a sender already typed to that operation's
-result.\label{lst:request}}
-\end{figure}
-
-\subsection{Service lifecycle, shutdown, and ownership}
 Starting the service allocates the shards, spawns one worker thread per shard, and hands each
 worker exclusive ownership of its store; the request path is then as described in
 Section~\ref{sec:concurrency}. Shutdown is the more delicate half, because it must terminate
@@ -2174,7 +2068,7 @@ state in either implementation is the atomic activity counter, held by reference
 as a cloned \texttt{Arc<AtomicU64>} in Rust, and incremented with relaxed ordering because
 nothing branches on its value.
 
-\subsection{Forced idioms and what they cost}
+\subsection{Forced idioms, and what the two cores cost}
 \label{sec:idioms}
 Where the two languages must diverge to satisfy the same requirement, the deviation is
 recorded in the specification's forced-idiom log so that it can be weighed rather than
@@ -2211,27 +2105,23 @@ substantially \emph{shorter} in exactly one place, the bounded queue, where it n
 at all against 45 lines of C++, and longer almost everywhere else, with three contributions
 accounting for most of the excess.
 
-The largest is the service module, for the reason developed in Section~\ref{sec:request}:
-because the C++ response is a single \texttt{variant}, all ten public operations funnel through
-one shared \texttt{submit} helper and each typed wrapper shrinks to two or three lines, while
-Rust's per-variant typed sender admits no such helper without generics, so each operation
-repeats the sequence of creating a completion channel, constructing its variant, sending, and
-receiving. The next, and the one that best illustrates the trade-off, is hashing. C++ satisfies
-\texttt{std::unordered\_map}'s hasher requirement with a five-line functor wrapping a call to
-\texttt{fnv1a\_64}, whereas Rust must supply the whole trait apparatus: a \texttt{FnvHasher}
-holding the running state, a \texttt{Default} implementation seeding it with the offset basis,
-a \texttt{Hasher} implementation providing \texttt{write}, \texttt{write\_u64}, and
-\texttt{finish}, a unit \texttt{FnvBuildHasher}, and a \texttt{BuildHasher} implementation to
-manufacture hashers. Every line of it is boilerplate, and it buys a statically dispatched,
-type-checked hasher rather than a conventionally shaped callable.
-The third, \texttt{lib.rs}, is the module tree and public re-export list, work that C++ gets
-implicitly from its header structure and \texttt{\#include} graph.
+The largest is the service module, for the reason developed above: because the C++ response is a
+single \texttt{variant}, all ten public operations funnel through one shared \texttt{submit}
+helper and each typed wrapper shrinks to two or three lines, while Rust's per-variant typed
+sender admits no such helper without generics, so each operation repeats the sequence of
+creating a completion channel, constructing its variant, sending, and receiving. The next, and
+the one that best illustrates the trade-off, is hashing: C++ satisfies
+\texttt{std::unordered\_map}'s hasher requirement with a five-line functor wrapping
+\texttt{fnv1a\_64}, whereas Rust must supply the whole trait apparatus, every line of it
+boilerplate, buying a statically dispatched, type-checked hasher rather than a conventionally
+shaped callable. The third is the module tree and public re-export list, work C++ gets
+implicitly from its header structure.
 
 None of this is a defect on either side, and none of it is visible in the performance figures.
-It is exactly the kind of engineering cost the forced-idiom log exists to surface: Rust spends
-source lines on trait machinery and call-site repetition to obtain guarantees the compiler can
-check, and recovers a large part of that spend wherever its standard library happens to
-provide a primitive that C++'s does not.
+It is the kind of engineering cost the forced-idiom log exists to surface: Rust spends source
+lines on trait machinery and call-site repetition to obtain guarantees the compiler can check,
+and recovers a large part of that spend wherever its standard library happens to provide a
+primitive that C++'s does not.
 
 Counting lines, however, answers only half the question a reviewer of either codebase would
 ask, because it treats a line of boilerplate and a line of branching as the same thing.
@@ -2304,8 +2194,8 @@ Total                             & $\CppRawLines$ & $\RustRawLines$ & $+\LocGap
 \end{tabular}
 \end{table}
 
-\subsection{The safety argument for the two cores}
-The Rust library contains \emph{no} \texttt{unsafe} code at all, a property verified
+One property of the Rust core is not a cost at all, and it closes this section because it is what
+the costs above were paid for. The Rust library contains \emph{no} \texttt{unsafe} code at all, a property verified
 mechanically over the crate. Safe Rust therefore guarantees data-race freedom for this core at
 compile time through the \texttt{Send} and \texttt{Sync} traits: the shard store is owned by a
 single worker and never shared, the request type is moved across the thread boundary, and the
@@ -3460,12 +3350,12 @@ can drift from the other.
 \centering
 \includegraphics[width=0.92\linewidth]{figures/fig_taxonomy.pdf}
 \caption[Where the guarantee stops: the outcome matrix]{The outcomes of Table~\ref{tab:taxonomy} drawn as a matrix, generated from the same
-\texttt{faults/results/taxonomy.csv}. Above the rule every defect is a compile error in safe
-Rust, while no single C++ sanitiser covers that half and the three between them leave one class
-untouched. Below the rule the Rust column joins the C++ ones, and on the reference-cycle leak and
-the release-build overflow the C++ tooling is ahead. The lock-order deadlock is the one cell where
-a tool reports intermittently: ThreadSanitizer flags the inversion on a minority of runs while the
-program deadlocks on every one.\label{fig:taxonomy}}
+\texttt{faults/results/taxonomy.csv}. Above the rule the Rust column is a single colour: every
+defect is a compile error, so none can be written. The C++ columns there are a patchwork instead,
+and no one sanitiser covers the five. Below the rule the Rust column joins them, and on the
+reference-cycle leak and the release-build overflow the C++ tooling is ahead. The lock-order
+deadlock is the one cell where a tool reports intermittently: ThreadSanitizer flags the inversion
+on a minority of runs while the program deadlocks on every one.\label{fig:taxonomy}}
 \end{figure}
 
 \subsection{Migration (RQ4)}\label{sec:migrationresults}

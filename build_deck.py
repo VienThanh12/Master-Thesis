@@ -1021,20 +1021,15 @@ add_figure(s, _png, crop_top=_crop)
 # =====================================================================
 s = headline(1, "RQ1 below saturation: the host runs out of resolution",
              f"Latency by percentile at {M('ReprLoad')} kops/s, median over {M('NRepeats')} interleaved repeats")
-add_figure(s, result_figure("fig_tail_percentiles"), width=Cm(12.4), height=Cm(9.2),
-           top=Cm(3.5))
+add_figure(s, result_figure("fig_tail_percentiles"), top=Cm(3.4), height=Cm(6.9))
 add_notes(s, [
     (f"Within {M('PFiftyRange')} \u00b5s at the median",
-     f"The four variants sit {M('PFiftySpread')}% apart at p50 \u2014 a real result, and the "
-     "one place pairing removes the interference."),
-    (f"p99 spread {M('PNineNineRange')} \u00b5s, widest own interval {M('PNineNineMaxCI')} \u00b5s",
-     "When the uncertainty about one variant exceeds the gap between all of them, "
-     "no ordering can be read off."),
-    ("\u201cCannot tell\u201d is not \u201cequivalent\u201d",
-     "The far tail below saturation stays open on this host; resolving it needs the "
-     "bare-metal protocol, not more repeats."),
-], top=Cm(3.6), left=Cm(14.0), width=Cm(10.24), height=Cm(9.2), gap=Cm(0.42),
-   vertical=True)
+     f"The four sit {M('PFiftySpread')}% apart at p50, and pairing resolves it."),
+    (f"p99: {M('PNineNineRange')} \u00b5s vs {M('PNineNineMaxCI')} \u00b5s",
+     "Uncertainty about one exceeds the gap between all four."),
+    ("Cannot tell \u2260 equivalent",
+     "The far tail here needs bare metal, not more repeats."),
+], top=Cm(10.55), height=Cm(2.4))
 
 # =====================================================================
 # Slide 19: What the end-to-end number is made of (generated figure)
@@ -1129,21 +1124,18 @@ add_figure(s, _png, crop_top=_crop)
 # =====================================================================
 s = headline(1, "RQ4: incremental adoption is technically cheap",
              "The crossing is bounded against the same operation called natively, not declared free")
-add_figure(s, result_figure("fig_ffi_cost"), width=Cm(12.2), height=Cm(9.2),
-           top=Cm(3.5))
+add_figure(s, result_figure("fig_ffi_cost"), top=Cm(3.4), height=Cm(6.9))
 add_notes(s, [
-    (f"{ffi_value('Raw FFI crossing')} for the crossing itself",
-     f"an ordinary indirect call: {ffi_value('C-ABI entry points')} entry points in "
+    (f"Crossing: {ffi_value('Raw FFI crossing')}",
+     f"An indirect call. {ffi_value('C-ABI entry points')} entry points in "
      f"{ffi_value('Seam size')} plus a {ffi_value('Hand-written C header')} header."),
-    (f"unsafe: {ffi_value('unsafe in core library')} in the core, "
-     f"{ffi_value('unsafe in FFI seam')} in the seam",
-     "The raw-pointer work the C ABI needs is concentrated under one documented safety "
-     "contract."),
-    (f"No cost detected, bounded at {M('FfiOpBoundPct')}%",
-     f"p = {M('FfiOpP')} over {M('FfiOpRepeats')} interleaved repeats. The bound, not the "
-     "failure to detect a difference, supports the claim."),
-], top=Cm(3.6), left=Cm(13.8), width=Cm(10.44), height=Cm(9.2), gap=Cm(0.42),
-   vertical=True)
+    (f"unsafe: {ffi_value('unsafe functions in core library')} core, "
+     f"{ffi_value('unsafe functions in FFI seam')} seam",
+     "All raw-pointer work sits under one safety contract."),
+    (f"Bounded at {M('FfiOpBoundPct')}%",
+     f"No cost detected, p = {M('FfiOpP')} over {M('FfiOpRepeats')} repeats. "
+     "The bound is the claim."),
+], top=Cm(10.55), height=Cm(2.4))
 
 # =====================================================================
 # Slide 25: Migration playbook (diagram)
