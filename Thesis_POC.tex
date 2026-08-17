@@ -379,16 +379,7 @@ trends above converge.
 Software of this class is shipped, evolved, and operated across live operator networks. A
 language-selection decision here is therefore a concrete production concern rather than a
 hypothetical one, which is what makes a controlled comparison on a representative subsystem
-valuable to a vendor. It is also a decision with a long horizon. The next generation is being
-specified now: 3GPP has allocated Release 20 to the 6G studies and Release 21 to the normative
-work, against a calendar set by the ITU radiocommunication sector that asks for technology
-proposals in early 2029 and the full specifications by
-mid-2030~\cite{3gpp2024road6g,itu2023imt2030}. That work explicitly includes migration from and
-interworking with 5G, so control-plane software written for the current generation does not
-retire when the next one arrives; it will still be in service, and still evolving, once the
-secure-by-design obligations described above apply in full. The operative question is therefore
-not only which language suits a 5G control plane today, but which one a vendor can still afford
-to be maintaining a decade from now.
+valuable to a vendor.
 
 UECM is a deliberate choice of study object within that setting. It is small enough to
 reimplement faithfully and to reason about in full, yet it exercises exactly the properties
@@ -397,6 +388,47 @@ high concurrency across many UEs, and hard tail-latency expectations. Conclusion
 it therefore transfer to the broader class of stateful, concurrent control-plane services.
 They also remain reproducible by readers outside Nokia, because the implementation is driven
 entirely by a public, frozen specification rather than by proprietary code.
+
+\paragraph{A decision with a generational horizon.}
+A language choice in software of this class is not revisited often, and it outlives the
+generation it was made for. The next generation is being specified now: 3GPP has allocated
+Release 20 to the 6G studies and Release 21 to the normative work, against a calendar set by the
+ITU radiocommunication sector that asks for technology proposals in early 2029 and the submitted
+specifications by mid-2030~\cite{3gpp2024road6g,itu2023imt2030}. That work explicitly covers
+migration from and interworking with 5G, so a control plane written for the current generation is
+not retired when the next one arrives but maintained alongside it. The practical question for a
+vendor is therefore not only which language suits a 5G control plane today, but which one it can
+still afford to be maintaining a decade from now.
+
+Nothing in the next generation's stated objectives relaxes the requirements that motivate this
+comparison. The IMT-2030 framework names security and resilience as one of four design principles common to
+all of its usage scenarios, states that the system is expected to be secure by design, and
+defines resilience as the ability to keep operating correctly during and after a disruptive
+event; it also carries the ultra-reliable low-latency scenario forward in strengthened form, as
+hyper-reliable and low-latency communication~\cite{itu2023imt2030}. Freedom from whole classes of
+defect and predictable behaviour when the system is disturbed are thus being written into the
+objectives of the next generation rather than left to implementers, and both depend on the
+language and its libraries as much as on the architecture above them.
+
+The policy clock falls inside the same window, and the roadmap expectation noted above carries a
+date keyed to precisely this horizon. CISA and the FBI classify the development of new product
+lines in a memory-unsafe language as a bad practice that significantly elevates risk where the
+product serves critical infrastructure and a memory-safe alternative is available, and they expect
+manufacturers of existing products to publish a memory-safety roadmap, exempting only products
+whose announced support ends before January 2030~\cite{cisa2025badpractices}. Mobile-network infrastructure sits squarely inside that
+scope, and the Cyber Resilience Act obligations described above are in full force from December
+2027~\cite{eu2024cra}. A vendor that defers the language question until the next generation is
+specified will not thereby have avoided making it; it will have made it by default, in the
+incumbent language, for another decade of deployments.
+
+What this thesis contributes to that decision is bounded, and the boundary is worth stating
+plainly. The measurements here are taken on a subsystem modelled on a current-generation
+component and evaluated against requirements that are already published; no claim is made about
+requirements that have not yet been written. What crosses the generational boundary is not a
+latency figure but the language-level comparison itself: which defect classes a compiler can rule
+out, what the safety model costs, and what incremental adoption inside a large C++ codebase
+involves. Those questions have the same answers whichever generation the specification above them
+names, and they are cheapest to answer before the next codebase is started rather than after.
 
 \paragraph{A concrete failure mode.}
 To make the stakes concrete, consider a mobility storm in which many UEs hand over at once. A
