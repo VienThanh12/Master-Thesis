@@ -132,7 +132,10 @@
   \item This software is written mostly in C++. C++ gives the control over memory and timing
         that such a system needs, but it leaves memory-safety and concurrency mistakes to the
         programmer~\cite{szekeres2013sok}. Rust promises the same performance while rejecting
-        those mistakes at compile time~\cite{klabnik2023rust}.
+        those mistakes at compile time~\cite{klabnik2023rust}. The choice has a long horizon:
+        3GPP has allocated Release 20 to the 6G studies and Release 21 to the normative work,
+        with migration from 5G in scope~\cite{3gpp2024road6g}, so a language chosen for the
+        control plane of the current generation is inherited by the next.
   \item The problem is a lack of evidence. Telecom vendors are under growing pressure to move
         to memory-safe languages~\cite{cisa2023memorysafe}, but the closest prior work does not
         isolate the language. Karlb\"ack and Or\"o compare Rust and Go against C++ for RAN

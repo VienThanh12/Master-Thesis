@@ -379,7 +379,16 @@ trends above converge.
 Software of this class is shipped, evolved, and operated across live operator networks. A
 language-selection decision here is therefore a concrete production concern rather than a
 hypothetical one, which is what makes a controlled comparison on a representative subsystem
-valuable to a vendor.
+valuable to a vendor. It is also a decision with a long horizon. The next generation is being
+specified now: 3GPP has allocated Release 20 to the 6G studies and Release 21 to the normative
+work, against a calendar set by the ITU radiocommunication sector that asks for technology
+proposals in early 2029 and the full specifications by
+mid-2030~\cite{3gpp2024road6g,itu2023imt2030}. That work explicitly includes migration from and
+interworking with 5G, so control-plane software written for the current generation does not
+retire when the next one arrives; it will still be in service, and still evolving, once the
+secure-by-design obligations described above apply in full. The operative question is therefore
+not only which language suits a 5G control plane today, but which one a vendor can still afford
+to be maintaining a decade from now.
 
 UECM is a deliberate choice of study object within that setting. It is small enough to
 reimplement faithfully and to reason about in full, yet it exercises exactly the properties
