@@ -313,6 +313,18 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       difference from `Thesis_v1.tex` cannot be edited by mistake.
 
 ## Phase 10 - Finalization
+- [ ] **BLOCKER — rewrite the abstract unaided.** The abstract of `Thesis_POC.tex` was drafted
+      with model assistance. The UH thesis guide states that a language model may not be used
+      when preparing the thesis summary, and in this programme the summary doubles as the
+      maturity test, where AI use is never permitted. `ai_statement.tex` already declares the
+      abstract as written unaided, so that sentence is false until this is done. Rewrite it in
+      your own words from the results, then re-read `ai_statement.tex` end to end and correct
+      anything that does not describe what actually happened — it is a statement in your name.
+- [x] Declaration of AI use (`ai_statement.tex`), `\input` by both `Thesis_POC.tex` and
+      `Thesis_v1.tex` before the bibliography, listed in the ToC. Follows the UH basic
+      reporting instruction: scope, purpose, tool and version, how the output was verified,
+      what the author took from it, and where responsibility lies. Keep it in step with reality
+      if the workflow changes; consider whether `Thesis_Plan_v2.tex` needs the same page.
 - [ ] Full proofread + supervisor review round(s)
 - [x] Verify all cross-references, citations, tables, figures resolve (0 errors, 0 undefined)
 - [x] Reproducibility check: `bench/refresh_thesis.sh` regenerates every figure, table, and

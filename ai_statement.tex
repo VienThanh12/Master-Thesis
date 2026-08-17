@@ -1,0 +1,79 @@
+%% Declaration of generative-AI use. The University of Helsinki requires a student who
+%% has used a language model in preparing a thesis to state in writing which model was
+%% used and in what way; the model may not be named as an author or cited as a source.
+%%
+%% Shared verbatim by Thesis_POC.tex and Thesis_v1.tex so the two cannot drift apart.
+%% It uses no generated macros and no chapter numbers, because the two documents number
+%% their chapters differently.
+%%
+%% The order of the paragraphs follows the University's basic reporting instruction:
+%% what the use covered, what it was for, which tool, how it performed and how its
+%% output was checked, and what the author took from it.
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Statement on the Use of AI Tools}
+\chapter*{Statement on the Use of AI Tools}
+\markboth{Statement on the Use of AI Tools}{Statement on the Use of AI Tools}
+
+\noindent\textbf{Tool.} Anthropic's Claude Opus~5, used through the Cursor development
+environment, is the only generative AI system used in the preparation of this thesis. It was
+used throughout the work, from June to August~2026. Following University of Helsinki policy the
+model is neither named as an author nor cited as a source: it cannot take responsibility for
+what it produces, and it cannot reliably vouch for the literature it paraphrases.
+
+\noindent\textbf{What the assistance covered.} It was extensive, and is declared as such. The
+model drafted and revised the running prose of this thesis and proposed the order in which its
+arguments are made. It wrote and refactored the two implementations of the UE Context
+Management service, the load generator, the fault-injection catalogue, and the interoperability
+prototype. It wrote the analysis code behind the bootstrap confidence intervals, the exact
+paired permutation tests, and the Holm correction, together with the figure-generating and
+build scripts and the \LaTeX{} sources. It also suggested candidate literature.
+% ==================== ACTION REQUIRED BEFORE SUBMISSION ==========================
+% The abstract of Thesis_POC.tex was drafted with model assistance. The University's
+% thesis guide states that a language model may not be used when preparing the thesis
+% summary, and in this programme the summary also serves as the maturity test, where
+% AI use is never permitted. Rewrite the abstract unaided before submitting; until
+% that is done the closing sentence of this paragraph is not yet true of Thesis_POC.
+% =================================================================================
+The abstract was written by the author unaided, as the University's thesis guide requires of
+the thesis summary.
+
+\noindent\textbf{What the model did not settle.} The research problem, the four research
+questions, and the three hypotheses are the author's, as is the control on which the study's
+value rests: freezing one language-neutral specification and one concurrency model, so that the
+language remains the only systematic difference between the two implementations. So is the
+decision that keeps RQ2 falsifiable, namely to carry two defect classes -- a lock-order deadlock
+and a lost update -- that lie outside Rust's compile-time guarantee and can therefore embarrass
+the premise rather than confirm it. Every measurement reported here was run by the author on the
+hosts documented in this thesis; no measured value came from a language model. Each measured
+number reaches the text through a macro regenerated from the raw logs, so a figure cannot be
+transcribed by hand, by the author or by the model. The readings of those numbers are the
+author's as well, including the two restraints the evidence imposes: that a far tail a
+virtualised host cannot resolve must not be reported as equivalence, and that a sweep dominated
+by cross-thread handoff cannot bound an effect of the language.
+
+\noindent\textbf{How the output was checked.} Model output was treated as a draft to be
+falsified rather than as a result. Claims were checked against the sources cited for them: every
+bibliography entry was resolved against Crossref, DataCite, or the issuing body, and each was
+traced to the page or clause carrying the claim made of it. That audit found four passages where
+the prose overstated or misplaced its source, one of them a sentence inside quotation marks that
+does not appear in the work it was attributed to; all four were corrected, and the audit is kept
+with the artefacts so that the correction remains reviewable. Code was checked by running it:
+the two implementations are held to one conformance suite whose transcripts are diffed line by
+line, and the fault catalogue fixes the expected outcome of each defect before it is injected,
+so that a surprise appears as a discrepancy instead of being explained away afterwards. Nothing
+is asserted here on the model's authority.
+
+\noindent\textbf{What the author took from it.} The model is dependable at mechanical work --
+transposing an idiom between two languages, restructuring a table, keeping a build honest -- and
+undependable in a specific and predictable way: it will supply a plausible citation for a claim,
+a plausible cause for a measurement, and a confident sentence where the data supports a hedge.
+Its fluency is not evidence. The lasting lesson of the work was accordingly less about either
+language than about verification. The effort saved in drafting is spent again, and rightly, in
+checking, and the parts of this thesis that are defensible are the parts that were checked
+against a source, a specification, or a measurement.
+
+\noindent\textbf{Responsibility.} The author is responsible for the whole of this thesis: its
+language, its facts, its code, its measurements, and its conclusions. Where it is wrong, the
+error is the author's.
