@@ -812,7 +812,8 @@ add_data_table(
 # Slide 6: The gap (diagram)
 # =====================================================================
 s = headline(1, "The gap: no controlled evidence for the RAN control plane",
-             "In the closest prior work the language varies together with the runtime")
+             "Five vendor theses come close; none holds the concurrency model fixed "
+             "past saturation")
 _png, _crop = diagram("29_research_gap")
 add_figure(s, _png, crop_top=_crop)
 

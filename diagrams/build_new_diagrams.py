@@ -815,16 +815,19 @@ def service_lifecycle():
 # --------------------------------------------------------------------------
 def research_gap():
     d = Diagram(
-        "29_research_gap", 880, 508,
+        "29_research_gap", 880, 552,
         "What the neighbouring studies control, and what they leave varying",
         "Each prior result is credible on its own terms; none isolates the "
         "language for a control-plane subsystem driven into overload",
     )
     cols = [
-        (168, 168, ["Cross-language", "efficiency studies"], "Pereira et al."),
-        (346, 168, ["Rust user-space", "network driver"], "Emmerich et al."),
-        (524, 168, ["Vendor RAN and 5G", "theses"], "Karlback; Arvidsson"),
-        (702, 158, ["This thesis", ""], ""),
+        (168, 131, ["Cross-language", "benchmarks"], "Pereira et al."),
+        (308, 131, ["Matched pairs in", "systems software"],
+         "Emmerich; Suchert"),
+        (448, 131, ["Vendor RAN and", "5G frameworks"],
+         "Karlback; Arvidsson"),
+        (588, 131, ["Matched telecom", "pair"], "Emberg & Wadsten"),
+        (728, 131, ["This thesis", ""], ""),
     ]
     for x, w, name, who in cols:
         mine = who == ""
@@ -838,15 +841,17 @@ def research_gap():
 
     rows = [
         (["Measures a systems", "language empirically"],
-         ["yes", "yes", "yes", "yes"]),
-        (["Latency-critical", "control-plane domain"],
-         ["no", "part", "yes", "yes"]),
+         ["yes", "yes", "yes", "yes", "yes"]),
+        (["Holds design and", "concurrency model fixed"],
+         ["no", "part", "no", "part", "yes"]),
+        (["Latency-critical", "telecom domain"],
+         ["no", "part", "yes", "yes", "yes"]),
+        (["Stateful and concurrent", "under load"],
+         ["no", "part", "yes", "no", "yes"]),
         (["Reports the tail, not", "just the average"],
-         ["no", "no", "yes", "yes"]),
+         ["no", "no", "part", "no", "yes"]),
         (["Drives the system", "into overload"],
-         ["no", "no", "no", "yes"]),
-        (["Holds concurrency model,", "algorithms, and data", "structures fixed"],
-         ["no", "no", "no", "yes"]),
+         ["no", "no", "no", "no", "yes"]),
     ]
     mark = {
         "yes": ("\u2713", GREEN_CHIP, GREEN_DEEP),
@@ -865,12 +870,12 @@ def research_gap():
 
     d.rect(20, y + 6, 840, 64, BLUE_FILL, BLUE, rx=9, sw=1.7)
     d.text(36, y + 29, "The gap", 12.5, BLUE_DEEP, weight=700)
-    d.text(104, y + 29, "in both RAN theses the language varies together with "
-                        "the runtime, the concurrency model, and the "
-                        "implementation, so a measured", 10.5, BODY)
-    d.text(36, y + 48, "difference cannot be attributed to the language rather "
-                       "than to the framework built on it. Holding those fixed "
-                       "is what this study adds.", 10.5, BODY)
+    d.text(104, y + 29, "the telecom studies vary the runtime with the "
+                        "language, and the one matched pair among them "
+                        "measures a stateless", 10.5, BODY)
+    d.text(36, y + 48, "transformation. None holds the concurrency model fixed "
+                       "and then drives a stateful subsystem past saturation.",
+           10.5, BODY)
     return d
 
 

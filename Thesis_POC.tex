@@ -1055,15 +1055,26 @@ of memory and concurrency defects to best-effort, after-the-fact detection. Thir
 promises to prevent those classes at compile time at no runtime cost, with a credible
 incremental adoption path through C-ABI interoperability.
 
-The domain is not entirely unstudied. Two vendor-hosted master's theses have compared
-candidate languages for RAN and 5G control-plane software, one weighing runtime cost against
-development efficiency across C++, Rust, and Go~\cite{karlback2021ran}, the other measuring
-median and 99th-percentile latency for control-plane procedures across five asynchronous
-programming frameworks~\cite{arvidsson2025async}. Both are directly relevant, and the second
-reports a tail difference unfavourable to Rust. Neither, however, isolates the language:
-in both, the language varies together with the runtime, the concurrency model, and the
-implementation, so a measured difference cannot be attributed to the language rather than to
-the framework built on it. Figure~\ref{fig:gapmap} sets the neighbouring studies against the
+The domain is not unstudied, and the volume of prior work is easy to underestimate because
+almost none of it is indexed. At least five vendor-hosted master's theses, all carried out at
+Ericsson, have compared candidate languages for RAN and telecom software: one weighs runtime
+cost against development efficiency across C++, Rust, and Go~\cite{karlback2021ran}; one asks
+whether Rust could replace C in RAN node management~\cite{olsson2023ranmgmt}; one builds a
+thread-per-core packet processor on asynchronous Rust and measures it against the DPDK
+application it mirrors~\cite{olsson2023asyncpackets}; one measures median and 99th-percentile
+latency for control-plane procedures across five asynchronous programming
+frameworks~\cite{arvidsson2025async}; and one builds matched C++ and Rust implementations of an
+ASN.1 decompiler and compares them statistically~\cite{emberg2023asn1}. All five are directly
+relevant, and two report differences unfavourable to Rust.
+
+Three of them vary the language together with the runtime and the concurrency model, so a
+measured difference cannot be attributed to the language rather than to the framework built on
+it~\cite{karlback2021ran,olsson2023asyncpackets,arvidsson2025async}; the effect sizes reach a
+factor of five, which is an indication of how much of the measurement the runtime owns. The
+remaining two hold the design closer to fixed but report execution time and peak memory rather
+than tail behaviour under rising load~\cite{olsson2023ranmgmt,emberg2023asn1}, and the closest
+of them, Emberg and Wadsten, measures a stateless transformation rather than a stateful,
+concurrent subsystem. Figure~\ref{fig:gapmap} sets the neighbouring studies against the
 properties a controlled answer would require, and the pattern it shows is that each holds some
 of them and none holds all.
 
@@ -1073,11 +1084,14 @@ of them and none holds all.
 \caption[What the neighbouring studies control, and what they leave varying]{What the neighbouring studies control, and what they leave varying. Each row is a
 property that a controlled answer to the research questions would need; each column is a study.
 The general cross-language comparisons measure the right kind of object but the wrong regime,
-reporting averages on general-purpose workloads. The two vendor RAN theses reach the right
-domain and do report the tail, but in both the language varies together with the runtime, the
-concurrency model, and the implementation, which is where the bottom two rows stop them.
-Holding those three fixed and driving the system past saturation is what this thesis adds; the
-contribution is the control, not a new measurement technique.\label{fig:gapmap}}
+reporting averages on general-purpose workloads. Matched pairs in systems software hold the
+design fixed, but outside this domain and below saturation. The vendor RAN and 5G framework
+studies reach the right domain, and one of them reports the tail, but in all of them the
+language varies together with the runtime and the concurrency model. The one matched telecom
+pair, Emberg and Wadsten, controls the design but measures a stateless transformation. Holding
+the design and the concurrency model fixed for a stateful, concurrent subsystem and then driving
+it past saturation is what this thesis adds; the contribution is the control, not a new
+measurement technique.\label{fig:gapmap}}
 \end{figure}
 
 What is therefore missing from the literature
@@ -1355,9 +1369,25 @@ peer-reviewed venues except where an industry or government report is itself the
 backward and forward citation chaining from the core Rust-safety papers, and filtered to work
 that either measures a systems language empirically, formalises Rust's guarantees, or reports
 adoption experience. The domain literature (3GPP specifications and the O-RAN survey) was added
-separately to fix the architectural context. The search returned no study that measures the
-tail-latency behaviour of a Rust and a C++ implementation of the same stateful, concurrent
-control-plane subsystem under overload.
+separately to fix the architectural context.
+
+Those sources alone would have missed the closest prior work, which is why two more were added.
+The vendor-hosted theses that come nearest to this study (Section~\ref{sec:relatedwork}) appear
+in none of the citation databases: not in Crossref, OpenAlex, DBLP, or Semantic Scholar. Neither
+forward nor backward chaining can reach them, because nothing indexed cites them and their own
+reference lists are not deposited. They were found instead by searching the institutional
+repositories directly, DiVA for the Nordic universities and Finna for the Finnish ones, which is
+also how it was established that no Finnish or Nokia-side counterpart exists: the entire
+domain-specific literature on this question is Swedish and Ericsson-hosted. Two practical notes
+belong with the protocol, since both distort a naive search. Free-text queries for
+\emph{Rust} in the general indexes rank plant pathology and corrosion chemistry above the
+programming language, so field-restricted or discipline-restricted queries are necessary; and
+the theses are grey literature, so they are cited here as evidence of what has been attempted
+and found, not as peer-reviewed results.
+
+The search returned no study, indexed or grey, that measures the tail-latency behaviour of a
+Rust and a C++ implementation of the same stateful, concurrent control-plane subsystem under
+overload.
 
 Table~\ref{tab:design} maps each research question to the method, artifact, data, and metric
 used to answer it, making the chain from question to evidence explicit and traceable, and
@@ -3292,7 +3322,10 @@ Two of the five are cases where the C++ tooling is \emph{ahead}, which is the ou
 two-sided catalogue was built to be able to produce. LeakSanitizer, which ships inside ASan,
 reports the C++ reference cycle as an unreachable allocation at exit; the safe-Rust cycle leaks
 in silence, because leaking is safe in Rust by explicit design and nothing in the default
-toolchain looks for it. UBSan reports the C++ overflow, because signed overflow is undefined;
+toolchain looks for it. That this is a property of the language rather than an artefact of the
+injected example is visible in the work being done to change it: proposals to add garbage
+collection to Rust are motivated precisely by shared-ownership structures that reference counting
+expresses ``awkwardly, inefficiently, or both''~\cite{hughes2025gcrust}. UBSan reports the C++ overflow, because signed overflow is undefined;
 the Rust overflow is \emph{defined} to wrap at \texttt{opt-level~=~2}, which leaves
 \texttt{overflow-checks} off, so the program has a meaning and the meaning is wrong. That
 second contrast is worth stating carefully, because it does not reduce to which language is
@@ -3696,8 +3729,16 @@ fixed footprint per process, and buys a faster core operation
 (Section~\ref{sec:budget}) that this workload's structure never converts into throughput below
 saturation and, above it, converts into a deficit instead of a gain.
 
-The sign of that result is worth defending, because the closest prior work in the domain
-reports the opposite one. Karlb\"ack and Or\"o measure peak resident set on a RAN workload and
+The sign of that result is worth defending, because one of the closest prior works in the domain
+reports the opposite one, while two others agree with it. Agreement first, since it is quickly
+stated: a second Ericsson-hosted study of RAN node management software found Rust's peak memory
+usage generally higher than C's~\cite{olsson2023ranmgmt}, and a matched pair of user-space device
+drivers outside telecom put the Rust version's footprint about 29\% above the C
+version's~\cite{sundvisson2026drivers}. Neither separates the allocator from the language, which
+is the distinction Section~\ref{sec:resources} rests on, so they corroborate the direction of the
+effect and not its decomposition.
+
+The disagreement is the more instructive case. Karlb\"ack and Or\"o measure peak resident set on a RAN workload and
 find Rust the \emph{lowest} of the three languages and C++ the highest, with the gap widening
 as concurrency rises, a pattern they call surprising and attribute tentatively to the initial
 stack size of the green threads~\cite{karlback2021ran}. The two
@@ -3725,7 +3766,7 @@ therefore human, not machine: designing a C-compatible surface and, per adoption
 studies~\cite{fulton2021adopting,crichton2024learning}, climbing Rust's learning curve. This
 reframes migration risk as an organisational rather than a performance concern, and the two
 largest documented adoptions into existing C and C++ codebases report the same ordering of
-costs~\cite{li2024rustforlinux,fan2026android}.
+costs~\cite{li2026rustlinux,fan2026android}.
 
 One boundary on that result has to be drawn explicitly, because the natural reading overstates
 it. ``All \texttt{unsafe} confined to the seam'' is a claim about what the compiler verifies,
@@ -3925,7 +3966,10 @@ principle~\cite{emre2023aliasing}, interoperation is the central open problem in
 Rust~\cite{sharma2024embedded}, \texttt{unsafe} concentrates at exactly these
 boundaries~\cite{mccormack2026unsafe}, and the two largest documented adoptions into existing C
 and C++ report the resulting friction
-empirically~\cite{li2024rustforlinux,fan2026android}.
+empirically~\cite{li2026rustlinux,fan2026android}. Automating the rewrite is an active line of
+work rather than a solved problem: current translators still emit code whose safety the compiler
+cannot validate, which is why the migration cost this thesis measures is the cost of a
+hand-written seam~\cite{hong2025ctorust}.
 
 The fourth is the domain and the method. Predictability rests on the tail-latency and
 microsecond-scale
@@ -3944,14 +3988,24 @@ the method here follows standard guidance on repeat-based performance
 evaluation~\cite{georges2007rigorous} and on software fault
 injection~\cite{natella2016fault}.
 
-Two systems studies come closest in method rather than in domain, because they too build the same
-component twice and attribute the difference: a comparison of IPC mechanisms implementing one
-network function in both C++ and Rust~\cite{li2021ipc}, and RedLeaf, evaluated against C
-baselines constructed for the purpose~\cite{narayanan2020redleaf}. Neither reports behaviour past
-a saturation point, which is the regime this thesis targets.
+Four systems studies come closest in method rather than in domain, because they too build the
+same component twice and attribute the difference: a comparison of IPC mechanisms implementing
+one network function in both C++ and Rust~\cite{li2021ipc}; RedLeaf, evaluated against C
+baselines constructed for the purpose~\cite{narayanan2020redleaf}; a manual translation of the
+STAMP transactional benchmark suite into Rust, which is the closest published match to this
+study's design in that the workload is concurrent and the two versions implement one
+specification~\cite{suchert2023stamp}; and a Rust UDP tunnelling driver in the Linux kernel
+measured against an equivalent C driver~\cite{gonzalez2023rustudp}. The last of these is worth a
+second look for a methodological reason rather than a result: it reports Rust slower by 0.19\% at
+$p = 1.5 \times 10^{-15}$, a difference overwhelming in statistical terms and negligible in
+operational ones, which is the distinction this thesis's pre-committed interval-versus-$p$ rule
+(Section~\ref{sec:stats}) exists to keep straight. None of the four reports behaviour past a
+saturation point, which is the regime this thesis targets.
 
-Two master's theses, both carried out at Ericsson, are the closest prior work by domain and
-deserve separate treatment.
+Five master's theses, all carried out at Ericsson, are the closest prior work by domain and
+deserve separate treatment. None of them is peer-reviewed, and none is indexed by any citation
+database, so they are cited here as the record of what a vendor has actually attempted rather
+than as established results.
 
 Karlb\"ack and Or\"o compare Rust and Go against C++ for RAN applications on x86 and ARM,
 combining runtime measurements with development-efficiency metrics, and conclude that C++ remains
@@ -3968,6 +4022,28 @@ control for the question asked here. The concurrency runtime then varies with th
 be divided between the two. Section~\ref{sec:rqdiscussion} returns to this with a concrete
 case, in which their resource results and the ones reported here have opposite signs and the
 disagreement resolves into a difference between runtimes rather than between languages.
+
+Olsson asks a narrower version of the same question two years later, comparing Rust against C for
+RAN node management software, and finds Rust's execution speed on par with or better than C's,
+its peak memory usage generally higher, and its safety materially
+improved~\cite{olsson2023ranmgmt}. Two of those three findings agree with the ones reported here,
+including the resource result on which Karlb\"ack and Or\"o disagree with this study, which is
+taken up in Section~\ref{sec:rqdiscussion}. What the study does not do is report percentiles, or
+drive the software past its capacity: the comparison is of execution time and peak memory at the
+loads the applications were run at.
+
+Olsson and Stenstr\"om are the closest prior work on the concurrency model this thesis adopts,
+and their result is the sharpest illustration in the literature of why the model has to be held
+fixed. They build a thread-per-core packet processor on asynchronous Rust over the Glommio
+runtime, mirror two existing DPDK Eventdev applications with it, and measure throughput between
+20\% and 50\% of the DPDK versions with latency they describe as far
+worse~\cite{olsson2023asyncpackets}. Read as a language comparison the result is damning. Read as
+what it is, a comparison between a young asynchronous runtime and a kernel-bypass framework tuned
+over a decade, it says almost nothing about Rust and a great deal about the runtime: an effect
+size of two to five times is not the scale at which code generation operates. It is also the
+reason the design measured here uses one thread per shard and no asynchronous runtime on either
+side, and Chapter~\ref{chapter:conclusions} records the comparison that would separate the two
+properly.
 
 Arvidsson and Kaller are closer still. They evaluate asynchronous programming frameworks, C++
 with Boost.Fibers, Rust with Tokio and Monoio, Go, and Erlang, on 5G control-plane procedures,
@@ -3988,12 +4064,50 @@ runtimes' scheduling policies are ``complex and difficult to understand due to t
 abstraction layers'' and that Tokio specifically is ``designed to maximize throughput rather than
 time determinism''. Restructuring the same application onto prioritised threads over a different
 runtime yields response times that match classical response-time analysis, which the idiomatic
-work-stealing configuration does not~\cite{skoudlil2025asyncrust}. The tail behaviour at issue is
+work-stealing configuration does not~\cite{skoudlil2025asyncrust}. The tooling being built around
+those runtimes points the same way: priority scheduling is something an asynchronous Rust runtime
+has to be given by a library rather than something it already
+provides~\cite{zhuang2026flowprioritize}. The tail behaviour at issue is
 therefore a property of the runtime, and one that changes when the runtime does. That confound is
 precisely what the frozen specification and the shared thread-per-shard model in this thesis are
 designed to remove. The two studies are therefore complementary, not contradictory:
 theirs establishes that a tail difference is observable in this domain, and this one is
 constructed to determine whether the language is what causes it.
+
+Emberg and Wadsten are the closest of the five in method, and the honest way to position this
+thesis is against them rather than against the framework comparisons. They build two
+implementations of one ASN.1 decompiler, in C++ and in Rust, have both call the same third-party
+C++ code, reach it from Rust by wrapping it in C, and compare the two with a rank-sum test; they
+also interview developers about the experience of writing the Rust side~\cite{emberg2023asn1}.
+That is a matched pair, an FFI seam, a statistical comparison and an effort measurement, which is
+four of the things this thesis does, in the same industry, two years earlier. Three differences
+remain, and they are the ones that carry the gap. The object is a stateless transformation rather
+than a stateful, concurrent subsystem, so there is no concurrency model to hold fixed and no
+shared state to contend for. The measurements are taken at the load the benchmark happens to
+generate rather than swept to saturation and beyond, so no tail behaviour under overload is
+reported. And the safety side is argued from developer interviews rather than from a defect
+catalogue, so nothing establishes which classes the compiler actually rejects.
+
+Their study also supplies something more useful than a comparison, which is a warning.
+Their two benchmarking sessions reversed the verdict: the first, after a code review of the kind
+normally performed in practice, found the two implementations comparable; the second, after both
+sides had been optimised further, found the Rust version worse by 85--91\%. The authors reason
+that the first session is the more representative of software in general, which is a defensible
+reading, but the more important observation is that a single-author matched pair can be made to
+yield either answer depending on where the optimisation effort lands.
+Section~\ref{sec:threats} treats that as the principal threat to this study's own construct
+validity and describes what is done about it.
+
+Two 2026 theses from outside the vendor set apply parts of this thesis's method to smaller
+objects, and both are worth acknowledging because they arrive at compatible answers
+independently. One builds functionally equivalent C and Rust user-space device drivers and
+subjects them to fault injection, fuzzing and equivalence testing, concluding that safety costs
+nothing measurable in run time for that class of driver but carries a fixed memory
+overhead~\cite{sundvisson2026drivers}. The other reproduces a set of CWE classes in C++, Rust and
+Python to establish at which stage each fault is caught, which is the staging question RQ2
+asks~\cite{andersson2026stdmemsafety}. Neither involves concurrency, a telecom workload, or a load
+sweep, and both are bachelor's work; they are cited as convergent evidence on the smaller
+questions, not as substitutes for the comparison attempted here.
 
 Not all of this evidence points the same way, and the thesis takes the qualifying findings
 seriously rather than citing only the favourable ones.
@@ -4001,10 +4115,23 @@ seriously rather than citing only the favourable ones.
 Even the positive networking result records a real cost. The idiomatic Rust driver issues
 substantially more instructions per packet than its C reference and is measurably slower in
 absolute terms, its safety checks being absorbed by out-of-order execution rather than being
-literally free~\cite{emmerich2019drivers}. The ``zero-cost''
-framing~\cite{balasubramanian2017rust} is therefore better read as workload-dependent than as
-universal. That is precisely why tail behaviour must be measured on the target workload and
-not assumed.
+literally free~\cite{emmerich2019drivers}. Two further matched comparisons point the same way on
+different workloads: idiomatic safe Rust implementations of the STAMP transactional benchmarks run
+slower than both the C originals and machine-transpiled Rust~\cite{suchert2023stamp}, and a
+general study of Rust against C reports it significantly slower in some
+cases~\cite{okawa2024ruststudy}. The largest study of Rust inside an existing C codebase reaches a
+similar conclusion from the other direction, finding that Rust's safety features introduce
+runtime overhead and development complexity when they are not carefully
+managed~\cite{li2026rustlinux}.
+
+The evidence does not run one way, however, and it would be as dishonest to present only the
+qualifying findings as only the favourable ones. Safe low-level code without run-time overhead has
+been demonstrated for network device drivers, the same class of program as Emmerich's, when the
+safety obligations are discharged through type invariants rather than checks~\cite{pirelli2023safelowlevel}.
+The ``zero-cost'' framing~\cite{balasubramanian2017rust} is therefore best read as neither
+established nor refuted in general, but as a property of a particular program on a particular
+workload. That is precisely why tail behaviour must be measured on the target workload and not
+assumed.
 
 The safety story is likewise not absolute. Empirical studies of real-world Rust find that memory-
 and thread-safety bugs still occur in practice, with blocking bugs and misused synchronisation
@@ -4023,9 +4150,11 @@ three axes on which it claims to differ: whether the comparison controls for des
 building both systems from one specification, whether it reports tail behaviour under overload
 rather than average-case performance, and whether it measures the cost of adoption instead of
 describing it. Individually, none of the three axes is unoccupied: matched implementations
-exist in systems software~\cite{emmerich2019drivers,li2021ipc,narayanan2020redleaf},
-percentile latency has been reported for 5G control-plane
-procedures~\cite{arvidsson2025async}, and development effort has been measured for RAN
+exist in systems
+software~\cite{emmerich2019drivers,li2021ipc,narayanan2020redleaf,suchert2023stamp,gonzalez2023rustudp}
+and, in this industry, in a matched pair of ASN.1 decompilers joined by a C
+wrapper~\cite{emberg2023asn1}; percentile latency has been reported for 5G control-plane
+procedures~\cite{arvidsson2025async}; and development effort has been measured for RAN
 applications~\cite{karlback2021ran}. No prior study combines the three for a stateful,
 concurrent control-plane workload, which is the narrower gap this work occupies.
 
@@ -4037,11 +4166,12 @@ built from one specification so that the language is the only systematic differe
 under overload'' means high percentiles are reported past the saturation point and not at
 average or nominal load; ``adoption cost'' means the cost of incremental migration
 is measured rather than surveyed. ``Partial'' marks percentiles reported across a load sweep
-that stops at a latency requirement instead of continuing past
-saturation.\label{tab:related}}
+that stops at a latency requirement instead of continuing past saturation. The lower block is
+grey literature: five vendor-hosted master's theses which are the closest work by domain, none
+peer-reviewed and none indexed by a citation database.\label{tab:related}}
 \renewcommand{\arraystretch}{1.2}
 \small
-\begin{tabular}{@{}R{0.26\linewidth} R{0.19\linewidth} R{0.11\linewidth} R{0.10\linewidth} R{0.13\linewidth}@{}}
+\begin{tabular}{@{}R{0.28\linewidth} R{0.22\linewidth} R{0.10\linewidth} R{0.10\linewidth} R{0.13\linewidth}@{}}
 \hline\hline
 Study & Domain & Matched pair & Overload tail & Adoption cost \\
 \hline
@@ -4049,14 +4179,23 @@ Pereira et al.~\cite{pereira2017energy}      & General benchmarks  & no  & no  &
 Bugden \& Alahmar~\cite{bugden2022rust}      & General benchmarks  & no  & no  & no  \\
 Balasubramanian et al.~\cite{balasubramanian2017rust} & OS / systems & no & no & no \\
 Emmerich et al.~\cite{emmerich2019drivers}   & Packet forwarding   & yes & no  & no  \\
-Li et al.~\cite{li2021ipc}                   & Network function / IPC & yes & no & no \\
-Narayanan et al.~\cite{narayanan2020redleaf} & OS / device drivers & yes & no  & no  \\
-Mo et al.~\cite{mo2023rustshyper}            & Embedded hypervisor & no  & no  & no  \\
-Qazi et al.~\cite{qazi2017pepc}              & Cellular packet core & no & no  & no  \\
+Li et al.~\cite{li2021ipc}                   & Network function    & yes & no & no \\
+Narayanan et al.~\cite{narayanan2020redleaf} & OS / drivers        & yes & no  & no  \\
+Suchert \& Castrillon~\cite{suchert2023stamp} & {STM} benchmarks   & yes & no & no \\
+Gonzalez et al.~\cite{gonzalez2023rustudp}   & Kernel driver       & yes & no & no \\
+Pirelli \& Candea~\cite{pirelli2023safelowlevel} & Device drivers  & yes & no & no \\
+Mo et al.~\cite{mo2023rustshyper}            & Hypervisor          & no  & no  & no  \\
+Qazi et al.~\cite{qazi2017pepc}              & Packet core         & no & no  & no  \\
 Qin et al.~\cite{qin2020rust}                & Rust ecosystem      & n/a & no  & no  \\
 Evans et al.~\cite{evans2020rust}            & Rust ecosystem      & n/a & no  & no  \\
 Fulton et al.~\cite{fulton2021adopting}      & Developer study     & n/a & no  & surveyed \\
+Li et al.~\cite{li2026rustlinux}             & Kernel drivers      & no & no & repo.\ study \\
+\hline
+\multicolumn{5}{@{}l@{}}{\emph{Vendor-hosted master's theses (grey literature)}} \\
 Karlb\"ack \& Or\"o~\cite{karlback2021ran}   & RAN applications    & no  & no  & dev.\ effort \\
+Olsson~\cite{olsson2023ranmgmt}              & RAN management      & no  & no  & no  \\
+Olsson \& Stenstr\"om~\cite{olsson2023asyncpackets} & Packet processing & no & no & no \\
+Emberg \& Wadsten~\cite{emberg2023asn1}      & {ASN.1} codec       & yes & no & effort, seam \\
 Arvidsson \& Kaller~\cite{arvidsson2025async} & 5G control plane   & no  & partial & no \\
 \hline
 This thesis & RAN control plane & yes & yes & measured \\
@@ -4142,6 +4281,18 @@ implementations and is not equally expert in both, so a residual advantage to wh
 language that person knows better cannot be excluded. The parity suite bounds this threat for
 \emph{behaviour} but not for \emph{performance}, and the honest statement is that it is
 mitigated, not eliminated.
+
+That this threat is real and not merely conceivable is documented in the same industry. Emberg
+and Wadsten built a matched C++ and Rust pair and benchmarked it twice: after a code review of
+the kind normally performed in practice the two were comparable, and after both sides had been
+optimised further the Rust version was worse by 85--91\%~\cite{emberg2023asn1}. One matched pair
+therefore supported two different conclusions depending on where the optimisation effort landed.
+The controls used here are chosen against exactly that failure mode: the specification is frozen
+before either implementation is written rather than negotiated between them, the optimisation
+level and allocator are matched rather than tuned per side, and the divergences the languages
+force are logged rather than resolved in whichever direction the author finds easier. None of
+that converts the residual into zero. What it does is make the residual visible, which is why
+the forced-idiom log is a deliverable and not an appendix.
 
 \paragraph{Construct validity: do the metrics measure what the questions ask?}
 RQ1 asks about predictability and is answered with high percentiles and the maximum rather than
@@ -4399,7 +4550,11 @@ profiles on the same visit. Beyond that:
 \item Evaluate Rust async runtimes against the thread-per-shard model used here. That would
   separate the tail divergence Arvidsson and Kaller attribute to stackless
   \texttt{async}/\texttt{await}~\cite{arvidsson2025async} from the language itself, under the
-  controls this study imposes.
+  controls this study imposes. The same experiment would settle a second question in the same
+  motion: Olsson and Stenstr\"om measured asynchronous Rust at a fraction of DPDK's throughput on
+  a thread-per-core packet processor~\cite{olsson2023asyncpackets}, and nothing in the literature
+  yet separates how much of that gap belongs to the runtime and how much to the framework it was
+  measured against.
 \item Measure what in-process isolation of the two heaps costs at the seam, since that is what
   an \texttt{unsafe}-free core would need to be protected as well as
   verified~\cite{rivera2021galeed,kirth2022pkrusafe}.

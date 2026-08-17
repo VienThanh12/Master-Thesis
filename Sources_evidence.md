@@ -17,11 +17,19 @@ For every entry this file records three things:
 - Entries without a DOI were checked against the issuing body: the **3GPP specification archive**
   and the corresponding **ETSI** deliverable, **open-std.org** / **isocpp.org** for WG21 papers,
   the **USENIX** proceedings pages, **DBLP** for page ranges USENIX does not print, **DiVA** for
-  the two master's theses, **OpenLibrary** for the book, **PyPI/GitHub** for the software.
+  the master's theses, **OpenLibrary** for the book, **PyPI/GitHub** for the software.
 - Claim-level evidence was read out of the source document wherever the document could be
   retrieved: 3GPP/ETSI PDFs, arXiv and author copies, USENIX and LIPIcs PDFs, the WG21 PDFs,
-  EUR-Lex, and the two DiVA theses. Page numbers below are **PDF page numbers of the file named**,
+  EUR-Lex, and the DiVA theses. Page numbers below are **PDF page numbers of the file named**,
   which is what you can check fastest; clause and section numbers are given as well.
+
+> **Not yet audited here (17 August 2026).** The thirteen entries added after the third literature
+> sweep — the four additional DiVA theses, `suchert2023stamp`, `gonzalez2023rustudp`,
+> `pirelli2023safelowlevel`, `sundvisson2026drivers`, `okawa2024ruststudy`, `hughes2025gcrust`,
+> `andersson2026stdmemsafety`, `li2026rustlinux`, `hong2025ctorust`, `zhuang2026flowprioritize` —
+> have Crossref- or DiVA-verified metadata (`LITERATURE_NOTES.md`, third sweep) but no
+> entry-by-entry evidence section below yet. For the four theses the claims come from the
+> repository abstract, evidence level **B**, not from the full text.
 
 **Evidence level** used in each entry:
 
@@ -38,8 +46,11 @@ cite it), `bib_verify.py` (Crossref/DataCite field-by-field diff), `abstracts.py
 
 ## Overall result
 
-- **80 entries, 80 cited.** No orphan entries, no citation without an entry. `Thesis_POC.blg`
-  reports 80 citekeys and logs no warnings or errors.
+- **80 entries, 80 cited** at the time of this audit. No orphan entries, no citation without an
+  entry. `Thesis_POC.blg` reports 80 citekeys and logs no warnings or errors. *After the third
+  literature sweep of 17 August 2026 the bibliography holds 97 active entries, all 97 cited, still
+  with no orphans and no missing keys; the seventeen added since are listed in the note above and
+  are not covered by the entry-by-entry evidence below.*
 - **71 entries are clean as they stand.**
 - **3 entries have a factual metadata error**: one missing author, one extra author, one wrong
   month.

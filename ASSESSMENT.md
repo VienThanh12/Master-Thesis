@@ -54,10 +54,21 @@ component), regulatory (the CISA and ONCD memory-safe roadmap mandates), and sci
 fit for latency-critical telecom is genuinely unproven).
 
 The research gap is identified with unusual precision. It is not the generic "compare Rust and
-C++" but the specific observation that in both closest prior works — Karlbäck and Orö, and
-Arvidsson and Kaller — the language co-varies with the runtime and concurrency model, so no
-measured difference can be attributed to the language. The entire study design follows from
-that critique.
+C++" but the specific observation that in the closest prior works the language co-varies with the
+runtime and concurrency model, so no measured difference can be attributed to the language. The
+entire study design follows from that critique.
+
+**Revised 17 August 2026 after the third literature sweep** (`LITERATURE_NOTES.md`, third sweep).
+The gap holds, but its statement had to be corrected: the neighbouring work is a cluster of
+**five** Ericsson-hosted master's theses, not two, and one of them (Emberg and Wadsten) already
+builds a matched C++/Rust pair across an FFI seam and compares it statistically. The
+differentiator is therefore no longer "nobody builds a matched pair" — which was refutable in one
+repository search — but the combination that none of them holds: a stateful, concurrent subsystem,
+one frozen specification with the concurrency model fixed, a sweep past saturation with tail
+percentiles, a two-sided defect boundary, and a measured seam cost. Two further findings from that
+sweep support the criterion-1 case rather than weakening it: none of the five is indexed by any
+citation database, so the evidence a vendor would rely on has not been reviewed; and no Finnish or
+Nokia-side counterpart exists at all.
 
 RQ2 is constructed so that it can refute itself: five defect classes from inside Rust's
 guarantee and five chosen from outside it. Building in cases that can disturb the expected answer
@@ -271,7 +282,7 @@ landing on one run and not its partner — which is exactly where the tail perce
 
 The prose is precise, unhedged, and free of padding, with argumentation that is explicit and
 consistently signposted. Referencing is consistent and correctly formatted throughout, including
-proper institutional attribution of the two Ericsson master's theses.
+proper institutional attribution of the five Ericsson master's theses.
 
 ### Changed in the refinement pass
 

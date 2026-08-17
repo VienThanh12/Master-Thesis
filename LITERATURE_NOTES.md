@@ -1163,6 +1163,21 @@ compiled PDF before committing to the entry types. And the thesis cites 3GPP spe
 
 # Third sweep, 17 August 2026 — the research gap re-audited
 
+> **Status: applied, same day.** Everything in §D below is done. Thirteen entries added to
+> `bibliography.bib` (97 active entries, all cited, no orphans); `Thesis_Plan_v2.tex` §2 rewritten;
+> the three `Thesis_v1.tex` bullets corrected; `Thesis_POC.tex` §`sec:gap`, the search protocol,
+> §`sec:relatedwork`, `tab:related`, the peak-RSS discussion, the skill-asymmetry threat and the
+> future-work list updated; `29_research_gap` rebuilt with five columns and six rows; the deck
+> slide-6 subtitle corrected. All three PDFs rebuild with zero errors, zero undefined references
+> and zero overfull boxes. `li2024rustforlinux` is commented out in favour of the TOCS version.
+> One defect was found and fixed in passing: `tab:related` had grown taller than the page and was
+> **silently dropping its last three rows**, including this thesis's own; the column widths were
+> rebalanced so the whole table renders.
+>
+> What is *not* done, and is the one thing left: **read Emberg & Wadsten and Olsson & Stenström in
+> full.** The prose now makes absence claims about them (no tail under overload, no concurrency
+> model held fixed) that were checked against abstracts only.
+
 The first two sweeps looked for sources that improve the argument. This one attacks it. The gap
 statement in `Thesis_Plan_v2.tex` §2 and `Thesis_POC.tex` §`sec:gap` rests on two Ericsson
 master's theses plus an unqualified negative claim (*"Neither isolates the language"*, *"The gap
