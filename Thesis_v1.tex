@@ -150,6 +150,11 @@
         stateless transformation~\cite{emberg2023asn1}. No study holds the specification,
         concurrency model, and build settings fixed for a stateful, concurrent subsystem while
         sweeping past saturation and measuring incremental migration cost.
+  \item That evidence is also concentrated in one vendor and untested outside it, while on the
+        other side there is no study of Rust among Nokia's indexed publications at all; the
+        nearest peer-reviewed position from that side argues for making memory-error sanitisation
+        practical rather than for replacing it with a compile-time
+        guarantee~\cite{gjomemo2016mesc}, which is the strategy this thesis tests against.
   \item Four research questions frame the work. RQ1 compares latency predictability (median,
         p99, p99.9, maximum) under increasing load and overload with the concurrency model held
         fixed~\cite{dean2013tail}. RQ2 asks which defect classes Rust removes at compile time,

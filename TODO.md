@@ -12,9 +12,9 @@ primary control against implementation bias.
 
 ## Next up (as of 9 Aug 2026)
 
-Implementation, analysis, and writing are finished: `Thesis_POC.pdf` builds at 143 pages with zero
-LaTeX errors and zero undefined references or citations, and every quoted number regenerates
-from the raw logs. What is left is one measurement, one review round, and housekeeping. The plan
+Implementation, analysis, and writing are finished: `Thesis_POC.pdf` builds at 161 pages (17 Aug
+2026) with zero LaTeX errors, zero undefined references or citations and zero overfull boxes, and
+every quoted number regenerates from the raw logs. What is left is one measurement, one review round, and housekeeping. The plan
 document (`Thesis_Plan_v2.pdf`, dated 9 Aug 2026) puts measurement in September, RQ1/RQ3
 resolution in October, and submission in November, so the ordering below is what that timeline
 needs.

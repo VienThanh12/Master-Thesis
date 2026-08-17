@@ -1078,6 +1078,15 @@ concurrent subsystem. Figure~\ref{fig:gapmap} sets the neighbouring studies agai
 properties a controlled answer would require, and the pattern it shows is that each holds some
 of them and none holds all.
 
+The concentration of that evidence is itself part of the gap. All five studies come from one
+vendor, and their conclusions have never been tested against another organisation's software,
+targets or conventions, so what is known about this question is what one company's frameworks
+report about it. The published record on the other side is emptier: there is no study of Rust
+among the indexed publications of the vendor hosting this work, and the nearest peer-reviewed
+position from that side argues for making memory-error sanitisation practical rather than for
+replacing it with a compile-time guarantee~\cite{gjomemo2016mesc}, which is the strategy this
+thesis tests against. Section~\ref{sec:relatedwork} compares the five with this study directly.
+
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/29_research_gap.pdf}
@@ -1376,9 +1385,14 @@ The vendor-hosted theses that come nearest to this study (Section~\ref{sec:relat
 in none of the citation databases: not in Crossref, OpenAlex, DBLP, or Semantic Scholar. Neither
 forward nor backward chaining can reach them, because nothing indexed cites them and their own
 reference lists are not deposited. They were found instead by searching the institutional
-repositories directly, DiVA for the Nordic universities and Finna for the Finnish ones, which is
-also how it was established that no Finnish or Nokia-side counterpart exists: the entire
-domain-specific literature on this question is Swedish and Ericsson-hosted. Two practical notes
+repositories directly, DiVA for the Nordic universities and Finna for the Finnish ones. The same
+two searches establish an absence on the other side. Finna, which federates the Finnish university
+repositories, returns no thesis on Rust in a radio-access or telecom context, and an author-
+affiliation search of Nokia's indexed publications in OpenAlex returns none either: its entities
+hold on the order of thirty thousand indexed works, several hundred of which concern the radio
+access network, and one mentions Rust, in an unrelated preprint on trusted-execution monitoring.
+The entire domain-specific literature on the language question is therefore Swedish and
+Ericsson-hosted, and its transferability is untested rather than established. Two practical notes
 belong with the protocol, since both distort a naive search. Free-text queries for
 \emph{Rust} in the general indexes rank plant pathology and corrosion chemistry above the
 programming language, so field-restricted or discipline-restricted queries are necessary; and
@@ -4109,6 +4123,87 @@ asks~\cite{andersson2026stdmemsafety}. Neither involves concurrency, a telecom w
 sweep, and both are bachelor's work; they are cited as convergent evidence on the smaller
 questions, not as substitutes for the comparison attempted here.
 
+Table~\ref{tab:vendortheses} sets this study beside the five directly, and two things are worth
+reading off it. The middle columns show that the earlier work is not weaker but differently
+aimed: four of the five measure a language together with the framework it was written on, and the
+fifth measures a matched pair on a stateless object at a fixed load. The last column shows what
+follows from that. Rust has the lowest peak memory in one study and higher peak memory in
+another; it is on par with C in one and at a fifth of DPDK's throughput in another; it tracks C++
+at the median in one and is comparable-then-much-worse across two sessions of a single study.
+Those findings cannot be reconciled against each other, because no two of them hold the same
+things fixed. That is the characteristic signature of a literature in which the independent
+variable is not controlled, and it is the reason this thesis builds its object of study instead of
+locating one.
+
+\begin{table}
+\centering
+\small
+\caption[This study beside the five vendor theses]{This study beside the five vendor theses, all
+carried out at Ericsson and none peer-reviewed. The rows are ordered by year. The last column
+reports each study's own verdict in its own terms, which is why the entries do not line up: they
+are answers to different questions, measured on different objects in different regimes. The
+verdict recorded for this thesis is the one Section~\ref{sec:rqdiscussion} defends, including the
+part the measurement host cannot resolve. Table~\ref{tab:related} places the same five studies on
+the three axes of the gap instead, alongside the peer-reviewed
+literature.\label{tab:vendortheses}}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}R{0.18\linewidth} R{0.25\linewidth} R{0.20\linewidth} R{0.26\linewidth}@{}}
+\hline\hline
+Study & Object measured & Regime reported & Reported verdict on Rust \\
+\hline
+Karlb\"ack \& Or\"o, 2021~\cite{karlback2021ran} &
+RAN applications on x86 and ARM, one idiomatic implementation per language &
+Runtime and resource use at the loads exercised &
+C++ preferred where performance is critical; Rust's peak memory the lowest of the three
+languages \\
+Olsson, 2023~\cite{olsson2023ranmgmt} &
+RAN node management software, Rust against C &
+Execution time and peak memory &
+Speed on par with or better than C; peak memory higher; safety materially improved \\
+Olsson \& Stenstr\"om, 2023~\cite{olsson2023asyncpackets} &
+Packet processing: asynchronous Rust on Glommio against DPDK Eventdev in C &
+Throughput and latency against core count &
+20--50\% of DPDK's throughput with far worse latency; asynchronous Rust judged not currently
+viable \\
+Emberg \& Wadsten, 2023~\cite{emberg2023asn1} &
+An {ASN.1} decompiler built twice, the Rust side reaching C++ through a C wrapper &
+Execution time in two benchmarking sessions &
+Comparable in the first session, 85--91\% worse in the second; preferred in practice on
+non-performance grounds \\
+Arvidsson \& Kaller, 2025~\cite{arvidsson2025async} &
+5G control-plane procedures across five asynchronous frameworks &
+Median and 99th percentile across a load sweep &
+Median tracks C++; the 99th percentile rises more steeply past a threshold request rate \\
+\hline
+This thesis, 2026 &
+A UE Context Management service built twice from one frozen specification, with the concurrency
+model, allocator and build settings fixed &
+Median, p99, p99.9 and maximum across a sweep to and beyond saturation &
+Equivalent at the median below saturation; the far tail there unresolved on this host; past
+saturation \OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$ the throughput of
+\OverloadSustainedSlower{} \\
+\hline
+\end{tabular}
+\end{table}
+
+One further property of this literature bears on how far any of it travels, including this
+thesis. All five studies were carried out at a single vendor, on that vendor's frameworks,
+hardware targets and engineering conventions, and none of their conclusions has been tested
+outside it. ``C++ remains the choice where performance is critical'' and ``asynchronous Rust is
+not currently viable'' are findings about particular software on particular infrastructure, and
+their generality is not established by their being repeated within the same organisation. On the
+other side of the comparison the record is thinner still: across the indexed publications of the
+vendor hosting this work there is no study of Rust at all, and none on memory safety in the radio
+access network. The closest the peer-reviewed literature comes to a position from that side is a
+study co-authored by two Nokia researchers on making memory-error sanitisation compilers usable
+enough to deploy, premised on the observation that certifying compilation ``has not been
+practical, leaving code instrumentation as the next best strategy''~\cite{gjomemo2016mesc}. That
+is precisely the after-the-fact detection strategy this thesis sets a compile-time guarantee
+against. The question here is therefore not settled elsewhere and imported: it is open in the
+literature, unexamined in this setting, and the answer this thesis gives is one an independent
+organisation can check, because the specification, both implementations and the harness are
+published with it.
+
 Not all of this evidence points the same way, and the thesis takes the qualifying findings
 seriously rather than citing only the favourable ones.
 
@@ -4168,7 +4263,8 @@ average or nominal load; ``adoption cost'' means the cost of incremental migrati
 is measured rather than surveyed. ``Partial'' marks percentiles reported across a load sweep
 that stops at a latency requirement instead of continuing past saturation. The lower block is
 grey literature: five vendor-hosted master's theses which are the closest work by domain, none
-peer-reviewed and none indexed by a citation database.\label{tab:related}}
+peer-reviewed and none indexed by a citation database. What those five measured and what each
+concluded is in Table~\ref{tab:vendortheses}.\label{tab:related}}
 \renewcommand{\arraystretch}{1.2}
 \small
 \begin{tabular}{@{}R{0.28\linewidth} R{0.22\linewidth} R{0.10\linewidth} R{0.10\linewidth} R{0.13\linewidth}@{}}

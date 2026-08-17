@@ -121,6 +121,20 @@ five theses are also unindexed grey literature, absent from the citation
 databases and reachable only through repository search, so the evidence a
 vendor would weigh this decision on has not been through review.
 
+Two further properties of that evidence matter. It is concentrated in one
+vendor: the five studies use that vendor's frameworks and hardware targets, and
+none of their conclusions has been tested against another organisation's
+software, so their transferability is untested rather than established. And the
+record on the other side is emptier still. A search of Nokia's indexed
+publications returns no study of Rust, and none on memory safety in the radio
+access network; the nearest peer-reviewed position from that side, co-authored
+by two Nokia researchers, argues for making memory-error sanitisation compilers
+practical on the premise that certifying compilation is
+not~\cite{gjomemo2016mesc} --- which is the after-the-fact detection strategy
+this thesis sets a compile-time guarantee against. The question is therefore
+open in the literature and unexamined in this setting, and the artefacts
+published with the thesis let an independent organisation check the answer.
+
 \section{Objective and research questions}
 
 The thesis builds two functionally equivalent implementations of a UE Context

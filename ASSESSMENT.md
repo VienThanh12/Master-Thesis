@@ -606,10 +606,15 @@ overfull boxes, zero floats too large. 147 pages.
 1. **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`. Blocking, and it cannot be
    delegated — the summary is the maturity test.
 2. **Bare-metal tail campaign** with counters and allocation profiles. Lifts areas 3 and 4.
-3. **Align RQ1's metric list** with what is reported, or report jitter. RQ1 names "mean, p99,
-   p99.9 tail latency, and jitter"; the mean is deliberately replaced by the median and jitter is
-   absent. Note that amending the RQ means syncing the plan and `Thesis_v1.tex`, and the plan is
-   supervisor-approved.
+3. ~~**Align RQ1's metric list** with what is reported, or report jitter.~~ **Done.** RQ1 now
+   names the median, p99, p99.9 and the maximum in all three documents — `Thesis_Plan_v2.tex`,
+   `Thesis_v1.tex` and `Thesis_POC.tex` — which is exactly what the reported campaign delivers,
+   and §8.6 states that jitter and p99.99 are instrumented but not yet reported. The question and
+   the answer therefore match. Two consequences to keep in view: the change narrowed a
+   supervisor-approved RQ, so it should be **flagged explicitly in the next submission** rather
+   than left for the supervisor to notice; and jitter and p99.99 are now an evidence upgrade
+   (`TODO.md`, "Highest-value work still available", item 2) rather than an unkept promise, so the
+   argument for that re-run must not be made on promise-keeping grounds.
 4. **Optional:** the use-after-free example is worked three times (introduction, background,
    appendix). Defensible layering for a reader without telecom background — left as the author's
    call rather than cut.
