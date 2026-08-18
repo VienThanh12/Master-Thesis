@@ -15,7 +15,7 @@
 % REFERENCES: numeric (Vancouver) style, one of the three styles the template
 % offers. sorting=none keeps the numbers in citation order, as IEEEtran did.
 \usepackage[style=numeric,bibstyle=numeric,backend=biber,natbib=true,
-            sorting=none,maxbibnames=99,giveninits=true,uniquename=init]{biblatex}
+            sorting=none,sortcites=true,maxbibnames=99,giveninits=true,uniquename=init]{biblatex}
 \addbibresource{bibliography.bib}
 % List the authors in the bibliography as Lastname F.
 \DeclareNameAlias{sortname}{family-given}
@@ -406,7 +406,7 @@ textbook example.
 The gNB-CU-CP is not a minor component. In the 3GPP disaggregated architecture it is the
 control-plane half of the central unit: it hosts RRC and manages the UE context lifecycle,
 delegating user-plane bearer handling to the CU-UP over the E1
-interface~\cite{3gpp38401,3gpp38300,3gpp38463,3gpp38331}. It does so under the
+interface~\cite{3gpp38401,3gpp38300,3gpp38331,3gpp38463}. It does so under the
 millisecond-scale procedure budgets the 5G system places on control
 signalling~\cite{3gpp38913}, and at the very high event rates and connected-device counts a
 deployed network sustains. Because it is written in C++, it inherits both that language's
