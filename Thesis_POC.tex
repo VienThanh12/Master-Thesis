@@ -32,6 +32,7 @@
 \usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
 %\usepackage{wrapfig} % For nice text-wrapping figures (use at own discretion)
 \usepackage{array} % Ragged-right p-columns in the Chapter 6 tables
+\usepackage{float} % [H] placement for tables that must not drift past their section
 \usepackage{listings} % For the side-by-side C++/Rust excerpts in Chapter 6
 
 % Ragged-right paragraph column: avoids stretched inter-word spacing in narrow cells.
@@ -301,7 +302,7 @@ subsystem reimplemented and measured. \emph{Tail latency} (the p99/p99.9 percent
 the mean) is the property that, more than average speed, decides whether such a system meets its
 deadlines~\cite{dean2013tail,barroso2017microseconds}.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \caption[Abbreviations and key terms]{Abbreviations and key terms used throughout the thesis.\label{tab:abbrev}}
 % 1.1 rather than 1.2: the class's text block is 23cm, and at 1.2 the table is
