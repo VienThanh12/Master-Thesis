@@ -312,21 +312,21 @@ deadlines~\cite{dean2013tail,barroso2017microseconds}.
 \hline\hline
 Term & Meaning \\
 \hline
-RAN & Radio Access Network; the part of the mobile network connecting devices to the core \\
+RAN & Radio Access Network: the part of the mobile network connecting devices to the core \\
 NG-RAN & Next-Generation RAN, the 5G radio-access-network architecture \\
 gNB & 5G base station (``next-generation NodeB'') \\
-gNB-CU / DU & Central Unit / Distributed Unit; the disaggregated halves of a gNB \\
-gNB-CU-CP & Control-plane part of the central unit; the system class studied here \\
-UE & User Equipment; an end device (phone, modem) attached to the network \\
-UECM & UE Context Management; the per-UE state-management subsystem reimplemented here \\
-RRC & Radio Resource Control; the control-plane signalling protocol between UE and gNB \\
-DRB & Data Radio Bearer; a per-UE user-plane data channel set up during a session \\
+gNB-CU / DU & Central Unit / Distributed Unit: the disaggregated halves of a gNB \\
+gNB-CU-CP & Control-plane part of the central unit: the system class studied here \\
+UE & User Equipment: an end device (phone, modem) attached to the network \\
+UECM & UE Context Management: the per-UE state-management subsystem reimplemented here \\
+RRC & Radio Resource Control: the control-plane signalling protocol between UE and gNB \\
+DRB & Data Radio Bearer: a per-UE user-plane data channel set up during a session \\
 Control plane & The signalling and management path, as opposed to the user-plane data path \\
 Tail latency & High-percentile latency (p99, p99.9), the worst-case-oriented timing metric \\
 Jitter & How much latency varies from one operation to the next, as opposed to its typical value \\
 Saturation & The offered load beyond which the service can no longer keep up and requests start queueing \\
 Shard & One of several independent slices of the UE state, each owned by exactly one worker thread \\
-FFI & Foreign Function Interface; calling Rust from C++ across a C ABI \\
+FFI & Foreign Function Interface: calling Rust from C++ across a C ABI \\
 HDR histogram & High-Dynamic-Range histogram, used for accurate latency capture \\
 \hline
 \end{tabular}
@@ -883,11 +883,11 @@ guarantee.\label{tab:langmodel}}
 \hline\hline
 Concern & Modern C++ & Rust \\
 \hline
-Object lifetime & RAII and smart pointers, applied by convention; a raw pointer or reference may outlive its referent & Ownership: each value has one owner and is dropped exactly once \\
-Aliasing & Unrestricted; any number of mutable aliases may coexist & Borrowing: either one mutable reference or many shared ones, never both \\
+Object lifetime & RAII and smart pointers, applied by convention. A raw pointer or reference may outlive its referent & Ownership: each value has one owner and is dropped exactly once \\
+Aliasing & Unrestricted: any number of mutable aliases may coexist & Borrowing: either one mutable reference or many shared ones, never both \\
 Bounds & Unchecked on \texttt{operator[]}, checked only through \texttt{at()} & Checked by default, elided where the index can be proved in range \\
-Thread safety & Not expressed in the type system; sharing a mutable object across threads compiles & \texttt{Send} and \texttt{Sync} marker traits; unsynchronised sharing is a type error \\
-Error signalling & Exceptions or error codes; the failure path can be invisible at the call site & \texttt{Result} values the caller must handle; the failure path is explicit \\
+Thread safety & Not expressed in the type system: sharing a mutable object across threads compiles & \texttt{Send} and \texttt{Sync} marker traits. Unsynchronised sharing is a type error \\
+Error signalling & Exceptions or error codes: the failure path can be invisible at the call site & \texttt{Result} values the caller must handle. The failure path is explicit \\
 Escape hatch & The whole language & \texttt{unsafe} blocks, delimited and mechanically countable \\
 Stage of detection & Run time, under the right sanitiser, on a path a test exercises & Compile time, on every ordinary build, whatever the test coverage \\
 \hline
@@ -1353,14 +1353,14 @@ H3.\label{tab:design}}
 \hline\hline
 RQ & Method & Artifact / data & Primary metric \\
 \hline
-RQ1 & Load sweep to overload, interleaved repeats & Benchmark harness; latency histograms &
+RQ1 & Load sweep to overload, interleaved repeats & Benchmark harness, latency histograms &
 median, p99/p99.9 tail latency, and maximum vs.\ offered load \\
 RQ3 & Same sweep, resource capture & \texttt{getrusage} samples per run &
 peak RSS, CPU utilisation, throughput \\
 RQ1, RQ3 & Component decomposition: the core called directly, then through the service &
 Matched microbenchmark pair, interleaved repeats &
 per-operation cost split into the operation and the cross-thread handoff \\
-RQ2 & Controlled fault injection & Defect catalogue; ASan/TSan and \texttt{rustc} logs &
+RQ2 & Controlled fault injection & Defect catalogue, ASan/TSan and \texttt{rustc} logs &
 defect-class taxonomy (compile-time / runtime / undetected) \\
 RQ4 & FFI migration prototype & C++ host $+$ Rust C-ABI seam &
 seam size, \texttt{unsafe} scope, per-call interop cost \\
@@ -1572,7 +1572,7 @@ Concurrency model & Thread-per-shard over bounded blocking MPSC queues on both s
 Hashing & SplitMix64 for shard selection and FNV-1a inside the shard, pinned identically, so neither standard library's default hasher becomes an accidental advantage & The container itself is still each language's own hash map, and the two differ in layout (\S\ref{sec:budget}) \\
 Allocator & The same \texttt{jemalloc} linked on both sides, with a system-allocator build kept on each as a control & Nothing outstanding \\
 Optimisation & \texttt{-O2} against \texttt{opt-level~=~2} & Nominal parity is not identical code generation \\
-Workload & One deterministic driver; for a given seed and active-UE population both implementations execute the same operation sequence, checked by per-kind counts & Synthetic and spec-justified rather than replayed from production traffic \\
+Workload & One deterministic driver. For a given seed and active-UE population both implementations execute the same operation sequence, checked by per-kind counts & Synthetic and spec-justified rather than replayed from production traffic \\
 Instrumentation & The same HDR histogram algorithm and configuration, the same open-loop schedule, the same repeat and interleaving discipline & Nothing outstanding \\
 Behaviour & A language-neutral conformance suite whose canonical transcripts are diffed op for op (\S\ref{sec:parity}) & Parity bounds behaviour, not performance \\
 \hline
@@ -2063,7 +2063,7 @@ Concern & C++ & Rust \\
 \hline
 Result type & \texttt{std::expected<T, OpError>} & \texttt{Result<T, OpError>} \\
 Request & tagged struct: discriminant plus every argument field ($\CppRequestBytes$\,B) & \texttt{enum}, one variant per operation, carrying only its own arguments ($\RustRequestBytes$\,B) \\
-Response & \texttt{std::variant} of four result types, unwrapped by the caller with \texttt{std::get} & none needed; each variant carries a sender of its own result type \\
+Response & \texttt{std::variant} of four result types, unwrapped by the caller with \texttt{std::get} & none needed: each variant carries a sender of its own result type \\
 Bounded queue & hand-written \texttt{mutex} plus two \texttt{condition\_variable}s ($45$ lines) & \texttt{sync\_channel(capacity)} \\
 Completion & \texttt{std::promise} / \texttt{std::future} & a fresh \texttt{mpsc::channel()} per request \\
 Per-shard map & \texttt{std::unordered\_map} with an \texttt{FnvHash} functor & \texttt{HashMap} with an \texttt{FnvBuildHasher} \\
@@ -2148,7 +2148,7 @@ Measure & C++ & Rust \\
 \centering
 \small
 \caption[Where the line-count difference between the cores comes from]{Where the $\LocGap$-line difference between the two cores comes from, by concern (raw
-lines, including comments; C++ figures merge header and translation unit; probe-conditional
+lines, including comments. C++ figures merge header and translation unit. Probe-conditional
 blocks excluded as in Section~\ref{sec:impldetails}). Rust is shorter
 only where its standard library supplies a primitive C++ lacks.\label{tab:loc}}
 \begin{tabular}{@{}R{0.38\linewidth} r r r@{}}
@@ -2324,16 +2324,16 @@ saturation.\label{tab:testbed}}
 Aspect & Used for the results reported here & Required for testbed-grade tail figures \\
 \hline
 Host & Dedicated dual-socket server, $2\times$ Xeon E5-2680~v4, $16$ cores, one NUMA node & Same class of machine, without the hypervisor \\
-Virtualisation & KVM guest; frequency and turbo host-controlled and unobservable & None; governor and turbo set and verified \\
+Virtualisation & KVM guest: frequency and turbo host-controlled and unobservable & None. Governor and turbo set and verified \\
 CPU steal & Non-zero, order $10$~ms of vCPU time per second & None \\
 Kernel & Rocky Linux~8.10, distribution kernel & Same, with \texttt{isolcpus} and \texttt{nohz\_full} on the benchmark cores \\
 Toolchain & \texttt{g++~15.1.1}, \texttt{rustc~1.97} & \texttt{g++~15.1.1}, \texttt{rustc~1.97} \\
-CPU pinning & Cores $2$--$15$ via \texttt{taskset}; $7$ shards, $7$ producers & Same, on cores also removed from the scheduler \\
+CPU pinning & Cores $2$--$15$ via \texttt{taskset}, $7$ shards, $7$ producers & Same, on cores also removed from the scheduler \\
 Simultaneous multithreading & Absent on this processor & Absent or disabled \\
 Warm-up & Initial fraction of each run discarded & Initial fraction of each run discarded \\
 Repeats and interleaving & \NRepeats{} repeats, four variants interleaved per repeat & \NRepeats{} repeats, four variants interleaved per repeat \\
 Environment capture & \texttt{bench/capture\_env.sh}, stored with each result & \texttt{bench/capture\_env.sh}, stored with each result \\
-Hardware counters & Unavailable in the guest & Available; the clearest instrumentation gap \\
+Hardware counters & Unavailable in the guest & Available: the clearest instrumentation gap \\
 \hline
 Adequate for & Parity, fault injection, FFI structure, the saturation knee and the overload comparison, and the resource comparisons & Additionally the far tail below saturation, and the mechanism behind the resource and operation results \\
 \hline
@@ -2416,13 +2416,13 @@ $5$~ms.\label{tab:params}}
 Parameter & Value & Note \\
 \hline
 \multicolumn{3}{@{}l}{\emph{Service under test, identical in both languages}} \\
-Shards, and worker threads & $7$ & one thread owns one shard; one of each per pinned core \\
+Shards, and worker threads & $7$ & one thread owns one shard, one of each per pinned core \\
 Queue bound per shard & $1\,024$ requests & bounded and blocking, so overload is observable \\
 Initial map capacity & $4\,096$ entries & reserved so steady state does not rehash \\
 Bearers per context & at most $8$ & \\
 Signaling payload & $64$ bytes & \\
 Context ceiling per shard & $200\,000$ & \\
-Shard selection & SplitMix64, then modulo & pinned; diffuses sequential identifiers \\
+Shard selection & SplitMix64, then modulo & pinned: diffuses sequential identifiers \\
 Intra-shard hash & FNV-1a, 64-bit & pinned on both sides and checked bit-for-bit \\
 \hline
 \multicolumn{3}{@{}l}{\emph{Workload}} \\
@@ -3290,11 +3290,11 @@ Data race                 & not detected & detected     & not detected & compile
 Unguarded shared mutation & not detected & detected     & not detected & compile error (E0502$^{\dagger}$) \\
 \hline
 \multicolumn{5}{@{}l}{\emph{Boundary of the guarantee}} \\
-Lock-order deadlock$^{\ddagger}$ & not detected & intermittent$^{\S}$ & not detected & compiles; deadlocks \\
-Lost update               & not detected & not detected & not detected & compiles; wrong result \\
-Reference-cycle leak      & detected     & not detected & not detected & compiles; leaks \\
-Integer overflow (release) & not detected & not detected & detected     & compiles; wrong result \\
-Worker-failure blast radius & not detected & not detected & not detected & compiles; shard outage \\
+Lock-order deadlock$^{\ddagger}$ & not detected & intermittent$^{\S}$ & not detected & compiles, deadlocks \\
+Lost update               & not detected & not detected & not detected & compiles, wrong result \\
+Reference-cycle leak      & detected     & not detected & not detected & compiles, leaks \\
+Integer overflow (release) & not detected & not detected & detected     & compiles, wrong result \\
+Worker-failure blast radius & not detected & not detected & not detected & compiles, shard outage \\
 \hline
 \end{tabular}
 
@@ -3446,13 +3446,13 @@ to the machine rather than to the analysis.
 RQ & Headline finding & Evidence status \\
 \hline
 RQ1 & The answer divides at saturation. Below it the variants agree to $\PFiftyRange\,\mu$s
-($\PFiftySpread\%$) at the median and no tail ordering is resolvable; the end-to-end number is
+($\PFiftySpread\%$) at the median and no tail ordering is resolvable. The end-to-end number is
 only $\BudgetCoreShareMax\%$ operation, so it cannot bound a language effect in any case, while
 the operation measured apart is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster. Past
 saturation they diverge decisively: \OverloadSustainedFaster{} sustains
 $\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{} at
 $\OverloadLoad$~kops/s, in \OverloadThrAgree{} repeats under both allocators. & Overload and
-operation: resolved. Far tail: unresolved on this host. Mechanism: tested; primitives alone
+operation: resolved. Far tail: unresolved on this host. Mechanism: tested. Primitives alone
 insufficient \\
 RQ2 & All five injected memory-safety and data-race classes are prevented at compile time in
 safe Rust, where in C++ each compiles and is caught, if at all, only at runtime and by no single
@@ -3467,7 +3467,7 @@ per completed operation above it. & Memory: resolved, unexplained. CPU: resolved
 regimes, opposite signs \\
 RQ4 & The seam is small and keeps the core \texttt{unsafe}-free at compile time. Measured against
 the same operation called natively, no cost is detected and any tax is bounded at
-$\FfiOpBoundPct\%$ of an operation; the real cost is API design. The core remains exposed at run
+$\FfiOpBoundPct\%$ of an operation. The real cost is API design. The core remains exposed at run
 time to memory errors in the C++ host it shares an address space with. & Final \\
 \hline
 \end{tabular}
@@ -4009,32 +4009,32 @@ Study & Object measured & Regime reported & Reported verdict on Rust \\
 Karlb\"ack \& Or\"o, 2021~\cite{karlback2021ran} &
 RAN applications on x86 and ARM, one idiomatic implementation per language &
 Runtime and resource use at the loads exercised &
-C++ preferred where performance is critical; Rust's peak memory the lowest of the three
+C++ preferred where performance is critical. Rust's peak memory the lowest of the three
 languages \\
 Olsson, 2023~\cite{olsson2023ranmgmt} &
 RAN node management software, Rust against C &
 Execution time and peak memory &
-Speed on par with or better than C; peak memory higher; safety materially improved \\
+Speed on par with or better than C, peak memory higher, safety materially improved \\
 Olsson \& Stenstr\"om, 2023~\cite{olsson2023asyncpackets} &
 Packet processing: asynchronous Rust on Glommio against DPDK Eventdev in C &
 Throughput and latency against core count &
-20--50\% of DPDK's throughput with far worse latency; asynchronous Rust judged not currently
+20--50\% of DPDK's throughput with far worse latency. Asynchronous Rust judged not currently
 viable \\
 Emberg \& Wadsten, 2023~\cite{emberg2023asn1} &
 An {ASN.1} decompiler built twice, the Rust side reaching C++ through a C wrapper &
 Execution time in two benchmarking sessions &
-Comparable in the first session, 85--91\% worse in the second; preferred in practice on
+Comparable in the first session, 85--91\% worse in the second. Preferred in practice on
 non-performance grounds \\
 Arvidsson \& Kaller, 2025~\cite{arvidsson2025async} &
 5G control-plane procedures across five asynchronous frameworks &
 Median and 99th percentile across a load sweep &
-Median tracks C++; the 99th percentile rises more steeply past a threshold request rate \\
+Median tracks C++. The 99th percentile rises more steeply past a threshold request rate \\
 \hline
 This thesis, 2026 &
 A UE Context Management service built twice from one frozen specification, with the concurrency
 model, allocator and build settings fixed &
 Median, p99, p99.9 and maximum across a sweep to and beyond saturation &
-Equivalent at the median below saturation; the far tail there unresolved on this host; past
+Equivalent at the median below saturation. The far tail there is unresolved on this host. Past
 saturation \OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$ the throughput of
 \OverloadSustainedSlower{} \\
 \hline
@@ -4135,19 +4135,19 @@ Implementation bias between the two versions & Frozen specification, shared allo
 \hline
 \multicolumn{3}{@{}l}{\emph{Construct: do the metrics measure what the questions ask?}} \\
 The sweep measures the design, not the language & The operation is measured apart from the handoff and both are reported (\S\ref{sec:budget}) & One operation on one data structure is narrower than the sweep it supplements \\
-The overload result is attributed but not localised & Narrowed to two entries in the forced-idiom log (\S\ref{sec:overload}); the contended-primitive microbenchmark (\S\ref{sec:contention}) rules out those two alone as the full explanation & The full handoff path under load still includes variant dispatch and larger requests on the C++ side \\
+The overload result is attributed but not localised & Narrowed to two entries in the forced-idiom log (\S\ref{sec:overload}). The contended-primitive microbenchmark (\S\ref{sec:contention}) rules out those two alone as the full explanation & The full handoff path under load still includes variant dispatch and larger requests on the C++ side \\
 A defect catalogue is a sample the author chose & Five classes drawn from outside the guarantee, with expectations recorded in advance & Ten programs remain ten programs \\
 RQ3 captures resource cost but not its origin & None available on this host & The memory result is established but unexplained \\
 RQ4 measures the seam, not the safety of the whole & The distinction is stated wherever the result is quoted & One address space: a compile-time property of the Rust side bounds nothing at run time \\
 \hline
 \multicolumn{3}{@{}l}{\emph{Conclusion: are the differences real or noise?}} \\
 Run-to-run non-determinism & \NRepeats{} interleaved repeats, bootstrap intervals, exact paired permutation test, Holm correction, floors quoted & Pairing cancels only what a block shared, so the far tail below saturation stays unresolved \\
-A corrected $p$-value that does not replicate & The allocator control runs every comparison twice; replication is followed over the $p$-value & It has cost a result before and would again; here the tail rows are the ones it withholds \\
+A corrected $p$-value that does not replicate & The allocator control runs every comparison twice. Replication is followed over the $p$-value & It has cost a result before and would again. Here the tail rows are the ones it withholds \\
 A contaminated run defeating a mean-based statistic & The reading rule of \S\ref{sec:stats}, fixed in advance, plus the per-repeat agreement count & Peak RSS under \texttt{jemalloc} is read from its interval against its own $p$-value \\
 \hline
 \multicolumn{3}{@{}l}{\emph{External: how far do the results travel?}} \\
 One subsystem, one workload, one machine & RQ2 and RQ4 rest on the compilers and the C ABI rather than on the host & The performance results do not travel, and the overload result travels least of all \\
-A virtualised measurement host & Interleaving, pairing, and \NRepeats{} repeats; the guest's limits recorded in the data (\S\ref{sec:testbed}) & Frequency unobservable and CPU steal non-zero, neither removable from inside the guest \\
+A virtualised measurement host & Interleaving, pairing, and \NRepeats{} repeats. The guest's limits recorded in the data (\S\ref{sec:testbed}) & Frequency unobservable and CPU steal non-zero, neither removable from inside the guest \\
 \hline
 \end{tabular}
 \end{table}
