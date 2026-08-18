@@ -431,7 +431,7 @@ A language choice in software of this class is not revisited often, and it outli
 generation it was made for. The next generation is being specified now: 3GPP has allocated
 Release 20 to the 6G studies and Release 21 to the normative work, against a calendar set by the
 ITU radiocommunication sector that asks for technology proposals in early 2029 and the submitted
-specifications by mid-2030~\cite{3gpp2024road6g,itu2023imt2030}. That work explicitly covers
+specifications by mid-2030~\cite{itu2023imt2030,3gpp2024road6g}. That work explicitly covers
 migration from and interworking with 5G, so a control plane written for the current generation is
 not retired when the next one arrives but maintained alongside it. The practical question for a
 vendor is therefore not only which language suits a 5G control plane today, but which one it can
@@ -626,7 +626,7 @@ with the control plane (gNB-CU-CP) handling RRC and connection management for ea
 UE~\cite{3gpp38401,3gpp38300,3gpp38331}. Such control-plane systems must satisfy demanding
 non-functional requirements: very high event rates (UE mobility, signalling storms), strict
 and predictable latency bounds that the 5G service and RAN specifications quantify as
-KPIs~\cite{3gpp22261,3gpp38913}, long-lived software with continuously evolving complexity,
+KPIs~\cite{3gpp38913,3gpp22261}, long-lived software with continuously evolving complexity,
 and heavily concurrent workloads. In these systems the worst-case and tail behaviour,
 rather than the average, determines whether deadlines are met, which motivates the
 predictability focus of this thesis.
@@ -833,7 +833,7 @@ been established formally by the RustBelt project~\cite{jung2018rustbelt}, and t
 discipline that even \texttt{unsafe} code must respect has been given a precise operational
 semantics~\cite{jung2020stacked}. Empirical evidence supports the model in practice: in real
 codebases \texttt{unsafe} is used sparingly and in localised
-ways~\cite{astrauskas2020unsafe,qin2020rust}, and a study of all Rust memory-safety CVEs found
+ways~\cite{qin2020rust,astrauskas2020unsafe}, and a study of all Rust memory-safety CVEs found
 that every one of them but a single compiler bug involved \texttt{unsafe}
 code~\cite{xu2021rustcve}. The caveat is that unsafety propagates through dependencies. Fewer
 than a third of libraries use \texttt{unsafe} directly, but a much larger fraction cannot be
@@ -882,7 +882,7 @@ cedes the control over memory layout and scheduling this domain relies on. C, at
 extreme, is as memory-unsafe as C++ while offering fewer abstractions for building large
 systems. Rust is the first widely supported language to combine compile-time memory and thread
 safety with the absence of a garbage collector and throughput and memory use alongside C and
-C++~\cite{jung2021safe,balasubramanian2017rust,bugden2022rust}. That is why managed languages
+C++~\cite{balasubramanian2017rust,jung2021safe,bugden2022rust}. That is why managed languages
 are out of scope and why the meaningful comparison for RAN control-plane software is C++ against
 Rust.
 
@@ -1116,7 +1116,7 @@ instead of changing state.\label{fig:fsm}}
 Two properties make UECM a good study object for a language comparison. It is
 \emph{representative}: per-UE mutable state, a strict operation lifecycle, high inter-UE
 concurrency, and the hard latency and reliability targets the 5G system places on control-plane
-procedures~\cite{3gpp22261,3gpp38913} are exactly the properties that make production
+procedures~\cite{3gpp38913,3gpp22261} are exactly the properties that make production
 RAN control-plane code difficult, so conclusions about how a language handles them transfer to
 the broader class of stateful, concurrent control-plane services. It is also \emph{tractable}:
 the subsystem is small enough to specify precisely, implement faithfully in two languages, and
@@ -2398,7 +2398,7 @@ asked to do.\label{fig:workload}}
 The term is used precisely, because the distinction bounds what the workload can support. The
 \emph{sequence} of operations is justified: it is the RRC connection lifecycle the 3GPP
 specifications define for a UE, from establishment through in-session signalling and bearer setup
-to reconfiguration and release~\cite{3gpp38331,3gpp38401}, and the per-slot expected-state model
+to reconfiguration and release~\cite{3gpp38401,3gpp38331}, and the per-slot expected-state model
 guarantees that every operation the driver emits is legal for the state its context is actually
 in, so the workload never drives the service along a path the specification forbids. The
 \emph{proportions} are not justified in the same way. How often a real cell hands over relative
@@ -3507,7 +3507,7 @@ fraction of an $80\,\mu$s operation. The far tail in this regime is a different 
 deployment would also care about. There the result is a null this host cannot turn into an
 ordering, so the equivalence claimed here does not extend to it. That is consistent with the wider evidence that
 Rust's safety checks are largely absorbed by modern out-of-order
-CPUs~\cite{emmerich2019drivers,balasubramanian2017rust}. It is also a weaker statement than it
+CPUs~\cite{balasubramanian2017rust,emmerich2019drivers}. It is also a weaker statement than it
 appears, for the reason Section~\ref{sec:budget} gives: the operation the
 languages execute is $\BudgetCoreShareMax\%$ of what the sweep measures, so an end-to-end null in
 a design dominated by a cross-thread wakeup is a statement about the design rather than about the
@@ -3832,7 +3832,7 @@ length the two studies it has to answer to.
 Four strands bear on the comparison, and Chapter~\ref{chapter:background} sets out each of them.
 What matters here is the property they share. Cross-language performance measurement puts
 compiled systems languages close together on time and
-energy~\cite{pereira2017energy,bugden2022rust} and finds Rust's safety cheap at run
+energy~\cite{bugden2022rust,pereira2017energy} and finds Rust's safety cheap at run
 time~\cite{balasubramanian2017rust,levy2017kernel}, including where timing is tightest: embedded
 hypervisors~\cite{mo2023rustshyper}, production cloud infrastructure~\cite{agache2020firecracker},
 packet processing within a few percent of a C
@@ -3845,11 +3845,11 @@ settled in the same partial way: machine-checked foundations for the safe fragme
 aliasing discipline \texttt{unsafe} code must
 respect~\cite{jung2018rustbelt,jung2021safe,jung2020stacked}, confirmation that \texttt{unsafe} is
 used sparingly and that memory-safety CVEs invariably involve
-it~\cite{astrauskas2020unsafe,qin2020rust,xu2021rustcve}, ecosystem-scale auditing that finds
+it~\cite{qin2020rust,astrauskas2020unsafe,xu2021rustcve}, ecosystem-scale auditing that finds
 defects at scale regardless~\cite{bae2021rudra,zheng2024security,qin2024safety}, the caution that
 unsafety propagates through dependency chains~\cite{evans2020rust}, and the reports motivating the
 shift against a long record of memory corruption resisting runtime
-mitigation~\cite{msrc2019memory,google2022android,cisa2023memorysafe,oncd2024building,google2024securebydesign,szekeres2013sok}.
+mitigation~\cite{msrc2019memory,google2022android,google2024securebydesign,cisa2023memorysafe,oncd2024building,szekeres2013sok}.
 
 The third strand qualifies the adoption argument, and Section~\ref{sec:interop} states its central
 limit: confining \texttt{unsafe} to a seam does not protect the Rust side, because foreign code in
