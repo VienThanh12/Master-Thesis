@@ -305,15 +305,19 @@ deadlines~\cite{dean2013tail,barroso2017microseconds}.
 \begin{table}[H]
 \centering
 \caption[Abbreviations and key terms]{Abbreviations and key terms used throughout the thesis.\label{tab:abbrev}}
-% 1.1 rather than 1.2: the class's text block is 23cm, and at 1.2 the table is
-% a shade taller than the page.
-\renewcommand{\arraystretch}{1.1}
-\begin{tabular}{@{}p{0.17\linewidth} p{0.75\linewidth}@{}}
+% Single-spaced: the class's text block is 23cm, and at the body's 1.5 spacing a
+% glossary of this length runs past the bottom of the page. The opened row
+% height keeps it legible at single spacing.
+\singlespacing
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}p{0.21\linewidth} p{0.71\linewidth}@{}}
 \hline\hline
 Term & Meaning \\
 \hline
 RAN & Radio Access Network: the part of the mobile network connecting devices to the core \\
 NG-RAN & Next-Generation RAN, the 5G radio-access-network architecture \\
+IMT-2030 & The ITU framework for the generation after 5G, commonly called 6G \\
+AI-RAN & An architecture in which AI and RAN workloads share one accelerated infrastructure \\
 gNB & 5G base station (``next-generation NodeB'') \\
 gNB-CU / DU & Central Unit / Distributed Unit: the disaggregated halves of a gNB \\
 gNB-CU-CP & Control-plane part of the central unit: the system class studied here \\
