@@ -46,6 +46,7 @@ The PDFs in this repository do not share a status and are not interchangeable.
 | `Thesis_Plan_v2.pdf` | Reviewed, supervisor-facing | Approved plan: gap, RQs, methodology, timeline, contributions |
 | `Thesis_v1.pdf` | Reviewed, supervisor-facing | Chapter skeleton, one bullet per argument move. Chapters 6 to 9 stay empty until the skeleton review closes |
 | `Thesis_POC.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, full argument, and everything in it still needs review |
+| `Ha_Vien_Mastersthesis_2026.pdf` | Same build as `Thesis_POC.pdf` | UH submission filename (`Lastname_Firstname_Mastersthesis_Year`, ASCII). Copied from `Thesis_POC.pdf` by `bench/refresh_thesis.sh` |
 | `ai_statement.tex` | Declaration in the author's name | Statement on generative-AI use, shared by both thesis documents |
 | `plain_thesis.tex`, `thesis-vi.tex` | Stale variants | Not maintained. `thesis-vi.tex` currently renders its citations as `[?]` |
 
@@ -71,7 +72,7 @@ verification workflow. Read it before touching thesis text, figures, or artefact
 │   ├── counters.sh        Hardware counters (testbed only, needs a PMU)
 │   ├── alloc_profile.sh   Attribute the peak-RSS gap to allocation sites (testbed only)
 │   ├── TESTBED.md         Bare-metal protocol: the only route to testbed-grade tail figures
-│   └── refresh_thesis.sh  Regenerate all figures/tables/macros and rebuild Thesis_POC.pdf
+│   └── refresh_thesis.sh  Regenerate figures/tables/macros, rebuild Thesis_POC.pdf, copy Ha_Vien_Mastersthesis_2026.pdf
 ├── faults/            Fault-injection taxonomy (RQ2) + Loom/Shuttle model checking of the boundary classes
 ├── ffi/               Incremental-adoption prototype: C++ host over a Rust component via a C ABI (RQ4)
 ├── figures/           Generated figures, LaTeX tables, and generated macros consumed by the thesis

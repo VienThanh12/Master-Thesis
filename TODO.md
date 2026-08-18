@@ -382,7 +382,7 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       measurement host and what it cannot carry, the pre-committed statistical treatment, the
       latency decomposition, the overload divergence, and the contended-primitive mechanism test.
       `build_deck.py` also gates its own layout against the template's content band.
-- [ ] Final PDF + submission
+- [ ] Final PDF + submission (`Ha_Vien_Mastersthesis_2026.pdf`, copied from `Thesis_POC.pdf` by `bench/refresh_thesis.sh`)
 
 ### After the bare-metal campaign, re-check these
 The prose is generated from the data, so most of it updates itself. These are the claims that

@@ -78,6 +78,12 @@ if grep -q 'LaTeX Warning' Thesis_POC.log 2>/dev/null; then
   grep -n 'LaTeX Warning' Thesis_POC.log | head
 fi
 echo "OK: Thesis_POC.pdf rebuilt."
+
+# UH submission filename: Lastname_Firstname_Mastersthesis_Year (ASCII only).
+submission_pdf="Ha_Vien_Mastersthesis_2026.pdf"
+cp -f Thesis_POC.pdf "$submission_pdf"
+echo "OK: $submission_pdf (submission copy) updated."
+
 echo
 echo "Campaign numbers now in the prose (figures/gen_macros.tex):"
 sed -n 's/\\newcommand{\\\([A-Za-z]*\)}{\(.*\)}/  \1 = \2/p' figures/gen_macros.tex

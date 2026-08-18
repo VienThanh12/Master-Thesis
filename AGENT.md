@@ -19,6 +19,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v1.tex`. |
 | **`Thesis_v1.pdf`** | `Thesis_v1.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through. This is what goes to the supervisor alongside the plan. |
 | **`Thesis_POC.pdf`** | `Thesis_POC.tex` | **Full draft — not yet final** | Canonical long-form thesis (~113–127 pages). Rich figures, generated numbers, full argument. **Everything still needs review** before submission. |
+| **`Ha_Vien_Mastersthesis_2026.pdf`** | same build as `Thesis_POC.pdf` | **Submission filename** | UH format `Lastname_Firstname_Mastersthesis_Year` (ASCII). `bench/refresh_thesis.sh` copies `Thesis_POC.pdf` here after each rebuild. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Thesis_POC.tex` and `Thesis_v1.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `plain_thesis.tex` / `thesis-vi.tex` | variants | Secondary / stale | Do not edit unless explicitly asked. `thesis-vi.tex` is broken (missing bib). |
 | Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Thesis_POC.tex`. |
