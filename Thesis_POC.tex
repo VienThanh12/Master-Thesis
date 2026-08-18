@@ -528,27 +528,11 @@ below saturation, with any difference confined to the far tail. \textbf{H2:} saf
 at compile time the memory-safety and concurrency defect classes that C++ leaves to
 best-effort, after-the-fact detection. \textbf{H3:} the run-time cost of C++-to-Rust
 interoperability is negligible relative to the cost of the operations invoked, so that the true
-cost of incremental adoption is engineering effort rather than performance. These hypotheses are
-revisited against the evidence in Section~\ref{sec:hypotheses}.
-
-\section{Research approach at a glance}
-The four questions are answered constructively, not by literature synthesis. The core
-artifact is a pair of functionally equivalent UECM implementations, one in modern C++ and one in
-Rust, built from a single frozen specification, so that any measured difference is attributable
-to the language and its idioms rather than to divergent designs. RQ1 and RQ3 are answered by
-driving both implementations with an identical, deterministic synthetic signalling workload in a
-load sweep from light load through saturation, capturing latency with matched high-dynamic-range
-histograms and resource use through the operating system, and comparing them with nonparametric
-confidence intervals~\cite{georges2007rigorous}. RQ2 is answered by controlled fault injection:
-a catalogue of representative C++ defects is written deliberately and each is confronted with its
-Rust counterpart to record whether it is rejected at compile time, caught only at runtime, or
-missed entirely. The catalogue deliberately spans both defect classes Rust is expected to
-prevent and classes it is expected not to, so that the study can locate the boundary of the
-guarantee instead of only confirming it. RQ4 is answered by building a working C++-to-Rust FFI
-prototype and measuring
-the size of the interoperability seam, the scope of \texttt{unsafe}, and the per-call crossing
-cost. The full protocol (testbed, workloads, and statistical treatment) is given in
-Chapter~\ref{chapter:methodology}.
+cost of incremental adoption is engineering effort rather than performance. H2 is stated so that
+it can fail. The defect catalogue behind RQ2 spans classes safe Rust is expected to prevent and
+classes it is expected not to, so the study can locate the boundary of the guarantee instead of
+only confirming it. These hypotheses are revisited against the evidence in
+Section~\ref{sec:hypotheses}.
 
 \section{Contributions, results, and limitations}
 The thesis contributes (i) a reproducible, telecom-relevant benchmarking framework for
