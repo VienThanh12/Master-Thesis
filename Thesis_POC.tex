@@ -895,18 +895,15 @@ Atomicity of a composed operation & Not checked & Not checked \\
 \section{Concurrency models for control-plane software}
 How concurrency is structured shapes both correctness and tail latency. The dominant model is
 \emph{shared-memory} concurrency, in which threads mutate common state guarded by mutexes and
-atomics. It is flexible but is the source of races, deadlocks, lock contention, and priority
-inversion, and its worst-case timing is hard to reason about. The alternative is
-\emph{message-passing} or \emph{shared-nothing} concurrency, in which state is partitioned so
-that each piece is owned by a single thread and all interaction happens through messages, as
-in the actor model and in sharded designs. Shared-nothing trades some flexibility for
-scalability and far simpler reasoning, and it maps naturally onto per-UE partitioning in a
-control plane, where each UE's state is largely independent. The choice is not neutral with
-respect to the quantity this thesis measures: thread-per-core structuring has been shown to
-change application tail latency in its own right~\cite{enberg2019threadpercore}, which is one
-reason the model is held fixed across both implementations rather than left to each language's
-idiom. Figure~\ref{fig:concmodels} contrasts the two models and marks what each does to the
-hazards catalogued above.
+atomics. It is flexible, but it is the source of races, deadlocks, lock contention, and priority
+inversion, and its worst case is hard to bound. The alternative is \emph{message-passing} or
+\emph{shared-nothing} concurrency, in which state is partitioned so that each piece is owned by
+a single thread and all interaction happens through messages, as in the actor model. It trades
+flexibility for scalability and much simpler reasoning, and it maps onto per-UE partitioning
+naturally, since each UE's state is largely independent. The choice also moves the quantity
+measured here: thread-per-core structuring changes application tail latency on its
+own~\cite{enberg2019threadpercore}, so the model is held fixed across both implementations
+instead of left to each language's idiom. Figure~\ref{fig:concmodels} contrasts the two.
 
 \begin{figure}[ht]
 \centering
@@ -914,58 +911,54 @@ hazards catalogued above.
 \caption[Two concurrency models for control-plane state]{Two concurrency models for control-plane state. Shared-memory concurrency (left) lets
 threads mutate common state behind locks and is the source of data races, deadlock, and lock
 contention, with a worst case that is hard to bound. Shared-nothing message-passing (right)
-partitions state so each shard is owned by a single worker and all interaction happens through
-bounded queues. This eliminates locks on context data and maps naturally onto per-UE
-partitioning, and is the model adopted for both implementations.\label{fig:concmodels}}
+partitions state so each shard is owned by a single worker and all interaction goes through
+bounded queues, which removes locks on context data and maps onto per-UE partitioning. It is the
+model adopted for both implementations.\label{fig:concmodels}}
 \end{figure}
 
 A third structure, an asynchronous runtime over a work-stealing scheduler, is idiomatic in both
-languages and is deliberately used in neither. Its timing behaviour belongs to the runtime rather
-than to the language hosting it: a real-time study of asynchronous Rust finds that one and the
-same application meets or misses its deadlines depending on which runtime and thread-priority
-mapping it is given, and that the configuration meeting them is not the idiomatic work-stealing
-one~\cite{skoudlil2025asyncrust}. Adopting such a runtime would therefore introduce a variable
-that this study is built to exclude, and Section~\ref{sec:relatedwork} returns to a comparison in
-which it was not excluded.
+languages and used in neither. Its timing behaviour belongs to the runtime, not to the language
+hosting it: a real-time study of asynchronous Rust finds one application meeting or missing its
+deadlines depending on the runtime and thread-priority mapping it is given, and the configuration
+that meets them is not the idiomatic work-stealing one~\cite{skoudlil2025asyncrust}. Adopting such
+a runtime would import the variable this study exists to exclude, and
+Section~\ref{sec:relatedwork} returns to a comparison in which it was not excluded.
 
-A second, independent choice is how work is queued between producers and consumers. Unbounded
-queues mask overload and let latency and memory grow without limit. \emph{Bounded} queues with
-either blocking (backpressure) or shedding bound worst-case memory and make overload visible,
-which is essential for predictable tail latency. Lock-free structures can reduce contention
-but are notoriously difficult to implement correctly. These considerations directly motivate
-the architecture adopted for both implementations in Chapter~\ref{chapter:design}: a
-shared-nothing, thread-per-shard design. The UE state is divided into independent slices called
-\emph{shards}, and each shard is owned by exactly one worker thread, so no two threads ever
-touch the same context. Requests reach a shard through a bounded multi-producer,
-single-consumer queue that blocks when full.
+Queueing between producers and consumers is a second, independent choice. Unbounded queues mask
+overload and let latency and memory grow without limit. \emph{Bounded} queues, whether they block
+for backpressure or shed, bound worst-case memory and make overload visible, which predictable
+tail latency requires. Both choices fix the architecture used by both implementations in
+Chapter~\ref{chapter:design}: a shared-nothing, thread-per-shard design in which UE state is
+divided into independent slices
+called \emph{shards}, each owned by exactly one worker thread, so no two threads ever touch the
+same context. Requests reach a shard through a bounded multi-producer, single-consumer queue that
+blocks when full.
 
 \section{Interoperability between C++ and Rust}\label{sec:interop}
-Adopting a new language in a large existing system is necessarily incremental: a Rust
-component must coexist with, and be callable from, a substantial C++ codebase. The common
-denominator for such interoperability is the C application binary interface (ABI). Rust can
-expose functions with \texttt{extern "C"} linkage and hand out \emph{opaque handles} to
-Rust-owned objects, which C++ then calls through a C header. Tooling automates parts of this,
-including \texttt{bindgen} (generating Rust bindings from C headers), \texttt{cbindgen}
-(generating C headers from Rust), and the \texttt{cxx} crate (a safer bidirectional bridge).
-Interoperability is not free: crossing the boundary steps outside the checked language, so the
-seam must contain \texttt{unsafe} code, passing anything beyond simple values requires
-marshalling, and the shape of the foreign interface has to be designed deliberately. The size
-of that seam, how much \texttt{unsafe} it concentrates, and the per-call crossing cost are
-exactly the quantities measured for RQ4 in Chapter~\ref{chapter:eval}.
+Adopting a new language in a large existing system is necessarily incremental: a Rust component
+must coexist with and be callable from a substantial C++ codebase. The common denominator for
+that is the C application binary interface (ABI). Rust can expose functions with
+\texttt{extern "C"} linkage and hand out \emph{opaque handles} to Rust-owned objects, which C++
+calls through a C header. Tooling automates parts of this: \texttt{bindgen} (Rust bindings from
+C headers), \texttt{cbindgen} (C headers from Rust), and the \texttt{cxx} crate (a safer
+bidirectional bridge). Interoperability is not free. Crossing the boundary steps outside the
+checked language, so the seam must contain \texttt{unsafe} code, values beyond the simplest need
+marshalling, and the foreign interface has to be designed deliberately. Seam size, the
+\texttt{unsafe} it concentrates, and per-call crossing cost are the quantities RQ4 measures in
+Chapter~\ref{chapter:eval}.
 
-A distinction has to be drawn at this point, because it bounds what any of those measurements
-can establish. Concentrating \texttt{unsafe} in the seam is a statement about what the compiler
-checks, not about what can happen at run time. Once a Rust component is linked into a C++ host
-they share one address space, and a defect on the C++ side can corrupt Rust-owned data
-irrespective of how much of the Rust side the borrow checker verified. This has been
-demonstrated experimentally, and the proposed remedies rely on hardware or runtime isolation of
-the two heaps rather than on the discipline of the
-interface~\cite{rivera2021galeed,kirth2022pkrusafe}. The defect classes arising specifically at
-Rust/C boundaries have been catalogued separately from those of either
-language~\cite{li2022crosslang}, and the binding generators themselves are known to carry
-bugs~\cite{cai2026interop}. The consequence for this thesis is stated once here and honoured
-throughout: an \texttt{unsafe}-free core means the core's own defects are ruled out at compile
-time, and it does not mean the core is protected from its host.
+One distinction bounds what those measurements can establish. Concentrating \texttt{unsafe} in
+the seam says what the compiler checks, not what can happen at run time. A Rust component linked
+into a C++ host shares one address space with it, so a defect on the C++ side can corrupt
+Rust-owned data however much of the Rust side the borrow checker verified. This has been shown
+experimentally, and the proposed remedies isolate the two heaps in hardware or in the runtime
+instead of trusting the discipline of the
+interface~\cite{rivera2021galeed,kirth2022pkrusafe}. The defect classes specific to Rust/C
+boundaries have been catalogued separately from those of either
+language~\cite{li2022crosslang}, and the binding generators themselves carry
+bugs~\cite{cai2026interop}. The consequence is stated once here and honoured throughout: an
+\texttt{unsafe}-free core means the core's own defects are ruled out at compile time, and it
+does not mean the core is protected from its host.
 
 \section{Research gap}\label{sec:gap}
 The preceding sections set up the gap. The RAN control plane is a soft-to-firm real-time,
