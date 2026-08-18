@@ -535,33 +535,37 @@ only confirming it. These hypotheses are revisited against the evidence in
 Section~\ref{sec:hypotheses}.
 
 \section{Contributions, results, and limitations}
-The thesis contributes (i) a reproducible, telecom-relevant benchmarking framework for
-control-plane workloads; (ii) a frozen shared specification and two parity-tested
-implementations of a RAN control-plane subsystem in C++ and Rust; (iii) a quantitative
-comparison emphasising tail latency and predictability alongside average throughput;
-(iv) a defect-class taxonomy obtained through controlled fault injection, including the
-boundary at which Rust's compile-time guarantee stops; and (v) evidence-based engineering and
-migration guidelines for language selection in cloud-native RAN evolution
-(Section~\ref{sec:guidelines}). The headline findings are as follows. On \emph{safety} (RQ2),
-every injected memory-safety and data-race defect class is prevented at compile time in safe
-Rust, whereas in C++ each compiles and is caught, if at all, only at runtime and only with the
-right sanitiser, while five deliberately chosen boundary classes are prevented by neither
-language, and on two of those the C++ tooling is ahead. On \emph{migration} (RQ4), the FFI seam is
-small, keeps the core free of \texttt{unsafe}, and costs at most $\FfiOpBoundPct\%$ of one
-operation when measured against that same operation called natively, so the real adoption cost is
-API design rather than run-time overhead. Both results are final. On \emph{performance} (RQ1,
-RQ3), the answer divides at saturation, and getting that division right is itself part of the
-contribution. Below saturation the two implementations are indistinguishable end to end at the
-median and their far tail is unresolvable on the available host, a null that is less informative
-than it looks: an end-to-end operation here is $\BudgetCoreShareMax\%$ the work the language
-performs and the rest a cross-thread handoff, so the sweep bounds the design rather than the
-language. Measured separately, the operation is $\BudgetCoreRatio\times$ faster in Rust, while the
-Rust process carries a few MiB more resident memory under both allocators. Past saturation the
-ordering reverses and the C++ build sustains $\OverloadThrRatio\times$ the throughput of the Rust
-build while consuming more CPU per completed operation. The main limitations are the use of a
-synthetic workload, a single simplified subsystem, single-author implementation bias, and a
-virtualised measurement host. These are treated in detail in
-Chapter~\ref{chapter:discussion}.
+The thesis makes five contributions. Two are artifacts: a reproducible benchmarking framework
+for telecom control-plane workloads, and a frozen shared specification with two parity-tested
+implementations of a RAN control-plane subsystem, one in C++ and one in Rust. Two are results:
+a quantitative comparison that weighs tail latency and predictability alongside average
+throughput, and a defect-class taxonomy from controlled fault injection that marks where Rust's
+compile-time guarantee stops. The fifth is a set of engineering and migration guidelines for
+language selection in cloud-native RAN evolution (Section~\ref{sec:guidelines}).
+
+The findings divide three ways. On \emph{safety} (RQ2), every injected memory-safety and
+data-race defect class is prevented at compile time in safe Rust. The same defects all compile
+in C++, and each is caught, if at all, only at run time and only under the right sanitiser. Five
+boundary classes were chosen deliberately, and neither language prevents them. On two of those
+the C++ tooling is ahead. On \emph{migration} (RQ4), the FFI seam is small and keeps the core
+free of \texttt{unsafe}. Measured against the same operation called natively it costs at most
+$\FfiOpBoundPct\%$ of one operation, so the real adoption cost is API design and not run-time
+overhead. Both of these results are final.
+
+On \emph{performance} (RQ1, RQ3) the answer divides at saturation, and drawing that division
+correctly is part of the contribution. Below saturation the two implementations cannot be told
+apart end to end at the median, and the far tail cannot be resolved on the available host. That
+null is less informative than it looks. An end-to-end operation here is only
+$\BudgetCoreShareMax\%$ language work and the rest is a cross-thread handoff, so the sweep bounds
+the design and not the language. Measured on its own, the operation is
+$\BudgetCoreRatio\times$ faster in Rust, while the Rust process holds a few MiB more resident
+memory under both allocators. Past saturation the ordering reverses. The C++ build sustains
+$\OverloadThrRatio\times$ the throughput of the Rust build, and uses more CPU for each completed
+operation.
+
+Four limitations bound all of this: a synthetic workload, one simplified subsystem,
+single-author implementation bias, and a virtualised measurement host.
+Chapter~\ref{chapter:discussion} treats each in detail.
 
 The scope is drawn deliberately to protect the internal validity of the language comparison. In
 scope are the UE Context Management functionality of Chapter~\ref{chapter:context}, the
@@ -587,17 +591,6 @@ parity-tested implementations, the reproducible benchmarking framework, and the 
 taxonomy form a reusable baseline for further language and systems studies. And for practising
 engineers, the fault catalogue and the migration prototype double as worked examples of what
 Rust's guarantees do and do not buy in this domain.
-
-\section{Thesis outline}
-Chapter~\ref{chapter:background} gives the background on RAN control-plane software, C++,
-and the Rust safety model. Chapter~\ref{chapter:context} describes the problem context: the
-UE Context Management subsystem, the relevant defect classes, and tail-latency
-predictability. Chapter~\ref{chapter:methodology} states the research approach by which the
-questions are pursued.
-Chapter~\ref{chapter:design} presents the design and implementation of both versions.
-Chapter~\ref{chapter:eval} describes the experimental setup and reports the evaluation.
-Chapter~\ref{chapter:discussion} discusses the findings, related work, and threats to
-validity. Chapter~\ref{chapter:conclusions} concludes and outlines future work.
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
 % The class prints the chapter and section titles in the running head in capitals,
