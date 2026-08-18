@@ -15,60 +15,123 @@ performance with safety guaranteed at compile time. Using a **UE Context Managem
 service modelled on a Nokia gNB-CU-CP component, the thesis compares the two languages along
 four research questions:
 
-| RQ      | Question                                                           | Evidence in          |
-| ------- | ------------------------------------------------------------------ | -------------------- |
-| **RQ1** | Tail latency and jitter under overload                             | [`bench/`](bench/)   |
-| **RQ2** | Which C++ defect classes does safe Rust prevent at compile time, and which does it not? | [`faults/`](faults/) |
-| **RQ3** | What is the overhead (memory / CPU) of Rust's safety model?        | [`bench/`](bench/)   |
-| **RQ4** | What is the cost of incrementally adopting Rust in a C++ codebase? | [`ffi/`](ffi/)       |
+| RQ      | Question                                                                                          | Evidence in          |
+| ------- | ------------------------------------------------------------------------------------------------- | -------------------- |
+| **RQ1** | Latency predictability (median, p99, p99.9, maximum) under increasing load and overload            | [`bench/`](bench/)   |
+| **RQ2** | Which C++ defect classes safe Rust eliminates at compile time, and at what stage and cost the rest are detected | [`faults/`](faults/) |
+| **RQ3** | What overhead Rust's safety model imposes on throughput, CPU utilisation, and memory                | [`bench/`](bench/)   |
+| **RQ4** | What incremental adoption of Rust inside an existing C++ codebase costs                             | [`ffi/`](ffi/)       |
 
-The RQ2 catalogue deliberately spans both sides of the guarantee: five defect classes safe Rust
-prevents at compile time, and two (lock-order deadlock, lost update) it does not, so the study
-measures where the guarantee *stops* rather than only confirming that it holds.
+The RQ2 catalogue deliberately spans both sides of the guarantee. Safe Rust rejects five of the ten
+defect classes at compile time (use-after-free, double free, iterator invalidation, data race,
+unguarded shared mutation) and compiles the other five without complaint (lock-order deadlock,
+lost update, reference-cycle leak, release-build integer overflow, worker-failure blast radius),
+so the study measures where the guarantee *stops* rather than only confirming that it holds. Two
+of those boundary classes came back with the C++ tooling ahead: the reference-cycle leak, caught
+by ASan and silent in Rust, and the release-build overflow, caught by UBSan and wrapped in Rust.
+Both stay in the catalogue. For the two concurrency classes on the boundary, lock-order deadlock
+and lost update, [`faults/run_model_checking.sh`](faults/run_model_checking.sh) asks the follow-up
+question of what Loom and Shuttle catch at test time, and at what cost.
 
 The methodological control against implementation bias is a **frozen, language-neutral
 specification**: both implementations must conform to it exactly, and any forced idiomatic
 divergence is logged. See [`spec/SPECIFICATION.md`](spec/SPECIFICATION.md).
+
+## The documents
+
+The PDFs in this repository do not share a status and are not interchangeable.
+
+| Document | Status | Role |
+| -------- | ------ | ---- |
+| `Thesis_Plan_v2.pdf` | Reviewed, supervisor-facing | Approved plan: gap, RQs, methodology, timeline, contributions |
+| `Thesis_v1.pdf` | Reviewed, supervisor-facing | Chapter skeleton, one bullet per argument move. Chapters 6 to 9 stay empty until the skeleton review closes |
+| `Thesis_POC.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, full argument, and everything in it still needs review |
+| `ai_statement.tex` | Declaration in the author's name | Statement on generative-AI use, shared by both thesis documents |
+| `plain_thesis.tex`, `thesis-vi.tex` | Stale variants | Not maintained. `thesis-vi.tex` currently renders its citations as `[?]` |
+
+[`AGENT.md`](AGENT.md) is the working contract for the repository: document roles, the grade
+criteria every edit has to protect, the scientific commitments that must not be weakened, and the
+verification workflow. Read it before touching thesis text, figures, or artefacts.
+[`ASSESSMENT.md`](ASSESSMENT.md) holds the criterion-by-criterion self-assessment and
+[`TODO.md`](TODO.md) the phase checklist and open items.
 
 ## Repository layout
 
 ```
 .
 ├── spec/              Frozen specification + language-neutral conformance suite (the fairness baseline)
-├── cpp/               C++23 implementation of the UECM service
-├── rust/              Rust implementation (bit-for-bit parity with cpp/)
+│   ├── SPECIFICATION.md   The fairness baseline (v0.1 draft, pending supervisor freeze)
+│   └── conformance/       Independent Python reference model, vector generator, 3-phase parity harness
+├── cpp/               C++23 implementation of the UECM service (also sanitise.sh, coverage.sh)
+├── rust/              Rust implementation, byte-for-byte parity with cpp/ (also miri.sh, coverage.sh)
 ├── bench/             Latency/throughput/resource benchmark harness + plotting (RQ1, RQ3)
-│   ├── campaign.sh    Full measurement campaign (repeats, interleaving, bootstrap CI)
+│   ├── campaign.sh        Full measurement campaign (repeats, interleaving, bootstrap CI)
 │   ├── latency_budget.sh  Split the end-to-end op into work vs. cross-thread handoff
-│   └── refresh_thesis.sh  Regenerate all figures/tables and rebuild Thesis_POC.pdf
-├── faults/            Fault-injection taxonomy: injected C++ defects vs. Rust compile errors (RQ2)
+│   ├── pool_hist.py       Pool per-run HDR buckets across repeats for the far tail
+│   ├── counters.sh        Hardware counters (testbed only, needs a PMU)
+│   ├── alloc_profile.sh   Attribute the peak-RSS gap to allocation sites (testbed only)
+│   ├── TESTBED.md         Bare-metal protocol: the only route to testbed-grade tail figures
+│   └── refresh_thesis.sh  Regenerate all figures/tables/macros and rebuild Thesis_POC.pdf
+├── faults/            Fault-injection taxonomy (RQ2) + Loom/Shuttle model checking of the boundary classes
 ├── ffi/               Incremental-adoption prototype: C++ host over a Rust component via a C ABI (RQ4)
-├── figures/           Generated figures + LaTeX tables consumed by the thesis
-├── diagrams/          Source diagrams (SVG/PDF)
-├── Thesis_POC.tex     Thesis source (LaTeX, canonical)
+├── figures/           Generated figures, LaTeX tables, and generated macros consumed by the thesis
+├── diagrams/          Source diagrams (SVG, drawio) and their rendered PDF/PNG
+├── Thesis_POC.tex     Canonical full draft
 ├── Thesis_v1.tex      Supervisor-facing chapter skeleton
-├── thesis-vi.tex      Vietnamese translation draft (XeLaTeX)
 ├── Thesis_Plan_v2.tex Revised thesis plan
+├── AGENT.md           Working rules: document roles, grade criteria, verification workflow
+├── ASSESSMENT.md      Criterion-by-criterion self-assessment
+├── LITERATURE_NOTES.md, Sources_evidence.md   Citation audit trail and literature gaps
 ├── bibliography.bib
 ├── build_deck.py      Nokia-branded slide-deck generator (reads figures/ + faults/ results)
-└── TODO.md            Development checklist and open items
+├── .aitells.py, .vocab.py, .readability.py    Prose checks run over the LaTeX sources
+└── TODO.md            Phase checklist and open items
 ```
 
-Each component directory has its own `README.md` with build/run instructions.
+Each component directory (`spec/conformance/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/`) has
+its own `README.md` with build and run instructions.
 
 ## Prerequisites
 
 | Tool | Used for |
 | ---- | -------- |
-| C++23 compiler (g++ 13+ / clang 17+), CMake 3.20+, Ninja | [`cpp/`](cpp/) |
-| Rust stable (1.75+; developed on 1.96), `cargo` | [`rust/`](rust/) |
-| `latexmk`, TeX Live (bundled `UH_DS_MSc.cls`) | `Thesis_POC.tex` |
-| Python 3 + `matplotlib` (optional: `lizard`) | [`bench/`](bench/) plotting and complexity proxies |
-| AddressSanitizer / ThreadSanitizer (`g++`) | [`faults/`](faults/) |
+| C++23 compiler (g++ 13+ / clang 17+, `std::expected` is required), CMake 3.20+, Ninja | [`cpp/`](cpp/) |
+| Rust stable, edition 2021 (developed on 1.97), `cargo` | [`rust/`](rust/) |
+| jemalloc (`libjemalloc`) | the jemalloc arms of the benchmark (`-DUECM_USE_JEMALLOC=ON`, `cargo --features jemalloc`) |
+| `latexmk`, TeX Live, bundled `HYthesisML.cls` | `Thesis_POC.tex`, `Thesis_v1.tex`, `Thesis_Plan_v2.tex` |
+| Python 3 + `matplotlib` | [`bench/`](bench/) plotting (`pip install -r bench/requirements.txt`) |
+| AddressSanitizer / ThreadSanitizer / UBSan (`g++`) | [`faults/`](faults/), `cpp/sanitise.sh` |
 
-On WSL2, run C++ sanitizer builds under `setarch -m -R` (see [`faults/run_faults.sh`](faults/run_faults.sh)).
-WSL2 is fine for development and smoke runs; thesis-grade latency numbers require a bare-metal
-testbed (see [`bench/TESTBED.md`](bench/TESTBED.md)).
+Optional, each needed by one script only:
+
+| Tool | Used for |
+| ---- | -------- |
+| Rust nightly + `miri` component | `rust/miri.sh` |
+| `cargo-llvm-cov`, `gcov` | `rust/coverage.sh`, `cpp/coverage.sh` |
+| `lizard` | complexity proxies in `bench/refresh_thesis.sh` |
+| `cairosvg` | re-rendering `diagrams/` |
+| `python-pptx`, `pymupdf` | `build_deck.py` |
+| `perf` with a hardware PMU, `jeprof` | `bench/counters.sh`, `bench/alloc_profile.sh` (testbed only) |
+
+## Where the numbers come from
+
+Every measured figure in the thesis comes from the harnesses here, run on a dedicated
+dual-socket Xeon E5-2680 v4 (16 cores, one NUMA node) under Rocky Linux 8.10. That host is a
+**KVM guest**, and the consequence is narrow but real: frequency and turbo are host-controlled and
+unobservable, CPU steal is non-zero, and no hardware counters are exposed.
+
+- **Resolved on this host.** Parity, the fault-injection taxonomy, the FFI seam structure and its
+  cost, the saturation knee, the overload divergence past saturation, and the peak-RSS and CPU
+  comparisons.
+- **Not resolved on this host.** The far tail below saturation. Closing it needs a bare-metal
+  campaign following [`bench/TESTBED.md`](bench/TESTBED.md), which is also the only chance to
+  collect the counters and the allocation profile that would explain the peak-RSS and
+  operation-level results.
+
+WSL2 is fine for development, builds, parity runs, and fault injection. Run C++ sanitizer builds
+there under `setarch -m -R` (see [`faults/run_faults.sh`](faults/run_faults.sh)). It cannot produce
+thesis-grade latency numbers, and it exposes no hardware PMU, so `bench/counters.sh` detects that
+and refuses rather than reporting zeros for counters that never ran.
 
 ## Quick start
 
@@ -81,8 +144,22 @@ cd cpp && cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --bui
 # Rust: build + run tests
 cd rust && cargo test --release
 
-# Cross-language parity: run every conformance vector through both and diff transcripts
+# Cross-language parity: reference model, hand-written vectors, then generated vectors,
+# run through both implementations and diffed transcript line by line
 spec/conformance/run.sh
+spec/conformance/run.sh --random 60 --ops 2000   # the full generated campaign, ~9 min
+```
+
+The size of the last campaign that ran is recorded in
+[`spec/conformance/results/summary.json`](spec/conformance/results/summary.json).
+
+Deeper checks, all categorical and therefore safe on any host:
+
+```bash
+cpp/sanitise.sh     # whole suite under ASan+UBSan / TSan / UBSan
+rust/miri.sh        # needs: rustup toolchain install nightly --component miri
+cpp/coverage.sh     # gcov line coverage of the parity suite
+rust/coverage.sh    # needs: cargo install cargo-llvm-cov --locked
 ```
 
 ### 2. Run the four studies
@@ -90,6 +167,10 @@ spec/conformance/run.sh
 ```bash
 # Fault-injection taxonomy (RQ2)
 faults/run_faults.sh
+
+# The boundary classes under model checking: what Loom and Shuttle catch at test
+# time, with controls that must stay quiet on the fixed versions (RQ2)
+faults/run_model_checking.sh
 
 # FFI migration prototype (RQ4). Also runs the same signaling op natively, so the
 # reported seam cost is a direct A/B rather than an empty crossing against a full op.
@@ -103,29 +184,46 @@ bench/run_bench.sh
 bench/latency_budget.sh
 ```
 
+**`ffi/build.sh` is a measurement, not a smoke test.** It overwrites the tracked
+`ffi/results/metrics.json` and `op_cost.jsonl` with numbers from whatever host it runs on, and
+those feed the RQ4 table and every `\Ffi*` macro. On a busy development machine it will quietly
+replace the RQ4 evidence with noise. If you ran it only to confirm that it still builds and
+passes, restore the evidence afterwards:
+
+```bash
+git checkout -- ffi/results/metrics.json ffi/results/op_cost.jsonl
+```
+
+`faults/run_faults.sh` carries no such hazard. Its outcomes are categorical (compile-time
+prevented, sanitiser-detected, undetected) and do not move with host load.
+
 ### 3. Rebuild the thesis from measured data
 
-After a measurement campaign or fault-injection run, regenerate every figure, table, and
-quoted number, then rebuild the PDF:
+After a measurement campaign or a fault-injection run, regenerate every figure, table, and quoted
+number, then rebuild the PDF:
 
 ```bash
 bench/refresh_thesis.sh
 ```
 
-This runs `bench/plot_figures.py` (and `bench/complexity.py` when `lizard` is available),
-writes into [`figures/`](figures/), rebuilds the colloquium deck via `build_deck.py`, and calls
-`latexmk -pdf Thesis_POC.tex`. Campaign summary numbers land in `figures/gen_macros.tex`; the prose
-and the slides both refer to them by macro name, so text, slides, and data stay in sync.
+This runs `bench/plot_figures.py`, re-renders the diagrams that quote campaign numbers,
+regenerates the complexity proxies (`bench/complexity.py`, when `lizard` is available) and the
+artefact-level measurements (`bench/artefact_facts.py`), writes all of it into
+[`figures/`](figures/), rebuilds the colloquium deck via `build_deck.py`, and calls
+`latexmk -pdf Thesis_POC.tex`. Campaign summary numbers land in `figures/gen_macros.tex`, and both
+the prose and the slides refer to them by macro name, so text, slides, and data stay in step. The
+generated `figures/gen_*.tex` files are never hand-edited.
 
-To build the thesis document alone:
+To build a document alone:
 
 ```bash
 latexmk -pdf Thesis_POC.tex
+latexmk -pdf Thesis_v1.tex          # supervisor skeleton
+latexmk -pdf Thesis_Plan_v2.tex     # thesis plan
 ```
 
-For thesis-grade performance numbers, provision a clean testbed and run the full
-measurement campaign. See [`bench/README.md`](bench/README.md) and
-[`bench/TESTBED.md`](bench/TESTBED.md).
+For thesis-grade performance numbers, provision a clean testbed and run the full measurement
+campaign. See [`bench/README.md`](bench/README.md) and [`bench/TESTBED.md`](bench/TESTBED.md).
 
 ```bash
 bench/setup_testbed.sh          # install toolchain + apply CPU hygiene + verify
@@ -139,9 +237,9 @@ A self-contained, stateful, concurrent **UE Context Management** service that ow
 context lifecycle and executes RRC/mobility procedures. Both implementations share:
 
 - the same **shared-nothing, thread-per-shard** concurrency model (one worker per shard, a
-  bounded blocking MPSC queue, one-shot completions);
+  bounded blocking MPSC queue, one-shot completions),
 - **pinned** shard selection (SplitMix64) and intra-shard key hashing (FNV-1a), so container
-  performance is never an accidental language advantage;
+  performance is never an accidental language advantage,
 - the same data model, UE state machine, public API, and error model.
 
 Full details, invariants, and the parity contract are in
@@ -160,7 +258,7 @@ and the thesis diagrams from `diagrams/png/`, and keeps prose to a headline and 
 sentence beside each picture. Nothing is transcribed. Every number comes from
 `figures/gen_macros.tex`, the `figures/tab_*.tex` bodies, `faults/results/taxonomy.csv`,
 and the environment capture belonging to the campaign that was plotted, and the build
-fails rather than print a stale value — including when a hand-authored diagram's own
+fails rather than print a stale value, including when a hand-authored diagram's own
 labels disagree with the generated data.
 
 Requires the slide toolkit under `create-pptx-master-thesis/` (see `.gitignore`),
@@ -171,10 +269,11 @@ from `diagrams/png/`, which `diagrams/render.py` writes.
 
 | Area | State |
 | ---- | ----- |
-| Specification + parity | Implemented; both languages pass and agree byte-for-byte on the shared conformance suite (7 vectors, 223 checked operations), plus mirrored per-language invariant and concurrency suites (spec v0.1 draft, pending supervisor freeze) |
-| RQ2 (safety) | Final: fault-injection taxonomy complete |
-| RQ4 (migration) | Final: FFI prototype + interop metrics complete |
-| RQ1/RQ3 (performance) | Tooling complete; latency figures in the thesis are **preliminary** until a bare-metal campaign with 15+ repeats |
+| Specification + parity | Both languages pass and agree byte-for-byte on the shared conformance suite: hand-written vectors plus a generated campaign whose expectations come from an independent Python model, with mirrored per-language invariant and concurrency suites. Spec is v0.1 draft, pending supervisor freeze |
+| RQ2 (safety) | Final. Fault-injection taxonomy complete across ten defect classes, five inside the guarantee and five outside it, plus Loom and Shuttle results for the two concurrency classes on the boundary |
+| RQ4 (migration) | Final. FFI prototype, interleaved native-vs-seam measurement of one real operation, and seam size complete |
+| RQ1/RQ3 (performance) | Campaign complete on the virtualised host, so the saturation knee, the overload divergence, and the resource comparisons are resolved. The far tail below saturation is not, and needs the bare-metal campaign. The p99.99 and jitter instrumentation exists but no reported campaign carries the sidecars yet |
+| Writing | `Thesis_POC.pdf` builds clean with zero LaTeX errors and no undefined references, as a full draft awaiting review. `Thesis_v1.tex` chapters 6 to 9 stay empty until the supervisor has read the skeleton |
 
 Open items and the post-campaign re-check list are tracked in [`TODO.md`](TODO.md).
 

@@ -690,11 +690,12 @@ one that is common per procedure.
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/11_tail_latency_concept.pdf}
-\caption[Why the tail, not the mean, governs RAN deadlines]{Why the tail, not the mean, governs RAN deadlines. The latency distribution is
-heavy-tailed (left), so the p99/p99.9 percentiles lie far from the median. Because a single
-procedure fans out into many dependent operations whose slowest member gates completion (right),
-a delay that is rare per operation becomes common per procedure. At fleet scale a one-in-a-thousand
-tail event is routine somewhere at every instant.\label{fig:tailconcept}}
+\caption[Why the tail, not the mean, governs RAN deadlines]{Why the tail, not the mean, governs RAN deadlines. On the left, most operations
+finish quickly and a few take far longer, so the p99 and p99.9 percentiles sit well to the right
+of the median. On the right, a procedure such as a call setup runs several operations and
+finishes only when the slowest one does, so a delay hitting one operation in a hundred reaches a
+much larger share of procedures. At fleet scale a one-in-a-thousand delay is happening somewhere
+at every instant.\label{fig:tailconcept}}
 \end{figure}
 
 Real-time systems are conventionally graded by the consequence of a missed deadline: in
