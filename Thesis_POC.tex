@@ -253,25 +253,27 @@ a nominal-load test would not expose the gap.
 % to change the parameters. Removing the abstract and ToC commands will mess up stuff.
 \chapter{Introduction}
 
-The mobile network is undergoing a profound softwarization. Functions that were once
-delivered by fixed-function, vertically integrated hardware are being re-implemented as
-software running on commodity servers, and the Radio Access Network (RAN), long the most
-specialised part of the system, is no longer an exception. In the 5G NG-RAN architecture the
-base station (gNB) is disaggregated into a central unit and one or more distributed units,
-and the central unit is split again into control- and user-plane
-functions~\cite{3gpp38401,3gpp38300}. Open-RAN initiatives push this disaggregation further,
-turning the RAN into virtualised, multi-vendor software connected by open
-interfaces~\cite{polese2023oran}. The resulting control plane, the gNB-CU-CP, is a large,
-stateful, highly concurrent software system. It manages the lifecycle of every connected
-device, drives the RRC signalling procedures~\cite{3gpp38331}, and coordinates mobility and
-handovers, all under strict latency budgets. The rates involved are high: a single busy site
-drives on the order of thousands of connection-management and mobility procedures per second,
-each bounded by a budget measured in milliseconds~\cite{3gpp38913}, while a deployed control
-plane coordinates millions of simultaneously connected devices. As the RAN moves to cloud-native,
-disaggregated deployments, the correctness, reliability, and timing behaviour of this
-software increasingly determine the quality of the network as a whole. An outage or a
-tail-latency regression here is not a localised defect. It is a degradation felt across every
-device the site serves~\cite{dean2013tail,barroso2017microseconds}.
+Mobile networks are moving from specialised hardware to software on ordinary servers.
+Functions that once ran on fixed-purpose, vertically integrated equipment are now
+re-implemented as programs on general-purpose machines. The Radio Access Network (RAN),
+long the most hardware-bound part of the stack, is part of that shift.
+
+In 5G, the base station (gNB) is split into a central unit and one or more distributed
+units. The central unit is split again into control- and user-plane
+functions~\cite{3gpp38401,3gpp38300}. Open-RAN pushes the same idea further: the RAN
+becomes virtualised, multi-vendor software linked by open
+interfaces~\cite{polese2023oran}. The control plane that results, the gNB-CU-CP, is a
+large, stateful, highly concurrent program. It tracks every connected device, runs RRC
+signalling~\cite{3gpp38331}, and coordinates mobility and handovers, all within strict
+latency limits.
+
+Load at a busy site is high. A single site can run thousands of connection-management and
+mobility procedures per second, each with a budget of a few
+milliseconds~\cite{3gpp38913}. A deployed control plane may track millions of active
+devices at once. As the RAN moves to cloud-native, disaggregated deployments, the
+correctness, reliability, and timing of this software increasingly set the quality of the
+whole network. An outage or a tail-latency spike here is not a local defect. Every device
+the site serves is affected~\cite{dean2013tail,barroso2017microseconds}.
 
 This control-plane software is, today, written predominantly in C++. The choice is a
 rational one: C++ offers the low-level control, mature tooling, and performance that
