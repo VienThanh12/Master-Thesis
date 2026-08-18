@@ -295,49 +295,14 @@ representative RAN subsystem, a UE Context Management service modelled on a real
 gNB-CU-CP component, in modern C++ and in Rust, and compares them under a realistic
 synthetic signalling workload.
 
-\section{Key terms and abbreviations}
-For readers outside the telecom domain, Table~\ref{tab:abbrev} fixes the abbreviations and terms
-used throughout the thesis. Three of them recur constantly. The \emph{gNB-CU-CP} is the
-control-plane software this work is about. \emph{UE Context Management (UECM)} is the specific
-subsystem reimplemented and measured. \emph{Tail latency} (the p99/p99.9 percentiles rather than
-the mean) is the property that, more than average speed, decides whether such a system meets its
-deadlines~\cite{dean2013tail,barroso2017microseconds}.
+Three terms recur throughout. The \emph{gNB-CU-CP} is the control-plane software this work is
+about. \emph{UE Context Management (UECM)} is the specific subsystem reimplemented and measured.
+\emph{Tail latency}, the p99 and p99.9 percentiles rather than the mean, is the property that,
+more than average speed, decides whether such a system meets its
+deadlines~\cite{dean2013tail,barroso2017microseconds}. Appendix~\ref{appendix:terms} fixes these
+and the rest of the domain vocabulary for readers outside telecom.
 
-\begin{table}[H]
-\centering
-\caption[Abbreviations and key terms]{Abbreviations and key terms used throughout the thesis.\label{tab:abbrev}}
-% Single-spaced: the class's text block is 23cm, and at the body's 1.5 spacing a
-% glossary of this length runs past the bottom of the page. The opened row
-% height keeps it legible at single spacing.
-\singlespacing
-\renewcommand{\arraystretch}{1.25}
-\begin{tabular}{@{}p{0.21\linewidth} p{0.71\linewidth}@{}}
-\hline\hline
-Term & Meaning \\
-\hline
-RAN & Radio Access Network: the part of the mobile network connecting devices to the core \\
-NG-RAN & Next-Generation RAN, the 5G radio-access-network architecture \\
-IMT-2030 & The ITU framework for the generation after 5G, commonly called 6G \\
-AI-RAN & An architecture in which AI and RAN workloads share one accelerated infrastructure \\
-gNB & 5G base station (``next-generation NodeB'') \\
-gNB-CU / DU & Central Unit / Distributed Unit: the disaggregated halves of a gNB \\
-gNB-CU-CP & Control-plane part of the central unit: the system class studied here \\
-UE & User Equipment: an end device (phone, modem) attached to the network \\
-UECM & UE Context Management: the per-UE state-management subsystem reimplemented here \\
-RRC & Radio Resource Control: the control-plane signalling protocol between UE and gNB \\
-DRB & Data Radio Bearer: a per-UE user-plane data channel set up during a session \\
-Control plane & The signalling and management path, as opposed to the user-plane data path \\
-Tail latency & High-percentile latency (p99, p99.9), the worst-case-oriented timing metric \\
-Jitter & How much latency varies from one operation to the next, as opposed to its typical value \\
-Saturation & The offered load beyond which the service can no longer keep up and requests start queueing \\
-Shard & One of several independent slices of the UE state, each owned by exactly one worker thread \\
-FFI & Foreign Function Interface: calling Rust from C++ across a C ABI \\
-HDR histogram & High-Dynamic-Range histogram, used for accurate latency capture \\
-\hline
-\end{tabular}
-\end{table}
-
-\section{Motivation and industrial context}
+\section{Motivation and industrial context}\label{sec:motivation}
 Three trends make this comparison timely. The first is the cloud-native evolution of the RAN
 itself. Moving control-plane functions onto general-purpose servers raises, rather than
 lowers, the premium on software quality: the software is longer-lived, evolves continuously,
@@ -1258,16 +1223,17 @@ appropriate, the controls that make a language comparison fair, the statistical 
 the measurements, and the reproducibility and ethical commitments under which the work is
 carried out.
 
-\section{Research approach}
+\section{Research approach}\label{sec:approach}
 The thesis follows an empirical, experimental research approach with a constructive
 (design-science) element. A software artifact, two functionally equivalent implementations
 of the subsystem together with a benchmarking framework, is built against a single frozen
 specification and then evaluated under controlled experiments. Evidence is triangulated from
 three complementary methods: quantitative performance measurement under a swept load
 (addressing RQ1 and RQ3), a controlled fault-injection study of defect detection (RQ2), and
-a qualitative-plus-quantitative FFI migration case study (RQ4). Every measurement reports
-variance over repeated runs, and Section~\ref{sec:controls} sets out the controls that keep the
-language the only variable.
+a qualitative-plus-quantitative FFI migration case study (RQ4). A weakness in any one of them, for
+example the environment sensitivity of tail-latency measurement, therefore does not carry into the
+conclusions as a whole. Every measurement reports variance over repeated runs, and
+Section~\ref{sec:controls} sets out the controls that keep the language the only variable.
 
 That design follows from the shape of the questions. Each asks how one outcome, tail latency,
 prevented defects, resource use, or migration cost, depends on a single independent variable,
@@ -1279,40 +1245,20 @@ their authors. Building both sides from one specification makes the comparison o
 encodings of the same design, and it makes the artifact both the contribution and the
 instrument through which the contribution is measured. Where the questions admit numbers the
 treatment is quantitative, and where they do not, the kind-of-guarantee distinction in RQ2 and
-the API-design effort in RQ4, it is systematic but qualitative. Triangulating three methods
-means that a weakness in any one of them, for example the environment sensitivity of
-tail-latency measurement, does not carry into the conclusions as a whole.
+the API-design effort in RQ4, it is systematic but qualitative.
 
 The gap this design addresses (Section~\ref{sec:gap}) is only as good as the search that looked
-for it, so the search is stated rather than assumed. Candidate literature was gathered from the
-ACM Digital Library, IEEE Xplore, USENIX, and Google Scholar using combinations of the terms
-\emph{Rust}, \emph{C++}, \emph{memory safety}, \emph{tail latency}, \emph{systems programming},
-\emph{performance comparison}, and \emph{RAN} / \emph{5G control plane}, restricted to
-peer-reviewed venues except where an industry or government report is itself the object of study
-(the memory-safety mandates and vendor vulnerability statistics). The result set was extended by
-backward and forward citation chaining from the core Rust-safety papers, and filtered to work
-that either measures a systems language empirically, formalises Rust's guarantees, or reports
-adoption experience. The domain literature (3GPP specifications and the O-RAN survey) was added
-separately to fix the architectural context.
-
-Those sources alone would have missed the closest prior work, which is why two more were added.
-The vendor-hosted theses that come nearest to this study (Section~\ref{sec:relatedwork}) appear
-in none of the citation databases: not in Crossref, OpenAlex, DBLP, or Semantic Scholar. Neither
-forward nor backward chaining can reach them, because nothing indexed cites them and their own
-reference lists are not deposited. They were found instead by searching the institutional
-repositories directly, DiVA for the Nordic universities and Finna for the Finnish ones. The same
-two searches establish an absence on the other side. Finna, which federates the Finnish university
-repositories, returns no thesis on Rust in a radio-access or telecom context, and an author-
-affiliation search of Nokia's indexed publications in OpenAlex returns none either: its entities
-hold on the order of thirty thousand indexed works, several hundred of which concern the radio
-access network, and one mentions Rust, in an unrelated preprint on trusted-execution monitoring.
-The entire domain-specific literature on the language question is therefore Swedish and
-Ericsson-hosted, and its transferability is untested rather than established. Two practical notes
-belong with the protocol, since both distort a naive search. Free-text queries for
-\emph{Rust} in the general indexes rank plant pathology and corrosion chemistry above the
-programming language, so field-restricted or discipline-restricted queries are necessary. The
-theses are also grey literature, so they are cited here as evidence of what has been attempted
-and found, not as peer-reviewed results.
+for it, so the protocol is recorded rather than assumed. Appendix~\ref{appendix:search} gives the
+databases searched, the term combinations, the citation chaining and the filtering rules. Two of
+its findings bear on the design and not merely on the bibliography. The vendor-hosted theses that
+come nearest to this study (Section~\ref{sec:relatedwork}) appear in none of the citation
+databases, so no amount of chaining reaches them and they had to be found by searching the
+institutional repositories directly. The same searches establish an absence on the other side:
+no Finnish thesis on Rust in a radio-access or telecom context, and no indexed publication
+mentioning Rust from the vendor hosting this work. The entire domain-specific literature on the
+language question is therefore Swedish and Ericsson-hosted, and its transferability is untested
+rather than established. Because those theses are grey literature, they are cited as evidence of
+what a vendor has attempted and found rather than as peer-reviewed results.
 
 The search returned no study, indexed or grey, that measures the tail-latency behaviour of a
 Rust and a C++ implementation of the same stateful, concurrent control-plane subsystem under
@@ -1403,13 +1349,11 @@ presenting the design as though it had always been complete.
 \paragraph{Isolating the contended synchronisation primitives.}
 The overload comparison of Section~\ref{sec:overload} attributes its gap to the bounded blocking
 queue and the one-shot completion handle, the two forced-idiom entries where the standard libraries
-diverge. A third matched microbenchmark isolates those primitives alone: \ContentionProducers{}
-producer threads hammer one queue of capacity $1\,024$ while a single consumer drains it, with no
-\texttt{ShardCore} work in the path. C++ uses the hand-written \texttt{BoundedQueue} and
-\texttt{std::promise}/\texttt{std::future}. Rust uses \texttt{sync\_channel} and a fresh
-\texttt{mpsc::channel()} per request. The benchmark is analysed with the same interleaved repeats
-and exact paired test as the decomposition above. Section~\ref{sec:contention} reports whether
-the isolated primitives reproduce the ordering seen in the full service.
+diverge. That attribution is argued from the shape of the full-service measurement, so a third
+matched microbenchmark tests it directly, driving those two primitives alone with no
+\texttt{ShardCore} work in the path, under the same interleaved repeats and the same exact paired
+test as the decomposition above. Section~\ref{sec:contention} gives its configuration and reports
+whether the isolated primitives reproduce the ordering seen in the full service.
 
 \subsection{Controlled fault injection (RQ2)}\label{sec:methodfaults}
 RQ2 asks which defect classes a language prevents, and it cannot be answered by measuring
@@ -1601,30 +1545,19 @@ rate without assuming independence between the tests.
 Two decisions about how that family is read are taken here rather than after the results,
 because either could otherwise be made to suit whatever the data turned out to be.
 
-The first is which comparisons enter it, and the answer turns on the operating point, not
-on the metric. The representative operating point is chosen below saturation, where every variant
-completes work as fast as it is offered, so achieved throughput there is pinned to the offered
-load by construction and cannot express a language effect whatever the languages do. Testing it
-would re-measure the operating point rather than the code. It would also not be free: Holm
-divides its budget across the whole family, so two comparisons that cannot resolve anything would
-make the correction harsher on the ones that can. Below saturation, therefore, throughput is
-reported with its interval in the resource table, where its job is to confirm that the operating
-point is sustained and not merely nominal.
-
-Above saturation that reasoning inverts, and the design has to follow it. Once the offered rate
-is no longer being met, what each variant still sustains is pinned to nothing and becomes the one
-quantity that can separate them. Excluding it there would discard the only observable the regime
-offers. A second operating point is therefore fixed in the overload region, defined as the
-deepest swept load at which \emph{every} variant has stopped meeting the offered rate, and
-sustained throughput and CPU utilisation are tested at it (Section~\ref{sec:overload}). Two
-commitments go with that, both taken here for the same reason as the rest of this section. The
-overload comparisons join the same Holm family instead of forming a second one, so the
-correction covers everything the thesis reports and the division into two operating points
-cannot be read as a split chosen once the $p$-values were known. And no latency percentile is
-tested above saturation at all: with a fixed intended send schedule, a producer that cannot keep
-up falls behind cumulatively, so the percentiles there measure accumulated backlog against a
-measurement window that truncates it, which makes them a lower bound and not an estimate.
-Attaching a $p$-value to a lower bound would test the harness rather than the software.
+The first is which comparisons enter it, and the answer turns on the operating point rather than
+on the metric. Below saturation every variant completes work as fast as it is offered, so achieved
+throughput there is pinned to the offered load by construction and cannot express a language
+effect whatever the languages do. It is reported with its interval instead of tested. Above
+saturation that reasoning inverts, because what each variant still sustains is pinned to nothing
+and becomes the one quantity that can separate them, so a second operating point is fixed in the
+overload region and sustained throughput and CPU utilisation are tested at it
+(Section~\ref{sec:overload}). Two commitments go with that. The overload comparisons join the same
+Holm family rather than forming a second one, so the division into two operating points cannot be
+read as a split chosen once the $p$-values were known. And no latency percentile is tested above
+saturation at all, because a producer that cannot keep up with a fixed intended schedule falls
+behind cumulatively, which makes the percentiles there a lower bound and not an estimate.
+Appendix~\ref{appendix:stats} sets out the reasoning behind both.
 
 The second is what to conclude when the interval and the $p$-value disagree. At modest repeat
 counts they routinely will: a paired interval can sit wholly on one side of zero while the
@@ -1644,16 +1577,13 @@ the rule to the block that suits the argument and quietly dropping it for the ot
 specific failure this pre-commitment exists to prevent.
 
 The resolving power the design can reach is bounded by the number of repeats, and is stated
-rather than left implicit. An exact test on $n$ pairs cannot return a two-sided $p$ below
-$2/2^{n}$, and after correcting a family of $m$ comparisons the smallest attainable adjusted
-value is $m$ times that. With \NRepeats{} repeats and \NTests{} comparisons, those two floors
-are $\MinAttainableP$ and $\CorrectedFloor$. Quoting them is what lets a reader tell a null
-result from an unresolvable one. A campaign whose corrected floor lies above the threshold being
-applied cannot demonstrate significance however large the effect, so reporting ``not
-significant'' from such a campaign would say more about its repeat count than about the
-languages. Choosing the repeat count so that the corrected floor sits below the conventional
-$5\%$ is therefore part of the measurement protocol, alongside pinning the clock and isolating
-the cores (Section~\ref{sec:testbed}).
+rather than left implicit. With \NRepeats{} repeats and \NTests{} comparisons the exact test's
+two-sided floor is $\MinAttainableP$, and $\CorrectedFloor$ after correction, so a null reported
+here reflects the data and not the arithmetic. Quoting both is what lets a reader tell a null
+result from an unresolvable one. Choosing the repeat count so that the corrected floor sits below
+the conventional $5\%$ is therefore part of the measurement protocol, alongside pinning the clock
+and isolating the cores (Section~\ref{sec:testbed}). Appendix~\ref{appendix:stats} derives the two
+floors.
 
 \section{Reproducibility and research artifacts}\label{sec:repro}
 The study is designed so that its results can be regenerated by a third party without access to
@@ -2214,9 +2144,12 @@ results of two different evidential strengths and the distinction rests entirely
 they were produced.
 
 \paragraph{The environment used.}
-All performance results reported in this chapter were measured on the dedicated dual-socket server
-itemised in Table~\ref{tab:testbed}, with the benchmark pinned so that every worker and every
-producer owns a core and none contends with the operating system. Every run captures its own
+All performance results reported in this chapter were measured on one dedicated dual-socket
+server: two Xeon E5-2680~v4 processors, $16$ cores on a single NUMA node with no simultaneous
+multithreading, running Rocky Linux~8.10 with \texttt{g++~15.1.1} and \texttt{rustc~1.97}. The
+benchmark is pinned to cores $2$--$15$, so that every worker and every producer owns a core and
+none contends with the operating system. Table~\ref{tab:testbed} itemises the host against the
+protocol described below. Every run captures its own
 environment record (CPU model and topology, kernel, compiler and toolchain versions, and the
 frequency, turbo, and multithreading settings) alongside the measurement data, so the conditions
 of a measurement travel with it.
@@ -2262,38 +2195,6 @@ so that achieved throughput is directly comparable with offered load.
 The division Table~\ref{tab:testbed} draws is not between important and unimportant results but
 between those that are properties of the compilers and the source, which this host establishes as
 firmly as any would, and those that are properties of the machine, which it cannot.
-
-\begin{table}[H]
-\centering
-\small
-\caption[The host used and the testbed protocol still to be executed]{The host the reported
-results were measured on, against the protocol that testbed-grade tail figures require
-(\texttt{bench/TESTBED.md}). The rows where the two columns agree are properties of the source and
-the compilers. The rows where they differ are what a bare-metal campaign would still buy. Only the
-last of those differences now costs a result, because the saturation knee and the resource
-comparisons were resolved on this host: what remains is the far tail below
-saturation.\label{tab:testbed}}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}R{0.22\linewidth} R{0.35\linewidth} R{0.35\linewidth}@{}}
-\hline\hline
-Aspect & Used for the results reported here & Required for testbed-grade tail figures \\
-\hline
-Host & Dedicated dual-socket server, $2\times$ Xeon E5-2680~v4, $16$ cores, one NUMA node & Same class of machine, without the hypervisor \\
-Virtualisation & KVM guest: frequency and turbo host-controlled and unobservable & None. Governor and turbo set and verified \\
-CPU steal & Non-zero, order $10$~ms of vCPU time per second & None \\
-Kernel & Rocky Linux~8.10, distribution kernel & Same, with \texttt{isolcpus} and \texttt{nohz\_full} on the benchmark cores \\
-Toolchain & \texttt{g++~15.1.1}, \texttt{rustc~1.97} & \texttt{g++~15.1.1}, \texttt{rustc~1.97} \\
-CPU pinning & Cores $2$--$15$ via \texttt{taskset}, $7$ shards, $7$ producers & Same, on cores also removed from the scheduler \\
-Simultaneous multithreading & Absent on this processor & Absent or disabled \\
-Warm-up & Initial fraction of each run discarded & Initial fraction of each run discarded \\
-Repeats and interleaving & \NRepeats{} repeats, four variants interleaved per repeat & \NRepeats{} repeats, four variants interleaved per repeat \\
-Environment capture & \texttt{bench/capture\_env.sh}, stored with each result & \texttt{bench/capture\_env.sh}, stored with each result \\
-Hardware counters & Unavailable in the guest & Available: the clearest instrumentation gap \\
-\hline
-Adequate for & Parity, fault injection, FFI structure, the saturation knee and the overload comparison, and the resource comparisons & Additionally the far tail below saturation, and the mechanism behind the resource and operation results \\
-\hline
-\end{tabular}
-\end{table}
 
 \section{Workload and evaluation measurements\label{sec:workload}}
 A synthetic but spec-justified telecom workload is generated by a deterministic driver shared
@@ -2346,59 +2247,16 @@ per-operation-kind counts, so an unrepresentative mix shifts both languages equa
 manufacture a difference between them. An unvalidated operation mix therefore bounds how far the
 numbers travel. It does not compromise the fairness of the comparison they are used to make.
 
-Table~\ref{tab:params} gathers the configuration of all of this in one place. The values are
-otherwise distributed across the specification, Chapter~\ref{chapter:design}, and this chapter,
-which is convenient while reading each in turn and unhelpful to anyone trying to reproduce the
-campaign or judge whether a parameter was chosen to suit the result. Every entry in the
-campaign block is either fixed by the specification or generated from the measurement logs, so
-the table cannot drift out of step with the data reported below.
-
-\begin{table}[H]
-\centering
-\small
-\caption[Configuration of the service, the workload, and the campaign]{Configuration of the service under test, the workload driving it, and the measurement
-campaign. Service parameters are fixed by the frozen specification, with one exception: the
-shard count is set to match the cores the host offers (Section~\ref{sec:testbed}). All of them,
-that one included, are identical in both languages. Campaign figures are generated from the
-measurement logs together with the
-tables that report them. The representative load is not chosen by eye but derived, as the
-busiest swept load at which all four build variants still hold their p99 below
-$5$~ms.\label{tab:params}}
-\footnotesize
-\renewcommand{\arraystretch}{1.05}
-\begin{tabular}{@{}R{0.28\linewidth} R{0.28\linewidth} R{0.36\linewidth}@{}}
-\hline\hline
-Parameter & Value & Note \\
-\hline
-\multicolumn{3}{@{}l}{\emph{Service under test, identical in both languages}} \\
-Shards, and worker threads & $7$ & one thread owns one shard, one of each per pinned core \\
-Queue bound per shard & $1\,024$ requests & bounded and blocking, so overload is observable \\
-Initial map capacity & $4\,096$ entries & reserved so steady state does not rehash \\
-Bearers per context & at most $8$ & \\
-Signaling payload & $64$ bytes & \\
-Context ceiling per shard & $200\,000$ & \\
-Shard selection & SplitMix64, then modulo & pinned: diffuses sequential identifiers \\
-Intra-shard hash & FNV-1a, 64-bit & pinned on both sides and checked bit-for-bit \\
-\hline
-\multicolumn{3}{@{}l}{\emph{Workload}} \\
-Workloads & signal, mixed & mixed walks the full RAN lifecycle \\
-Active UEs & $5\,000$ & \\
-Offered-load levels & \NLoadLevels{} & up to $\MaxOfferedLoad$~kops/s \\
-Representative load & $\ReprLoad$~kops/s & derived, see caption \\
-Measured saturation & $\SatKnee$~kops/s & tracks the offered rate to $\TrackingLoad$~kops/s \\
-Load model & open loop, fixed intended schedule & latency measured from intended send time \\
-\hline
-\multicolumn{3}{@{}l}{\emph{Campaign}} \\
-Build variants & $\NVariants$ & two languages $\times$ two allocators \\
-Repeats per sweep point & \NRepeats{} & variants interleaved within each repeat \\
-Measured runs & $\NRuns$ & \\
-Latency capture & HDR histogram, $[1\,\text{ns}, 3.6\,\text{s}]$, 3 s.f. & same algorithm and configuration on both sides \\
-Summary statistic & median with bootstrap $95\%$ CI & intervals reported in full, not as half-widths \\
-Language comparison & exact paired permutation test & \NTests{} tests, Holm-corrected \\
-Attainable $p$ floors & $\MinAttainableP$ / $\CorrectedFloor$ & uncorrected / after correction \\
-\hline
-\end{tabular}
-\end{table}
+Table~\ref{tab:params} gathers the configuration of the service, the workload and the campaign in
+one place. The values are otherwise distributed across the specification,
+Chapter~\ref{chapter:design}, and this chapter, which is convenient while reading each in turn and
+unhelpful to anyone trying to reproduce the campaign or judge whether a parameter was chosen to
+suit the result. Every entry in its campaign block is either fixed by the specification or
+generated from the measurement logs, so it cannot drift out of step with the data reported below.
+Two derived values from it are used throughout what follows. The representative operating point is
+not chosen by eye but taken as the busiest swept load at which all four build variants still hold
+their p99 below $5$~ms, which puts it at $\ReprLoad$~kops/s, against a measured saturation of
+$\SatKnee$~kops/s.
 
 \section{Evaluation data}
 Three campaigns produce three datasets, and they differ in kind and not only in content. What
@@ -2879,7 +2737,7 @@ are summed across threads.\label{fig:overload}}
 Where that effort is spent is narrowed by measurement rather than left entirely open. Past
 saturation the producers spend essentially all of their time in two places recorded in
 Table~\ref{tab:idioms}: the bounded blocking queue and the completion handle. Section~\ref{sec:contention}
-isolates those primitives under the same seven-producer pattern. The isolated path does not
+isolates those primitives under the same pattern of \ContentionProducers{} producers. The isolated path does not
 reproduce the full-service ordering at significance ($p = \ContentionP$), which rules out the
 queue and completion primitives \emph{alone} as the whole explanation for a
 $\OverloadThrRatio\times$ gap even though contention in the full path is where the effect appears.
@@ -2947,8 +2805,8 @@ The overload result attributes its gap to the two forced-idiom synchronisation c
 that attribution was argued from the shape of the full-service measurement. This subsection
 isolates those constructs alone.
 
-Seven producer threads hammer one bounded queue of capacity $1\,024$ while a single consumer
-drains it. Each producer submits a no-op job carrying a one-shot completion handle and blocks
+\ContentionProducers{} producer threads hammer one bounded queue of capacity $1\,024$ while a
+single consumer drains it. Each producer submits a no-op job carrying a one-shot completion handle and blocks
 until the consumer signals. No \texttt{ShardCore} work runs in the path. C++ uses the
 hand-written \texttt{BoundedQueue} of Section~\ref{sec:impldetails} with
 \texttt{std::promise}/\texttt{std::future}. Rust uses \texttt{sync\_channel} and a fresh
@@ -2961,8 +2819,8 @@ Table~\ref{tab:contention} reports the result.
 \centering
 \small
 \caption[Throughput through the contended synchronisation primitives alone]{Throughput through
-the bounded queue and completion primitives alone, with seven contending producers and queue
-capacity $1\,024$. Values are medians over \ContentionRepeats{} interleaved repeats above
+the bounded queue and completion primitives alone, with \ContentionProducers{} contending producers
+and queue capacity $1\,024$. Values are medians over \ContentionRepeats{} interleaved repeats above
 bootstrap $95\%$ confidence intervals. The paired test compares C++ against Rust on sustained
 throughput (kops/s). Measured on the host of Section~\ref{sec:testbed}.\label{tab:contention}}
 \begin{tabular}{@{}l r r r@{}}
@@ -4188,7 +4046,7 @@ equal numbers and appears at every load level, and diagnosing it is left as inst
 
 Third, the overload divergence is measured and replicated, and its mechanism is now tested rather
 than only argued. Section~\ref{sec:contention} isolates the bounded queue and completion
-primitives under the same seven-producer pattern. They do not reproduce the full-service ordering
+primitives under the same pattern of \ContentionProducers{} producers. They do not reproduce the full-service ordering
 at significance ($p = \ContentionP$), which rules out those two constructs alone as the whole
 explanation even though they are where the forced-idiom log predicted contention would matter. The
 cause is not unknowable. It likely includes additional work on the C++ handoff path, in the larger
@@ -4366,6 +4224,199 @@ profiles on the same visit. Beyond that:
 \begin{appendices}
 
 % Inside the appendices, \appendix takes the title where \chapter would.
+\appendix{Abbreviations and key terms\label{appendix:terms}}
+The abbreviations and terms used throughout the thesis, for readers outside the telecom domain.
+
+\begin{table}[H]
+\centering
+\caption[Abbreviations and key terms]{Abbreviations and key terms used throughout the thesis.\label{tab:abbrev}}
+% Single-spaced and one size down: the class's text block is 23cm, and at the
+% body's 1.5 spacing a glossary of this length runs past the bottom of the page.
+% Both are needed for it to share a page with the appendix heading.
+\singlespacing
+\footnotesize
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{0.21\linewidth} p{0.71\linewidth}@{}}
+\hline\hline
+Term & Meaning \\
+\hline
+RAN & Radio Access Network: the part of the mobile network connecting devices to the core \\
+NG-RAN & Next-Generation RAN, the 5G radio-access-network architecture \\
+IMT-2030 & The ITU framework for the generation after 5G, commonly called 6G \\
+AI-RAN & An architecture in which AI and RAN workloads share one accelerated infrastructure \\
+gNB & 5G base station (``next-generation NodeB'') \\
+gNB-CU / DU & Central Unit / Distributed Unit: the disaggregated halves of a gNB \\
+gNB-CU-CP & Control-plane part of the central unit: the system class studied here \\
+UE & User Equipment: an end device (phone, modem) attached to the network \\
+UECM & UE Context Management: the per-UE state-management subsystem reimplemented here \\
+RRC & Radio Resource Control: the control-plane signalling protocol between UE and gNB \\
+DRB & Data Radio Bearer: a per-UE user-plane data channel set up during a session \\
+Control plane & The signalling and management path, as opposed to the user-plane data path \\
+Tail latency & High-percentile latency (p99, p99.9), the worst-case-oriented timing metric \\
+Jitter & How much latency varies from one operation to the next, as opposed to its typical value \\
+Saturation & The offered load beyond which the service can no longer keep up and requests start queueing \\
+Shard & One of several independent slices of the UE state, each owned by exactly one worker thread \\
+FFI & Foreign Function Interface: calling Rust from C++ across a C ABI \\
+HDR histogram & High-Dynamic-Range histogram, used for accurate latency capture \\
+\hline
+\end{tabular}
+\end{table}
+
+\appendix{Literature search protocol\label{appendix:search}}
+Section~\ref{sec:approach} reports the two findings this search produced. The protocol is recorded
+here so that the gap the study claims can be checked rather than taken on trust.
+
+Candidate literature was gathered from the ACM Digital Library, IEEE Xplore, USENIX, and Google
+Scholar using combinations of the terms \emph{Rust}, \emph{C++}, \emph{memory safety}, \emph{tail
+latency}, \emph{systems programming}, \emph{performance comparison}, and \emph{RAN} / \emph{5G
+control plane}, restricted to peer-reviewed venues except where an industry or government report
+is itself the object of study (the memory-safety mandates and vendor vulnerability statistics).
+The result set was extended by backward and forward citation chaining from the core Rust-safety
+papers, and filtered to work that either measures a systems language empirically, formalises
+Rust's guarantees, or reports adoption experience. The domain literature (3GPP specifications and
+the O-RAN survey) was added separately to fix the architectural context.
+
+Those sources alone would have missed the closest prior work, which is why two more were added.
+The vendor-hosted theses that come nearest to this study (Section~\ref{sec:relatedwork}) appear in
+none of the citation databases: not in Crossref, OpenAlex, DBLP, or Semantic Scholar. Neither
+forward nor backward chaining can reach them, because nothing indexed cites them and their own
+reference lists are not deposited. They were found instead by searching the institutional
+repositories directly, DiVA for the Nordic universities and Finna for the Finnish ones. The same
+two searches establish the absence on the other side. Finna, which federates the Finnish
+university repositories, returns no thesis on Rust in a radio-access or telecom context, and an
+author-affiliation search of Nokia's indexed publications in OpenAlex returns none either: its
+entities hold on the order of thirty thousand indexed works, several hundred of which concern the
+radio access network, and one mentions Rust, in an unrelated preprint on trusted-execution
+monitoring.
+
+Two practical notes belong with the protocol, since both distort a naive search. Free-text queries
+for \emph{Rust} in the general indexes rank plant pathology and corrosion chemistry above the
+programming language, so field-restricted or discipline-restricted queries are necessary. And the
+theses are grey literature, so they are cited as evidence of what has been attempted and found
+rather than as peer-reviewed results.
+
+\appendix{Statistical design: family membership and resolving power\label{appendix:stats}}
+Section~\ref{sec:stats} states two commitments: which comparisons enter the corrected family, and
+how far into a difference the design can see at all. The reasoning behind them is recorded here,
+so that neither can be read as a choice made once the $p$-values were known.
+
+\paragraph{Which comparisons enter the family.}
+The representative operating point is chosen below saturation, where every variant completes work
+as fast as it is offered, so achieved throughput there is pinned to the offered load by
+construction and cannot express a language effect whatever the languages do. Testing it would
+re-measure the operating point rather than the code. It would also not be free: Holm divides its
+budget across the whole family, so two comparisons that cannot resolve anything would make the
+correction harsher on the ones that can. Below saturation, therefore, throughput is reported with
+its interval in the resource table, where its job is to confirm that the operating point is
+sustained and not merely nominal.
+
+Above saturation that reasoning inverts, and the design has to follow it. Once the offered rate is
+no longer being met, what each variant still sustains is pinned to nothing and becomes the one
+quantity that can separate them, so excluding it there would discard the only observable the
+regime offers. The second operating point is fixed in the overload region, defined as the deepest
+swept load at which \emph{every} variant has stopped meeting the offered rate, and sustained
+throughput and CPU utilisation are tested at it (Section~\ref{sec:overload}). Those comparisons
+join the same Holm family rather than forming a second one, so the correction covers everything
+the thesis reports. No latency percentile is tested above saturation at all: with a fixed intended
+send schedule a producer that cannot keep up falls behind cumulatively, so the percentiles there
+measure accumulated backlog against a measurement window that truncates it, which makes them a
+lower bound and not an estimate. Attaching a $p$-value to a lower bound would test the harness
+rather than the software.
+
+\paragraph{The floors the design can reach.}
+An exact test on $n$ pairs cannot return a two-sided $p$ below $2/2^{n}$, and after correcting a
+family of $m$ comparisons the smallest attainable adjusted value is $m$ times that. With
+\NRepeats{} repeats and \NTests{} comparisons those two floors are $\MinAttainableP$ and
+$\CorrectedFloor$, both quoted in Section~\ref{sec:stats}. A campaign whose corrected floor lies
+above the threshold being applied cannot demonstrate significance however large the effect, so
+reporting ``not significant'' from such a campaign would say more about its repeat count than
+about the languages.
+
+\appendix{Host and campaign configuration\label{appendix:config}}
+Table~\ref{tab:testbed} itemises the measurement host of Section~\ref{sec:testbed} against the
+bare-metal protocol that testbed-grade tail figures require. Table~\ref{tab:params} gathers the
+configuration of the service, the workload and the campaign, whose derived values
+Section~\ref{sec:workload} quotes.
+
+\begin{table}[H]
+\centering
+\small
+\caption[The host used and the testbed protocol still to be executed]{The host the reported
+results were measured on, against the protocol that testbed-grade tail figures require
+(\texttt{bench/TESTBED.md}). The rows where the two columns agree are properties of the source and
+the compilers. The rows where they differ are what a bare-metal campaign would still buy. Only the
+last of those differences now costs a result, because the saturation knee and the resource
+comparisons were resolved on this host: what remains is the far tail below
+saturation.\label{tab:testbed}}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}R{0.22\linewidth} R{0.35\linewidth} R{0.35\linewidth}@{}}
+\hline\hline
+Aspect & Used for the results reported here & Required for testbed-grade tail figures \\
+\hline
+Host & Dedicated dual-socket server, $2\times$ Xeon E5-2680~v4, $16$ cores, one NUMA node & Same class of machine, without the hypervisor \\
+Virtualisation & KVM guest: frequency and turbo host-controlled and unobservable & None. Governor and turbo set and verified \\
+CPU steal & Non-zero, order $10$~ms of vCPU time per second & None \\
+Kernel & Rocky Linux~8.10, distribution kernel & Same, with \texttt{isolcpus} and \texttt{nohz\_full} on the benchmark cores \\
+Toolchain & \texttt{g++~15.1.1}, \texttt{rustc~1.97} & \texttt{g++~15.1.1}, \texttt{rustc~1.97} \\
+CPU pinning & Cores $2$--$15$ via \texttt{taskset}, $7$ shards, $7$ producers & Same, on cores also removed from the scheduler \\
+Simultaneous multithreading & Absent on this processor & Absent or disabled \\
+Warm-up & Initial fraction of each run discarded & Initial fraction of each run discarded \\
+Repeats and interleaving & \NRepeats{} repeats, four variants interleaved per repeat & \NRepeats{} repeats, four variants interleaved per repeat \\
+Environment capture & \texttt{bench/capture\_env.sh}, stored with each result & \texttt{bench/capture\_env.sh}, stored with each result \\
+Hardware counters & Unavailable in the guest & Available: the clearest instrumentation gap \\
+\hline
+Adequate for & Parity, fault injection, FFI structure, the saturation knee and the overload comparison, and the resource comparisons & Additionally the far tail below saturation, and the mechanism behind the resource and operation results \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\caption[Configuration of the service, the workload, and the campaign]{Configuration of the service under test, the workload driving it, and the measurement
+campaign. Service parameters are fixed by the frozen specification, with one exception: the
+shard count is set to match the cores the host offers (Section~\ref{sec:testbed}). All of them,
+that one included, are identical in both languages. Campaign figures are generated from the
+measurement logs together with the
+tables that report them. The representative load is not chosen by eye but derived, as the
+busiest swept load at which all four build variants still hold their p99 below
+$5$~ms.\label{tab:params}}
+\footnotesize
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{@{}R{0.28\linewidth} R{0.28\linewidth} R{0.36\linewidth}@{}}
+\hline\hline
+Parameter & Value & Note \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Service under test, identical in both languages}} \\
+Shards, and worker threads & $7$ & one thread owns one shard, one of each per pinned core \\
+Queue bound per shard & $1\,024$ requests & bounded and blocking, so overload is observable \\
+Initial map capacity & $4\,096$ entries & reserved so steady state does not rehash \\
+Bearers per context & at most $8$ & \\
+Signaling payload & $64$ bytes & \\
+Context ceiling per shard & $200\,000$ & \\
+Shard selection & SplitMix64, then modulo & pinned: diffuses sequential identifiers \\
+Intra-shard hash & FNV-1a, 64-bit & pinned on both sides and checked bit-for-bit \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Workload}} \\
+Workloads & signal, mixed & mixed walks the full RAN lifecycle \\
+Active UEs & $5\,000$ & \\
+Offered-load levels & \NLoadLevels{} & up to $\MaxOfferedLoad$~kops/s \\
+Representative load & $\ReprLoad$~kops/s & derived, see caption \\
+Measured saturation & $\SatKnee$~kops/s & tracks the offered rate to $\TrackingLoad$~kops/s \\
+Load model & open loop, fixed intended schedule & latency measured from intended send time \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Campaign}} \\
+Build variants & $\NVariants$ & two languages $\times$ two allocators \\
+Repeats per sweep point & \NRepeats{} & variants interleaved within each repeat \\
+Measured runs & $\NRuns$ & \\
+Latency capture & HDR histogram, $[1\,\text{ns}, 3.6\,\text{s}]$, 3 s.f. & same algorithm and configuration on both sides \\
+Summary statistic & median with bootstrap $95\%$ CI & intervals reported in full, not as half-widths \\
+Language comparison & exact paired permutation test & \NTests{} tests, Holm-corrected \\
+Attainable $p$ floors & $\MinAttainableP$ / $\CorrectedFloor$ & uncorrected / after correction \\
+\hline
+\end{tabular}
+\end{table}
+
 \appendix{Fault-injection example\label{appendix:code}}
 As an illustration of the fault-injection study (Chapter~\ref{chapter:eval}, RQ2), the
 use-after-free defect is shown in both languages. In C++ the alias into the context map
