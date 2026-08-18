@@ -450,11 +450,11 @@ language and its libraries as much as on the architecture above them.
 The policy clock falls inside the same window, and the roadmap expectation noted above carries a
 date keyed to precisely this horizon. CISA and the FBI classify the development of new product
 lines in a memory-unsafe language as a bad practice that significantly elevates risk where the
-product serves critical infrastructure and a memory-safe alternative is available. They also expect
-manufacturers of existing products to publish a memory-safety roadmap, exempting only products
-whose announced support ends before January 2030~\cite{cisa2025badpractices}. Mobile-network infrastructure sits squarely inside that
-scope, and the Cyber Resilience Act obligations described above are in full force from December
-2027~\cite{eu2024cra}. A vendor that defers the language question until the next generation is
+product serves critical infrastructure and a memory-safe alternative is available, and they
+exempt an existing product from the roadmap expectation only when its announced support ends
+before January 2030~\cite{cisa2025badpractices}. Mobile-network infrastructure sits squarely
+inside that scope, and the Cyber Resilience Act deadlines noted above fall earlier
+still~\cite{eu2024cra}. A vendor that defers the language question until the next generation is
 specified will not thereby have avoided making it. It will have made it by default, in the
 incumbent language, for another decade of deployments.
 
@@ -1295,6 +1295,20 @@ first-class concern: because the goal is to isolate language effects, the study 
 specification, algorithms, concurrency model, allocator, and build settings across both
 implementations, and reports variance over repeated runs.
 
+That design follows from the shape of the questions. Each asks how one outcome, tail latency,
+prevented defects, resource use, or migration cost, depends on a single independent variable,
+the implementation language, so the language has to be the only systematic difference between
+the two objects under test. This rules out the commonest form of language comparison in the
+literature, where two independently written programs are measured and the gap between them is
+attributed to the language, confounding it with the design, the libraries, and the skill of
+their authors. Building both sides from one specification makes the comparison one between two
+encodings of the same design, and it makes the artifact both the contribution and the
+instrument through which the contribution is measured. Where the questions admit numbers the
+treatment is quantitative, and where they do not, the kind-of-guarantee distinction in RQ2 and
+the API-design effort in RQ4, it is systematic but qualitative. Triangulating three methods
+means that a weakness in any one of them, for example the environment sensitivity of
+tail-latency measurement, does not carry into the conclusions as a whole.
+
 The gap this design addresses (Section~\ref{sec:gap}) is only as good as the search that looked
 for it, so the search is stated rather than assumed. Candidate literature was gathered from the
 ACM Digital Library, IEEE Xplore, USENIX, and Google Scholar using combinations of the terms
@@ -1367,29 +1381,6 @@ seam size, \texttt{unsafe} scope, per-call interop cost \\
 \hline
 \end{tabular}
 \end{table}
-
-\section{A constructive, comparative experiment}
-The four research questions are causal and comparative: each asks how an outcome (tail
-latency, prevented defects, resource use, or migration cost) depends on a single independent
-variable, the implementation language. Answering such questions credibly requires that the
-language be the \emph{only} systematic difference between the two objects under test. This
-rules out the most common form of language comparison in the literature, in which two
-independently written programs, or two unrelated projects, are measured and their differences
-attributed to the language. Such comparisons confound the language with the design, the
-libraries, and the intent and skill of their authors. The thesis therefore adopts a
-constructive (design-science) strategy: instead of locating two pre-existing systems, it
-\emph{builds} the object of study as a matched pair of implementations derived from one frozen
-specification, so that the comparison is between two encodings of the same design rather than
-between two designs. The artifact, the specification, the two implementations, and the
-benchmarking harness, is thus simultaneously the contribution of the thesis and the instrument
-through which it is measured.
-
-The experiment is empirical and quantitative where the questions admit numbers (RQ1, RQ3, and
-the per-call cost of RQ4) and systematic-but-qualitative where they do not (the
-kind-of-guarantee distinction in RQ2 and the API-design effort in RQ4). Evidence is
-deliberately triangulated across three complementary methods rather than resting on a single
-campaign, so that a weakness in any one method, for example the environment sensitivity of
-tail-latency measurement, does not undermine the conclusions as a whole.
 
 \section{Methods for the four research questions}
 Table~\ref{tab:design} pairs each question with a method. This section states what each method
@@ -1709,13 +1700,6 @@ environment-insensitive ones (parity testing, fault injection, and the FFI struc
 lets the thesis state, per result, which of the two a reader is looking at. Nothing on the path
 requires proprietary source, which is what makes third-party reproduction possible at all rather
 than merely permitted.
-
-\section{Ethical and data-protection considerations}
-The study processes no personal, subscriber, or operator-confidential data. All traffic is
-synthetic and generated by the deterministic driver, the UE contexts contain only fabricated
-identifiers and a fixed dummy security field, and the subsystem is modelled on, rather than
-copied from, production code. There are therefore no privacy, consent, or data-retention
-concerns, and the resulting artifacts can be released openly for reproduction.
 
 \chapter{Design and Implementation\label{chapter:design}}
 
@@ -3802,33 +3786,31 @@ artifact: the decision it should inform is ``measure this on your component, and
 the point where your component stops coping'', not ``Rust is fast enough, proceed''.
 
 \section{Related work}\label{sec:relatedwork}
-Chapter~\ref{chapter:background} set out the ground this work stands on. What follows positions
-the thesis against that literature rather than surveying it a second time, and then treats at
-length the two studies it has to answer to.
+Chapter~\ref{chapter:background} set out the ground this work stands on, in four strands. What
+follows positions the thesis against them and then treats at length the two studies it has to
+answer to. What matters here is the property the four share.
 
-Four strands bear on the comparison, and Chapter~\ref{chapter:background} sets out each of them.
-What matters here is the property they share. Cross-language performance measurement puts
-compiled systems languages close together on time and
+Cross-language measurement puts compiled systems languages close on time and
 energy~\cite{bugden2022rust,pereira2017energy} and finds Rust's safety cheap at run
 time~\cite{balasubramanian2017rust,levy2017kernel}, including where timing is tightest: embedded
 hypervisors~\cite{mo2023rustshyper}, production cloud infrastructure~\cite{agache2020firecracker},
-packet processing within a few percent of a C
-reference~\cite{emmerich2019drivers,xiao2024rpkt}. Where a cost does appear it has begun to be
-localised, to bounds, overflow and division checks~\cite{zhang2022runtime}, to the bounds check
-set against hardware-enforced capabilities~\cite{harris2023morello}, and to recurring
-anti-patterns~\cite{cui2025perfbugs}. All of it is average-case. None of it reports behaviour past
-a saturation point, which is the regime this thesis targets. The evidence for the safety claim is
-settled in the same partial way: machine-checked foundations for the safe fragment and for the
+and packet processing within a few percent of a C
+reference~\cite{emmerich2019drivers,xiao2024rpkt}. Where a cost appears it has been localised, to
+bounds, overflow and division checks~\cite{zhang2022runtime}, to that same bounds check set
+against hardware-enforced capabilities~\cite{harris2023morello}, and to recurring
+anti-patterns~\cite{cui2025perfbugs}. All of it is average-case, and none of it reports behaviour
+past a saturation point, which is the regime this thesis targets. The safety evidence is settled
+the same partial way: machine-checked foundations for the safe fragment and for the
 aliasing discipline \texttt{unsafe} code must
 respect~\cite{jung2018rustbelt,jung2021safe,jung2020stacked}, confirmation that \texttt{unsafe} is
 used sparingly and that memory-safety CVEs invariably involve
-it~\cite{qin2020rust,astrauskas2020unsafe,xu2021rustcve}, ecosystem-scale auditing that finds
+it~\cite{qin2020rust,astrauskas2020unsafe,xu2021rustcve}, auditing that finds
 defects at scale regardless~\cite{bae2021rudra,zheng2024security,qin2024safety}, the caution that
 unsafety propagates through dependency chains~\cite{evans2020rust}, and the reports motivating the
 shift against a long record of memory corruption resisting runtime
 mitigation~\cite{msrc2019memory,google2022android,google2024securebydesign,cisa2023memorysafe,oncd2024building,szekeres2013sok}.
 
-The third strand qualifies the adoption argument, and Section~\ref{sec:interop} states its central
+The third strand qualifies the adoption argument. Section~\ref{sec:interop} states its central
 limit: confining \texttt{unsafe} to a seam does not protect the Rust side, because foreign code in
 the same address space can corrupt Rust-owned data
 regardless~\cite{rivera2021galeed,kirth2022pkrusafe}, the seam has its own defect
@@ -3839,7 +3821,7 @@ principle~\cite{emre2023aliasing}, interoperation is the central open problem in
 Rust~\cite{sharma2024embedded}, \texttt{unsafe} concentrates at exactly these
 boundaries~\cite{mccormack2026unsafe}, and the two largest documented adoptions into existing C
 and C++ report the resulting friction empirically~\cite{li2026rustlinux,fan2026android}.
-Automating the rewrite is an active line of work rather than a solved problem, current translators
+Automating the rewrite is an active line of work and not a solved problem, current translators
 still emitting code whose safety the compiler cannot validate~\cite{hong2025ctorust}, which is why
 the migration cost measured here is the cost of a hand-written seam.
 
@@ -4279,11 +4261,13 @@ framework is what survives: the catalogue is designed to be re-run against
 a compiler that enforces profiles, and the answer would then be measured rather than predicted.
 
 \section{Ethical and professional reflection}
-The conduct of the study raised no data-protection questions, for the reasons set out in
-Chapter~\ref{chapter:methodology}: all traffic is synthetic, the contexts carry fabricated
-identifiers, and the subsystem is modelled on rather than copied from production code. The
-\emph{use} of the study is a different matter and deserves stating explicitly, because a
-language-selection recommendation in this domain is not a neutral technical output.
+The conduct of the study raised no data-protection questions. It processes no personal,
+subscriber, or operator-confidential data. All traffic is synthetic and generated by the
+deterministic driver, the contexts carry fabricated identifiers and a fixed dummy security
+field, and the subsystem is modelled on rather than copied from production code, so no privacy,
+consent, or data-retention concern arises and the artifacts can be released openly for
+reproduction. The \emph{use} of the study is a different matter and deserves stating explicitly,
+because a language-selection recommendation in this domain is not a neutral technical output.
 
 Two responsibilities follow. The first concerns over-claiming. A vendor could reasonably read
 the RQ2 result as licence to describe a migrated component as ``safe'', and the boundary cases
