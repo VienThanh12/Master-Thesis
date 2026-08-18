@@ -32,7 +32,8 @@
 \usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
 %\usepackage{wrapfig} % For nice text-wrapping figures (use at own discretion)
 \usepackage{array} % Ragged-right p-columns in the Chapter 6 tables
-\usepackage{float} % [H] placement for tables that must not drift past their section
+\usepackage{float} % [H] pins tables at the point of citation in the source
+\usepackage[section]{placeins} % flush pending floats before each \section
 \usepackage{listings} % For the side-by-side C++/Rust excerpts in Chapter 6
 
 % Ragged-right paragraph column: avoids stretched inter-word spacing in narrow cells.
@@ -622,7 +623,7 @@ in this thesis, UE Context Management (UECM), inside the gNB-CU-CP: it owns the 
 control-plane state and mediates the RRC signalling and mobility procedures, which is why its
 correctness and timing behaviour are representative of the control plane as a whole.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \begin{tikzpicture}[
     font=\small, >={Stealth[length=2.4mm]},
@@ -687,7 +688,7 @@ Figure~\ref{fig:tailconcept} sets the two effects side by side: the distance bet
 and the high percentiles, and the fan-out that turns a delay which is rare per operation into
 one that is common per procedure.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/11_tail_latency_concept.pdf}
 \caption[Why the tail, not the mean, governs RAN deadlines]{Why the tail, not the mean, governs RAN deadlines. On the left, most operations
@@ -726,7 +727,7 @@ with repeated runs and confidence intervals rather than single point
 estimates~\cite{georges2007rigorous}. These techniques are applied in
 Chapter~\ref{chapter:eval}.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/16_coordinated_omission.pdf}
 \caption[Coordinated omission under open- and closed-loop load]{Coordinated omission. The open-loop generator at the top sends on a fixed timetable
@@ -824,7 +825,7 @@ introduction: a program that frees a context while a reference to it is still li
 build. Figure~\ref{fig:borrowuaf} puts that defect in its UE Context Management form beside the
 C++ version, which compiles and is caught, if at all, only at runtime.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/08_borrow_checker_uaf.pdf}
 \caption[The same use-after-free in C++ and in safe Rust]{The same use-after-free defect in C++ and in safe Rust. The stale alias into the
@@ -862,7 +863,7 @@ is built around is not which hazards each language names, since both name much t
 but \emph{when} and \emph{by what} each is ruled out, and the last two rows mark where the
 answer stops being ``by the compiler'' for either of them.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[How each language enforces the properties measured here]{How each language enforces the properties this thesis measures. The rows above the
@@ -907,7 +908,7 @@ reason the model is held fixed across both implementations rather than left to e
 idiom. Figure~\ref{fig:concmodels} contrasts the two models and marks what each does to the
 hazards catalogued above.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/12_concurrency_models.pdf}
 \caption[Two concurrency models for control-plane state]{Two concurrency models for control-plane state. Shared-memory concurrency (left) lets
@@ -1006,7 +1007,7 @@ position from that side argues for making memory-error sanitisation practical ra
 replacing it with a compile-time guarantee~\cite{gjomemo2016mesc}, which is the strategy this
 thesis tests against. Section~\ref{sec:relatedwork} compares the five with this study directly.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/29_research_gap.pdf}
 \caption[What the neighbouring studies control, and what they leave varying]{What the neighbouring studies control, and what they leave varying. Each row is a
@@ -1047,7 +1048,7 @@ Figure~\ref{fig:fsm} shows the UE-context lifecycle state machine that both impl
 encode identically. This state machine is exactly what the mixed workload
 of Section~\ref{sec:workload} walks each UE through.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \begin{tikzpicture}[
     ->, >=Stealth, node distance=3.2cm, font=\small,
@@ -1179,7 +1180,7 @@ Table~\ref{tab:defectmap} collects the catalogue with the outcome expected of ea
 expectation written down in advance can be violated in either direction and reported as a
 discrepancy, whereas one formed after the fact cannot.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[The injected catalogue and its incarnations in UECM]{The injected defect catalogue: each class in the form it would plausibly take in UE
@@ -1243,7 +1244,7 @@ load would miss the regime that decides service quality, since queueing delay gr
 super-linearly near capacity. It is also the regime in which a difference between two
 implementations of one design, if there is one, has room to become visible.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=0.9\linewidth]{diagrams/pdf/15_overload_cliff.pdf}
 \caption[The overload cliff]{The overload cliff. Tail latency stays low and flat while offered load is below
@@ -1333,7 +1334,7 @@ Section~\ref{sec:hypotheses} finds that wording to be the hypothesis's main weak
 are environment-insensitive. RQ1 and RQ3 depend on the measurement host and are reported against
 what it can carry (Section~\ref{sec:testbed}).
 
-\begin{table}
+\begin{table}[H]
 \centering
 \caption[Research design: how each research question is answered]{Research design: how each research question is answered. Every question is tied to a
 concrete method, a published artifact, the data it produces, and the metric on which the
@@ -1521,7 +1522,7 @@ layout, and one person wrote both implementations. The first of those is handled
 forced-idiom log, and the last row of the table names the one variable left with no control at
 all.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[The controlled-variable strategy]{The controlled-variable strategy: what is held fixed so that the language remains the
@@ -1717,7 +1718,7 @@ Section~\ref{sec:budget} later decomposes it into the part the language executes
 the operating system does. Figure~\ref{fig:arch} shows the data flow and
 Figure~\ref{fig:reqlifecycle} traces a single operation through it as a sequence.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/04_request_lifecycle_sequence.pdf}
 \caption[The end-to-end path of a single operation]{The end-to-end path of a single operation and the completion handoff. The caller builds
@@ -1728,7 +1729,7 @@ result back to the completion handle. Ownership of the request is transferred to
 submit and never shared. Latency is measured across the whole path.\label{fig:reqlifecycle}}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \begin{tikzpicture}[
     font=\small,
@@ -1844,7 +1845,7 @@ neither side. It is instead recorded as a language-level effect and bounded, at 
 active UEs used in the sweep the $\UeCtxGapBytes$-byte gap accounts for roughly $\UeCtxGapTotalKB$~kB, against resident
 set sizes measured in megabytes, so it is immaterial to the RQ3 comparison.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=0.92\linewidth]{diagrams/pdf/05_data_model.pdf}
 \caption[The shared UE-context data model]{The UE-context data model shared by both implementations. Field widths are fixed so that
@@ -1874,7 +1875,7 @@ This is a deliberate simplification, the model carries no saved pre-handover cel
 to, but it is a semantic commitment and not an oversight, and both implementations make it
 identically, which is what the parity suite of Section~\ref{sec:parity} checks.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[The implemented state-transition table]{The implemented state-transition table, identical in both languages. Every operation
@@ -2012,7 +2013,7 @@ recorded in the specification's forced-idiom log so that it can be weighed rathe
 silently absorbed into the results. Table~\ref{tab:idioms} collects the log in full, and the
 preceding subsections have already quantified the two entries with measurable consequences.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[The forced-idiom log]{The forced-idiom log: every point at which the two implementations diverge in order
@@ -2085,7 +2086,7 @@ branching is hardest to review, and the \texttt{std::bad\_variant\_access} invar
 Section~\ref{sec:tagged} noted is maintained by inspection across two files lives inside
 precisely the function this measurement flags.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[Size and cyclomatic-complexity proxies for the two cores]{Size and cyclomatic-complexity proxies for the two cores, measured with
@@ -2105,7 +2106,7 @@ Measure & C++ & Rust \\
 \end{tabular}
 \end{table}
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[Where the line-count difference between the cores comes from]{Where the $\LocGap$-line difference between the two cores comes from, by concern (raw
@@ -2269,7 +2270,7 @@ The division Table~\ref{tab:testbed} draws is not between important and unimport
 between those that are properties of the compilers and the source, which this host establishes as
 firmly as any would, and those that are properties of the machine, which it cannot.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[The host used and the testbed protocol still to be executed]{The host the reported
@@ -2320,7 +2321,7 @@ performance, the fault-injection study, and an FFI migration prototype.
 Figure~\ref{fig:workload} shows the two workloads and the procedure sequence the mixed one
 walks.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/27_workload_timeline.pdf}
 \caption[The two workloads, and the lifecycle the mixed one walks]{The two workloads. The \emph{signal} workload isolates the steady-state hot path.
@@ -2359,7 +2360,7 @@ campaign or judge whether a parameter was chosen to suit the result. Every entry
 campaign block is either fixed by the specification or generated from the measurement logs, so
 the table cannot drift out of step with the data reported below.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[Configuration of the service, the workload, and the campaign]{Configuration of the service under test, the workload driving it, and the measurement
@@ -2541,7 +2542,7 @@ therefore evidenced at p99 and p99.9 rather than beyond them. That is a gap in t
 than in the design, and it closes with the same bare-metal campaign the tail claims already wait
 on. Section~\ref{sec:threats} returns to what it costs the answer.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[Per-operation latency at the representative load]{Per-operation latency at a sustained offered load of $\ReprLoad$~kops/s (mixed
@@ -2574,7 +2575,7 @@ interference that block carried is common to the pair and cancels in their diffe
 the second thing the interleaving discipline buys, beyond the fairness argument it was adopted
 for.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[Exact paired permutation test of C++ against Rust]{Exact paired permutation test of C++ against Rust at $\ReprLoad$~kops/s, with the
@@ -2598,7 +2599,7 @@ Metric & Allocator & Effect (Rust $-$ C++) & $p$ & Holm \\
 \end{tabular}
 \end{table}
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_effects.pdf}
 \caption[The tested family drawn as paired effects]{Every test in Tables~\ref{tab:significance} and~\ref{tab:overloadtest} as a paired
@@ -2661,7 +2662,7 @@ there, in both languages and at the sweep's own shard count and context populati
 the operation plus the handoff, and their difference is the handoff.
 Table~\ref{tab:budget} gives the result, and it reframes the whole performance comparison.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[Where an end-to-end operation's cost actually goes]{Where an end-to-end operation's cost actually goes, measured at $7$ shards and
@@ -2727,7 +2728,7 @@ it. The right panel puts that sliver on a log axis beside the smallest paired di
 sweep could have detected, and the ordering there is the argument of this section: the
 instrument sits entirely above the quantity it would have to constrain.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_budget.pdf}
 \caption[The end-to-end operation decomposed, against what the sweep can resolve]{Where an end-to-end operation's cost goes, and why the sweep cannot bound a language
@@ -2780,7 +2781,7 @@ reported percentiles saturate near the width of that window, which makes every o
 above the knee a lower bound. What remains interpretable in this regime is how much work each
 variant still completes, and Section~\ref{sec:overload} takes that up.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=0.82\linewidth]{figures/fig_latency_vs_load.pdf}
 \caption[Tail latency versus offered load]{Tail latency (p99) versus offered load for the four build variants. Lines are medians
@@ -2805,7 +2806,7 @@ offered rate stops being met, and they separate by language rather than by alloc
 the one thing the sweep was built to be able to detect and the one regime in which it can.
 Section~\ref{sec:overload} measures that separation instead of leaving it to the eye.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=0.82\linewidth]{figures/fig_throughput_vs_load.pdf}
 \caption[Achieved throughput versus offered load]{Achieved throughput versus offered load. The dotted line marks the ideal
@@ -2823,7 +2824,7 @@ in which an ordering means something. From p90 upward the interval exceeds the s
 times over, so the fan marks where the measurement loses resolution rather than where the
 languages differ.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_tail_percentiles.pdf}
 \caption[Latency across the percentile range, and the limit of the host]{Per-operation latency across the percentile range at $\ReprLoad$~kops/s. \textbf{(a)} The
@@ -2869,7 +2870,7 @@ third. The bars are grouped by allocator, so the separation inside a group is th
 the separation between groups is the allocator. It falls almost entirely inside the groups, which
 is the effect following the variable the study manipulates rather than the one it controls for.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_overload.pdf}
 \caption[Divergence past saturation]{Behaviour at $\OverloadLoad$~kops/s offered, well beyond the $\SatKnee$~kops/s knee. Bars
@@ -2908,7 +2909,7 @@ a threshold request rate and attributes it to the asynchronous
 runtime~\cite{arvidsson2025async}. Section~\ref{sec:rqdiscussion} takes up what it means that the
 same shape appeared here with no such runtime on either side.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[What each variant sustains past saturation]{What each variant still sustains at
@@ -2927,7 +2928,7 @@ Variant & sustained throughput (kops/s) & CPU (\%) \\
 \end{tabular}
 \end{table}
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[Exact paired test past saturation]{Exact paired permutation test of C++ against Rust at
@@ -2963,7 +2964,7 @@ hand-written \texttt{BoundedQueue} of Section~\ref{sec:impldetails} with
 tested with the exact paired permutation procedure of Section~\ref{sec:stats}.
 Table~\ref{tab:contention} reports the result.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[Throughput through the contended synchronisation primitives alone]{Throughput through
@@ -3047,7 +3048,7 @@ choice itself. It is marginally cheaper in CPU while the service is coping and c
 expensive once it is not. On the bare operation of Section~\ref{sec:budget} it is the faster of
 the two.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[Resource use at the representative load]{Resource use at a sustained offered load of $\ReprLoad$~kops/s: achieved throughput,
@@ -3063,7 +3064,7 @@ Variant & throughput (kops/s) & peak RSS (MiB) & CPU (\%) \\
 \end{tabular}
 \end{table}
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_resources.pdf}
 \caption[Resource use, and the two effects inside peak RSS]{Resource use at a sustained offered load of $\ReprLoad$~kops/s, grouped by allocator so
@@ -3228,7 +3229,7 @@ returning to: a panic that names its cause on every build, against a heap-use-af
 needs an instrumented binary and a test that thinks to look. Both implementations now reject the
 call explicitly, in both directions, and both suites cover it.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[Defect-class taxonomy: measured outcomes]{Defect-class taxonomy: measured outcomes for the injected catalogue. C++ under
@@ -3283,7 +3284,7 @@ row by row. The outcomes are generated from the runner's machine-readable log
 \texttt{faults/results/model\_checking.csv}. Table and figure come from the same log, so neither
 can drift from the other.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=0.92\linewidth]{figures/fig_taxonomy.pdf}
 \caption[Where the guarantee stops: the outcome matrix]{The outcomes of Table~\ref{tab:taxonomy} drawn as a matrix, generated from the same
@@ -3306,7 +3307,7 @@ boundary. The error model is transported faithfully (for example, a duplicate co
 setup returns \texttt{InvalidState} through the seam). Figure~\ref{fig:ffiseam} shows the
 resulting structure and where the \texttt{unsafe} sits.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/07_ffi_seam.pdf}
 \caption[The C++-to-Rust FFI migration seam]{The C++-to-Rust FFI migration seam. The C++ host sees only an opaque handle, $\FfiEntryPoints$
@@ -3347,7 +3348,7 @@ Figure~\ref{fig:fficost} shows the repeats that produced those numbers, and the 
 that spread: the pairs cross, and the range they cover is an order of magnitude wider than the
 difference under test.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_ffi_cost.pdf}
 \caption[The seam's cost on one operation, against its own uncertainty]{The interoperability cost measured on a real operation rather than inferred from an empty
@@ -3368,7 +3369,7 @@ a C-ABI wrapper on the C++ side and re-introduces \texttt{unsafe} at the Rust ca
 prototype and its measurements are published with the thesis, and inform the migration
 guidelines of Chapter~\ref{chapter:discussion}.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \caption[FFI migration prototype: seam size, safety, and cost]{FFI migration prototype: seam size, safety boundary, and per-call interop cost
 (C++ host calling the Rust component across a C ABI, \texttt{-O2}). The core library is
@@ -3397,7 +3398,7 @@ resource comparisons are resolved on the host of Section~\ref{sec:testbed} and r
 allocator control, while the far tail below saturation remains unresolved for reasons that belong
 to the machine rather than to the analysis.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \caption[Summary of findings per research question]{Summary of findings per research question and the current strength of evidence.
 \label{tab:findings}}
@@ -3533,7 +3534,7 @@ Figure~\ref{fig:boundary} states the whole result in one picture, with the two h
 guarantee on either side of the line and the mechanism that does the enforcing, or the absence
 of one, named in each panel.
 
-\begin{figure}
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/17_guarantee_boundary.pdf}
 \caption[Where Rust's compile-time guarantee stops]{Where the compile-time guarantee stops. On the left are the classes safe Rust rejects
@@ -3949,7 +3950,7 @@ things fixed. That is the characteristic signature of a literature in which the 
 variable is not controlled, and it is the reason this thesis builds its object of study instead of
 locating one.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[This study beside the five vendor theses]{This study beside the five vendor theses, all
@@ -4071,7 +4072,7 @@ single-author skill asymmetry, its end-to-end instrument is the wrong one for pa
 RQ1 and RQ3 ask, and its strongest single finding, the overload divergence, rests on an
 attribution it did not measure directly.
 
-\begin{table}
+\begin{table}[H]
 \centering
 \small
 \caption[Threats to validity, their mitigations, and what remains]{Threats to validity by the kind of inference each endangers, the control applied, and
