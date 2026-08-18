@@ -28,7 +28,8 @@ import os
 import re
 import sys
 
-SKILL = os.path.expanduser("~/thesis.local/create-pptx-master-thesis")
+ROOT = os.path.dirname(os.path.abspath(__file__))
+SKILL = os.path.join(ROOT, ".cursor", "skills", "create-pptx-master-thesis")
 sys.path.insert(0, os.path.join(SKILL, "scripts"))
 
 from datetime import date
@@ -42,7 +43,6 @@ from pptx.oxml.ns import qn
 
 from pptx_lib import fill_placeholder, remove_template_slides
 
-ROOT = os.path.expanduser("~/thesis.local")
 FIGURES = os.path.join(ROOT, "figures")
 DIAGRAMS = os.path.join(ROOT, "diagrams")
 ASSETS = os.path.join(ROOT, ".deck-assets")

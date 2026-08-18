@@ -21,7 +21,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | **`Thesis_POC.pdf`** | `Thesis_POC.tex` | **Full draft — not yet final** | Canonical long-form thesis (~113–127 pages). Rich figures, generated numbers, full argument. **Everything still needs review** before submission. |
 | **`Ha_Vien_Mastersthesis_2026.pdf`** | same build as `Thesis_POC.pdf` | **Submission filename** | UH format `Lastname_Firstname_Mastersthesis_Year` (ASCII). `bench/refresh_thesis.sh` copies `Thesis_POC.pdf` here after each rebuild. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Thesis_POC.tex` and `Thesis_v1.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
-| `plain_thesis.tex` / `thesis-vi.tex` | variants | Secondary / stale | Do not edit unless explicitly asked. `thesis-vi.tex` is broken (missing bib). |
+| `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex` backup, the v1 plan PDF. Kept for reference. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
 | Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Thesis_POC.tex`. |
 
 ### Sync rule
@@ -38,14 +38,14 @@ When you change **measured numbers**:
 1. Regenerate via `bench/refresh_thesis.sh` (never hand-edit `figures/gen_macros.tex`,
    `figures/gen_complexity.tex`, or `figures/gen_artefacts.tex`).
 2. Re-read every prose claim that cites those macros (Chapters 7–9, abstract, discussion).
-3. Check `ASSESSMENT.md` and `TODO.md` “after bare-metal campaign” items if tail or RSS claims move.
+3. Check `docs/ASSESSMENT.md` and `docs/TODO.md` “after bare-metal campaign” items if tail or RSS claims move.
 
 ---
 
 ## 2. Grade criteria (Finnish 1–5 scale)
 
 The thesis is assessed on **six criteria** (simplified from the UH data-science master's
-matrix). Current self-assessment is in **`ASSESSMENT.md`** (durable record; keep aligned
+matrix). Current self-assessment is in **`docs/ASSESSMENT.md`** (durable record; keep aligned
 with any grading canvas if present).
 
 The **official CSM matrix (9 April 2024) has seven areas**, the seventh being work during the
@@ -65,7 +65,7 @@ grading pass so passes stay comparable.
 
 **Overall mean (unweighted): 4.8** — held at 4.5 on criteria 3 and 4 **deliberately** until
 bare-metal tail evidence exists. Do not round those half-grades in prose without updating the
-reasoning in `ASSESSMENT.md`.
+reasoning in `docs/ASSESSMENT.md`.
 
 ### Criterion checklist (apply to every thesis edit)
 
@@ -208,11 +208,12 @@ The full style constraint is in the prose-style section of `.cursor/rules/thesis
 
 **Acceptance gates**
 
-- `Thesis_POC.log`: **zero errors**, zero undefined references/citations.
+- `build/Thesis_POC.log`: **zero errors**, zero undefined references/citations. `.latexmkrc` keeps
+  every LaTeX intermediate in `build/`; the PDF and its SyncTeX index still land at the root.
 - `./.aitells.py` on every file whose prose changed: no em-dash asides introduced; no semicolons
   introduced.
 - Figure/table macros in prose match `figures/gen_macros.tex`.
-- No figure contradicts its table (see `ASSESSMENT.md` refinement pass for past failures).
+- No figure contradicts its table (see `docs/ASSESSMENT.md` refinement pass for past failures).
 - `build_deck.py` rebuilds and reports “Layout: all added shapes inside the template content band”.
 - If abstract changed: visually inspect page 3 (abstract form + CCS + keywords).
 
@@ -235,10 +236,10 @@ The full style constraint is in the prose-style section of `.cursor/rules/thesis
 
 | File | Use |
 | --- | --- |
-| `ASSESSMENT.md` | Full criterion-by-criterion grading notes and blockers |
+| `docs/ASSESSMENT.md` | Full criterion-by-criterion grading notes and blockers |
 | `.cursor/skills/thesis-grade-csm/` | Grading skill: the official seven-area CSM matrix, calibration anchors and discounted false positives from past passes, and `scripts/texaudit.py` for build, cross-reference, bibliography and placeholder gates |
-| `TODO.md` | Phase checklist, bare-metal prep, post-campaign re-check list |
-| `LITERATURE_NOTES.md` | Citation upgrades and literature gaps |
+| `docs/TODO.md` | Phase checklist, bare-metal prep, post-campaign re-check list |
+| `docs/LITERATURE_NOTES.md` | Citation upgrades and literature gaps |
 | `bench/TESTBED.md` | Bare-metal protocol (only path to criterion 3/4 → 5 on tail) |
 | `bench/artefact_facts.py` | Generates `figures/gen_artefacts.tex`: record sizes (compiled probes), parity-suite coverage, conformance campaign size, FFI seam size. Anything measured that no campaign log holds belongs here, not in the prose |
 | `spec/SPECIFICATION.md` | Fairness baseline; freeze before implementation changes. §11.4–11.5 cover the reference model, generated vectors, sanitisers, Miri and coverage |

@@ -1,4 +1,7 @@
-# LaTeX build artifacts
+# LaTeX build artifacts. .latexmkrc sends these to build/, but the extension
+# patterns stay: an editor or a manual pdflatex run can still drop them beside
+# the sources.
+build/
 *.aux
 *.bbl
 *.blg
@@ -25,7 +28,10 @@
 
 # C++ build
 cpp/build/
-build/
+
+# Python bytecode
+__pycache__/
+*.pyc
 
 # Rust build
 rust/target/
@@ -54,8 +60,7 @@ ffi/**/target/
 
 # Slide-deck tooling
 .venv-pptx/
-slides_preview/
-create-pptx-master-thesis/
+.cursor/skills/create-pptx-master-thesis/
 Rust_vs_Cpp_Nokia_RAN_thesis.pptx
 # figures/*.pdf rasterised for the deck; rebuilt from the tracked source plots
 .deck-assets/

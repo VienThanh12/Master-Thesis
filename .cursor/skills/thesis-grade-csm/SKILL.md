@@ -4,7 +4,7 @@ description: >-
   Grades a master's thesis against the official Computer Science (CSM) seven-area assessment
   matrix on the Finnish 1-5 scale, area by area, naming the descriptor clause that caps each
   grade and the cheapest work that lifts it. Produces a grading canvas and a dated pass in
-  ASSESSMENT.md. Use when the user asks what grade the thesis would get, how an examiner,
+  docs/ASSESSMENT.md. Use when the user asks what grade the thesis would get, how an examiner,
   supervisor, or opponent would assess it, what blocks a 5 in an area, whether an edit protects
   the grade, or for an examiner-style review of Thesis_POC.tex, Thesis_v1.tex,
   Thesis_Plan_v2.tex, or an external manuscript.
@@ -21,8 +21,8 @@ highest historical yield, and the false positives to discount are in
 
 | Mode | Subject | Record |
 | --- | --- | --- |
-| **Own thesis** | `Thesis_POC.tex` unless told otherwise. Read `AGENT.md` first for document roles and non-negotiable claims. | Canvas plus a dated pass appended to `ASSESSMENT.md`. |
-| **External manuscript** | A PDF or `.tex` the author is reviewing or opposing. | Canvas only. Never write another author's thesis into `ASSESSMENT.md`; that file is the record for this thesis. |
+| **Own thesis** | `Thesis_POC.tex` unless told otherwise. Read `AGENT.md` first for document roles and non-negotiable claims. | Canvas plus a dated pass appended to `docs/ASSESSMENT.md`. |
+| **External manuscript** | A PDF or `.tex` the author is reviewing or opposing. | Canvas only. Never write another author's thesis into `docs/ASSESSMENT.md`; that file is the record for this thesis. |
 
 ## The three rules that govern every grade
 
@@ -34,7 +34,7 @@ highest historical yield, and the false positives to discount are in
    fails. "Area 6 is 4.5 because level 5 asks for technically camera-ready with excellent
    finishing polish, and the build has a float overflowing its page" is a grade. "Area 6 feels
    like a 4.5" is not.
-3. **Form your own view before reading the previous passes.** `ASSESSMENT.md` records four
+3. **Form your own view before reading the previous passes.** `docs/ASSESSMENT.md` records four
    passes and one of them disagreed with its predecessor. Read it after you have graded, then
    state agreement or disagreement per area explicitly. Do not let the author's self-assessment
    set the number.
@@ -147,7 +147,7 @@ Distinguish three kinds:
 
 ### 7. Reconcile with previous passes
 
-For the own thesis, compare against the latest pass in `ASSESSMENT.md` area by area. Where you
+For the own thesis, compare against the latest pass in `docs/ASSESSMENT.md` area by area. Where you
 disagree, say so and give the reason; a disagreement recorded honestly is worth more than a
 number that matches. Check whether items listed as outstanding in the previous pass are done,
 still open, or now moot.
@@ -166,11 +166,11 @@ day), `grade-<topic>-thesis.canvas.tsx` for an external manuscript. Structure th
   a paired bar chart, or the build-gate results.
 - A closing callout naming the single blocking item.
 
-**Record.** For the own thesis, append a pass to `ASSESSMENT.md` in the existing form: heading
+**Record.** For the own thesis, append a pass to `docs/ASSESSMENT.md` in the existing form: heading
 `## Nth pass — DD Month YYYY`, what the pass covered and from what source, a summary table with
 the previous pass beside the current one, per-area notes, what was fixed during the pass, and
-what is outstanding. Keep the canvas and `ASSESSMENT.md` in step; `ASSESSMENT.md` is the durable
-copy. If the grade of any area moved, update the criterion table in `AGENT.md` §2 too.
+what is outstanding. Keep the canvas and `docs/ASSESSMENT.md` in step, and treat the file as the
+durable copy. If the grade of any area moved, update the criterion table in `AGENT.md` §2 too.
 
 **Chat summary.** Lead with the mean and the one item that blocks the most. Then per-area
 movement, then the lift list. No preamble.
@@ -189,7 +189,7 @@ movement, then the lift list. No preamble.
 - **Quote generated macros, not remembered numbers.** When the grading text cites a measured
   value from this thesis, cite it through `figures/gen_macros.tex`. If a number in the grade
   came from your reading rather than from a generated artefact, say so.
-- **No em dashes if any output lands in a `.tex` file.** The grading canvas and `ASSESSMENT.md`
+- **No em dashes if any output lands in a `.tex` file.** The grading canvas and `docs/ASSESSMENT.md`
   are internal notes and exempt, but anything ported into thesis prose must follow the prose
   rules in `.cursor/rules/thesis-quality.mdc`, and `./.aitells.py` must be run on the file after.
 

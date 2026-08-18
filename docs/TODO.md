@@ -321,16 +321,17 @@ latexmk -C                   # clean build artifacts
 ## Phase 9b - Companion documents (assign a status, then keep them in step)
 The repo now carries four documents besides `Thesis_POC.tex`. Only `Thesis_POC.tex` is the submission
 artefact; the rest are unlabelled, which is how two of them drifted without it being visible.
-- [x] `plain_Thesis_POC.tex` - plain-language variant (121 pages) for a reader with no 5G
-      background. Same argument, same data, same generated macros; builds clean. `Thesis_POC.tex`
-      stays the reference version, and its header already says so.
-- [ ] `thesis-vi.tex` - Vietnamese translation (75 pages), currently **broken and stale**. All
-      113 citations (33 distinct keys) render as `[?]` because bibtex has never been run for this
-      variant: there is no `thesis-vi.blg`, and its `.bbl` is a 25 Jul copy predating the
-      `IEEEtran` switch. It also does not `\input figures/gen_macros.tex` at all, so its numbers
-      are hand-copied and now predate the 15-repeat campaign, the latency decomposition, and the
-      corrected RQ3 reading. Decide whether it is a deliverable: if yes, run bibtex and port the
-      results across; if no, record that in the notes so it stops reading as unfinished work.
+- [x] `plain_thesis.tex` - plain-language variant (121 pages) for a reader with no 5G
+      background. Same argument, same data, same generated macros, and it built clean.
+      `Thesis_POC.tex` stays the reference version, and its header already says so. Moved to
+      `archive/` on 18 Aug 2026, so it now needs its relative paths fixed before it builds again.
+- [x] `thesis-vi.tex` - Vietnamese translation (75 pages), **broken and stale**, and now
+      **decided against as a deliverable**. All 113 citations (33 distinct keys) rendered as `[?]`
+      because bibtex was never run for this variant, and it did not `\input figures/gen_macros.tex`
+      at all, so its numbers were hand-copied and predate the 15-repeat campaign, the latency
+      decomposition, and the corrected RQ3 reading. Moved to `archive/` on 18 Aug 2026, where it
+      reads as a superseded variant rather than unfinished work. Reviving it means porting the
+      generated macros across, not just running bibtex.
 - [ ] `Thesis_v1.tex` - 27-page bullet digest of all ten chapters, useful for a supervisor
       read-through. Its abstract is still the template placeholder, "Abstract to be written last."
 - [ ] `Thesis_Plan_v2.tex` - the 5-page plan, reset to a pre-work baseline ("Work has not started
@@ -339,9 +340,10 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
 - [ ] Make the title-page fields agree across variants: `Thesis_v1.tex` has
       `\censors{Keijo Heljanko}{}{}` while `Thesis_POC.tex` still has `\censors{}{}{}`. One of the two
       is wrong, and the same programme/study-track labels are duplicated in four files.
-- [ ] Housekeeping: `thesis_wbm_full_backup.tex` is a tracked 208 kB leftover still on
-      `\bibliographystyle{abbrv}`. Delete it or move it out of the repo root, so the one-word
-      difference from `Thesis_v1.tex` cannot be edited by mistake.
+- [x] Housekeeping: `thesis_wbm_full_backup.tex` was a tracked 208 kB leftover still on
+      `\bibliographystyle{abbrv}`, one word different from `Thesis_v1.tex` and easy to edit by
+      mistake. Moved to `archive/` on 18 Aug 2026 together with `plain_thesis.tex`, `thesis-vi.tex`,
+      the pre-cuts `Thesis_POC.tex` backup, and the v1 plan PDF.
 
 ## Phase 10 - Finalization
 - [ ] **BLOCKER — rewrite the abstract unaided.** The abstract of `Thesis_POC.tex` was drafted

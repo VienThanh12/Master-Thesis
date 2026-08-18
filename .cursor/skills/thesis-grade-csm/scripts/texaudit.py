@@ -49,6 +49,18 @@ def read(path):
         return fh.read()
 
 
+def artefact(stem, ext):
+    """Locate a build artefact for <stem>.
+
+    A repository may send latexmk's intermediates to a build/ directory (this one
+    does, via .latexmkrc) or leave them beside the source. Prefer build/, so that
+    a grading pass reads the current log rather than a stale root-level copy.
+    """
+    root, name = os.path.split(stem)
+    in_build = os.path.join(root, "build", name + ext)
+    return in_build if os.path.isfile(in_build) else stem + ext
+
+
 def collect_sources(tex_path):
     """The main file plus everything it \\input or \\include, one level of recursion deep."""
     root = os.path.dirname(os.path.abspath(tex_path))
@@ -81,7 +93,7 @@ def prose_lines(sources):
 
 
 def audit_log(stem, tex_path, report):
-    log_path = stem + ".log"
+    log_path = artefact(stem, ".log")
     if not os.path.isfile(log_path):
         report.note("build", f"no {os.path.basename(log_path)}; build before grading")
         return
@@ -164,7 +176,7 @@ def audit_bib(stem, sources, report):
         entries.update(parse_bib(p))
 
     cited = set()
-    aux = stem + ".aux"
+    aux = artefact(stem, ".aux")
     if os.path.isfile(aux):
         aux_body = read(aux)
         cited.update(re.findall(r"\\abx@aux@cite\{\d*\}?\{([^}]+)\}", aux_body))

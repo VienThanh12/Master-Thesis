@@ -48,13 +48,13 @@ The PDFs in this repository do not share a status and are not interchangeable.
 | `Thesis_POC.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, full argument, and everything in it still needs review |
 | `Ha_Vien_Mastersthesis_2026.pdf` | Same build as `Thesis_POC.pdf` | UH submission filename (`Lastname_Firstname_Mastersthesis_Year`, ASCII). Copied from `Thesis_POC.pdf` by `bench/refresh_thesis.sh` |
 | `ai_statement.tex` | Declaration in the author's name | Statement on generative-AI use, shared by both thesis documents |
-| `plain_thesis.tex`, `thesis-vi.tex` | Stale variants | Not maintained. `thesis-vi.tex` currently renders its citations as `[?]` |
+| [`archive/`](archive/) | Superseded, not maintained | Earlier variants kept for reference only: `plain_thesis.tex`, `thesis-vi.tex` (renders its citations as `[?]`), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex` backup, and the v1 plan PDF. They read relative paths from the repository root, so they no longer build where they sit |
 
 [`AGENT.md`](AGENT.md) is the working contract for the repository: document roles, the grade
 criteria every edit has to protect, the scientific commitments that must not be weakened, and the
 verification workflow. Read it before touching thesis text, figures, or artefacts.
-[`ASSESSMENT.md`](ASSESSMENT.md) holds the criterion-by-criterion self-assessment and
-[`TODO.md`](TODO.md) the phase checklist and open items.
+[`docs/ASSESSMENT.md`](docs/ASSESSMENT.md) holds the criterion-by-criterion self-assessment and
+[`docs/TODO.md`](docs/TODO.md) the phase checklist and open items.
 
 ## Repository layout
 
@@ -77,17 +77,26 @@ verification workflow. Read it before touching thesis text, figures, or artefact
 ├── ffi/               Incremental-adoption prototype: C++ host over a Rust component via a C ABI (RQ4)
 ├── figures/           Generated figures, LaTeX tables, and generated macros consumed by the thesis
 ├── diagrams/          Source diagrams (SVG, drawio) and their rendered PDF/PNG
+├── docs/              Reference notes that are not part of any document
+│   ├── ASSESSMENT.md      Criterion-by-criterion self-assessment
+│   ├── TODO.md            Phase checklist and open items
+│   ├── LITERATURE_NOTES.md, Sources_evidence.md   Citation audit trail and literature gaps
+│   └── citation.md        Citation conventions
+├── archive/           Superseded document variants, kept for reference; not maintained, do not build
+├── template/          Assets HYthesisML.cls loads by path (cover-page dictionaries, HY logo)
+│   └── upstream/          Pristine CSM thesis template the class was taken from
+├── build/             latexmk intermediates (.aux, .log, .bbl); gitignored, safe to delete
 ├── Thesis_POC.tex     Canonical full draft
 ├── Thesis_v1.tex      Supervisor-facing chapter skeleton
 ├── Thesis_Plan_v2.tex Revised thesis plan
 ├── AGENT.md           Working rules: document roles, grade criteria, verification workflow
-├── ASSESSMENT.md      Criterion-by-criterion self-assessment
-├── LITERATURE_NOTES.md, Sources_evidence.md   Citation audit trail and literature gaps
 ├── bibliography.bib
 ├── build_deck.py      Nokia-branded slide-deck generator (reads figures/ + faults/ results)
-├── .aitells.py, .vocab.py, .readability.py    Prose checks run over the LaTeX sources
-└── TODO.md            Phase checklist and open items
+└── .aitells.py, .vocab.py, .readability.py    Prose checks run over the LaTeX sources
 ```
+
+The PDFs stay beside their sources, so `Thesis_POC.pdf` and the SyncTeX index land at the root
+where the editor expects them. Only the intermediates go to `build/`, which `.latexmkrc` sets.
 
 Each component directory (`spec/conformance/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/`) has
 its own `README.md` with build and run instructions.
@@ -262,7 +271,7 @@ and the environment capture belonging to the campaign that was plotted, and the 
 fails rather than print a stale value, including when a hand-authored diagram's own
 labels disagree with the generated data.
 
-Requires the slide toolkit under `create-pptx-master-thesis/` (see `.gitignore`),
+Requires the slide toolkit under `.cursor/skills/create-pptx-master-thesis/` (see `.gitignore`),
 `python-pptx`, and `pymupdf` for rasterising the result plots. Diagram artwork is read
 from `diagrams/png/`, which `diagrams/render.py` writes.
 
@@ -276,7 +285,7 @@ from `diagrams/png/`, which `diagrams/render.py` writes.
 | RQ1/RQ3 (performance) | Campaign complete on the virtualised host, so the saturation knee, the overload divergence, and the resource comparisons are resolved. The far tail below saturation is not, and needs the bare-metal campaign. The p99.99 and jitter instrumentation exists but no reported campaign carries the sidecars yet |
 | Writing | `Thesis_POC.pdf` builds clean with zero LaTeX errors and no undefined references, as a full draft awaiting review. `Thesis_v1.tex` chapters 6 to 9 stay empty until the supervisor has read the skeleton |
 
-Open items and the post-campaign re-check list are tracked in [`TODO.md`](TODO.md).
+Open items and the post-campaign re-check list are tracked in [`docs/TODO.md`](docs/TODO.md).
 
 Every campaign summary number quoted in the thesis prose (representative load, saturation
 knee, repeat count, p99 spread) is generated into `figures/gen_macros.tex` by

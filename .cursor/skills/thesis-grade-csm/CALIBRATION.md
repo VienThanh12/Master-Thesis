@@ -1,7 +1,7 @@
 # Calibration
 
 Anchors from grading passes already on record, so a new pass lands on the same scale rather than
-inventing one. Sources: the four passes in `ASSESSMENT.md`, the grading canvases in
+inventing one. Sources: the four passes in `docs/ASSESSMENT.md`, the grading canvases in
 `~/.cursor/projects/home-vienha-thesis-local/canvases/`, and one external manuscript graded with
 the same matrix (a VLM image-tagging thesis, canvas `grade-vlm-tagging-thesis.canvas.tsx`).
 
