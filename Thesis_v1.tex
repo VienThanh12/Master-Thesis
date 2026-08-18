@@ -16,7 +16,7 @@
 % REFERENCES: numeric (Vancouver) style, one of the three styles the template
 % offers. sorting=none keeps the numbers in citation order, as IEEEtran did.
 \usepackage[style=numeric,bibstyle=numeric,backend=biber,natbib=true,
-            sorting=none,maxbibnames=99,giveninits=true,uniquename=init]{biblatex}
+            sorting=none,sortcites=true,maxbibnames=99,giveninits=true,uniquename=init]{biblatex}
 \addbibresource{bibliography.bib}
 % List the authors in the bibliography as Lastname F.
 \DeclareNameAlias{sortname}{family-given}
@@ -192,7 +192,7 @@
         given test run happens to reach.
   \item Rust has the same run-time model and also no garbage collector, but it checks memory
         safety and freedom from data races at compile time, using ownership, borrowing, and
-        thread-safety traits such as \texttt{Send}~\cite{jung2021safe,klabnik2023rust}. Code
+        thread-safety traits such as \texttt{Send}~\cite{klabnik2023rust,jung2021safe}. Code
         that needs to step outside
         those rules must be marked \texttt{unsafe}, which keeps such code small and easy to
         find.
@@ -213,7 +213,7 @@
         state returns a typed error instead of being carried out.
   \item The subsystem was chosen because it is both representative and small enough to keep
         under control. It has mutable state per device, a strict lifecycle, heavy concurrency,
-        and hard latency targets~\cite{3gpp22261,3gpp38913}, and it is still simple enough to specify
+        and hard latency targets~\cite{3gpp38913,3gpp22261}, and it is still simple enough to specify
         precisely and to test for identical behaviour in two languages.
   \item Five defect classes fall inside Rust's guarantee, and each has a natural form in this
         subsystem: use-after-free, double-free, iterator invalidation, data race, and
