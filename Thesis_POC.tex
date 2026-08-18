@@ -333,7 +333,7 @@ HDR histogram & High-Dynamic-Range histogram, used for accurate latency capture 
 \end{table}
 
 \section{Motivation and industrial context}
-Two trends make this comparison timely. The first is the cloud-native evolution of the RAN
+Three trends make this comparison timely. The first is the cloud-native evolution of the RAN
 itself. Moving control-plane functions onto general-purpose servers raises, rather than
 lowers, the premium on software quality: the software is longer-lived, evolves continuously,
 runs at higher concurrency, and must meet its deadlines without the determinism that
@@ -345,7 +345,25 @@ ease with which a large codebase can be evolved safely) and no longer on purpose
 this setting a latency regression or a memory-corruption defect is not a localised bug but a
 network-wide reliability and security risk, and a language-selection question stops being
 academic and becomes a concrete engineering decision.
-The second trend is an industry-wide shift toward memory-safe languages. Large
+
+The second trend is that AI is moving from a tool used to tune the network into a workload the
+network is built to carry. IMT-2030 lists artificial intelligence and communication among its
+six usage scenarios and ubiquitous intelligence among its four design
+principles~\cite{itu2023imt2030}. The architecture forming around that is AI-RAN, in which
+telecommunications and AI workloads are orchestrated together on shared, accelerated
+infrastructure, so the sites that run the radio also host distributed edge AI
+platforms~\cite{polese2026airan}. The AI-RAN Alliance states the operational requirement
+directly: one common infrastructure has to run both kinds of workload concurrently, and their
+service-level agreements may differ~\cite{airan2025orchestrator}. That changes what a language
+choice has to buy for a control plane. Its software no longer has the host to itself. It
+contends for CPU, memory, and cache with inference work whose arrival pattern it does not
+control, and a co-tenant that takes capacity away lowers the load at which the control plane
+saturates. Saturation is where the two languages separate most sharply in the measurements of
+Chapter~\ref{chapter:eval}. Memory footprint and behaviour past that point are becoming
+selection criteria in their own right, and neither is settled by the architecture above the
+code.
+
+The third trend is an industry-wide shift toward memory-safe languages. Large
 software organisations report that the majority of their serious security vulnerabilities
 stem from memory-safety errors, and that adopting memory-safe languages measurably reduces
 them~\cite{msrc2019memory,google2022android,vanderstoep2025android,google2024securebydesign}.
