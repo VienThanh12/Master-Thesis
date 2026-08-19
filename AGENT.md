@@ -18,7 +18,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | --- | --- | --- | --- |
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v1.tex`. |
 | **`Thesis_v1.pdf`** | `Thesis_v1.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through. This is what goes to the supervisor alongside the plan. |
-| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis (~113–127 pages). Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
+| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 19 Aug 2026: 113 PDF pages, chapters 1–8 running 1–89, abstract form declaring **99 pages + 6 appendix pages**. A snapshot, not a budget: see §5, *Length and layout*. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v1.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. Kept for reference under their original names. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
 | Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Ha_Vien_Mastersthesis_2026.tex`. |
@@ -210,6 +210,53 @@ one argument.
 
 The full style constraint is in the prose-style section of `.cursor/rules/thesis-quality.mdc`.
 
+**Length and layout (read before changing either)**
+
+The abstract form's page count is **computed by the class, not typed in**: `HYthesisML.cls`
+counts `\mainmatter` pages into `\pagesCount` and appendix pages into `\appendixCount`, and
+writes both to `build/Ha_Vien_Mastersthesis_2026.aux`. Read the declared length from there
+rather than from the PDF's physical page total, which also includes front matter:
+
+```bash
+rg 'gdef.(pagesCount|appendixCount)' build/Ha_Vien_Mastersthesis_2026.aux
+```
+
+`\pagesCount` counts the body **plus** the AI statement and the bibliography, so a reference-list
+change moves the declared figure. It currently reads 99 with 6 appendix pages.
+
+**Under 100 is a preference, not a rule.** The author set it as the target on 19 August 2026 and
+may revise it. No University of Helsinki or CSM requirement is behind it, and nothing in the
+grade criteria of §2 rewards a shorter thesis. So when length and substance conflict, substance
+wins: the bare-metal tail campaign that criteria 3 and 4 wait on will *add* results, figures, and
+discussion, and it should be added without first hunting for pages to sacrifice. Report the new
+`\pagesCount` and let the author decide whether to spend the difference.
+
+Two traps, both found by measurement on 19 August 2026:
+
+- **Line spacing cannot be set in the preamble.** The class's `\maketitle` calls
+  `\onehalfspacing` itself, so a preamble setting is silently overwritten and the PDF comes out
+  byte-identical. Body spacing is therefore selected by the `\singlespacing` **after
+  `\mainmatter`**. The class's own comment calls 1 to 1.5 the normal range for a one-column
+  computer-science thesis, so single spacing is inside the template's norm. Do not "fix" the
+  commented-out spacing lines back into the preamble.
+- **`[H]` on tables is deliberate and measured.** Converting the 23 tables to `[htbp]` made the
+  document *four pages longer*, so leave the `float` pinning alone. `[H]` does strand whitespace
+  when a large table cannot fit the remaining space, which is where most short pages come from.
+
+Measured cost of the layout settings, cumulative, at unchanged content: 1.5 spacing 22 pages,
+full-width figures 4, `twoside,openright` 15 blank versos, loose heading and float gaps 3, and a
+12pt bibliography with default item gaps 4. That is 48 pages of layout, so the settings are worth
+keeping whatever the target is, and any of them can be handed back deliberately if the author
+prefers the looser look to the shorter document.
+
+If pages are genuinely needed, take them in this order, because it costs no argument: the short
+pages `[H]` strands, and the section tails that spill five or six lines onto a near-empty page.
+The Chapter 8 future-work list is the current worst at about 11% ink. Rank pages by ink coverage
+with PyMuPDF (installed, see `pdfpreview.py`) rather than guessing from the source. Compressing
+load-bearing prose is the last resort, not the first: the 19 August pass found the thesis's real
+slack was duplication (one sentence repeated verbatim, one framing move made three times), and
+that seam is now largely worked out.
+
 **Acceptance gates**
 
 - `build/Ha_Vien_Mastersthesis_2026.log`: **zero errors**, zero undefined references/citations. `.latexmkrc` keeps
@@ -220,6 +267,9 @@ The full style constraint is in the prose-style section of `.cursor/rules/thesis
 - No figure contradicts its table (see `docs/ASSESSMENT.md` refinement pass for past failures).
 - `build_deck.py` rebuilds and reports “Layout: all added shapes inside the template content band”.
 - If abstract changed: visually inspect page 3 (abstract form + CCS + keywords).
+- Report `\pagesCount` from the `.aux` after any substantial addition. Under 100 is the author's
+  **current working preference, not a requirement**, so treat it as a number to surface and not a
+  gate to enforce. See *Length and layout* above before trading content for it.
 
 ---
 
@@ -268,5 +318,7 @@ refinements into `Ha_Vien_Mastersthesis_2026.tex` in the same edit pass so the t
 ---
 
 *Last updated: 19 August 2026, when `Thesis_POC.tex` was renamed to
-`Ha_Vien_Mastersthesis_2026.tex` and the separate submission copy was retired. Revise this file
-when supervisor review status, grade blockers, or document roles change.*
+`Ha_Vien_Mastersthesis_2026.tex` and the separate submission copy was retired, and when the
+length pass in §5 brought the declared page count from 105 to 99, almost entirely through
+layout. Revise this file when supervisor review status, grade blockers, document roles, or the
+length preference change.*

@@ -3,12 +3,13 @@
 %% Computer Science; see CSM-thesis-template_2021_09_07/ for the pristine copy.
 
 % STEP 1: language, pagination, programme, and study track.
-% openright is passed through to report so chapters start on a right-hand page;
-% the template's own default is openany.
+% oneside, because the thesis is submitted electronically. twoside with openright
+% reserved a right-hand opening for every chapter, appendix, and list, which cost
+% fifteen blank versos in a document with this many divisions.
 % a4paper has to be given here: the template sets it with a \PassOptionsToClass
 % placed after \documentclass, by which time report is already loaded, so the
 % stock template silently produces US Letter pages.
-\documentclass[english,twoside,openright,a4paper,censored,csm,software-track-2020]{HYthesisML}
+\documentclass[english,oneside,a4paper,censored,csm,software-track-2020]{HYthesisML}
 
 \usepackage{csquotes}
 
@@ -19,6 +20,11 @@
 \addbibresource{bibliography.bib}
 % List the authors in the bibliography as Lastname F.
 \DeclareNameAlias{sortname}{family-given}
+% 105 references at the body's 12pt run to twelve pages, and the page count on the
+% abstract form counts them. 10pt with no gap between entries is an ordinary size
+% for a reference list and saves four of those pages.
+\renewcommand*{\bibfont}{\footnotesize}
+\setlength{\bibitemsep}{0pt}
 % Without a mark of its own the bibliography keeps the last chapter's title in
 % the running head of its continuation pages.
 \defbibheading{bibliography}[\bibname]{%
@@ -67,9 +73,25 @@
 }
 \lstset{style=thesiscode}
 
-\onehalfspacing %line spacing
-%\singlespacing
-%\doublespacing
+% Line spacing is NOT set here. The class calls \onehalfspacing inside its own
+% \maketitle, which runs after the preamble, so anything set at this point is
+% silently overwritten. The body spacing is selected after \mainmatter instead.
+
+% Vertical economy: the class puts 30pt under a chapter title and leaves LaTeX's
+% default gaps around floats. Both are generous for a document with eight
+% chapters and forty-six floats. The chapter \titleformat itself is left as the
+% template set it, so headings still look like the department's.
+\titlespacing*{\chapter}{0pt}{-20pt}{18pt}
+\titlespacing*{\section}{0pt}{1.6ex plus .2ex minus .2ex}{0.9ex}
+\titlespacing*{\subsection}{0pt}{1.3ex plus .2ex minus .2ex}{0.7ex}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+% Most tables already select \small locally. This catches the few that did not, so
+% table type size is uniform, and closes up the default row height a little. Tables
+% that set either themselves still win, since the local declaration comes later.
+\AtBeginEnvironment{table}{\small}
+\renewcommand{\arraystretch}{0.95}
 
 %\fussy 
 \sloppy % sloppy and fussy commands can be used to avoid overlong text lines
@@ -173,10 +195,12 @@
 % by repeating the otherlanguage environment with a different language.
 
 % The abstract form is a fixed 12 cm box that also has to hold the CCS paths, so
-% it is set single-spaced as in the template; the 1.5 spacing of the body would
-% cost it a fifth of its lines. Overflow is neither clipped nor reported: it
-% overprints the keyword rows, so keep this to 31 typeset lines and look at
-% page 3 after editing.
+% it is set single-spaced as in the template. The \singlespacing here is what
+% undoes the 1.5 spacing that the class applies in \maketitle, and it stays
+% needed even though the body is single-spaced too, because \maketitle runs
+% first. Overflow is neither clipped nor reported: it overprints the keyword
+% rows, so keep this to 31 typeset lines and look at the abstract page after
+% editing.
 {\singlespacing
 \begin{otherlanguage}{english}
 \begin{abstract}
@@ -248,6 +272,13 @@ a nominal-load test would not expose the gap.
 \cleardoublepage
 
 \mainmatter
+
+% Body line spacing. This has to sit after \mainmatter, not in the preamble: the
+% class's \maketitle calls \onehalfspacing itself and would override an earlier
+% choice. Single spacing is within the range the template calls normal for a
+% one-column computer-science thesis, and at 1.5 this document ran 22 pages
+% longer for no extra content.
+\singlespacing
 
 % -----------------------------------------------------------------------------------
 % STEP 4: Write the thesis.
@@ -655,7 +686,7 @@ one that is common per procedure.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\linewidth]{diagrams/pdf/11_tail_latency_concept.pdf}
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/11_tail_latency_concept.pdf}
 \caption[Why the tail, not the mean, governs RAN deadlines]{Why the tail, not the mean, governs RAN deadlines. On the left, most operations
 finish quickly and a few take far longer, so the p99 and p99.9 percentiles sit well to the right
 of the median. On the right, a procedure such as a call setup runs several operations and
@@ -694,7 +725,7 @@ Chapter~\ref{chapter:eval}.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\linewidth]{diagrams/pdf/16_coordinated_omission.pdf}
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/16_coordinated_omission.pdf}
 \caption[Coordinated omission under open- and closed-loop load]{Coordinated omission. The open-loop generator at the top sends on a fixed timetable
 even while the system is stalled, and times each request from the moment it was due, so stalled
 requests are recorded with their full delay and the tail shows up. The closed-loop generator at
@@ -795,7 +826,7 @@ C++ version, which compiles and is caught, if at all, only at runtime.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\linewidth]{diagrams/pdf/08_borrow_checker_uaf.pdf}
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/08_borrow_checker_uaf.pdf}
 \caption[The same use-after-free in C++ and in safe Rust]{The same use-after-free defect in C++ and in safe Rust. The stale alias into the
 context map survives the \texttt{erase}/\texttt{remove} that frees it: in C++ this compiles and
 is caught only at runtime (and only under AddressSanitizer, on a path a test exercises), whereas
@@ -875,7 +906,7 @@ instead of left to each language's idiom. Figure~\ref{fig:concmodels} contrasts 
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\linewidth]{diagrams/pdf/12_concurrency_models.pdf}
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/12_concurrency_models.pdf}
 \caption[Two concurrency models for control-plane state]{Two concurrency models for control-plane state. Shared-memory concurrency (left) lets
 threads mutate common state behind locks and is the source of data races, deadlock, and lock
 contention, with a worst case that is hard to bound. Shared-nothing message-passing (right)
@@ -977,7 +1008,7 @@ thesis tests against. Section~\ref{sec:relatedwork} compares the five with this 
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\linewidth]{diagrams/pdf/29_research_gap.pdf}
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/29_research_gap.pdf}
 \caption[What the neighbouring studies control, and what they leave varying]{What the neighbouring studies control, and what they leave varying. Each row is a
 property that a controlled answer to the research questions would need. Each column is a study.
 The general cross-language comparisons measure the right kind of object but the wrong regime,
@@ -1214,7 +1245,7 @@ implementations of one design, if there is one, has room to become visible.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.9\linewidth]{diagrams/pdf/15_overload_cliff.pdf}
+\includegraphics[width=0.70\linewidth]{diagrams/pdf/15_overload_cliff.pdf}
 \caption[The overload cliff]{The overload cliff. Tail latency stays low and flat while offered load is below
 service capacity, then climbs steeply once the system is driven past saturation and requests
 queue behind the bounded, blocking queues. The operationally decisive behaviour is the onset and
@@ -1632,7 +1663,7 @@ Figure~\ref{fig:reqlifecycle} traces a single operation through it as a sequence
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\linewidth]{diagrams/pdf/04_request_lifecycle_sequence.pdf}
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/04_request_lifecycle_sequence.pdf}
 \caption[The end-to-end path of a single operation]{The end-to-end path of a single operation and the completion handoff. The caller builds
 a request with a single-use completion handle, routes it by \texttt{shard\_index(ue\_id)} to the
 owning shard's bounded queue (blocking if it is full), and waits. The shard's single worker
@@ -1759,7 +1790,7 @@ set sizes measured in megabytes, so it is immaterial to the RQ3 comparison.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.92\linewidth]{diagrams/pdf/05_data_model.pdf}
+\includegraphics[width=0.72\linewidth]{diagrams/pdf/05_data_model.pdf}
 \caption[The shared UE-context data model]{The UE-context data model shared by both implementations. Field widths are fixed so that
 memory footprint and copy cost are comparable across languages. The data-radio-bearer list is a
 dynamic \texttt{Vec}/\texttt{std::vector} on purpose, to exercise the allocator for RQ3.
@@ -2206,7 +2237,7 @@ walks.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\linewidth]{diagrams/pdf/27_workload_timeline.pdf}
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/27_workload_timeline.pdf}
 \caption[The two workloads, and the lifecycle the mixed one walks]{The two workloads. The \emph{signal} workload isolates the steady-state hot path.
 The \emph{mixed} workload walks each UE through the full RAN procedure sequence, with a
 per-slot expected-state model ensuring that every operation it emits is legal for the state
@@ -2310,24 +2341,23 @@ The safety and migration results do not depend on the measurement host at all. T
 resource results do, and Section~\ref{sec:testbed} states what that host can and cannot carry.
 Every figure and table below is measured on it unless stated otherwise.
 
-This chapter reports resolved and unresolved outcomes side by side. Which are which is worth
-saying at the outset, so that a null result is not read as an absent one. Six findings are
-resolved: the defect-class taxonomy and its boundary (Section~\ref{sec:safetyresults}), the cost
-of the FFI seam (Section~\ref{sec:migrationresults}), the memory difference between the two builds
+Resolved and unresolved outcomes are reported side by side, and which are which is worth saying at
+the outset, so that a null result is not read as an absent one. Six findings are resolved: the
+defect-class taxonomy and its boundary (Section~\ref{sec:safetyresults}), the cost of the FFI seam
+(Section~\ref{sec:migrationresults}), the memory difference between the two builds
 (Section~\ref{sec:resources}), the cost of the bare operation (Section~\ref{sec:budget}), the
 equivalence of the four variants at the median below saturation, and their divergence past it
 (Section~\ref{sec:overload}), which is the largest and most reproducible language effect in the
 study.
 
-One thing is unresolved, and one is resolved with a measured but inconclusive mechanism. The far
-tail \emph{below} saturation is unresolved because of the host: run-to-run dispersion at p99
-exceeds every difference between the variants, and no number of repeats on a virtualised machine
-with non-zero CPU steal closes that gap (Section~\ref{sec:perfresults}). The overload divergence
-is resolved as a measurement. Section~\ref{sec:contention} now tests whether the bounded queue and
-completion primitives alone explain it, and finds they do not reproduce the full-service ordering
-at significance. The bare-metal protocol of Section~\ref{sec:testbed} would answer the tail
-question. What remains for the overload mechanism is work in the full handoff path beyond the
-isolated primitives.
+The far tail \emph{below} saturation is the one unresolved outcome, and the host is the reason:
+run-to-run dispersion at p99 exceeds every difference between the variants, and no number of
+repeats on a virtualised machine with non-zero CPU steal closes that gap
+(Section~\ref{sec:perfresults}). Only the bare-metal protocol of Section~\ref{sec:testbed} will
+answer it. The overload divergence is resolved as a measurement but not fully as a mechanism.
+Section~\ref{sec:contention} tests whether the bounded queue and completion primitives alone
+explain it and finds they do not reproduce the full-service ordering at significance, which leaves
+work in the full handoff path beyond the isolated primitives.
 
 \subsection{Performance (RQ1, RQ3)}\label{sec:perfresults}
 The hypothesis under test is H1: that the two languages are performance-equivalent below
@@ -2361,26 +2391,24 @@ difference. When the uncertainty about one variant exceeds the gap between all o
 ordering can be read off, and reporting one would be reporting the scheduler. The same holds
 with greater force at p99.9 and at the maximum.
 
-This is the concrete form of the limitation stated in Section~\ref{sec:testbed}, and it is
-worth being precise about what it does and does not cost. It does not affect the throughput
-and saturation behaviour, the resource results below, or anything in the RQ2 and RQ4 chapters.
-It does mean that one half of RQ1, how the two languages behave in the high percentiles while
-the service is still meeting its offered load, is answered by this campaign only in the
-negative: that tail is not yet measurable. It leaves the other half untouched. How they behave
-once the service stops coping is resolved decisively on this same host, and
-Section~\ref{sec:overload} reports it. Closing the remaining gap needs the bare-metal protocol and not more repeats on this
-host, because the dispersion is systematic interference rather than sampling noise, and
-Section~\ref{sec:budget} shows that the quantity a language could affect lies more than three
-orders of magnitude below the one this measurement resolves.
+This is the concrete form of the limitation stated in Section~\ref{sec:testbed}, and its cost is
+bounded. It does not affect the throughput and saturation behaviour, the resource results below,
+or anything in the RQ2 and RQ4 chapters. It does mean that one half of RQ1, how the two languages
+behave in the high percentiles while the service is still meeting its offered load, is answered by
+this campaign only in the negative: that tail is not yet measurable. The other half is untouched,
+and Section~\ref{sec:overload} resolves it decisively on this same host. Closing the gap needs the
+bare-metal protocol rather than more repeats here, because the dispersion is systematic
+interference and not sampling noise, and Section~\ref{sec:budget} shows that the quantity a
+language could affect lies more than three orders of magnitude below the one this measurement
+resolves.
 
-One qualification about the metrics belongs here rather than only in the validity discussion.
-RQ1 names the median, p99, p99.9, and the maximum, and it names those four because they are what
-this campaign delivers. Two further statistics are instrumented but absent from it. The harness
-records inter-operation jitter and p99.99, and persists the histograms the far tail would have to
-be pooled from, but the campaign reported here predates that instrumentation. Predictability is
-therefore evidenced at p99 and p99.9 rather than beyond them. That is a gap in the evidence rather
-than in the design, and it closes with the same bare-metal campaign the tail claims already wait
-on. Section~\ref{sec:threats} returns to what it costs the answer.
+One qualification about the metrics belongs here and not only in the validity discussion. RQ1
+names the median, p99, p99.9, and the maximum because those four are what this campaign delivers.
+The harness also records inter-operation jitter and p99.99, and persists the histograms the far
+tail would have to be pooled from, but the campaign reported here predates that instrumentation.
+Predictability is therefore evidenced at p99 and p99.9 rather than beyond them, which is a gap in
+the evidence rather than in the design, and it closes with the bare-metal campaign the tail claims
+already wait on.
 
 \begin{table}[H]
 \centering
@@ -2441,7 +2469,7 @@ Metric & Allocator & Effect (Rust $-$ C++) & $p$ & Holm \\
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\linewidth]{figures/fig_effects.pdf}
+\includegraphics[width=0.78\linewidth]{figures/fig_effects.pdf}
 \caption[The tested family drawn as paired effects]{Every test in Tables~\ref{tab:significance} and~\ref{tab:overloadtest} as a paired
 effect with its bootstrap $95\%$ interval, normalised by the C++ median so that microseconds,
 mebibytes, percentage points and kops/s can share an axis. Filled markers are the
@@ -2531,10 +2559,9 @@ That shape is not peculiar to this system or to this pair of languages. Revisiti
 decomposition of transaction-processing cost on a shared-nothing database structured, as this
 service is, with one partition per worker thread, Zhou et al.\ report that once the
 per-operation work has been optimised the remaining cost is dominated by communication across
-isolation boundaries and not by the operation itself~\cite{zhou2025oltp}. A mature
-shared-nothing design tends to end up communication- and scheduler-bound, and the table above is
-that pattern appearing in a control-plane service. It is worth saying because it makes the result
-below a general property of the design rather than an artefact of this measurement.
+isolation boundaries and not by the operation itself~\cite{zhou2025oltp}. The table above is that
+pattern appearing in a control-plane service, which makes the result below a general property of
+the design rather than an artefact of this measurement.
 
 Two conclusions follow, and they pull in opposite directions.
 
@@ -2562,15 +2589,12 @@ language difference in \emph{time} is resolved at all, and the sweep is blind to
 than two orders of magnitude.
 
 Figure~\ref{fig:budget} draws both conclusions on one page, because each is easier to see than
-to read off a table of numbers spanning four decades. The left panel is the round-trip at true
-proportion, where the operation is a sliver too thin to render and the caption has to point at
-it. The right panel puts that sliver on a log axis beside the smallest paired difference the
-sweep could have detected, and the ordering there is the argument of this section: the
-instrument sits entirely above the quantity it would have to constrain.
+to read off a table of numbers spanning four decades. Its second panel is the argument of this
+section: the instrument sits entirely above the quantity it would have to constrain.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\linewidth]{figures/fig_budget.pdf}
+\includegraphics[width=0.78\linewidth]{figures/fig_budget.pdf}
 \caption[The end-to-end operation decomposed, against what the sweep can resolve]{Where an end-to-end operation's cost goes, and why the sweep cannot bound a language
 effect. \textbf{(a)} The round-trip at true proportion: the operation the language performs is
 $\BudgetCoreShareMax\%$ of the bar, the remainder the cross-thread handoff. \textbf{(b)} The
@@ -2623,7 +2647,7 @@ variant still completes, and Section~\ref{sec:overload} takes that up.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.82\linewidth]{figures/fig_latency_vs_load.pdf}
+\includegraphics[width=0.66\linewidth]{figures/fig_latency_vs_load.pdf}
 \caption[Tail latency versus offered load]{Tail latency (p99) versus offered load for the four build variants. Lines are medians
 over \NRepeats{} repeats. Shaded bands are bootstrap $95\%$ CIs. Log-scaled $y$-axis.
 \label{fig:latency-load}}
@@ -2635,20 +2659,18 @@ therefore far more robust than a percentile to interference landing on individua
 Every variant tracks the ideal offered-equals-achieved line up to $\TrackingLoad$~kops/s and
 saturates at around $\SatKnee$~kops/s. Two things follow immediately. First, because achieved
 throughput matches offered load below the knee to within $\ReprLoadShortfall\%$, the operating
-point of Table~\ref{tab:latency} is genuinely a \emph{sustained} load rather than a nominal one:
-the system is completing work as fast as it is offered, so the latencies reported there are not
-those of an already-queueing system. Second, the knee itself sits at the same place for all four
-variants, which is what the identical thread-per-shard structure predicts: where the design stops
-coping is a property of the design.
+point of Table~\ref{tab:latency} is genuinely a \emph{sustained} load rather than a nominal one,
+so the latencies reported there are not those of an already-queueing system. Second, the knee
+sits at the same place for all four variants, which is what the identical thread-per-shard
+structure predicts: where the design stops coping is a property of the design.
 
 What happens \emph{after} the knee is not shared. The four curves separate as soon as the
-offered rate stops being met, and they separate by language rather than by allocator, which is
-the one thing the sweep was built to be able to detect and the one regime in which it can.
+offered rate stops being met, and they separate by language rather than by allocator.
 Section~\ref{sec:overload} measures that separation instead of leaving it to the eye.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.82\linewidth]{figures/fig_throughput_vs_load.pdf}
+\includegraphics[width=0.66\linewidth]{figures/fig_throughput_vs_load.pdf}
 \caption[Achieved throughput versus offered load]{Achieved throughput versus offered load. The dotted line marks the ideal
 offered-equals-achieved regime. Throughput is counted over the measured phase only, so the
 warm-up iterations bias neither the numerator nor the denominator.\label{fig:throughput-load}}
@@ -2666,7 +2688,7 @@ languages differ.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\linewidth]{figures/fig_tail_percentiles.pdf}
+\includegraphics[width=0.78\linewidth]{figures/fig_tail_percentiles.pdf}
 \caption[Latency across the percentile range, and the limit of the host]{Per-operation latency across the percentile range at $\ReprLoad$~kops/s. \textbf{(a)} The
 four variants as medians over \NRepeats{} repeats, each with a bootstrap $95\%$ band. The bands
 are the point: drawn as bare lines the curves lie on top of one another and read as a claim of
@@ -2705,14 +2727,13 @@ gap is not a capacity limit and not idleness. It is effort expended without comp
 operations, which is the signature of a synchronisation path that spins, or repeatedly parks and
 wakes, where the other blocks once and sleeps.
 
-Figure~\ref{fig:overload} puts both halves of that reading side by side, and its layout carries a
-third. The bars are grouped by allocator, so the separation inside a group is the language and
-the separation between groups is the allocator. It falls almost entirely inside the groups, which
-is the effect following the variable the study manipulates rather than the one it controls for.
+Figure~\ref{fig:overload} puts both halves of that reading side by side, and its grouping carries a
+third: the separation falls almost entirely inside the allocator groups, which is the effect
+following the variable the study manipulates rather than the one it controls for.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\linewidth]{figures/fig_overload.pdf}
+\includegraphics[width=0.78\linewidth]{figures/fig_overload.pdf}
 \caption[Divergence past saturation]{Behaviour at $\OverloadLoad$~kops/s offered, well beyond the $\SatKnee$~kops/s knee. Bars
 are medians over \NRepeats{} repeats with bootstrap $95\%$ intervals, grouped so that the two
 bars inside a group differ only in language. \textbf{(a)} What each variant still completes:
@@ -2725,15 +2746,12 @@ are summed across threads.\label{fig:overload}}
 
 Where that effort is spent is narrowed by measurement rather than left entirely open. Past
 saturation the producers spend essentially all of their time in two places recorded in
-Table~\ref{tab:idioms}: the bounded blocking queue and the completion handle. Section~\ref{sec:contention}
-isolates those primitives under the same pattern of \ContentionProducers{} producers. The isolated path does not
-reproduce the full-service ordering at significance ($p = \ContentionP$), which rules out the
-queue and completion primitives \emph{alone} as the whole explanation for a
-$\OverloadThrRatio\times$ gap even though contention in the full path is where the effect appears.
-Nothing in the borrow checker, in bounds checking, or in ownership is implicated, and the finding
-should not be quoted as though it were: what the overload comparison measures is the full
-handoff under load, and the microbenchmark shows the synchronisation stacks are closer than that
-comparison alone would suggest.
+Table~\ref{tab:idioms}: the bounded blocking queue and the completion handle.
+Section~\ref{sec:contention} isolates those primitives and finds they do not reproduce the
+full-service ordering at significance, which rules them out \emph{alone} as the whole explanation
+for a $\OverloadThrRatio\times$ gap. As in Section~\ref{sec:budget}, nothing in the borrow checker,
+in bounds checking, or in ownership is implicated, and the finding should not be quoted as though
+it were.
 
 Three things again bound what the finding licenses. It is one design: a shared-nothing service with one
 request outstanding per producer and a queue bound of $1\,024$, and the depth of the collapse
@@ -2843,14 +2861,12 @@ differences on a shared axis.
 Two effects are present in it, not one, and they are not of comparable size. Linking
 \texttt{jemalloc} costs $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB in either language, while the Rust
 build costs $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more than the C++ build under either allocator,
-with a bootstrap interval of $\RssLangCILo$ to $\RssLangCIHi$~MiB. So resource use follows both,
-but the allocator dominates by an order of magnitude: choosing between these two allocators moves
-roughly ten times as much memory as choosing between these two languages. That ordering is partly
-a consequence of the fairness controls rather than a fact about \texttt{jemalloc} in general, and
-saying so avoids overstating it. Both builds pin the arena count identically so that neither
-language's default could become an accidental advantage, and pinning it high is what makes the
-arena metadata a large fixed cost on both sides. A deployment tuning \texttt{jemalloc} for
-footprint instead of for comparability would not pay it.
+with a bootstrap interval of $\RssLangCILo$ to $\RssLangCIHi$~MiB. Resource use follows both, but
+the allocator dominates by an order of magnitude. That ordering is partly a consequence of the
+fairness controls rather than a fact about \texttt{jemalloc} in general. Both builds pin the arena
+count identically so that neither language's default could become an accidental advantage, and
+pinning it high is what makes the arena metadata a large fixed cost on both sides. A deployment
+tuning \texttt{jemalloc} for footprint instead of for comparability would not pay it.
 
 The one row in the robust block of Table~\ref{tab:significance} that does not clear the
 correction is peak RSS under
@@ -2906,7 +2922,7 @@ Variant & throughput (kops/s) & peak RSS (MiB) & CPU (\%) \\
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\linewidth]{figures/fig_resources.pdf}
+\includegraphics[width=0.78\linewidth]{figures/fig_resources.pdf}
 \caption[Resource use, and the two effects inside peak RSS]{Resource use at a sustained offered load of $\ReprLoad$~kops/s, grouped by allocator so
 that the two bars in a group differ only in language and the two groups differ only in allocator.
 Medians over \NRepeats{} repeats with bootstrap $95\%$ intervals. \textbf{(a)} Peak resident set
@@ -3129,7 +3145,7 @@ can drift from the other.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.92\linewidth]{figures/fig_taxonomy.pdf}
+\includegraphics[width=0.72\linewidth]{figures/fig_taxonomy.pdf}
 \caption[Where the guarantee stops: the outcome matrix]{The outcomes of Table~\ref{tab:taxonomy} drawn as a matrix, generated from the same
 \texttt{faults/results/taxonomy.csv}. Above the rule the Rust column is a single colour: every
 defect is a compile error, so none can be written. The C++ columns there are a patchwork instead,
@@ -3152,7 +3168,7 @@ resulting structure and where the \texttt{unsafe} sits.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\linewidth]{diagrams/pdf/07_ffi_seam.pdf}
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/07_ffi_seam.pdf}
 \caption[The C++-to-Rust FFI migration seam]{The C++-to-Rust FFI migration seam. The C++ host sees only an opaque handle, $\FfiEntryPoints$
 plain-C entry points, and a status-code convention. A thin \texttt{extern "C"} seam crate
 concentrates all of the raw-pointer \texttt{unsafe} ($\FfiUnsafeFns$ functions) and calls the unmodified Rust
@@ -3193,7 +3209,7 @@ difference under test.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\linewidth]{figures/fig_ffi_cost.pdf}
+\includegraphics[width=0.78\linewidth]{figures/fig_ffi_cost.pdf}
 \caption[The seam's cost on one operation, against its own uncertainty]{The interoperability cost measured on a real operation rather than inferred from an empty
 call. \textbf{(a)} The same signalling operation invoked natively from Rust and from C++ through
 the seam, one line per interleaved repeat, with the medians in black. \textbf{(b)} The pairs
@@ -3379,7 +3395,7 @@ of one, named in each panel.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\linewidth]{diagrams/pdf/17_guarantee_boundary.pdf}
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/17_guarantee_boundary.pdf}
 \caption[Where Rust's compile-time guarantee stops]{Where the compile-time guarantee stops. On the left are the classes safe Rust rejects
 outright, grouped by the \emph{mechanism} that rejects them rather than by defect
 family: ownership and borrowing for lifetime and aliasing errors,
@@ -3674,9 +3690,9 @@ specification~\cite{suchert2023stamp}. The fourth measures a Rust UDP tunnelling
 Linux kernel against an equivalent C driver~\cite{gonzalez2023rustudp}. That last one is worth a
 second look for its method and not its result. It reports Rust slower by 0.19\% at
 $p = 1.5 \times 10^{-15}$, a difference overwhelming in statistical terms and negligible in
-operational ones. Keeping those two apart is exactly what the pre-committed
-interval-versus-$p$ rule of Section~\ref{sec:stats} exists to do. None of the four reports
-behaviour past a saturation point, which is the regime this thesis targets.
+operational ones. Keeping those two apart is what the pre-committed interval-versus-$p$ rule of
+Section~\ref{sec:stats} exists to do. Like the wider literature, none of the four measures past
+saturation.
 
 Five master's theses, all carried out at Ericsson, are the closest prior work by domain and
 deserve separate treatment. None of them is peer-reviewed, and none is indexed by any citation
@@ -3848,9 +3864,7 @@ saturation \OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$ the thr
 \end{tabular}
 \end{table}
 
-Section~\ref{sec:gap} recorded that all five come from one vendor and that the closest
-peer-reviewed position from the other side argues for making memory-error sanitisation
-practical rather than for replacing it~\cite{gjomemo2016mesc}. Read against the table, that
+Section~\ref{sec:gap} recorded that all five come from one vendor. Read against the table, that
 concentration has a sharper consequence. ``C++ remains the choice where performance is critical''
 and ``asynchronous Rust is not currently viable'' are findings about particular software on
 particular infrastructure, and repetition inside one organisation does not establish their
@@ -3858,10 +3872,8 @@ generality. The question is therefore not settled elsewhere and imported. It is 
 in this setting, and the answer given here is one an independent organisation can check, because
 the specification, both implementations and the harness are published with it.
 
-Not all of this evidence points the same way, and the thesis takes the qualifying findings
-seriously rather than citing only the favourable ones.
-
-Even the positive networking result records a real cost. The idiomatic Rust driver issues
+Not all of this evidence points the same way, and the qualifying findings are taken as seriously
+here as the favourable ones. Even the positive networking result records a real cost. The idiomatic Rust driver issues
 substantially more instructions per packet than its C reference and is measurably slower in
 absolute terms, its safety checks being absorbed by out-of-order execution rather than being
 literally free~\cite{emmerich2019drivers}. Two further matched comparisons point the same way on
@@ -3873,14 +3885,12 @@ similar conclusion from the other direction, finding that Rust's safety features
 runtime overhead and development complexity when they are not carefully
 managed~\cite{li2026rustlinux}.
 
-The evidence does not run one way, however, and it would be as dishonest to present only the
-qualifying findings as only the favourable ones. Safe low-level code without run-time overhead has
+The evidence does not run one way, though. Safe low-level code without run-time overhead has
 been demonstrated for network device drivers, the same class of program as Emmerich's, when the
 safety obligations are discharged through type invariants rather than checks~\cite{pirelli2023safelowlevel}.
 The ``zero-cost'' framing~\cite{balasubramanian2017rust} is therefore best read as neither
 established nor refuted in general, but as a property of a particular program on a particular
-workload. That is precisely why tail behaviour must be measured on the target workload and not
-assumed.
+workload. That is why tail behaviour must be measured on the target workload and not assumed.
 
 The safety story is likewise not absolute. Empirical studies of real-world Rust find that memory-
 and thread-safety bugs still occur in practice, with blocking bugs and misused synchronisation
@@ -3897,27 +3907,22 @@ apply to it.
 Three axes separate this thesis from all of it: whether the comparison controls for design by
 building both systems from one specification, whether it reports tail behaviour under overload
 rather than average-case performance, and whether it measures the cost of adoption instead of
-describing it. Individually, none of the three is unoccupied. Matched implementations exist in
-systems
-software~\cite{emmerich2019drivers,li2021ipc,narayanan2020redleaf,suchert2023stamp,gonzalez2023rustudp,pirelli2023safelowlevel}
-and, in this industry, in a matched pair of ASN.1 decompilers joined by a C
-wrapper~\cite{emberg2023asn1}. Percentile latency has been reported for 5G control-plane
-procedures, though across a sweep that stops at a latency requirement rather than continuing past
-saturation~\cite{arvidsson2025async}. Development effort has been measured for RAN
-applications~\cite{karlback2021ran} and surveyed among adopters~\cite{fulton2021adopting}. No
-prior study combines the three for a stateful, concurrent control-plane workload, which is the
-narrower gap this work occupies.
+describing it. None of the three is individually unoccupied, as the matched
+implementations~\cite{emmerich2019drivers,li2021ipc,narayanan2020redleaf,suchert2023stamp,gonzalez2023rustudp,pirelli2023safelowlevel,emberg2023asn1},
+the percentile sweep stopping at a latency requirement~\cite{arvidsson2025async}, and the effort
+measurements~\cite{karlback2021ran,fulton2021adopting} above all show. No prior study combines the
+three for a stateful, concurrent control-plane workload, which is the narrower gap this work
+occupies.
 
 \section{Threats to validity and mitigations}\label{sec:threats}
 Every conclusion here attributes a difference to the implementation language. The
 credibility of the study therefore rests on the controls that hold everything else equal and on an
-honest account of where those controls stop. The threats are grouped below by the kind of
-inference each endangers, and Table~\ref{tab:threats} maps them first, so that the residual
-risks can be read as a set rather than recovered one at a time from the prose that follows.
-Three of them are load-bearing enough to be worth naming here: the study cannot rule out
-single-author skill asymmetry, its end-to-end instrument is the wrong one for part of what
-RQ1 and RQ3 ask, and its strongest single finding, the overload divergence, rests on an
-attribution it did not measure directly.
+honest account of where those controls stop. Table~\ref{tab:threats} maps the threats first, by the
+kind of inference each endangers, so that the residual risks can be read as a set rather than
+recovered one at a time from the prose that follows. Three are load-bearing: the study cannot rule
+out single-author skill asymmetry, its end-to-end instrument is the wrong one for part of what RQ1
+and RQ3 ask, and its strongest single finding, the overload divergence, rests on an attribution it
+did not measure directly.
 
 \begin{table}[H]
 \centering
@@ -3927,9 +3932,10 @@ what that control leaves behind. Only the residuals in the last column are live 
 middle column is what has already been done about each. The one row for which no control was
 available at all, the missing hardware counters behind the RQ3 result, says so instead of
 softening it.\label{tab:threats}}
-% Single-spaced with a slightly opened row height: at the body's 1.5 spacing this,
-% the densest table in the thesis, overruns the page. \singlespacing reselects the
-% current size, so it has to come before \footnotesize rather than after it.
+% Slightly opened row height on the densest table in the thesis, which overruns the
+% page without it. The \singlespacing is redundant now that the body is single-spaced
+% too, but it is kept because it reselects the current size, which is why it has to
+% come before \footnotesize rather than after it.
 \singlespacing
 \footnotesize
 \renewcommand{\arraystretch}{1.25}
@@ -3970,7 +3976,7 @@ The parity suite bounds this threat for \emph{behaviour} but not for \emph{perfo
 That the threat is real and not merely conceivable is documented in the same industry, by the two
 benchmarking sessions of Emberg and Wadsten that reversed their own
 verdict~\cite{emberg2023asn1}. One matched pair supported two different conclusions depending on
-where the optimisation effort landed. The controls here are chosen against exactly that failure
+where the optimisation effort landed. The controls here are chosen against that failure
 mode: the specification is frozen before either implementation is written rather than negotiated
 between them, the optimisation level and allocator are matched rather than tuned per side, and
 forced divergences are logged rather than resolved in whichever direction the author finds easier.
@@ -3995,17 +4001,17 @@ from the handoff, and the sweep is pushed into the regime where the design stops
 difference. The residual is that a microbenchmark of one operation is a narrower object than the
 sweep it supplements.
 
-The remaining three are stated in Table~\ref{tab:threats} and bounded briefly here. RQ2's
-catalogue is a sample the author chose, mitigated by the five boundary classes that force it to
-contain cases the expected conclusion does not cover, two of which returned the opposite result.
-Ten programs nonetheless remain ten programs. RQ3 captures resource cost but not its origin,
-since no hardware counters or allocation profiles were collected, so the study can say that the
-memory penalty appeared without being able to say why. The mechanisms most likely responsible have
-been isolated elsewhere~\cite{zhang2022runtime,harris2023morello}. RQ4 measures the size of the
-seam, the \texttt{unsafe} it concentrates and the per-call cost, which are the right quantities for
-the question as posed and not a measure of how safe the composed system is: host and component
-share an address space, so a compile-time property of the Rust side bounds nothing the C++ side
-can corrupt at run time~\cite{rivera2021galeed,kirth2022pkrusafe}.
+The remaining three are stated in Table~\ref{tab:threats} and bounded here. RQ2's catalogue is a
+sample the author chose, mitigated by the five boundary classes that force it to contain cases the
+expected conclusion does not cover, two of which returned the opposite result. Ten programs
+nonetheless remain ten programs. RQ3 captures resource cost but not its origin, since no hardware
+counters or allocation profiles were collected, so the study can say that the memory penalty
+appeared without being able to say why. The mechanisms most likely responsible have been isolated
+elsewhere~\cite{zhang2022runtime,harris2023morello}. RQ4 measures the size of the seam, the
+\texttt{unsafe} it concentrates and the per-call cost. Those are the right quantities for the
+question as posed and not a measure of how safe the composed system is: host and component share
+an address space, so a compile-time property of the Rust side bounds nothing the C++ side can
+corrupt at run time~\cite{rivera2021galeed,kirth2022pkrusafe}.
 
 \paragraph{Conclusion validity: are the differences real or noise?}
 The statistical treatment is set out in Section~\ref{sec:stats} and its outcomes in
@@ -4032,13 +4038,13 @@ one configuration, CPU utilisation cleared the Holm correction under one allocat
 sign under the other. No threshold would have caught that, and it was visible only because the
 design runs every comparison twice. In the present campaign the control withholds nothing a
 threshold would have promoted, but the tail rows still fail it. The opposite direction has a case
-too. Peak resident set size under \texttt{jemalloc} has an interval far from zero and $18$ of $20$
-repeats in agreement while its $p$-value sits near unity, because a handful of runs report a
-resident set some $30$~MiB below their variant's median and a statistic computed from the mean of
-paired differences cannot survive them. That row is read from its interval, under the rule fixed
-in Section~\ref{sec:stats} and not chosen once the disagreement appeared. The bimodality is a
-defect in the measurement rather than in either allocator, since it affects both languages in
-equal numbers and appears at every load level, and diagnosing it is left as instrumentation work.
+too, in the peak resident set size under \texttt{jemalloc} described in
+Section~\ref{sec:resources}: an interval far from zero and $18$ of $20$ repeats in agreement,
+against a $p$-value near unity that a handful of low outliers are enough to produce. That row is
+read from its interval, under the rule fixed in Section~\ref{sec:stats} and not chosen once the
+disagreement appeared. The bimodality behind it is a defect in the measurement rather than in
+either allocator, since it affects both languages in equal numbers and appears at every load
+level, and diagnosing it is left as instrumentation work.
 
 Third, the overload divergence is measured and replicated, and its mechanism is now tested rather
 than only argued. Section~\ref{sec:contention} isolates the bounded queue and completion
@@ -4056,20 +4062,20 @@ results (RQ2, RQ4) generalise most readily, because they are properties of the c
 of the C ABI and not of this subsystem: any C++ codebase writing these defect classes gets
 the same compile-time outcome, and any narrow, scalar-typed interface gets a similarly cheap
 seam. The performance results generalise least. UECM was deliberately chosen to be small and
-partitionable, and its shared-nothing design removes lock contention from the hot path.
-A subsystem with genuinely shared mutable state, deep call graphs, or heavy allocation
-churn could exercise the two languages' abstraction and allocation costs quite differently. The
-workload is synthetic and spec-justified, not replayed from production traffic, so its
-operation mix is plausible but unvalidated. And nothing here speaks to PHY or L2
-processing, to the data-heavy user plane, or to the operational concerns (upgrade,
-observability, multi-tenancy) that a production deployment would raise. The defensible claim
-is therefore narrow and carries a condition: for stateful, concurrent, partitionable
-control-plane services of this kind, and while they are meeting their offered load, the language
-choice is not a performance decision. Once they are not, it is one, and the overload result is
-the least transferable finding in the study and not the most, because it depends on the queue
-bound, on one request being outstanding per producer, and on two particular standard-library
-primitives. Extending either claim beyond this class requires rerunning the framework, which is
-why the framework rather than the numbers is offered as the reusable contribution.
+partitionable, and its shared-nothing design removes lock contention from the hot path, so a
+subsystem with genuinely shared mutable state, deep call graphs, or heavy allocation churn could
+exercise the two languages' abstraction and allocation costs quite differently. The workload is
+synthetic and spec-justified rather than replayed from production traffic, so its operation mix is
+plausible but unvalidated. Nothing here speaks to PHY or L2 processing, to the data-heavy user
+plane, or to the operational concerns (upgrade, observability, multi-tenancy) that a production
+deployment would raise. The defensible claim is therefore narrow and carries a condition: for
+stateful, concurrent, partitionable control-plane services of this kind, and while they are
+meeting their offered load, the language choice is not a performance decision. Once they are not,
+it is one, and the overload result is the least transferable finding in the study rather than the
+most, because it depends on the queue bound, on one request being outstanding per producer, and on
+two particular standard-library primitives. Extending either claim beyond this class requires
+rerunning the framework, which is why the framework rather than the numbers is offered as the
+reusable contribution.
 
 A final limit on reach is temporal and not structural, and it applies to the comparison
 itself rather than to any one result. One of the two objects being compared is moving. The C++
@@ -4229,9 +4235,9 @@ The abbreviations and terms used throughout the thesis, for readers outside the 
 \begin{table}[H]
 \centering
 \caption[Abbreviations and key terms]{Abbreviations and key terms used throughout the thesis.\label{tab:abbrev}}
-% Single-spaced and one size down: the class's text block is 23cm, and at the
-% body's 1.5 spacing a glossary of this length runs past the bottom of the page.
-% Both are needed for it to share a page with the appendix heading.
+% One size down so that a glossary of this length shares a page with the appendix
+% heading inside the class's 23cm text block. The \singlespacing is redundant while
+% the body is single-spaced, and is kept so the table survives a change back.
 \singlespacing
 \footnotesize
 \renewcommand{\arraystretch}{1.2}

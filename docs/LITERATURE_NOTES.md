@@ -2699,3 +2699,258 @@ Two notes on entry types, following the convention set in sweep 1. `evans2006jem
 `tsandeadlock` are not peer-reviewed and the prose must say so where they are used, not only the
 entry type. And `IEEEtran` renders `@misc` without the emphasis `@techreport` receives, so check
 both in the compiled PDF before settling on the type.
+
+---
+
+# Fifth sweep, 19 August 2026 — adoption in industries that already had to decide
+
+> **Status: candidates only. Nothing in this sweep has been applied.**
+>
+> **Repository note.** The canonical source is now `Ha_Vien_Mastersthesis_2026.tex`, renamed from
+> `Thesis_POC.tex`. `bench/refresh_thesis.sh` was updated with the rename, but `AGENT.md`,
+> `README.md` and `.cursor/rules/thesis-quality.mdc` still refer to `Thesis_POC.tex` throughout.
+> Line references in the earlier sweeps in this file point at the old filename and are otherwise
+> still valid.
+
+The first four sweeps covered the argument, the domain, the research gap and the measurement
+apparatus. This one goes after a question the thesis asks but does not source: what it costs a
+process-heavy organisation to adopt Rust. §"Engineering guidelines for incremental adoption" carries
+four citation groups and all four are about `unsafe` and interoperability. Nothing in it cites the
+industries that have already had to answer the adoption question formally, which are the
+certification-centric ones.
+
+**The limit on this area, stated before the sources rather than after.** RAN control-plane software
+is not certified to ISO 26262, IEC 61508 or DO-178C, and nothing below should be cited as though it
+were. What transfers is the *adoption-cost reasoning* and the compile-time-versus-process argument.
+The criticality levels do not transfer, and a sentence implying that they do would be a worse
+over-claim than anything the thesis currently contains.
+
+## A. Sommer et al., SE 2025 companion proceedings — VERIFIED, and refereed
+
+"Viability of Rust for Avionics Software Development -- Current status and way forward". Jan Sommer,
+Tamara Gutierrez Rojo, Andreas Lund, Hany Ibrahim Erfan Abdelmaksoud, Daniel Lüdtke (DLR Institute
+of Software Technology). *Software Engineering 2025, Companion Proceedings*, Gesellschaft für
+Informatik, Bonn. DOI 10.18420/se2025-ws-08. Presented at the 7th Workshop on Avionics Systems and
+Software Engineering, Karlsruhe, 25 February 2025. The DLR repository record states "Refereed
+publication: Yes", which is worth noting because a workshop paper in a companion volume would
+otherwise be assumed not to be.
+
+**The single most useful find in this sweep, and it is useful for an unobvious reason.** Its
+contribution is a list of six requirements a new language must satisfy to justify its adoption cost
+in a C-dominated, certification-centric industry, and two of them are the thesis's own scoping
+decisions, argued independently and published.
+
+- **REQ3 is the managed-language exclusion.** Performance "should also be stable, which generally
+  rules out garbage-collected languages, since the garbage collector produces hard-to-predict
+  delays." `Ha_Vien_Mastersthesis_2026.tex`:845--853 makes exactly this argument and supports it
+  with `dean2013tail` plus the thesis's own reasoning. This is a second, independent, refereed
+  statement of it from another latency-critical domain. **Highest-value single citation in the
+  sweep**, because it converts a scoping decision an examiner could call arbitrary into one that
+  another field reached separately.
+- **REQ2 is the C-ABI seam.** The authors note that the C++ ABI "is undefined and compiler
+  specific. However, it is possible to call Rust functions from C++ using the C calling
+  conventions. This allows for a gradual introduction of Rust into small parts of an existing code
+  base." That is RQ4's premise and the seam design of §`sec:interop`, stated by others.
+
+Three further details are worth a clause each. The paper records that the AUTOSAR consortium has
+started a Rust working group and published API bindings, that AdaCore and Ferrous Systems offer
+qualified compilers, and that ESA has funded several Rust activities. It is also candid about the
+gap: at the time of writing "there is currently no qualification to a relevant aerospace standard
+such as DO-178C or ECSS". Cite the candour along with the rest, because it is what makes the paper
+usable rather than promotional.
+
+## B. The Rust Project's own account — VERIFIED as a project statement, not peer-reviewed
+
+"What does it take to ship Rust in safety-critical?" Rust Blog, 14 January 2026.
+<https://blog.rust-lang.org/2026/01/14/what-does-it-take-to-ship-rust-in-safety-critical/>
+
+One sentence in it is the thesis's central argument in the Rust Project's own words: much of what
+was historically process-based enforcement through coding standards such as MISRA C and CERT C
+becomes a property checked by the compiler instead of by external static analysis or manual review.
+The thesis argues precisely this contrast, between a guarantee the compiler enforces and detection
+after the fact, and it argues it in its own voice throughout Chapter 2 and §`sec:rqdiscussion`.
+
+The same post is unusually honest about the limits, which is what makes it citable rather than
+promotional: "once you move beyond prototyping into the higher-criticality parts of a system, the
+ecosystem support thins out fast", there is no Simulink code generation for Rust, and there is no
+AUTOSAR-Classic-compatible RTOS written in Rust. It also records production deployment at IEC 61508
+SIL 2 in mobile robotics and IEC 62304 Class B in medical devices.
+
+**One further use, and it is a gap in the thesis rather than a bonus.** The post records that the
+Ferrocene Language Specification began as an industry effort to make the compiler qualifiable and
+now has a maintained home under the Rust Project, with a team created in 2025. The thesis carries a
+careful paragraph on WG21 profiles because C++ is changing under its feet (sweep 1 §2). The mirror
+of that paragraph is that the standard objection to Rust in this setting, that it has no
+specification, has an answer as of 2025. The thesis pins its comparison to C++23 as a *standard*
+and says nothing about whether its other arm has one. An examiner who knows the C++ side will know
+the Rust side too.
+
+## C. Ferrocene — VERIFIED as vendor documentation, one field PARTIAL and it matters
+
+<https://ferrocene.dev/> and the release announcement for Ferrocene 26.02.0 at
+<https://ferrous-systems.com/blog/ferrocene-26-02-0/>
+
+A TÜV SÜD-qualified downstream Rust toolchain, open source under MIT or Apache-2.0 including the
+qualification documents. The certified subset of `core` grew from 2,903 to 5,169 functions in the
+February 2026 release, covering `core::slice`, `core::iter`, `core::ffi` and `core::result`.
+
+**PARTIAL, and do not paper over it.** The qualification level is reported inconsistently across
+primary sources. The vendor's own site and its February 2026 release post say ISO 26262 (ASIL D),
+IEC 61508 (**SIL 3**), IEC 62304 (Class C), with support for customer certification *toward* IEC
+61508 SIL 4 and DO-178C (DAL C). The project's own GitHub README says IEC 61508 (**SIL 4**), and
+secondary coverage repeats SIL 4. Cite the conservative form, meaning SIL 3 qualified with SIL 4
+supported, or verify against the current certificate before quoting a level at all.
+
+Not peer-reviewed. Use it for existence and for dates, never as evidence of an effect.
+
+## D. Zaeske et al., MC/DC for Rust — VERIFIED as a preprint, venue unconfirmed
+
+"Towards Modified Condition/Decision Coverage of Rust". Wanja Zaeske, Pietro Albini, Florian
+Gilcher, Umut Durak. arXiv 2409.08708, September 2024. Author affiliations span Ferrous Systems and
+DLR.
+
+Establishes that MC/DC, which DO-178C mandates at Level A, needed interpretive clarification for
+Rust's pattern matching, and that no Rust-compatible MC/DC or even decision-coverage tool existed.
+Read against §B above, which records that earlier MC/DC work in `rustc` stalled and is being
+restarted through the Safety-Critical Rust Consortium as a 2026 Rust Project Goal, the two together
+give a precise and dated account of one concrete tooling gap.
+
+**Venue unconfirmed.** The formatting suggests an LNCS-style workshop or conference paper. Check
+Ada-Europe and SAFECOMP before citing, and cite the preprint with a note if nothing is found. This is
+optional material in any case: it matters only if the thesis chooses to discuss certification
+tooling, which it currently does not.
+
+## E. RQ4's learning cost: an upgrade in evidence quality, not in recency
+
+### E.1 Coblenz, Mazurek and Hicks, ICSE 2022 — VERIFIED
+
+"Garbage collection makes Rust easier to use: a randomized controlled trial of the Bronze garbage
+collector". Michael Coblenz, Michelle L. Mazurek, Michael Hicks. ICSE 2022, pages 1021--1032.
+DOI 10.1145/3510003.3510107. (Crossref splits the subtitle.)
+
+A **randomised controlled trial** with 428 participants drawn from a 633-person class. On a task
+requiring management of complex aliasing, participants using a library garbage collector were more
+likely to finish in the time available, and those who did needed about a third of the time, four
+hours against twelve. Surveys identified ownership, borrowing and lifetimes as the primary causes of
+difficulty.
+
+**Why this is worth adding even though it is 2022.** The thesis's learning-curve claim currently
+rests on an interview and survey study~(`fulton2021adopting`), a study of learning
+materials~(`crichton2024learning`) and a verbosity analysis~(`ardito2021verbosity`). Not one of them
+is a controlled experiment. This is, the effect size is a factor of three, and the mechanism it
+isolates is the same one the thesis names. Recency is the wrong axis here: an RCT from 2022 is
+stronger evidence about the concepts than a survey from 2026 would be.
+
+**State the caveat in the same sentence.** The participants were students, not professional systems
+engineers, so the result bounds the difficulty of the *concepts* and says nothing about the ramp-up
+time of a RAN team. Without that clause the citation over-claims.
+
+It also pairs with `hughes2025gcrust`, already on record from sweep 3 §C.5. Both are about what
+Rust's lack of a garbage collector costs, one in developer effort and one in data-structure
+expressiveness, and together they support the reference-cycle-leak boundary class, which is one of
+the two where the C++ tooling came back ahead.
+
+## F. Where these go
+
+1. **Background, the managed-language exclusion at `Ha_Vien_Mastersthesis_2026.tex`:845--853.** Add
+   Sommer et al. Cheapest and highest-value item in the sweep, one citation, and it shores up a
+   scoping decision currently carried by `dean2013tail` and the thesis's own argument.
+2. **§"Engineering guidelines for incremental adoption".** The section has no citation on the
+   process or qualification side. Sommer et al.'s requirement list and the
+   MISRA-becomes-compiler-checked framing from §B are the two to add, with the domain caveat above
+   stated explicitly.
+3. **§`sec:interop`.** Sommer et al. on the undefined C++ ABI and gradual adoption through the C
+   calling convention, alongside the RustMC sentence added from sweep 4.
+4. **RQ4 discussion.** Coblenz et al. as controlled evidence on the learning cost, with the
+   student-population caveat.
+5. **Optional, and a judgement call.** The Ferrocene Language Specification as the mirror of the
+   C++ profiles paragraph. Worth one sentence if the author wants the treatment of the two languages
+   to be symmetric on the question of specification and qualification. Skip it if the chapter is
+   already long.
+
+## G. Negative results
+
+- **The open item from sweep 3 cannot be closed by an agent, and this is now confirmed rather than
+  assumed.** DiVA sits behind Anubis proof-of-work anti-scraping, so Emberg & Wadsten
+  (`emberg2023asn1`) and Olsson & Stenström (`olsson2023asyncpackets`) cannot be fetched
+  programmatically. Both are open access at the URNs recorded in sweep 3 §F and the author can
+  download them directly. Until then the absence claims in §`sec:gap` and §`sec:relatedwork`, that
+  neither reports tail behaviour past saturation and that neither holds a concurrency model fixed,
+  still rest on abstracts. This remains the highest-risk unresolved item in the whole literature
+  record, because an examiner with the PDFs can check it in an afternoon.
+- **No peer-reviewed work on Rust in telecom certification exists.** The certification literature
+  covers aerospace, automotive, industrial and medical. RAN does not appear, which is consistent
+  with the thesis's own gap claim and is worth one sentence rather than a search.
+- **The 2026 web result set on Rust onboarding cost is machine-generated SEO content, and it is
+  dangerous rather than merely useless.** Several pages quote figures precise enough to look
+  citable: $18,700 onboarding cost per engineer, an "O'Reilly 2024 Startup Engineering Survey" of
+  1,200 teams, "72% of Series A startups" attributed to Gartner, and a 4-to-6-month ramp at 30%
+  reduced productivity. None could be traced to a real publication. Recorded here so that a future
+  sweep does not mistake the specificity for evidence.
+- **Fulton et al.'s underlying dissertation** ("Understanding and Improving Secure Development from
+  a Human-Centered Perspective", DOI 10.13016/dspace/u2ca-otbw) carries a longer drawback list than
+  the paper the thesis cites: dependency bloat, slow compile times, hiring concerns, and the
+  observation that much of the adoption cost falls up front while the benefits accrue later and less
+  certainly. That last framing is the most useful sentence in the human-factors literature for RQ4.
+  Check whether it also appears in `fulton2021adopting` and attribute it there if so, rather than
+  adding a dissertation to the bibliography for one sentence.
+
+## H. BibTeX
+
+```bibtex
+@inproceedings{sommer2025avionics,
+  author    = {Sommer, Jan and Gutierrez Rojo, Tamara and Lund, Andreas and
+               Abdelmaksoud, Hany Ibrahim Erfan and L{\"u}dtke, Daniel},
+  title     = {Viability of {Rust} for Avionics Software Development: Current Status and Way
+               Forward},
+  booktitle = {Software Engineering 2025, Companion Proceedings},
+  publisher = {Gesellschaft f{\"u}r Informatik},
+  address   = {Bonn},
+  year      = {2025},
+  note      = {7th Workshop on Avionics Systems and Software Engineering (AvioSE), Karlsruhe},
+  doi       = {10.18420/se2025-ws-08},
+  url       = {https://doi.org/10.18420/se2025-ws-08}
+}
+
+@inproceedings{coblenz2022bronze,
+  author    = {Coblenz, Michael and Mazurek, Michelle L. and Hicks, Michael},
+  title     = {Garbage Collection Makes {Rust} Easier to Use: A Randomized Controlled Trial of the
+               {Bronze} Garbage Collector},
+  booktitle = {Proceedings of the 44th International Conference on Software Engineering (ICSE)},
+  pages     = {1021--1032},
+  year      = {2022},
+  doi       = {10.1145/3510003.3510107},
+  url       = {https://doi.org/10.1145/3510003.3510107}
+}
+
+@misc{rustproject2026safetycritical,
+  author       = {{The Rust Project}},
+  title        = {What Does It Take to Ship {Rust} in Safety-Critical?},
+  howpublished = {Rust Blog},
+  year         = {2026},
+  month        = jan,
+  url          = {https://blog.rust-lang.org/2026/01/14/what-does-it-take-to-ship-rust-in-safety-critical/}
+}
+
+@misc{ferrocene,
+  author       = {{Ferrous Systems}},
+  title        = {Ferrocene: A Qualified {Rust} Toolchain for Safety-Critical Development},
+  note         = {Release 26.02.0. Qualified by T{\"U}V S{\"U}D for ISO 26262 (ASIL D),
+                  IEC 61508 (SIL 3) and IEC 62304 (Class C). Accessed August 2026},
+  url          = {https://ferrocene.dev/},
+  year         = {2026}
+}
+
+@misc{zaeske2024mcdc,
+  author       = {Zaeske, Wanja and Albini, Pietro and Gilcher, Florian and Durak, Umut},
+  title        = {Towards Modified Condition/Decision Coverage of {Rust}},
+  howpublished = {arXiv:2409.08708 [cs.SE]},
+  year         = {2024},
+  note         = {Venue unconfirmed at the time of the sweep},
+  url          = {https://arxiv.org/abs/2409.08708}
+}
+```
+
+Entry-type note, same as the earlier sweeps. `rustproject2026safetycritical`, `ferrocene` and
+`zaeske2024mcdc` are not peer-reviewed, and the prose must say so where each is used. Of the five,
+only `sommer2025avionics` and `coblenz2022bronze` can carry an argument on their own.
