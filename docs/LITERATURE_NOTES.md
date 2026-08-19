@@ -1856,8 +1856,10 @@ this quantity, and it is not cited.
 
 **The revised sweep found it in the thesis's own domain, which the first version missed.** The
 strongest sources here are not general real-time-virtualisation papers but measurements of
-virtualised RAN, and three of them speak to the draft's threat row directly. Take C.4 and C.5
-first, then C.1 for the number.
+virtualised RAN, and three of them speak to the draft's threat row directly. They are placed first
+below because they are the anchors. C.1 to C.3 keep the numbers they were given in the first version
+of this sweep, so the numbering in this section records when each was found rather than the order to
+read them in.
 
 ### C.4 Ocampo, Fida, Elmokashfi and Bryhni, *Sensors* 2024 — VERIFIED
 
@@ -1964,7 +1966,68 @@ RQ3's headline is that peak RSS shows two effects, that both are real, and that 
 effect is roughly ten times the language effect. The draft explains the allocator half by pinned
 arena count making arena metadata a large fixed cost on both sides (`Thesis_POC.tex`:2861--2864).
 No source is given for what an arena is, why its metadata scales with count, or why allocator
-choice should dominate. There is a well-developed literature for all three.
+choice should dominate.
+
+**This was the area the recency objection hit hardest, and it is now the best-resolved of the
+five.** The first version of this sweep proposed Johnstone and Wilson (1998), Hoard (2000) and
+Berger, Zorn and McKinley (2002). It turns out the 2002 paper was replicated in 2026 by one of its
+own authors, using `jemalloc` specifically, and the replication is a better citation than the
+original on every axis that matters here. Take D.0 and ignore the rest unless the lineage is wanted.
+
+### D.0 van Kempen and Berger, ISMM 2026 — VERIFIED, and it replaces three older citations
+
+"Reconsidering 'Reconsidering Custom Memory Allocation'". Nicolas van Kempen, Emery D. Berger.
+*Proceedings of the 2026 ACM SIGPLAN International Symposium on Memory Management* (ISMM '26),
+pages 14--24. DOI 10.1145/3814942.3816132.
+
+A deliberate replication of Berger, Zorn and McKinley (2002) with modern allocators, by an author
+of the original. Findings, as reported in the paper:
+
+- Modern general-purpose allocators "have considerably closed the performance gap with region-based
+  custom allocation, reducing region allocator speedups from up to 44% in the original study to at
+  most 15% in our evaluation." The allocators named are `jemalloc` and `mimalloc`.
+- Under **adversarial allocation**, meaning a heap preconditioned with synthetic fragmentation,
+  naive allocation slows by up to 2× while region allocators are unaffected, and "the default Linux
+  allocator is considerably more affected by fragmentation than jemalloc and mimalloc".
+
+**Why this is the right citation for RQ3 rather than the 2002 original.** It is 2026. It names
+`jemalloc`, which is the thesis's allocator, rather than a generic general-purpose allocator. It
+establishes that the choice between `jemalloc` and the system allocator is a measurable, studied
+effect on both time and footprint, which is exactly what the thesis found and currently presents
+without external support. And its clean-heap-versus-adversarial contrast is a published precedent
+for the draft's own careful hedge, that the ordering it measured "is partly a consequence of the
+fairness controls rather than a fact about `jemalloc` in general": this paper shows the same
+allocator ranking moving with the heap state it is measured under.
+
+One caution. It is a study of allocator *performance* under fragmentation, not a study of peak RSS
+attribution between a language and an allocator. It corroborates that allocator choice is a
+first-order variable. It does not corroborate the specific ten-to-one ratio, and the prose must not
+imply that it does.
+
+### The three older allocator sources, and what to do with them
+
+Under the recency rule these are **superseded by D.0** for every claim the thesis actually makes.
+Recorded so the reasoning is not lost, and so they are not re-found in a later sweep.
+
+- **Berger, Zorn and McKinley, "Reconsidering custom memory allocation"**, OOPSLA '02,
+  DOI 10.1145/582419.582421. Cite only if the draft wants to say the 2026 result is a replication,
+  which needs the original named. Crossref's deposit gives the first page only, so the page range
+  would need confirming.
+- **Berger et al., "Hoard: a scalable memory allocator for multithreaded applications"**, ASPLOS
+  2000, pages 117--128, DOI 10.1145/378993.379232. The origin of per-thread heaps and of **memory
+  blowup** as a named property. Cite only in a sentence that uses the term.
+- **Johnstone and Wilson, "The memory fragmentation problem: solved?"**, ISMM 1998, pages 26--36,
+  DOI 10.1145/286860.286864. Drop. D.0 makes the fragmentation point on current allocators.
+- **Powers et al., "Mesh"**, PLDI 2019, DOI 10.1145/3314221.3314582, and **Liétar et al.,
+  "snmalloc"**, ISMM 2019, DOI 10.1145/3315573.3329980. Both VERIFIED and both still reasonable on
+  date, but neither is needed once D.0 is in. Keep in reserve.
+
+### The remaining gap here, stated plainly
+
+There is still no source for what a `jemalloc` arena *is*, because the allocator's own design paper
+is the only place that describes it and that paper is from 2006 (D.1 below). This is unavoidable and
+it is not a weakness: citing an allocator's design document for a fact about that allocator's design
+is correct practice regardless of date, in the same way the thesis cites RFC 3393 for a definition.
 
 ### D.1 Evans, BSDCan 2006 — VERIFIED as a technical paper, not peer-reviewed
 
@@ -1977,40 +2040,9 @@ and discusses fragmentation measurement directly. Not peer-reviewed, and the ent
 but citing the allocator's own design paper is better than citing nothing for a claim about that
 allocator's metadata.
 
-### D.2 Berger et al., ASPLOS 2000 — VERIFIED
-
-"Hoard: a scalable memory allocator for multithreaded applications". Emery D. Berger, Kathryn S.
-McKinley, Robert D. Blumofe, Paul R. Wilson. ASPLOS 2000, pages 117--128. DOI 10.1145/378993.379232.
-
-The peer-reviewed origin of per-thread heaps and, more to the point here, of **memory blowup** as a
-named and bounded property of concurrent allocators. It is what lets the draft say that a
-per-arena footprint cost is a known and studied consequence of the design rather than a surprise in
-this measurement. `jemalloc`'s own paper cites it as prior art.
-
-### D.3 Berger, Zorn and McKinley, OOPSLA 2002 — VERIFIED, one field PARTIAL
-
-"Reconsidering custom memory allocation". Emery D. Berger, Benjamin G. Zorn, Kathryn S. McKinley.
-OOPSLA '02. DOI 10.1145/582419.582421. **PARTIAL: Crossref's deposit gives the first page only.
-Confirm the page range before citing.**
-
-The peer-reviewed statement that allocator choice moves application-level memory and time
-behaviour substantially. This is the citation that makes "the allocator dominates by an order of
-magnitude" an instance of something known rather than an oddity of this campaign, in the same way
-`zhou2025oltp` does for the handoff result.
-
-### D.4 Two more, if the mechanism is worth more space — VERIFIED
-
-- **Johnstone and Wilson, "The memory fragmentation problem: solved?"** ISMM 1998, pages 26--36.
-  DOI 10.1145/286860.286864. The reference point for separating real fragmentation from allocator
-  policy, which is the distinction the draft needs when it says the ordering is "partly a
-  consequence of the fairness controls rather than a fact about `jemalloc` in general".
-- **Powers, Tench, Berger and McGregor, "Mesh: compacting memory management for C/C++
-  applications"**, PLDI 2019, pages 333--346. DOI 10.1145/3314221.3314582. Modern treatment of RSS
-  as the quantity of interest, as against virtual size. Relevant because peak RSS is the draft's
-  metric and Mesh is about reducing exactly it.
-- **Liétar et al., "snmalloc: a message passing allocator"**, ISMM 2019, pages 122--135.
-  DOI 10.1145/3315573.3329980. Only if a second modern allocator design is wanted. Probably one
-  source too many for a master's thesis.
+The superseded entries that stood here as D.2, D.3 and D.4 are consolidated in the block above.
+Their metadata is verified and their BibTeX is retained in §I, so nothing has to be re-searched if
+the lineage argument is wanted after all.
 
 ## E. The benchmarking canon §`sec:stats` already follows
 
@@ -2022,6 +2054,47 @@ floor. Its statistical machinery is properly referenced (`efron1993bootstrap` fo
 methodology*, `georges2007rigorous`, which is about Java and JIT warm-up and is therefore slightly
 off-target for a native two-language comparison. The community's standard reference for what this
 section does is not cited.
+
+**Two current sources came out of the re-run, and one of them closes an item sweep 1 left open.**
+Sweep 1 §7.9 flagged "two ICPE 2026 preprints on variability-guided optimisation and on declarative
+benchmark harnesses (author lists and final metadata unconfirmed)" and said they must not be cited
+as they stood. The harness one is now confirmed with a DOI and page range, so that flag can be
+cleared.
+
+### E.0 Paolillo, Van Molle and Hasselmann, ICPE 2026 — VERIFIED
+
+"benchkit: A Declarative Framework for Composable Performance Evaluation of System Software".
+Antonio Paolillo, Mats Van Molle, Ken Hasselmann. *Proceedings of the 17th ACM/SPEC International
+Conference on Performance Engineering* (ICPE '26), pages 170--183. DOI 10.1145/3777884.3796997.
+Artifact badged Available, Functional and Reusable.
+
+Not a source for a claim about Rust, and not a tool the thesis should adopt at this stage. It is
+useful for a narrower and more valuable purpose: it is a 2026 peer-reviewed statement of what a
+credible systems performance campaign has to record, and the thesis already does almost all of it.
+Its repeatability section names, as the mitigations a framework should provide, fixing CPU
+frequencies, disabling noise-inducing services such as `irqbalance`, repeated runs, and structured
+capture of hardware, kernel version and frequency-governor state at experiment time. §`sec:testbed`
+and §`sec:repro` do these things.
+
+**It also states the thesis's own limitation in someone else's words**, which is why it belongs in
+§`sec:threats` rather than only in §`sec:repro`: "full reproducibility and replicability of
+system-level experiments are inherently limited by factors outside the framework's control:
+hardware performance counters, kernel scheduler behavior, and low-level system interfaces may differ
+across machines and kernel versions". That is the residual the thesis carries, published four
+months before submission, by authors building infrastructure to reduce it.
+
+### E.0b Papadopoulos et al., IEEE TSE 2021 — VERIFIED
+
+"Methodological Principles for Reproducible Performance Evaluation in Cloud Computing". Alessandro
+Vittorio Papadopoulos, Laurens Versluis, Andre Bauer, Nikolas Herbst, Joakim von Kistowski, Ahmed
+Ali-Eldin, Cristina L. Abad, Jose Nelson Amaral, Petr Tuma, Alexandru Iosup. *IEEE Transactions on
+Software Engineering* 47(8):1528--1543, 2021. DOI 10.1109/TSE.2019.2927908.
+
+Ten authors, a software engineering journal, and a set of named principles for performance
+evaluation where the platform is shared and partly unobservable. That last condition is the
+thesis's condition. It is the better companion to E.1 than any of E.2 to E.4, because it is a
+decade newer and because its subject is evaluation on infrastructure the experimenter does not fully
+control.
 
 ### E.1 Hoefler and Belli, SC 2015 — VERIFIED
 
@@ -2055,6 +2128,12 @@ interleaved design, which the draft currently motivates in its own words ("slow 
 effects, and background activity perturb them equally instead of biasing one"). Good fit,
 low risk.
 
+**On dates in this section.** E.1 is the canon and is cited on that basis, the way a standard
+reference is. E.2 and E.3 are older and now optional: use E.2 only in the sentence that justifies
+`\NRepeats{}`, and E.3 only in the sentence that justifies interleaving, since in both cases the
+draft is making the argument that paper made. If neither sentence needs a citation, prefer E.0 and
+E.0b, which are 2026 and 2021 and say enough on their own.
+
 ### E.4 Curtsinger and Berger, ASPLOS 2013 — VERIFIED, and it is a double-edged addition
 
 "STABILIZER: statistically sound performance evaluation". Charlie Curtsinger, Emery D. Berger.
@@ -2082,7 +2161,65 @@ preprint: `bugden2022rust`, carrying "throughput and memory use alongside C and 
 (`Thesis_POC.tex`:3623).
 
 Neither claim actually needs a preprint. Two peer-reviewed sources cover it, and one is already
-half in the bibliography.
+half in the bibliography. **Both are 2021, so read F.0a and F.0b first: the re-run found two 2026
+papers that report matched C++-to-Rust overheads directly, which is closer to the claim than either
+2021 source and closer to this thesis than anything else in this section.**
+
+### F.0a Popescu et al., PLDI 2026 — VERIFIED
+
+"Cpp2Rust: Automatic Translation of C++ to Safe Rust". Lucian Popescu, Francisco Gouveia, Henrique
+Preto, João Silveira, Dmytro Hrybenko, José Fragoso Santos, Nuno P. Lopes. *Proceedings of the ACM
+on Programming Languages* 10(PLDI):480--504, 2026. DOI 10.1145/3808266. **PARTIAL on one field:
+the authors' own PDF cites it as Article 188, 25 pages, while Crossref's deposit gives pages
+480--504. Check which form the venue expects before citing with a page range.**
+
+**This closes a gap sweep 1 explicitly recorded and could not fill.** Sweep 1 §6.2 surveyed
+automated translation and noted, as the reason none of it supersedes RQ4, that "they translate C
+(not C++)". This is C++ to Rust, at PLDI, four months before submission, and the authors call it
+"the first system capable of translating C++ programs into functionally equivalent and memory-safe
+Rust code automatically".
+
+Three things in it are directly usable:
+
+- The mechanism is a *cost*, stated as a design choice: it resolves the mismatch between C++'s
+  unrestricted aliasing and Rust's ownership model "by inserting runtime-enforced ownership and
+  mutability checks", explicitly "trading some performance for security". That is the opposite pole
+  from the thesis's hand-written seam, which keeps the core `unsafe`-free and pays a bounded tax at
+  the boundary instead.
+- The measured spread is the useful part: "full memory safety with only a 2% performance penalty on
+  WOFF2 compression, while being 6× slower on Brunsli due to heavy usage of pointer arithmetic".
+  A range from 2% to 6× on two programs from one tool is a strong argument for the thesis's own
+  position that a language-level overhead claim has to be made on the target workload rather than
+  in general.
+- It puts a boundary on RQ4's future work. Automated C++-to-Rust translation now exists and is
+  semantics-preserving, so the future-work sentence should no longer say the migration must be
+  manual. It should say what the automated route costs where the seam route does not.
+
+### F.0b Naylor et al., ASPLOS 2026 — VERIFIED, and it criticises a source the thesis already cites
+
+"CHERI-SIMT: Implementing Capability Memory Protection in GPUs". Matthew Naylor, Alexandre Joannou,
+A. Theodore Markettos, Paul Metzger, Simon W. Moore, Timothy M. Jones. ASPLOS '26, pages 50--66.
+DOI 10.1145/3760250.3762234. **PARTIAL on the year: Crossref's deposit records 2025 while the event
+field records ASPLOS '26. Confirm the citable year before use.**
+
+The GPU subject looks off-topic and the relevant part is not the subject. The authors build a
+**like-for-like C++-to-Rust port** of a benchmark suite and report "a geometric mean overhead of
+46% from using Rust", of which "bounds checking alone accounts for a 34% overhead".
+
+**The reason to add it is the paragraph after that number.** It engages `harris2023morello`, which
+this thesis already cites, and disputes how it should be read: prior work "reports that the Rust
+compiler is very good at eliminating bounds checks, resulting in low overhead ... However, care is
+needed when interpreting these results as it is unclear how many bounds checks are avoided due to
+the use of unsafe code blocks. For example, in the matrixmultiply benchmark they use, the key
+functions are declared as unsafe and operate directly on raw pointers."
+
+That is a peer-reviewed 2026 critique of a citation already in the bibliography, and it is the
+single most useful item in this sweep for criterion 2, which is graded on critical maturity and on
+acknowledging contrary results. It also supports a design decision the thesis has already made and
+currently defends on its own terms: measuring a core that is `unsafe`-free means the bounds checks
+are actually present, so the overhead being reported is the real one. Cite it in
+§`sec:relatedwork` next to `emmerich2019drivers` and `suchert2023stamp`, and note honestly that
+the workload is a GPU kernel and the absolute figure does not transfer.
 
 ### F.1 Pereira et al., Science of Computer Programming 2021 — VERIFIED
 
@@ -2122,36 +2259,63 @@ for the general one, at which point `bugden2022rust` can go.
 
 ## G. What to change, ordered by risk
 
-1. **`Thesis_POC.tex`:3030, the Loom sentence.** Accuracy fix, and the only item here that makes an
-   existing sentence *wrong* rather than merely unsupported. Release/acquire, not C11 entire.
-   Sound under bounded partial-order reduction, not exhaustive full stop. Cite B.1, optionally B.3.
+Revised with the sweep. Every anchor named here is 2021 or later except E.1, which is cited as a
+standard reference, and the algorithm-origin papers, which appear only in the sentences that name
+their algorithms.
+
+1. **`Thesis_POC.tex`:3030, the Loom sentence.** Accuracy fix, and the only item in this sweep that
+   makes an existing sentence *wrong* rather than merely unsupported. Release/acquire, not C11
+   entire. Sound under bounded partial-order reduction, not exhaustive full stop. Cite B.1, with
+   TruSt if the draft wants to say what the bound costs in current terms.
 2. **`Thesis_POC.tex`:3009--3012 and the `tab:faults` `$^{\S}$` footnote.** Attribute the lock-graph
    mechanism to B.5, and the unmaintained-experimental-detector status to B.6. The draft's own
    reasoning survives intact and stops being the only support for its most surprising RQ2 finding.
-3. **§`sec:stats`.** Add E.1, and E.2 where `\NRepeats{}` is justified. Cheapest large gain in the
-   sweep.
-4. **§`sec:threats`, the virtualised-host row, and `bench/TESTBED.md`.** Add C.2 for the
-   from-inside-the-guest argument and C.1 for the order of magnitude. Mind the framing warning in
-   C.1.
-5. **§`sec:resources` and the RQ3 discussion.** Add D.1 for arenas and D.3 for allocator choice
-   dominating. D.2 if the blowup concept is used by name.
-6. **Background §`sec:cpplatency` and §`sec:relatedwork`, plus the RQ4 discussion.** Retire
-   `bugden2022rust` in favour of F.1, and add F.2 as a matched pair with an effort measurement.
-7. **Shuttle's guarantee.** Add B.2 wherever the draft says probabilistic concurrency testing.
-8. **B.4** wherever ThreadSanitizer is first named, as the tool's own account.
-9. **Decide E.4 deliberately, either way.** If it goes in, it goes in `tab:threats` as a residual
-   the study does not control, and the diagram constraint recorded in sweep 1 §2.5 applies:
-   `diagrams/25_threats_validity.drawio` is hand-laid-out, so a table row without a diagram row
-   leaves the two inconsistent.
+3. **§`sec:relatedwork` and the RQ4 future work: add RustMC.** A 2026 model checker that verifies
+   concurrent Rust *and its FFI dependencies*, evaluated against Loom's own test suite, is the
+   single most on-target new source in this sweep and it is four months old. Better volunteered than
+   found by an examiner.
+4. **§`sec:stats` and §`sec:repro`.** Add E.1 as the standard reference and E.0 (ICPE 2026) for what
+   a campaign must record, with E.0b if a second is wanted. E.2 and E.3 only in the two sentences
+   named in §E.
+5. **§`sec:threats`, the virtualised-host row, §`sec:testbed`, and `bench/TESTBED.md`.** Lead with
+   C.4 (*Sensors* 2024, in-domain, and it quantifies what CPU affinity and isolation are worth) and
+   C.5 (cRAN, frequency management as the named cause of instability). Add C.6 for the
+   sub-millisecond-at-99.999% premise and C.1 for the order of magnitude, minding the framing
+   warning there. C.2 is support, not the sole citation.
+6. **§`sec:resources` and the RQ3 discussion.** Add D.0 (ISMM 2026) for allocator choice as a
+   first-order, currently-studied variable, and D.1 for what an arena is. The 2000-to-2002 cluster
+   is superseded and should not be cited unless the replication lineage is being made explicit.
+7. **§`sec:relatedwork`, the contrary-results passage.** Add F.0b (ASPLOS 2026), which reports a
+   like-for-like C++-to-Rust port at 46% geometric-mean overhead *and* disputes the reading of
+   `harris2023morello`, a citation the thesis already carries. Highest-value single item for
+   criterion 2.
+8. **Background §`sec:cpplatency` and §`sec:relatedwork`, plus the RQ4 discussion.** Retire
+   `bugden2022rust`. F.0a and F.0b are the 2026 sources for the C++ side, F.1 upgrades
+   `pereira2017energy` to its journal version for the general claim, and F.2 adds a matched pair
+   with an effort measurement. F.0a also means the RQ4 future work should stop implying that
+   C++-to-Rust migration must be done by hand.
+9. **Shuttle's guarantee.** Add B.2 wherever the draft says probabilistic concurrency testing, and
+   **B.4** wherever ThreadSanitizer is first named. Both are origin citations for tools the draft
+   names, so their dates are appropriate.
+10. **Decide E.4 deliberately, either way.** If it goes in, it goes in `tab:threats` as a residual
+    the study does not control, and the diagram constraint recorded in sweep 1 §2.5 applies:
+    `diagrams/25_threats_validity.drawio` is hand-laid-out, so a table row without a diagram row
+    leaves the two inconsistent.
 
-Items 1 and 2 are corrections and should be done regardless. Items 3 to 8 are fills. Item 9 is a
-judgement call.
+Items 1 and 2 are corrections and should be done regardless. Items 3 to 9 are fills, with 3 and 7
+the two that most change how current the bibliography looks. Item 10 is a judgement call.
 
 ## H. Negative results, recorded so they are not searched for again
 
-- **No peer-reviewed paper measures Shuttle or Loom as objects of study.** B.1 is the only
-  peer-reviewed source that reports using them at scale, which is why it carries so much weight
-  above. Shuttle has no paper of its own, only the repository.
+- **Corrected by the re-run: Loom *has* been evaluated in a peer-reviewed paper.** The first version
+  of this section claimed no peer-reviewed paper measures Loom or Shuttle as objects of study. That
+  was wrong for Loom: RustMC (FORTE 2026) evaluates against the Loom test suite. It remains true for
+  Shuttle, which has no paper of its own, only the repository and the account in B.1.
+- **Every area of the apparatus turned out to have current work.** Recorded because it is the
+  general lesson of the re-run: searching for the founding paper is easy and searching for the
+  current one takes a second pass, and in all five areas the second pass produced a source that was
+  both newer and closer to the thesis. The allocator area is the clearest case, where the 2002 paper
+  has a 2026 replication by one of its own authors that names the thesis's allocator.
 - **No peer-reviewed evaluation of the TSan deadlock detector exists.** Searched under lock-order
   inversion, potential deadlock, false negative and detector-effectiveness phrasings. The
   literature covers the *technique* (B.5 and its successors) and the tool's own documentation
@@ -2177,6 +2341,134 @@ Every field below was read from the registration agency's own record via
 `.bibaudit/verify_candidates.py`, or from the publisher's page for the two items without a DOI.
 Titles that ACM splits into `title` and `subtitle` are reassembled here. `urldate` on the `@misc`
 entries must be set to the day they are actually cited.
+
+Entries are grouped: the current anchors first, then the algorithm-origin and superseded entries,
+which are retained so that nothing has to be re-searched if the lineage argument is wanted.
+
+**Current anchors (2021--2026).**
+
+```bibtex
+@inproceedings{pearce2026rustmc,
+  author    = {Pearce, Oliver and Lange, Julien and O'Keeffe, Dan},
+  title     = {{RustMC}: Automated Verification of Real-World Concurrent {Rust}},
+  booktitle = {Formal Techniques for Distributed Objects, Components, and Systems (FORTE 2026)},
+  series    = {Lecture Notes in Computer Science},
+  pages     = {235--255},
+  publisher = {Springer},
+  year      = {2026},
+  doi       = {10.1007/978-3-032-28187-6_14}
+}
+
+@article{kokologiannakis2022trust,
+  author  = {Kokologiannakis, Michalis and Marmanis, Iason and Gladstein, Vladimir and
+             Vafeiadis, Viktor},
+  title   = {Truly Stateless, Optimal Dynamic Partial Order Reduction},
+  journal = {Proceedings of the ACM on Programming Languages},
+  volume  = {6},
+  number  = {POPL},
+  pages   = {1--28},
+  year    = {2022},
+  doi     = {10.1145/3498711}
+}
+
+@inproceedings{vankempen2026allocation,
+  author    = {van Kempen, Nicolas and Berger, Emery D.},
+  title     = {Reconsidering ``Reconsidering Custom Memory Allocation''},
+  booktitle = {Proceedings of the 2026 ACM SIGPLAN International Symposium on Memory Management
+               (ISMM '26)},
+  pages     = {14--24},
+  year      = {2026},
+  doi       = {10.1145/3814942.3816132}
+}
+
+@article{ocampo2024cloudran,
+  author  = {Ocampo, Andres F. and Fida, Mah-Rukh and Elmokashfi, Ahmed and Bryhni, Haakon},
+  title   = {Assessing the {Cloud-RAN} in the {Linux} Kernel: Sharing Computing and Network
+             Resources},
+  journal = {Sensors},
+  volume  = {24},
+  number  = {7},
+  pages   = {2365},
+  year    = {2024},
+  doi     = {10.3390/s24072365}
+}
+
+@inproceedings{abeni2022ranrt,
+  author    = {Abeni, Luca and Cucinotta, Tommaso and Pinczel, Bal{\'a}zs and M{\'a}tray, P{\'e}ter
+               and Srinivasan, Murali Krishna and Lindquist, Tobias},
+  title     = {On the Use of {Linux} Real-Time Features for {RAN} Packet Processing in Cloud
+               Environments},
+  booktitle = {High Performance Computing. ISC High Performance 2022 International Workshops},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {13387},
+  pages     = {371--382},
+  publisher = {Springer},
+  year      = {2022},
+  doi       = {10.1007/978-3-031-23220-6_26}
+}
+
+@inproceedings{foukas2021concordia,
+  author    = {Foukas, Xenofon and Radunovic, Bozidar},
+  title     = {Concordia: Teaching the {5G} {vRAN} to Share Compute},
+  booktitle = {Proceedings of the 2021 ACM SIGCOMM Conference},
+  pages     = {580--596},
+  year      = {2021},
+  doi       = {10.1145/3452296.3472894}
+}
+
+@inproceedings{paolillo2026benchkit,
+  author    = {Paolillo, Antonio and Van Molle, Mats and Hasselmann, Ken},
+  title     = {benchkit: A Declarative Framework for Composable Performance Evaluation of System
+               Software},
+  booktitle = {Proceedings of the 17th ACM/SPEC International Conference on Performance Engineering
+               (ICPE '26)},
+  pages     = {170--183},
+  year      = {2026},
+  doi       = {10.1145/3777884.3796997}
+}
+
+@article{papadopoulos2021reproducible,
+  author  = {Papadopoulos, Alessandro Vittorio and Versluis, Laurens and Bauer, Andre and
+             Herbst, Nikolas and von Kistowski, Joakim and Ali-Eldin, Ahmed and Abad, Cristina L.
+             and Amaral, Jose Nelson and Tuma, Petr and Iosup, Alexandru},
+  title   = {Methodological Principles for Reproducible Performance Evaluation in Cloud Computing},
+  journal = {IEEE Transactions on Software Engineering},
+  volume  = {47},
+  number  = {8},
+  pages   = {1528--1543},
+  year    = {2021},
+  doi     = {10.1109/TSE.2019.2927908}
+}
+
+@article{popescu2026cpp2rust,
+  author  = {Popescu, Lucian and Gouveia, Francisco and Preto, Henrique and Silveira, Jo{\~a}o and
+             Hrybenko, Dmytro and Fragoso Santos, Jos{\'e} and Lopes, Nuno P.},
+  title   = {{Cpp2Rust}: Automatic Translation of {C++} to Safe {Rust}},
+  journal = {Proceedings of the ACM on Programming Languages},
+  volume  = {10},
+  number  = {PLDI},
+  pages   = {480--504},
+  year    = {2026},
+  doi     = {10.1145/3808266},
+  note    = {Page form unconfirmed: the authors' PDF cites Article 188, Crossref gives 480--504}
+}
+
+@inproceedings{naylor2026cherisimt,
+  author    = {Naylor, Matthew and Joannou, Alexandre and Markettos, A. Theodore and
+               Metzger, Paul and Moore, Simon W. and Jones, Timothy M.},
+  title     = {{CHERI-SIMT}: Implementing Capability Memory Protection in {GPUs}},
+  booktitle = {Proceedings of the 31st ACM International Conference on Architectural Support for
+               Programming Languages and Operating Systems (ASPLOS '26)},
+  pages     = {50--66},
+  year      = {2026},
+  doi       = {10.1145/3760250.3762234},
+  note      = {Year unconfirmed: Crossref's deposit records 2025, the event field ASPLOS '26}
+}
+```
+
+**Algorithm origins, tool documentation, and superseded entries.** Cite the first four only in the
+sentence that names the algorithm or tool. The allocator entries after `evans2006jemalloc` are
+superseded by `vankempen2026allocation` and are kept only for the lineage argument.
 
 ```bibtex
 @inproceedings{bornholt2021shardstore,
