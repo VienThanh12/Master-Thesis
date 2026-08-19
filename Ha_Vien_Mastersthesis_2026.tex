@@ -2,7 +2,6 @@
 %% Written on the CSM thesis template (HYthesisML.cls) of the Department of
 %% Computer Science; see CSM-thesis-template_2021_09_07/ for the pristine copy.
 
-% STEP 1: language, pagination, programme, and study track.
 % oneside, because the thesis is submitted electronically. twoside with openright
 % reserved a right-hand opening for every chapter, appendix, and list, which cost
 % fifteen blank versos in a document with this many divisions.
@@ -33,10 +32,9 @@
 
 % lmodern, textcomp, color, graphicx, epsfig, subfigure, tikz, amsmath, amssymb,
 % caption, titlesec and appendix are all loaded by the class itself.
-\usepackage[pdftex, plainpages=false]{hyperref} % For hyperlinks and pdf metadata
-\usepackage{fancyhdr} % For nicer page headers
+\usepackage[pdftex, plainpages=false]{hyperref}
+\usepackage{fancyhdr}
 \usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
-%\usepackage{wrapfig} % For nice text-wrapping figures (use at own discretion)
 \usepackage{array} % Ragged-right p-columns in the Chapter 6 tables
 \usepackage{float} % [H] pins tables at the point of citation in the source
 \usepackage[section]{placeins} % flush pending floats before each \section
@@ -96,9 +94,6 @@
 %\fussy 
 \sloppy % sloppy and fussy commands can be used to avoid overlong text lines
 
-% STEP 2:
-% Set up all the information for the title page and the abstract form.
-% Replace parameters with your information.
 \title{Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia RAN Control-Plane Systems}
 \author{Ha Vien}
 \date{\today}
@@ -123,31 +118,24 @@
 \  Networks $\rightarrow$ Network types $\rightarrow$ Mobile networks
 }}
 
-% if you want to quote someone special. You can comment this line and there will be nothing on the document.
-%\quoting{Bachelor's degrees make pretty good placemats if you get them laminated.}{Jeph Jacques} 
-
-
-% OPTIONAL STEP: Set up properties and metadata for the pdf file that pdfLaTeX makes.
-% But you don't really need to do this unless you want to.
 \hypersetup{
-    %bookmarks=true,         % show bookmarks bar first?
-    unicode=true,           % to show non-Latin characters in Acrobat’s bookmarks
-    pdftoolbar=true,        % show Acrobat’s toolbar?
-    pdfmenubar=true,        % show Acrobat’s menu?
-    pdffitwindow=false,     % window fit to page when opened
-    pdfstartview={FitH},    % fits the width of the page to the window
+    unicode=true,
+    pdftoolbar=true,
+    pdfmenubar=true,
+    pdffitwindow=false,
+    pdfstartview={FitH},
     pdftitle={Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia RAN Control-Plane Systems},
     pdfauthor={Ha Vien},
     pdfsubject={Master's thesis, Computer Science},
     pdfcreator={Ha Vien},
-    pdfproducer={pdfLaTeX}, % producer of the document
+    pdfproducer={pdfLaTeX},
     pdfkeywords={Rust} {C++} {RAN control plane} {tail latency} {memory safety},
-    pdfnewwindow=true,      % links in new window
-    colorlinks=true,        % false: boxed links; true: colored links
-    linkcolor=black,        % color of internal links
-    citecolor=black,        % color of links to bibliography
-    filecolor=magenta,      % color of file links
-    urlcolor=cyan           % color of external links
+    pdfnewwindow=true,
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    filecolor=magenta,
+    urlcolor=cyan
 }
 
 % Campaign summary numbers (representative load, saturation knee, repeat count, ...)
@@ -186,13 +174,7 @@
 
 \begin{document}
 
-% Generate title page.
 \maketitle
-
-% STEP 3:
-% Write your abstract (of course you really do this last).
-% You can make several abstract pages (if you want it in different languages)
-% by repeating the otherlanguage environment with a different language.
 
 % The abstract form is a fixed 12 cm box that also has to hold the CCS paths, so
 % it is set single-spaced as in the template. The \singlespacing here is what
@@ -280,10 +262,6 @@ a nominal-load test would not expose the gap.
 % longer for no extra content.
 \singlespacing
 
-% -----------------------------------------------------------------------------------
-% STEP 4: Write the thesis.
-% Your actual text starts here. You shouldn't mess with the code above the line except
-% to change the parameters. Removing the abstract and ToC commands will mess up stuff.
 \chapter{Introduction}
 
 Mobile networks are moving from specialised hardware to software on ordinary servers.
@@ -4216,13 +4194,10 @@ profiles on the same visit. Beyond that:
 % been used. Shared with Thesis_v1.tex; edit ai_statement.tex, not a copy of it.
 \input{ai_statement.tex}
 
-% STEP 5:
-% The bibliography style is selected with the biblatex options in the preamble.
-
 \cleardoublepage %fixes the position of bibliography in bookmarks
 \phantomsection
 
-\addcontentsline{toc}{chapter}{\bibname} % This lines adds the bibliography to the ToC
+\addcontentsline{toc}{chapter}{\bibname}
 \printbibliography
 
 \backmatter
