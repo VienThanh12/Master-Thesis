@@ -13,10 +13,10 @@ alwaysApply: true
 | --- | --- |
 | `Thesis_Plan_v2.tex` / `.pdf` | **Supervisor-facing, reviewed** |
 | `Thesis_v1.tex` / `.pdf` | **Supervisor-facing, reviewed** (skeleton; ch. 6–9 empty unless author asks) |
-| `Thesis_POC.tex` / `.pdf` | **Full draft**, canonical but still needs review |
+| `Ha_Vien_Mastersthesis_2026.tex` / `.pdf` | **Full draft**, canonical but still needs review. Submission filename, was `Thesis_POC` until 19 Aug 2026 |
 | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Evidence; must match thesis claims |
 
-When claims, RQs, methodology, or numbers change: sync plan + v1 + `Thesis_POC.tex`; regenerate via `bench/refresh_thesis.sh` (never hand-edit `figures/gen_macros.tex`).
+When claims, RQs, methodology, or numbers change: sync plan + v1 + `Ha_Vien_Mastersthesis_2026.tex`, then regenerate via `bench/refresh_thesis.sh` (never hand-edit `figures/gen_macros.tex`).
 
 ## Grade criteria (Finnish 1–5): every edit must protect these
 
@@ -63,10 +63,10 @@ prose edit, run `./.aitells.py` on the file you touched.
 
 ## After substantive changes
 
-Run `bench/refresh_thesis.sh` when numbers change (it regenerates figures/tables, the colloquium deck, and `Thesis_POC.pdf`); rebuild `Thesis_v1.tex` / `Thesis_Plan_v2.tex` when their sources change. Zero LaTeX errors and undefined refs required.
+Run `bench/refresh_thesis.sh` when numbers change (it regenerates figures/tables, the colloquium deck, and `Ha_Vien_Mastersthesis_2026.pdf`). Rebuild `Thesis_v1.tex` / `Thesis_Plan_v2.tex` when their sources change. Zero LaTeX errors and undefined refs required.
 
 ## Do not
 
-- Treat `Thesis_POC.pdf` as supervisor-approved.
+- Treat `Ha_Vien_Mastersthesis_2026.pdf` as supervisor-approved. The submission filename says nothing about review status.
 - Fill `Thesis_v1.tex` chapters 6–9 without explicit author request.
 - Commit unless explicitly asked.

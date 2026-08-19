@@ -9,14 +9,14 @@ adjectives, and uniform sentence length.
 Nothing here is wrong on its own. Frequency is the signal, so the report is
 counts with line numbers, not a list of errors.
 
-    ./.aitells.py Thesis_POC.tex
+    ./.aitells.py Ha_Vien_Mastersthesis_2026.tex
 """
 import re
 import statistics
 import sys
 from collections import defaultdict
 
-SRC = sys.argv[1] if len(sys.argv) > 1 else "Thesis_POC.tex"
+SRC = sys.argv[1] if len(sys.argv) > 1 else "Ha_Vien_Mastersthesis_2026.tex"
 raw_lines = open(SRC, encoding="utf-8").read().split("\n")
 
 # Chapter 1 onwards: the preamble is configuration, not prose.

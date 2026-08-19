@@ -5,8 +5,11 @@ RAN Control-Plane Systems** against the six-criterion assessment matrix (simplif
 data science master's thesis matrix), on the Finnish 1–5 scale.
 
 Two states are recorded per criterion: the grade on first reading, and the grade after a
-refinement pass. Source material was `Thesis_POC.pdf` and the supporting artefacts in `spec/`,
+refinement pass. Source material was the thesis PDF and the supporting artefacts in `spec/`,
 `bench/`, `faults/`, `ffi/`, and `diagrams/`.
+
+The thesis source was renamed from `Ha_Vien_Mastersthesis_2026.tex` to `Ha_Vien_Mastersthesis_2026.tex` on
+19 August 2026. Passes recorded before that date read the same document under the older name.
 
 An interactive version of this document exists as a Cursor canvas at
 `~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grading.canvas.tsx`. This file is
@@ -347,7 +350,7 @@ Whether it survives more repeats is a named item to re-check after the bare-meta
 | `diagrams/13_defect_families_tree.svg` | Both boundary classes added with their own marker; legend corrected from five classes to five plus two. |
 | `diagrams/14_fault_injection_method.svg` | Seven classes not five, `rustc 1.97` not `1.96`, and the outcome box no longer claims every case is a compile error. |
 | `diagrams/15_overload_cliff.svg` | Dropped the unsupported claim that both languages track the cliff; stale load annotations replaced with qualitative labels. |
-| `Thesis_POC.tex` | New significance and complexity tables with their discussion; corrected RQ3 finding in Chapters 7, 8, 9 and the abstract; Section 5.5 rewritten; 3.3 and 4.1 de-duplicated; contents trimmed; long sentences broken up. |
+| `Ha_Vien_Mastersthesis_2026.tex` | New significance and complexity tables with their discussion; corrected RQ3 finding in Chapters 7, 8, 9 and the abstract; Section 5.5 rewritten; 3.3 and 4.1 de-duplicated; contents trimmed; long sentences broken up. |
 | `bibliography.bib` | Added the `lizard` tool entry. |
 
 Verified by full rebuild: 105 pages, zero LaTeX errors, zero undefined references or citations,
@@ -462,9 +465,9 @@ overflowed on first attempt.
 
 ## Third pass — 14 August 2026
 
-Re-read of `Thesis_POC.tex` / `Thesis_POC.pdf` against the same six-criterion matrix. Source:
+Re-read of the thesis source and PDF against the same six-criterion matrix. Source:
 full document (Chapters 1–9, abstract, tables, generated macros in `figures/gen_macros.tex`),
-plus spot-check of `spec/`, `bench/`, `faults/`, `ffi/`. Build: `latexmk -pdf Thesis_POC.tex`
+plus spot-check of `spec/`, `bench/`, `faults/`, `ffi/`. Build: `latexmk -pdf Ha_Vien_Mastersthesis_2026.tex`
 up to date (last PDF 13 Aug 2026).
 
 ### Summary (current)
@@ -545,7 +548,7 @@ host, overload qualification). Housekeeping unchanged: `\censors{}{}{}`, officia
 ## Fourth pass — 17 August 2026
 
 Graded against the **official seven-area CSM matrix** (9 April 2024) rather than the
-six-criterion simplification used above, and **from `Thesis_POC.tex` alone** — no artefact
+six-criterion simplification used above, and **from `Ha_Vien_Mastersthesis_2026.tex` alone** — no artefact
 directories, nothing the code would prove that the text does not say. Canvas:
 `~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-aug17.canvas.tsx`.
 
@@ -608,7 +611,7 @@ overfull boxes, zero floats too large. 147 pages.
 2. **Bare-metal tail campaign** with counters and allocation profiles. Lifts areas 3 and 4.
 3. ~~**Align RQ1's metric list** with what is reported, or report jitter.~~ **Done.** RQ1 now
    names the median, p99, p99.9 and the maximum in all three documents — `Thesis_Plan_v2.tex`,
-   `Thesis_v1.tex` and `Thesis_POC.tex` — which is exactly what the reported campaign delivers,
+   `Thesis_v1.tex` and `Ha_Vien_Mastersthesis_2026.tex` — which is exactly what the reported campaign delivers,
    and §8.6 states that jitter and p99.99 are instrumented but not yet reported. The question and
    the answer therefore match. Two consequences to keep in view: the change narrowed a
    supervisor-approved RQ, so it should be **flagged explicitly in the next submission** rather
@@ -625,8 +628,8 @@ overfull boxes, zero floats too large. 147 pages.
 ## Fifth pass — 19 August 2026
 
 Graded against the **official seven-area CSM matrix** (9 April 2024) using
-`.cursor/skills/thesis-grade-csm/`. Source: `Ha_Vien_Mastersthesis_2026.pdf`, which is
-byte-identical to `Thesis_POC.pdf` (md5 `0b1afc6f…`), plus `Thesis_POC.tex` and the generated
+`.cursor/skills/thesis-grade-csm/`. Source: the thesis PDF (md5 `0b1afc6f…`, then still issued
+as a copy of `Thesis_POC.pdf` under the submission name), plus the thesis source and the generated
 artefacts under `figures/`. Build dated 18 Aug 2026 15:44 against a source of 15:34, so the
 grade describes a current build. 163 pages. Standard applied: a full draft the repository does
 not treat as supervisor-approved, judged as an examiner would see the manuscript. Canvas:
@@ -716,7 +719,7 @@ than sink it.
    §7.5.1 says the campaign "predates that instrumentation". The gap is disclosed in §7.5.1 and
    in construct validity, but §5.5 was never rewritten, so the description of the setup
    contradicts the results. *Areas 4, 6.*
-4. **0.250 % and 99.9 % do not complement each other** (`Thesis_POC.tex:2538`). The complement of
+4. **0.250 % and 99.9 % do not complement each other** (`Ha_Vien_Mastersthesis_2026.tex:2538`). The complement of
    `\BudgetCoreShareMax` is 99.75. The 99.9 figure holds only against Table 7.1's ~80 µs
    latencies rather than the 13.6 µs round-trip that 0.250 % is a share of, and the change of
    denominator is not stated. Figure 7.4 labels the operation "0.250% of the bar", which is the

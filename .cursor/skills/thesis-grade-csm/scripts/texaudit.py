@@ -4,8 +4,8 @@
 Covers the part of assessment areas 4 and 6 that a script can settle. What it cannot
 settle, and what carries the grade, is whether the prose agrees with the tables.
 
-    texaudit.py Thesis_POC.tex
-    texaudit.py Thesis_POC.tex --macros figures/gen_macros.tex
+    texaudit.py Ha_Vien_Mastersthesis_2026.tex
+    texaudit.py Ha_Vien_Mastersthesis_2026.tex --macros figures/gen_macros.tex
 
 Exit status is 1 when a hard gate fails (LaTeX error, undefined reference or citation,
 multiply defined label, float too large, overfull box), 0 otherwise. Stdlib only.

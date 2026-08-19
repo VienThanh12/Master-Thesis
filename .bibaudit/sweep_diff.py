@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path("/home/vienha/thesis.local")
 bib = ROOT / "bibliography.bib"
 notes = ROOT / "docs" / "LITERATURE_NOTES.md"
-tex = ROOT / "Thesis_POC.tex"
+tex = ROOT / "Ha_Vien_Mastersthesis_2026.tex"
 
 bib_text = bib.read_text()
 bib_keys = {m.group(2).strip() for m in re.finditer(r"^@(\w+)\{([^,]+),", bib_text, re.M)}
@@ -16,7 +16,7 @@ cited = set()
 for m in re.finditer(r"\\cite[tp]?\{([^}]*)\}", tex.read_text()):
     cited.update(k.strip() for k in m.group(1).split(","))
 
-print(f"bibliography.bib: {len(bib_keys)} entries   cited in Thesis_POC.tex: {len(cited)}")
+print(f"bibliography.bib: {len(bib_keys)} entries   cited in {tex.name}: {len(cited)}")
 print(f"proposed in LITERATURE_NOTES.md: {len(notes_keys)}\n")
 
 missing = sorted(notes_keys - bib_keys)

@@ -370,7 +370,7 @@ python3 bench/plot_figures.py --campaign results/campaign-XXXX.jsonl \
     --taxonomy ../faults/results/taxonomy.csv --load 16000
 ```
 
-Produces (vector PDF, all nine embedded by `Thesis_POC.tex`):
+Produces (vector PDF, all nine embedded by `Ha_Vien_Mastersthesis_2026.tex`):
 - `fig_latency_vs_load.pdf`: p99 latency vs offered load, median + bootstrap 95% CI band.
 - `fig_throughput_vs_load.pdf`: achieved vs offered throughput (saturation knee).
 - `fig_tail_percentiles.pdf`: latency by percentile at the representative load, with

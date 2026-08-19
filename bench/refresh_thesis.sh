@@ -63,32 +63,32 @@ else
   echo "  SKIP: .venv-pptx not present; keeping existing Rust_vs_Cpp_Nokia_RAN_thesis.pptx"
 fi
 
-echo "== rebuilding Thesis_POC.pdf =="
+# The source carries the UH submission filename directly
+# (Lastname_Firstname_Mastersthesis_Year, ASCII only), so the build writes the
+# submission PDF and there is no second copy to keep in step.
+thesis="Ha_Vien_Mastersthesis_2026"
+
+echo "== rebuilding $thesis.pdf =="
 cd "$root"
-latexmk -pdf -interaction=nonstopmode Thesis_POC.tex >/dev/null 2>&1 || true
+latexmk -pdf -interaction=nonstopmode "$thesis.tex" >/dev/null 2>&1 || true
 
 # .latexmkrc keeps intermediates in build/ so the repository root stays readable.
 # Fall back to the root copy in case the last build came from a tool that
 # overrode the aux directory.
-poc_log="build/Thesis_POC.log"
-[ -f "$poc_log" ] || poc_log="Thesis_POC.log"
+thesis_log="build/$thesis.log"
+[ -f "$thesis_log" ] || thesis_log="$thesis.log"
 
 echo
-if grep -qE '^!|LaTeX Error' "$poc_log" 2>/dev/null; then
-  echo "FAIL: LaTeX reported errors -- see $poc_log"
-  grep -nE '^!|LaTeX Error' "$poc_log" | head
+if grep -qE '^!|LaTeX Error' "$thesis_log" 2>/dev/null; then
+  echo "FAIL: LaTeX reported errors -- see $thesis_log"
+  grep -nE '^!|LaTeX Error' "$thesis_log" | head
   exit 1
 fi
-if grep -q 'LaTeX Warning' "$poc_log" 2>/dev/null; then
+if grep -q 'LaTeX Warning' "$thesis_log" 2>/dev/null; then
   echo "WARN: unresolved LaTeX warnings (undefined refs/citations?):"
-  grep -n 'LaTeX Warning' "$poc_log" | head
+  grep -n 'LaTeX Warning' "$thesis_log" | head
 fi
-echo "OK: Thesis_POC.pdf rebuilt."
-
-# UH submission filename: Lastname_Firstname_Mastersthesis_Year (ASCII only).
-submission_pdf="Ha_Vien_Mastersthesis_2026.pdf"
-cp -f Thesis_POC.pdf "$submission_pdf"
-echo "OK: $submission_pdf (submission copy) updated."
+echo "OK: $thesis.pdf rebuilt."
 
 echo
 echo "Campaign numbers now in the prose (figures/gen_macros.tex):"

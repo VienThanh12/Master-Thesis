@@ -6,7 +6,7 @@ description: >-
   grade and the cheapest work that lifts it. Produces a grading canvas and a dated pass in
   docs/ASSESSMENT.md. Use when the user asks what grade the thesis would get, how an examiner,
   supervisor, or opponent would assess it, what blocks a 5 in an area, whether an edit protects
-  the grade, or for an examiner-style review of Thesis_POC.tex, Thesis_v1.tex,
+  the grade, or for an examiner-style review of Ha_Vien_Mastersthesis_2026.tex, Thesis_v1.tex,
   Thesis_Plan_v2.tex, or an external manuscript.
 ---
 
@@ -21,7 +21,7 @@ highest historical yield, and the false positives to discount are in
 
 | Mode | Subject | Record |
 | --- | --- | --- |
-| **Own thesis** | `Thesis_POC.tex` unless told otherwise. Read `AGENT.md` first for document roles and non-negotiable claims. | Canvas plus a dated pass appended to `docs/ASSESSMENT.md`. |
+| **Own thesis** | `Ha_Vien_Mastersthesis_2026.tex` unless told otherwise. Read `AGENT.md` first for document roles and non-negotiable claims. | Canvas plus a dated pass appended to `docs/ASSESSMENT.md`. |
 | **External manuscript** | A PDF or `.tex` the author is reviewing or opposing. | Canvas only. Never write another author's thesis into `docs/ASSESSMENT.md`; that file is the record for this thesis. |
 
 ## The three rules that govern every grade
@@ -68,7 +68,7 @@ Run the audit script first, because it costs seconds and it finds the defects th
 and 6:
 
 ```bash
-.cursor/skills/thesis-grade-csm/scripts/texaudit.py Thesis_POC.tex --macros figures/gen_macros.tex
+.cursor/skills/thesis-grade-csm/scripts/texaudit.py Ha_Vien_Mastersthesis_2026.tex --macros figures/gen_macros.tex
 ```
 
 It reports LaTeX errors, undefined references and citations, overfull boxes, floats too large,

@@ -1314,153 +1314,136 @@ seam size, \texttt{unsafe} scope, per-call interop cost \\
 \end{table}
 
 \section{Methods for the four research questions}
-Table~\ref{tab:design} pairs each question with a method. This section says what each method
-does and why it fits.
+Table~\ref{tab:design} pairs each question with a method.
 
 \subsection{Performance measurement under a load sweep (RQ1, RQ3)}\label{sec:methodperf}
 RQ1 and RQ3 are answered by driving both implementations with one deterministic synthetic
-workload, sweeping offered load from light load through saturation into overload and recording
-latency and resource use at each level. Two design decisions make the measurement sound. The
-load generator follows an \emph{open-loop} schedule: each request has a fixed intended send
-time, and latency is measured against that time and not against the moment the request is
-admitted. This is what corrects for coordinated omission, in the sense
-Chapter~\ref{chapter:background} defines. The sweep is also pushed past saturation deliberately,
-for the reason Section~\ref{sec:predictability} gives: the overload cliff appears only once
-offered load exceeds service capacity. Latency goes into high-dynamic-range histograms
-configured identically on both sides, and resource use (peak resident set size, CPU utilisation,
+workload across a sweep of offered load, from light load through saturation into overload. Two
+design decisions make the measurement sound. The load generator follows an \emph{open-loop}
+schedule: each request has a fixed intended send time, and latency is measured against that time
+and not against the moment of admission. That corrects for coordinated omission as
+Chapter~\ref{chapter:background} defines it. The sweep is pushed past saturation deliberately,
+because the overload cliff appears only once offered load exceeds service capacity
+(Section~\ref{sec:predictability}). Latency goes into high-dynamic-range histograms configured
+identically on both sides, and resource use (peak resident set size, CPU utilisation,
 throughput) is sampled through the operating system.
 
 \paragraph{Measuring the component as well as the round-trip.}
-A sweep measures a round-trip, and a round-trip bundles two costs of different character. One is
-the operation the language runs inside a single thread: a hash lookup, a state-machine guard, a
-field update, all of it compiler-generated code. The other is the cross-thread
-submit-and-complete handoff around it: an enqueue, a futex wake, a context switch, a completion,
-none of it language-specific. Only the first can plausibly differ between C++ and Rust, and no
-end-to-end measurement separates them.
+A round-trip bundles two costs of different character. One is the operation the language runs
+inside a single thread: a hash lookup, a state-machine guard, a field update, all
+compiler-generated. The other is the cross-thread handoff around it: an enqueue, a futex wake, a
+context switch, a completion, none of it language-specific. Only the first can plausibly differ
+between C++ and Rust, and no end-to-end measurement separates them.
 
-The method therefore works at two levels. The single-threaded operation processor is called
-directly, with no queue in the path, and the same operation is then called through the full
-threaded service. The difference between the two is the handoff. Both levels are batch means
-over a long loop and not per-call medians, because a clock read costs tens of nanoseconds, the
-same order as the operation itself, so per-call timestamps would measure the instrument and not
-the code.
-The two languages are interleaved across repeats and compared with the same exact paired test as
-the sweep, so the levels differ in what they measure and not in how they are analysed.
+The method therefore works at two levels. The operation processor is called directly, with no
+queue in the path, then through the full threaded service. The difference between the two is the
+handoff. Both levels are batch means over a long loop and not per-call medians, because a clock
+read costs tens of nanoseconds, the same order as the operation itself, and per-call timestamps
+would measure the instrument. The languages are interleaved across repeats and compared with the
+same exact paired test as the sweep, so the levels differ in what they measure and not in how
+they are analysed.
 
 Reporting both separates two questions the research questions did not distinguish as originally
-worded. The round-trip is what a deployment of this shape would experience. The component is
-what the language is doing. Section~\ref{sec:budget} finds the two more than two orders of
-magnitude apart, so the distinction decides whether the result can be interpreted at all. The
-second level was added after a first pass of the campaign, not designed in from the start, and
-Section~\ref{sec:threats} records that revision.
+worded: what a deployment of this shape would experience, and what the language is doing.
+Section~\ref{sec:budget} finds the two more than two orders of magnitude apart. The distinction
+therefore decides whether the result can be interpreted at all. The second level was added after
+a first pass of the campaign, and Section~\ref{sec:threats} records that revision.
 
 \paragraph{Isolating the contended synchronisation primitives.}
 The overload comparison in Section~\ref{sec:overload} attributes its gap to two forced-idiom
-entries where the standard libraries diverge: the bounded blocking queue and the one-shot
-completion handle. That attribution is argued from the shape of the full-service measurement, so
-a third matched microbenchmark tests it directly. It drives those two primitives alone, with no
-\texttt{ShardCore} work in the path, under the same interleaved repeats and paired test as the
-decomposition above. Section~\ref{sec:contention} gives its configuration and reports whether the
-isolated primitives reproduce the ordering the full service showed.
+entries where the standard libraries diverge. They are the bounded blocking queue and the
+one-shot completion handle. That attribution is argued from the shape of the full-service
+measurement, so a third matched microbenchmark drives those two primitives alone, with no
+\texttt{ShardCore} work in the path, under the same interleaved repeats and paired test.
+Section~\ref{sec:contention} gives its configuration and reports whether the isolated primitives
+reproduce the ordering the full service showed.
 
 \subsection{Controlled fault injection (RQ2)}\label{sec:methodfaults}
 RQ2 asks which defect classes a language prevents. Measuring defect-free code cannot answer
-that, because the absence of a bug in a passing test says nothing about whether the language
-would have caught it. The method is therefore adversarial, following the established practice of
-software fault injection, where representative faults are introduced deliberately to see how a
-system behaves in their presence~\cite{natella2016fault}.
+that: the absence of a bug in a passing test says nothing about whether the language would have
+caught it. The method is therefore adversarial, following the established practice of software
+fault injection, where faults are introduced deliberately to see how a system behaves in their
+presence~\cite{natella2016fault}.
 
 A catalogue of representative C++ defects is written \emph{deliberately}, drawn from the classes
 that affect this subsystem (Chapter~\ref{chapter:context}). Each is a small self-contained
 program flavoured with the domain: a stale pointer into the context map, a double release, a
-mutation during iteration, an unsynchronised shared update. Each defect is built and run under
+mutation during iteration, an unsynchronised shared update. Each is built and run under
 AddressSanitizer, ThreadSanitizer and UndefinedBehaviorSanitizer, recording which tool detects
 it, if any, and at what stage.
 
 The same construct is then written in safe Rust and compiled. The compiler's outcome is
-recorded, and where it compiles, so is the behaviour of the program. The boundary classes give
-the compiler nothing to say, so the Rust side also goes to two model checkers, Loom and Shuttle.
-That answers the ``at what stage'' half of RQ2 for them instead of leaving it blank.
+recorded, and where it compiles, so is the program's behaviour. The boundary classes give the
+compiler nothing
+to say, so the Rust side also goes to two model checkers, Loom and Shuttle, which answer the
+``at what stage'' half of RQ2 for them.
 
-One case is run repeatedly. Whether ThreadSanitizer reports the lock-order inversion depends on
-the schedule, so a single run records whichever outcome the machine happened to give. The runner
-executes that case twelve times and reports the rate, so intermittent detection is not mistaken
-for reliable detection.
+Whether ThreadSanitizer reports the lock-order inversion depends on the schedule, so a single run
+would record whichever outcome the machine happened to give. The runner executes that case twelve
+times and reports the rate, so intermittent detection is not mistaken for reliable detection.
 
 \paragraph{Why the C++ side is tooled with sanitisers only.}
-No static analyser is run against the C++ catalogue. That is a decision, not an oversight. RQ2
-does not ask which tool finds the most defects. It asks at what \emph{stage}, and with what
-force, each language rules a defect out. The taxonomy's three outcomes (compile-time rejection,
-runtime detection, silent miss) are the categories that question needs, and a static analyser
-belongs to none of them. It is an opt-in pass, neither the compiler refusing to build a program
-nor an observation of an execution, and Section~\ref{sec:cpplatency} has already noted that it
-suffers false negatives and cannot reason across a whole program.
+No static analyser is run against the C++ catalogue, and that is a decision. RQ2 does not ask
+which tool finds the most defects. It asks at what \emph{stage}, and with what force, each
+language rules a defect out, and the taxonomy's three outcomes (compile-time rejection, runtime
+detection, silent miss) are the categories that question needs. An opt-in pass belongs to none
+of them: a warning a build can be configured to ignore is a different kind of object from a
+compilation that cannot succeed, and that difference is what the method measures.
 
-The choice has a cost. It makes the C++ side of the taxonomy narrower than the best a C++
-project could manage. The memory-safety cases are small and intra-procedural, the shape at which
-static analysis is strongest, so a well-configured analyser could plausibly reach some of them.
-The concurrency cases depend on an interleaving, the shape at which it is weakest. The study
-therefore reports the tooling it ran, the sanitiser-based practice of
-Section~\ref{sec:cpplatency}, and not a ceiling on what C++ tooling can achieve. No analyser
-would change the property the comparison turns on: a warning a build can be configured to ignore
-is a different kind of object from a compilation that cannot succeed, and that difference is
-what the method measures.
+The cost is a C++ side narrower than the best a C++ project could manage, since a well-configured
+analyser could plausibly reach the small intra-procedural memory-safety cases, though not the
+concurrency ones. The study therefore reports the tooling it ran, the sanitiser-based practice of
+Section~\ref{sec:cpplatency}, and not a ceiling on what C++ tooling can achieve.
 
-The injected fault is held fixed while the language varies, exactly as the performance
-comparison holds the workload fixed, so any difference in outcome comes from the language's
-guarantees and not from the specific bug. The method establishes the \emph{kind} of protection
-each language offers, not a performance number.
+The injected fault is held fixed while the language varies, so any difference in outcome comes
+from the language's guarantees and not from the specific bug. What the method establishes is the
+\emph{kind} of protection each language offers, not a performance number.
 
-One design decision determines whether that taxonomy can be trusted. A catalogue drawn only from
-classes the language is known to prevent would produce a foregone conclusion. It could confirm
-the hypothesis but never disturb it, and the result would describe the author's choice of cases
-as much as the language. The catalogue is therefore built in two groups. The first holds classes
-inside Rust's stated guarantee. The second holds classes chosen from just outside it, where
-ownership and the \texttt{Send}/\texttt{Sync} discipline give no protection.
-
-Each case carries a recorded expectation, prevented or not prevented, and the runner reports a
-violation in either direction. An unexpected outcome therefore surfaces as a discrepancy instead
-of being absorbed into the narrative. What this buys is a boundary and not a score: the study
-can state which defect classes the language removes and which comparable ones it leaves in
-place, and the second half is what a practitioner planning a migration needs.
+One design decision determines whether the taxonomy can be trusted. A catalogue drawn only from
+classes the language is known to prevent could confirm the hypothesis but never disturb it, and
+would describe the author's choice of cases as much as the language. The catalogue is
+therefore built in two groups: classes inside Rust's stated guarantee, and classes just outside
+it, where ownership and the \texttt{Send}/\texttt{Sync} discipline give no protection. Each case
+carries a recorded expectation and the runner reports a violation in either direction, so an
+unexpected outcome surfaces as a discrepancy instead of being absorbed into the narrative. What
+this buys is a boundary and not a score: the study can state which classes the language removes
+and which comparable ones it leaves in place, which is what a migration decision needs.
 
 \subsection{Foreign-function-interface migration case study (RQ4)}\label{sec:methodffi}
 RQ4 concerns the practical cost of adopting Rust inside an existing C++ system, an engineering
-question as much as a performance one. It is answered with a working prototype built in the
-realistic direction of migration: a C++ host calling a Rust component across a C application
-binary interface. Three quantities are measured on it. The \emph{size} of the interoperability
-seam counts its entry points, lines of code and dependencies. The \emph{scope} of
-\texttt{unsafe} records where the checked language is left and whether the safety-critical core
-is affected. The \emph{per-call cost} is the price of crossing the boundary, measured against
-the same operation invoked natively, so the comparison isolates what the seam adds and not what
-the operation costs. The first two are structural and are read off the code, and the third is a
-matched pair of microbenchmarks. Pairing a structural account with a cost measurement separates
-the run-time cost of interoperability from its true cost, which lies in API design and human
-learning.
+question as much as a performance one. It is answered with a prototype built in the realistic
+direction of migration: a C++ host calling a Rust component across a C application binary
+interface. Three quantities are measured on it. The \emph{size} of the seam counts its entry
+points, lines of code and dependencies. The \emph{scope} of \texttt{unsafe} records where the
+checked language is left and whether the safety-critical core is affected. The \emph{per-call
+cost} is the price of crossing the boundary, measured against the same operation invoked
+natively so the comparison isolates what the seam adds. The first two are read off the code, the
+third is a matched pair of microbenchmarks. Pairing them separates the run-time cost of
+interoperability from its true cost, which lies in API design and human learning.
 
 \section{Fairness as a controlled-variable strategy}\label{sec:controls}
-Every research question attributes a difference to the language, so the validity of the whole
-study depends on holding everything else equal. Fairness is therefore the study's central
-experimental control, and it is enforced at several levels.
+Every research question attributes a difference to the language, so validity depends on holding
+everything else equal. Fairness is therefore the study's central control, enforced at several
+levels.
 
 The \emph{specification} is frozen before any code is written. It fixes the public API, the
 state machine, the data structures and their algorithmic strategy, and the sharding and
 concurrency model (Section~\ref{sec:fairness}). The \emph{run-time substrate} is equalised by
-linking the same memory allocator on both sides and matching build-optimisation levels as
-closely as the two toolchains allow. The \emph{workload} comes from a driver identical in
-structure across languages that, for a given seed and active-UE population, drives both
-implementations through exactly the same sequence of operations. Any latency difference
-therefore reflects how each language executes the same work, not a difference in what work is
-done.
+linking the
+same allocator on both sides and matching build-optimisation levels as closely as the toolchains
+allow. The \emph{workload} comes from a driver identical in structure across languages that, for
+a given seed and active-UE population, drives both implementations through the same sequence of
+operations. Any latency difference therefore reflects how each language executes the same work,
+not a difference in what work is done.
 
 Where the two languages genuinely cannot express the same construct, the deviation is recorded
-in a forced-idiom log and weighed in the discussion. What remains uncontrolled, principally
-single-author skill asymmetry, is acknowledged as a threat to validity
-(Chapter~\ref{chapter:discussion}) and not claimed to be eliminated.
+in a forced-idiom log. What remains uncontrolled, principally single-author skill asymmetry, is
+acknowledged as a threat to validity (Chapter~\ref{chapter:discussion}) and not claimed to be
+eliminated.
 
 Table~\ref{tab:controls} states the strategy variable by variable, and its third column matters
 most. A controlled experiment is credible in proportion to how honestly it accounts for what it
-failed to control. Three rows there record a residual and not a clean fix: the languages cannot
+failed to control. Three rows record a residual and not a clean fix: the languages cannot
 always express the same construct, they do not ship the same hash-map layout, and one person
 wrote both implementations. The forced-idiom log handles the first, and the last row names the
 one variable left with no control at all.

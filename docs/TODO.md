@@ -12,7 +12,7 @@ primary control against implementation bias.
 
 ## Next up (as of 9 Aug 2026)
 
-Implementation, analysis, and writing are finished: `Thesis_POC.pdf` builds at 161 pages (17 Aug
+Implementation, analysis, and writing are finished: the thesis builds at 161 pages (17 Aug
 2026) with zero LaTeX errors, zero undefined references or citations and zero overfull boxes, and
 every quoted number regenerates from the raw logs. What is left is one measurement, one review round, and housekeeping. The plan
 document (`Thesis_Plan_v2.pdf`, dated 9 Aug 2026) puts measurement in September, RQ1/RQ3
@@ -58,19 +58,19 @@ needs.
 - [x] Obtain the `UH_DS_MSc.cls` class file (local reconstruction from UH_*_MSc family; see note)
 - [x] Create `bibliography.bib` with all cited references (97 active entries as of 17 Aug 2026,
       all cited, no orphans; one superseded entry is commented out)
-- [x] Verify `Thesis_POC.tex` compiles to PDF end-to-end (161 pages as of 17 Aug 2026, all
+- [x] Verify `Ha_Vien_Mastersthesis_2026.tex` compiles to PDF end-to-end (161 pages as of 17 Aug 2026, all
       refs/citations resolve; bibliography style is now `IEEEtran`, numbered in citation order)
 - [x] Initialize git repository; add `.gitignore` (build artifacts, LaTeX aux files)
 - [x] (Optional) Replace reconstructed `UH_DS_MSc.cls` with the official one from Overleaf/Moodle
 - [x] Confirm the cover-page programme label ("Master's Programme in Computer Science") is correct
 - [x] Decide repo layout: `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/`, `figures/` at
-      repo root; `Thesis_POC.tex` + `bibliography.bib` at root. No separate `experiments/` or
+      repo root; `Ha_Vien_Mastersthesis_2026.tex` + `bibliography.bib` at root. No separate `experiments/` or
       `analysis/` dirs (folded into `bench/`).
 
 ### Build instructions
 ```bash
 # Toolchain is TinyTeX; PATH set in ~/.bashrc (open a new terminal or `source ~/.bashrc`)
-latexmk -pdf Thesis_POC.tex      # build -> Thesis_POC.pdf
+latexmk -pdf Ha_Vien_Mastersthesis_2026.tex      # build -> Ha_Vien_Mastersthesis_2026.pdf
 latexmk -C                   # clean build artifacts
 ```
 
@@ -297,11 +297,11 @@ latexmk -C                   # clean build artifacts
       19% longer but 15% lower in total complexity; C++ `worker_loop` is CCN 13 vs Rust's max of 6.
 - [x] Draft evidence-based migration/language-selection guidelines (RQ4 inputs ready; §8.4)
 - [ ] Extend `bench/refresh_thesis.sh` to rebuild every document that quotes the numbers, not
-      only `Thesis_POC.tex`. `plain_Thesis_POC.tex` inputs the same `figures/gen_*.tex`, so its prose
+      only `Ha_Vien_Mastersthesis_2026.tex`. `plain_Ha_Vien_Mastersthesis_2026.tex` inputs the same `figures/gen_*.tex`, so its prose
       updates while its PDF does not, which is exactly how a companion document goes stale
       without anyone noticing.
 
-## Phase 9 - Writing (fill placeholders in Thesis_POC.tex)
+## Phase 9 - Writing (fill placeholders in Ha_Vien_Mastersthesis_2026.tex)
 - [x] Build `bibliography.bib` (3gpp38401, 3gpp38300, msrc2019memory, google2022android,
       klabnik2023rust, jung2018rustbelt, astrauskas2020unsafe, tene_hdrhistogram, pereira2017energy)
 - [x] Complete "Implementation details" section with concrete data structures/locking
@@ -319,11 +319,11 @@ latexmk -C                   # clean build artifacts
       Keywords row; check page 3 visually after editing it.
 
 ## Phase 9b - Companion documents (assign a status, then keep them in step)
-The repo now carries four documents besides `Thesis_POC.tex`. Only `Thesis_POC.tex` is the submission
+The repo now carries four documents besides `Ha_Vien_Mastersthesis_2026.tex`. Only `Ha_Vien_Mastersthesis_2026.tex` is the submission
 artefact; the rest are unlabelled, which is how two of them drifted without it being visible.
 - [x] `plain_thesis.tex` - plain-language variant (121 pages) for a reader with no 5G
       background. Same argument, same data, same generated macros, and it built clean.
-      `Thesis_POC.tex` stays the reference version, and its header already says so. Moved to
+      `Ha_Vien_Mastersthesis_2026.tex` stays the reference version, and its header already says so. Moved to
       `archive/` on 18 Aug 2026, so it now needs its relative paths fixed before it builds again.
 - [x] `thesis-vi.tex` - Vietnamese translation (75 pages), **broken and stale**, and now
       **decided against as a deliverable**. All 113 citations (33 distinct keys) rendered as `[?]`
@@ -338,22 +338,22 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       yet") and dated 9 Aug 2026. If it is handed in later than that date, the date and the status
       table have to move together.
 - [ ] Make the title-page fields agree across variants: `Thesis_v1.tex` has
-      `\censors{Keijo Heljanko}{}{}` while `Thesis_POC.tex` still has `\censors{}{}{}`. One of the two
+      `\censors{Keijo Heljanko}{}{}` while `Ha_Vien_Mastersthesis_2026.tex` still has `\censors{}{}{}`. One of the two
       is wrong, and the same programme/study-track labels are duplicated in four files.
 - [x] Housekeeping: `thesis_wbm_full_backup.tex` was a tracked 208 kB leftover still on
       `\bibliographystyle{abbrv}`, one word different from `Thesis_v1.tex` and easy to edit by
       mistake. Moved to `archive/` on 18 Aug 2026 together with `plain_thesis.tex`, `thesis-vi.tex`,
-      the pre-cuts `Thesis_POC.tex` backup, and the v1 plan PDF.
+      the pre-cuts `Ha_Vien_Mastersthesis_2026.tex` backup, and the v1 plan PDF.
 
 ## Phase 10 - Finalization
-- [ ] **BLOCKER — rewrite the abstract unaided.** The abstract of `Thesis_POC.tex` was drafted
+- [ ] **BLOCKER — rewrite the abstract unaided.** The abstract of `Ha_Vien_Mastersthesis_2026.tex` was drafted
       with model assistance. The UH thesis guide states that a language model may not be used
       when preparing the thesis summary, and in this programme the summary doubles as the
       maturity test, where AI use is never permitted. `ai_statement.tex` already declares the
       abstract as written unaided, so that sentence is false until this is done. Rewrite it in
       your own words from the results, then re-read `ai_statement.tex` end to end and correct
       anything that does not describe what actually happened — it is a statement in your name.
-- [x] Declaration of AI use (`ai_statement.tex`), `\input` by both `Thesis_POC.tex` and
+- [x] Declaration of AI use (`ai_statement.tex`), `\input` by both `Ha_Vien_Mastersthesis_2026.tex` and
       `Thesis_v1.tex` before the bibliography, listed in the ToC. Follows the UH basic
       reporting instruction: scope, purpose, tool and version, how the output was verified,
       what the author took from it, and where responsibility lies. Keep it in step with reality
@@ -365,7 +365,7 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       of", ", not", and "and not" so no single replacement becomes the next tic. Direct
       quotations were left alone. Everything else came back clean: no promotional vocabulary,
       no "it is worth noting", sentence-length stdev 14.7 on a mean of 27.6. Re-run
-      `.aitells.py Thesis_POC.tex` after any large writing pass.
+      `.aitells.py Ha_Vien_Mastersthesis_2026.tex` after any large writing pass.
 - [ ] Full proofread + supervisor review round(s)
 - [x] Verify all cross-references, citations, tables, figures resolve (0 errors, 0 undefined)
 - [x] Reproducibility check: `bench/refresh_thesis.sh` regenerates every figure, table, and
@@ -384,7 +384,7 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       measurement host and what it cannot carry, the pre-committed statistical treatment, the
       latency decomposition, the overload divergence, and the contended-primitive mechanism test.
       `build_deck.py` also gates its own layout against the template's content band.
-- [ ] Final PDF + submission (`Ha_Vien_Mastersthesis_2026.pdf`, copied from `Thesis_POC.pdf` by `bench/refresh_thesis.sh`)
+- [ ] Final PDF + submission (`Ha_Vien_Mastersthesis_2026.pdf`, written directly by `bench/refresh_thesis.sh`)
 
 ### After the bare-metal campaign, re-check these
 The prose is generated from the data, so most of it updates itself. These are the claims that
@@ -532,7 +532,7 @@ to "localised", closing the residual `tab:threats` names as its most exposed.
 the Aug 14 WSL smoke carries `.hist.jsonl`. So jitter and p99.99 are measurable and unmeasured.
 
 Note what this item is **not**, because an earlier version of this note had it wrong. RQ1 no
-longer names jitter: as worded in the plan, `Thesis_v1.tex` and `Thesis_POC.tex` it asks about the
+longer names jitter: as worded in the plan, `Thesis_v1.tex` and `Ha_Vien_Mastersthesis_2026.tex` it asks about the
 median, p99, p99.9 and the maximum, which is exactly what the reported campaign delivers, and
 §8.6 says so deliberately rather than confessing a hole. The question and the answer therefore
 already match; this re-run is an *upgrade to predictability evidence*, not the discharge of an
@@ -863,7 +863,7 @@ by "the artefacts" once the repository keeps moving after submission.
   but replacing either removes the last soft spot in the bibliography. See `ASSESSMENT.md`
   criterion 2.
 - `UH_DS_MSc.cls` is a LOCAL RECONSTRUCTION adapted from `UH_TCM_MSc.cls` (which states it
-  is "based heavily on the UH_DS_MSc.cls"). It defines every command Thesis_POC.tex uses
+  is "based heavily on the UH_DS_MSc.cls"). It defines every command Ha_Vien_Mastersthesis_2026.tex uses
   (`\prof`, `\censors`, `\mytableofcontents`, `\mynomenclature`, `\myappendixtitle`,
   `\depositeplace`, `\additionalinformation`, `\quoting`, `\keywords`, `\classification`).
   The genuine class lives behind the UH Overleaf/Moodle login; swap it in for final submission.

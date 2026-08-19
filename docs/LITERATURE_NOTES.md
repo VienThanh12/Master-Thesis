@@ -1,10 +1,10 @@
 # Literature sweep, August 2026
 
-Candidate sources for `Thesis_POC.tex`, found by searching for work published after the current
+Candidate sources for `Ha_Vien_Mastersthesis_2026.tex`, found by searching for work published after the current
 bibliography was assembled.
 
 > **Status, 10 August 2026.** The core set (§10, items 1–7) has been **applied**: eleven entries
-> added to `bibliography.bib` and the accompanying prose written into `Thesis_POC.tex`. The build is
+> added to `bibliography.bib` and the accompanying prose written into `Ha_Vien_Mastersthesis_2026.tex`. The build is
 > clean at 141 pages with no undefined citations. One deviation: the C++ profiles threat was
 > written into the external-validity prose of §"Threats to validity" rather than added as a row
 > to `tab:threats`, because the companion figure `25_threats_validity.drawio` is hand-laid-out
@@ -75,7 +75,7 @@ primary source is marked rather than filled in.
 
 ## 2. C++ is changing under the thesis's feet
 
-**Why this matters.** §"C++ for latency-critical systems" (Thesis_POC.tex:645–680) says safety in
+**Why this matters.** §"C++ for latency-critical systems" (Ha_Vien_Mastersthesis_2026.tex:645–680) says safety in
 C++ "remains the programmer's responsibility rather than a property the compiler enforces", and
 that C++ "mitigates these defects with tooling rather than with language guarantees". Both
 sentences are true of C++23 as shipped, which is what the C++ implementation targets. But the
@@ -153,15 +153,15 @@ about C++29 is wanted, confirm against WG21 P5000 ("Direction for ISO C++29") fi
 
 ### 2.5 Where it goes
 
-- **§"C++ for latency-critical systems" (Thesis_POC.tex:645–680)**, as a new paragraph after the
+- **§"C++ for latency-critical systems" (Ha_Vien_Mastersthesis_2026.tex:645–680)**, as a new paragraph after the
   tooling paragraph at line 672. Roughly: the committee is addressing this, here is the shape of
   it, here is why the comparison in this thesis is against C++23 as deployed, and here is why the
   concurrency half of RQ2 is unaffected either way.
-- **§"Threats to validity" (Thesis_POC.tex:3586)**, under external validity. There is currently no
+- **§"Threats to validity" (Ha_Vien_Mastersthesis_2026.tex:3586)**, under external validity. There is currently no
   row for "the object of comparison is itself moving". It belongs in `tab:threats` as a
   construct- or external-validity row: control is that the comparison is pinned to a named
   standard and compiler version; residual is that a future C++ closes part of the gap.
-- **Conclusion / future work (Thesis_POC.tex:3774)**, as a natural re-run condition: repeat the RQ2
+- **Conclusion / future work (Ha_Vien_Mastersthesis_2026.tex:3774)**, as a natural re-run condition: repeat the RQ2
   catalogue once an implementation ships an enforced lifetime profile.
 
 ---
@@ -201,9 +201,9 @@ it non-exploitable via guard pages. This is a clean, citable instance of the the
 argument that the guarantee is bounded by `unsafe`, and it pairs with the thesis's design choice
 of keeping the core `unsafe`-free.
 
-**Where it goes:** update the sentence at Thesis_POC.tex:667–668 that currently cites
+**Where it goes:** update the sentence at Ha_Vien_Mastersthesis_2026.tex:667–668 that currently cites
 `google2022android`; §"Discussion on the research questions" for RQ4; and the engineering
-guidelines section (Thesis_POC.tex:3300).
+guidelines section (Ha_Vien_Mastersthesis_2026.tex:3300).
 
 ### 3.2 Watson et al., "It Is Time to Standardize Principles and Practices for Software Memory Safety" — VERIFIED
 
@@ -218,7 +218,7 @@ as Cambridge technical report UCAM-CL-TR-996.
 **Why it is worth adding:** the memory-safety motivation in the thesis currently rests on a
 Microsoft conference talk, Google blog posts, and government reports. This is the same argument
 in a peer-reviewed venue with named academic authors, and it is the strongest single citation
-available for the claim. Straight upgrade for the citation cluster at Thesis_POC.tex:3425–3429 and
+available for the claim. Straight upgrade for the citation cluster at Ha_Vien_Mastersthesis_2026.tex:3425–3429 and
 the motivation in Chapter 1.
 
 ### 3.3 NSA and CISA, "Memory Safe Languages: Reducing Vulnerabilities in Modern Software Development" — VERIFIED
@@ -252,7 +252,7 @@ month before this thesis is due. It does not name a language — that point must
 and is the honest reading — but it is the instrument that actually applies to the subject of the
 case study.
 
-**Where it goes:** §"Motivation and industrial context" (Thesis_POC.tex:291), alongside the existing
+**Where it goes:** §"Motivation and industrial context" (Ha_Vien_Mastersthesis_2026.tex:291), alongside the existing
 ONCD and CISA citations. One or two sentences, no more.
 
 ---
@@ -323,7 +323,7 @@ group in the thesis's own domain.
 
 Reports average control latency below 450 µs for real-time control loops on an OAI-based gNB.
 Useful as a published, in-domain number for what "real-time" means in the RAN control plane —
-§"Tail latency and predictability in RAN" (Thesis_POC.tex:1088) currently has no external anchor of
+§"Tail latency and predictability in RAN" (Ha_Vien_Mastersthesis_2026.tex:1088) currently has no external anchor of
 this kind.
 
 ### 4.5 Škoudlil et al., async Rust and bounded response times — VERIFIED
@@ -364,8 +364,8 @@ synchronisation primitives means poor data structuring causes "unwanted blocking
 threads, negatively influencing the timing" — which is an argument for the thesis's shard-owned
 state, not against Rust.
 
-**Where it goes:** §"Related work" (Thesis_POC.tex:3506–3520), in the passage on Arvidsson and Kaller;
-and §"Concurrency models for control-plane software" (Thesis_POC.tex:801) where the choice not to use
+**Where it goes:** §"Related work" (Ha_Vien_Mastersthesis_2026.tex:3506–3520), in the passage on Arvidsson and Kaller;
+and §"Concurrency models for control-plane software" (Ha_Vien_Mastersthesis_2026.tex:801) where the choice not to use
 an async runtime is made. Pair it with the cooperative-scheduling mechanism paper in §7.7.
 
 ---
@@ -458,7 +458,7 @@ it as optional supporting material rather than load-bearing evidence.
 The clearest available statement of why the C ABI is the constraint: no toolchain compiles both
 languages in one source file, so interoperation goes through platform C ABIs, and "the more
 C++-specific facilities are relied upon, the greater the challenge becomes". It also assesses
-`cxx` — already mentioned at Thesis_POC.tex:844 — as "restrictive and opinionated" by its own
+`cxx` — already mentioned at Ha_Vien_Mastersthesis_2026.tex:844 — as "restrictive and opinionated" by its own
 description and incomplete for arbitrary interoperation. Good support for the thesis's decision
 to use a plain `extern "C"` seam, which is currently justified on the thesis's own terms.
 
@@ -513,7 +513,7 @@ finds in this whole file (§7.2 and §7.6).
 
 ### 7.1 A citable foundation for the load generator
 
-The thesis already handles coordinated omission correctly (Thesis_POC.tex:629, 638, 3693), but the
+The thesis already handles coordinated omission correctly (Ha_Vien_Mastersthesis_2026.tex:629, 638, 3693), but the
 citation carrying it is `tene_hdrhistogram`, a conference talk. That is a weak load-bearing
 reference for a methodology chapter. There is a canonical peer-reviewed alternative.
 
@@ -1165,7 +1165,7 @@ compiled PDF before committing to the entry types. And the thesis cites 3GPP spe
 
 > **Status: applied, same day.** Everything in §D below is done. Fourteen entries added to
 > `bibliography.bib` (98 active entries, all cited, no orphans); `Thesis_Plan_v2.tex` §2 rewritten;
-> the three `Thesis_v1.tex` bullets corrected; `Thesis_POC.tex` §`sec:gap`, the search protocol,
+> the three `Thesis_v1.tex` bullets corrected; `Ha_Vien_Mastersthesis_2026.tex` §`sec:gap`, the search protocol,
 > §`sec:relatedwork`, `tab:related`, the peak-RSS discussion, the skill-asymmetry threat and the
 > future-work list updated; `29_research_gap` rebuilt with five columns and six rows; the deck
 > slide-6 subtitle corrected. All three PDFs rebuild with zero errors, zero undefined references
@@ -1186,7 +1186,7 @@ compiled PDF before committing to the entry types. And the thesis cites 3GPP spe
 > model held fixed) that were checked against abstracts only.
 
 The first two sweeps looked for sources that improve the argument. This one attacks it. The gap
-statement in `Thesis_Plan_v2.tex` §2 and `Thesis_POC.tex` §`sec:gap` rests on two Ericsson
+statement in `Thesis_Plan_v2.tex` §2 and `Ha_Vien_Mastersthesis_2026.tex` §`sec:gap` rests on two Ericsson
 master's theses plus an unqualified negative claim (*"Neither isolates the language"*, *"The gap
 is therefore…"*). The question asked here was the adversarial one: **is that still true in
 August 2026, and is "two theses" the right count?**
@@ -1216,7 +1216,7 @@ Two lessons worth keeping, because they change how this search must be run:
    nor `arvidsson2025async` appears in Crossref, OpenAlex, DBLP or Semantic Scholar. Forward or
    backward citation chaining from them is therefore impossible, and no amount of database
    searching finds them or their siblings. They are only reachable through **repository**
-   search. The thesis's documented search protocol (`Thesis_POC.tex`:1339–1351) names four
+   search. The thesis's documented search protocol (`Ha_Vien_Mastersthesis_2026.tex`:1339–1351) names four
    indexed databases and citation chaining; it should also name DiVA and Finna, or it does not
    describe the search that actually found the closest work.
 
@@ -1343,10 +1343,10 @@ Ordered by risk, highest first.
    the argument and citing the rest.
 2. **`Thesis_Plan_v2.tex` §2, final paragraph** — replace the unqualified "Neither isolates the
    language … The gap is therefore" with the three-axis formulation already used in
-   `Thesis_POC.tex` §`sec:relatedwork` ("Individually, none of the three axes is unoccupied…").
+   `Ha_Vien_Mastersthesis_2026.tex` §`sec:relatedwork` ("Individually, none of the three axes is unoccupied…").
    The plan currently makes a stronger claim than the full draft does, which is the wrong way
    round for a supervisor-facing document.
-3. **`Thesis_POC.tex` §`sec:gap` and §`sec:relatedwork`** — add Emberg & Wadsten as the closest
+3. **`Ha_Vien_Mastersthesis_2026.tex` §`sec:gap` and §`sec:relatedwork`** — add Emberg & Wadsten as the closest
    work by method, and Olsson & Stenström as the third instance of the runtime confound. New
    rows for `tab:related`: Emberg & Wadsten (matched pair **yes**, overload tail no, adoption
    cost **dev. effort + seam**), Suchert & Castrillon (matched pair yes, others no), Gonzalez et
@@ -1740,7 +1740,7 @@ pages 836--850. DOI 10.1145/3477132.3483540.
 
 **This is the find of the sweep.** It is a peer-reviewed account of a production Rust system
 validated with *the same two model checkers this thesis uses, for the same reason*, by the team
-that wrote one of them. Read the paper's own description against `Thesis_POC.tex`:2932--3047 and
+that wrote one of them. Read the paper's own description against `Ha_Vien_Mastersthesis_2026.tex`:2932--3047 and
 the draft is doing the same thing on a smaller object.
 
 Three passages are directly usable, quoted from the paper's section on checking concurrent
@@ -1757,7 +1757,7 @@ executions:
 That third sentence is the division of labour `faults/run_model_checking.sh` implements, stated
 independently in a top venue.
 
-**The correction.** `Thesis_POC.tex`:3030 says Loom "enumerates thread interleavings exhaustively
+**The correction.** `Ha_Vien_Mastersthesis_2026.tex`:3030 says Loom "enumerates thread interleavings exhaustively
 under the C11 model". Two words in that are loose. The model is **release/acquire**, a fragment of
 C11 rather than C11 entire, and the exploration is sound **under bounded partial-order reduction**
 rather than exhaustive without qualification. The draft's claim is close enough to be defensible
@@ -1769,7 +1769,7 @@ Two more things in the paper are worth a sentence each. It records that ShardSto
 amount of unsafe Rust code, mostly for interacting with block devices" and that the team ran the
 suite under Miri and **had to extend Miri to support threads and locks** before it was useful,
 which is a published precedent for both the draft's `unsafe`-free-core design and its use of Miri
-at `Thesis_POC.tex`:2130. And its related work reports VeriBetrKV's cost as "7 lines of proof for
+at `Ha_Vien_Mastersthesis_2026.tex`:2130. And its related work reports VeriBetrKV's cost as "7 lines of proof for
 every line of implementation", which sits alongside the roughly 5-to-1 figure recorded for Verus
 in §5.2 of the first sweep.
 
@@ -1815,7 +1815,7 @@ Verification Conference 2005, LNCS 3875, pages 208--223. DOI 10.1007/11678779_15
 *Note the date:* the conference is 2005, Springer's deposit records the LNCS volume as 2006. Cite
 the conference year and the volume, as DBLP does.
 
-**This is the peer-reviewed foundation for the mechanism `Thesis_POC.tex`:3009--3012 explains in
+**This is the peer-reviewed foundation for the mechanism `Ha_Vien_Mastersthesis_2026.tex`:3009--3012 explains in
 its own voice.** The draft argues that TSan builds its lock-order graph from acquisitions that
 succeed, so a run in which the first inversion blocks yields one edge and never the second, and
 the detector stays silent at the moment the bug manifests. Bensalem and Havelund set out the
@@ -1837,7 +1837,7 @@ bibliography. `tang2025converos` (USENIX ATC 2025) model-checked twelve concurre
 Rust operating system and found twenty bugs including deadlocks and livelocks, at a
 specification-to-code ratio of 0.3 to 2.3 and four person-months of effort. Those are *cost*
 figures for getting concurrency defects caught at model-checking time, which is the quantity
-`Thesis_POC.tex`:3038--3047 argues about and currently supports only with its own two models. Worth
+`Ha_Vien_Mastersthesis_2026.tex`:3038--3047 argues about and currently supports only with its own two models. Worth
 checking whether the draft already uses that detail from a source it already cites.
 
 ### B.6 The two tool records, as tool records — VERIFIED as documentation, not as research
@@ -1984,7 +1984,7 @@ wanted.
 
 RQ3's headline is that peak RSS shows two effects, that both are real, and that the allocator
 effect is roughly ten times the language effect. The draft explains the allocator half by pinned
-arena count making arena metadata a large fixed cost on both sides (`Thesis_POC.tex`:2861--2864).
+arena count making arena metadata a large fixed cost on both sides (`Ha_Vien_Mastersthesis_2026.tex`:2861--2864).
 No source is given for what an arena is, why its metadata scales with count, or why allocator
 choice should dominate.
 
@@ -2177,8 +2177,8 @@ the forced-idiom log, which is already the draft's answer to "the two programs a
 
 `docs/ASSESSMENT.md` has recorded for three passes that one load-bearing citation remains an arXiv
 preprint: `bugden2022rust`, carrying "throughput and memory use alongside C and C++"
-(`Thesis_POC.tex`:822) and "compiled systems languages close on time and energy"
-(`Thesis_POC.tex`:3623).
+(`Ha_Vien_Mastersthesis_2026.tex`:822) and "compiled systems languages close on time and energy"
+(`Ha_Vien_Mastersthesis_2026.tex`:3623).
 
 Neither claim actually needs a preprint. Two peer-reviewed sources cover it, and one is already
 half in the bibliography. **Both are 2021, so read F.0a and F.0b first: the re-run found two 2026
@@ -2271,7 +2271,7 @@ build to `jemalloc`, which is an independent instance of an allocator choice bei
 performance variable in a two-language comparison, exactly as the fairness controls here treat it.
 Be precise about scope when citing: the comparison is Rust against **C**, not C++.
 
-**What this does not settle.** The `Thesis_POC.tex`:822 claim is about C++ as well as C, and neither
+**What this does not settle.** The `Ha_Vien_Mastersthesis_2026.tex`:822 claim is about C++ as well as C, and neither
 F.1 nor F.2 is a C++ matched pair on throughput and memory. The bibliography's existing
 `suchert2023stamp`, `gonzalez2023rustudp` and `pirelli2023safelowlevel` already carry that side
 from three directions. The honest fix is to let those three carry the C++ half and use F.1 and F.2
@@ -2283,11 +2283,11 @@ Revised with the sweep. Every anchor named here is 2021 or later except E.1, whi
 standard reference, and the algorithm-origin papers, which appear only in the sentences that name
 their algorithms.
 
-1. **`Thesis_POC.tex`:3030, the Loom sentence.** Accuracy fix, and the only item in this sweep that
+1. **`Ha_Vien_Mastersthesis_2026.tex`:3030, the Loom sentence.** Accuracy fix, and the only item in this sweep that
    makes an existing sentence *wrong* rather than merely unsupported. Release/acquire, not C11
    entire. Sound under bounded partial-order reduction, not exhaustive full stop. Cite B.1, with
    TruSt if the draft wants to say what the bound costs in current terms.
-2. **`Thesis_POC.tex`:3009--3012 and the `tab:faults` `$^{\S}$` footnote.** Attribute the lock-graph
+2. **`Ha_Vien_Mastersthesis_2026.tex`:3009--3012 and the `tab:faults` `$^{\S}$` footnote.** Attribute the lock-graph
    mechanism to B.5, and the unmaintained-experimental-detector status to B.6. The draft's own
    reasoning survives intact and stops being the only support for its most surprising RQ2 finding.
 3. **§`sec:relatedwork` and the RQ4 future work: add RustMC.** A 2026 model checker that verifies

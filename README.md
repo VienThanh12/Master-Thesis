@@ -45,10 +45,9 @@ The PDFs in this repository do not share a status and are not interchangeable.
 | -------- | ------ | ---- |
 | `Thesis_Plan_v2.pdf` | Reviewed, supervisor-facing | Approved plan: gap, RQs, methodology, timeline, contributions |
 | `Thesis_v1.pdf` | Reviewed, supervisor-facing | Chapter skeleton, one bullet per argument move. Chapters 6 to 9 stay empty until the skeleton review closes |
-| `Thesis_POC.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, full argument, and everything in it still needs review |
-| `Ha_Vien_Mastersthesis_2026.pdf` | Same build as `Thesis_POC.pdf` | UH submission filename (`Lastname_Firstname_Mastersthesis_Year`, ASCII). Copied from `Thesis_POC.pdf` by `bench/refresh_thesis.sh` |
+| `Ha_Vien_Mastersthesis_2026.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, full argument, and everything in it still needs review. The name is the UH submission format (`Lastname_Firstname_Mastersthesis_Year`, ASCII) and says nothing about review status. It was `Thesis_POC` until 19 August 2026 |
 | `ai_statement.tex` | Declaration in the author's name | Statement on generative-AI use, shared by both thesis documents |
-| [`archive/`](archive/) | Superseded, not maintained | Earlier variants kept for reference only: `plain_thesis.tex`, `thesis-vi.tex` (renders its citations as `[?]`), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex` backup, and the v1 plan PDF. They read relative paths from the repository root, so they no longer build where they sit |
+| [`archive/`](archive/) | Superseded, not maintained | Earlier variants kept for reference only: `plain_thesis.tex`, `thesis-vi.tex` (renders its citations as `[?]`), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, and the v1 plan PDF. They read relative paths from the repository root, so they no longer build where they sit |
 
 [`AGENT.md`](AGENT.md) is the working contract for the repository: document roles, the grade
 criteria every edit has to protect, the scientific commitments that must not be weakened, and the
@@ -72,7 +71,7 @@ verification workflow. Read it before touching thesis text, figures, or artefact
 │   ├── counters.sh        Hardware counters (testbed only, needs a PMU)
 │   ├── alloc_profile.sh   Attribute the peak-RSS gap to allocation sites (testbed only)
 │   ├── TESTBED.md         Bare-metal protocol: the only route to testbed-grade tail figures
-│   └── refresh_thesis.sh  Regenerate figures/tables/macros, rebuild Thesis_POC.pdf, copy Ha_Vien_Mastersthesis_2026.pdf
+│   └── refresh_thesis.sh  Regenerate figures/tables/macros, rebuild Ha_Vien_Mastersthesis_2026.pdf
 ├── faults/            Fault-injection taxonomy (RQ2) + Loom/Shuttle model checking of the boundary classes
 ├── ffi/               Incremental-adoption prototype: C++ host over a Rust component via a C ABI (RQ4)
 ├── figures/           Generated figures, LaTeX tables, and generated macros consumed by the thesis
@@ -86,7 +85,7 @@ verification workflow. Read it before touching thesis text, figures, or artefact
 ├── template/          Assets HYthesisML.cls loads by path (cover-page dictionaries, HY logo)
 │   └── upstream/          Pristine CSM thesis template the class was taken from
 ├── build/             latexmk intermediates (.aux, .log, .bbl); gitignored, safe to delete
-├── Thesis_POC.tex     Canonical full draft
+├── Ha_Vien_Mastersthesis_2026.tex   Canonical full draft, under the UH submission filename
 ├── Thesis_v1.tex      Supervisor-facing chapter skeleton
 ├── Thesis_Plan_v2.tex Revised thesis plan
 ├── AGENT.md           Working rules: document roles, grade criteria, verification workflow
@@ -95,8 +94,9 @@ verification workflow. Read it before touching thesis text, figures, or artefact
 └── .aitells.py, .vocab.py, .readability.py    Prose checks run over the LaTeX sources
 ```
 
-The PDFs stay beside their sources, so `Thesis_POC.pdf` and the SyncTeX index land at the root
-where the editor expects them. Only the intermediates go to `build/`, which `.latexmkrc` sets.
+The PDFs stay beside their sources, so `Ha_Vien_Mastersthesis_2026.pdf` and the SyncTeX index land
+at the root where the editor expects them. Only the intermediates go to `build/`, which
+`.latexmkrc` sets.
 
 Each component directory (`spec/conformance/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/`) has
 its own `README.md` with build and run instructions.
@@ -108,7 +108,7 @@ its own `README.md` with build and run instructions.
 | C++23 compiler (g++ 13+ / clang 17+, `std::expected` is required), CMake 3.20+, Ninja | [`cpp/`](cpp/) |
 | Rust stable, edition 2021 (developed on 1.97), `cargo` | [`rust/`](rust/) |
 | jemalloc (`libjemalloc`) | the jemalloc arms of the benchmark (`-DUECM_USE_JEMALLOC=ON`, `cargo --features jemalloc`) |
-| `latexmk`, TeX Live, bundled `HYthesisML.cls` | `Thesis_POC.tex`, `Thesis_v1.tex`, `Thesis_Plan_v2.tex` |
+| `latexmk`, TeX Live, bundled `HYthesisML.cls` | `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v1.tex`, `Thesis_Plan_v2.tex` |
 | Python 3 + `matplotlib` | [`bench/`](bench/) plotting (`pip install -r bench/requirements.txt`) |
 | AddressSanitizer / ThreadSanitizer / UBSan (`g++`) | [`faults/`](faults/), `cpp/sanitise.sh` |
 
@@ -220,16 +220,16 @@ This runs `bench/plot_figures.py`, re-renders the diagrams that quote campaign n
 regenerates the complexity proxies (`bench/complexity.py`, when `lizard` is available) and the
 artefact-level measurements (`bench/artefact_facts.py`), writes all of it into
 [`figures/`](figures/), rebuilds the colloquium deck via `build_deck.py`, and calls
-`latexmk -pdf Thesis_POC.tex`. Campaign summary numbers land in `figures/gen_macros.tex`, and both
-the prose and the slides refer to them by macro name, so text, slides, and data stay in step. The
-generated `figures/gen_*.tex` files are never hand-edited.
+`latexmk -pdf Ha_Vien_Mastersthesis_2026.tex`. Campaign summary numbers land in
+`figures/gen_macros.tex`, and both the prose and the slides refer to them by macro name, so text,
+slides, and data stay in step. The generated `figures/gen_*.tex` files are never hand-edited.
 
 To build a document alone:
 
 ```bash
-latexmk -pdf Thesis_POC.tex
-latexmk -pdf Thesis_v1.tex          # supervisor skeleton
-latexmk -pdf Thesis_Plan_v2.tex     # thesis plan
+latexmk -pdf Ha_Vien_Mastersthesis_2026.tex   # the thesis
+latexmk -pdf Thesis_v1.tex                    # supervisor skeleton
+latexmk -pdf Thesis_Plan_v2.tex               # thesis plan
 ```
 
 For thesis-grade performance numbers, provision a clean testbed and run the full measurement
@@ -283,7 +283,7 @@ from `diagrams/png/`, which `diagrams/render.py` writes.
 | RQ2 (safety) | Final. Fault-injection taxonomy complete across ten defect classes, five inside the guarantee and five outside it, plus Loom and Shuttle results for the two concurrency classes on the boundary |
 | RQ4 (migration) | Final. FFI prototype, interleaved native-vs-seam measurement of one real operation, and seam size complete |
 | RQ1/RQ3 (performance) | Campaign complete on the virtualised host, so the saturation knee, the overload divergence, and the resource comparisons are resolved. The far tail below saturation is not, and needs the bare-metal campaign. The p99.99 and jitter instrumentation exists but no reported campaign carries the sidecars yet |
-| Writing | `Thesis_POC.pdf` builds clean with zero LaTeX errors and no undefined references, as a full draft awaiting review. `Thesis_v1.tex` chapters 6 to 9 stay empty until the supervisor has read the skeleton |
+| Writing | `Ha_Vien_Mastersthesis_2026.pdf` builds clean with zero LaTeX errors and no undefined references, as a full draft awaiting review. `Thesis_v1.tex` chapters 6 to 9 stay empty until the supervisor has read the skeleton |
 
 Open items and the post-campaign re-check list are tracked in [`docs/TODO.md`](docs/TODO.md).
 

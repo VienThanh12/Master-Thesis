@@ -2,7 +2,7 @@
 """Readability diagnostic for the thesis LaTeX source.
 
 Disposable helper, not part of the thesis build. Re-run after an editing pass to
-see whether the numbers moved:  python3 .readability.py Thesis_POC.tex
+see whether the numbers moved:  python3 .readability.py Ha_Vien_Mastersthesis_2026.tex
 
 The metric that matters most is "recovery rate": the share of long sentences
 followed by a short one. Comprehension depends on the reader getting a footing
@@ -13,7 +13,7 @@ import statistics
 import sys
 from collections import Counter, defaultdict
 
-SRC = sys.argv[1] if len(sys.argv) > 1 else "Thesis_POC.tex"
+SRC = sys.argv[1] if len(sys.argv) > 1 else "Ha_Vien_Mastersthesis_2026.tex"
 text = open(SRC, encoding="utf-8").read()
 lines = text.split("\n")
 

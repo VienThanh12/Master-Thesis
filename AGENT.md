@@ -18,11 +18,10 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | --- | --- | --- | --- |
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v1.tex`. |
 | **`Thesis_v1.pdf`** | `Thesis_v1.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through. This is what goes to the supervisor alongside the plan. |
-| **`Thesis_POC.pdf`** | `Thesis_POC.tex` | **Full draft — not yet final** | Canonical long-form thesis (~113–127 pages). Rich figures, generated numbers, full argument. **Everything still needs review** before submission. |
-| **`Ha_Vien_Mastersthesis_2026.pdf`** | same build as `Thesis_POC.pdf` | **Submission filename** | UH format `Lastname_Firstname_Mastersthesis_Year` (ASCII). `bench/refresh_thesis.sh` copies `Thesis_POC.pdf` here after each rebuild. |
-| `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Thesis_POC.tex` and `Thesis_v1.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
-| `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex` backup, the v1 plan PDF. Kept for reference. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
-| Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Thesis_POC.tex`. |
+| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis (~113–127 pages). Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
+| `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v1.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
+| `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. Kept for reference under their original names. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
+| Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Ha_Vien_Mastersthesis_2026.tex`. |
 
 ### Sync rule
 
@@ -30,7 +29,7 @@ When you change **claims, RQs, scope, methodology, or contributions**:
 
 1. Update **`Thesis_v1.tex`** if the supervisor skeleton should reflect it.
 2. Update **`Thesis_Plan_v2.tex`** if the plan’s status, timeline, or framing changes.
-3. Update **`Thesis_POC.tex`** for the full argument, figures, tables, and cross-references.
+3. Update **`Ha_Vien_Mastersthesis_2026.tex`** for the full argument, figures, tables, and cross-references.
 4. Rebuild affected PDFs and run the verification steps in §5.
 
 When you change **measured numbers**:
@@ -125,7 +124,7 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 
 ---
 
-## 4. Chapter map (`Thesis_POC.tex`)
+## 4. Chapter map (`Ha_Vien_Mastersthesis_2026.tex`)
 
 | Ch. | Title | Primary criterion |
 | --- | --- | --- |
@@ -191,18 +190,21 @@ load.
 **Prose checks (run after any writing, not just after measurement)**
 
 ```bash
-./.aitells.py Thesis_POC.tex      # language-model fingerprints: dash asides, transition
-                                  # openers, promotional adjectives, sentence-length uniformity
-./.vocab.py Thesis_POC.tex        # hard Latinate words
-./.readability.py Thesis_POC.tex  # sentence and paragraph load
+./.aitells.py              # language-model fingerprints: dash asides, transition openers,
+                           # promotional adjectives, sentence-length uniformity
+python3 .vocab.py          # hard Latinate words (not executable, needs the interpreter)
+python3 .readability.py    # sentence and paragraph load (same)
 ```
 
 All three report counts rather than errors, so read them as frequency. Hard rules for thesis
 prose:
 
+All three default to `Ha_Vien_Mastersthesis_2026.tex` and take any other `.tex` file as their
+one argument.
+
 1. **No em dashes**, neither `---` nor a literal `—`. As of 17 August 2026 `.aitells.py`
-   reports four dash hits in `Thesis_POC.tex`, all correct typography (one compound proper name,
-   three numeric ranges). If that number rises, the new ones are yours.
+   reports four dash hits in the thesis source, all correct typography (one compound proper
+   name, three numeric ranges). If that number rises, the new ones are yours.
 2. **No semicolons.** Use a full stop, a comma, a colon, or two sentences instead. Semicolons in
    thesis prose read as stiff and are easy to spot on review.
 
@@ -210,7 +212,7 @@ The full style constraint is in the prose-style section of `.cursor/rules/thesis
 
 **Acceptance gates**
 
-- `build/Thesis_POC.log`: **zero errors**, zero undefined references/citations. `.latexmkrc` keeps
+- `build/Ha_Vien_Mastersthesis_2026.log`: **zero errors**, zero undefined references/citations. `.latexmkrc` keeps
   every LaTeX intermediate in `build/`; the PDF and its SyncTeX index still land at the root.
 - `./.aitells.py` on every file whose prose changed: no em-dash asides introduced; no semicolons
   introduced.
@@ -223,7 +225,7 @@ The full style constraint is in the prose-style section of `.cursor/rules/thesis
 
 ## 6. What agents should not do
 
-- **Do not** treat `Thesis_POC.pdf` as supervisor-approved; only `Thesis_Plan_v2.pdf` and `Thesis_v1.pdf` are in that bucket today.
+- **Do not** treat `Ha_Vien_Mastersthesis_2026.pdf` as supervisor-approved. The submission filename says nothing about review status: only `Thesis_Plan_v2.pdf` and `Thesis_v1.pdf` are in that bucket today.
 - **Do not** hand-edit generated files under `figures/` except source diagrams in `diagrams/`.
 - **Do not** transcribe measured numbers into `build_deck.py`; it reads them from the generated artefacts and fails loudly when one is missing.
 - **Do not** claim testbed-grade tail latency from the virtualised host.
@@ -258,11 +260,13 @@ When preparing material for **Keijo Heljanko** (supervisor) and Nokia instructor
 
 1. `Thesis_Plan_v2.pdf` — plan, status, timeline (dated; status table must match repo reality).
 2. `Thesis_v1.pdf` — chapter skeleton; chapters 1–5 + appendix populated; 6–9 reserved.
-3. Optionally reference `Thesis_POC.pdf` as the **working full draft** (clearly labelled not final).
+3. Optionally reference `Ha_Vien_Mastersthesis_2026.pdf` as the **working full draft** (clearly labelled not final).
 
 After supervisor feedback on the skeleton, expand `Thesis_v1.tex` chapters 6–9 and port
-refinements into `Thesis_POC.tex` in the same edit pass so the two do not diverge.
+refinements into `Ha_Vien_Mastersthesis_2026.tex` in the same edit pass so the two do not diverge.
 
 ---
 
-*Last updated: August 2026. Revise this file when supervisor review status, grade blockers, or document roles change.*
+*Last updated: 19 August 2026, when `Thesis_POC.tex` was renamed to
+`Ha_Vien_Mastersthesis_2026.tex` and the separate submission copy was retired. Revise this file
+when supervisor review status, grade blockers, or document roles change.*
