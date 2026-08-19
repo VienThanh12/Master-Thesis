@@ -32,19 +32,18 @@
 \noindent\textbf{Tool.} Anthropic's Claude Opus~5, used through the Cursor development
 environment, is the only generative AI system used in the preparation of this thesis. It was
 used throughout the work, from June to August~2026. Following University of Helsinki policy the
-model is neither named as an author nor cited as a source. It cannot take responsibility for
-what it produces, and it cannot reliably vouch for the literature it paraphrases.
+model is neither named as an author nor cited as a source.
 
 \noindent\textbf{What the assistance covered.} It was extensive, and is declared as such. The
 model drafted and revised the running prose of this thesis and proposed the order in which its
 arguments are made. It wrote and refactored the two implementations of the UE Context
 Management service, the load generator, the fault-injection catalogue, and the interoperability
-prototype. It wrote the analysis code behind the bootstrap confidence intervals, the exact
-paired permutation tests, and the Holm correction, together with the figure-generating and
-build scripts and the LaTeX sources. It also suggested candidate literature.
-The abstract is the one part of this thesis to which that assistance must not extend. The
-University's thesis guide does not permit a language model in preparing the thesis summary,
-which in this programme also serves as the maturity test.
+prototype. It wrote the analysis code behind the bootstrap intervals, the exact paired
+permutation tests, and the Holm correction, together with the figure-generating and build
+scripts and the LaTeX sources. It also suggested candidate literature.
+The abstract is the one part of this thesis to which that assistance must not extend, because
+the University's thesis guide does not permit a language model in preparing the thesis summary,
+which in this programme is also the maturity test.
 \ifabstractunaided
 The abstract was accordingly written by the author unaided.
 \else
@@ -56,37 +55,33 @@ has been.
 questions, and the three hypotheses are the author's, as is the control on which the study's
 value rests: freezing one language-neutral specification and one concurrency model, so that the
 language remains the only systematic difference between the two implementations. So is the
-decision that keeps RQ2 falsifiable, which was to carry two defect classes that lie outside
-Rust's compile-time guarantee, a lock-order deadlock and a lost update, so that the premise
-could be embarrassed rather than merely confirmed. Every measurement reported here was run by the author on the
-hosts documented in this thesis; no measured value came from a language model. Each measured
-number reaches the text through a macro regenerated from the raw logs, so a figure cannot be
-transcribed by hand, by the author or by the model. The readings of those numbers are the
-author's as well, including the two restraints the evidence imposes: that a far tail a
-virtualised host cannot resolve must not be reported as equivalence, and that a sweep dominated
-by cross-thread handoff cannot bound an effect of the language.
+decision that keeps RQ2 falsifiable, which was to carry defect classes from outside Rust's
+compile-time guarantee so that the premise could be embarrassed rather than merely confirmed.
+Every measurement reported here was run by the author on the hosts documented in this thesis,
+and no measured value came from a language model. Each measured number reaches the text through
+a macro regenerated from the raw logs, so a figure cannot be transcribed by hand, by the author
+or by the model. The readings of those numbers are the author's as well, including the two
+restraints the evidence imposes: a far tail a virtualised host cannot resolve is not
+equivalence, and a sweep dominated by cross-thread handoff cannot bound an effect of the
+language.
 
 \noindent\textbf{How the output was checked.} Model output was treated as a draft to be
-falsified rather than as a result. Claims were checked against the sources cited for them. Every
-bibliography entry was resolved against Crossref, DataCite, or the issuing body, and each was
-traced to the page or clause carrying the claim made of it. That audit found four passages where
-the prose overstated or misplaced its source, one of them a sentence inside quotation marks that
-does not appear in the work it was attributed to; all four were corrected, and the audit is kept
-with the artefacts so that the correction remains reviewable. Code was checked by running it:
-the two implementations are held to one conformance suite whose transcripts are diffed line by
-line, and the fault catalogue fixes the expected outcome of each defect before it is injected,
-so that a surprise appears as a discrepancy instead of being explained away afterwards. Nothing
-is asserted here on the model's authority.
+falsified rather than as a result, and claims were checked against the sources cited for them.
+Every bibliography entry was resolved against Crossref, DataCite, or the issuing body, and each
+was traced to the page or clause carrying the claim made of it. That audit found four passages
+where the prose overstated or misplaced its source, one of them a sentence inside quotation marks
+that does not appear in the work it was attributed to. All four were corrected, and the audit is
+kept with the artefacts so that the correction remains reviewable. Code was checked by running
+it, against one conformance suite whose transcripts are diffed line by line and a fault
+catalogue that fixes each expected outcome before the defect is injected. Nothing is asserted
+here on the model's authority.
 
 \noindent\textbf{What the author took from it.} The model is dependable at mechanical work, at
-transposing an idiom between two languages, restructuring a table, or keeping a build honest. It
-is undependable in a specific and predictable way. It will supply a plausible citation for a
-claim, a plausible cause for a measurement, and a confident sentence where the data supports a
-hedge.
-Its fluency is not evidence. The lasting lesson of the work was accordingly less about either
-language than about verification. The effort saved in drafting is spent again, and rightly, in
-checking, and the parts of this thesis that are defensible are the parts that were checked
-against a source, a specification, or a measurement.
+transposing an idiom between two languages or keeping a build honest. It is undependable in a
+specific and predictable way: it will supply a plausible citation for a claim and a confident
+sentence where the data supports a hedge. Its fluency is not evidence. The effort saved in
+drafting is spent again, and rightly, in checking, and the parts of this thesis that are
+defensible are the parts that were checked against a source, a specification, or a measurement.
 
 \noindent\textbf{Responsibility.} The author is responsible for the whole of this thesis: its
 language, its facts, its code, its measurements, and its conclusions. Where it is wrong, the
