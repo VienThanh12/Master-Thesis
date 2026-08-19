@@ -1593,7 +1593,27 @@ as such wherever they appear.
 
 # Fourth sweep, 19 August 2026 — the apparatus, not the argument
 
-> **Status: candidates only. Nothing in this sweep has been applied to any document.**
+> **Status: four items applied on 19 August 2026. The rest remain candidates.**
+>
+> Applied, as the minimum set agreed with the author (§G items 1, 2, 3 and 7):
+>
+> | Item | Where it went | Entries added |
+> | --- | --- | --- |
+> | Loom accuracy fix | §`sec:safetyresults`, the two-model-checker paragraph | `bornholt2021shardstore` |
+> | TSan mechanism and detector status | §`sec:cpplatency`, the sanitiser-limits paragraph | `bensalem2005deadlock`, `tsandeadlock` |
+> | RustMC | §`sec:interop` and the future-work list | `pearce2026rustmc` |
+> | CHERI-SIMT caution | §`sec:relatedwork`, beside `harris2023morello` | `naylor2026cherisimt` |
+>
+> `bibliography.bib` is at 105 entries, all cited, no orphans. The build is clean at 163 pages with
+> zero errors and zero undefined references, and the one overfull box is the pre-existing 63.2811pt
+> one. Dash and semicolon counts are unchanged.
+>
+> **One lesson worth keeping, because it cost two rebuilds.** The first drafts of the TSan and
+> CHERI-SIMT additions were full paragraphs placed next to rigid `[H]` floats, and each one bumped a
+> float and cost two pages of half-empty layout. Rewriting them as clauses inside existing
+> paragraphs, and moving the TSan attribution back to where the tool is introduced in Chapter 2,
+> removed the cascade entirely. In this document, *where* a sentence goes matters as much as how long
+> it is.
 >
 > **Revised the same day.** The first version of this sweep anchored each area on the paper that
 > founded it, which for allocators meant 1998 to 2002 and for benchmarking meant 2009 to 2015. The
