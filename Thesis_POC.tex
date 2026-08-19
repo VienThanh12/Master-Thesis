@@ -1224,54 +1224,55 @@ the measurements, and the reproducibility and ethical commitments under which th
 carried out.
 
 \section{Research approach}\label{sec:approach}
-The thesis follows an experimental research approach with a constructive
-(design-science) element. A software artifact, two functionally equivalent implementations
-of the subsystem together with a benchmarking framework, is built against a single frozen
-specification and then evaluated under controlled experiments. Evidence is triangulated from
-three complementary methods: quantitative performance measurement under a swept load
-(addressing RQ1 and RQ3), a controlled fault-injection study of defect detection (RQ2), and
-a qualitative-plus-quantitative FFI migration case study (RQ4). A weakness in any one of them, for
-example the environment sensitivity of tail-latency measurement, therefore does not carry into the
-conclusions as a whole. Every measurement reports variance over repeated runs, and
-Section~\ref{sec:controls} sets out the controls that keep the language the only variable.
+The study is experimental with a constructive (design-science) element. The artifact is a pair
+of functionally equivalent implementations of the subsystem, one in C++ and one in Rust, plus
+the framework that benchmarks them. Both are built from a single frozen specification and then
+evaluated under controlled experiments. Evidence is triangulated across three methods.
+Performance measurement under a load sweep answers RQ1 and RQ3, a controlled fault-injection
+study answers RQ2, and an FFI migration case study, part measured and part qualitative, answers
+RQ4. The three are independent. A weakness in one of them, such as the environment sensitivity
+of tail-latency measurement, therefore does not carry into the conclusions as a whole. Every
+measurement reports variance over repeated runs, and Section~\ref{sec:controls} sets out the
+controls that keep the language the only variable.
 
-That design follows from the shape of the questions. Each asks how one outcome, tail latency,
-prevented defects, resource use, or migration cost, depends on a single independent variable,
-the implementation language, so the language has to be the only systematic difference between
-the two objects under test. This rules out the commonest form of language comparison in the
-literature, where two independently written programs are measured and the gap between them is
-attributed to the language, confounding it with the design, the libraries, and the skill of
-their authors. Building both sides from one specification makes the comparison one between two
-encodings of the same design, and it makes the artifact both the contribution and the
-instrument through which the contribution is measured. Where the questions admit numbers the
-treatment is quantitative, and where they do not, the kind-of-guarantee distinction in RQ2 and
-the API-design effort in RQ4, it is systematic but qualitative.
+That design follows from the shape of the questions. Each asks how one outcome (tail latency,
+defects prevented, resource use, migration cost) depends on one variable, the implementation
+language. The language therefore has to be the only systematic difference between the two
+objects under test. This rules out the commonest form of language comparison in the literature,
+where two independently written programs are measured and the gap is attributed to the language.
+Such a gap also carries the design, the libraries and the skill of their authors.
+
+Building both sides from one specification removes that confound. The comparison is then between
+two encodings of the same design, and the artifact becomes both the contribution and the
+instrument that measures it. Where a question can be answered with numbers, the treatment is
+quantitative. Where it cannot, as with the kind of guarantee in RQ2 and the API-design effort in
+RQ4, it is qualitative but still systematic.
 
 The gap this design addresses (Section~\ref{sec:gap}) is only as good as the search that looked
-for it, so the protocol is recorded rather than assumed. Appendix~\ref{appendix:search} gives the
-databases searched, the term combinations, the citation chaining and the filtering rules. Two of
-its findings bear on the design and not merely on the bibliography. The vendor-hosted theses that
-come nearest to this study (Section~\ref{sec:relatedwork}) appear in none of the citation
-databases, so no amount of chaining reaches them and they had to be found by searching the
-institutional repositories directly. The same searches establish an absence on the other side:
-no Finnish thesis on Rust in a radio-access or telecom context, and no indexed publication
-mentioning Rust from the vendor hosting this work. The entire domain-specific literature on the
-language question is therefore Swedish and Ericsson-hosted, and its transferability is untested
-rather than established. Because those theses are grey literature, they are cited as evidence of
-what a vendor has attempted and found rather than as peer-reviewed results.
+for it, so that search is on record. Appendix~\ref{appendix:search} gives the databases, the term
+combinations, the citation chaining and the filtering rules. Two of its findings bear on the
+design and not just on the bibliography.
+
+The vendor-hosted theses closest to this study (Section~\ref{sec:relatedwork}) appear in no
+citation database. Chaining therefore never reaches them, and they had to be found by searching
+the institutional repositories directly. The same searches establish an absence on the other
+side: no Finnish thesis on Rust in a radio-access or telecom context, and no indexed publication
+mentioning Rust from the vendor hosting this work. The domain-specific literature on the
+language question is therefore Swedish and Ericsson-hosted, and whether it carries over here is
+untested. Those theses are grey literature, so they are cited as evidence of what a vendor has
+attempted and found, not as peer-reviewed results.
 
 The search returned no study, indexed or grey, that measures the tail-latency behaviour of a
 Rust and a C++ implementation of the same stateful, concurrent control-plane subsystem under
 overload.
 
-Table~\ref{tab:design} maps each research question to the method, artifact, data, and metric
-used to answer it, making the chain from question to evidence explicit and traceable. The chain
-continues in one place for all four: every question is judged in Section~\ref{sec:rqdiscussion}
-and its hypothesis disposed of in Section~\ref{sec:hypotheses}. RQ1 and RQ3 share H1, which was
-worded to cover performance equivalence in both its latency and its resource sense, and
-Section~\ref{sec:hypotheses} finds that wording to be the hypothesis's main weakness. RQ2 and RQ4
-are environment-insensitive. RQ1 and RQ3 depend on the measurement host and are reported against
-what it can carry (Section~\ref{sec:testbed}).
+Table~\ref{tab:design} maps each research question to the method, artifact, data and metric that
+answer it. All four chains end in the same place: Section~\ref{sec:rqdiscussion} judges each
+question and Section~\ref{sec:hypotheses} disposes of its hypothesis. RQ1 and RQ3 share H1,
+worded to cover performance equivalence in both the latency and the resource sense. That wording
+turns out to be the hypothesis's main weakness. RQ2 and RQ4 are insensitive to the environment.
+RQ1 and RQ3 depend on the measurement host and are reported against what it can carry
+(Section~\ref{sec:testbed}).
 
 \begin{table}[H]
 \centering

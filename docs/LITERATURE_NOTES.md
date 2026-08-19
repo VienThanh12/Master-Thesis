@@ -1588,3 +1588,802 @@ as such wherever they appear.
   url       = {https://doi.org/10.1109/CANDARW64572.2024.00066}
 }
 ```
+
+---
+
+# Fourth sweep, 19 August 2026 — the apparatus, not the argument
+
+> **Status: candidates only. Nothing in this sweep has been applied to any document.**
+>
+> **Revised the same day.** The first version of this sweep anchored each area on the paper that
+> founded it, which for allocators meant 1998 to 2002 and for benchmarking meant 2009 to 2015. The
+> author's objection was that this is too old for a 2026 submission, and it was correct: a
+> bibliography an examiner scans by date should not rest on twenty-year-old work for a claim about
+> current software. The sweep was re-run under a stricter rule.
+>
+> **The rule.** Every area is anchored on the most recent peer-reviewed source that makes the
+> claim. A founding paper is cited only where the thesis names the *algorithm* that paper
+> introduced, in which case its date is a fact about the algorithm rather than a weakness in the
+> bibliography, exactly as `holm1979simple` and `efron1993bootstrap` already work in
+> §`sec:stats`. Everything else that could not be replaced with current work is marked
+> **superseded** below and should not be cited.
+>
+> The re-run paid off in every area. The anchors are now ISMM 2026, FORTE 2026, PLDI 2026,
+> ASPLOS 2026, ICPE 2026, and *Sensors* 2024, and four of them are closer to the thesis than the
+> older sources were. One of them, RustMC, verifies concurrent Rust *across an FFI boundary* and
+> evaluates itself against Loom's own test suite, which is this thesis's exact apparatus.
+
+The first three sweeps searched for work that bears on the *argument*: Rust against C++, the RAN
+domain, the research gap. None of them audited the citations behind the *apparatus*, meaning the
+tools the results are produced with and the statistical treatment they are read under. This sweep
+did that, and the apparatus turns out to be the thinnest-cited part of an otherwise very strong
+bibliography.
+
+The trigger was a mechanical audit rather than a hunch. `bibliography.bib` holds 100 entries, every
+one of them cited and none orphaned, and it contains **no citation at all** for any of the
+following, each of which the draft leans on:
+
+| Load-bearing in the draft | Occurrences | Citations today |
+| --- | --- | --- |
+| `jemalloc`, arenas, allocator effect on peak RSS | RQ3's headline result | none |
+| Loom, Shuttle, and what their guarantees are | the RQ2 boundary answer | none |
+| ThreadSanitizer's mechanism and its intermittency | `tab:faults` footnote `$^{\S}$` | none |
+| The virtualised host as a limit on the far tail | the reason criteria 3 and 4 sit at 4.5 | none |
+| Systems benchmarking methodology | all of §`sec:stats` | one, `georges2007rigorous`, Java and JIT-oriented |
+
+Four of those five are places where the draft explains a *mechanism* in its own voice. That is the
+category an examiner probes first, because it is where a thesis is most easily caught asserting
+something it has not established. Each one below can now be attributed instead.
+
+## A. What the audit found, separately from this sweep
+
+Worth recording because it is cheap to act on and independent of anything new.
+
+**Twenty-two candidates from the first sweep were verified and never applied.** They are the
+scheduling and sharding set (`liao2025pallas`, `jia2024aquifer`, `jia2024skyloft`,
+`iyer2023concord`, `enberg2019iofaster`), the coordinated-omission supports
+(`friedrich2017coordinated`, `vanderkouwe2019benchmarking`, `li2026tailbench`), the overload
+sources (`nguyen2025rrcevt`, `giustini2026stormshield`), the control-plane baseline
+(`mukute20245gcore`), the RQ2 boundary material (`cve202623194`, `cve202664467`, `delmas2026kani`,
+`lattuada2024verus`, `leblanc2024verification`, `villani2025treeborrows`), and four singletons
+(`nsacisa2025msl`, `stroustrup2025cpp21`, `lacava2025dapps`, `teper2024starvation`,
+`xie2025cooperative`). Sweep 1 §10 item 8 deliberately left these as a judgement call about how
+much related work a master's thesis needs. That judgement has still not been made, and two of them
+(`vanderkouwe2019benchmarking`, `enberg2019iofaster`) now look stronger in light of §E below.
+`hong2025c2rust` in that list is a duplicate key for the applied `hong2025ctorust`, not a real
+outstanding item.
+
+Reproduce the audit with `.bibaudit/sweep_diff.py`. Metadata for anything new is checked with
+`.bibaudit/verify_candidates.py DOI ...`, which prints the registration agency's own record,
+including the `subtitle` field that ACM's older deposits keep separate from `title` (this is why
+several titles below look truncated in Crossref and are given here in full).
+
+## B. What the model checkers and sanitisers actually guarantee
+
+**Read the two unnumbered entries first.** They are the current work and they are closer to this
+thesis than anything else in this sweep. B.1 is the only peer-reviewed account of Loom and Shuttle
+in production and is what corrects the draft, so it stays. B.2 to B.5 are the papers that
+*introduced* the algorithms the draft names, and under the recency rule they are cite-the-origin
+material only: use them in the sentence that names the algorithm, or not at all. B.6 is tool
+documentation and is dated by nature.
+
+### The anchor: Pearce, Lange and O'Keeffe, FORTE 2026 — VERIFIED
+
+"RustMC: Automated Verification of Real-World Concurrent Rust". Oliver Pearce, Julien Lange, Dan
+O'Keeffe (Royal Holloway, University of London). *Formal Techniques for Distributed Objects,
+Components, and Systems* (FORTE 2026), Urbino, 8--12 June 2026, LNCS, pages 235--255.
+DOI 10.1007/978-3-032-28187-6_14. (A February 2025 preprint exists as arXiv 2502.06293 under the
+earlier title "RustMC: Extending the GenMC stateless model checker to Rust". Cite the FORTE
+version.)
+
+**This is the best find of the revised sweep and it lands on two of the thesis's claims at once.**
+A stateless model checker for concurrent Rust built on GenMC, and, from the abstract, it verifies
+"Rust code and any foreign function dependencies", finding "concurrency bugs in unsafe Rust code,
+FFI calls to C/C++, and atomic operations". The authors state it is "the only available framework
+capable of exhaustively exploring the state space of Rust programs and their dependencies".
+
+Two consequences for this thesis, both material:
+
+1. **It is the tool that would verify the RQ4 seam.** The thesis builds an `extern "C"` seam by
+   hand, confines `unsafe` to it, and argues the tax is bounded rather than free. What it does not
+   do, and says it does not do, is verify the seam's concurrency behaviour. RustMC is exactly that
+   capability, published four months before submission. This belongs in future work and in the
+   §`sec:interop` discussion, and volunteering it is much better than having an examiner name it.
+2. **It benchmarks against Loom's own test suite.** The authors "evaluate our tool's functionality
+   on the Loom model checker test suite and a set of production-level Rust concurrent data
+   structures". So the thesis's choice of Loom can now be positioned against a published
+   evaluation of Loom rather than against the tool's documentation.
+
+### State of the art in interleaving exploration: Kokologiannakis et al., POPL 2022 — VERIFIED
+
+"Truly stateless, optimal dynamic partial order reduction". Michalis Kokologiannakis, Iason
+Marmanis, Vladimir Gladstein, Viktor Vafeiadis. *Proceedings of the ACM on Programming Languages*
+6(POPL):1--28, 2022. DOI 10.1145/3498711.
+
+Relevant for one specific reason. B.1 establishes that Loom uses **bounded** partial-order
+reduction, a 2013-era technique, and this is the optimal-DPOR result that supersedes it: one
+interleaving per equivalence class, exhaustive without a bound. It lets the draft say what its
+tool's bound costs, in current terms, instead of leaving "exhaustively" unqualified. Optional, but
+it is the difference between naming a limitation and appearing not to know there is one.
+
+A companion, if the distributed case is ever wanted: **Enea, Giannakopoulou, Kokologiannakis and
+Majumdar, "Model Checking Distributed Protocols in Must"**, PACMPL 8(OOPSLA2):1900--1927, 2024,
+DOI 10.1145/3689778. VERIFIED. Out of scope for a single-process subsystem. Recorded so it is not
+re-found.
+
+### B.1 Bornholt et al., SOSP 2021 — VERIFIED, and it corrects the draft
+
+"Using Lightweight Formal Methods to Validate a Key-Value Storage Node in Amazon S3". James
+Bornholt, Rajeev Joshi, Vytautas Astrauskas, Brendan Cully, Bernhard Kragl, Seth Markle, Kyle
+Sauri, Drew Schleit, Grant Slatton, Serdar Tasiran, Jacob Van Geffen, Andrew Warfield. SOSP '21,
+pages 836--850. DOI 10.1145/3477132.3483540.
+
+**This is the find of the sweep.** It is a peer-reviewed account of a production Rust system
+validated with *the same two model checkers this thesis uses, for the same reason*, by the team
+that wrote one of them. Read the paper's own description against `Thesis_POC.tex`:2932--3047 and
+the draft is doing the same thing on a smaller object.
+
+Three passages are directly usable, quoted from the paper's section on checking concurrent
+executions:
+
+- Loom "implements the CDSChecker algorithm for sound model checking in the release/acquire memory
+  model, and uses bounded partial-order reduction to reduce state explosion."
+- "we developed and open-sourced the stateless model checker Shuttle, which implements randomized
+  algorithms such as probabilistic concurrency testing."
+- "We use Loom to soundly check all interleavings of small, correctness-critical code such as
+  custom concurrency primitives, and Shuttle to randomly check interleavings of larger test
+  harnesses to which Loom does not scale."
+
+That third sentence is the division of labour `faults/run_model_checking.sh` implements, stated
+independently in a top venue.
+
+**The correction.** `Thesis_POC.tex`:3030 says Loom "enumerates thread interleavings exhaustively
+under the C11 model". Two words in that are loose. The model is **release/acquire**, a fragment of
+C11 rather than C11 entire, and the exploration is sound **under bounded partial-order reduction**
+rather than exhaustive without qualification. The draft's claim is close enough to be defensible
+in conversation and wrong enough to be worth fixing in writing, and fixing it costs one clause.
+Note also that a bound is a *stronger* thing to admit here, because the draft already says each
+model had to be shrunk to fit: the bound is part of why.
+
+Two more things in the paper are worth a sentence each. It records that ShardStore needs "a small
+amount of unsafe Rust code, mostly for interacting with block devices" and that the team ran the
+suite under Miri and **had to extend Miri to support threads and locks** before it was useful,
+which is a published precedent for both the draft's `unsafe`-free-core design and its use of Miri
+at `Thesis_POC.tex`:2130. And its related work reports VeriBetrKV's cost as "7 lines of proof for
+every line of implementation", which sits alongside the roughly 5-to-1 figure recorded for Verus
+in §5.2 of the first sweep.
+
+Incidental but pleasing: Vytautas Astrauskas is a co-author here and is already in the
+bibliography as `astrauskas2020unsafe`.
+
+### B.2 Burckhardt et al., ASPLOS 2010 — VERIFIED, origin of the algorithm
+
+"A randomized scheduler with probabilistic guarantees of finding bugs". Sebastian Burckhardt,
+Pravesh Kothari, Madanlal Musuvathi, Santosh Nagarakatte. ASPLOS '10, pages 167--178.
+DOI 10.1145/1736020.1736040.
+
+Probabilistic concurrency testing itself, and the reference Bornholt et al. cite for what Shuttle
+implements. The draft says Shuttle "samples them with probabilistic concurrency testing", which is
+exactly right and currently unattributed. Citing PCT also lets the draft say what kind of
+assurance a Shuttle pass is: a probabilistic guarantee parameterised by bug depth, not a proof.
+That distinction matters, because the draft's whole RQ2 argument is about *what stage and what
+strength* of detection each language gets.
+
+### B.3 Norris and Demsky, OOPSLA 2013 — VERIFIED, origin of the algorithm
+
+"CDSchecker: checking concurrent data structures written with C/C++ atomics". Brian Norris, Brian
+Demsky. OOPSLA '13, pages 131--150. DOI 10.1145/2509136.2509514. (Crossref splits the subtitle;
+the full title is as given.)
+
+Loom's algorithm, one level down from B.1. Optional. Cite it if the draft wants to name the model
+rather than take Loom's soundness on the tool's word, which for a claim about what a *guarantee*
+covers is the more careful choice.
+
+### B.4 Serebryany and Iskhodzhanov, WBIA 2009 — VERIFIED, origin of the tool
+
+"ThreadSanitizer: data race detection in practice". Konstantin Serebryany, Timur Iskhodzhanov.
+WBIA '09, pages 62--71. DOI 10.1145/1791194.1791203. (Subtitle split in Crossref as above.)
+
+The tool the C++ arm's safety claim rests on, cited nowhere in a thesis that names it twenty-two
+times. It is a workshop paper, which is the honest thing to say about it, and it is the
+authors' own account of the hybrid happens-before-plus-lockset algorithm. Straight fill.
+
+### B.5 Bensalem and Havelund — VERIFIED, and it explains the draft's own result
+
+"Dynamic Deadlock Analysis of Multi-threaded Programs". Saddek Bensalem, Klaus Havelund. Haifa
+Verification Conference 2005, LNCS 3875, pages 208--223. DOI 10.1007/11678779_15.
+*Note the date:* the conference is 2005, Springer's deposit records the LNCS volume as 2006. Cite
+the conference year and the volume, as DBLP does.
+
+**This is the peer-reviewed foundation for the mechanism `Thesis_POC.tex`:3009--3012 explains in
+its own voice.** The draft argues that TSan builds its lock-order graph from acquisitions that
+succeed, so a run in which the first inversion blocks yields one edge and never the second, and
+the detector stays silent at the moment the bug manifests. Bensalem and Havelund set out the
+technique that reasoning is about: lock-graph analysis over a single execution trace, in which a
+cycle signifies a deadlock *potential*, and whose stated purpose is to "identify deadlock
+potentials even though no deadlocks occur in the examined execution trace".
+
+Read together, the draft's finding stops being an oddity and becomes the expected behaviour of the
+technique. The analysis is designed for traces that *survive*, so the trace that deadlocks is the
+one it has least to say about. That is a much stronger way to write the same paragraph, and it
+generalises the way the draft already claims it does.
+
+The paper is also about reducing false positives specifically, via thread labels, gate locks and
+segmentation, which is the complementary error mode and worth one clause for balance.
+
+**On its date.** 2005 is old, and here that is the point rather than a problem: the draft names the
+technique, so this is the paper that introduced it. The recent companion is already in the
+bibliography. `tang2025converos` (USENIX ATC 2025) model-checked twelve concurrency modules of a
+Rust operating system and found twenty bugs including deadlocks and livelocks, at a
+specification-to-code ratio of 0.3 to 2.3 and four person-months of effort. Those are *cost*
+figures for getting concurrency defects caught at model-checking time, which is the quantity
+`Thesis_POC.tex`:3038--3047 argues about and currently supports only with its own two models. Worth
+checking whether the draft already uses that detail from a source it already cites.
+
+### B.6 The two tool records, as tool records — VERIFIED as documentation, not as research
+
+Neither is peer-reviewed. Both are primary sources about the software, which is what is wanted
+here, and both must be labelled as such if cited.
+
+- **ThreadSanitizerDeadlockDetector**, google/sanitizers wiki.
+  <https://github.com/google/sanitizers/wiki/ThreadSanitizerDeadlockDetector>. States the
+  mechanism in one sentence ("The deadlock detector maintains a directed graph of lock
+  acquisitions. If a lock B is acquired while a lock A is being held by the same thread, a
+  directed edge `A=>B` is added to the lock acquisition graph. A potential deadlock is reported
+  when there is a cycle in the graph"), and describes the detector as **experimental**, supporting
+  only `pthread_mutex_*` / `pthread_rwlock_*` / `pthread_spin_*`, and "tested only on tiny test
+  cases". It also confirms that detection needs `TSAN_OPTIONS=detect_deadlocks=1`, which is worth
+  checking against what `faults/` actually sets.
+- **google/sanitizers issue #1258.** Upstream record that there are two detector implementations
+  and that **neither is actively maintained**, plus a contributor's diagnosis that version 1, the
+  default, checks for the cycle in `DD::MutexBeforeLock` while the edge is only added in
+  `DD::MutexAfterLock`. That is the draft's mechanism, described by the tool's own issue tracker,
+  and it independently corroborates a paragraph the draft currently supports with its own
+  measurements alone.
+
+**Use these carefully.** They raise the register of the `$^{\S}$` footnote in `tab:faults` from
+"we observed this" to "this is a known property of an unmaintained experimental detector", which
+is a materially stronger claim about continuous-integration practice. They do not license saying
+TSan is broken in general: the race detector is a different component with a peer-reviewed
+account (B.4) and the draft's own positive controls show it live.
+
+## C. The virtualised host, cited rather than asserted
+
+The single largest grade blocker in `AGENT.md` is that the measurement host is a virtualised KVM
+guest, so the far tail below saturation cannot be resolved. That limitation is currently argued
+entirely from first principles and from the guest's own counters. There is a literature on exactly
+this quantity, and it is not cited.
+
+**The revised sweep found it in the thesis's own domain, which the first version missed.** The
+strongest sources here are not general real-time-virtualisation papers but measurements of
+virtualised RAN, and three of them speak to the draft's threat row directly. Take C.4 and C.5
+first, then C.1 for the number.
+
+### C.4 Ocampo, Fida, Elmokashfi and Bryhni, *Sensors* 2024 — VERIFIED
+
+"Assessing the Cloud-RAN in the Linux Kernel: Sharing Computing and Network Resources". Andres F.
+Ocampo, Mah-Rukh Fida, Ahmed Elmokashfi, Haakon Bryhni. *Sensors* 24(7):2365, 2024.
+DOI 10.3390/s24072365.
+
+An empirical study of virtual baseband unit performance on a Linux real-time kernel under resource
+contention with collocated workloads, evaluating **CPU affinity and CPU isolation as the
+mitigations**. Reported effect: CPU affinity reduces throughput variability by up to 40% and
+reduces scheduling latency for the real-time threads.
+
+**This is the closest published support for the thesis's own controls.** §`sec:testbed` pins the
+clock and isolates cores, and currently justifies both from first principles. Here is a
+peer-reviewed, in-domain, 2024 measurement of what those two controls are worth, and of the
+variability that remains without them. It is a better citation for the testbed design than anything
+in the general virtualisation literature, and it is recent.
+
+### C.5 Abeni et al., ISC High Performance Workshops 2022 — VERIFIED
+
+"On the Use of Linux Real-Time Features for RAN Packet Processing in Cloud Environments". Luca
+Abeni, Tommaso Cucinotta, Balázs Pinczel, Péter Mátray, Murali Krishna Srinivasan, Tobias
+Lindquist. LNCS 13387, pages 371--382, 2022. DOI 10.1007/978-3-031-23220-6_26.
+
+Names the mechanism behind the thesis's most specific admission. From the abstract: "A significant
+portion of the variability and instability in the observed end-to-end performance in this domain is
+due to the power saving capabilities of modern CPUs, often in contrast with the low-latency and
+high-performance requirements of this type of applications." The draft's threat row says the
+guest's frequency is unobservable. This says frequency management is a leading cause of
+instability in cloudified RAN specifically, which is the argument the draft is reaching for, in a
+cRAN context, with Ericsson co-authors.
+
+### C.6 Foukas and Radunovic, SIGCOMM 2021 — VERIFIED
+
+"Concordia: teaching the 5G vRAN to share compute". Xenofon Foukas, Bozidar Radunovic. SIGCOMM '21,
+pages 580--596. DOI 10.1145/3452296.3472894.
+
+Top-venue, in-domain, and the one sentence worth quoting is the premise: vRAN tasks "have
+sub-millisecond latency requirements that have to be met 99.999% of times. We show that this is
+difficult to achieve with existing systems." That is the thesis's regime and the thesis's
+percentile, asserted by others in a better venue, on a commercial-grade reference platform. It
+also supports the choice to report p99.9 and beyond rather than stopping at the median.
+
+Optional companion: **Manousis, Sharma, Sekar and Sherry, "Contention-Aware Performance Prediction
+For Virtualized Network Functions"**, SIGCOMM 2020, pages 270--282, DOI 10.1145/3387514.3405868.
+VERIFIED. Contention between collocated virtualised network functions as a predictable quantity.
+One source too many unless the threat section develops the collocation argument.
+
+### C.1 Abeni and Faggioli, Journal of Systems Architecture 2020 — VERIFIED
+
+"Using Xen and KVM as real-time hypervisors". Luca Abeni, Dario Faggioli. *Journal of Systems
+Architecture* 106:101709, 2020. DOI 10.1016/j.sysarc.2020.101709. (A preliminary version exists as
+ISORC 2019, pages 18--26, DOI 10.1109/ISORC.2019.00014. Cite the journal version.)
+
+Measures the latency a hypervisor introduces, defined as the difference between the theoretical
+schedule and the real one, across Xen and KVM on several machines, and gives configuration
+guidance. Headline result: **a properly configured KVM guest shows a worst-case latency below
+100 µs.**
+
+**Cite this with care, because it cuts both ways and the careless reading is the wrong one.** It
+does not say the thesis's host is fine. It says hypervisor-induced latency is a measurable
+quantity, that it lands in the tens-to-hundreds-of-microseconds range, and that reaching the low
+end of that range requires a configuration the thesis's general-purpose guest does not have. That
+is the right shape of argument for §`sec:threats`: the interference is of the same order as the
+percentiles under discussion, which is precisely why the far tail is not readable here and why
+`bench/TESTBED.md` exists. Written that way it strengthens the limitation. Written as "KVM is good
+to 100 µs" it would invite the examiner's obvious question.
+
+### C.2 Gebai, Giraldeau and Dagenais, Journal of Cloud Computing 2014 — VERIFIED
+
+"Fine-grained preemption analysis for latency investigation across virtual machines". Mohamad
+Gebai, Francis Giraldeau, Michel R. Dagenais. *Journal of Cloud Computing* 3(1), 2014.
+DOI 10.1186/s13677-014-0023-3.
+
+**The closest match to the draft's own words.** `tab:threats` says of the virtualised host that
+"frequency unobservable and CPU steal non-zero, neither removable from inside the guest". This
+paper's premise is that averaged steal time "is insufficient to diagnose abnormal latencies in
+time-sensitive applications", that "the added latency is not directly visible from the virtual
+machine point of view", and that recovering the cause requires tracing on the host. It also records
+that hardware performance counters are not available to guests. Every clause of the draft's threat
+row is a finding in this paper.
+
+**On its date, and the honest reading.** 2014 is the oldest thing in the revised sweep, and it
+survives the recency rule only because no newer source states the from-inside-the-guest
+unobservability argument as squarely. If one citation has to carry that argument, C.4 and C.5 are
+newer and in-domain and should carry it, with this one added only if the specific point about
+averaged steal time being insufficient is made explicitly. Do not use it as the sole support for
+the threat row.
+
+### C.3 Abeni, Journal of Systems Architecture 2024 — VERIFIED
+
+"Virtualized real-time workloads in containers and virtual machines". Luca Abeni. *Journal of
+Systems Architecture* 154:103238, 2024. DOI 10.1016/j.sysarc.2024.103238.
+
+The current version of the same question, comparing container and VM latency with `cyclictest`, and
+reporting that a non-real-time guest kernel gives a much larger worst case than a Preempt-RT one
+even where the distributions look similar in shape. Useful in `bench/TESTBED.md` as published
+support for the bare-metal protocol's design, and as the more recent of the two if only one is
+wanted.
+
+## D. Peak RSS: the allocator literature the RQ3 result needs
+
+RQ3's headline is that peak RSS shows two effects, that both are real, and that the allocator
+effect is roughly ten times the language effect. The draft explains the allocator half by pinned
+arena count making arena metadata a large fixed cost on both sides (`Thesis_POC.tex`:2861--2864).
+No source is given for what an arena is, why its metadata scales with count, or why allocator
+choice should dominate. There is a well-developed literature for all three.
+
+### D.1 Evans, BSDCan 2006 — VERIFIED as a technical paper, not peer-reviewed
+
+"A Scalable Concurrent malloc(3) Implementation for FreeBSD". Jason Evans. BSDCan 2006,
+16 April 2006. <https://papers.freebsd.org/2006/bsdcan/evans-jemalloc/>
+
+The canonical `jemalloc` reference, from the author, and the source of the arena design the draft's
+result turns on. It presents arenas as the mechanism for reducing lock contention between threads
+and discusses fragmentation measurement directly. Not peer-reviewed, and the entry should say so,
+but citing the allocator's own design paper is better than citing nothing for a claim about that
+allocator's metadata.
+
+### D.2 Berger et al., ASPLOS 2000 — VERIFIED
+
+"Hoard: a scalable memory allocator for multithreaded applications". Emery D. Berger, Kathryn S.
+McKinley, Robert D. Blumofe, Paul R. Wilson. ASPLOS 2000, pages 117--128. DOI 10.1145/378993.379232.
+
+The peer-reviewed origin of per-thread heaps and, more to the point here, of **memory blowup** as a
+named and bounded property of concurrent allocators. It is what lets the draft say that a
+per-arena footprint cost is a known and studied consequence of the design rather than a surprise in
+this measurement. `jemalloc`'s own paper cites it as prior art.
+
+### D.3 Berger, Zorn and McKinley, OOPSLA 2002 — VERIFIED, one field PARTIAL
+
+"Reconsidering custom memory allocation". Emery D. Berger, Benjamin G. Zorn, Kathryn S. McKinley.
+OOPSLA '02. DOI 10.1145/582419.582421. **PARTIAL: Crossref's deposit gives the first page only.
+Confirm the page range before citing.**
+
+The peer-reviewed statement that allocator choice moves application-level memory and time
+behaviour substantially. This is the citation that makes "the allocator dominates by an order of
+magnitude" an instance of something known rather than an oddity of this campaign, in the same way
+`zhou2025oltp` does for the handoff result.
+
+### D.4 Two more, if the mechanism is worth more space — VERIFIED
+
+- **Johnstone and Wilson, "The memory fragmentation problem: solved?"** ISMM 1998, pages 26--36.
+  DOI 10.1145/286860.286864. The reference point for separating real fragmentation from allocator
+  policy, which is the distinction the draft needs when it says the ordering is "partly a
+  consequence of the fairness controls rather than a fact about `jemalloc` in general".
+- **Powers, Tench, Berger and McGregor, "Mesh: compacting memory management for C/C++
+  applications"**, PLDI 2019, pages 333--346. DOI 10.1145/3314221.3314582. Modern treatment of RSS
+  as the quantity of interest, as against virtual size. Relevant because peak RSS is the draft's
+  metric and Mesh is about reducing exactly it.
+- **Liétar et al., "snmalloc: a message passing allocator"**, ISMM 2019, pages 122--135.
+  DOI 10.1145/3315573.3329980. Only if a second modern allocator design is wanted. Probably one
+  source too many for a master's thesis.
+
+## E. The benchmarking canon §`sec:stats` already follows
+
+§`sec:stats` is among the strongest sections in the thesis: interleaved variants, median with
+non-parametric bootstrap intervals, asymmetric intervals reported in full, exact paired permutation
+tests, Holm correction, a pre-committed interval-versus-*p* rule, and a stated resolving-power
+floor. Its statistical machinery is properly referenced (`efron1993bootstrap` for the bootstrap,
+`holm1979simple` for the correction), but it carries **one** citation for *benchmarking
+methodology*, `georges2007rigorous`, which is about Java and JIT warm-up and is therefore slightly
+off-target for a native two-language comparison. The community's standard reference for what this
+section does is not cited.
+
+### E.1 Hoefler and Belli, SC 2015 — VERIFIED
+
+"Scientific benchmarking of parallel computing systems". Torsten Hoefler, Roberto Belli. SC '15,
+pages 1--12. DOI 10.1145/2807591.2807644.
+
+**The single highest-value addition in this sweep after B.1**, because it is the citation an
+examiner in systems would expect to see and its rules are the ones the draft already keeps: report
+distributions rather than single numbers, use non-parametric statistics for non-normal
+measurements, state and justify the number of repeats, and report the uncertainty of derived
+quantities. It converts §`sec:stats` from a well-argued local design into a design that visibly
+conforms to a named standard. One sentence, large return.
+
+### E.2 Kalibera and Jones, ISMM 2013 — VERIFIED
+
+"Rigorous benchmarking in reasonable time". Tomas Kalibera, Richard Jones. ISMM '13, pages 63--74.
+DOI 10.1145/2464157.2464160.
+
+Peer-reviewed treatment of how to choose repetition counts under a time budget, which is exactly
+the trade-off `\NRepeats{}` embodies and which the draft currently justifies by the corrected
+significance floor alone. Pair with E.1 where the repeat count is set.
+
+### E.3 Mytkowicz et al., ASPLOS 2009 — VERIFIED
+
+"Producing wrong data without doing anything obviously wrong!". Todd Mytkowicz, Amer Diwan,
+Matthias Hauswirth, Peter F. Sweeney. ASPLOS 2009, pages 265--276. DOI 10.1145/1508244.1508275.
+
+Measurement bias from the environment, and the standard argument that experimental setups must be
+varied or randomised rather than merely repeated. This is the peer-reviewed justification for the
+interleaved design, which the draft currently motivates in its own words ("slow drift, thermal
+effects, and background activity perturb them equally instead of biasing one"). Good fit,
+low risk.
+
+### E.4 Curtsinger and Berger, ASPLOS 2013 — VERIFIED, and it is a double-edged addition
+
+"STABILIZER: statistically sound performance evaluation". Charlie Curtsinger, Emery D. Berger.
+ASPLOS '13, pages 219--228. DOI 10.1145/2451116.2451141.
+
+Shows that code and data **layout** alone shifts performance enough to swamp the effects
+benchmarks try to measure, and randomises layout so that ordinary statistics become applicable.
+
+**Read the consequence before deciding.** This thesis compares two separately compiled binaries,
+so layout differs between the arms by construction, and layout is not among the controlled
+variables in `tab:controls`. Citing STABILIZER names a confound the study does not remove. That is
+a real residual threat rather than a manufactured one, and the interleaved design does not touch
+it, because the layout difference is fixed across every repeat rather than varying with drift.
+Two defensible positions: add it to §`sec:threats` as a named residual and gain credit for
+volunteering it, or leave it out and risk an examiner who knows the paper. The first is more in
+keeping with how the rest of the thesis handles inconvenient evidence, and it pairs naturally with
+the forced-idiom log, which is already the draft's answer to "the two programs are not identical".
+**This is the author's call, not an obvious add.**
+
+## F. The `Bugden` replacement (criterion 2's last soft spot)
+
+`docs/ASSESSMENT.md` has recorded for three passes that one load-bearing citation remains an arXiv
+preprint: `bugden2022rust`, carrying "throughput and memory use alongside C and C++"
+(`Thesis_POC.tex`:822) and "compiled systems languages close on time and energy"
+(`Thesis_POC.tex`:3623).
+
+Neither claim actually needs a preprint. Two peer-reviewed sources cover it, and one is already
+half in the bibliography.
+
+### F.1 Pereira et al., Science of Computer Programming 2021 — VERIFIED
+
+"Ranking programming languages by energy efficiency". Rui Pereira, Marco Couto, Francisco Ribeiro,
+Rui Rua, Jácome Cunha, João Paulo Fernandes, João Saraiva. *Science of Computer Programming*
+205:102609, 2021. DOI 10.1016/j.scico.2021.102609.
+
+The journal extension of `pereira2017energy`, which the thesis already cites for the same claim in
+the same sentence. Upgrading to the journal version and dropping the preprint costs nothing and
+removes the soft spot from the time-and-energy half outright.
+
+### F.2 Costanzo, Rucci, Naiouf and De Giusti, CLEI 2021 — VERIFIED
+
+"Performance vs Programming Effort between Rust and C on Multicore Architectures: Case Study in
+N-Body". XLVII Latin American Computing Conference (CLEI 2021), pages 1--10.
+DOI 10.1109/CLEI53233.2021.9640225. (An arXiv preprint exists as 2107.11912. Cite the IEEE
+version.)
+
+A matched Rust and C pair on a parallel numerical workload, with development effort measured
+alongside run time. Their own finding, quoted: performance "close in double precision, but not in
+single precision, where C version was superior", because "Rust does not optimize math operations
+as well as C with this data type", concluding that Rust "reduces programming effort while
+maintaining acceptable performance levels".
+
+Two reasons it is worth more than a citation swap. It is a **matched pair with an effort
+measurement**, so it belongs in the `tab:related` population and in the RQ4 discussion, not only in
+the background sentence. And its optimisation sequence includes a step that switches the Rust
+build to `jemalloc`, which is an independent instance of an allocator choice being treated as a
+performance variable in a two-language comparison, exactly as the fairness controls here treat it.
+Be precise about scope when citing: the comparison is Rust against **C**, not C++.
+
+**What this does not settle.** The `Thesis_POC.tex`:822 claim is about C++ as well as C, and neither
+F.1 nor F.2 is a C++ matched pair on throughput and memory. The bibliography's existing
+`suchert2023stamp`, `gonzalez2023rustudp` and `pirelli2023safelowlevel` already carry that side
+from three directions. The honest fix is to let those three carry the C++ half and use F.1 and F.2
+for the general one, at which point `bugden2022rust` can go.
+
+## G. What to change, ordered by risk
+
+1. **`Thesis_POC.tex`:3030, the Loom sentence.** Accuracy fix, and the only item here that makes an
+   existing sentence *wrong* rather than merely unsupported. Release/acquire, not C11 entire.
+   Sound under bounded partial-order reduction, not exhaustive full stop. Cite B.1, optionally B.3.
+2. **`Thesis_POC.tex`:3009--3012 and the `tab:faults` `$^{\S}$` footnote.** Attribute the lock-graph
+   mechanism to B.5, and the unmaintained-experimental-detector status to B.6. The draft's own
+   reasoning survives intact and stops being the only support for its most surprising RQ2 finding.
+3. **§`sec:stats`.** Add E.1, and E.2 where `\NRepeats{}` is justified. Cheapest large gain in the
+   sweep.
+4. **§`sec:threats`, the virtualised-host row, and `bench/TESTBED.md`.** Add C.2 for the
+   from-inside-the-guest argument and C.1 for the order of magnitude. Mind the framing warning in
+   C.1.
+5. **§`sec:resources` and the RQ3 discussion.** Add D.1 for arenas and D.3 for allocator choice
+   dominating. D.2 if the blowup concept is used by name.
+6. **Background §`sec:cpplatency` and §`sec:relatedwork`, plus the RQ4 discussion.** Retire
+   `bugden2022rust` in favour of F.1, and add F.2 as a matched pair with an effort measurement.
+7. **Shuttle's guarantee.** Add B.2 wherever the draft says probabilistic concurrency testing.
+8. **B.4** wherever ThreadSanitizer is first named, as the tool's own account.
+9. **Decide E.4 deliberately, either way.** If it goes in, it goes in `tab:threats` as a residual
+   the study does not control, and the diagram constraint recorded in sweep 1 §2.5 applies:
+   `diagrams/25_threats_validity.drawio` is hand-laid-out, so a table row without a diagram row
+   leaves the two inconsistent.
+
+Items 1 and 2 are corrections and should be done regardless. Items 3 to 8 are fills. Item 9 is a
+judgement call.
+
+## H. Negative results, recorded so they are not searched for again
+
+- **No peer-reviewed paper measures Shuttle or Loom as objects of study.** B.1 is the only
+  peer-reviewed source that reports using them at scale, which is why it carries so much weight
+  above. Shuttle has no paper of its own, only the repository.
+- **No peer-reviewed evaluation of the TSan deadlock detector exists.** Searched under lock-order
+  inversion, potential deadlock, false negative and detector-effectiveness phrasings. The
+  literature covers the *technique* (B.5 and its successors) and the tool's own documentation
+  covers the *implementation* (B.6), and nothing joins them. This is why the draft's twelve-repeat
+  measurement is worth keeping as a contribution in its own right: it is a small piece of evidence
+  about a tool nobody has evaluated.
+- **No peer-reviewed source compares Rust's and C++'s standard collections on memory footprint.**
+  Searched for open-addressing versus node-based hash-map footprint, `hashbrown`, SwissTable and
+  `unordered_map`. The mechanism behind the language half of the peak-RSS result therefore stays
+  where it belongs, in the forced-idiom log and the compiled record-size probes of
+  `bench/artefact_facts.py`.
+- **The general-web result set for cross-language performance is unchanged from sweeps 1 and 3.**
+  The 2026 additions are a JetBrains vendor post and two arXiv preprints ("Is Rust C++-fast?",
+  2209.09127, and a 2026 multi-language AI-workload benchmark, 2606.18141, which reports Rust
+  trailing C and C++ by 9% on a geometric mean and all three staying below 6 MiB). Both are
+  preprints, so neither improves on what §F already fixes. Not citable.
+- **`bibliography.bib` is clean.** 100 entries, 100 cited, no orphans, no undefined keys. Anything
+  added here must be cited or it breaks that.
+
+## I. BibTeX
+
+Every field below was read from the registration agency's own record via
+`.bibaudit/verify_candidates.py`, or from the publisher's page for the two items without a DOI.
+Titles that ACM splits into `title` and `subtitle` are reassembled here. `urldate` on the `@misc`
+entries must be set to the day they are actually cited.
+
+```bibtex
+@inproceedings{bornholt2021shardstore,
+  author    = {Bornholt, James and Joshi, Rajeev and Astrauskas, Vytautas and Cully, Brendan and
+               Kragl, Bernhard and Markle, Seth and Sauri, Kyle and Schleit, Drew and
+               Slatton, Grant and Tasiran, Serdar and Van Geffen, Jacob and Warfield, Andrew},
+  title     = {Using Lightweight Formal Methods to Validate a Key-Value Storage Node in
+               {Amazon} {S3}},
+  booktitle = {Proceedings of the ACM SIGOPS 28th Symposium on Operating Systems Principles
+               (SOSP '21)},
+  pages     = {836--850},
+  year      = {2021},
+  doi       = {10.1145/3477132.3483540}
+}
+
+@inproceedings{burckhardt2010pct,
+  author    = {Burckhardt, Sebastian and Kothari, Pravesh and Musuvathi, Madanlal and
+               Nagarakatte, Santosh},
+  title     = {A Randomized Scheduler with Probabilistic Guarantees of Finding Bugs},
+  booktitle = {Proceedings of the 15th International Conference on Architectural Support for
+               Programming Languages and Operating Systems (ASPLOS '10)},
+  pages     = {167--178},
+  year      = {2010},
+  doi       = {10.1145/1736020.1736040}
+}
+
+@inproceedings{norris2013cdschecker,
+  author    = {Norris, Brian and Demsky, Brian},
+  title     = {{CDSchecker}: Checking Concurrent Data Structures Written with {C/C++} Atomics},
+  booktitle = {Proceedings of the 2013 ACM SIGPLAN International Conference on Object Oriented
+               Programming Systems Languages and Applications (OOPSLA '13)},
+  pages     = {131--150},
+  year      = {2013},
+  doi       = {10.1145/2509136.2509514}
+}
+
+@inproceedings{serebryany2009tsan,
+  author    = {Serebryany, Konstantin and Iskhodzhanov, Timur},
+  title     = {{ThreadSanitizer}: Data Race Detection in Practice},
+  booktitle = {Proceedings of the Workshop on Binary Instrumentation and Applications
+               (WBIA '09)},
+  pages     = {62--71},
+  year      = {2009},
+  doi       = {10.1145/1791194.1791203}
+}
+
+@inproceedings{bensalem2005deadlock,
+  author    = {Bensalem, Saddek and Havelund, Klaus},
+  title     = {Dynamic Deadlock Analysis of Multi-threaded Programs},
+  booktitle = {Hardware and Software, Verification and Testing (Haifa Verification Conference
+               2005)},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {3875},
+  pages     = {208--223},
+  publisher = {Springer},
+  year      = {2005},
+  doi       = {10.1007/11678779_15}
+}
+
+@misc{tsandeadlock,
+  author       = {{The Sanitizers Project}},
+  title        = {{ThreadSanitizer} Deadlock Detector},
+  howpublished = {Project documentation, google/sanitizers wiki},
+  url          = {https://github.com/google/sanitizers/wiki/ThreadSanitizerDeadlockDetector}
+}
+
+@article{abeni2020hypervisors,
+  author  = {Abeni, Luca and Faggioli, Dario},
+  title   = {Using {Xen} and {KVM} as Real-Time Hypervisors},
+  journal = {Journal of Systems Architecture},
+  volume  = {106},
+  pages   = {101709},
+  year    = {2020},
+  doi     = {10.1016/j.sysarc.2020.101709}
+}
+
+@article{gebai2014preemption,
+  author  = {Gebai, Mohamad and Giraldeau, Francis and Dagenais, Michel R.},
+  title   = {Fine-Grained Preemption Analysis for Latency Investigation across Virtual Machines},
+  journal = {Journal of Cloud Computing},
+  volume  = {3},
+  number  = {1},
+  year    = {2014},
+  doi     = {10.1186/s13677-014-0023-3}
+}
+
+@article{abeni2024virtualized,
+  author  = {Abeni, Luca},
+  title   = {Virtualized Real-Time Workloads in Containers and Virtual Machines},
+  journal = {Journal of Systems Architecture},
+  volume  = {154},
+  pages   = {103238},
+  year    = {2024},
+  doi     = {10.1016/j.sysarc.2024.103238}
+}
+
+@misc{evans2006jemalloc,
+  author       = {Evans, Jason},
+  title        = {A Scalable Concurrent \texttt{malloc(3)} Implementation for {FreeBSD}},
+  howpublished = {BSDCan 2006, Ottawa},
+  year         = {2006},
+  month        = apr,
+  url          = {https://papers.freebsd.org/2006/bsdcan/evans-jemalloc/}
+}
+
+@inproceedings{berger2000hoard,
+  author    = {Berger, Emery D. and McKinley, Kathryn S. and Blumofe, Robert D. and
+               Wilson, Paul R.},
+  title     = {Hoard: A Scalable Memory Allocator for Multithreaded Applications},
+  booktitle = {Proceedings of the 9th International Conference on Architectural Support for
+               Programming Languages and Operating Systems (ASPLOS '00)},
+  pages     = {117--128},
+  year      = {2000},
+  doi       = {10.1145/378993.379232}
+}
+
+@inproceedings{berger2002customalloc,
+  author    = {Berger, Emery D. and Zorn, Benjamin G. and McKinley, Kathryn S.},
+  title     = {Reconsidering Custom Memory Allocation},
+  booktitle = {Proceedings of the 17th ACM SIGPLAN Conference on Object-Oriented Programming,
+               Systems, Languages, and Applications (OOPSLA '02)},
+  year      = {2002},
+  doi       = {10.1145/582419.582421},
+  note      = {Page range unconfirmed: Crossref's deposit records the first page only}
+}
+
+@inproceedings{johnstone1998fragmentation,
+  author    = {Johnstone, Mark S. and Wilson, Paul R.},
+  title     = {The Memory Fragmentation Problem: Solved?},
+  booktitle = {Proceedings of the 1st International Symposium on Memory Management (ISMM '98)},
+  pages     = {26--36},
+  year      = {1998},
+  doi       = {10.1145/286860.286864}
+}
+
+@inproceedings{powers2019mesh,
+  author    = {Powers, Bobby and Tench, David and Berger, Emery D. and McGregor, Andrew},
+  title     = {Mesh: Compacting Memory Management for {C/C++} Applications},
+  booktitle = {Proceedings of the 40th ACM SIGPLAN Conference on Programming Language Design and
+               Implementation (PLDI '19)},
+  pages     = {333--346},
+  year      = {2019},
+  doi       = {10.1145/3314221.3314582}
+}
+
+@inproceedings{hoefler2015benchmarking,
+  author    = {Hoefler, Torsten and Belli, Roberto},
+  title     = {Scientific Benchmarking of Parallel Computing Systems},
+  booktitle = {Proceedings of the International Conference for High Performance Computing,
+               Networking, Storage and Analysis (SC '15)},
+  pages     = {1--12},
+  year      = {2015},
+  doi       = {10.1145/2807591.2807644}
+}
+
+@inproceedings{kalibera2013benchmarking,
+  author    = {Kalibera, Tomas and Jones, Richard},
+  title     = {Rigorous Benchmarking in Reasonable Time},
+  booktitle = {Proceedings of the 2013 International Symposium on Memory Management (ISMM '13)},
+  pages     = {63--74},
+  year      = {2013},
+  doi       = {10.1145/2464157.2464160}
+}
+
+@inproceedings{mytkowicz2009bias,
+  author    = {Mytkowicz, Todd and Diwan, Amer and Hauswirth, Matthias and Sweeney, Peter F.},
+  title     = {Producing Wrong Data without Doing Anything Obviously Wrong!},
+  booktitle = {Proceedings of the 14th International Conference on Architectural Support for
+               Programming Languages and Operating Systems (ASPLOS '09)},
+  pages     = {265--276},
+  year      = {2009},
+  doi       = {10.1145/1508244.1508275}
+}
+
+@inproceedings{curtsinger2013stabilizer,
+  author    = {Curtsinger, Charlie and Berger, Emery D.},
+  title     = {{STABILIZER}: Statistically Sound Performance Evaluation},
+  booktitle = {Proceedings of the 18th International Conference on Architectural Support for
+               Programming Languages and Operating Systems (ASPLOS '13)},
+  pages     = {219--228},
+  year      = {2013},
+  doi       = {10.1145/2451116.2451141}
+}
+
+@article{pereira2021energy,
+  author  = {Pereira, Rui and Couto, Marco and Ribeiro, Francisco and Rua, Rui and
+             Cunha, J{\'a}come and Fernandes, Jo{\~a}o Paulo and Saraiva, Jo{\~a}o},
+  title   = {Ranking Programming Languages by Energy Efficiency},
+  journal = {Science of Computer Programming},
+  volume  = {205},
+  pages   = {102609},
+  year    = {2021},
+  doi     = {10.1016/j.scico.2021.102609}
+}
+
+@inproceedings{costanzo2021rustc,
+  author    = {Costanzo, Manuel and Rucci, Enzo and Naiouf, Marcelo and De Giusti, Armando},
+  title     = {Performance vs Programming Effort between {Rust} and {C} on Multicore
+               Architectures: Case Study in {N-Body}},
+  booktitle = {2021 XLVII Latin American Computing Conference (CLEI)},
+  pages     = {1--10},
+  year      = {2021},
+  doi       = {10.1109/CLEI53233.2021.9640225}
+}
+```
+
+Two notes on entry types, following the convention set in sweep 1. `evans2006jemalloc` and
+`tsandeadlock` are not peer-reviewed and the prose must say so where they are used, not only the
+entry type. And `IEEEtran` renders `@misc` without the emphasis `@techreport` receives, so check
+both in the compiled PDF before settling on the type.
