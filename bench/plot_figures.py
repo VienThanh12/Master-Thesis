@@ -590,7 +590,7 @@ def fig_resources(rows, outdir, load):
     fig, (ax_a, ax_b, ax_c) = plt.subplots(
         1, 3, figsize=(10.2, 3.5), gridspec_kw={"width_ratios": [1.0, 1.22, 1.0]})
 
-    def grouped(ax, metric_fn, ylabel, title):
+    def grouped(ax, metric_fn, ylabel, title, headroom=0.0, legend_loc="best"):
         width = 0.34
         for i, lang in enumerate(langs):
             xs, med, err_lo, err_hi = [], [], [], []
@@ -613,10 +613,17 @@ def fig_resources(rows, outdir, load):
         ax.set_title(title, fontsize=9.5)
         ax.grid(True, axis="y", ls=":", alpha=0.4)
         ax.set_axisbelow(True)
-        ax.legend(fontsize=8, framealpha=0.95)
+        if headroom:
+            lo_y, hi_y = ax.get_ylim()
+            ax.set_ylim(lo_y, hi_y + (hi_y - lo_y) * headroom)
+        ax.legend(fontsize=8, framealpha=0.95, loc=legend_loc)
 
     grouped(ax_a, rss_of, "Peak RSS (MiB)", "(a) Peak resident set size")
-    grouped(ax_c, cpu_of, "CPU utilisation (%)", "(c) CPU utilisation")
+    # Every variant saturates a core here, so all four bars run to the top of the
+    # axis and "best" has nowhere free to sit: it lands on the system-allocator
+    # pair. The headroom gives the legend a lane of its own.
+    grouped(ax_c, cpu_of, "CPU utilisation (%)", "(c) CPU utilisation",
+            headroom=0.34, legend_loc="upper left")
 
     # ---- (b) the allocator effect against the language effect ------------- #
     effects = []
@@ -696,34 +703,35 @@ def fig_taxonomy(taxonomy_csv, outdir):
         ["#c0392b", "#e67e22", "#e6b800", "#1e8449"])
     norm = matplotlib.colors.BoundaryNorm([-0.5, 0.5, 1.5, 2.5, 3.5], cmap.N)
 
-    fig, ax = plt.subplots(figsize=(7.4, 0.46 * len(defects) + 1.9))
+    # The matrix used to be drawn nearly square and 7.4 in wide, which no place
+    # that reproduces it can carry: both the thesis column and the slide slot are
+    # landscape, so the figure was scaled to about 55% and its type landed near
+    # 4 pt. Rows are tighter and the proportions match the slot, so the same
+    # labels are reproduced at close to full size and the type can stay large.
+    fig, ax = plt.subplots(figsize=(5.6, 0.27 * len(defects) + 1.3))
     ax.imshow(grid, cmap=cmap, norm=norm, aspect="auto")
     ax.set_xticks(range(len(cols)))
-    ax.set_xticklabels(cols, fontsize=9)
+    # Two lines per column: at one line the four headings are wider than the
+    # columns they label and run into each other.
+    ax.set_xticklabels([c.replace(" ", "\n") for c in cols], fontsize=10)
     ax.set_yticks(range(len(defects)))
-    ax.set_yticklabels(defects, fontsize=9)
+    ax.set_yticklabels(defects, fontsize=10)
     for i in range(len(defects)):
         for j in range(len(cols)):
             ax.text(
                 j, i, labels[i][j], ha="center", va="center",
-                color="white", fontsize=8, fontweight="bold",
+                color="white", fontsize=8.5, fontweight="bold",
             )
     ax.set_xticks([x - 0.5 for x in range(1, len(cols))], minor=True)
     ax.set_yticks([y - 0.5 for y in range(1, len(defects))], minor=True)
     ax.grid(which="minor", color="white", linewidth=2)
     ax.tick_params(which="minor", length=0)
 
-    # Mark where the compile-time guarantee stops. The label goes inside the axes
-    # so it cannot widen the saved bounding box and squeeze the cells.
+    # Mark where the compile-time guarantee stops. The rule is named in the legend
+    # rather than labelled in place: a caption box on the rule has to sit inside a
+    # row, and at this row height it covers the outcome it is drawn next to.
     if prevented and boundary:
-        split = len(prevented) - 0.5
-        ax.axhline(split, color="black", linewidth=2.0)
-        ax.text(
-            -0.5, split - 0.06, " boundary of the guarantee ",
-            ha="left", va="bottom", fontsize=7.5, style="italic",
-            bbox=dict(boxstyle="square,pad=0.15", facecolor="white",
-                      edgecolor="black", linewidth=0.8),
-        )
+        ax.axhline(len(prevented) - 0.5, color="black", linewidth=2.0)
 
     legend = [
         Patch(facecolor="#1e8449", label="prevented at compile time"),
@@ -731,8 +739,11 @@ def fig_taxonomy(taxonomy_csv, outdir):
         Patch(facecolor="#e67e22", label="detected on some runs only"),
         Patch(facecolor="#c0392b", label="not detected / not prevented"),
     ]
-    ax.legend(handles=legend, loc="upper center", bbox_to_anchor=(0.5, -0.12),
-              ncol=2, fontsize=7, framealpha=0.9)
+    if prevented and boundary:
+        legend.append(plt.Line2D([], [], color="black", linewidth=2.0,
+                                 label="boundary of the guarantee"))
+    ax.legend(handles=legend, loc="upper center", bbox_to_anchor=(0.5, -0.14),
+              ncol=2, fontsize=8.5, framealpha=0.9)
     fig.tight_layout()
     out = os.path.join(outdir, "fig_taxonomy.pdf")
     fig.savefig(out, bbox_inches="tight")

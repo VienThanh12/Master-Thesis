@@ -254,6 +254,11 @@ def read_env():
     with open(caps[-1]) as f:
         kernel = re.search(r"^Linux \S+ (\S+)", f.read(), re.M)
     env["kernel"] = kernel.group(1) if kernel else "unknown"
+    # The kernel spells its own sysfs tokens without spaces, and "SMT
+    # notsupported" on a slide reads as a spelling mistake rather than as a
+    # verbatim value. The fact is unchanged, only its spacing.
+    env["smt"] = {"notsupported": "not supported",
+                  "forceoff": "forced off"}.get(env.get("smt", ""), env.get("smt", "unknown"))
     return env
 
 
@@ -812,8 +817,7 @@ add_data_table(
 # Slide 6: The gap (diagram)
 # =====================================================================
 s = headline(1, "The gap: no controlled evidence for the RAN control plane",
-             "Five vendor theses come close; none holds the concurrency model fixed "
-             "past saturation")
+             "Five theses come close, none holds the concurrency model fixed past saturation")
 _png, _crop = diagram("29_research_gap")
 add_figure(s, _png, crop_top=_crop)
 
@@ -895,7 +899,7 @@ add_textbox(s, Cm(1.4), Cm(11.4), Cm(20.0), Cm(0.8),
 # Slide 10: Fairness controls (diagram)
 # =====================================================================
 s = headline(1, "Fairness by construction, so the language is the only variable",
-             "One frozen specification, two implementations, exactly one thing allowed to differ")
+             "One frozen specification, two implementations, one thing allowed to differ")
 _png, _crop = diagram("18_fairness_controls")
 add_figure(s, _png, crop_top=_crop)
 
@@ -903,7 +907,7 @@ add_figure(s, _png, crop_top=_crop)
 # Slide 11: How a reported number is produced (diagram)
 # =====================================================================
 s = headline(1, "How a reported number is produced",
-             "From the frozen specification to the macro the prose cites, with nothing hand-copied")
+             "Frozen specification to the macro the prose cites, with nothing hand-copied")
 _png, _crop = diagram("20_benchmark_harness")
 add_figure(s, _png, crop_top=_crop)
 
@@ -973,7 +977,7 @@ add_notes(s, [
 # Slide 15: Where the guarantee stops (diagram)
 # =====================================================================
 s = headline(1, "Where the compile-time guarantee stops",
-             "Rust eliminates data races, not race conditions; aliasing errors, not lock-ordering errors")
+             "Data races and aliasing errors are gone, race conditions and deadlocks are not")
 _png, _crop = diagram("17_guarantee_boundary")
 add_figure(s, _png, crop_top=_crop)
 
@@ -1123,7 +1127,7 @@ add_figure(s, _png, crop_top=_crop)
 # Slide 24: What the seam costs (generated figure)
 # =====================================================================
 s = headline(1, "RQ4: incremental adoption is technically cheap",
-             "The crossing is bounded against the same operation called natively, not declared free")
+             "Bounded against the same operation called natively, not declared free")
 add_figure(s, result_figure("fig_ffi_cost"), top=Cm(3.4), height=Cm(6.9))
 add_notes(s, [
     (f"Crossing: {ffi_value('Raw FFI crossing')}",
@@ -1179,7 +1183,7 @@ add_data_table(
 # Slide 27: Hypotheses versus verdict
 # =====================================================================
 s = headline(1, "The three prior hypotheses against the evidence",
-             "Stated up front so the evaluation could refute them, and two of the three needed refining")
+             "Stated up front so the evaluation could refute them, two needed refining")
 add_data_table(
     s,
     [

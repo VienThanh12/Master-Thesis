@@ -13,7 +13,7 @@
   <line x1="52" y1="132" x2="258" y2="132" stroke="#2f6db3" stroke-width="1"/>
   <text x="54" y="156" font-size="12" fill="#243447">sees only:</text>
   <text x="54" y="178" font-size="12" fill="#243447">&#8226; opaque handle <tspan font-family="monospace">UecmService*</tspan></text>
-  <text x="54" y="200" font-size="12" fill="#243447">&#8226; 12 plain-C entry points</text>
+  <text x="54" y="200" font-size="12" fill="#243447">&#8226; 11 plain-C entry points</text>
   <text x="54" y="222" font-size="12" fill="#243447">&#8226; a status-code convention</text>
   <text x="54" y="252" font-size="11" fill="#5b6b7b">status: 0 = Ok,</text>
   <text x="54" y="270" font-size="11" fill="#5b6b7b">1..5 = 1 + OpError,</text>
@@ -29,9 +29,9 @@
   <rect x="360" y="96" width="256" height="230" rx="11" fill="#fbe0cb" stroke="#d35400" stroke-width="2"/>
   <text x="488" y="122" text-anchor="middle" font-size="15" font-weight="700" fill="#a04000">uecm-ffi seam crate</text>
   <line x1="376" y1="132" x2="600" y2="132" stroke="#d35400" stroke-width="1"/>
-  <text x="376" y="156" font-size="12" fill="#243447">&#8226; 12 <tspan font-family="monospace">extern "C"</tspan> entry points</text>
+  <text x="376" y="156" font-size="12" fill="#243447">&#8226; 11 <tspan font-family="monospace">extern "C"</tspan> entry points</text>
   <text x="376" y="178" font-size="12" fill="#243447">&#8226; ~231 lines of Rust</text>
-  <text x="376" y="200" font-size="12" fill="#a5281b" font-weight="700">&#8226; 12 unsafe sites (raw ptrs)</text>
+  <text x="376" y="200" font-size="12" fill="#a5281b" font-weight="700">&#8226; 9 unsafe functions (raw ptrs)</text>
   <text x="376" y="222" font-size="12" fill="#243447">&#8226; one documented safety</text>
   <text x="396" y="240" font-size="12" fill="#243447">contract</text>
   <text x="376" y="270" font-size="11" fill="#5b6b7b">converts handle + scalars &#8596;</text>
@@ -53,14 +53,18 @@
   <!-- arrows -->
   <line x1="274" y1="200" x2="356" y2="200" stroke="#33475b" stroke-width="2.4" marker-end="url(#a)"/>
   <line x1="616" y1="200" x2="696" y2="200" stroke="#33475b" stroke-width="2.4" marker-end="url(#a)"/>
-  <text x="656" y="192" text-anchor="middle" font-size="11" fill="#33475b">safe call</text>
+  <!-- markerUnits defaults to strokeWidth, so the arrowhead is 24 units wide at
+       stroke-width 2.4 and reaches back to x=677; the label is centred clear of it. -->
+  <text x="646" y="190" text-anchor="middle" font-size="11" fill="#33475b">safe call</text>
 
   <!-- cost comparison -->
   <rect x="36" y="404" width="886" height="80" rx="10" fill="#fbfcfd" stroke="#d7dde3"/>
-  <text x="54" y="428" font-size="13" font-weight="700" fill="#12233a">Per-call cost: the crossing is negligible next to the operation it invokes</text>
+  <text x="54" y="423" font-size="13" font-weight="700" fill="#12233a">Per-call cost: the crossing is negligible next to the operation it invokes</text>
+  <!-- The right-hand label runs to x=860, so the bar row sits below the band
+       headline rather than beside it, where the two texts shared a line. -->
+  <text x="470" y="445" font-size="12" fill="#1c4e86">signaling op round-trip: <tspan font-weight="700">12.7 &#181;s</tspan>  (&#8776; 4 orders of magnitude larger)</text>
   <!-- tiny bar -->
-  <rect x="54" y="444" width="6" height="20" fill="#d35400"/>
-  <text x="70" y="459" font-size="12" fill="#a04000">FFI crossing (do-nothing extern "C"): <tspan font-weight="700">2.54 ns</tspan></text>
-  <rect x="470" y="444" width="360" height="20" fill="#2f6db3"/>
-  <text x="470" y="438" font-size="12" fill="#1c4e86">signaling op round-trip: <tspan font-weight="700">12.7 &#181;s</tspan>  (&#8776; 4 orders of magnitude larger)</text>
+  <rect x="54" y="453" width="6" height="20" fill="#d35400"/>
+  <text x="70" y="468" font-size="12" fill="#a04000">FFI crossing (do-nothing extern "C"): <tspan font-weight="700">2.54 ns</tspan></text>
+  <rect x="470" y="453" width="360" height="20" fill="#2f6db3"/>
 </svg>
