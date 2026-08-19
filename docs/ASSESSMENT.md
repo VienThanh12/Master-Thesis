@@ -12,13 +12,13 @@ An interactive version of this document exists as a Cursor canvas at
 `~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grading.canvas.tsx`. This file is
 the durable copy; keep the two in step if you revise either.
 
-> **A second, independent review followed this one and disagreed with it.** It held criteria 3
-> and 4 at 4 rather than 4.5, on the grounds that this document treats "everything analysis
-> could contribute" as done when three analysis items were still available on the existing
-> dataset. Those three were then carried out, along with two new measurements. The record is in
-> "Second pass" at the end of this file, and in
-> `~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-examiner-review.canvas.tsx`.
-> Where the two disagree, the second pass is current.
+> **The current grade is the fifth pass, 19 August 2026, at the end of this file.** The summary
+> table immediately below is the first pass and is kept as history, not as the standing view.
+> Five passes are on record and they do not all agree: the second held criteria 3 and 4 at 4
+> rather than 4.5, on the grounds that three criticisms said to need new measurement were
+> answerable from the dataset already in hand, and the fourth took criterion 6 from 5 to 4.5 on
+> the truthfulness of the AI declaration. Read the passes in order if the reasoning behind a
+> half-grade matters. Where any two disagree, the later one is current.
 
 ---
 
@@ -619,3 +619,143 @@ overfull boxes, zero floats too large. 147 pages.
    appendix). Defensible layering for a reader without telecom background — left as the author's
    call rather than cut.
 5. **Housekeeping:** examiners on the title page, official class file.
+
+---
+
+## Fifth pass — 19 August 2026
+
+Graded against the **official seven-area CSM matrix** (9 April 2024) using
+`.cursor/skills/thesis-grade-csm/`. Source: `Ha_Vien_Mastersthesis_2026.pdf`, which is
+byte-identical to `Thesis_POC.pdf` (md5 `0b1afc6f…`), plus `Thesis_POC.tex` and the generated
+artefacts under `figures/`. Build dated 18 Aug 2026 15:44 against a source of 15:34, so the
+grade describes a current build. 163 pages. Standard applied: a full draft the repository does
+not treat as supervisor-approved, judged as an examiner would see the manuscript. Canvas:
+`~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-aug19.canvas.tsx`.
+
+| Area | Fourth pass | Fifth pass | Note |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | RQ1's metric list now verified against Table 7.1 |
+| 2. Scholarly framework and sources | 5 | **5** | Unchanged |
+| 3. Research data and method | 4.5 | **4.5** | Method at 5, data at 4; host-bound as before |
+| 4. Presentation of results | 4.5 | **4.5** | Same grade, different cap — see below |
+| 5. Discussion and conclusions | 5 | **5** | One conclusion verb out of step with §7.3 |
+| 6. Academic text | 4.5 | **4.5** | Same grade, different cap — see below |
+| 7. Work during the thesis process | not assessable | **not assessable** | No manuscript settles it |
+| **Mean of the six assessable** | 4.75 | **4.75** | |
+
+### Agreement with the fourth pass, and what changed underneath it
+
+Every area lands on the same number. That is not the same as nothing having happened, because
+the reasoning behind two of them has been replaced.
+
+**Area 6 is at 4.5 for a different reason.** The fourth pass held it there because the printed
+AI declaration was false about the abstract. That is repaired, and repaired the right way: the
+sentence is gated on `\ifabstractunaided`, the switch is still false, and the PDF says plainly
+"In this draft it has not yet been rewritten unaided". What holds the area at 4.5 now is that
+the abstract is still unwritten, so the document declares itself not submittable, plus the §5.5
+inconsistency below.
+
+**Area 4 is at 4.5 for one old reason and three new ones.** The far tail is unchanged. The
+fourth pass's caps are largely cleared: hand-typed measured values are far fewer, and the one
+unreferenced float is the abbreviations table in Appendix D, which is a glossary and
+conventionally not cross-referenced (discount it). In their place are three arithmetic
+disagreements that were not in the 147-page build. Worth saying plainly: the work since 17
+August was good, and the growth from 147 to 163 pages introduced new defects of exactly the
+class the previous pass had cleared.
+
+### What was checked mechanically
+
+`texaudit.py` passes every hard gate: zero LaTeX errors, zero undefined references, zero
+undefined citations, zero multiply-defined labels, zero overfull boxes, zero floats too large,
+zero placeholders. 100 bibliography entries, all 100 cited, none uncited, 65 in peer-reviewed
+venues. `.aitells.py`: zero semicolons, four dash hits all legitimate typography (one compound
+proper name, three numeric ranges), sentence-length stdev 13.1 with a mean of 24.5.
+`.readability.py`: longest sentence 73 words, down from the 93 the fourth pass split.
+
+The abstract page was rendered and inspected: the form is complete, the CCS block does not
+overflow into Keywords, and the declared "140 pages, 11 appendix pages" checks out against the
+PDF (printed page 1 is PDF page 13, printed 140 is PDF page 152, appendices run PDF 153–163).
+
+**Figure against table, five pairs, all agree exactly:**
+
+| Pair | Checked | Verdict |
+| --- | --- | --- |
+| Fig. 7.2 / Table 7.2 | Nine filled markers, one open on peak RSS under jemalloc, four tail rows shaded | Agrees |
+| Fig. 7.9 / Table 7.7 | 9.7 / 11.6 / 42.6 / 45.9 MiB; decomposition 32.9, 34.4, 1.9, 3.4 | Agrees |
+| Fig. 7.7 / Table 7.5 | 117 / 62 / 115 / 63 kops/s; CPU per kops 5.25 against 10.14 | Agrees |
+| Fig. 7.10 / Table 7.8 | All ten classes; TSan "sometimes" on lock-order deadlock; C++ ahead on two boundary rows | Agrees |
+| Fig. 7.4 / Table 7.3 | 13.6 µs round-trip, operation at 0.250 %, blind zone at 58× | Agrees |
+
+This is the highest-yield check in the procedure and it came back clean on every pair sampled,
+down to the open marker on the one significance row that fails Holm. That is the strongest
+single piece of evidence in area 4, and it is why three arithmetic slips cap the area rather
+than sink it.
+
+### Findings
+
+1. **Table 6.4 (`tab:loc`) does not add up.** The nine per-concern rows sum to 668 on the C++
+   side while the total row prints 674 (`\CppRawLines`). The deltas sum to +94 while the total
+   prints +88 (`\LocGap`). The Rust column and every per-row delta are internally consistent, so
+   six C++ lines are unaccounted for: either one cell reads six low, or a concern worth six C++
+   lines and no Rust lines is missing from the breakdown. The caption promises to show where the
+   88-line difference
+   comes from by concern, and the concerns account for 94. `bench/complexity.py` carries a
+   comment saying the totals were emitted "so the prose and the table cannot quote different
+   totals, which they have twice" — the guard covers the total row only, and the hand-decomposed
+   rows drifted underneath it. *Areas 4, 6.*
+2. **The conformance campaign is reported at two sizes.** §6.7 says "a campaign of roughly
+   `\ConfGenOps` generated operations" (793,000). §7.5.6 says the lifecycle defect survived
+   "$223$ hand-written and $9\,006$ generated conformance operations". Both name the same suite.
+   9,006 matches `run.sh` defaults (4 vectors per profile × 300 ops); 793,000 is the deep
+   campaign the thesis reports. `223` is also typed by hand where `\ConfHandOps` exists.
+   *Areas 4, 6.*
+3. **§5.5 describes instrumentation the reported campaign did not have.** It states in the
+   present tense that the harness persists each run's HDR buckets so repeats can be pooled into a
+   distribution that "resolves the far tail", that "jitter is measured directly" per RFC 3393,
+   and that jitter and p99.99 "are reported descriptively". Neither is reported anywhere, and
+   §7.5.1 says the campaign "predates that instrumentation". The gap is disclosed in §7.5.1 and
+   in construct validity, but §5.5 was never rewritten, so the description of the setup
+   contradicts the results. *Areas 4, 6.*
+4. **0.250 % and 99.9 % do not complement each other** (`Thesis_POC.tex:2538`). The complement of
+   `\BudgetCoreShareMax` is 99.75. The 99.9 figure holds only against Table 7.1's ~80 µs
+   latencies rather than the 13.6 µs round-trip that 0.250 % is a share of, and the change of
+   denominator is not stated. Figure 7.4 labels the operation "0.250% of the bar", which is the
+   reading a checking examiner brings to the sentence. *Area 4.*
+5. **The conclusion asserts the hash-map mechanism** ("for reasons that trace to the standard
+   library's choice of hash-map layout") where §7.3 calls it "the single most likely source"
+   needing cache-miss counters, and the future-work list says counters "would confirm or refute"
+   it. One verb out of step with the other two. *Area 5.*
+6. **`\abstractunaidedfalse` is still set.** Honest and correctly gated, but the document
+   declares itself not submittable. *Area 6.*
+
+### Resolved since the fourth pass
+
+- **Official class file — done.** `HYthesisML.cls`, the Department of Computer Science's own CSM
+  template, with the pristine copy kept in `CSM-thesis-template_2021_09_07/`. The reconstructed
+  `UH_DS_MSc.cls` is a leftover file in the root and is no longer loaded. Strike this from the
+  housekeeping list.
+- **AI declaration — done.** Gated, truthful, and the build warns on every run.
+- **RQ1 metric alignment — verified,** not merely marked done. RQ1 names the median, p99, p99.9
+  and the maximum; `\LatencyHead` emits exactly those four columns.
+- **`zhang2026deadlock` is not a preprint.** The audit flags it only because of the `note` field
+  recording that it extends arXiv:2401.01114. Discount it. The one real preprint left is
+  `bugden2022rust`, and it appears twice, both times beside peer-reviewed corroboration, so it
+  carries no claim alone.
+
+### Outstanding
+
+1. **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`. Blocking, cannot be
+   delegated.
+2. **Fix the three arithmetic disagreements** (findings 1, 2, 4). Minutes each, and they are the
+   cheapest defects an examiner can find.
+3. **Put §5.5's pooling, jitter and p99.99 sentences in the conditional** so the setup
+   description matches §7.5.1. About an hour.
+4. **Soften "trace to" in the conclusion** to match §7.3. One word.
+5. **Bare-metal tail campaign** with hardware counters and allocation profiles on the same visit.
+   Unchanged in scope. The only item that needs an instrument the author does not have, and the
+   only thing holding areas 3 and 4 at 4.5.
+6. **Housekeeping:** `\censors{}{}{}` once the faculty assigns examiners.
+7. **Unrealised asset:** `figures/tab_equivalence.tex` is generated on every refresh and never
+   `\input` by any document. Its data reaches the page through the `\EqvBound*` macros, so
+   nothing is missing from the argument, but the table itself earns nothing where it sits.
+   Either place it in the results or drop it from the build.

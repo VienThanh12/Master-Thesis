@@ -67,7 +67,7 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
-State as of the fourth pass, 17 August 2026.
+State as of the fifth pass, 19 August 2026.
 
 1. **Rewrite the abstract unaided, then set `\abstractunaidedtrue`.** Blocking for submission and
    for area 6, and it cannot be delegated. Until it is set, every build prints
@@ -76,8 +76,20 @@ State as of the fourth pass, 17 August 2026.
    (`bench/TESTBED.md`). The only thing holding areas 3 and 4 at 4.5. What it buys is now
    narrow and specific: far-tail ordering below saturation, plus a mechanism for the peak-RSS
    effect and for the operation-level gap.
-3. **Housekeeping**: `\censors{}{}{}` once the faculty assigns examiners, and the official
-   `UH_DS_MSc.cls` in place of the reconstructed one.
+3. **Three arithmetic disagreements introduced between the 147- and 163-page builds**: Table 6.4's
+   C++ column sums to 668 against a printed total of 674, the conformance campaign is reported as
+   793,000 generated operations in Chapter 6 and 9,006 in Chapter 7, and a 0.250 % share is paired
+   with a 99.9 % complement. Minutes of editing each, and the cheapest defects an examiner finds.
+4. **§5.5 describes instrumentation the reported campaign did not have**: pooled far-tail figures,
+   directly measured jitter, and p99.99 "reported descriptively". §7.5.1 says the campaign predates
+   it. Put the three sentences in the conditional.
+5. **Housekeeping**: `\censors{}{}{}` once the faculty assigns examiners.
+
+**Resolved, do not re-report.** The class file is now the department's own `HYthesisML.cls` with
+the pristine template beside it, so the `UH_DS_MSc.cls` item is closed (the file survives in the
+root but is not loaded). The AI declaration is gated and truthful. RQ1's metric list matches the
+reported columns. `zhang2026deadlock` is the journal version, and a preprint flag on it is a
+false positive from its `note` field.
 
 ## Findings a grader must not "correct"
 

@@ -61,11 +61,13 @@ grading pass so passes stay comparable.
 | **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **Bare-metal tail campaign.** Results come from a dedicated but virtualised KVM Xeon guest, where the far tail below saturation cannot be resolved. Also missing: hardware counters and allocation profiles for the unexplained peak-RSS and operation-level results. |
 | **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.5** | RQ1 tail still open; Figures 7.1/7.3 cannot separate curves on current host. Lifts with same campaign as criterion 3. |
 | **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Maintain register: “cannot tell” ≠ “equivalent”. H1 is *ambiguous in framing*, not simply supported. |
-| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **5** | Housekeeping: fill `\censors{}{}{}` when faculty assigns examiners; swap in official `UH_DS_MSc.cls`. |
+| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`: until then the build prints “Not submittable”. Also §5.5 describes pooled far-tail figures and directly measured jitter that the reported campaign does not have. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
 
-**Overall mean (unweighted): 4.8** — held at 4.5 on criteria 3 and 4 **deliberately** until
-bare-metal tail evidence exists. Do not round those half-grades in prose without updating the
-reasoning in `docs/ASSESSMENT.md`.
+**Overall mean (unweighted): 4.75** — held at 4.5 on criteria 3 and 4 **deliberately** until
+bare-metal tail evidence exists, and at 4.5 on criterion 6 until the abstract is rewritten
+unaided. Do not round those half-grades in prose without updating the reasoning in
+`docs/ASSESSMENT.md`. The class-file item is **done**: the document builds on the department's
+own `HYthesisML.cls`, and the reconstructed `UH_DS_MSc.cls` in the root is no longer loaded.
 
 ### Criterion checklist (apply to every thesis edit)
 
