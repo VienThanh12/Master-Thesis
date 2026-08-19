@@ -925,6 +925,13 @@ bugs~\cite{cai2026interop}. The consequence is stated once here and honoured thr
 \texttt{unsafe}-free core means the core's own defects are ruled out at compile time, and it
 does not mean the core is protected from its host.
 
+What has moved recently is the reach of the tooling, not the guarantee. A stateless model
+checker for Rust now explores the state space of a program together with its foreign
+dependencies, which puts data races arising from the interaction of the two languages within
+reach of a checker even though they sit outside what the borrow checker
+sees~\cite{pearce2026rustmc}. That capability arrived after the prototype measured here was
+built, and Chapter~\ref{chapter:conclusions} records it as the next step for the seam.
+
 \section{Research gap}\label{sec:gap}
 The preceding sections set up the gap. The RAN control plane is a soft-to-firm real-time,
 highly concurrent domain where tail behaviour under overload, not average throughput, governs
@@ -1304,80 +1311,77 @@ seam size, \texttt{unsafe} scope, per-call interop cost \\
 \end{table}
 
 \section{Methods for the four research questions}
-Table~\ref{tab:design} pairs each question with a method. This section states what each method
-does and why it is appropriate.
+Table~\ref{tab:design} pairs each question with a method. This section says what each method
+does and why it fits.
 
 \subsection{Performance measurement under a load sweep (RQ1, RQ3)}\label{sec:methodperf}
 RQ1 and RQ3 are answered by driving both implementations with one deterministic synthetic
-workload across a sweep of offered load, from light load through saturation and into overload,
-and recording latency and resource use at each level. Two design decisions make the
-measurement sound. The load generator follows an \emph{open-loop} schedule with a fixed
-intended send time per request, and latency is measured against that intended time and not
-against the moment the request is actually admitted, which is what corrects for coordinated
-omission in the sense defined in Chapter~\ref{chapter:background}. The sweep is also pushed
-past saturation deliberately, for the reason Section~\ref{sec:predictability} gives: the
-overload cliff is visible only once offered load exceeds service capacity. Latency is captured
-in high-dynamic-range histograms configured identically
-on both sides, and resource use (peak resident set size, CPU utilisation, throughput) is
-sampled through the operating system, so that the same measurement apparatus is applied to both
-languages.
+workload, sweeping offered load from light load through saturation into overload and recording
+latency and resource use at each level. Two design decisions make the measurement sound. The
+load generator follows an \emph{open-loop} schedule: each request has a fixed intended send
+time, and latency is measured against that time and not against the moment the request is
+admitted. This is what corrects for coordinated omission, in the sense
+Chapter~\ref{chapter:background} defines. The sweep is also pushed past saturation deliberately,
+for the reason Section~\ref{sec:predictability} gives: the overload cliff appears only once
+offered load exceeds service capacity. Latency goes into high-dynamic-range histograms
+configured identically on both sides, and resource use (peak resident set size, CPU utilisation,
+throughput) is sampled through the operating system.
 
 \paragraph{Measuring the component as well as the round-trip.}
-A sweep of this kind measures a round-trip, and a round-trip bundles two costs of quite
-different character. One is the operation the language executes inside a single thread: a hash
-lookup, a state-machine guard, and a field update, all of it code the compiler generated. The
-other is the cross-thread submit-and-complete handoff around it: an enqueue, a futex wake, a
-context switch, and a completion, none of it language-specific. Only the first can plausibly
-differ between C++ and Rust, and no end-to-end measurement can separate them. The method
-therefore operates at two levels. The single-threaded operation processor is called directly,
-with no queue in the path, and the same operation is then called through the full threaded
-service. The difference between the two is the handoff. Both are batch means over a long loop
-and not per-call medians, deliberately: a clock read costs tens of nanoseconds, the same
-order as the operation itself, so per-call timestamps would measure the instrument rather than
-the code. The two languages are interleaved across repeats and compared with the same exact
-paired test as the sweep, so the two levels differ in what they measure, not in how they
-are analysed.
+A sweep measures a round-trip, and a round-trip bundles two costs of different character. One is
+the operation the language runs inside a single thread: a hash lookup, a state-machine guard, a
+field update, all of it compiler-generated code. The other is the cross-thread
+submit-and-complete handoff around it: an enqueue, a futex wake, a context switch, a completion,
+none of it language-specific. Only the first can plausibly differ between C++ and Rust, and no
+end-to-end measurement separates them.
 
-Reporting both is what lets the study separate two questions that the research questions as
-originally worded did not distinguish: what a deployment of this shape would experience, which
-is the round-trip, and what the language is doing, which is the component.
-Section~\ref{sec:budget} finds the two to be more than two orders of magnitude apart, so the
-distinction is not a refinement but the difference between an interpretable result and an
-uninterpretable one. This second level was added after a first pass of the campaign rather than
-designed in from the start, and Section~\ref{sec:threats} records that revision instead of
-presenting the design as though it had always been complete.
+The method therefore works at two levels. The single-threaded operation processor is called
+directly, with no queue in the path, and the same operation is then called through the full
+threaded service. The difference between the two is the handoff. Both levels are batch means
+over a long loop, not per-call medians. A clock read costs tens of nanoseconds, the same order
+as the operation itself, so per-call timestamps would measure the instrument and not the code.
+The two languages are interleaved across repeats and compared with the same exact paired test as
+the sweep, so the levels differ in what they measure and not in how they are analysed.
+
+Reporting both separates two questions the research questions did not distinguish as originally
+worded. The round-trip is what a deployment of this shape would experience. The component is
+what the language is doing. Section~\ref{sec:budget} finds the two more than two orders of
+magnitude apart, so the distinction decides whether the result can be interpreted at all. The
+second level was added after a first pass of the campaign, not designed in from the start, and
+Section~\ref{sec:threats} records that revision.
 
 \paragraph{Isolating the contended synchronisation primitives.}
-The overload comparison of Section~\ref{sec:overload} attributes its gap to the bounded blocking
-queue and the one-shot completion handle, the two forced-idiom entries where the standard libraries
-diverge. That attribution is argued from the shape of the full-service measurement, so a third
-matched microbenchmark tests it directly, driving those two primitives alone with no
-\texttt{ShardCore} work in the path, under the same interleaved repeats and the same exact paired
-test as the decomposition above. Section~\ref{sec:contention} gives its configuration and reports
-whether the isolated primitives reproduce the ordering seen in the full service.
+The overload comparison in Section~\ref{sec:overload} attributes its gap to two forced-idiom
+entries where the standard libraries diverge: the bounded blocking queue and the one-shot
+completion handle. That attribution is argued from the shape of the full-service measurement, so
+a third matched microbenchmark tests it directly. It drives those two primitives alone, with no
+\texttt{ShardCore} work in the path, under the same interleaved repeats and paired test as the
+decomposition above. Section~\ref{sec:contention} gives its configuration and reports whether the
+isolated primitives reproduce the ordering the full service showed.
 
 \subsection{Controlled fault injection (RQ2)}\label{sec:methodfaults}
-RQ2 asks which defect classes a language prevents, and it cannot be answered by measuring
-defect-free code. The absence of a bug in a passing test says nothing about whether the
-language would have caught it. The method is therefore adversarial, following the established
-practice of software fault injection, in which representative faults are deliberately introduced
-to assess how a system behaves in their presence~\cite{natella2016fault}.
+RQ2 asks which defect classes a language prevents. Measuring defect-free code cannot answer
+that, because the absence of a bug in a passing test says nothing about whether the language
+would have caught it. The method is therefore adversarial, following the established practice of
+software fault injection, where representative faults are introduced deliberately to see how a
+system behaves in their presence~\cite{natella2016fault}.
 
 A catalogue of representative C++ defects is written \emph{deliberately}, drawn from the classes
 that affect this subsystem (Chapter~\ref{chapter:context}). Each is a small self-contained
 program flavoured with the domain: a stale pointer into the context map, a double release, a
-mutation during iteration, an unsynchronised shared update. Each C++ defect is then built and
-run under AddressSanitizer, ThreadSanitizer and UndefinedBehaviorSanitizer, recording which
-tool, if any, detects it and at what stage. The analogous construct is written in safe Rust and
-compiled, recording the compiler's outcome and, where it compiles, the behaviour of the
-resulting program. For the boundary classes, where by construction the compiler has nothing to
-say, the Rust side is additionally put to two model checkers, Loom and Shuttle, so that the
-``at what stage'' half of RQ2 is answered for them rather than left blank.
+mutation during iteration, an unsynchronised shared update. Each defect is built and run under
+AddressSanitizer, ThreadSanitizer and UndefinedBehaviorSanitizer, recording which tool detects
+it, if any, and at what stage.
 
-One case is repeated rather than run once. Whether ThreadSanitizer reports the lock-order
-inversion depends on the schedule, so a single run records whichever outcome the machine
-happened to give. The runner therefore executes that case twelve times and reports the rate,
-distinguishing an intermittent detection from a reliable one.
+The same construct is then written in safe Rust and compiled. The compiler's outcome is
+recorded, and where it compiles, so is the behaviour of the program. The boundary classes give
+the compiler nothing to say, so the Rust side also goes to two model checkers, Loom and Shuttle.
+That answers the ``at what stage'' half of RQ2 for them instead of leaving it blank.
+
+One case is run repeatedly. Whether ThreadSanitizer reports the lock-order inversion depends on
+the schedule, so a single run records whichever outcome the machine happened to give. The runner
+executes that case twelve times and reports the rate, so intermittent detection is not mistaken
+for reliable detection.
 
 \paragraph{Why the C++ side is tooled with sanitisers only.}
 No static analyser is run against the C++ catalogue, and that is a decision rather than an
@@ -3007,10 +3011,17 @@ neither is what ``memory safe'' is usually taken to promise.
 The deadlock result needs a qualification the earlier reading of it did not have.
 ThreadSanitizer does flag the inversion in C++, but only on a minority of runs: four of twelve
 repeats here, six of twenty in a longer trial, while the program deadlocks on every one. The
-mechanism is specific and it generalises beyond this catalogue. TSan builds its lock-order
-graph from acquisitions that \emph{succeed}, so the cycle closes only when some thread completes
+mechanism is specific and documented, and it generalises beyond this catalogue. Dynamic deadlock
+analysis of this kind reads a single execution trace and builds a graph of lock acquisitions in
+which a cycle marks a deadlock \emph{potential}, the point of the technique being to find such
+potentials in executions where no deadlock actually
+occurred~\cite{bensalem2005deadlock}. TSan builds that graph from acquisitions that
+\emph{succeed}, so the cycle closes only when some thread completes
 an inversion without blocking. A run in which the first inversion blocks produces one edge and
-never the second, and the detector stays silent at exactly the moment the bug manifests. A
+never the second, and the detector stays silent at exactly the moment the bug manifests. The
+technique is thus at its weakest on the run that matters most, and the implementation does not
+hide it: the detector ships as an experimental component, covers only the POSIX mutex families,
+and is documented as tested on small cases~\cite{tsandeadlock}. A
 positive control that inverts the same two locks without ever blocking is reported every time,
 which is what establishes that the detector was live rather than misconfigured. The honest
 statement for this class is therefore that the tool catches the inversion the program survives
@@ -3028,8 +3039,11 @@ race detector to find.
 \paragraph{Where the boundary classes are caught, and at what cost.}
 RQ2 asks not only which defects are prevented but at what stage the rest are detected, and for
 the boundary group the sanitiser columns leave that half largely blank. Two Rust model
-checkers answer it. Loom, which enumerates thread interleavings exhaustively under the C11
-model, and Shuttle, which samples them with probabilistic concurrency testing, both report both
+checkers answer it, and the division of labour between them is the one a production Rust system
+has been validated with: Loom explores interleavings soundly in the release/acquire memory
+model, using bounded partial-order reduction to contain the state space, and Shuttle samples
+them with probabilistic concurrency testing, which scales to cases beyond Loom's
+reach~\cite{bornholt2021shardstore}. Both report both
 of the original boundary defects: Loom reports the deadlock as a closed cycle and fails the
 lost-update assertion, and Shuttle does the same. Each is paired with a control in which the
 defect is fixed (consistent lock order, and the read-modify-write held in one critical
@@ -3123,7 +3137,8 @@ timeout. \quad
 $^{\S}$ ThreadSanitizer reports the lock-order inversion on a minority of runs, measured at
 $4$ of $12$ repeats here and $6$ of $20$ in a longer trial, while the program deadlocks on
 every one. The detector builds its lock-order graph from acquisitions that \emph{succeed}, so a
-run whose first inversion blocks never completes the second edge of the cycle.\par}
+run whose first inversion blocks never completes the second edge of the cycle. It is an
+experimental, opt-in component of the tool~\cite{tsandeadlock}.\par}
 \end{table}
 
 Read as a whole the table makes two things visible at once: above the boundary rule the entire
@@ -3878,6 +3893,18 @@ similar conclusion from the other direction, finding that Rust's safety features
 runtime overhead and development complexity when they are not carefully
 managed~\cite{li2026rustlinux}.
 
+A recent like-for-like port of a benchmark suite from C++ to Rust puts a figure on the same effect
+and adds a caution worth carrying. It reports a geometric-mean overhead of 46\%, of which bounds
+checking alone accounts for 34\%, and then warns about how the favourable results in this
+literature should be read: where the compiler is credited with eliminating those checks cheaply,
+it is not always clear how many were avoided because the measured code declared its hot functions
+\texttt{unsafe} and worked on raw pointers~\cite{naylor2026cherisimt}. The workload there is a GPU
+kernel and the absolute figure does not transfer to a control-plane service. The caution does, and
+it qualifies the capability-hardware comparison cited above~\cite{harris2023morello}. It also
+bears on what the present study is measuring, because the core compared here contains no
+\texttt{unsafe} at all, so whatever its bounds checks cost is actually paid and not compiled
+away.
+
 The evidence does not run one way, however, and it would be as dishonest to present only the
 qualifying findings as only the favourable ones. Safe low-level code without run-time overhead has
 been demonstrated for network device drivers, the same class of program as Emmerich's, when the
@@ -4192,7 +4219,10 @@ profiles on the same visit. Beyond that:
 \item Extend the fault catalogue further along the boundary mapped here. Leaks, wrapping
   arithmetic and worker failure are now in it. Misuse of \texttt{unsafe} and the behaviour of
   the boundary classes under a whole-program model checker rather than a hand-shrunk model are
-  the obvious next steps.
+  the obvious next steps. A checker that covers a Rust program together with its foreign
+  dependencies~\cite{pearce2026rustmc} would extend the same treatment to the seam of
+  Section~\ref{sec:migrationresults}, whose cost this study measures but whose interleavings it
+  does not explore.
 \item Evaluate Rust async runtimes against the thread-per-shard model used here. That would
   separate the tail divergence Arvidsson and Kaller attribute to stackless
   \texttt{async}/\texttt{await}~\cite{arvidsson2025async} from the language itself, under the
