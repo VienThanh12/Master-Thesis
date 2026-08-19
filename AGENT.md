@@ -58,14 +58,15 @@ grading pass so passes stay comparable.
 | **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (5 inside + 5 outside guarantee). |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
 | **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **Bare-metal tail campaign.** Results come from a dedicated but virtualised KVM Xeon guest, where the far tail below saturation cannot be resolved. Also missing: hardware counters and allocation profiles for the unexplained peak-RSS and operation-level results. |
-| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.5** | RQ1 tail still open; Figures 7.1/7.3 cannot separate curves on current host. Lifts with same campaign as criterion 3. |
+| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.0** | RQ1 tail still open (lifts with criterion 3), **and** three hand-typed prose values disagree with the artefacts they cite: the TSan deadlock rate (4/12 printed against 7/12 in `taxonomy.csv`), the lost-update counts, and the conformance size. Editing fixes all three. |
 | **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Maintain register: “cannot tell” ≠ “equivalent”. H1 is *ambiguous in framing*, not simply supported. |
 | **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`: until then the build prints “Not submittable”. Also §5.5 describes pooled far-tail figures and directly measured jitter that the reported campaign does not have. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
 
-**Overall mean (unweighted): 4.75** — held at 4.5 on criteria 3 and 4 **deliberately** until
-bare-metal tail evidence exists, and at 4.5 on criterion 6 until the abstract is rewritten
-unaided. Do not round those half-grades in prose without updating the reasoning in
-`docs/ASSESSMENT.md`. The class-file item is **done**: the document builds on the department's
+**Overall mean (unweighted): 4.67** — criterion 3 is held at 4.5 **deliberately** until bare-metal
+tail evidence exists, criterion 6 at 4.5 until the abstract is rewritten unaided, and criterion 4
+fell to 4.0 in the sixth pass (19 August, afternoon) because three values typed into the prose
+disagree with the published artefacts. Do not round those half-grades in prose without updating the
+reasoning in `docs/ASSESSMENT.md`. The class-file item is **done**: the document builds on the department's
 own `HYthesisML.cls`, and the reconstructed `UH_DS_MSc.cls` in the root is no longer loaded.
 
 ### Criterion checklist (apply to every thesis edit)
@@ -116,7 +117,7 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 
 1. **Frozen specification** — both implementations built from one language-neutral spec; forced-idiom log for unavoidable divergences (`spec/SPECIFICATION.md`).
 2. **Fairness controls** — same algorithms, shard count, SplitMix64/FNV-1a hashing, jemalloc + system-allocator control, matched `-O2` / `opt-level = 2`, conformance transcripts diffed line by line.
-3. **RQ2 is falsifiable** — five in-guarantee defect classes + **five** boundary classes; catalogue must not contain only defects Rust prevents. Two boundary classes (reference-cycle leak, release-build integer overflow) came back with the **C++ tooling ahead**; do not drop them to tidy the narrative. The lock-order deadlock is detected by TSan **intermittently** (about 30% of runs), not reliably and not never.
+3. **RQ2 is falsifiable** — five in-guarantee defect classes + **five** boundary classes; catalogue must not contain only defects Rust prevents. Two boundary classes (reference-cycle leak, release-build integer overflow) came back with the **C++ tooling ahead**; do not drop them to tidy the narrative. The lock-order deadlock is detected by TSan **intermittently**, not reliably and not never. Take the rate from `faults/results/taxonomy.csv`, which records **7 of 12 runs**; the thesis prose and Table 7.6's footnote still print "four of twelve", which the sixth grading pass flagged as stale. Fix the prose to match the artefact, not the artefact to match the prose.
 4. **Honest performance claims** — the end-to-end sweep is dominated by the cross-thread handoff and the operation is a fraction of a percent of it (`\BudgetCoreShareMax`), so a median comparison on that path cannot bound a language effect; the far tail still requires bare metal. Past saturation the languages *do* diverge (`\OverloadThrRatio`), and that result is resolved.
 5. **Peak RSS** — a real language effect that reproduces under both allocators, but the **allocator effect is the larger one**; do not revert to “allocator only” or drop the language effect. Quote the generated macros rather than remembered numbers.
 6. **FFI** — interleaved native vs seam calls; tax bounded, not “free”; `unsafe` confined to seam; core stays `unsafe`-free.

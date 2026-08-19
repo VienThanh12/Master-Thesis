@@ -15,13 +15,15 @@ An interactive version of this document exists as a Cursor canvas at
 `~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grading.canvas.tsx`. This file is
 the durable copy; keep the two in step if you revise either.
 
-> **The current grade is the fifth pass, 19 August 2026, at the end of this file.** The summary
-> table immediately below is the first pass and is kept as history, not as the standing view.
-> Five passes are on record and they do not all agree: the second held criteria 3 and 4 at 4
+> **The current grade is the sixth pass, 19 August 2026 afternoon, at the end of this file.** The
+> summary table immediately below is the first pass and is kept as history, not as the standing
+> view. Six passes are on record and they do not all agree: the second held criteria 3 and 4 at 4
 > rather than 4.5, on the grounds that three criticisms said to need new measurement were
-> answerable from the dataset already in hand, and the fourth took criterion 6 from 5 to 4.5 on
-> the truthfulness of the AI declaration. Read the passes in order if the reasoning behind a
-> half-grade matters. Where any two disagree, the later one is current.
+> answerable from the dataset already in hand, the fourth took criterion 6 from 5 to 4.5 on the
+> truthfulness of the AI declaration, and the sixth took criterion 4 from 4.5 to 4 after checking
+> the hand-typed prose values against the published artefacts rather than only counting them. Read
+> the passes in order if the reasoning behind a half-grade matters. Where any two disagree, the
+> later one is current.
 
 ---
 
@@ -762,3 +764,150 @@ than sink it.
    `\input` by any document. Its data reaches the page through the `\EqvBound*` macros, so
    nothing is missing from the argument, but the table itself earns nothing where it sits.
    Either place it in the results or drop it from the build.
+
+## Sixth pass — 19 August 2026, afternoon
+
+Graded against the **official seven-area CSM matrix** (9 April 2024) using
+`.cursor/skills/thesis-grade-csm/`. Source: `Ha_Vien_Mastersthesis_2026.tex`, its 16:31 build, the
+generated artefacts under `figures/`, and the published evidence under `faults/results/`,
+`spec/conformance/results/` and `ffi/results/`. Source, PDF and log all carry the 16:31 timestamp,
+so the grade describes a current build. Standard applied: a full draft the repository does not
+treat as supervisor-approved, judged as an examiner would see the manuscript. Canvas:
+`~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-aug19-rev2.canvas.tsx`.
+
+**This is a different document from the one the fifth pass graded seven hours earlier**: 113 PDF
+pages against 163, 99 declared body pages against 140, 105 bibliography entries against 100. The
+length work landed between the two passes.
+
+| Area | Fifth pass | Sixth pass | Note |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Unchanged |
+| 2. Scholarly framework and sources | 5 | **5** | 105 entries, all cited, 69 peer-reviewed (66%) |
+| 3. Research data and method | 4.5 | **4.5** | Method at 5, data at 4; host-bound as before |
+| 4. Presentation of results | 4.5 | **4.0** | Hand-typed values verified against the artefacts and three disagree |
+| 5. Discussion and conclusions | 5 | **5** | Unchanged |
+| 6. Academic text | 4.5 | **4.5** | Same cap: abstract unwritten, §5.5 in the indicative |
+| 7. Work during the thesis process | not assessable | **not assessable** | No manuscript settles it |
+| **Mean of the six assessable** | 4.75 | **4.67** | |
+
+### Where this pass disagrees with the fifth, and why
+
+Five areas land on the same number for the same reasons, and the fifth pass's reasoning stands.
+Area 4 moves down half a grade, and the disagreement is about evidence rather than about judgement.
+
+The fifth pass held area 4 at 4.5 partly because the hand-typed residue in the prose had shrunk to
+a handful of values, and it verified five figure-against-table pairs, which all agreed. Both
+findings still hold. What that check could not see is whether the hand-typed values are *correct*,
+because none of them appears in a table. This pass checked them against the artefacts the thesis
+names as their source. Three disagree. The previous 4.5 was awarded on the assumption that the
+residue was accurate, so the split behind it no longer holds.
+
+Level 4's clause, that the use of pictures, tables and drawings supports the analysis of results,
+holds comfortably. Level 5's "well considered and apt" does not, while a table footnote contradicts
+the CSV the same paragraph names as its generator.
+
+### New findings, not in the fifth pass
+
+1. **The TSan deadlock rate in the manuscript is not the rate in the artefact.** Table 7.6's
+   footnote and §7.9 both say ThreadSanitizer reports the lock-order inversion in "four of twelve
+   repeats here". `faults/results/taxonomy.csv` records `TSan reported in 7/12 runs`,
+   `taxonomy.md` says the same, and the twelve run logs confirm it: runs 0, 1, 2, 3, 7, 8 and 9
+   carry `lock-order-inversion`, the other five are empty. The control is a separate binary
+   (`deadlock_control.tsan.log`), so it does not inflate the count. The same paragraph states that
+   the outcomes "are generated from the runner's machine-readable log
+   (`faults/results/taxonomy.csv`)", and Table 7.6 is in fact typed by hand in the `.tex` while
+   only `fig_taxonomy.pdf` is generated. The finding is unaffected, intermittent detection is
+   intermittent at 7/12 as at 4/12, but the number an examiner reproduces is not the number
+   printed. Note that `AGENT.md` §3 also carries the stale figure ("about 30% of runs").
+   *Areas 4, 6.*
+2. **The lost-update counts do not match the logs.** §7.9 reports the safe-Rust program recording
+   $35\,030$ of $40\,000$ increments and losing $4\,970$, against C++ under TSan recording
+   $25\,448$ and losing $14\,552$. The logs, regenerated 17 August 15:00, hold 28,914 lost 11,086
+   for Rust and 27,788 lost 12,212 for C++. The expected total of 40,000 matches. The thesis's
+   conclusion, that both terminate with a silently wrong answer, survives either set, but the
+   three-to-one asymmetry the printed figures imply becomes near-parity in the data, and the
+   printed figures cannot be reproduced from the published artefacts. *Areas 4, 6.*
+3. **§7.5.1 makes a claim its own table refutes.** "At the median the four variants sit within
+   $\PFiftyRange\,\mu$s of one another, or $\PFiftySpread\%$, and each variant's confidence
+   interval contains the others' point estimates, so the table on its own separates nothing." From
+   `figures/tab_latency.tex`: C++ system 79.9 [79.6, 80.7], C++ jemalloc 80.3 [79.4, 80.7], Rust
+   system 79.0 [78.7, 79.7], Rust jemalloc 78.6 [78.1, 79.7]. No interval contains a
+   cross-language median. They do all overlap, which is the weaker claim the argument actually
+   needs. Figure 7.6(b) reports the opposite of the sentence and is right: at the median the spread
+   between variants (1.7 µs) exceeds the widest single interval (1.6 µs), which is the regime in
+   which an ordering means something. One word, "contains" to "overlaps", fixes it. *Areas 4, 6.*
+4. **§7.2's self-description is falsified by the five hand-typed values.** "No value is
+   hand-copied: `bench/refresh_thesis.sh` regenerates every figure, table, and quoted number
+   directly from the raw logs, so the text and the data cannot drift apart." Five quoted numbers
+   are outside that pipeline and three of them have drifted. The claim should be narrowed to what
+   is true and impressive on its own, that every campaign statistic reaches the page through a
+   generated macro. *Areas 4, 6.*
+5. **Jitter is named in the abstract and never reported.** The abstract lists "tail latency and
+   jitter under overload" among the four dimensions average-throughput comparisons leave open.
+   RQ1 does not name jitter, no jitter figure appears anywhere, and §7.5.1 records that the
+   campaign predates the instrumentation. This is the abstract-level face of fifth-pass finding 3.
+   *Area 6.*
+
+### Confirmed against the artefacts, and clean
+
+- **FFI evidence intact.** `ffi/results/metrics.json` matches every `\Ffi*` macro: crossing 2.535
+  → 2.54 ns, native 12,284.4 → 12.3 µs, seam 12,673.4 → 12.7 µs, delta +192.5 → +192 ns, interval
+  [−953.9, +1340.8] → [−954, +1341], p 0.2395 → 0.239, bound 1340.8/12284.4 = 10.91 %. The 63 µs
+  noise run `AGENT.md` §5 warns about has not overwritten it.
+- **Conformance size.** `spec/conformance/results/summary.json` holds 792,964 operations, so
+  `\ConfGenOps` (793,000) is right and the hand-typed 9,006 in §7.9 is the wrong figure of the two.
+- **Taxonomy table against CSV, all ten rows.** Every sanitiser cell and every Rust outcome agrees
+  with `taxonomy.csv`. Only the intermittency rate disagrees.
+- **Model checking.** Loom and Shuttle report both boundary defects and both controls come out
+  clean, exactly as §7.9 states.
+- **Statistics, recomputed.** 9 of 14 tests survive Holm (five below saturation: both p50 rows,
+  peak RSS under the system allocator, both CPU rows; plus the four overload rows), matching
+  `\NSignificant`. Ten paired intervals exclude zero and none of them is in the tail block,
+  matching `\NExclZero` and `\TailExclZeroRows`. CPU per sustained operation is 1.93 and 1.89
+  across the allocators, matching `\OverloadCpuPerOpRatio` of 1.9. Peak-RSS decomposition 32.9 to
+  34.4 MiB for the allocator against 1.9 to 3.4 MiB for the language, both as printed.
+- **Abstract page rendered and inspected.** The form is complete at 113 pages, the CCS block does
+  not overflow into Keywords, and it declares 99 pages with 6 appendix pages, matching the `.aux`.
+- **Build gates.** Zero LaTeX errors, undefined references, undefined citations, multiply-defined
+  labels, overfull boxes, floats too large, placeholders. Zero semicolons. Four dash hits, all
+  legitimate typography. Sentence length 24.3 ± 13.0 words.
+
+One rounding nit worth a look in the generator rather than the prose: §7.7 says the overload
+paired difference is "at least $\OverloadThrBound$~kops/s under either allocator", where the
+weaker interval bound is 49.6 and `\OverloadThrBound` rounds it up to 50. For a claim of the form
+"at least", `bench/plot_figures.py` should floor rather than round.
+
+### Nothing was changed in the thesis during this pass
+
+The pass graded and did not edit. Every item below is still open in the source.
+
+### Outstanding, cheapest first
+
+1. **Quote the deadlock rate and the lost-update counts from the fault artefacts**, or regenerate
+   those sentences from `taxonomy.csv` and the logs. Under an hour, and it closes the only place
+   where the manuscript disagrees with published evidence rather than with itself. Update
+   `AGENT.md` §3's "about 30% of runs" in the same edit.
+2. **Replace the hand-typed `9\,006` with `\ConfGenOps`** and the hand-typed `223` with
+   `\ConfHandOps` (`Ha_Vien_Mastersthesis_2026.tex:3073`). Minutes.
+3. **Repair the p50 sentence** in §7.5.1: the intervals overlap, they do not contain one another's
+   medians. One word.
+4. **Find the six missing C++ lines in Table 6.4**, or say in the caption what the breakdown
+   omits. Under an hour.
+5. **Put §5.5's pooling, jitter and p99.99 sentences in the conditional**, and either drop jitter
+   from the abstract's list of open dimensions or mark it as future work. About an hour.
+6. **State the denominator behind the 99.9 %**, since 0.250 % is a share of the 13.6 µs round-trip
+   while 99.9 % is a share of the sweep's ~80 µs latencies. Both are true and the pairing reads as
+   an arithmetic slip. One clause.
+7. **Narrow §7.2's "no value is hand-copied"** to the claim that is both true and strong: every
+   campaign statistic reaches the page through a generated macro.
+8. **Soften "trace to" in the conclusion** (line 4151) to match §7.3's "most likely source". One
+   word.
+9. **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`. Blocking, cannot be
+   delegated. In the same pass, drop "median latency matches": the paired test resolves a 1.6 µs
+   median difference under both allocators that clears the Holm correction, and Chapter 8 states it
+   correctly as a difference no deployment would notice.
+10. **Unrealised asset:** `figures/tab_equivalence.tex`, still generated on every refresh (15:50
+    today) and still `\input` by no document.
+11. **Bare-metal tail campaign** with hardware counters and allocation profiles on the same visit.
+    Unchanged in scope, and the only item editing cannot reach.
+12. **Housekeeping:** `\censors{}{}{}` once the faculty assigns examiners.
