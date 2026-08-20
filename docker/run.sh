@@ -176,6 +176,8 @@ mkdir -p "$scratch/cpp-build" "$scratch/cpp-build-jemalloc" "$scratch/cpp-build-
 # directory is one bench/refresh_thesis.sh away from regenerating every quoted
 # number from it. In smoke mode the results directory is a scratch mount, so the
 # question does not arise.
+stamp="$(date +%Y%m%d-%H%M%S)"
+
 results_dir="$root/bench/results"
 if [ "$smoke" = "1" ]; then
   results_dir="$scratch/smoke-results"
@@ -186,6 +188,9 @@ fi
 
 args=(
   --rm
+  # Named so a long campaign can be found and stopped without hunting through
+  # `docker ps`, and so two of them cannot be started by accident.
+  --name "uecm-$subcmd-$stamp"
   --user "$(id -u):$(id -g)"
   --cpuset-cpus "$cpuset"
   --network "$network"
@@ -225,7 +230,6 @@ fi
 if [ -t 0 ] && [ -t 1 ]; then args+=(-it); fi
 
 # --- Command ---------------------------------------------------------------- #
-stamp="$(date +%Y%m%d-%H%M%S)"
 logfile=""
 case "$subcmd" in
   check)  cmd=(preflight.sh); do_log=0;;

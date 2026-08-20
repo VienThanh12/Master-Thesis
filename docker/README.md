@@ -173,6 +173,15 @@ stack, so the flat column collapses onto `prof_backtrace_impl` and the cumulativ
 column is the one carrying the attribution. Totals are unaffected.
 `bench/parse_jeprof.py` detects this and switches ranking.
 
+## Has it been run?
+
+Yes. `docker/VALIDATION.md` records a 200-run campaign through this harness on 20 August
+2026, what it validated (including the first `tab_jitter.tex` and far-tail macros this
+repository has produced, and a lossless HDR sidecar across all 200 runs), which reported
+results reproduced in direction, and one that did not reproduce in magnitude. It was run
+with `--smoke` on a WSL2 laptop, so it is a harness validation and not evidence, and the
+artefacts are kept under `docker/validation/`.
+
 ## Limits worth knowing
 
 - **`perf` is the EL8 build** (4.18) while the host kernel may be far newer.

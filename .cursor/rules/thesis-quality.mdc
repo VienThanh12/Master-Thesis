@@ -36,12 +36,18 @@ Full notes: `docs/ASSESSMENT.md`. Checklist per edit: `AGENT.md` §2.
 The author screens prose with `.aitells.py`, `.vocab.py` and `.readability.py`. They report counts,
 not errors: frequency is the signal, so aim low rather than at zero.
 
-- **No em dashes in thesis prose.** Not `---`, not a literal `—`. Use a comma, a colon,
-  parentheses, or two sentences. A dash aside is the single most recognisable tell and
-  the author removes them on sight.
-- **No semicolons in thesis prose.** Use a full stop, a comma, a colon, or two sentences instead.
+- **No em dashes anywhere a reader sees one.** Not `---`, not a literal `—`, and not the
+  `\u2014` escape that `build_deck.py` writes its slide prose with. The ban covers the thesis
+  `.tex`, the slide deck, and figure and diagram labels. Use a comma, a colon, parentheses, or
+  two sentences. A dash aside is the single most recognisable tell and the author removes them
+  on sight.
+- **No semicolons in thesis prose or on a slide.** Use a full stop, a comma, a colon, or two
+  sentences instead. Source code shown verbatim would be the one exception, and no slide in the
+  deck shows any.
 - `--` is legitimate only for numeric ranges (`$2$--$15$`) and compound proper names
-  (Herfindahl--Hirschman). TikZ `--` is path syntax: never touch it.
+  (Herfindahl--Hirschman). TikZ `--` is path syntax: never touch it. The slide equivalent is an
+  unspaced en dash between numbers (`1.9–3.4 MiB`). A spaced en dash is an aside, so the deck
+  build refuses it.
 - Keep the other patterns `.aitells.py` counts rare: transition openers (Moreover, Furthermore,
   Notably, Crucially, Ultimately), hedge preambles ("it is worth noting"), promotional adjectives
   (robust, crucial, comprehensive, seamless), signature verbs (delve, leverage, underscore,
@@ -51,6 +57,14 @@ not errors: frequency is the signal, so aim low rather than at zero.
 
 Internal `.md` notes are exempt, but never paste them into a `.tex` file unrewritten. After any
 prose edit, run `./.aitells.py` on the file you touched.
+
+`.aitells.py` reads `.tex` only, so slide prose is gated by the build instead. `build_deck.py`
+ends with `check_prose_style`, which walks every text run, table cell, and grouped shape in the
+saved deck and prints `Prose style: no em dash, dash aside, or semicolon on any slide`. A hit is
+reported with its slide number and the build exits non-zero. Two consequences when editing the
+deck: search `build_deck.py` for the escape `\u2014` rather than the character, and remember that
+a generated table cell of `---` marks a value that does not exist, which `detex()` renders as
+`n/a` because a slide gets no em dash.
 
 ## Non-negotiable claims
 

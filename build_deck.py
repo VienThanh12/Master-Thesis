@@ -38,7 +38,7 @@ from pptx.util import Cm, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.dml import MSO_LINE_DASH_STYLE
-from pptx.enum.shapes import MSO_SHAPE, MSO_CONNECTOR
+from pptx.enum.shapes import MSO_SHAPE, MSO_CONNECTOR, MSO_SHAPE_TYPE
 from pptx.oxml.ns import qn
 
 from pptx_lib import fill_placeholder, remove_template_slides
@@ -69,7 +69,16 @@ def detex(s):
     s = s.replace("\\textmu s", "\u00b5s").replace("\\textmu", "\u00b5")
     s = s.replace("\\%", "%").replace("\\,", " ").replace("\\quad", "   ")
     s = s.replace("\\_", "_").replace("\\&", "&")
-    s = s.replace("$", "").replace("---", "\u2014").replace("--", "\u2013")
+    s = s.replace("$", "")
+    # The thesis tables print --- in a cell that has no value. On a slide that
+    # would come out as an em dash, which the deck does not use, so the marker is
+    # spelled out and any other --- is refused rather than converted (check_dashes).
+    if s == "---":
+        return "n/a"
+    if "---" in s:
+        raise SystemExit(f"em dash in generated LaTeX {s!r}: rewrite it in the "
+                         "source table, the deck does not print em dashes")
+    s = s.replace("--", "\u2013")
     return re.sub(r"\s+", " ", s).strip()
 
 
@@ -781,7 +790,7 @@ add_notes(s, [
      "servers under millisecond budgets while coordinating millions of devices."),
     ("Memory safety dominates the defects",
      "Roughly 70% of serious security vulnerabilities at major vendors come from "
-     "memory-safety defects \u2014 the class C++ leaves to the programmer."),
+     "memory-safety defects, the class C++ leaves to the programmer."),
     ("Policy is moving ahead of evidence",
      "Agencies now push vendors toward memory-safe languages, yet no controlled "
      "measurement exists for a RAN control-plane subsystem."),
@@ -941,8 +950,8 @@ add_bar_chart(s, Cm(13.1), _chart_top, Cm(11.0), "Branching (cyclomatic complexi
               [("C++", float(M("CppCcnTotal")), M("CppCcnTotal"), BLUE),
                ("Rust", float(M("RustCcnTotal")), M("RustCcnTotal"), ORANGE)])
 add_textbox(s, Cm(1.3), Cm(12.35), Cm(22.8), Cm(0.7),
-            f"Rust is {M('NlocRise')}% longer but {M('CcnTotalDrop')}% lower in total branching; "
-            f"the worst C++ function scores {M('CppCcnMax')} against Rust's {M('RustCcnMax')}",
+            f"Rust is {M('NlocRise')}% longer but {M('CcnTotalDrop')}% lower in total branching. "
+            f"The worst C++ function scores {M('CppCcnMax')} against Rust's {M('RustCcnMax')}",
             size=11, color=GRAY800, align=PP_ALIGN.CENTER)
 
 # =====================================================================
@@ -990,11 +999,11 @@ _, tbl_bottom = add_data_table(
     s,
     [
         ("Aspect", "This host, from the environment capture stored with the campaign"),
-        ("CPU", f"{ENV.get('cpu_model', 'unknown')} \u2014 {ENV.get('cpus', '?')} cores, "
+        ("CPU", f"{ENV.get('cpu_model', 'unknown')}: {ENV.get('cpus', '?')} cores, "
                 f"{ENV.get('sockets', '?')} sockets, {ENV.get('numa', '?')} NUMA node, SMT {ENV.get('smt', 'unknown')}"),
         ("OS / kernel", f"{ENV.get('distro', 'unknown')}, kernel {ENV.get('kernel', 'unknown')}"),
         ("Toolchains", f"{ENV.get('gpp', 'unknown')} and {ENV.get('rustc', 'unknown')}"),
-        ("Virtualisation", f"{ENV.get('virt', 'unknown')} guest; frequency governor {ENV.get('governor', 'unknown')} "
+        ("Virtualisation", f"{ENV.get('virt', 'unknown')} guest. Frequency governor {ENV.get('governor', 'unknown')} "
                            "and turbo host-controlled, so stability is assumed rather than enforced"),
         ("Core isolation", f"isolcpus {ENV.get('isolcpus', 'unknown')}, nohz_full {ENV.get('nohz', 'unknown')}: "
                            "a benchmark thread can still lose its core"),
@@ -1009,14 +1018,14 @@ _, tbl_bottom = add_data_table(
 )
 add_caption(s, tbl_bottom + Cm(0.3), size=11, text=
             "Adequate for parity, fault injection, the FFI seam, the saturation knee, the overload comparison, "
-            "and the resource comparisons \u2014 but not for the far tail below saturation, which needs the "
+            "and the resource comparisons, but not for the far tail below saturation, which needs the "
             "bare-metal protocol in bench/TESTBED.md.")
 
 # =====================================================================
 # Slide 17: How the comparison is tested (diagram)
 # =====================================================================
 s = headline(1, "How the comparison is tested, decided before the results",
-             "Interleaving buys a matched design; the two reading rules are pre-committed")
+             "Interleaving buys a matched design. The two reading rules are pre-committed")
 _png, _crop = diagram("23_stats_pipeline")
 add_figure(s, _png, crop_top=_crop)
 
@@ -1049,7 +1058,7 @@ add_notes(s, [
      "The paired bound on the sweep is that many times the operation's own cost, so the "
      "null bounds the design."),
     (f"{M('BudgetCoreRatio')}\u00d7 faster in {M('BudgetCoreFaster')}",
-     "measured apart from the handoff \u2014 traceable to hash-map layout, not to either "
+     "measured apart from the handoff. The cause is hash-map layout, not either "
      "safety model."),
 ], top=Cm(10.55), height=Cm(2.4))
 
@@ -1069,7 +1078,7 @@ add_notes(s, [
     (f"Holm p = {M('OverloadThrHolm')}",
      "the corrected floor of the whole family: the strongest result in the campaign."),
     (f"{M('OverloadCpuPerOpRatio')}\u00d7 the CPU per operation",
-     "Effort spent without completing work, not idleness \u2014 the slower side is busier."),
+     "Effort spent without completing work, not idleness. The slower side is busier."),
 ], top=Cm(10.6), height=Cm(2.4))
 
 # =====================================================================
@@ -1096,18 +1105,18 @@ add_caption(s, Cm(10.1), size=11, text=
             f"The overload gap was attributed to the bounded queue and the completion handle. Isolated, they do "
             f"not reproduce it: {M('ContentionThrCpp')} against {M('ContentionThrRust')} kops/s is only "
             f"{M('ContentionRatio')}\u00d7 at p = {M('ContentionP')}. So the mechanism involves more of the handoff "
-            "path than these two primitives \u2014 and nothing here implicates the borrow checker, bounds "
+            "path than these two primitives, and nothing here implicates the borrow checker, bounds "
             "checking, or ownership.")
 
 # =====================================================================
 # Slide 22: RQ3 resources (generated figure)
 # =====================================================================
 s = headline(1, "RQ3: memory follows the language and the allocator both",
-             f"At {M('ReprLoad')} kops/s; median over {M('NRepeats')} interleaved repeats")
+             f"At {M('ReprLoad')} kops/s, median over {M('NRepeats')} interleaved repeats")
 add_figure(s, result_figure("fig_resources"), top=Cm(3.4), height=Cm(6.9))
 add_notes(s, [
     (f"+{M('RssLangDiffLo')}\u2013{M('RssLangDiffHi')} MiB in Rust",
-     f"under both allocators, interval [{M('RssLangCILo')}, {M('RssLangCIHi')}] MiB \u2014 a "
+     f"under both allocators (interval [{M('RssLangCILo')}, {M('RssLangCIHi')}] MiB), a "
      "language effect that replicates."),
     (f"+{M('RssAllocDiffLo')}\u2013{M('RssAllocDiffHi')} MiB for jemalloc",
      "in either language: an order of magnitude more, so the allocator is the larger lever."),
@@ -1119,7 +1128,7 @@ add_notes(s, [
 # Slide 23: The migration seam (diagram)
 # =====================================================================
 s = headline(1, "RQ4: a C++ host driving an unmodified Rust core",
-             "All unsafe is confined to a thin seam crate; the core stays free of it")
+             "All unsafe is confined to a thin seam crate. The core stays free of it")
 _png, _crop = diagram("07_ffi_seam")
 add_figure(s, _png, crop_top=_crop)
 
@@ -1153,21 +1162,21 @@ add_figure(s, _png, crop_top=_crop)
 # Slide 26: Summary of findings
 # =====================================================================
 s = headline(1, "Summary of findings and evidence strength",
-             "Safety and migration are final; the performance answer divides at saturation")
+             "Safety and migration are final. The performance answer divides at saturation")
 add_data_table(
     s,
     [
         ("RQ", "Headline finding", "Evidence"),
         ("RQ1", f"Equivalent at the median below saturation, and the end-to-end number is only "
-                f"{M('BudgetCoreShareMax')}% operation; past saturation {M('OverloadSustainedFaster')} sustains "
+                f"{M('BudgetCoreShareMax')}% operation. Past saturation {M('OverloadSustainedFaster')} sustains "
                 f"{M('OverloadThrRatio')}\u00d7 the throughput",
-         "Overload and operation resolved; far tail unresolved"),
-        ("RQ2", f"All {len(IN_GUARANTEE)} in-guarantee classes are compile errors in safe Rust; the "
+         "Overload and operation resolved, far tail unresolved"),
+        ("RQ2", f"All {len(IN_GUARANTEE)} in-guarantee classes are compile errors in safe Rust. The "
                 f"{len(BOUNDARY)} boundary classes compile in both languages", "Final"),
         ("RQ3", f"{M('RssLangDiffLo')}\u2013{M('RssLangDiffHi')} MiB more peak RSS in Rust under both allocators, "
                 f"an order of magnitude less than the allocator's own "
                 f"{M('RssAllocDiffLo')}\u2013{M('RssAllocDiffHi')} MiB", "Resolved, unexplained"),
-        ("RQ4", f"Thin, unsafe-isolated seam; no cost detected and any tax bounded at "
+        ("RQ4", f"Thin, unsafe-isolated seam. No cost detected and any tax bounded at "
                 f"{M('FfiOpBoundPct')}% of an operation", "Final"),
     ],
     top=Cm(3.6),
@@ -1188,12 +1197,12 @@ add_data_table(
     s,
     [
         ("Hypothesis", "Statement, and what the evidence did to it", "Verdict"),
-        ("H1", "Equivalent below saturation with any difference in the far tail. The first half holds; "
-               "the second is refuted \u2014 the difference is in overload, not the tail. \u201cPerformance-"
+        ("H1", "Equivalent below saturation with any difference in the far tail. The first half holds. "
+               "The second is refuted, because the difference is in overload, not the tail. \u201cPerformance-"
                "equivalent\u201d also names three quantities that answer differently.",
          "Split, and too loosely worded"),
         ("H2", "Safe Rust prevents the classes C++ leaves to best-effort detection. Exact for the "
-               f"{len(IN_GUARANTEE)} injected classes; the boundary classes are concurrency defects it does not prevent.",
+               f"{len(IN_GUARANTEE)} injected classes. The boundary classes are concurrency defects it does not prevent.",
          "Supported precisely, refuted loosely"),
         ("H3", "Interop cost is negligible against the operations invoked. Supported by the measured "
                "bound, once the seam was compared against the same operation called natively.",
@@ -1218,24 +1227,24 @@ add_data_table(
 # controls themselves are the subject of the two method slides.
 # =====================================================================
 s = headline(1, "Threats to validity, and what each control leaves behind",
-             "The controls are on the method slides; what is left here is the residual risk")
+             "The controls are on the method slides. What is left here is the residual risk")
 _threats = [
-    ("Internal \u2014 is the language the only difference?",
+    ("Internal: is the language the only difference?",
      "Controlled by the frozen specification, the shared allocator and optimisation level, "
      "and the parity suite. What remains: one author wrote both versions, and parity bounds "
      "behaviour, not performance."),
-    ("Construct \u2014 do the metrics measure the questions?",
+    ("Construct: do the metrics measure the questions?",
      "The operation is reported apart from the handoff rather than folded into it. "
      "What remains: one operation on one data structure is narrower than the sweep it "
      "supplements, and RQ3 captures the cost but not its origin."),
-    ("Conclusion \u2014 are the differences real, or noise?",
+    ("Conclusion: are the differences real, or noise?",
      f"{M('NRepeats')} interleaved repeats, an exact paired permutation test, and the Holm "
      "correction, with the floors quoted. What remains: pairing cancels only what a block "
      "shared, so the tail percentiles stay unresolved."),
-    ("External \u2014 how far do the results travel?",
+    ("External: how far do the results travel?",
      "RQ2 and RQ4 rest on the compilers and the C ABI rather than on the host, so they "
-     "travel. What remains: the performance results do not \u2014 shared mutable state or "
-     "allocation churn could behave differently."),
+     "travel. What remains: the performance results do not, because shared mutable state "
+     "or allocation churn could behave differently."),
 ]
 add_notes(s, _threats[:2], top=Cm(3.9), height=Cm(4.3), gap=Cm(0.5),
           accent=BLUE, fill=LIGHTBLUE)
@@ -1296,6 +1305,55 @@ def check_layout(presentation):
     return problems
 
 
+BANNED_DASHES = {
+    "\u2014": "em dash",
+    "\u2015": "horizontal bar",
+    "\u2012": "figure dash",
+    "\u2212": "minus sign",
+}
+
+
+def _readable_text(shapes):
+    """Every string a viewer can read, including inside groups and tables."""
+    for shape in shapes:
+        if shape.shape_type == MSO_SHAPE_TYPE.GROUP:
+            yield from _readable_text(shape.shapes)
+            continue
+        if shape.has_text_frame:
+            for para in shape.text_frame.paragraphs:
+                yield "".join(run.text for run in para.runs)
+        if getattr(shape, "has_table", False) and shape.has_table:
+            for row in shape.table.rows:
+                for cell in row.cells:
+                    yield cell.text
+
+
+def check_prose_style(presentation):
+    """Report the punctuation the thesis prose style forbids.
+
+    The deck answers to the same rule as the thesis. The em dash is the tell the
+    author removes on sight, and the semicolon reads as stiff on a slide the way
+    it does on a page. An en dash between numbers is a range and stays, so only a
+    spaced one counts as an aside. No slide in this deck shows source code, which
+    is what would make a semicolon legitimate.
+    """
+    problems = []
+    for i, slide in enumerate(presentation.slides, start=1):
+        for text in _readable_text(slide.shapes):
+            if not text.strip():
+                continue
+            excerpt = text.strip()[:64]
+            for char, name in BANNED_DASHES.items():
+                if char in text:
+                    problems.append(f"slide {i}: {name} in {excerpt!r}")
+            if re.search("\u2013\\s|\\s\u2013", text):
+                problems.append(f"slide {i}: en dash used as an aside rather than a "
+                                f"range in {excerpt!r}")
+            if ";" in text:
+                problems.append(f"slide {i}: semicolon in {excerpt!r}")
+    return problems
+
+
 prs.save(OUT)
 _pictures = sum(1 for sl in prs.slides for sh in sl.shapes if sh.shape_type == 13)
 print("Saved", OUT, "with", len(prs.slides._sldIdLst), "slides")
@@ -1318,5 +1376,16 @@ if _layout:
     print("\nLayout problems:")
     for problem in _layout:
         print(" ", problem)
+else:
+    print("Layout: all added shapes inside the template content band")
+
+_style = check_prose_style(prs)
+if _style:
+    print("\nProse-style problems:")
+    for problem in _style:
+        print(" ", problem)
+else:
+    print("Prose style: no em dash, dash aside, or semicolon on any slide")
+
+if _layout or _style:
     sys.exit(1)
-print("Layout: all added shapes inside the template content band")

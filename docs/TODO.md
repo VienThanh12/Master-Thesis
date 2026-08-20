@@ -575,6 +575,17 @@ therefore not comparable against the Aug 12 numbers, so either re-run RQ3 from t
 or keep the arms consistent. `NTests` must still read 14; jitter stays descriptive, out of the
 Holm family, for the reason §5.5 already gives.
 
+- [x] **The harness for this is proven end to end** (20 Aug 2026, `docker/VALIDATION.md`): a
+      200-run campaign through the container on the WSL2 laptop wrote `tab_jitter.tex` and the
+      whole `Jitter*` / `FarTail*` / `Iqr*` macro family for the first time, and
+      `pool_hist.py --verify` confirmed every percentile of all 200 runs recomputes from the
+      persisted buckets on a shared lattice. `NTests` still read 14. So the §7.5 float, its
+      caption and the prose can be written against the real macro names *before* the run,
+      instead of discovering their shape afterwards.
+- [ ] **What is left is the KVM guest**, not the harness. Run the same campaign there and use it,
+      since the laptop run is not quotable. The container makes it one command with the same
+      toolchain as the reported numbers.
+
 ### 3. Read jemalloc's own statistics instead of only `ru_maxrss`
 
 **Why.** RQ3's peak-RSS effect is the campaign's one solid quantitative result and §7.5.4 says

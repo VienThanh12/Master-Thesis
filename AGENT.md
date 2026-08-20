@@ -211,6 +211,17 @@ one argument.
 
 The full style constraint is in the prose-style section of `.cursor/rules/thesis-quality.mdc`.
 
+**Both rules cover the slide deck as well**, which is why `build_deck.py` ends with a
+`check_prose_style` gate beside `check_layout`. It walks every text run, table cell, and grouped
+shape in the saved deck, and refuses em dashes, spaced en dashes, and semicolons. Three things to
+know before editing deck prose. The source writes its dashes as `\u2014` escapes, so grep for the
+escape and not for the character or a search comes back empty on a deck that is full of them. An
+en dash stays legal between numbers (`1.9–3.4 MiB`) and is refused when spaced, because that is an
+aside. And a generated table cell holding `---` marks a value that does not exist, which `detex()`
+turns into `n/a` rather than the em dash the thesis table prints, so fix such a cell in the deck's
+converter and never by hand-editing `figures/tab_*.tex`. The semicolon check has no exception for
+source code because no slide shows any. Add one deliberately if that changes.
+
 **Length and layout (read before changing either)**
 
 The abstract form's page count is **computed by the class, not typed in**: `HYthesisML.cls`
@@ -266,7 +277,9 @@ that seam is now largely worked out.
   introduced.
 - Figure/table macros in prose match `figures/gen_macros.tex`.
 - No figure contradicts its table (see `docs/ASSESSMENT.md` refinement pass for past failures).
-- `build_deck.py` rebuilds and reports “Layout: all added shapes inside the template content band”.
+- `build_deck.py` rebuilds and reports both “Layout: all added shapes inside the template content
+  band” and “Prose style: no em dash, dash aside, or semicolon on any slide”. Either failure exits
+  non-zero, and both are reported in the same run so one rebuild shows everything that is wrong.
 - If abstract changed: visually inspect page 3 (abstract form + CCS + keywords).
 - Report `\pagesCount` from the `.aux` after any substantial addition. Under 100 is the author's
   **current working preference, not a requirement**, so treat it as a number to surface and not a
@@ -279,6 +292,7 @@ that seam is now largely worked out.
 - **Do not** treat `Ha_Vien_Mastersthesis_2026.pdf` as supervisor-approved. The submission filename says nothing about review status: only `Thesis_Plan_v2.pdf` and `Thesis_v1.pdf` are in that bucket today.
 - **Do not** hand-edit generated files under `figures/` except source diagrams in `diagrams/`.
 - **Do not** transcribe measured numbers into `build_deck.py`; it reads them from the generated artefacts and fails loudly when one is missing.
+- **Do not** leave an em dash or a semicolon where a reader can see it, in the thesis source or on a slide. The deck build refuses to pass one.
 - **Do not** claim testbed-grade tail latency from the virtualised host.
 - **Do not** remove boundary defect classes or sanitiser-only C++ outcomes to tidy the narrative.
 - **Do not** expand `Thesis_v1.tex` chapters 6–9 without explicit instruction.
