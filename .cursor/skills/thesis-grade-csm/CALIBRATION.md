@@ -64,32 +64,80 @@ These have each consumed part of a pass and were wrong.
   large do.
 - **A worked example repeated across introduction, background, and appendix.** Defensible
   layering for a reader without the domain background. Note it, leave the call to the author.
+- **`pdftotext` on `diagrams/pdf/*.pdf` extracts nothing.** The included diagrams render their
+  text as paths, so any dash, semicolon or staleness check routed through `pdftotext` returns zero
+  on every file and proves nothing. Read the `.svg` and `.drawio` sources, and search for the
+  literal `—` **and** the `&#8212;` entity, because the sources use both.
+- **Semicolons in verbatim code inside a diagram**, which the house style exempts explicitly.
+  `08_borrow_checker_uaf` carries five in C++ and Rust statements, `05_data_model` one in
+  `[u8; 32]`. Do not count these against the style gate.
+- **A hand-typed number written with a LaTeX thin space.** `9\,006` and `35\,030` match neither
+  `9,006` nor `9006`. Grep for the `\\,` form or the audit will report a defect as closed.
 
 ## Standing blockers on this thesis
 
-State as of the fifth pass, 19 August 2026.
+State as of the seventh pass, 20 August 2026. The seventh pass found eleven of the sixth pass's
+twelve items untouched, so treat this list as durable rather than as a snapshot, and check each
+item against the source before reporting it.
 
 1. **Rewrite the abstract unaided, then set `\abstractunaidedtrue`.** Blocking for submission and
-   for area 6, and it cannot be delegated. Until it is set, every build prints
-   `ai_statement: ... Not submittable`.
+   for area 6, and it cannot be delegated. Open since the fourth pass. Until it is set, every
+   build prints `ai_statement: ... Not submittable` and the printed declaration says the summary
+   has not yet been rewritten unaided. Drop the abstract's "median latency matches" in the same
+   edit: the paired test resolves −1.1 and −1.6 µs under the two allocators, both clearing Holm.
 2. **Bare-metal tail campaign, with hardware counters and allocation profiles on the same visit**
-   (`bench/TESTBED.md`). The only thing holding areas 3 and 4 at 4.5. What it buys is now
-   narrow and specific: far-tail ordering below saturation, plus a mechanism for the peak-RSS
-   effect and for the operation-level gap.
-3. **Three arithmetic disagreements introduced between the 147- and 163-page builds**: Table 6.4's
-   C++ column sums to 668 against a printed total of 674, the conformance campaign is reported as
-   793,000 generated operations in Chapter 6 and 9,006 in Chapter 7, and a 0.250 % share is paired
-   with a 99.9 % complement. Minutes of editing each, and the cheapest defects an examiner finds.
+   (`bench/TESTBED.md`). The only thing holding area 3's data half at 4, and the only lift no
+   amount of editing reaches. What it buys is narrow and specific: far-tail ordering below
+   saturation, plus a mechanism for the peak-RSS effect and for the operation-level gap.
+3. **Eight hand-typed values, and all eight are wrong.** These are the whole of area 4's cap, and
+   four of them are places where the manuscript contradicts evidence it ships:
+   - the TSan deadlock rate, printed as "four of twelve" in the prose and "$4$ of $12$" in Table
+     7.6's footnote, against `TSan reported in 7/12 runs` in `faults/results/taxonomy.csv`;
+   - both lost-update pairs, printed as 35,030/4,970 for Rust and 25,448/14,552 for C++, against
+     28,914/11,086 and 27,788/12,212 in `lost_update.rust.log` and `lost_update.tsan.log`;
+   - the conformance campaign at L3051–3052, `$9\,006$` against `summary.json`'s 792,964, beside a
+     hand-typed `$223$`, both of which have macros (`\ConfGenOps`, `\ConfHandOps`) used correctly
+     forty lines earlier. **Search for `9\\,006`**: the LaTeX thin space defeats a `9,006` or
+     `9006` grep, which is how the seventh pass briefly mis-scored this as closed;
+   - "twenty-five Rust tests" at L3051, against 27 from `cargo test --release -- --list`;
+   - "four of the ten classes untouched" at L2957, against two `undetected` rows in
+     `taxonomy.csv` (three if the intermittent deadlock is counted, never four);
+   - Table 6.4's C++ column, nine rows summing to 668 against a printed `\CppRawLines` of 674 and
+     a delta column summing to +94 against a printed +88 (the Rust column sums correctly);
+   - the §7.5.1 p50 sentence, which says each interval "contains" the others' point estimates
+     when no interval contains a cross-language median and the true claim is "overlaps";
+   - the 99.9 % complement of `\BudgetCoreShareMax` = 0.250, whose complement is 99.750 %.
+   §7.2's "no value is hand-copied ... the text and the data cannot drift apart" is falsified by
+   all eight and should be narrowed to the claim that is true and strong on its own.
 4. **§5.5 describes instrumentation the reported campaign did not have**: pooled far-tail figures,
    directly measured jitter, and p99.99 "reported descriptively". §7.5.1 says the campaign predates
-   it. Put the three sentences in the conditional.
-5. **Housekeeping**: `\censors{}{}{}` once the faculty assigns examiners.
+   it. Put the three sentences in the conditional, and either drop jitter from the abstract's list
+   of open dimensions or mark it as future work.
+5. **`figures/tab_equivalence.tex` is generated on every refresh and `\input` by no document.** An
+   unrealised asset rather than a defect: it holds the equivalence-bound reading of RQ1, which is
+   the strongest available answer to the half of RQ1 the host cannot resolve.
+6. **Diagram labels breach the house style, and nothing gates them.** `.aitells.py` reads `.tex`
+   only and `build_deck.py`'s `check_prose_style` covers the deck only, so the figures are the one
+   reader-visible prose surface with no check. Of the eleven diagrams the thesis includes, five
+   carry a dash aside in a label, panel title or in-figure footer (fourteen occurrences:
+   `17_guarantee_boundary` 5, `04_request_lifecycle_sequence` 4, `08_borrow_checker_uaf` 2,
+   `27_workload_timeline` 2 literal, `16_coordinated_omission` 1) and five carry a prose semicolon
+   (`17_guarantee_boundary` 2, `29_research_gap`, `07_ffi_seam`, `12_concurrency_models`,
+   `15_overload_cliff`). Fix the `diagrams/` sources, re-render, then extend the gate.
+7. **Prose:** "rather than" carries 154 sentences at 4.7 per thousand words, which `.aitells.py`
+   scores at 44 per ten thousand against a next-highest pattern of 1.2. With dashes and semicolons
+   clean in the `.tex`, this is the remaining machine-uniformity signal there.
+8. **§8.2 says Figure 8.1 "states the whole result in one picture"** while the figure draws two of
+   the five boundary classes. The caption discloses the gap, so the prose is the part to fix.
 
 **Resolved, do not re-report.** The class file is now the department's own `HYthesisML.cls` with
 the pristine template beside it, so the `UH_DS_MSc.cls` item is closed (the file survives in the
 root but is not loaded). The AI declaration is gated and truthful. RQ1's metric list matches the
 reported columns. `zhang2026deadlock` is the journal version, and a preprint flag on it is a
-false positive from its `note` field.
+false positive from its `note` field. The FFI evidence survived the seam-count correction of
+`8244901` with all ten quantities in `ffi/results/metrics.json` still matching their macros.
+`\censors` housekeeping is closed as written, since the `censored` class option is set and the
+class prints examiners nowhere.
 
 ## Findings a grader must not "correct"
 
@@ -97,8 +145,10 @@ These read like defects and are not. They are load-bearing and deliberate, and `
 holds the full list.
 
 - Two boundary defect classes came back with the **C++ tooling ahead**, and the lock-order
-  deadlock is detected by ThreadSanitizer **intermittently**, about 30% of runs. Reporting an
-  inconvenient result is evidence for area 1 and area 5, not against them.
+  deadlock is detected by ThreadSanitizer **intermittently**, in 7 of 12 runs per
+  `faults/results/taxonomy.csv`. Reporting an inconvenient result is evidence for area 1 and area
+  5, not against them. The intermittency *finding* is load-bearing and must not be corrected. The
+  *rate printed in the thesis* is a separate matter and is stale: see standing blocker 3.
 - Peak resident set size is a real language effect that reproduces under both allocators, but the
   **allocator effect is the larger one**. Neither half may be dropped.
 - The end-to-end sweep is dominated by the cross-thread handoff, and the operation is a fraction
