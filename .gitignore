@@ -39,8 +39,18 @@ target/
 
 # C++ jemalloc variant build + benchmark artifacts
 cpp/build-jemalloc/
+# Heap-profiling variant: links a prof-enabled jemalloc, attribution only, never
+# the arm the campaign measures (bench/alloc_profile.sh).
+cpp/build-jemalloc-prof/
 bench/.bin/
 bench/results/
+
+# Container build trees and smoke-run outputs. The container builds into its own
+# directories on purpose (a CMake cache records its compiler's absolute path, so
+# sharing cpp/build with the host makes CMake refuse once the toolset compiler
+# appears), and docker/run.sh --smoke sends results here so a test run cannot
+# become the newest campaign in bench/results.
+docker/.scratch/
 
 # Fault-injection built binaries (taxonomy.md/.csv are kept; *.log matched above)
 faults/results/.bin/

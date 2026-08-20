@@ -1,0 +1,19 @@
+# The measurement image needs four files from the repository and nothing else:
+# the declared Python dependencies, the locked crate graph (so the campaign can
+# run with the network off), and the two scripts that go into /usr/local/bin. The
+# repository itself is bind-mounted at run time, so shipping it into the image
+# would only make the image stale.
+#
+# `*` excludes top-level entries, `*/**` excludes everything below them, and the
+# four exceptions are named back in. The builder still descends into a directory
+# it has excluded when an exception could match inside it, which is what makes
+# this work. Do not add `!*/`: the pattern is cleaned to `!*` and re-includes
+# every top-level file, which put the 18 MB slide deck and the built PDFs into
+# the context.
+*
+*/**
+!bench/requirements.txt
+!rust/Cargo.toml
+!rust/Cargo.lock
+!docker/entrypoint.sh
+!docker/preflight.sh

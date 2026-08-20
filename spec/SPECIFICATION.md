@@ -751,6 +751,40 @@ thing along with the first.
   difference between two builds of the allocator as well as between two programs.
   `bench/campaign.sh` pins `thp:never,narenas:16` on both sides, which removes the
   larger part of that confound but not the version difference.
+- Heap profiling for the peak-RSS attribution (RQ3, revised Aug 2026,
+  `bench/alloc_profile.sh`). Three recorded deviations, all confined to a dedicated
+  profiling build tree that no timed run uses, and all found by running the script in
+  the container rather than on the testbed:
+  1. **A prof-enabled allocator for the C++ arm.** The distribution jemalloc both the
+     measurement host and the container link is built without `--enable-prof`, so the
+     C++ arm could not be profiled at all: the binary answers `Invalid conf pair:
+     prof:true` and no dump lands. `docker/Dockerfile` builds a prof-enabled jemalloc
+     from the *same source the Rust arm links* (the tree vendored in
+     `tikv-jemalloc-sys`, 5.3.1-0-g81034ce), and `cpp/build-jemalloc-prof` links it by
+     absolute path when `UECM_JEMALLOC_PROF_LIB` is set. Same source and version on
+     both sides therefore, though not an identical configure line: the Rust side is
+     static and `_rjem_`-prefixed, this one shared and unprefixed. Note this *removes*
+     the allocator-version confound recorded above for the profile specifically, and
+     leaves it in place for the campaign, which still links the distribution build.
+  2. **Frame pointers on both sides.** jemalloc walks the stack without libunwind here,
+     so at `-O2` with frame pointers omitted the walk stops inside the allocator and no
+     application site appears at all. The profiling tree adds
+     `-fno-omit-frame-pointer` (after `-O2`, which re-enables omission) and the Rust
+     profiling build adds `-C force-frame-pointers=yes`. Symmetric, and attribution
+     only: a frame pointer costs a register, so neither belongs in a timed build.
+  3. **Dumps taken during the run, not at exit.** `prof_final` dumps the live heap when
+     the process exits, which is after the contexts and shard queues have been dropped:
+     measured, the C++ exit dump held 92 kB and the Rust one 640 bytes against a live
+     heap of 2.3 MB mid-run. The script now also sets `lg_prof_interval` and keeps the
+     dump with the highest live byte count, with the whole series and its trajectory
+     kept beside it. Without this the profile is empty and looks like a heap with no
+     allocations in it.
+  One reading caveat, recorded because it changes which column carries the answer:
+  jemalloc 5.3 keeps its own backtrace frame at the leaf of every sampled stack, so the
+  *flat* column collapses onto `prof_backtrace_impl` and application sites read zero
+  flat bytes. Sampled live totals are unaffected, since flat still sums to the sampled
+  heap, and the cumulative column carries the attribution.
+  `bench/parse_jeprof.py` detects the collapse and reports the cumulative ranking.
 - Load sweep: `bench/load_sweep.sh` sweeps offered rate × the four variants and writes a
   latency/throughput/RSS/CPU-vs-load CSV (`bench/plot_sweep.py` renders it).
 - Dependency hygiene: the Rust core library stays dependency-free: `hdrhistogram`

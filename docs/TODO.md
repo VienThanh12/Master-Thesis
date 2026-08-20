@@ -235,7 +235,28 @@ latexmk -C                   # clean build artifacts
       difference to allocation sites. §7.5.4 already establishes the difference is fixed rather
       than per-context (the `UeContext` layout accounts for ~40 kB at 5000 active UEs, three
       orders of magnitude short of the gap), so the profile is what turns "unexplained" into a
-      cause. Install `jeprof` first (`--check` reports readiness).
+      cause.
+- [x] **The profile would have come back empty, and that is now fixed** (20 Aug 2026, found by
+      running it in the container rather than on the testbed). Three defects, all in the
+      instrument and none of them visible without running it end to end: the distribution
+      jemalloc the Rocky host links is built *without* `--enable-prof`, so the C++ arm had
+      nothing to profile with and the script correctly refuses to profile one arm alone;
+      backtraces at `-O2` stopped inside the allocator, so not one application site appeared;
+      and `prof_final` dumps the live heap *at exit*, after teardown, which measured 92 kB
+      (C++) and 640 bytes (Rust) against 2.3 MB live mid-run. Fixed by a dedicated profiling
+      build tree with frame pointers, a prof-enabled jemalloc built from the same source the
+      Rust arm links (`docker/Dockerfile`), and interval dumps with peak selection. Verified:
+      both arms now attribute, C++ 61% cumulative to `ShardCore::create_context` under
+      `worker_loop`, Rust 65% under `Service::start` with 8% in the `sync_channel<Request>`
+      slot array. Recorded in spec §12. **`jeprof` no longer needs installing on the host:**
+      the image carries it.
+- [ ] Optional, and a methodology call: jemalloc 5.3 keeps its own frame at the leaf of every
+      sampled stack, so the *flat* column collapses onto `prof_backtrace_impl` and the
+      cumulative column carries the attribution (totals are unaffected). Building the
+      profiling jemalloc with `--enable-prof-libunwind` would put application sites back in
+      the flat column for the C++ arm, but `tikv-jemalloc-sys` exposes no hook to do the same
+      for Rust, so it would make the two arms use different unwinders. That cuts against the
+      one-instrument principle the matched profile rests on, which is why it is not done.
 ### 7b. Fault-injection study (RQ2 safety)
 - [x] Inject C++ defect catalogue (use-after-free, double-free, iterator invalidation,
       data race, unguarded shared mutation), `faults/cpp/*.cpp`, domain-flavoured

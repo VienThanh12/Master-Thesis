@@ -54,6 +54,23 @@ def parse_jeprof(text):
     return sites, reported_total
 
 
+def flat_is_degenerate(sites, threshold=0.99):
+    """True when one symbol holds essentially all of the flat bytes.
+
+    jemalloc 5.3 keeps its own backtrace frame at the leaf of every sampled
+    stack, so depending on the unwinder the whole flat column can land on
+    `prof_backtrace_impl` and every application site reads zero flat bytes. The
+    totals are unaffected, since flat still sums to the sampled live heap, but
+    the flat *ranking* then says nothing and the cumulative one has to be read
+    instead. Detected rather than assumed, because which unwinder jemalloc picked
+    is a property of how it was built.
+    """
+    total = sum(s["bytes_flat"] for s in sites)
+    if total <= 0:
+        return False
+    return max(s["bytes_flat"] for s in sites) / total >= threshold
+
+
 def peak_rss_kb(bench_json_path):
     """Peak RSS from the profiled run's own JSON line, if it produced one."""
     if not os.path.exists(bench_json_path):
@@ -79,7 +96,9 @@ def summarise(outdir, top=25):
             "reported_total_bytes": reported,
             "n_sites": len(sites),
             "peak_rss_kb": peak_rss_kb(os.path.join(outdir, f"{lang}.bench.json")),
+            "flat_ranking_degenerate": flat_is_degenerate(sites),
             "top_sites": sites[:top],
+            "top_sites_cum": sorted(sites, key=lambda s: -s["bytes_cum"])[:top],
         }
 
     c, r = summary["langs"]["cpp"], summary["langs"]["rust"]
@@ -96,8 +115,13 @@ def summarise(outdir, top=25):
         print(f"\n{lang}: peak RSS {rss}, "
               f"sampled live {d['sampled_live_bytes'] / 1024:.0f} kiB "
               f"across {d['n_sites']} sites")
-        for s in d["top_sites"][:8]:
-            print(f"    {s['bytes_flat'] / 1024:10.0f} kiB  {s['symbol'][:68]}")
+        key = "bytes_flat"
+        if d["flat_ranking_degenerate"]:
+            key = "bytes_cum"
+            print("    (flat column collapsed onto the allocator's own leaf frame,"
+                  " so this ranking is cumulative)")
+        for s in d[f"top_sites{'_cum' if key == 'bytes_cum' else ''}"][:8]:
+            print(f"    {s[key] / 1024:10.0f} kiB  {s['symbol'][:68]}")
 
     if "peak_rss_delta_kb" in summary:
         print(f"\npeak RSS delta (rust - cpp): {summary['peak_rss_delta_kb']} kB")
@@ -146,6 +170,22 @@ Total: 11534336 B
     # No rows at all must be distinguishable from rows summing to zero.
     empty, etotal = parse_jeprof("Using local file bench.\nTotal: 0 B\n")
     assert empty == [] and etotal == 0.0, (empty, etotal)
+
+    # A flat column that has collapsed onto the allocator's own leaf frame, which
+    # is what jemalloc 5.3 produces under some unwinders. Every application site
+    # reads zero flat bytes while the cumulative column still carries them, so the
+    # ranking has to switch and the switch has to be detected.
+    collapsed = """Total: 8208574 B
+ 8208574 100.0% 100.0%  8208574 100.0% prof_backtrace_impl
+       0   0.0% 100.0%  5019291  61.1% uecm::ShardCore::create_context
+       0   0.0% 100.0%  2949120  35.9% bench::HdrHistogram::HdrHistogram
+"""
+    csites, _ = parse_jeprof(collapsed)
+    assert flat_is_degenerate(csites), csites
+    assert not flat_is_degenerate(sites), sites
+    assert not flat_is_degenerate([]), "no sites is not a collapsed column"
+    by_cum = sorted(csites, key=lambda s: -s["bytes_cum"])
+    assert by_cum[1]["symbol"].endswith("create_context"), by_cum
 
     print("parse_jeprof self-test: all checks pass")
 

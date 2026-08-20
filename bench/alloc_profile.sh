@@ -52,6 +52,11 @@ seed=42
 # every 512 KiB) would put only a handful of samples inside a 2.1 MiB difference;
 # 4 KiB resolves it while keeping the dump small.
 lg_sample=12
+# Bytes of allocation activity between heap dumps, as a power of two. This is the
+# difference between a profile that answers the question and one that comes back
+# empty: see the note above run_profile. 16 MiB gives a few dozen dumps across a
+# default run, which is enough to catch the peak without filling the directory.
+lg_interval=24
 check_only=0
 # Collect the raw heap dumps even when jeprof is missing. The testbed visit happens
 # once; a dump kept now can be symbolised later against the same binary, whereas a
@@ -68,6 +73,7 @@ while [ $# -gt 0 ]; do
     --warmup)     warmup="$2"; shift 2;;
     --seed)       seed="$2"; shift 2;;
     --lg-sample)  lg_sample="$2"; shift 2;;
+    --lg-interval) lg_interval="$2"; shift 2;;
     --check)      check_only=1; shift;;
     --raw-ok)     raw_ok=1; shift;;
     *) echo "unknown arg: $1"; exit 2;;
@@ -139,13 +145,60 @@ cmake -S "$cpp" -B "$cpp/build-jemalloc" -G Ninja -DCMAKE_BUILD_TYPE=Release \
   -DUECM_USE_JEMALLOC=ON -DUECM_BUILD_TESTS=OFF >/dev/null 2>&1
 cmake --build "$cpp/build-jemalloc" --target bench >/dev/null 2>&1
 cpp_bin="$cpp/build-jemalloc/bench"
+cpp_alloc="the campaign's own arm (system libjemalloc.so.2, no frame pointers)"
+
+# A dedicated profiling build tree, for two reasons that both have to hold at
+# once, and neither of which may touch the arm the campaign measures.
+#
+# Frame pointers. jemalloc walks the stack with __builtin_return_address unless it
+# was configured against libunwind, so at -O2 with frame pointers omitted the walk
+# stops inside the allocator: every sample attributes to jemalloc's own
+# prof_backtrace_impl and not one application site appears. Both arms get frame
+# pointers here (-fno-omit-frame-pointer, and -C force-frame-pointers=yes on the
+# Rust side) so the two remain one instrument.
+#
+# A prof-enabled allocator. A jemalloc built without --enable-prof cannot be
+# profiled at all: the binary answers `Invalid conf pair: prof:true` and no dump
+# lands. Distribution packages frequently omit the flag and the EPEL package this
+# project's measurement host links is one of them, so on that host the C++ arm has
+# nothing to profile with. UECM_JEMALLOC_PROF_LIB names a prof-enabled build to
+# link by absolute path instead; docker/Dockerfile sets it to a build made from
+# the same jemalloc source the Rust arm links, so the two profiles come from one
+# allocator version as well as one instrument. Unset, this tree still gets frame
+# pointers and links whatever the system provides.
+#
+# Neither change belongs in a timed build, which is why this tree exists: frame
+# pointers cost a register and the prof allocator is a different build of the
+# allocator. Nothing from this script may be quoted as latency, throughput or
+# peak RSS.
+# The flag has to land after -O2, which re-enables frame-pointer omission on
+# x86-64, so it goes into CMAKE_CXX_FLAGS_RELEASE (kept otherwise identical to
+# what CMakeLists.txt sets) and not into CMAKE_CXX_FLAGS, which is prepended.
+cpp_prof_args=(-DCMAKE_CXX_FLAGS_RELEASE="-O2 -DNDEBUG -fno-omit-frame-pointer")
+if [ -n "${UECM_JEMALLOC_PROF_LIB:-}" ] && [ -e "${UECM_JEMALLOC_PROF_LIB}" ]; then
+  cpp_prof_args+=(-DJEMALLOC_LIB="$UECM_JEMALLOC_PROF_LIB")
+fi
+if cmake -S "$cpp" -B "$cpp/build-jemalloc-prof" -G Ninja -DCMAKE_BUILD_TYPE=Release \
+     -DUECM_USE_JEMALLOC=ON -DUECM_BUILD_TESTS=OFF "${cpp_prof_args[@]}" >/dev/null 2>&1 \
+   && cmake --build "$cpp/build-jemalloc-prof" --target bench >/dev/null 2>&1; then
+  cpp_bin="$cpp/build-jemalloc-prof/bench"
+  if [ -n "${UECM_JEMALLOC_PROF_LIB:-}" ]; then
+    cpp_alloc="$UECM_JEMALLOC_PROF_LIB (prof-enabled build, frame pointers, profiling only)"
+  else
+    cpp_alloc="system libjemalloc.so.2, frame pointers (profiling only)"
+  fi
+else
+  echo "  WARN: the profiling build tree failed to configure or build;"
+  echo "        falling back to the campaign's arm, whose backtraces stop in the allocator."
+fi
 
 # The Rust arm needs the profiling build of the allocator; the plain `jemalloc`
 # feature links a jemalloc without prof compiled in.
 rust_bin="$here/.bin/rust-jemalloc-prof"
 mkdir -p "$here/.bin"
 rust_built=0
-if cargo build --release --manifest-path "$rust/Cargo.toml" --example bench \
+if RUSTFLAGS="-C force-frame-pointers=yes" \
+   cargo build --release --manifest-path "$rust/Cargo.toml" --example bench \
      --features jemalloc-prof >/dev/null 2>&1; then
   cp "$rust/target/release/examples/bench" "$rust_bin"
   rust_built=1
@@ -159,6 +212,7 @@ fi
 
 echo
 echo "== tool check =="
+printf '  %-34s %s\n' "C++ allocator under profile:" "$cpp_alloc"
 printf '  %-34s %s\n' "C++ jemalloc prof support:" \
   "$([ "$cpp_ok" = 1 ] && echo yes || echo NO)"
 printf '  %-34s %s\n' "Rust jemalloc-prof build:" \
@@ -206,18 +260,37 @@ fi
 
 mkdir -p "$outdir"
 
-# prof_final dumps the live heap at exit, which is the state peak RSS is about.
-# prof_active:true starts sampling immediately so the preload phase is included --
+# Which allocator each arm was profiled with, kept beside the dumps. A profile
+# read a month later cannot otherwise say whether the C++ side used the
+# distribution build or a prof-enabled one, and the answer changes what a
+# difference between the two arms means.
+{
+  echo "cpp:  $cpp_alloc"
+  echo "      binary $cpp_bin"
+  echo "rust: tikv-jemalloc-sys, --features jemalloc-prof (source build)"
+  echo "      binary $rust_bin"
+} > "$outdir/allocators.txt"
+
+# prof_active:true starts sampling immediately so the preload phase is included:
 # the difference under investigation is fixed rather than per-operation, so it may
 # well be allocated before the measured phase begins.
-conf_common="prof:true,prof_active:true,prof_final:true,lg_prof_sample:$lg_sample"
+#
+# lg_prof_interval is what makes the profile non-empty, and the reason is worth
+# stating because the obvious configuration silently produces nothing. A dump
+# taken at exit (prof_final) is taken after main has returned, when the contexts
+# and the shard queues have already been dropped: measured here, the C++ arm's
+# exit dump held 92 kB and the Rust arm's held 640 bytes, against a live heap of
+# 2.3 MB mid-run and a peak RSS of tens of MB. Interval dumps see the heap while
+# it is populated. prof_final stays on because a dump that costs nothing to keep
+# is worth keeping.
+conf_common="prof:true,prof_active:true,prof_final:true,lg_prof_sample:$lg_sample,lg_prof_interval:$lg_interval"
 
 bench_args=(--workload mixed --shards "$shards" --producers "$producers"
             --active-ues "$active_ues" --ops "$ops" --warmup "$warmup"
             --seed "$seed" --json)
 
 echo
-echo "== profiling (lg_prof_sample:$lg_sample => every $((1 << lg_sample)) bytes) =="
+echo "== profiling (sample every $((1 << lg_sample)) B, dump every $((1 << (lg_interval - 20))) MiB allocated) =="
 
 run_profile() {  # run_profile <lang> <env-var> <binary>
   local lang="$1" var="$2" bin="$3"
@@ -228,14 +301,41 @@ run_profile() {  # run_profile <lang> <env-var> <binary>
   # leaving the dump in the current directory under jemalloc's default name.
   env "$var=$conf_common,prof_prefix:$prefix" "$bin" "${bench_args[@]}" \
     > "$outdir/$lang.bench.json" 2> "$outdir/$lang.stderr"
-  # jemalloc names the final dump <prefix>.<pid>.<seq>.f.heap.
-  local heap
-  heap="$(ls -1 "$prefix".*.heap 2>/dev/null | tail -1)"
-  if [ -z "$heap" ]; then
+
+  # jemalloc writes <prefix>.<pid>.<seq>.i<n>.heap every lg_prof_interval bytes of
+  # allocation activity, and <prefix>.<pid>.<seq>.f.heap at exit. Picking the last
+  # file would pick the exit dump, which is the empty one. The dump wanted is the
+  # one whose live byte count is highest, since that is the state ru_maxrss
+  # records. Each dump's second line totals live objects and bytes across threads:
+  #   t*: <curobjs>: <curbytes> [<accumobjs>: <accumbytes>]
+  local dumps peak_file="" peak_bytes=-1 b n=0
+  dumps="$(ls -1 "$prefix".*.heap 2>/dev/null)"
+  if [ -z "$dumps" ]; then
     echo "    WARN: no heap dump produced; see $outdir/$lang.stderr"
     return 1
   fi
-  mv "$heap" "$outdir/$lang.heap"
+  : > "$outdir/$lang.trajectory.tsv"
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    b="$(awk '/^[[:space:]]*t\*:/ { v=$3; gsub(/[^0-9]/, "", v); print v; exit }' "$f")"
+    b="${b:-0}"
+    n=$(( n + 1 ))
+    printf '%s\t%s\n' "$(basename "$f")" "$b" >> "$outdir/$lang.trajectory.tsv"
+    if [ "$b" -gt "$peak_bytes" ]; then peak_bytes="$b"; peak_file="$f"; fi
+  done <<EOF
+$dumps
+EOF
+  cp "$peak_file" "$outdir/$lang.heap"
+  # The rest of the series keeps: it costs kilobytes, it shows the heap's
+  # trajectory rather than one point on it, and a testbed visit does not come back.
+  mkdir -p "$outdir/$lang.dumps"
+  while IFS= read -r f; do
+    [ -n "$f" ] && mv "$f" "$outdir/$lang.dumps/"
+  done <<EOF
+$dumps
+EOF
+  printf '    peak live heap %s B in %s (%d dumps)\n' \
+    "$peak_bytes" "$(basename "$peak_file")" "$n"
   cp "$bin" "$outdir/$lang.binary"   # keep it: symbolisation needs this exact build
   if [ -z "$jeprof" ]; then
     return 0                          # --raw-ok: dump kept, symbolise later
@@ -283,6 +383,16 @@ echo "  summary.json          top sites per language + the RSS delta"
 echo "  <lang>.jeprof.txt     full symbolised profile"
 echo "  <lang>.heap           raw jemalloc dump (re-symbolise with $jeprof)"
 echo "  <lang>.binary         the exact build the dump came from"
+echo "  <lang>.trajectory.tsv live bytes in every dump, in order"
+echo "  <lang>.dumps/         the rest of the series, including the empty exit dump"
+echo "  allocators.txt        which allocator build each arm was profiled with"
 echo
 echo "Reminder: profiling perturbs the allocation path. These runs are for"
 echo "attribution only and must not be quoted as latency or throughput."
+case "$cpp_alloc" in
+  *prof-enabled*)
+    echo "The C++ arm here links a prof-enabled build of the allocator, not the"
+    echo "distribution build the campaign links. Same source and version as the"
+    echo "Rust arm, which is what makes the two profiles differenceable, and one"
+    echo "more reason these runs are attribution only.";;
+esac

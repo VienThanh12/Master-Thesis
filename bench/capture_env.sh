@@ -35,6 +35,16 @@ out="$here/results/env-$ts.txt"
   ver cmake --version
   echo
 
+  # A containerised run's toolchain belongs to the image, not to the host, and
+  # the image records its own manifest at build time (docker/Dockerfile). Copying
+  # it in here is what lets a result produced in a container be traced back to
+  # the exact compiler that produced it. Absent outside the container.
+  if [ -r /etc/uecm-image.txt ]; then
+    echo "## Container image"
+    cat /etc/uecm-image.txt
+    echo
+  fi
+
   echo "## CPU"
   if command -v lscpu >/dev/null; then
     lscpu | grep -E 'Model name|^CPU\(s\)|Thread|Core|Socket|MHz|NUMA' || true
@@ -63,14 +73,69 @@ out="$here/results/env-$ts.txt"
   # reason bare metal reports them as absent, so the two are indistinguishable
   # from the section above alone. They are not equivalent: under a hypervisor the
   # frequency state is host-controlled and a vCPU can be descheduled entirely.
+  #
+  # The hypervisor is asked for specifically (--vm) rather than by the bare
+  # `systemd-detect-virt`, which reports the innermost layer: inside a container
+  # on a KVM guest it answers "docker" and the kvm provenance disappears from the
+  # record. Containerisation is a separate fact and gets its own line below.
+  # systemd-detect-virt prints "none" *and* exits 1 when it finds nothing, so its
+  # output is read directly instead of through `|| echo none`, which appended a
+  # second "none" to the value.
+  sdv() {  # sdv --vm|--container
+    local out
+    out="$(systemd-detect-virt "$1" 2>/dev/null | head -1)"
+    printf '%s' "${out:-none}"
+  }
   if command -v systemd-detect-virt >/dev/null 2>&1; then
-    virt="$(systemd-detect-virt 2>/dev/null || echo none)"
-  elif command -v lscpu >/dev/null 2>&1 && lscpu | grep -qi 'hypervisor vendor'; then
-    virt="$(lscpu | sed -n 's/^Hypervisor vendor: *//p')"
+    virt="$(sdv --vm)"
   else
-    virt="unknown"
+    virt=""
   fi
+  if [ -z "$virt" ] || [ "$virt" = "none" ]; then
+    if command -v lscpu >/dev/null 2>&1 && lscpu | grep -qi 'hypervisor vendor'; then
+      virt="$(lscpu | sed -n 's/^Hypervisor vendor: *//p' | tr 'A-Z' 'a-z')"
+    fi
+  fi
+  [ -z "$virt" ] && virt="unknown"
   echo "virtualisation: ${virt:-none}"
+
+  # Containerisation. A container shares the host kernel, so nothing above this
+  # line changes when the campaign moves into one: the scheduler, the
+  # clocksource, the governor and the hypervisor are the host's either way. What
+  # does change is the toolchain (recorded above) and what the cgroup permits,
+  # which is the next four lines. A CPU bandwidth quota is the dangerous one: a
+  # throttled period is a stall of milliseconds, and it lands in p99.9.
+  # The runtime's own marker file is checked before systemd-detect-virt, which
+  # misses Docker on this distribution: with a cgroup namespace /proc/1/cgroup
+  # reads "0::/" and Docker sets no container= in PID 1's environment, so the
+  # detector has nothing to go on and answers "none" from inside a container.
+  if   [ -f /.dockerenv ];        then container="docker"
+  elif [ -f /run/.containerenv ]; then container="podman"
+  elif grep -qE '(docker|containerd|libpod|kubepods)' /proc/1/cgroup 2>/dev/null; then
+    container="container"
+  elif command -v systemd-detect-virt >/dev/null 2>&1; then
+    container="$(sdv --container)"
+  else
+    container="none"
+  fi
+  echo "container: $container"
+  cg() {  # cg <cgroup-v2-path> <cgroup-v1-path>
+    if   [ -r "/sys/fs/cgroup/$1" ]; then cat "/sys/fs/cgroup/$1"
+    elif [ -r "/sys/fs/cgroup/$2" ]; then cat "/sys/fs/cgroup/$2"
+    fi
+  }
+  cpu_quota="$(cg cpu.max cpu/cpu.cfs_quota_us)"
+  mem_limit="$(cg memory.max memory/memory.limit_in_bytes)"
+  cg_cpuset="$(cg cpuset.cpus.effective cpuset/cpuset.cpus)"
+  seccomp="$(sed -n 's/^Seccomp:[[:space:]]*//p' /proc/self/status 2>/dev/null)"
+  echo "cgroup cpu quota: ${cpu_quota:-(not exposed)}"
+  echo "cgroup memory limit: ${mem_limit:-(not exposed)}"
+  echo "cgroup cpuset: ${cg_cpuset:-(not exposed)}"
+  echo "seccomp mode: ${seccomp:-(unknown)} (0 = off, 2 = filter on every syscall)"
+  # What this process was allowed to run on. Recorded because it is the effect of
+  # --cpuset-cpus and of any outer taskset, and because campaign.sh applies its
+  # own --pin to the benchmark binary only, not to this capture.
+  echo "cpus allowed here: $(sed -n 's/^Cpus_allowed_list:[[:space:]]*//p' /proc/self/status 2>/dev/null)"
   cmdline="$(cat /proc/cmdline 2>/dev/null || echo '')"
   echo "kernel cmdline: ${cmdline:-(unreadable)}"
   isolated="$(printf '%s' "$cmdline" | sed -n 's/.*isolcpus=\([^ ]*\).*/\1/p')"
@@ -111,6 +176,37 @@ out="$here/results/env-$ts.txt"
     echo "         turbo state are host-controlled and not observable from here, and"
     echo "         the hypervisor may deschedule a vCPU. This is not the bare-metal"
     echo "         host TESTBED.md specifies."
+    warned=1
+  fi
+  if [ "$container" != "none" ]; then
+    echo "  [CONTAINER] Running inside a container ($container). The toolchain is the"
+    echo "              image's and is recorded above, but the kernel is the host's:"
+    echo "              scheduler, clocksource, governor and hypervisor are unchanged,"
+    echo "              so a container does not make a virtualised host bare metal."
+    warned=1
+  fi
+  case "$cpu_quota" in
+    ""|"max "*|"-1") ;;
+    *)
+      echo "  [QUOTA] A CPU bandwidth quota is in force ($cpu_quota). The cgroup throttles"
+      echo "          at every period boundary it exhausts, and a throttled period is a"
+      echo "          stall of milliseconds landing straight in p99.9. Pin cores"
+      echo "          (--cpuset-cpus) instead of capping bandwidth (--cpus)."
+      warned=1;;
+  esac
+  case "$mem_limit" in
+    ""|"max"|"9223372036854771712") ;;
+    *)
+      echo "  [MEMLIMIT] A memory limit is in force ($mem_limit). Peak RSS is a reported"
+      echo "             result, and under a limit it measures reclaim as well as the"
+      echo "             program."
+      warned=1;;
+  esac
+  if [ "$seccomp" = "2" ]; then
+    echo "  [SECCOMP] A seccomp filter is active: a BPF program runs on every syscall,"
+    echo "            including the handoff futexes on the measured path. It costs both"
+    echo "            languages the same, so the paired comparison holds, but absolute"
+    echo "            latencies are not comparable with an unfiltered run."
     warned=1
   fi
   if [ -z "$isolated" ]; then

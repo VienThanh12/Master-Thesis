@@ -30,7 +30,7 @@ bench/setup_testbed.sh --check  # verify readiness only (no changes)
 
 The manual steps it runs are documented here for reference. Run these once per
 session (they require `sudo` and a real Linux host; they are **not** available
-under WSL2, see §5):
+under WSL2, see §6):
 
 ```bash
 # 1. Pin the frequency governor to 'performance' (no on-demand scaling).
@@ -134,7 +134,35 @@ bench/alloc_profile.sh
 Run `bench/alloc_profile.sh --check` and `bench/counters.sh --software` **early in
 the session**, not at the end, so a missing tool is a problem you can still fix.
 
-## 5. WSL2 caveat (this development machine)
+## 5. Running the campaign in a container
+
+`docker/run.sh` runs everything in §3 and §4.1 inside a pinned image
+(`docker/Dockerfile`, `docker/README.md` for the detail). Two things about it
+belong in the protocol rather than in a tooling note.
+
+**It does not change anything in §1 or §2.** A container shares the host kernel,
+so the scheduler, the clocksource, the governor, turbo, SMT and the hypervisor are
+the host's either way. The CPU hygiene in §2 is applied on the host before the
+container starts, and a virtualised host stays virtualised. What the image fixes
+is the toolchain, and it supplies the `jeprof` and `perf` binaries §4.1 needs
+without installing anything on the measurement host.
+
+**One container setting can invalidate a tail measurement.** Giving a container
+CPU with `--cpus` sets a CFS bandwidth quota: when the container exhausts its
+slice the cgroup throttles it to the end of the period, and a throttled period is
+a stall of milliseconds landing straight in p99.9. Cores must be *pinned*
+(`--cpuset-cpus`) and never *capped*. `docker/run.sh` only pins,
+`docker/run.sh check` fails when a quota is present, and `capture_env.sh` records
+the cgroup's quota, memory limit, cpuset and seccomp mode in every run so the
+question can be answered after the fact as well as before it.
+
+For the same reason the campaign runs with the syscall filter off by default. The
+filter is a BPF program in front of every syscall, the handoff being measured is
+futex-heavy, and while the cost falls equally on both languages and leaves the
+paired comparison intact, it does move the absolute numbers. The mode is recorded
+either way.
+
+## 6. WSL2 caveat (this development machine)
 
 The development environment is WSL2, where the frequency governor, turbo, and SMT
 controls in §2 are **not** exposed, the clocksource and scheduler are virtualised,
