@@ -353,8 +353,12 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       decomposition, and the corrected RQ3 reading. Moved to `archive/` on 18 Aug 2026, where it
       reads as a superseded variant rather than unfinished work. Reviving it means porting the
       generated macros across, not just running bibtex.
-- [ ] `Thesis_v1.tex` - 27-page bullet digest of all ten chapters, useful for a supervisor
-      read-through. Its abstract is still the template placeholder, "Abstract to be written last."
+- [ ] `Thesis_v1.tex` - 35-page bullet digest of all nine chapters, useful for a supervisor
+      read-through. Chapters 6 to 9 were filled on 20 Aug 2026 at the author's request, five
+      bullets each, and the results bullets read `figures/gen_macros.tex` and its two companions
+      instead of holding their own copies of the numbers, so the file has to be rebuilt after
+      `bench/refresh_thesis.sh`. Its abstract is still the template placeholder, "Abstract to be
+      written last."
 - [ ] `Thesis_Plan_v2.tex` - the 5-page plan, reset to a pre-work baseline ("Work has not started
       yet") and dated 9 Aug 2026. If it is handed in later than that date, the date and the status
       table have to move together.

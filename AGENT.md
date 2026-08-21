@@ -17,7 +17,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | Document | Source | Status | Role |
 | --- | --- | --- | --- |
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v1.tex`. |
-| **`Thesis_v1.pdf`** | `Thesis_v1.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through. This is what goes to the supervisor alongside the plan. |
+| **`Thesis_v1.pdf`** | `Thesis_v1.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through, all nine chapters populated since 20 Aug 2026. This is what goes to the supervisor alongside the plan. |
 | **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 19 Aug 2026: 113 PDF pages, chapters 1–8 running 1–89, abstract form declaring **99 pages + 6 appendix pages**. A snapshot, not a budget: see §5, *Length and layout*. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v1.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. Kept for reference under their original names. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
@@ -140,9 +140,15 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 | 9 | Conclusion and future work | 5 |
 | App. | Fault-injection example | 4 |
 
-`Thesis_v1.tex` mirrors this structure as **one bullet per argument move** per chapter.
-Chapters 6–9 in `Thesis_v1.tex` are intentionally **empty placeholders** until supervisor
-review of the skeleton is complete — do not fill them without explicit author request.
+`Thesis_v1.tex` mirrors this structure as **one bullet per argument move** per chapter. All
+nine chapters now carry bullets: chapters 6–9 were filled at the author's explicit request on
+20 August 2026, five bullets each, matching chapters 2–5 (chapter 1 has six). Keep that shape.
+The skeleton has no appendix and needs none.
+
+Because the results chapters quote measured values, `Thesis_v1.tex` now `\input`s the same
+three generated macro files as the full draft (`gen_macros`, `gen_complexity`,
+`gen_artefacts`). It therefore has to be rebuilt whenever those are regenerated, not only when
+its own source changes.
 
 ---
 
@@ -295,7 +301,7 @@ that seam is now largely worked out.
 - **Do not** leave an em dash or a semicolon where a reader can see it, in the thesis source or on a slide. The deck build refuses to pass one.
 - **Do not** claim testbed-grade tail latency from the virtualised host.
 - **Do not** remove boundary defect classes or sanitiser-only C++ outcomes to tidy the narrative.
-- **Do not** expand `Thesis_v1.tex` chapters 6–9 without explicit instruction.
+- **Do not** turn `Thesis_v1.tex` into prose or let a chapter drift off five bullets. It is a bullet-per-argument skeleton on purpose, and it is supervisor-facing.
 - **Do not** commit secrets, Nokia-internal identifiers, or confidential traces.
 - **Do not** create git commits unless the author explicitly asks.
 
@@ -324,16 +330,17 @@ When preparing material for **Keijo Heljanko** (supervisor) and Nokia instructor
 (**Christoph Luneburg**, **Petteri Kotimaa**):
 
 1. `Thesis_Plan_v2.pdf` — plan, status, timeline (dated; status table must match repo reality).
-2. `Thesis_v1.pdf` — chapter skeleton; chapters 1–5 + appendix populated; 6–9 reserved.
+2. `Thesis_v1.pdf` — chapter skeleton, all nine chapters populated (35 pages).
 3. Optionally reference `Ha_Vien_Mastersthesis_2026.pdf` as the **working full draft** (clearly labelled not final).
 
-After supervisor feedback on the skeleton, expand `Thesis_v1.tex` chapters 6–9 and port
-refinements into `Ha_Vien_Mastersthesis_2026.tex` in the same edit pass so the two do not diverge.
+Port supervisor feedback into `Thesis_v1.tex` and `Ha_Vien_Mastersthesis_2026.tex` in the same
+edit pass so the two do not diverge.
 
 ---
 
-*Last updated: 19 August 2026, when `Thesis_POC.tex` was renamed to
-`Ha_Vien_Mastersthesis_2026.tex` and the separate submission copy was retired, and when the
-length pass in §5 brought the declared page count from 105 to 99, almost entirely through
-layout. Revise this file when supervisor review status, grade blockers, document roles, or the
-length preference change.*
+*Last updated: 20 August 2026, when `Thesis_v1.tex` chapters 6–9 were filled at the author's
+request (five bullets each, 24 pages to 35) and the skeleton began reading the generated macro
+files. The preceding pass, on 19 August, renamed `Thesis_POC.tex` to
+`Ha_Vien_Mastersthesis_2026.tex`, retired the separate submission copy, and brought the declared
+page count from 105 to 99 almost entirely through layout. Revise this file when supervisor review
+status, grade blockers, document roles, or the length preference change.*
