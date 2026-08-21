@@ -99,6 +99,7 @@
 \input{figures/gen_macros.tex}
 \input{figures/gen_complexity.tex}
 \input{figures/gen_artefacts.tex}
+\input{figures/gen_adoption.tex}
 
 \begin{document}
 
@@ -171,12 +172,12 @@
         overhead Rust's safety model imposes on throughput, CPU, and memory. RQ4 asks what
         incremental adoption costs in effort, FFI interoperability, and risk inside an existing
         C++ RAN codebase.
-  \item The work contributes five things: a reproducible, telecom-relevant benchmarking
-        framework; a frozen shared specification with two parity-tested implementations; a
-        quantitative comparison that emphasises tail latency under overload; a defect-class
-        taxonomy that marks where Rust's compile-time guarantee stops; and evidence-based
-        guidelines for incremental adoption, where the dominant cost is the learning curve rather
-        than run-time~\cite{fulton2021adopting}.
+  \item The work contributes five things. A reproducible, telecom-relevant benchmarking
+        framework. A frozen shared specification with two parity-tested implementations. A
+        quantitative comparison that emphasises tail latency under overload. A defect-class
+        taxonomy that marks where Rust's compile-time guarantee stops. And evidence-based
+        guidelines for incremental adoption, where the dominant cost is the learning curve and not
+        run-time~\cite{fulton2021adopting}.
 \end{itemize}
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
@@ -424,7 +425,13 @@
         points in $\FfiSeamLines$ lines of Rust, all raw-pointer work confined to
         $\FfiUnsafeFns$ functions with the core left free of \texttt{unsafe}, and no cost
         detected against the same operation called natively, which bounds any per-operation tax
-        at $\FfiOpBoundPct\%$.
+        at $\FfiOpBoundPct\%$. Three adoption costs beyond the seam were measured for the first
+        time in this pass, and two contradict the received objection: $\BuildDepShareCpu\%$ of the
+        Rust clean build is third-party code, so the project's own source compiles in
+        $\BuildAllFirstPartyCpuRatio$ times the CPU \texttt{g++} needs, and the
+        $\FootShippedRatio\times$ binary-size gap is a linkage policy that reverses when the policy
+        is held fixed. The compared component resolves $\DepsCore$ crates and contains
+        $\CoreUnsafe$ \texttt{unsafe} sites.
 \end{itemize}
 
 \chapter{Discussion\label{chapter:discussion}}
@@ -477,7 +484,10 @@
         here~\cite{olsson2023ranmgmt,sundvisson2026drivers}. On migration the dominant cost is
         human~\cite{fulton2021adopting,crichton2024learning}, and confining \texttt{unsafe} to
         the seam bounds what has to be reviewed and not what can be corrupted, since host and
-        component share one address space~\cite{rivera2021galeed,kirth2022pkrusafe}.
+        component share one address space~\cite{rivera2021galeed,kirth2022pkrusafe}. The build and
+        footprint axes point the same way as the seam: an organisation worried about either should
+        audit its dependency budget before blaming the compiler, and the one axis where C++ leads
+        outright is the edit-compile loop for changes that stay inside a translation unit.
   \item The three hypotheses were committed before any measurement, and stating their
         disposition is what separates a test from a description. H1 is supported below
         saturation and refuted above it, and not in the direction its wording anticipated, since

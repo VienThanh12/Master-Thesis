@@ -73,6 +73,11 @@ a generated table cell of `---` marks a value that does not exist, which `detex(
 - Peak RSS: real language + allocator effect; allocator effect is larger.
 - End-to-end sweep ≈ handoff cost; the operation is a fraction of a percent of it, so do not bound a language effect from that sweep.
 - Rust: data races/aliasing at compile time; **not** race conditions or deadlocks.
+- RQ4 adoption cost (§7.6): never quote the shipped binary-size ratio alone (it compares two
+ linkage policies and the ordering reverses when matched), never quote full-build time without the
+ dependency decomposition (the project's own source compiles for less CPU than g++ needs), and
+ leave the C++ `unsafe` cell as `---` because the language marks no such region. Build time is the
+ one host-sensitive axis: absolutes describe the machine, the paired ratio travels.
 - Quote numbers via `figures/gen_macros.tex` macros; never transcribe them into prose, slides, or scripts.
 
 ## After substantive changes

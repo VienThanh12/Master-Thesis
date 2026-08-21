@@ -18,7 +18,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | --- | --- | --- | --- |
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v1.tex`. |
 | **`Thesis_v1.pdf`** | `Thesis_v1.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through, all nine chapters populated since 20 Aug 2026. This is what goes to the supervisor alongside the plan. |
-| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 19 Aug 2026: 113 PDF pages, chapters 1–8 running 1–89, abstract form declaring **99 pages + 6 appendix pages**. A snapshot, not a budget: see §5, *Length and layout*. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
+| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 21 Aug 2026: abstract form declaring **104 pages + 6 appendix pages**, up from 99 when the RQ4 adoption-cost axes landed (§7.6, `tab:adoption`). A snapshot, not a budget: see §5, *Length and layout*. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v1.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. Kept for reference under their original names. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
 | Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Ha_Vien_Mastersthesis_2026.tex`. |
@@ -121,6 +121,11 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 4. **Honest performance claims** — the end-to-end sweep is dominated by the cross-thread handoff and the operation is a fraction of a percent of it (`\BudgetCoreShareMax`), so a median comparison on that path cannot bound a language effect; the far tail still requires bare metal. Past saturation the languages *do* diverge (`\OverloadThrRatio`), and that result is resolved.
 5. **Peak RSS** — a real language effect that reproduces under both allocators, but the **allocator effect is the larger one**; do not revert to “allocator only” or drop the language effect. Quote the generated macros rather than remembered numbers.
 6. **FFI** — interleaved native vs seam calls; tax bounded, not “free”; `unsafe` confined to seam; core stays `unsafe`-free.
+6a. **Adoption cost beyond the seam** (`bench/adoption_cost.py`, §7.6, added 21 Aug 2026). Three axes, and two of them are easy to break by “simplifying”:
+   - **Never quote the shipped binary-size ratio on its own.** g++ leaves libstdc++ to the loader and rustc links libstd in, so the default-vs-default figure compares two linkage policies. The ordering *reverses* between matched-static and matched-dynamic, so all three rows have to stay, and so does the row reporting what each dynamic build leaves on the host.
+   - **Never quote the full-build time without the decomposition.** Most of the Rust clean build is third-party code; with the dependency tree warm the project's own source compiles for *less* CPU than g++ needs. Dropping the decomposition turns a real finding into the folk objection it refutes.
+   - **The C++ `unsafe` cell is empty on purpose.** The language marks no such region, so a zero would be a category error, not a win for C++. Keep it as `---`.
+   - Build time is the **one host-sensitive axis** here. Absolutes describe the machine, the paired ratio travels. Do not let a sync pass restore the blanket claim that RQ4 is environment-insensitive.
 7. **No over-claim on Rust** — eliminates data races and aliasing errors, not race conditions or lock-order deadlocks.
 
 ---
@@ -317,6 +322,7 @@ that seam is now largely worked out.
 | `docs/LITERATURE_NOTES.md` | Citation upgrades and literature gaps |
 | `bench/TESTBED.md` | Bare-metal protocol (only path to criterion 3/4 → 5 on tail) |
 | `bench/artefact_facts.py` | Generates `figures/gen_artefacts.tex`: record sizes (compiled probes), parity-suite coverage, conformance campaign size, FFI seam size. Anything measured that no campaign log holds belongs here, not in the prose |
+| `bench/adoption_cost.py` | Generates `figures/tab_adoption.tex` + `gen_adoption.tex`: RQ4's build time, static footprint, and third-party surface. `--measure` re-times the builds and records to `bench/results/adoption-*.json`; **without it, build time is replayed from the record** and only the deterministic axes are recomputed. `refresh_thesis.sh` calls it without `--measure` deliberately (see §3 item 6a and the `ffi/build.sh` warning in §5) |
 | `spec/SPECIFICATION.md` | Fairness baseline; freeze before implementation changes. §11.4–11.5 cover the reference model, generated vectors, sanitisers, Miri and coverage |
 | `spec/conformance/model.py` | Independent Python implementation of the spec; the oracle behind the generated vectors. Never derive its expectations from `cpp/` or `rust/` |
 | `faults/results/model_checking.md` | Loom/Shuttle outcomes for the boundary classes (RQ2's "at what stage and cost") |
@@ -338,9 +344,13 @@ edit pass so the two do not diverge.
 
 ---
 
-*Last updated: 20 August 2026, when `Thesis_v1.tex` chapters 6–9 were filled at the author's
+*Last updated: 21 August 2026, when the three RQ4 adoption-cost axes were measured
+(`bench/adoption_cost.py`, `docs/TODO.md` Phase 11 item 7) and written into §7.6, Table 8.1, §8.4,
+§5.4 and the conclusion. Declared length moved 99 to 104 pages. Four passages that called RQ4
+environment-insensitive without qualification were corrected, since build time is a timing
+measurement. The preceding pass, on 20 August, filled `Thesis_v1.tex` chapters 6–9 at the author's
 request (five bullets each, 24 pages to 35) and the skeleton began reading the generated macro
-files. The preceding pass, on 19 August, renamed `Thesis_POC.tex` to
+files. The pass before that, on 19 August, renamed `Thesis_POC.tex` to
 `Ha_Vien_Mastersthesis_2026.tex`, retired the separate submission copy, and brought the declared
 page count from 105 to 99 almost entirely through layout. Revise this file when supervisor review
 status, grade blockers, document roles, or the length preference change.*

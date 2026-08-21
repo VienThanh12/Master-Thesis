@@ -772,21 +772,80 @@ load and the overload point would bound that confound. Same for `-O3` / `opt-lev
 which test whether the matched `-O2` choice is load-bearing. Cheap, and it either adds a
 robustness sentence or finds something.
 
-### 7. The RQ4 cost axes that were never measured
+### 7. The RQ4 cost axes that were never measured — DONE (21 Aug 2026)
 
-RQ4 asks about "effort, FFI interoperability, and risk" and the thesis answers the middle one
-well. Three axes are absent and all are near-free to collect:
+RQ4 asks about "effort, FFI interoperability, and risk" and the thesis answered the middle one
+well. All three missing axes are now measured by `bench/adoption_cost.py`, which writes
+`figures/tab_adoption.tex` and `figures/gen_adoption.tex` and is called by
+`bench/refresh_thesis.sh`. Written into §7.6 (five `\paragraph` blocks plus `tab:adoption`),
+Table 8.1's RQ4 row, §8.4's RQ4 paragraph, §5.4's method description, and the conclusion.
 
-- **Compile time**, clean and incremental, both languages. The single most cited practical
-  objection to Rust adoption, entirely missing, and it matters more to a Nokia RAN build than the
-  seam's 192 ns does.
-- **Binary size and static footprint**, which belongs next to peak RSS under RQ3.
-- **Dependency and `unsafe` supply chain**: `cargo audit`, and `cargo geiger` over the tree. The
-  core being dependency-free is currently an assertion in spec §12; it is quantifiable, and it is
-  a genuine finding when the usual objection to Rust is transitive-dependency risk.
+- [x] **Compile time**, clean and incremental, 15 interleaved repeats after 2 discarded, same
+      job count on both sides. **Two findings, and the headline one goes against the objection.**
+      The full build does cost `\BuildAllCpuRatio` times the CPU, but `\BuildDepShareCpu`% of that
+      is third-party code: measured with the dependency tree warm, the project's own source
+      compiles in `\BuildAllFirstPartyCpuRatio` times the CPU `g++` needs. So the build-time
+      objection is an argument about a dependency budget and not about `rustc`. Second, the
+      incremental loop is where C++ genuinely leads and it leads unevenly: an edit inside a
+      translation unit rebuilds in `\BuildIncCppTu`s against Rust's `\BuildIncRust`s, an edit to a
+      core header takes `\BuildIncCppHeader`s, and Rust's figure does not move with the size of
+      the edit because the crate is the compilation unit.
+- [x] **Binary size and static footprint.** Measured on `conformance_runner`, the tightest matched
+      executable pair (spec-defined, built by both, no dev-dependency either side). **The naive
+      comparison is a linkage-policy artefact and the ordering reverses when the policy is held
+      fixed:** shipped defaults give Rust `\FootShippedRatio`x the size, matched *dynamic* std
+      gives C++ smaller by `\FootDynamicRatio`x, matched *static* std gives **Rust** smaller by
+      `\FootStaticRatioAbs`x. Cause measured, not argued: `\FootCppLocaleShare`% of the sized
+      symbols in the static C++ binary are locale and stream facets, including the money, date and
+      `wchar_t` facets the program never instantiates, because a static libstdc++ link takes the
+      facet table as a set. Both dynamic rows also report what they leave on the host
+      (`\FootSharedCpp` vs `\FootSharedRust` KiB) so the row cannot be read as the std being free.
+- [x] **Dependency and `unsafe` supply chain.** `\DepsCore` transitive crates and `\CoreUnsafe`
+      `unsafe` sites in the compared component, which turns spec §12's dependency-free assertion
+      into a measurement. The allocator arm resolves `\DepsJemalloc` (`\DepsJemallocShipping`
+      shipping, `\DepsJemallocBuildOnly` build-only, a distinction that matters because a
+      build-dependency ships nothing and still executes on the build machine) and the benchmark
+      harness `\DepsHarness`, holding `\DepsUnsafeJemalloc` and `\DepsUnsafeHarness` `unsafe`
+      sites. **The uncomfortable half is worth keeping:** the largest unaudited surface in the
+      project belongs to the measurement apparatus, not to the component that would ship.
+- [x] **`cargo geiger` was not used and should not be.** It measures one language, where the house
+      rule is one instrument applied to both (`lizard` for complexity, jemalloc's own `prof` for
+      allocation). The counter is written here instead, one syntactic rule over the resolved
+      sources, and the C++ column is left empty on purpose: the language marks no such region, so
+      entering a zero would be a category error rather than a favourable result.
+- [ ] **`cargo audit` deliberately not adopted as a thesis number.** An advisory scan's result
+      moves with the advisory database and not with the code, so it is not reproducible from the
+      repository and would go stale in the PDF. It is a deployment-time control. If it is ever
+      wanted, report it with the database date beside it, or not at all.
+- [x] **Build time is the one host-sensitive axis, and the sync pass fixed four places that said
+      otherwise.** §5.3, §8.1, `tab:threats`'s external row and §8.6's external-validity paragraph
+      all claimed RQ2 and RQ4 were environment-insensitive without qualification. They now say
+      that the build-time absolutes belong to the machine and the paired ratio is what travels.
+- [x] **`refresh_thesis.sh` calls it without `--measure` on purpose.** Build time is replayed from
+      `bench/results/adoption-*.json`, so a refresh on a loaded machine cannot quietly overwrite
+      the recorded figures the way an `ffi/build.sh` run once did (AGENT.md §5). Footprint and
+      supply chain are deterministic and are recomputed every run.
+- [ ] **Re-measure build time on the KVM guest** if the numbers are ever quoted as absolutes
+      rather than as a ratio. Not blocking: the ratio is a within-host paired comparison and the
+      other two axes are toolchain properties.
+- [ ] **`git add -f bench/results/adoption-20260821-134156.json` when committing this.**
+      `bench/results/` is in `.gitignore` and the campaign records are tracked only because they
+      were force-added. The adoption record needs the same, or the build-time rows vanish for
+      anyone else: `adoption_cost.py` without `--measure` finds no record, exits non-zero, and
+      `refresh_thesis.sh` reports it as a WARN while leaving the last generated table in place,
+      which is the quiet-staleness failure mode rather than a loud one. The two smoke-test records
+      from this pass (1 and 2 repeats) were deleted on purpose, since the 1-repeat one contains the
+      `cargo clean -p` no-op that the first version of the script recorded as the first-party cost.
 
 Vander Stoep's 2025 Android data (`LITERATURE_NOTES.md` §3.1: ~4x lower rollback rate, ~25% less
-review time) is the published counterpart to the effort axis and is already verified.
+review time) is the published counterpart to the effort axis and is already verified. It is now
+the obvious companion cite for the build-time result, since both say the adoption cost sits
+somewhere other than where the objection puts it.
+
+**Cost of the addition: `\pagesCount` moved 99 to 104.** Above the author's under-100 working
+preference, so it is reported here for a decision rather than trimmed silently (AGENT.md §5,
+"substance wins"). The table is one float and the prose is five `\paragraph` blocks, so the
+cheapest reduction if one is wanted is to cut the footprint discussion to the reversal alone.
 
 ### 8. Report equivalence bounds, not only null results
 

@@ -53,6 +53,15 @@ fi
 echo "== regenerating artefact-level measurements =="
 python3 "$here/artefact_facts.py"
 
+# The RQ4 adoption-cost axes: build time, static footprint, and the third-party
+# surface each configuration resolves. Called without --measure on purpose. Build
+# time moves with host load, so it is replayed from bench/results/adoption-*.json
+# rather than re-timed here; running the refresh on a busy machine must not
+# quietly replace the recorded figures the way an ffi/build.sh run once did.
+# Footprint and supply chain are deterministic and are recomputed.
+echo "== regenerating adoption-cost measurements (build time replayed) =="
+python3 "$here/adoption_cost.py" || echo "  WARN: adoption-cost regeneration failed"
+
 # The colloquium deck quotes the same generated macros and table bodies as the
 # prose, so it is rebuilt here for the same reason: a fresh campaign must not
 # leave a slide contradicting the thesis. It drifted once already.
