@@ -2143,8 +2143,8 @@ they were produced.
 
 \paragraph{The environment used.}
 All performance results reported in this chapter were measured on one dedicated dual-socket
-server: two Xeon E5-2680~v4 processors, $16$ cores on a single NUMA node with no simultaneous
-multithreading, running Rocky Linux~8.10 with \texttt{g++~15.1.1} and \texttt{rustc~1.97}. The
+server: two Xeon E5-2680~v4 processors, $16$ vCPUs on a single NUMA node presented as one thread
+per core, running Rocky Linux~8.10 with \texttt{g++~15.1.1} and \texttt{rustc~1.97}. The
 benchmark is pinned to cores $2$--$15$, so that every worker and every producer owns a core and
 none contends with the operating system. Table~\ref{tab:testbed} itemises the host against the
 protocol described below. Every run captures its own
@@ -2153,12 +2153,17 @@ frequency, turbo, and multithreading settings) alongside the measurement data, s
 of a measurement travel with it.
 
 One property of this host has to be stated plainly because it bounds the tail claims below: it is
-a virtual machine. The environment record identifies a KVM guest, and two consequences follow.
+a virtual machine. The environment record identifies a KVM guest, and three consequences follow.
 The CPU frequency governor and turbo state are host-controlled and not merely unset but
 unobservable from inside the guest, so frequency stability is assumed rather than enforced. And
 the record shows non-zero CPU steal, on the order of ten milliseconds of vCPU time per second:
 small in aggregate, but the same order as the tail latencies being measured, and not removable
-from inside the guest. The cores were also not removed from the scheduler with
+from inside the guest. The third consequence is the topology itself. The guest is shown two
+sockets of eight single-threaded cores, which is not the shape of an E5-2680~v4, a fourteen-core
+part with simultaneous multithreading. That topology is therefore synthetic, and whether the
+sixteen vCPUs occupy distinct physical cores or share thread siblings is a host decision that
+cannot be read from inside the guest. Siblings would contend for one core's execution resources.
+The cores were also not removed from the scheduler with
 \texttt{isolcpus}, so a benchmark thread can still lose its core to other work.
 
 This is a substantially better instrument than a shared development laptop, which is what an
@@ -4333,13 +4338,13 @@ saturation.\label{tab:testbed}}
 \hline\hline
 Aspect & Used for the results reported here & Required for testbed-grade tail figures \\
 \hline
-Host & Dedicated dual-socket server, $2\times$ Xeon E5-2680~v4, $16$ cores, one NUMA node & Same class of machine, without the hypervisor \\
+Host & Dedicated dual-socket server, $2\times$ Xeon E5-2680~v4, $16$ vCPUs, one NUMA node & Same class of machine, without the hypervisor \\
 Virtualisation & KVM guest: frequency and turbo host-controlled and unobservable & None. Governor and turbo set and verified \\
 CPU steal & Non-zero, order $10$~ms of vCPU time per second & None \\
 Kernel & Rocky Linux~8.10, distribution kernel & Same, with \texttt{isolcpus} and \texttt{nohz\_full} on the benchmark cores \\
 Toolchain & \texttt{g++~15.1.1}, \texttt{rustc~1.97} & \texttt{g++~15.1.1}, \texttt{rustc~1.97} \\
 CPU pinning & Cores $2$--$15$ via \texttt{taskset}, $7$ shards, $7$ producers & Same, on cores also removed from the scheduler \\
-Simultaneous multithreading & Absent on this processor & Absent or disabled \\
+Simultaneous multithreading & Absent from the topology the guest is shown. Whether its vCPUs share thread siblings is decided on the host & Absent or disabled, and verified on the machine itself \\
 Warm-up & Initial fraction of each run discarded & Initial fraction of each run discarded \\
 Repeats and interleaving & \NRepeats{} repeats, four variants interleaved per repeat & \NRepeats{} repeats, four variants interleaved per repeat \\
 Environment capture & \texttt{bench/capture\_env.sh}, stored with each result & \texttt{bench/capture\_env.sh}, stored with each result \\
