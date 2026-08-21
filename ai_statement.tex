@@ -12,9 +12,10 @@
 %% It uses no generated macros and no chapter numbers, because the two documents number
 %% their chapters differently.
 %%
-%% The order of the paragraphs follows the University's basic reporting instruction:
-%% what the use covered, what it was for, which tool, how it performed and how its
-%% output was checked, and what the author took from it.
+%% The paragraphs cover every item of the University's basic reporting instruction:
+%% which tool, what the use covered, what it was for, how it performed and how its
+%% output was checked, and what the author took from it. Kept short on purpose: the
+%% instruction asks for those five items, not for an essay about them.
 
 %% The claim this statement makes about the abstract is gated on the switch below,
 %% so the document can never assert it before it is true. The abstract doubles as
@@ -36,22 +37,18 @@
 \markboth{Statement on the Use of AI Tools}{Statement on the Use of AI Tools}
 
 \noindent\textbf{Tool.} Anthropic's Claude Opus~5, used through the Cursor development
-environment, is the only generative AI system used in the preparation of this thesis. It was
-used throughout the work, from June to November~2026. University of Helsinki policy does not
-permit naming a model as an author, because responsibility for a text cannot rest with one. The
-model is not cited as a source either, which is the author's own choice and not a requirement: its
-output is not a retrievable record, and where a claim needs support the support is a cited source.
+environment, is the only generative AI system used in preparing this thesis, and it was used
+throughout, from June to November~2026. It is named neither as an author, which University of
+Helsinki policy forbids, nor as a source, which is the author's own choice.
 
-\noindent\textbf{What the assistance covered.} It was extensive, and is declared as such. The
-model drafted and revised the running prose of this thesis and proposed the order in which its
-arguments are made. It wrote and refactored the two implementations of the UE Context
-Management service, the load generator, the fault-injection catalogue, and the interoperability
-prototype. It wrote the analysis code behind the bootstrap intervals, the exact paired
-permutation tests, and the Holm correction, together with the figure-generating and build
-scripts and the LaTeX sources. It also suggested candidate literature.
-The abstract is the one part of this thesis to which that assistance must not extend.
-University of Helsinki policy never permits a language model in a maturity test, and in this
-programme the maturity test is the abstract of the thesis.
+\noindent\textbf{What the assistance covered.} It was extensive. The model drafted and revised
+the running prose and proposed the order in which the arguments are made. It wrote and refactored
+both implementations of the UE Context Management service, the load generator, the
+fault-injection catalogue, the interoperability prototype, the analysis code behind the bootstrap
+intervals and the paired permutation tests, and the figure-generating, build and LaTeX sources.
+It also suggested candidate literature. The abstract is the one part of the thesis it must not
+touch, because University of Helsinki policy never permits a language model in a maturity test,
+and in this programme the maturity test is the abstract.
 \ifabstractunaided
 The abstract was accordingly written by the author unaided.
 \else
@@ -60,37 +57,30 @@ has been.
 \fi
 
 \noindent\textbf{What the model did not settle.} The research problem, the four research
-questions, and the three hypotheses are the author's, as is the control on which the study's
-value rests: freezing one language-neutral specification and one concurrency model, so that the
-language remains the only systematic difference between the two implementations. So is the
-decision that keeps RQ2 falsifiable, which was to carry defect classes from outside Rust's
-compile-time guarantee so that the premise could be embarrassed rather than merely confirmed.
-Every measurement reported here was run by the author on the hosts documented in this thesis,
-and no measured value came from a language model. Each measured number reaches the text through
-a macro regenerated from the raw logs, so a figure cannot be transcribed by hand, by the author
-or by the model. The readings of those numbers are the author's as well, including the two
-restraints the evidence imposes: a far tail a virtualised host cannot resolve is not
-equivalence, and a sweep dominated by cross-thread handoff cannot bound an effect of the
-language.
+questions, the three hypotheses, and the control on which the study's value rests are the
+author's. That control is one frozen language-neutral specification and one concurrency model, so
+that language remains the only systematic difference between the two implementations. The author
+also chose to carry defect classes from outside Rust's compile-time guarantee, which is what keeps
+RQ2 falsifiable. Every measurement was run by the author on the hosts documented here. Each
+number reaches the text through a macro regenerated from the raw logs, so no figure is transcribed
+by hand. The readings are the author's too, including the two restraints the evidence imposes: an
+unresolved far tail is not equivalence, and a sweep dominated by cross-thread handoff cannot bound
+an effect of the language.
 
 \noindent\textbf{How the output was checked.} Model output was treated as a draft to be
-falsified rather than as a result, and claims were checked against the sources cited for them.
-Every bibliography entry was resolved against Crossref, DataCite, or the issuing body, and each
-was traced to the page or clause carrying the claim made of it. That audit found four passages
-where the prose overstated or misplaced its source, one of them a sentence inside quotation marks
-that does not appear in the work it was attributed to. All four were corrected, and the audit is
-kept with the artefacts so that the correction remains reviewable. Code was checked by running
-it, against one conformance suite whose transcripts are diffed line by line and a fault
-catalogue that fixes each expected outcome before the defect is injected. Nothing is asserted
-here on the model's authority.
+falsified. Every bibliography entry was resolved against Crossref, DataCite, or the issuing body
+and traced to the page or clause carrying the claim made of it. That audit found four passages
+that overstated or misplaced their source, one of them a quotation absent from the work it was
+attributed to, and all four were corrected, with the audit kept beside the artefacts. Code was
+checked by running it, against a conformance suite whose transcripts are diffed line by line and
+a fault catalogue that fixes each expected outcome before the defect is injected.
 
 \noindent\textbf{What the author took from it.} The model is dependable at mechanical work, at
-transposing an idiom between two languages or keeping a build honest. It is undependable in a
-specific and predictable way: it will supply a plausible citation for a claim and a confident
-sentence where the data supports a hedge. Its fluency is not evidence. The effort saved in
-drafting is spent again, and rightly, in checking, and the parts of this thesis that are
-defensible are the parts that were checked against a source, a specification, or a measurement.
+transposing an idiom between two languages or keeping a build honest. It is undependable in one
+predictable way: it will supply a plausible citation for a claim and a confident sentence where
+the data supports a hedge. Its fluency is not evidence. The effort saved in drafting is spent
+again in checking, and the defensible parts of this thesis are the parts checked against a source,
+a specification, or a measurement.
 
-\noindent\textbf{Responsibility.} The author is responsible for the whole of this thesis: its
-language, its facts, its code, its measurements, and its conclusions. Where it is wrong, the
-error is the author's.
+\noindent\textbf{Responsibility.} The author is responsible for the whole of this thesis. Where
+it is wrong, the error is the author's.
