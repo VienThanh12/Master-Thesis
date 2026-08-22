@@ -1537,23 +1537,26 @@ Two of these quantities need their own note, because how far into the tail a cam
 is a property of how many operations it recorded. At the representative load a single run
 retires on the order of $170$~thousand measured operations, so its p99.99 rests on roughly
 seventeen observations: a per-run p99.99 is dominated by sampling noise even on a perfectly
-quiet host. The harness therefore persists each run's complete HDR bucket contents alongside
-the summary percentiles, which allows the repeats to be \emph{pooled} into one distribution of
-several million operations before the far tail is read. Pooling and averaging are different
-statistics, and the thesis keeps them apart. The pooled figure takes the operation as the unit
-of analysis and resolves the far tail, but it carries no across-repeat interval. The
-median-of-repeats figures reported with intervals keep the repeat as the unit, and they remain the
-only basis for a paired comparison. Jitter is measured directly rather than inferred from the
-latency distribution, as the absolute difference between consecutive latencies within a
-producer. That is the packet-delay-variation quantity of RFC~3393~\cite{rfc3393}, and it matches the sense in
-which this thesis uses the term: variation from one operation to the next, not spread of the
-distribution as a whole.
+quiet host. Reading the far tail at all therefore requires persisting each run's complete HDR
+bucket contents alongside the summary percentiles, so that the repeats can be \emph{pooled} into
+one distribution of several million operations first. The harness does that now, and the design
+keeps pooling and averaging apart, because they are different statistics. A pooled figure would
+take the operation as the unit of analysis and resolve the far tail, at the cost of carrying no
+across-repeat interval, while the median-of-repeats figures reported with intervals keep the
+repeat as the unit and remain the only basis for a paired comparison. Jitter would likewise be
+measured directly rather than inferred from the latency distribution, as the absolute difference
+between consecutive latencies within a producer. That is the packet-delay-variation quantity of
+RFC~3393~\cite{rfc3393}, and it matches the sense in which this thesis uses the term: variation
+from one operation to the next, not spread of the distribution as a whole. Neither is reported
+in Chapter~\ref{chapter:eval}, because the campaign analysed there predates the instrumentation
+(Section~\ref{sec:perfresults}).
 
-Neither p99.99 nor jitter enters the family of paired tests described below. This
-follows the same rule as the rest of the design rather than being an omission: both are
-computed from precisely the operations that interference lands on, which is the class of
-statistic pairing does not rescue, so a paired interval on them could not be read as a language
-effect. They are reported descriptively, and the family stays the size the design committed to.
+Neither p99.99 nor jitter would enter the family of paired tests described below in any case.
+That follows the same rule as the rest of the design rather than being a consequence of the
+missing data: both are computed from precisely the operations that interference lands on, which
+is the class of statistic pairing does not rescue, so a paired interval on them could not be
+read as a language effect. They belong in a descriptive column, and the family stays the size
+the design committed to.
 
 Interval estimates alone, however, are a weak basis for a comparison. Two intervals can overlap
 while one variant is ahead in every single repeat, and they can separate on a difference that
@@ -1985,7 +1988,7 @@ Concern & C++ & Rust \\
 Result type & \texttt{std::expected<T, OpError>} & \texttt{Result<T, OpError>} \\
 Request & tagged struct: discriminant plus every argument field ($\CppRequestBytes$\,B) & \texttt{enum}, one variant per operation, carrying only its own arguments ($\RustRequestBytes$\,B) \\
 Response & \texttt{std::variant} of four result types, unwrapped by the caller with \texttt{std::get} & none needed: each variant carries a sender of its own result type \\
-Bounded queue & hand-written \texttt{mutex} plus two \texttt{condition\_variable}s ($45$ lines) & \texttt{sync\_channel(capacity)} \\
+Bounded queue & hand-written \texttt{mutex} plus two \texttt{condition\_variable}s ($\CppBoundedQueueLines$ lines) & \texttt{sync\_channel(capacity)} \\
 Completion & \texttt{std::promise} / \texttt{std::future} & a fresh \texttt{mpsc::channel()} per request \\
 Per-shard map & \texttt{std::unordered\_map} with an \texttt{FnvHash} functor & \texttt{HashMap} with an \texttt{FnvBuildHasher} \\
 Activity counter & \texttt{std::atomic<uint64\_t>} held by reference & \texttt{Arc<AtomicU64>} cloned into each worker \\
@@ -1999,8 +2002,8 @@ The log also explains the line-count difference reported at the head of this sec
 says more than the net figure does, because the contributions do not all point
 the same way. Table~\ref{tab:loc} breaks the $\LocGap$-line gap down by concern. Rust is
 much \emph{shorter} in exactly one place, the bounded queue, where it needs no code
-at all against 45 lines of C++. It is longer almost everywhere else, and three entries account
-for most of that excess.
+at all against $\CppBoundedQueueLines$ lines of C++. It is longer almost everywhere else, and
+three entries account for most of that excess.
 
 The largest is the service module, for the reason given above. Because the C++ response is a
 single \texttt{variant}, all ten public operations funnel through one shared \texttt{submit}
@@ -2076,15 +2079,7 @@ only where its standard library supplies a primitive C++ lacks.\label{tab:loc}}
 \hline\hline
 Concern & C++ & Rust & $\Delta$ \\
 \hline
-Service (queues, workers, API)    & $234$ & $278$ & $+44$ \\
-Hashing (functor vs.\ trait pair) & $36$  & $70$  & $+34$ \\
-Module tree and re-exports        & $0$   & $26$  & $+26$ \\
-Data model                        & $73$  & $85$  & $+12$ \\
-Message types                     & $48$  & $60$  & $+12$ \\
-Configuration                     & $18$  & $29$  & $+11$ \\
-Shard core (state machine)        & $182$ & $188$ & $+6$ \\
-Error model                       & $32$  & $26$  & $-6$ \\
-Bounded queue                     & $45$  & $0$   & $-45$ \\
+\input{figures/tab_loc.tex}\\
 \hline
 Total                             & $\CppRawLines$ & $\RustRawLines$ & $+\LocGap$ \\
 \hline
@@ -2306,9 +2301,11 @@ $\SatKnee$~kops/s.
 \section{Evaluation data}
 Three campaigns produce three datasets, and they differ in kind and not only in content. What
 follows describes each one as captured. A reader judging whether the analysis is sound needs
-to know what was recorded and at what granularity, not just what was reported. No value is
-hand-copied. \texttt{bench/refresh\_thesis.sh} regenerates every figure, table, and quoted number
-straight from the raw logs, so the text and the data cannot drift apart. The software-quality
+to know what was recorded and at what granularity, not just what was reported. Every measured
+quantity this chapter quotes reaches the page as a generated macro.
+\texttt{bench/refresh\_thesis.sh} rebuilds all of them, along with every figure and table body,
+from the raw logs, so a rerun moves the prose and cannot leave a headline number behind. The
+software-quality
 proxies are not gathered here but reported where they read most clearly: beside the
 forced-idiom log they explain (Table~\ref{tab:complexity}), and beside the FFI seam, the only
 place either implementation contains \texttt{unsafe} (Table~\ref{tab:ffi}).
@@ -2405,8 +2402,8 @@ it the fairest place to compare them.
 
 The table has to be read at two different levels of confidence, and separating them is the
 honest reading of this campaign. At the \emph{median} the four variants sit within
-$\PFiftyRange\,\mu$s of one another, or $\PFiftySpread\%$, and each variant's confidence
-interval contains the others' point estimates. The table on its own therefore separates nothing.
+$\PFiftyRange\,\mu$s of one another, or $\PFiftySpread\%$, and every pair of confidence
+intervals overlaps. The table on its own therefore separates nothing.
 That is a statement about unpaired intervals and not about the languages. The paired test
 below does resolve a small and consistent difference at the median, and the distance between
 those two readings is exactly why Section~\ref{sec:stats} tests the comparison instead of
@@ -2515,7 +2512,7 @@ easier to see there than in a table of fourteen rows: which effects survive the 
 whether an effect keeps its sign when the allocator changes, and how much wider the tail
 intervals are than the rest.
 
-Four things follow. First, \NSignificant{} of the \NTests{} tests in the family survive the Holm
+Five things follow. First, \NSignificant{} of the \NTests{} tests in the family survive the Holm
 correction. At this operating point they are the two median-latency rows, peak resident set size
 under the system allocator, and both CPU rows. The four remaining survivors are the overload
 comparisons of Section~\ref{sec:overload}. Peak resident set size under jemalloc is the one
@@ -2539,7 +2536,39 @@ under one allocator and reversed sign under the other, and it was reported as un
 exactly this rule. A control earns its place by what it would have caught, not by what
 it happens to catch.
 
-Fourth, the median is now a resolved difference and not a null: $\PFiftyDiffAbsMax\,\mu$s
+Fourth, the \NEqvUnresolved{} rows the correction does not clear are not all saying the same
+thing, and Table~\ref{tab:equivalence} is what separates them. A test that fails to resolve a
+difference still bounds it: there is a tightest margin within which the two variants can be
+called equivalent, and it is a property of the data rather than of the verdict. Read that way the
+upper block and the tail block come apart sharply. At the median the bound is
+$\EqvBoundPFifty\,\mu$s, so the difference the test does resolve is also small in absolute terms
+and the two readings agree. In the tail block the bounds run out to $\EqvBoundTailMax\,\mu$s,
+which is this host's inability to see stated as a quantity instead of as a null. The distinction
+matters because the two are routinely reported the same way. A null with a tight bound is a
+result. A null with a bound wider than any difference a deployment would care about is the
+campaign declining to answer, and saying which is which is the least this table can do for the
+half of RQ1 the host cannot resolve.
+
+\begin{table}[H]
+\centering
+\small
+\caption[How large each effect could be, for the comparisons the tests do not resolve]{How large each effect could be. For every comparison at $\ReprLoad$~kops/s, the
+observed effect against the tightest margin within which the two variants could be called
+equivalent, and the verdict Table~\ref{tab:significance} reaches. The two questions are
+deliberately kept in separate tables: one asks whether a difference is there, this one asks how
+large it could be if it is, and a row can matter in one and not the other. Latency margins are
+in microseconds, peak resident set size in mebibytes, CPU utilisation in percentage
+points.\label{tab:equivalence}}
+\begin{tabular}{@{}l l r r l@{}}
+\hline\hline
+Metric & Allocator & $|$Effect$|$ & Equivalent within & Verdict \\
+\hline
+\input{figures/tab_equivalence.tex}\\
+\hline
+\end{tabular}
+\end{table}
+
+Fifth, the median is now a resolved difference and not a null: $\PFiftyDiffAbsMax\,\mu$s
 in Rust's favour, consistent under both allocators. The interval on it reaches
 $\PFiftyDiffCIMax\,\mu$s against a median of roughly $80\,\mu$s, and the temptation is to report
 that as a bound on the language effect. That reading would be wrong, and the next section
@@ -2580,9 +2609,9 @@ Component & C++ & Rust & $p$ \\
 
 The operation is $\BudgetCoreCpp$~ns in C++ and $\BudgetCoreRust$~ns in Rust. The handoff is
 $\BudgetHandoffCpp\,\mu$s and $\BudgetHandoffRust\,\mu$s. The work the languages actually
-perform is therefore at most $\BudgetCoreShareMax\%$ of what the sweep measures. Better
-than $99.9\%$ of every latency in Table~\ref{tab:latency} is the operating system moving a
-message between two threads.
+perform is therefore at most $\BudgetCoreShareMax\%$ of what the sweep measures. The
+complementary $\BudgetCoreShareRest\%$ of every latency in Table~\ref{tab:latency} is the
+operating system moving a message between two threads.
 
 That shape is not peculiar to this system or to this pair of languages. Zhou et al.\ revisit a
 classic decomposition of transaction-processing cost on a shared-nothing database, built like
@@ -3007,7 +3036,8 @@ written at all. In C++ each is valid code whose defect shows up only at runtime,
 only if a test actually exercises the buggy path. ASan catches the memory-safety defects. The
 concurrency defects are caught only by TSan and are invisible to ASan. The overflow in the
 boundary group is caught only by UBSan and is invisible to both. No single C++ sanitiser covers
-the catalogue, and the three between them still leave four of the ten classes untouched.
+the catalogue, and the three between them still leave $\FaultClassesUndetected$ of the
+$\FaultClasses$ classes untouched, with a third reported only intermittently.
 Runtime detection also means building a
 dedicated instrumented binary and paying the sanitiser's time and memory overhead, while the
 Rust errors are reported on every ordinary build whatever the test coverage. The parenthesised
@@ -3020,9 +3050,11 @@ All five boundary cases behave as predicted, and they mark out the edge of the c
 compiles in safe
 Rust and every one misbehaves. The deadlock case hangs in both languages and had to be killed
 by the harness timeout. The lost-update case ends in both languages with a silently wrong
-answer. Against an expected total of $40\,000$ increments the safe-Rust program recorded
-$35\,030$, losing $4\,970$, and the C++ program under ThreadSanitizer recorded $25\,448$,
-losing $14\,552$. The reference cycle leaks in both, the release-build overflow produces a
+answer. Against an expected total of $\LostUpdateExpected$ increments the safe-Rust program
+recorded $\LostUpdateRustHandled$, losing $\LostUpdateRustLost$, and the C++ program under
+ThreadSanitizer recorded $\LostUpdateCppHandled$, losing $\LostUpdateCppLost$. Neither language
+is meaningfully better off here, which is the point of carrying the class at all. The reference
+cycle leaks in both, the release-build overflow produces a
 wrong TEID in both, and a failure inside one shard worker takes down more than that shard in
 both.
 
@@ -3041,9 +3073,9 @@ safer. Defined-but-wrong is easier to debug than undefined-and-wrong, and no les
 neither is what ``memory safe'' is usually taken to promise.
 
 The deadlock result needs a qualification the earlier reading of it did not have.
-ThreadSanitizer does flag the inversion in C++, but only on a minority of runs: four of twelve
-repeats here, six of twenty in a longer trial, while the program deadlocks on every one. The
-mechanism is specific, and it generalises beyond this catalogue. TSan builds its lock-order
+ThreadSanitizer does flag the inversion in C++, but only on a majority of runs and not on all of
+them: $\DeadlockTsanHits$ of $\DeadlockTsanRuns$ repeats here, while the program deadlocks on
+every one. The mechanism is specific, and it generalises beyond this catalogue. TSan builds its lock-order
 graph from acquisitions that \emph{succeed}, so the cycle closes only when some thread completes
 an inversion without blocking. A run in which the first inversion blocks produces one edge and
 never the second, and the detector stays silent at exactly the moment the bug bites. A
@@ -3102,9 +3134,9 @@ designed for it.
 What makes the case evidentially different is where it came from, not how severe it is. It sat in
 code written to be correct, in the arm whose safety claim rests on ThreadSanitizer, reachable
 through the public API by calling documented operations in a documented order. It also survived
-every check this study runs: six C++ test binaries, twenty-five Rust tests, $223$
-hand-written and $9\,006$ generated conformance operations, and three sanitiser configurations
-reported clean. It survived them for one reason. None of them ever called an operation outside the
+every check this study runs: $\CppTestBinaries$ C++ test binaries, $\RustTests$ Rust tests,
+$\ConfHandOps$ hand-written and $\ConfGenOps$ generated conformance operations, and three
+sanitiser configurations reported clean. It survived them for one reason. None of them ever called an operation outside the
 running window. ASan finds this defect only once a test drives it, which is exactly the property
 the cost argument above assigns to runtime detection, seen here on the study's own artefact instead
 of on a planted one.
@@ -3159,8 +3191,8 @@ raises \texttt{E0382} and \texttt{E0502}, the unguarded mutation \texttt{E0524} 
 $^{\ddagger}$ Neither ASan nor UBSan issues a report, because nothing is corrupted and nothing
 is undefined: the instrumented binary simply deadlocks and is killed by the harness
 timeout. \quad
-$^{\S}$ ThreadSanitizer reports the lock-order inversion on a minority of runs, measured at
-$4$ of $12$ repeats here and $6$ of $20$ in a longer trial, while the program deadlocks on
+$^{\S}$ ThreadSanitizer reports the lock-order inversion on some runs and not others, measured at
+$\DeadlockTsanHits$ of $\DeadlockTsanRuns$ repeats, while the program deadlocks on
 every one. The detector builds its lock-order graph from acquisitions that \emph{succeed}, so a
 run whose first inversion blocks never completes the second edge of the cycle.\par}
 \end{table}
@@ -3550,9 +3582,11 @@ completely while leaving another untouched. The category left untouched is the o
 silently, corrupting a counter or a state decision instead of crashing. A migration plan that
 treats ``memory-safe'' as ``concurrency-safe'' would therefore mis-budget its review and testing
 effort. That is why this boundary is reported as a first-class result and not as a caveat.
-Figure~\ref{fig:boundary} states the whole result in one picture, with the two halves of the
+Figure~\ref{fig:boundary} draws the boundary itself, with the two halves of the
 guarantee on either side of the line and the mechanism that does the enforcing, or the absence
-of one, named in each panel.
+of one, named in each panel. It carries the two concurrency cases rather than all five outside
+the guarantee, because they are the pair that makes the distinction, and
+Table~\ref{tab:taxonomy} holds the full catalogue.
 
 \begin{figure}[ht]
 \centering

@@ -51,6 +51,27 @@ RUST_FILES = [
     "rust/src/types.rs",
 ]
 
+# The same two file sets partitioned by concern, which is how Table tab:loc
+# decomposes the line-count difference. It was maintained by hand until a
+# grading pass found the C++ column six lines short of its own printed total,
+# because the bounded queue grew and the table did not. Every file above belongs
+# to exactly one row here and the check below enforces it, so a new file cannot
+# be silently left out of the breakdown again.
+CONCERNS = [
+    ("Service (queues, workers, API)",
+     ["cpp/include/uecm/service.hpp", "cpp/src/service.cpp"], ["rust/src/service.rs"]),
+    ("Hashing (functor vs.\\ trait pair)",
+     ["cpp/include/uecm/hash.hpp"], ["rust/src/hash.rs"]),
+    ("Module tree and re-exports", [], ["rust/src/lib.rs"]),
+    ("Data model", ["cpp/include/uecm/types.hpp"], ["rust/src/types.rs"]),
+    ("Message types", ["cpp/include/uecm/message.hpp"], ["rust/src/message.rs"]),
+    ("Configuration", ["cpp/include/uecm/config.hpp"], ["rust/src/config.rs"]),
+    ("Shard core (state machine)",
+     ["cpp/include/uecm/shard_core.hpp", "cpp/src/shard_core.cpp"], ["rust/src/shard_core.rs"]),
+    ("Error model", ["cpp/include/uecm/error.hpp"], ["rust/src/error.rs"]),
+    ("Bounded queue", ["cpp/include/uecm/bounded_queue.hpp"], []),
+]
+
 
 # The two attribution probes of specification section 12 -- the C++ open-addressed
 # intra-shard map and the Rust mutex-and-condvar shard queue -- are switched on by a
@@ -155,6 +176,44 @@ def tex_name(name):
     return "\\texttt{" + name.replace("_", "\\_") + "}"
 
 
+def raw_lines(root, files):
+    return sum(len(compared_source(root, rel).splitlines()) for rel in files)
+
+
+def loc_rows(root, cpp_total, rust_total):
+    """Table tab:loc: the line-count difference decomposed by concern.
+
+    Rows are ordered by the size of the difference, largest first, so the table
+    reads as an explanation rather than as a list. Two invariants are checked
+    here rather than trusted: the partition covers both file sets exactly, and
+    each column sums to the total the prose quotes.
+    """
+    for label, files, expected in (("C++", CPP_FILES, [f for _, c, _ in CONCERNS for f in c]),
+                                   ("Rust", RUST_FILES, [f for _, _, r in CONCERNS for f in r])):
+        if sorted(files) != sorted(expected):
+            missing = sorted(set(files) - set(expected))
+            extra = sorted(set(expected) - set(files))
+            raise SystemExit(
+                f"complexity.py: the {label} concern partition no longer matches the "
+                f"measured file set (missing {missing}, unknown {extra}); assign every "
+                "file to a row in CONCERNS before the thesis quotes the breakdown")
+
+    rows = []
+    for label, cpp_files, rust_files in CONCERNS:
+        cpp = raw_lines(root, cpp_files)
+        rust = raw_lines(root, rust_files)
+        rows.append((label, cpp, rust, rust - cpp))
+    rows.sort(key=lambda r: -r[3])
+
+    for name, column, total in (("C++", 1, cpp_total), ("Rust", 2, rust_total)):
+        got = sum(r[column] for r in rows)
+        if got != total:
+            raise SystemExit(
+                f"complexity.py: the {name} breakdown sums to {got} against a measured "
+                f"total of {total}")
+    return rows
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--outdir", default="../figures")
@@ -188,6 +247,12 @@ def main():
     with open(tab, "w") as f:
         f.write(" \\\\\n".join(f"{a} & {b} & {c}" for a, b, c in rows) + "\n")
 
+    loc = os.path.join(outdir, "tab_loc.tex")
+    with open(loc, "w") as f:
+        f.write(" \\\\\n".join(
+            f"{label} & ${c}$ & ${r}$ & ${delta:+d}$"
+            for label, c, r, delta in loc_rows(root, cpp["raw"], rust["raw"])) + "\n")
+
     macros = {
         "CppFuncs": f"{cpp['functions']}",
         "RustFuncs": f"{rust['functions']}",
@@ -210,6 +275,10 @@ def main():
         "RustCcnMaxFn": tex_name(rust["ccn_max_name"]),
         "CcnTotalDrop": f"{100.0 * (1 - rust['ccn_total'] / cpp['ccn_total']):.0f}",
         "NlocRise": f"{100.0 * (rust['nloc'] / cpp['nloc'] - 1):.0f}",
+        # The one row of tab:loc the prose names twice, in the forced-idiom table
+        # and again in the paragraph reading the breakdown. Emitted so all three
+        # sites move together; they did not, and the table was six lines short.
+        "CppBoundedQueueLines": f"{raw_lines(root, ['cpp/include/uecm/bounded_queue.hpp'])}",
     }
     gen = os.path.join(outdir, "gen_complexity.tex")
     with open(gen, "w") as f:
@@ -219,7 +288,7 @@ def main():
 
     print(f"C++ : {cpp}")
     print(f"Rust: {rust}")
-    for p in (tab, gen):
+    for p in (tab, loc, gen):
         print("wrote", os.path.relpath(p, here))
 
 

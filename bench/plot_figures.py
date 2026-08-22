@@ -1711,6 +1711,11 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
             "BudgetHandoffCpp": fmt_us_adaptive(med("cpp", "handoff_ns")),
             "BudgetHandoffRust": fmt_us_adaptive(med("rust", "handoff_ns")),
             "BudgetCoreShareMax": f"{max(med(l, 'core_share_pct') for l in budget):.3f}",
+            # The same quantity read the other way round, because the prose makes
+            # the point in both directions and an eyeballed complement got it
+            # wrong once: 0.250 leaves 99.750, not "better than 99.9".
+            "BudgetCoreShareRest": (
+                f"{100.0 - max(med(l, 'core_share_pct') for l in budget):.3f}"),
             # Which language runs the bare operation faster, and by how much. The
             # sweep cannot see this at all: it is four ten-thousandths of the
             # number the sweep reports.

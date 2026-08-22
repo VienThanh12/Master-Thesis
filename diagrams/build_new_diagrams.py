@@ -682,13 +682,13 @@ def workload_timeline():
         "A fixed draw order makes the per-operation-kind counts identical in "
         "both languages, so the workload doubles as a parity signal",
     )
-    d.card(20, 78, 410, 106, "signal \u2014 the steady-state hot path", [
+    d.card(20, 78, 410, 106, "signal: the steady-state hot path", [
         "Preloads a population of connected UEs and then hammers",
         "handle_signaling, isolating per-message latency with no",
         "lifecycle transitions in the way.",
     ], fill=BLUE_FILL, stroke=BLUE, sw=1.8, rx=10, title_color=BLUE_DEEP,
         body_size=10.5, pad=15, lh=14, gap=21)
-    d.card(450, 78, 410, 106, "mixed \u2014 the full RAN lifecycle", [
+    d.card(450, 78, 410, 106, "mixed: the full RAN lifecycle", [
         "A pinned generator that walks each UE through a realistic",
         "procedure sequence, using a per-slot expected-state model",
         "so that every operation it emits is valid for that UE.",
@@ -817,15 +817,15 @@ def research_gap():
     d = Diagram(
         "29_research_gap", 880, 552,
         "What the neighbouring studies control, and what they leave varying",
-        "Each prior result is credible on its own terms; none isolates the "
+        "Each prior result is credible on its own terms, but none isolates the "
         "language for a control-plane subsystem driven into overload",
     )
     cols = [
         (168, 131, ["Cross-language", "benchmarks"], "Pereira et al."),
         (308, 131, ["Matched pairs in", "systems software"],
-         "Emmerich; Suchert"),
+         "Emmerich \u00b7 Suchert"),
         (448, 131, ["Vendor RAN and", "5G frameworks"],
-         "Karlback; Arvidsson"),
+         "Karlback \u00b7 Arvidsson"),
         (588, 131, ["Matched telecom", "pair"], "Emberg & Wadsten"),
         (728, 131, ["This thesis", ""], ""),
     ]
