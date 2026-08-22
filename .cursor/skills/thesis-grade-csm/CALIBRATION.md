@@ -132,9 +132,9 @@ against the source. Two blockers remain, items 1 and 2, and neither is editing.
 | §8.2's "states the whole result in one picture" | Now "draws the boundary itself", with the two-of-five scope in the prose |
 | Diagram labels ungated | `diagrams/check_labels.py`, run by `refresh_thesis.sh`. Scope computed from the documents, verbatim code exempt through an explicit list |
 
-**A method note from that pass.** Nine of the label rewrites removed a dash or semicolon and left
-a comma splice or a panel overrun behind, and the gate passed all nine, because it checks
-punctuation and not sense. Re-render the diagrams and read them.
+**A method note from that pass.** Six labels came out of the dash and semicolon removal with a
+comma splice or a panel overrun, and the gate passed every one, because it checks punctuation and
+not sense. Re-render the diagrams and read them.
 
 **Also resolved earlier.** The class file is now the department's own `HYthesisML.cls` with
 the pristine template beside it, so the `UH_DS_MSc.cls` item is closed (the file survives in the

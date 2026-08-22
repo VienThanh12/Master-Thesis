@@ -1421,11 +1421,12 @@ it cost two pages.
 
 ### Prose quality after the edits
 
-Nine rewrites removed a dash or a semicolon from a diagram label and left a comma splice or an
-overflowing panel behind. All nine were caught by rendering the diagrams and reading them, not by
-the gate, which only checks punctuation. Worth recording as a method note: the gate tells you the
-label is legal, not that it is good, so re-render and look. `17_guarantee_boundary` needed two
-passes for this reason.
+Six labels came out of the dash and semicolon removal with a comma splice or a panel overrun,
+across nine lines of text. The gate passed every one, because it checks punctuation and not sense.
+All six were caught instead by rendering the diagrams and reading them, which is the method note
+worth keeping: the gate tells you a label is legal, not that it is good.
+`17_guarantee_boundary` needed two passes for this reason, one for a splice and one for a line
+that grew past its panel.
 
 Thesis prose after the pass: zero semicolons in 35,544 words, four dash hits all legitimate
 typography, sentence length 20.4 ± 10.4 with a maximum of 63. "rather than" sits at 53 instances
