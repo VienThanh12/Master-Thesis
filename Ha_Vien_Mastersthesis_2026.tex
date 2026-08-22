@@ -1501,7 +1501,7 @@ which there is no control at all.\label{tab:controls}}
 \hline\hline
 Variable & How it is held fixed & What the control does not reach \\
 \hline
-Design & One specification, frozen before any code is written, fixing the public API, the state machine, the data structures and their algorithmic strategy, and the sharding granularity (\S\ref{sec:fairness}) & Where the two languages cannot express the same construct, the divergence is logged, not removed (Table~\ref{tab:idioms}) \\
+Design & One specification, frozen before any code is written, fixing the public API, the state machine, the data structures and their algorithmic strategy, and how state is divided into shards (\S\ref{sec:fairness}) & Where the two languages cannot express the same construct, the divergence is logged, not removed (Table~\ref{tab:idioms}) \\
 Concurrency model & Thread-per-shard over bounded blocking MPSC queues on both sides, with no asynchronous runtime on either & Nothing outstanding \\
 Hashing & SplitMix64 for shard selection and FNV-1a inside the shard, pinned identically, so neither standard library's default hasher becomes an accidental advantage & The container itself is still each language's own hash map, and the two differ in layout (\S\ref{sec:budget}) \\
 Allocator & The same \texttt{jemalloc} linked on both sides, with a system-allocator build kept on each as a control & Nothing outstanding \\
