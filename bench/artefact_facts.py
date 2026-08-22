@@ -9,7 +9,7 @@ stale silently the moment the code moved, which is what the no-transcription
 rule exists to prevent. They are measured here and written to
 figures/gen_artefacts.tex.
 
-Four sources, none of them a campaign log:
+Six sources, none of them a campaign log:
 
   * record sizes   -- compiled and run: cpp/tools/layout_probe.cpp and
                       rust/examples/layout.rs report sizeof/size_of and, on the
@@ -20,6 +20,15 @@ Four sources, none of them a campaign log:
   * conformance    -- spec/conformance/results/summary.json, written by
                       spec/conformance/run.sh.
   * FFI seam       -- counted from ffi/ source.
+  * fault outcomes -- faults/results/taxonomy.csv and the runner's own logs: the
+                      intermittent deadlock's detection rate, the lost-update
+                      counts, and how many classes no C++ sanitiser reports.
+  * suite size     -- cpp/tests and rust/tests, counted from source.
+
+The last two joined this file in August 2026, after a grading pass found that
+every one of the numbers they now produce had been typed into the prose by hand
+and every one of them was wrong. That is the failure mode the whole file exists
+to prevent, so they belong here rather than in a paragraph.
 
 Missing inputs are reported and skipped rather than guessed, so a macro is
 never invented; if a macro the thesis uses disappears, the LaTeX build fails
@@ -32,6 +41,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import glob
 import json
 import os
 import re
@@ -108,6 +118,98 @@ def ffi_seam(root):
         "entry_points": exported,
         "unsafe_fns": unsafe_fns,
     }
+
+
+def thousands(n):
+    """A count as the thesis sets it: thin space, not a comma, between groups."""
+    return f"{n:,}".replace(",", "\\,")
+
+
+def fault_facts(root):
+    """Outcomes of the fault-injection catalogue, from the runner's own logs.
+
+    Three quantities the prose quotes that no campaign log holds: how often
+    ThreadSanitizer catches the intermittent lock-order inversion, how many
+    increments each language's lost-update case drops, and how many classes no
+    C++ sanitiser reports at all.
+
+    The deadlock rate is taken twice and the two readings have to agree. The
+    catalogue's own note field is the runner's summary, and the per-run logs are
+    the evidence behind it; if a rerun ever leaves one stale the mismatch is an
+    error here rather than a wrong number on the page.
+    """
+    results = os.path.join(root, "faults/results")
+    taxonomy = os.path.join(results, "taxonomy.csv")
+    with open(taxonomy, newline="", encoding="utf-8") as fh:
+        rows = list(csv.DictReader(fh))
+
+    deadlock = next(r for r in rows if r["defect"] == "lock_order_deadlock")
+    stated = re.search(r"TSan reported in (\d+)/(\d+) runs", deadlock["note"])
+    if not stated:
+        raise SystemExit(
+            "artefact_facts.py: taxonomy.csv no longer records the deadlock "
+            f"detection rate in its note field ({deadlock['note']!r})")
+    hits, runs = int(stated.group(1)), int(stated.group(2))
+
+    # The per-run logs, counted independently of the note.
+    logs = sorted(glob.glob(os.path.join(results, "deadlock.tsan.log.run*")))
+    if logs:
+        counted = sum(
+            1 for p in logs
+            if "WARNING: ThreadSanitizer" in open(p, encoding="utf-8", errors="replace").read())
+        if (counted, len(logs)) != (hits, runs):
+            raise SystemExit(
+                f"artefact_facts.py: the deadlock run logs report {counted}/{len(logs)} "
+                f"but taxonomy.csv says {hits}/{runs}; rerun faults/run_faults.sh so "
+                "the catalogue and its evidence agree before the thesis quotes either")
+
+    # A class is untouched when no C++ sanitiser reports it at all. The
+    # intermittently detected deadlock is deliberately not counted here: it is
+    # detected, unreliably, which is a different claim and the thesis makes it
+    # separately.
+    undetected = [r["defect"] for r in rows if r["cpp_detection"] == "undetected"]
+
+    lost = {}
+    for lang, stem in (("Rust", "lost_update.rust.log"), ("Cpp", "lost_update.tsan.log")):
+        with open(os.path.join(results, stem), encoding="utf-8") as fh:
+            text = fh.read()
+        m = re.search(r"messages_handled=(\d+) expected=(\d+) lost=(\d+)", text)
+        if not m:
+            raise SystemExit(f"artefact_facts.py: no lost-update tally in {stem}")
+        lost[lang] = tuple(int(g) for g in m.groups())
+    if lost["Rust"][1] != lost["Cpp"][1]:
+        raise SystemExit(
+            "artefact_facts.py: the two lost-update runs expected different totals "
+            f"({lost['Rust'][1]} vs {lost['Cpp'][1]}); the prose quotes one figure for both")
+
+    macros = {
+        "DeadlockTsanHits": hits,
+        "DeadlockTsanRuns": runs,
+        "FaultClasses": len(rows),
+        "FaultClassesUndetected": len(undetected),
+        "LostUpdateExpected": thousands(lost["Rust"][1]),
+    }
+    for lang, (handled, _, dropped) in lost.items():
+        macros[f"LostUpdate{lang}Handled"] = thousands(handled)
+        macros[f"LostUpdate{lang}Lost"] = thousands(dropped)
+    return macros
+
+
+def suite_sizes(root):
+    """The parity suite as a count: C++ test binaries and Rust test functions.
+
+    Only the integration tests under rust/tests are counted, which is what
+    `cargo test --release` runs for the compared build. The three in
+    rust/src/mutex_queue.rs belong to the specification section 12 attribution
+    probe and compile only under `--features mutex-queue`, so counting them
+    would report a configuration the campaign never measured.
+    """
+    binaries = glob.glob(os.path.join(root, "cpp/tests/test_*.cpp"))
+    tests = 0
+    for path in glob.glob(os.path.join(root, "rust/tests/*.rs")):
+        with open(path, encoding="utf-8") as fh:
+            tests += len(re.findall(r"^\s*#\[test\]", fh.read(), re.M))
+    return {"CppTestBinaries": len(binaries), "RustTests": tests}
 
 
 def main():
@@ -193,6 +295,14 @@ def main():
         "FfiEntryPoints": seam["entry_points"],
         "FfiUnsafeFns": seam["unsafe_fns"],
     })
+
+    # -- fault-injection outcomes and suite size -----------------------------
+    faults = os.path.join(root, "faults/results/taxonomy.csv")
+    if os.path.exists(faults):
+        macros.update(fault_facts(root))
+    else:
+        notes.append("no fault catalogue; run faults/run_faults.sh")
+    macros.update(suite_sizes(root))
 
     gen = os.path.join(outdir, "gen_artefacts.tex")
     with open(gen, "w", encoding="utf-8") as fh:
