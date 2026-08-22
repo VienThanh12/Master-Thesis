@@ -73,12 +73,22 @@ These have each consumed part of a pass and were wrong.
   `[u8; 32]`. Do not count these against the style gate.
 - **A hand-typed number written with a LaTeX thin space.** `9\,006` and `35\,030` match neither
   `9,006` nor `9006`. Grep for the `\\,` form or the audit will report a defect as closed.
+- **Filtering the campaign JSONL on the `rate` field.** `offered_load(row)` in
+  `bench/plot_figures.py` is `row["rate"] * row["producers"]`, and there are seven producers, so
+  the representative load of 56 kops/s is `rate == 8000`. Filtering on `rate == 56000` lands in the
+  **overload region**, where the peak-RSS sign agreement and the direction of the CPU result both
+  genuinely reverse. The eighth pass burned time scoring two correct claims as defects this way,
+  "18 of the 20 paired repeats agree" and "Rust draws slightly less CPU"; both are right. Pair by
+  position after filtering on `offered_load`, which is what `_paired_effect` does and documents.
+  When a computed check disagrees with a generated artefact, suspect the check first: rerunning
+  `plot_figures.py` into a scratch `--outdir` and diffing settles it in a minute.
 
 ## Standing blockers on this thesis
 
-State as of the seventh pass, 20 August 2026. The seventh pass found eleven of the sixth pass's
-twelve items untouched, so treat this list as durable rather than as a snapshot, and check each
-item against the source before reporting it.
+State as of the eighth pass, 22 August 2026. The seventh pass found eleven of the sixth pass's
+twelve items untouched and the eighth found the numeric ones untouched again, so treat this list as
+durable rather than as a snapshot, and check each item against the source before reporting it. The
+one item that has moved is 7, the antithesis tic, now cut by 59 %.
 
 1. **Rewrite the abstract unaided, then set `\abstractunaidedtrue`.** Blocking for submission and
    for area 6, and it cannot be delegated. Open since the fourth pass. Until it is set, every
@@ -89,10 +99,15 @@ item against the source before reporting it.
    (`bench/TESTBED.md`). The only thing holding area 3's data half at 4, and the only lift no
    amount of editing reaches. What it buys is narrow and specific: far-tail ordering below
    saturation, plus a mechanism for the peak-RSS effect and for the operation-level gap.
-3. **Eight hand-typed values, and all eight are wrong.** These are the whole of area 4's cap, and
-   four of them are places where the manuscript contradicts evidence it ships:
+3. **Eleven hand-typed values, and ten of them are wrong.** These are the whole of area 4's cap,
+   and five of them are places where the manuscript contradicts evidence it ships:
    - the TSan deadlock rate, printed as "four of twelve" in the prose and "$4$ of $12$" in Table
-     7.6's footnote, against `TSan reported in 7/12 runs` in `faults/results/taxonomy.csv`;
+     7.6's footnote, against `TSan reported in 7/12 runs` in `faults/results/taxonomy.csv`. The
+     eighth pass counted the twelve run logs directly: the warning fires in runs 0, 1, 2, 3, 7, 8
+     and 9;
+   - the same footnote's "$6$ of $20$ in a longer trial", for which **no 20-run log is shipped at
+     all** (`faults/results/` holds `run0`–`run11` and nothing else) and which `faults/README.md`
+     puts at 7 of 20;
    - both lost-update pairs, printed as 35,030/4,970 for Rust and 25,448/14,552 for C++, against
      28,914/11,086 and 27,788/12,212 in `lost_update.rust.log` and `lost_update.tsan.log`;
    - the conformance campaign at L3051–3052, `$9\,006$` against `summary.json`'s 792,964, beside a
@@ -108,7 +123,17 @@ item against the source before reporting it.
      when no interval contains a cross-language median and the true claim is "overlaps";
    - the 99.9 % complement of `\BudgetCoreShareMax` = 0.250, whose complement is 99.750 %.
    §7.2's "no value is hand-copied ... the text and the data cannot drift apart" is falsified by
-   all eight and should be narrowed to the claim that is true and strong on its own.
+   all of them and should be narrowed to the claim that is true and strong on its own.
+3a. **`ai_statement.tex` carries the same false claim, in a declaration signed in the author's
+   name.** Under *What the model did not settle*: "Each number reaches the text through a macro
+   regenerated from the raw logs, so no figure is transcribed by hand." Found by the eighth pass.
+   This is the more serious instance of blocker 3, because declaration truthfulness ranks above any
+   prose defect (see the checks-by-yield list) and because the sentence describes what the author
+   did rather than what the pipeline does. The claim underneath is true and provable: the eighth
+   pass reran `bench/plot_figures.py --outdir /tmp/figcheck` and `tab_significance`, `tab_latency`,
+   `tab_resource`, `tab_overload`, `tab_equivalence` and `gen_macros` all came back byte-identical
+   to the committed files. Narrowing the sentence to the campaign statistics costs nothing and
+   removes the falsification.
 4. **§5.5 describes instrumentation the reported campaign did not have**: pooled far-tail figures,
    directly measured jitter, and p99.99 "reported descriptively". §7.5.1 says the campaign predates
    it. Put the three sentences in the conditional, and either drop jitter from the abstract's list
@@ -124,9 +149,11 @@ item against the source before reporting it.
    `27_workload_timeline` 2 literal, `16_coordinated_omission` 1) and five carry a prose semicolon
    (`17_guarantee_boundary` 2, `29_research_gap`, `07_ffi_seam`, `12_concurrency_models`,
    `15_overload_cliff`). Fix the `diagrams/` sources, re-render, then extend the gate.
-7. **Prose:** "rather than" carries 154 sentences at 4.7 per thousand words, which `.aitells.py`
-   scores at 44 per ten thousand against a next-highest pattern of 1.2. With dashes and semicolons
-   clean in the `.tex`, this is the remaining machine-uniformity signal there.
+7. **Prose: largely actioned, first item on this list to move.** "rather than" stood at 154
+   instances and 44 per ten thousand words at the seventh pass. At the eighth it reads 51 instances
+   and 14.5 per ten thousand (raw occurrences 167 to 69), with `.aitells.py` unmodified, so the
+   change is in the prose. Sentence length also moved from 24.1 ± 13.0 with a maximum of 73 to
+   20.3 ± 10.4 with a maximum of 63. Re-measure rather than re-reporting the old figure.
 8. **§8.2 says Figure 8.1 "states the whole result in one picture"** while the figure draws two of
    the five boundary classes. The caption discloses the gap, so the prose is the part to fix.
 

@@ -15,15 +15,15 @@ An interactive version of this document exists as a Cursor canvas at
 `~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grading.canvas.tsx`. This file is
 the durable copy; keep the two in step if you revise either.
 
-> **The current grade is the sixth pass, 19 August 2026 afternoon, at the end of this file.** The
+> **The current grade is the eighth pass, 22 August 2026, at the end of this file.** The
 > summary table immediately below is the first pass and is kept as history, not as the standing
-> view. Six passes are on record and they do not all agree: the second held criteria 3 and 4 at 4
+> view. Eight passes are on record and they do not all agree: the second held criteria 3 and 4 at 4
 > rather than 4.5, on the grounds that three criticisms said to need new measurement were
 > answerable from the dataset already in hand, the fourth took criterion 6 from 5 to 4.5 on the
 > truthfulness of the AI declaration, and the sixth took criterion 4 from 4.5 to 4 after checking
-> the hand-typed prose values against the published artefacts rather than only counting them. Read
-> the passes in order if the reasoning behind a half-grade matters. Where any two disagree, the
-> later one is current.
+> the hand-typed prose values against the published artefacts rather than only counting them. The
+> seventh and eighth confirmed every area where the sixth left it. Read the passes in order if the
+> reasoning behind a half-grade matters. Where any two disagree, the later one is current.
 
 ---
 
@@ -1130,3 +1130,212 @@ disagrees with its own published evidence.
 14. **Bare-metal tail campaign** with hardware counters and allocation profiles on the same visit.
     The only item editing cannot reach, and its target stays narrow: the far tail below
     saturation, plus a mechanism for the peak-RSS effect and the operation-level gap.
+
+## Eighth pass — 22 August 2026
+
+Graded against the **official seven-area CSM matrix** (9 April 2024) using
+`.cursor/skills/thesis-grade-csm/`. Source: `Ha_Vien_Mastersthesis_2026.tex`, a **forced full
+rebuild taken in this pass** (`latexmk -g`), the generated artefacts under `figures/`, and the
+published evidence under `bench/results/`, `faults/results/` and `ffi/results/`. Standard applied:
+a full draft the repository does not treat as supervisor-approved, judged as an examiner would see
+the manuscript. Canvas:
+`~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-aug22.canvas.tsx`.
+
+The `.tex` mtime (14:00) had moved ahead of the log (13:10), so `texaudit.py` opened by declaring
+the build stale. The working tree was clean and `latexmk` reported nothing to do, meaning the save
+carried no content change, but the pass forced a rebuild anyway rather than grade on that
+inference. Every finding below was re-derived from the artefacts.
+
+| Area | Seventh pass | Eighth pass | Note |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Unchanged. Gap located in named flaws of five specific studies, four RQs traced, RQ2 falsifiable |
+| 2. Scholarly framework and sources | 5 | **5** | Unchanged. 105 entries, all cited, 69 peer-reviewed (66%), search protocol in an appendix |
+| 3. Research data and method | 4.5 | **4.5** | Method at 5, data at 4. Host-bound as before, and the method half now has a stronger warrant (see below) |
+| 4. Presentation of results | 4.0 | **4.0** | Held for a third pass. Eleven hand-typed values, ten wrong, none fixed since the sixth |
+| 5. Discussion and conclusions | 5 | **5** | Unchanged |
+| 6. Academic text | 4.5 | **4.5** | Held after considering 4.0. Writing measurably improved, and one new false sentence landed in the declaration |
+| 7. Work during the thesis process | not assessable | **not assessable** | No manuscript settles it |
+| **Mean of the six assessable** | 4.67 | **4.67** | |
+
+### The finding of this pass: the prose moved, the numbers did not
+
+The seventh pass reported that nothing had changed on any graded point. That is no longer true, and
+the split matters, because the surfaces that improved are not the surfaces capping the grades.
+
+| Quantity | Seventh pass | This pass | Reading |
+| --- | --- | --- | --- |
+| `rather than` antithesis | 154 instances, 44.0 per 10k words | **51 instances, 14.5 per 10k** | Raw occurrences 167 to 69, a 59% cut. `.aitells.py` was last modified before the seventh pass, so the change is in the prose and not in the tool |
+| Longest sentence | 73 words | **63 words** | Stdev 13.0 to 10.4, mean 24.1 to 20.3 |
+| Declared length | 99 body + 6 appendix | **103 body + 6 appendix** | §7.6 landed with the three RQ4 adoption-cost axes. 113 PDF pages to 117 |
+| Prose word count | 33,425 | **35,279** | The new section plus the four passages that stopped calling RQ4 environment-insensitive |
+| Wrong hand-typed values | 8 open | **11 open, none fixed** | Third consecutive pass with the graded defects untouched |
+
+Item 11 of the seventh pass's outstanding list, thinning the antithesis construction, is therefore
+largely done and is the **only** item on that list of fourteen to have moved.
+
+### Re-derived independently: all eight of the seventh pass's values confirmed, and three more found
+
+Every value was checked against the artefact rather than against the previous pass's note.
+
+1. **TSan deadlock rate.** L3044 prints "four of twelve" and the Table 7.6 footnote prints
+   `$4$ of $12$`. `taxonomy.csv` records `TSan reported in 7/12 runs`. This pass went further and
+   counted the twelve run logs one by one: `WARNING: ThreadSanitizer` appears in runs 0, 1, 2, 3,
+   7, 8 and 9, so **7 of 12** is reproducible from the shipped logs. Confirmed.
+2. **The footnote's second number is stale too, and this is new.** The same footnote prints
+   "$6$ of $20$ in a longer trial". `faults/results/` holds exactly twelve deadlock run logs
+   (`run0`–`run11`), so **no 20-run trial is published at all**, and `faults/README.md` says
+   "7 of 20 in longer trials". The footnote carries two stale numbers and one of them cites a
+   campaign the repository does not ship. Either publish the longer trial or drop the clause.
+3. **Lost-update counts.** L3023–3025 print 35,030 recorded and 4,970 lost for safe Rust against
+   25,448 and 14,552 for C++ under TSan. The logs read `messages_handled=28914 expected=40000
+   lost=11086` and `messages_handled=27788 expected=40000 lost=12212`. Confirmed. Worth restating
+   why this one is the costly error: as printed, Rust loses roughly a third of what C++ loses, so
+   the number **flatters Rust on a boundary class inside the one chapter written to show that
+   neither language is protected**. The logs put the two within ten percent.
+4. **Conformance campaign size.** L3105–3106 print `$223$` and `$9\,006$` where `\ConfHandOps`
+   and `\ConfGenOps` exist and are used correctly forty lines earlier. `summary.json` gives
+   `generated_ops: 792964` and the macro prints `793\,000`. Confirmed. Search for `9\\,006`.
+5. **Rust test count.** L3105 says "twenty-five Rust tests". `cargo test --release -- --list` was
+   run in this pass and reports **27**. The six C++ test binaries are right. Confirmed.
+6. **Classes untouched.** L3010 says "the three between them still leave four of the ten classes
+   untouched". `taxonomy.csv` marks `cpp_detection` as `undetected` for **two** classes,
+   `lost_update` and `worker_failure_blast_radius`. Three if the intermittent deadlock counts. No
+   reading gives four. Confirmed.
+7. **Table 6.4.** The nine concern rows sum to **668** in the C++ column against a printed
+   `\CppRawLines` of 674, and the delta column sums to **+94** against a printed `+\LocGap` of 88.
+   The Rust column sums correctly to 762. Confirmed.
+8. **The p50 sentence.** `tab_latency.tex` gives C++ system 79.9 [79.6, 80.7], C++ jemalloc 80.3
+   [79.4, 80.7], Rust system 79.0 [78.7, 79.7], Rust jemalloc 78.6 [78.1, 79.7]. No interval
+   contains a cross-language median, and all four overlap. Confirmed, and one word fixes it.
+9. **The 99.9% complement.** L2584 pairs "better than $99.9\%$" with `\BudgetCoreShareMax` of
+   0.250 two sentences above, whose complement is 99.750%. Confirmed.
+
+### New in this pass, and it is the cheapest grade-protecting edit in the document
+
+**`ai_statement.tex` carries a false sentence about the method.** Under *What the model did not
+settle* it reads: "Every measurement was run by the author on the hosts documented here. Each
+number reaches the text through a macro regenerated from the raw logs, so no figure is transcribed
+by hand." Eleven values falsify the second sentence, five of them against evidence the thesis
+ships.
+
+The seventh pass's item 8 flagged §7.2's version of this claim. The declaration's version is a
+distinct and more serious instance, for three reasons. It is signed in the author's name. It is the
+document's own account of what the author did rather than of what the pipeline does. And
+`CALIBRATION.md` ranks declaration truthfulness above any prose defect, on the grounds that a
+reader who catches the declaration overstating has reason to re-audit everything else.
+
+The claim underneath is true and strong. This pass **proved** it: `bench/plot_figures.py` was rerun
+with `--outdir /tmp/figcheck` and `tab_significance.tex`, `tab_latency.tex`, `tab_resource.tex`,
+`tab_overload.tex`, `tab_equivalence.tex` and `gen_macros.tex` all came back **byte-identical** to
+the committed files. Narrow the sentence to the campaign statistics and it stops being falsifiable
+while saying something no other thesis in this literature can say.
+
+### Checked in this pass and clean
+
+- **The generated layer regenerates exactly.** Six artefacts reproduced byte-identically from
+  `campaign-20260812-154528.jsonl`. This is a new check and it strengthens criterion 3's method
+  half: the analysis is reproducible from the raw logs, not merely documented as reproducible.
+- **Build gates.** Zero LaTeX errors, undefined references, undefined citations, multiply-defined
+  labels, overfull boxes, floats too large, placeholder markers. 117 PDF pages, `\pagesCount` 103
+  with `\appendixCount` 6, matching the abstract form. Note `AGENT.md` §1 still says 104; the
+  `.aux` says 103.
+- **Abstract page rendered at 110 dpi and inspected.** The form is complete, the CCS block does not
+  overflow into Keywords, the keyword row is intact, and the date reads 22 August 2026.
+- **Prose gates.** Zero semicolons in 35,279 words. Four dash hits, all legitimate (one compound
+  proper name, three numeric ranges). Sentence length 20.3 ± 10.4 words, max 63.
+- **FFI evidence.** All ten quantities in `ffi/results/metrics.json` still agree with their macros,
+  and the diagram `07_ffi_seam` quotes 11 entry points, 231 lines, 9 `unsafe` functions, 12.7 µs
+  and 2.54 ns, every one matching. No noise run has overwritten the evidence.
+- **RSS and CPU results at the representative load.** "18 of the 20 paired repeats agree" and "some
+  30 MiB below their variant's median" both check out exactly (jemalloc RSS: 18 positive of 20,
+  with two runs 33.1 and 28.7 MiB low). `\CpuDiffAbsMax` of 3.4 matches a median paired difference
+  of −3.35 percentage points. See the false positive below before re-checking these.
+- **Overload macros against the abstract.** `\OverloadThrRatio` 1.8 and `\OverloadThrAgree` 20/20,
+  both as printed.
+- **Literature search protocol is in the manuscript**, as `appendix:search`, not only in the
+  repository. Four databases, term combinations, chaining, the two repository searches that were
+  needed because the closest prior work is unindexed, the absence evidence on both sides, and the
+  grey-literature caveat.
+- **Bibliography.** 105 entries, 105 cited, no uncited entry and no missing key. `bugden2022rust`
+  is the one remaining arXiv item, cited twice and both times beside a peer-reviewed source.
+
+### Why area 6 stayed at 4.5 rather than falling to 4.0
+
+This pass considered 4.0 and did not take it, and the reasoning belongs on record because the
+balance inside the area shifted in both directions at once.
+
+Level 4 asks that "the whole text is logical and consistent when it comes to research questions,
+description of research setup, findings and conclusions". Three things strain that clause: §5.5
+describing pooled far-tail histograms, directly measured jitter and p99.99 "reported descriptively"
+when none is reported anywhere (`plot_figures.py` prints "campaign has no inter-operation jitter
+data" and declines to write `tab_jitter.tex`); the abstract's bare "median latency matches" against
+a paired test that resolves −1.1 and −1.6 µs; and the declaration sentence above.
+
+Against that: the *writing* half improved measurably this pass, and the finishing defects that took
+this area from 5 to 4.5 in the fourth pass are all closed (zero overfull boxes, no float too large,
+no 93- or 86-word sentences). Of the three strains, two are disclosed elsewhere in the document
+(§7.5.1 states the instrumentation gap explicitly, and §8.3 states the median result correctly), so
+the text as a whole is not inconsistent so much as unrepaired in the place a reader meets first. The
+declaration sentence is one sentence and a minute's work.
+
+A half-step drop on one sentence, in the pass where the prose measurably improved, would be
+deflation. 4.5 stands, with the declaration sentence recorded as the highest-priority item inside
+the area rather than as a grade movement. If a ninth pass finds it still there, that reasoning
+should be revisited, because at that point it is a finishing failure and not an oversight.
+
+### False positive this pass burned time on, recorded so the next one does not
+
+**Filtering the campaign JSONL on the `rate` field is wrong.** `offered_load(row)` in
+`plot_figures.py` is `row["rate"] * row["producers"]`, and there are seven producers, so the
+representative load of 56 kops/s is `rate == 8000`, not `rate == 56000`. Filtering on `rate ==
+56000` reads the **overload region**, where the RSS sign agreement and the direction of the CPU
+result both genuinely reverse. This pass briefly scored two correct claims as defects on that
+basis, "18 of the 20 paired repeats agree" and "Rust draws slightly less CPU", and both are right.
+Pair by position after filtering on `offered_load`, which is what the repo's own
+`_paired_effect` does and documents.
+
+Also re-confirmed from earlier passes: `pdftotext` on `diagrams/pdf/*.pdf` extracts nothing, so
+route diagram style checks through the `.svg` sources and search for both the literal em dash and
+the `&#8212;` entity. Semicolons inside verbatim code in a diagram are exempt by the house style:
+`08_borrow_checker_uaf` and `05_data_model`'s `[u8; 32]`.
+
+### Nothing was changed in the thesis during this pass
+
+The pass graded and did not edit. Only `docs/ASSESSMENT.md` was written, plus the canvas.
+
+### Outstanding, cheapest first
+
+Fifteen items. Fourteen are editing and the first nine are under three hours between them.
+
+1. **Delete or narrow the declaration's "no figure is transcribed by hand"** in
+   `ai_statement.tex`. Minutes. Highest credibility cost per character in the document, and the
+   claim underneath is true and now proven.
+2. **"contains" to "overlaps"** in §7.5.1. One word.
+3. **Replace the hand-typed `$9\,006$` and `$223$`** with `\ConfGenOps` and `\ConfHandOps`.
+   Minutes, and it removes a two-order-of-magnitude error.
+4. **"twenty-five Rust tests" to 27**, and **"four of the ten classes untouched" to two** (or three
+   if the intermittent deadlock is counted, in which case say so). Minutes each.
+5. **State the denominator behind the 99.9%**, or quote the complement of `\BudgetCoreShareMax`.
+   One clause.
+6. **Regenerate the deadlock-rate and lost-update sentences** from `taxonomy.csv` and the run logs.
+   Under an hour, and the largest of the evidence disagreements.
+7. **Publish the deadlock footnote's longer trial or drop the clause.** No 20-run log is shipped
+   and `faults/README.md` disagrees with the printed figure.
+8. **Find the six missing C++ lines in Table 6.4**, or say in the caption what the breakdown omits.
+9. **Narrow §7.2's "no value is hand-copied"** to the campaign statistics, for the same reason as
+   item 1.
+10. **Put §5.5's pooling, jitter and p99.99 sentences in the conditional**, and either drop jitter
+    from the abstract's open dimensions or mark it as future work. About an hour.
+11. **Soften §8.2's claim that Figure 8.1 "states the whole result"**, since it draws two of five
+    boundary classes and its own caption says so. And soften "trace to" in the conclusion.
+12. **Clear the dash asides and prose semicolons out of the diagram labels** and re-render, then
+    **extend the style gate to `diagrams/`**. About two dozen breaches across the eleven included
+    diagrams, on the only reader-visible prose surface with no check.
+13. **Unrealised asset:** `figures/tab_equivalence.tex`, still generated on every refresh and still
+    `\input` by no document. It holds the equivalence-bound reading of RQ1, which is the strongest
+    available answer to the half of RQ1 the host cannot resolve.
+14. **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`. Blocking, cannot be
+    delegated, open for a fourth pass. Drop "median latency matches" in the same edit.
+15. **Bare-metal tail campaign** with hardware counters and allocation profiles on the same visit.
+    The only item editing cannot reach, and its target stays narrow: the far tail below saturation,
+    plus a mechanism for the peak-RSS effect and the operation-level gap.
