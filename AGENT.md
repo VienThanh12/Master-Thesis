@@ -58,16 +58,22 @@ grading pass so passes stay comparable.
 | **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (5 inside + 5 outside guarantee). |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
 | **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **Bare-metal tail campaign.** Results come from a dedicated but virtualised KVM Xeon guest, where the far tail below saturation cannot be resolved. Also missing: hardware counters and allocation profiles for the unexplained peak-RSS and operation-level results. |
-| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.0** | RQ1 tail still open (lifts with criterion 3), **and eleven** hand-typed prose values, ten of them wrong, five contradicting evidence the thesis ships: the TSan deadlock rate (4/12 and a "6 of 20" longer trial that no shipped log supports, against 7/12 in `taxonomy.csv`), both lost-update pairs, the conformance size, the Rust test count, the untouched-class count, Table 6.4's C++ and delta columns, the §7.5.1 "contains" sentence, and the 99.9 % complement. Editing fixes all of them; the full list is in `docs/ASSESSMENT.md` eighth pass. |
+| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.5** | **RQ1 far tail only, and it lifts with criterion 3.** The eleven hand-typed values that held this at 4.0 for three passes are closed as of 22 August: each is now a generated macro, `tab:loc` is generated with its column sums asserted, and `tab:equivalence` is placed in §7.5.2. Do not reintroduce a measured number as prose. |
 | **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Maintain register: “cannot tell” ≠ “equivalent”. H1 is *ambiguous in framing*, not simply supported. |
-| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`: until then the build prints “Not submittable”. Also §5.5 describes pooled far-tail figures and directly measured jitter that the reported campaign does not have. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
+| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`: until then the build prints “Not submittable”. This is now the *only* thing between this criterion and a 5. §5.5 is conditional as of 22 August, the AI declaration no longer overstates the method, and the diagram labels are clean and gated. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
 
-**Overall mean (unweighted): 4.67** — criterion 3 is held at 4.5 **deliberately** until bare-metal
-tail evidence exists, criterion 6 at 4.5 until the abstract is rewritten unaided, and criterion 4
-fell to 4.0 in the sixth pass (19 August, afternoon) because three values typed into the prose
-disagree with the published artefacts. Do not round those half-grades in prose without updating the
-reasoning in `docs/ASSESSMENT.md`. The class-file item is **done**: the document builds on the department's
-own `HYthesisML.cls`, and the reconstructed `UH_DS_MSc.cls` in the root is no longer loaded.
+**Overall mean (unweighted): 4.75** — criteria 3 and 4 are held at 4.5 **deliberately** until
+bare-metal tail evidence exists, criterion 6 at 4.5 until the abstract is rewritten unaided, and criterion 4
+returned to 4.5 in the remediation pass of 22 August, when the hand-typed values that had held it
+at 4.0 since the sixth pass were replaced by generated macros. Do not round those half-grades in
+prose without updating the reasoning in `docs/ASSESSMENT.md`. The class-file item is **done**: the
+document builds on the department's own `HYthesisML.cls`, and the reconstructed `UH_DS_MSc.cls` in
+the root is no longer loaded.
+
+**Two items remain, and only one of them is editing.** The abstract must be rewritten by the
+author unaided, because in this programme it is the maturity test and a model may not touch it.
+The bare-metal campaign needs an instrument the author does not have. Nothing else on the
+assessment record is open.
 
 ### Criterion checklist (apply to every thesis edit)
 
@@ -222,6 +228,18 @@ one argument.
 
 The full style constraint is in the prose-style section of `.cursor/rules/thesis-quality.mdc`.
 
+**Both rules cover diagram labels as well**, and `diagrams/check_labels.py` is the gate over that
+surface, run by `refresh_thesis.sh` beside the other two. It walks every text run in the diagram
+sources and refuses em dashes, spaced en dashes and prose semicolons. Its scope is computed from
+the documents themselves, every diagram a `.tex` file includes or `build_deck.py` names, so a
+diagram no document uses is listed as unchecked and starts being gated the moment one includes it
+(`--all` checks every source). Verbatim code is exempt through an explicit list in the script, not
+a heuristic. Three things to know when it fails. Diagrams 20 to 29 are generated, so fix
+`diagrams/build_new_diagrams.py` and not the SVG. The generator writes its dashes as `\u2014`
+escapes, so grep for the escape. And **the gate checks punctuation, not sense**: removing a dash
+or a semicolon frequently leaves a comma splice or a label that overruns its panel, and nine of
+them did in the pass that introduced the gate, so re-render and read the figure afterwards.
+
 **Both rules cover the slide deck as well**, which is why `build_deck.py` ends with a
 `check_prose_style` gate beside `check_layout`. It walks every text run, table cell, and grouped
 shape in the saved deck, and refuses em dashes, spaced en dashes, and semicolons. Three things to
@@ -288,6 +306,8 @@ that seam is now largely worked out.
   introduced.
 - Figure/table macros in prose match `figures/gen_macros.tex`.
 - No figure contradicts its table (see `docs/ASSESSMENT.md` refinement pass for past failures).
+- `diagrams/check_labels.py` reports “Diagram labels: no em dash, dash aside, or semicolon”. Run by
+  `refresh_thesis.sh`; re-render and read any figure whose label you changed.
 - `build_deck.py` rebuilds and reports both “Layout: all added shapes inside the template content
   band” and “Prose style: no em dash, dash aside, or semicolon on any slide”. Either failure exits
   non-zero, and both are reported in the same run so one rebuild shows everything that is wrong.
@@ -321,7 +341,9 @@ that seam is now largely worked out.
 | `docs/TODO.md` | Phase checklist, bare-metal prep, post-campaign re-check list |
 | `docs/LITERATURE_NOTES.md` | Citation upgrades and literature gaps |
 | `bench/TESTBED.md` | Bare-metal protocol (only path to criterion 3/4 → 5 on tail) |
-| `bench/artefact_facts.py` | Generates `figures/gen_artefacts.tex`: record sizes (compiled probes), parity-suite coverage, conformance campaign size, FFI seam size. Anything measured that no campaign log holds belongs here, not in the prose |
+| `bench/artefact_facts.py` | Generates `figures/gen_artefacts.tex`: record sizes (compiled probes), parity-suite coverage, conformance campaign size, FFI seam size, **fault-catalogue outcomes** (deadlock detection rate, lost-update counts, undetected-class count) and **suite size** (C++ binaries, Rust tests). Anything measured that no campaign log holds belongs here, not in the prose. The deadlock rate is read from `taxonomy.csv` *and* recounted from the per-run logs, and a mismatch is a hard error |
+| `bench/complexity.py` | Generates `figures/tab_complexity.tex`, **`figures/tab_loc.tex`** and `gen_complexity.tex`. The `CONCERNS` partition decomposes the line-count gap and the script refuses to write the table unless every measured file is assigned to exactly one row and each column sums to its measured total. That check is why Table 5.4 can no longer go six lines short of its own printed total |
+| `diagrams/check_labels.py` | Prose-style gate over diagram labels, the third surface beside `.aitells.py` and the deck's `check_prose_style`. Scope computed from the documents; run by `refresh_thesis.sh` |
 | `bench/adoption_cost.py` | Generates `figures/tab_adoption.tex` + `gen_adoption.tex`: RQ4's build time, static footprint, and third-party surface. `--measure` re-times the builds and records to `bench/results/adoption-*.json`; **without it, build time is replayed from the record** and only the deterministic axes are recomputed. `refresh_thesis.sh` calls it without `--measure` deliberately (see §3 item 6a and the `ffi/build.sh` warning in §5) |
 | `spec/SPECIFICATION.md` | Fairness baseline; freeze before implementation changes. §11.4–11.5 cover the reference model, generated vectors, sanitisers, Miri and coverage |
 | `spec/conformance/model.py` | Independent Python implementation of the spec; the oracle behind the generated vectors. Never derive its expectations from `cpp/` or `rust/` |
@@ -344,8 +366,18 @@ edit pass so the two do not diverge.
 
 ---
 
-*Last updated: 21 August 2026, when the three RQ4 adoption-cost axes were measured
-(`bench/adoption_cost.py`, `docs/TODO.md` Phase 11 item 7) and written into §7.6, Table 8.1, §8.4,
+*Last updated: 22 August 2026. The eighth grading pass held every area where the seventh left it
+and found one new defect, a false sentence about the method in `ai_statement.tex`. A remediation
+pass the same afternoon closed thirteen of its fifteen items and moved criterion 4 from 4.0 back
+to 4.5. The durable part of that work is that three classes of defect are now generated rather
+than typed: the fault-catalogue and suite figures through `artefact_facts.py`, Table 5.4's
+breakdown through `complexity.py` with its column sums asserted, and diagram-label style through
+the new `diagrams/check_labels.py`. `tab:equivalence` was placed in §7.5.2, which took the
+declared length to 105 pages. Two items remain and neither can be edited away: the abstract, which
+the author must rewrite unaided, and the bare-metal campaign.*
+
+*The pass before, on 21 August 2026, measured the three RQ4 adoption-cost axes
+(`bench/adoption_cost.py`, `docs/TODO.md` Phase 11 item 7) and wrote them into §7.6, Table 8.1, §8.4,
 §5.4 and the conclusion. Declared length moved 99 to 104 pages. Four passages that called RQ4
 environment-insensitive without qualification were corrected, since build time is a timing
 measurement. The preceding pass, on 20 August, filled `Thesis_v1.tex` chapters 6–9 at the author's

@@ -15,7 +15,7 @@ An interactive version of this document exists as a Cursor canvas at
 `~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grading.canvas.tsx`. This file is
 the durable copy; keep the two in step if you revise either.
 
-> **The current grade is the eighth pass, 22 August 2026, at the end of this file.** The
+> **The current grade is the remediation pass, 22 August 2026 afternoon, at the end of this file.** The
 > summary table immediately below is the first pass and is kept as history, not as the standing
 > view. Eight passes are on record and they do not all agree: the second held criteria 3 and 4 at 4
 > rather than 4.5, on the grounds that three criticisms said to need new measurement were
@@ -1339,3 +1339,122 @@ Fifteen items. Fourteen are editing and the first nine are under three hours bet
 15. **Bare-metal tail campaign** with hardware counters and allocation profiles on the same visit.
     The only item editing cannot reach, and its target stays narrow: the far tail below saturation,
     plus a mechanism for the peak-RSS effect and the operation-level gap.
+
+## Remediation pass — 22 August 2026, afternoon
+
+The eighth pass graded and did not edit. This pass closes thirteen of its fifteen outstanding
+items. Two are deliberately untouched: the abstract cannot be delegated, and the bare-metal
+campaign needs an instrument the author does not have.
+
+| Area | Eighth pass | After remediation | Why it moved |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Unchanged |
+| 2. Scholarly framework and sources | 5 | **5** | Unchanged |
+| 3. Research data and method | 4.5 | **4.5** | Unchanged. Only the bare-metal campaign lifts it |
+| 4. Presentation of results | 4.0 | **4.5** | Every hand-typed value is gone, the reproducibility claim is true as written, and the equivalence table is placed. What remains of the cap is RQ1's far tail, which is the 4.5 the sixth pass started from |
+| 5. Discussion and conclusions | 5 | **5** | Unchanged |
+| 6. Academic text | 4.5 | **4.5** | Three of its four failing clauses closed. The fourth, the abstract, is the whole of the remaining cap |
+| 7. Work during the thesis process | not assessable | **not assessable** | No manuscript settles it |
+| **Mean of the six assessable** | 4.67 | **4.75** | |
+
+### The durable part: three classes of defect are now generated rather than typed
+
+Correcting eleven wrong numbers would have left the mechanism that produced them intact. Each
+was instead moved behind a generator, so a rerun moves the prose and a drift becomes a build
+failure rather than a paragraph an examiner checks.
+
+**`bench/artefact_facts.py`** gained two sources, the fault catalogue and the parity suite, and
+emits eleven new macros: `\DeadlockTsanHits`, `\DeadlockTsanRuns`, `\FaultClasses`,
+`\FaultClassesUndetected`, `\LostUpdateExpected`, `\LostUpdate{Rust,Cpp}{Handled,Lost}`,
+`\CppTestBinaries`, `\RustTests`. Two checks are built in rather than trusted. The deadlock rate
+is read twice, from `taxonomy.csv`'s note field and by counting `WARNING: ThreadSanitizer` across
+the per-run logs, and a mismatch is a hard error, so a partial rerun cannot leave the catalogue
+and its evidence disagreeing. The two lost-update runs must agree on their expected total, since
+the prose quotes one figure for both.
+
+**`bench/complexity.py`** now emits `figures/tab_loc.tex`, so Table 5.4's breakdown is measured
+rather than maintained. A `CONCERNS` partition assigns every measured file to exactly one row and
+the generator refuses to write the table if the partition does not cover both file sets or if a
+column does not sum to its measured total. That is the check the six missing C++ lines needed:
+the bounded queue had grown from 45 to 51 lines and the table had not followed. Rows are now
+ordered by the size of the difference, so the ordering also stops being hand-maintained.
+`\CppBoundedQueueLines` feeds the two prose sites that name the same figure.
+
+**`diagrams/check_labels.py`** is new, and it closes the surface the eighth pass called the only
+reader-visible prose in the project with no gate over it. It walks every text run in the diagram
+sources, refuses em dashes, spaced en dashes and prose semicolons, and exempts verbatim code
+through an explicit list keyed by diagram and string rather than by a heuristic that would also
+wave through prose. Scope is computed from the documents, every diagram a `.tex` file includes or
+`build_deck.py` names, so it covers 19 diagrams today and picks up a twentieth the moment one is
+included. `bench/refresh_thesis.sh` runs it beside the two gates that already existed.
+
+### What changed in the manuscript
+
+| Item | Before | After |
+| --- | --- | --- |
+| TSan deadlock rate, prose and Table 7.6 footnote | "four of twelve", plus "six of twenty in a longer trial" | `\DeadlockTsanHits` of `\DeadlockTsanRuns`. The unsupported longer trial is dropped, and "minority" is corrected to "a majority of runs and not all of them", since 7 of 12 is a majority |
+| Taxonomy figure caption | "flags the inversion on a minority of runs" | The same two macros. This one was found only by sweeping after the prose was fixed |
+| Lost-update counts | 35,030/4,970 and 25,448/14,552 | Four macros off the logs, plus a sentence saying neither language is meaningfully better off, which is what the corrected figures show and the point of carrying the class |
+| Conformance campaign | `$223$` and `$9\,006$` | `\ConfHandOps` and `\ConfGenOps` |
+| Rust test count | "twenty-five Rust tests" | `\RustTests`, which measures 27. `\CppTestBinaries` replaces the hand-typed six |
+| Classes no sanitiser touches | "four of the ten" | `\FaultClassesUndetected` of `\FaultClasses`, with the intermittently detected deadlock named separately rather than folded in |
+| Table 5.4 | Nine hand-maintained rows, C++ column six short, deltas six over | `\input{figures/tab_loc.tex}`, columns summing to 674 and 762 and deltas to +88, all three asserted by the generator |
+| Bounded queue, two prose sites | "45 lines" | `\CppBoundedQueueLines` |
+| §7.5.1 p50 reading | "each variant's confidence interval contains the others' point estimates" | "every pair of confidence intervals overlaps", which is true and is all the argument needs |
+| Budget complement | "Better than $99.9\%$" | `\BudgetCoreShareRest`, a new macro computed as the complement, so the arithmetic cannot be eyeballed wrong again |
+| §7.2 reproducibility claim | "No value is hand-copied ... the text and the data cannot drift apart" | "Every measured quantity this chapter quotes reaches the page as a generated macro", which is now true and was verified byte-for-byte in the eighth pass |
+| `ai_statement.tex` | "so no figure is transcribed by hand" | "the measured quantities the thesis quotes reach the page as macros regenerated from the raw logs rather than as figures typed into a paragraph" |
+| §5.5 instrumentation | Pooling, direct jitter and "reported descriptively" in the indicative | Conditional throughout, with an explicit sentence that neither is reported in Chapter 7 because the campaign predates the instrumentation, cross-referenced to §7.5.1 |
+| §8.2 on Figure 8.1 | "states the whole result in one picture" | "draws the boundary itself", with the two-of-five scope stated in the prose and the full catalogue pointed at Table 7.6 |
+| `figures/tab_equivalence.tex` | Generated every refresh, `\input` by nothing | Placed in §7.5.2 as Table 6.3 with a new paragraph, as the fourth of five readings of the test family |
+| Diagram labels | About two dozen dash asides and prose semicolons across the reader-visible set | Zero, gated. 13 SVG sources and `build_new_diagrams.py` edited |
+
+### The equivalence table earns its place
+
+It was the one unrealised asset on the list and it turned out to be the strongest single addition.
+The new paragraph uses it to separate the five unresolved rows into two kinds, which the thesis
+could previously only assert. At the median the bound is $2.0\,\mu$s, so the difference the test
+resolves is also small in absolute terms and the two readings agree. In the tail block the bounds
+run to $1298\,\mu$s, which is the host's inability to see stated as a quantity instead of as a
+null. That is a real strengthening of the answer to the half of RQ1 the host cannot resolve, and
+it cost two pages.
+
+### Prose quality after the edits
+
+Nine rewrites removed a dash or a semicolon from a diagram label and left a comma splice or an
+overflowing panel behind. All nine were caught by rendering the diagrams and reading them, not by
+the gate, which only checks punctuation. Worth recording as a method note: the gate tells you the
+label is legal, not that it is good, so re-render and look. `17_guarantee_boundary` needed two
+passes for this reason.
+
+Thesis prose after the pass: zero semicolons in 35,544 words, four dash hits all legitimate
+typography, sentence length 20.4 ± 10.4 with a maximum of 63. "rather than" sits at 53 instances
+and 14.9 per ten thousand words, essentially where the eighth pass found it.
+
+### Build state
+
+Zero LaTeX errors, undefined references, undefined citations, multiply-defined labels, overfull
+boxes, floats too large, placeholder markers. 119 PDF pages. `\pagesCount` 105 with
+`\appendixCount` 6, up from 103, and the abstract form picked the new figure up on its own. All
+three prose gates report clean in one `refresh_thesis.sh` run: diagram labels, deck layout, deck
+prose. The abstract page was rendered and inspected again and still fits.
+
+**105 is above the author's stated preference of under 100.** Two pages are the equivalence table
+and its paragraph, and the rest is the RQ4 section that landed on 21 August. `AGENT.md` §5 says
+substance wins when the two conflict, so the figure is reported rather than traded away.
+
+### Outstanding
+
+1. **Rewrite the abstract unaided, then set `\abstractunaidedtrue`.** Now the *only* thing between
+   area 6 and level 5, and the only editing item left anywhere. Deliberately untouched by this
+   pass: the abstract is the maturity test in this programme, where a model is never permitted, so
+   a model rewriting it would defeat the point of the gate. Drop "median latency matches" while
+   rewriting, since the paired test resolves $-1.1$ and $-1.6\,\mu$s under the two allocators, and
+   decide what to do with jitter in the list of open dimensions now that §5.5 is conditional.
+2. **Bare-metal tail campaign** with hardware counters and allocation profiles on the same visit.
+   The only lift no editing reaches, and the only thing holding areas 3 and 4 below 5.
+3. **Optional:** replace `bugden2022rust` with a peer-reviewed equivalent. Area 2 is at 5 without
+   it.
+4. **Optional:** the ten diagrams no document includes still carry breaches, which
+   `check_labels.py --all` lists. They are not reader-visible, and the gate starts covering any of
+   them the moment a document includes it.

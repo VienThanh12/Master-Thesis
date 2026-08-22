@@ -85,10 +85,10 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
-State as of the eighth pass, 22 August 2026. The seventh pass found eleven of the sixth pass's
-twelve items untouched and the eighth found the numeric ones untouched again, so treat this list as
-durable rather than as a snapshot, and check each item against the source before reporting it. The
-one item that has moved is 7, the antithesis tic, now cut by 59 %.
+State as of the remediation pass, 22 August 2026 afternoon. **Most of this list is now closed.**
+A remediation pass following the eighth grading pass shut thirteen of fifteen items, so read the
+"resolved" section below before reporting anything from the numbered list, and check every item
+against the source. Two blockers remain, items 1 and 2, and neither is editing.
 
 1. **Rewrite the abstract unaided, then set `\abstractunaidedtrue`.** Blocking for submission and
    for area 6, and it cannot be delegated. Open since the fourth pass. Until it is set, every
@@ -99,65 +99,44 @@ one item that has moved is 7, the antithesis tic, now cut by 59 %.
    (`bench/TESTBED.md`). The only thing holding area 3's data half at 4, and the only lift no
    amount of editing reaches. What it buys is narrow and specific: far-tail ordering below
    saturation, plus a mechanism for the peak-RSS effect and for the operation-level gap.
-3. **Eleven hand-typed values, and ten of them are wrong.** These are the whole of area 4's cap,
-   and five of them are places where the manuscript contradicts evidence it ships:
-   - the TSan deadlock rate, printed as "four of twelve" in the prose and "$4$ of $12$" in Table
-     7.6's footnote, against `TSan reported in 7/12 runs` in `faults/results/taxonomy.csv`. The
-     eighth pass counted the twelve run logs directly: the warning fires in runs 0, 1, 2, 3, 7, 8
-     and 9;
-   - the same footnote's "$6$ of $20$ in a longer trial", for which **no 20-run log is shipped at
-     all** (`faults/results/` holds `run0`–`run11` and nothing else) and which `faults/README.md`
-     puts at 7 of 20;
-   - both lost-update pairs, printed as 35,030/4,970 for Rust and 25,448/14,552 for C++, against
-     28,914/11,086 and 27,788/12,212 in `lost_update.rust.log` and `lost_update.tsan.log`;
-   - the conformance campaign at L3051–3052, `$9\,006$` against `summary.json`'s 792,964, beside a
-     hand-typed `$223$`, both of which have macros (`\ConfGenOps`, `\ConfHandOps`) used correctly
-     forty lines earlier. **Search for `9\\,006`**: the LaTeX thin space defeats a `9,006` or
-     `9006` grep, which is how the seventh pass briefly mis-scored this as closed;
-   - "twenty-five Rust tests" at L3051, against 27 from `cargo test --release -- --list`;
-   - "four of the ten classes untouched" at L2957, against two `undetected` rows in
-     `taxonomy.csv` (three if the intermittent deadlock is counted, never four);
-   - Table 6.4's C++ column, nine rows summing to 668 against a printed `\CppRawLines` of 674 and
-     a delta column summing to +94 against a printed +88 (the Rust column sums correctly);
-   - the §7.5.1 p50 sentence, which says each interval "contains" the others' point estimates
-     when no interval contains a cross-language median and the true claim is "overlaps";
-   - the 99.9 % complement of `\BudgetCoreShareMax` = 0.250, whose complement is 99.750 %.
-   §7.2's "no value is hand-copied ... the text and the data cannot drift apart" is falsified by
-   all of them and should be narrowed to the claim that is true and strong on its own.
-3a. **`ai_statement.tex` carries the same false claim, in a declaration signed in the author's
-   name.** Under *What the model did not settle*: "Each number reaches the text through a macro
-   regenerated from the raw logs, so no figure is transcribed by hand." Found by the eighth pass.
-   This is the more serious instance of blocker 3, because declaration truthfulness ranks above any
-   prose defect (see the checks-by-yield list) and because the sentence describes what the author
-   did rather than what the pipeline does. The claim underneath is true and provable: the eighth
-   pass reran `bench/plot_figures.py --outdir /tmp/figcheck` and `tab_significance`, `tab_latency`,
-   `tab_resource`, `tab_overload`, `tab_equivalence` and `gen_macros` all came back byte-identical
-   to the committed files. Narrowing the sentence to the campaign statistics costs nothing and
-   removes the falsification.
-4. **§5.5 describes instrumentation the reported campaign did not have**: pooled far-tail figures,
-   directly measured jitter, and p99.99 "reported descriptively". §7.5.1 says the campaign predates
-   it. Put the three sentences in the conditional, and either drop jitter from the abstract's list
-   of open dimensions or mark it as future work.
-5. **`figures/tab_equivalence.tex` is generated on every refresh and `\input` by no document.** An
-   unrealised asset rather than a defect: it holds the equivalence-bound reading of RQ1, which is
-   the strongest available answer to the half of RQ1 the host cannot resolve.
-6. **Diagram labels breach the house style, and nothing gates them.** `.aitells.py` reads `.tex`
-   only and `build_deck.py`'s `check_prose_style` covers the deck only, so the figures are the one
-   reader-visible prose surface with no check. Of the eleven diagrams the thesis includes, five
-   carry a dash aside in a label, panel title or in-figure footer (fourteen occurrences:
-   `17_guarantee_boundary` 5, `04_request_lifecycle_sequence` 4, `08_borrow_checker_uaf` 2,
-   `27_workload_timeline` 2 literal, `16_coordinated_omission` 1) and five carry a prose semicolon
-   (`17_guarantee_boundary` 2, `29_research_gap`, `07_ffi_seam`, `12_concurrency_models`,
-   `15_overload_cliff`). Fix the `diagrams/` sources, re-render, then extend the gate.
-7. **Prose: largely actioned, first item on this list to move.** "rather than" stood at 154
-   instances and 44 per ten thousand words at the seventh pass. At the eighth it reads 51 instances
-   and 14.5 per ten thousand (raw occurrences 167 to 69), with `.aitells.py` unmodified, so the
-   change is in the prose. Sentence length also moved from 24.1 ± 13.0 with a maximum of 73 to
-   20.3 ± 10.4 with a maximum of 63. Re-measure rather than re-reporting the old figure.
-8. **§8.2 says Figure 8.1 "states the whole result in one picture"** while the figure draws two of
-   the five boundary classes. The caption discloses the gap, so the prose is the part to fix.
+3. **Closed 22 August: the eleven hand-typed values, §7.2's reproducibility claim, the
+   declaration's false method sentence, §5.5's indicative instrumentation, the unplaced
+   equivalence table, §8.2's Figure 8.1 overclaim, and the diagram labels.** All seven are in the
+   resolved list below with the mechanism that keeps each shut. Do not re-report them from
+   memory of an earlier pass. Do check the mechanisms still hold: run
+   `bench/artefact_facts.py`, `bench/complexity.py` and `diagrams/check_labels.py`, and confirm
+   `figures/tab_loc.tex` is `\input` rather than inlined.
 
-**Resolved, do not re-report.** The class file is now the department's own `HYthesisML.cls` with
+4. **Prose: actioned, and the only item on this list ever to move on prose grounds.**
+   "rather than" stood at 154 instances and 44 per ten thousand words at the seventh pass. It now
+   reads 53 and 14.9 per ten thousand (raw occurrences 167 to 69), with `.aitells.py` unmodified,
+   so the change is in the prose. Sentence length moved from 24.1 ± 13.0 with a maximum of 73 to
+   20.4 ± 10.4 with a maximum of 63. Re-measure rather than re-reporting the old figure.
+5. **Optional, not blocking:** replace `bugden2022rust`, the one remaining arXiv item, with a
+   peer-reviewed equivalent. Area 2 sits at 5 without it, since it is cited twice and both times
+   beside a peer-reviewed source.
+6. **Optional, not reader-visible:** the ten diagrams no document includes still carry dash asides
+   and prose semicolons. `diagrams/check_labels.py --all` lists them. The gate covers any of them
+   from the moment a document includes it, so this is housekeeping and not a defect.
+
+**Resolved 22 August 2026, with the mechanism that keeps each shut. Do not re-report.**
+
+| Item | Closed by |
+| --- | --- |
+| The eleven hand-typed values (deadlock rate in prose, footnote and figure caption, the unsupported "6 of 20" trial, both lost-update pairs, conformance size, Rust test count, untouched-class count, `tab:loc`'s C++ and delta columns, the p50 "contains" sentence, the 99.9 % complement) | Eleven new macros from `bench/artefact_facts.py` (fault catalogue plus suite size), `\BudgetCoreShareRest` from `plot_figures.py`, `\CppBoundedQueueLines` from `complexity.py`, and one reworded sentence. The deadlock rate is cross-checked between `taxonomy.csv` and the per-run logs, and a mismatch is a hard error |
+| Table 5.4 (`tab:loc`) six lines short | Generated as `figures/tab_loc.tex`. The `CONCERNS` partition in `complexity.py` must cover both file sets and each column must sum to its measured total, or the script refuses to write |
+| §7.2's "no value is hand-copied ... cannot drift apart" | Narrowed to "every measured quantity this chapter quotes reaches the page as a generated macro", which is true and was verified byte-for-byte |
+| `ai_statement.tex`'s "no figure is transcribed by hand" | Same narrowing, in the declaration |
+| §5.5's indicative pooling, jitter and p99.99 | Conditional throughout, with an explicit sentence that neither is reported in Chapter 7 and a cross-reference to §7.5.1 |
+| `figures/tab_equivalence.tex` unplaced | Placed in §7.5.2 as the fourth of five readings of the test family, with a paragraph separating tight bounds from wide ones |
+| §8.2's "states the whole result in one picture" | Now "draws the boundary itself", with the two-of-five scope in the prose |
+| Diagram labels ungated | `diagrams/check_labels.py`, run by `refresh_thesis.sh`. Scope computed from the documents, verbatim code exempt through an explicit list |
+
+**A method note from that pass.** Nine of the label rewrites removed a dash or semicolon and left
+a comma splice or a panel overrun behind, and the gate passed all nine, because it checks
+punctuation and not sense. Re-render the diagrams and read them.
+
+**Also resolved earlier.** The class file is now the department's own `HYthesisML.cls` with
 the pristine template beside it, so the `UH_DS_MSc.cls` item is closed (the file survives in the
 root but is not loaded). The AI declaration is gated and truthful. RQ1's metric list matches the
 reported columns. `zhang2026deadlock` is the journal version, and a preprint flag on it is a
@@ -175,7 +154,8 @@ holds the full list.
   deadlock is detected by ThreadSanitizer **intermittently**, in 7 of 12 runs per
   `faults/results/taxonomy.csv`. Reporting an inconvenient result is evidence for area 1 and area
   5, not against them. The intermittency *finding* is load-bearing and must not be corrected. The
-  *rate printed in the thesis* is a separate matter and is stale: see standing blocker 3.
+  *rate printed in the thesis* was a separate matter and was stale until 22 August. It now reads
+  through `\DeadlockTsanHits` and `\DeadlockTsanRuns` in all three places, so a rerun moves it.
 - Peak resident set size is a real language effect that reproduces under both allocators, but the
   **allocator effect is the larger one**. Neither half may be dropped.
 - The end-to-end sweep is dominated by the cross-thread handoff, and the operation is a fraction
