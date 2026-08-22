@@ -82,7 +82,7 @@ def benchmark_harness():
         ("Four build variants", [
             "Two languages crossed with",
             "two allocators. Matched",
-            "optimisation levels; both",
+            "optimisation levels. Both",
             "sides pin the same shard",
             "and intra-shard hashes.",
         ]),
@@ -114,7 +114,7 @@ def benchmark_harness():
            weight=700)
     d.text(31, 255, f"{M['NLoadLevels']} offered-load levels up to "
                     f"{M['MaxOfferedLoad']} kops/s give {M['NRuns']} measured "
-                    f"runs; interleaving makes the interference common to a "
+                    f"runs. Interleaving makes the interference common to a "
                     f"block, so it cancels.", 11, BODY)
 
     row = [
@@ -198,7 +198,7 @@ def evidence_classes():
         ("Onset of the overload cliff",
          "Where saturation begins depends on the scheduler."),
         ("CPU utilisation (RQ3)",
-         "Reverses sign between allocators; reported as unresolved."),
+         "Reverses sign between allocators, reported as unresolved."),
         ("Peak resident set size (RQ3)",
          "A run-level statistic, so pairing rescues it."),
     ]
@@ -227,7 +227,7 @@ def evidence_classes():
     ], 11, BODY, lh=16)
 
     d.footer(["Every row on which the two columns agree is a property of the "
-              "source code; every row on which they differ is a property of "
+              "source code. Every row on which they differ is a property of "
               "the machine."], y=540)
     return d
 
@@ -247,17 +247,17 @@ def traceability_map():
     lanes = [
         ("RQ1", "O1  Quantify the latency distributions to overload, and "
                 "locate any divergence",
-         "\u00a77.5.1 and \u00a77.5.2 \u2014 equivalent at the median, "
+         "\u00a77.5.1 and \u00a77.5.2: equivalent at the median, "
          "unresolvable at the tail"),
         ("RQ3", "O3  Measure the resource cost of the safety model under "
                 "matched conditions",
-         "\u00a77.5.4 \u2014 peak RSS reproduces, CPU does not"),
+         "\u00a77.5.4: peak RSS reproduces, CPU does not"),
         ("RQ2", "O2  Determine which defect classes are prevented at compile "
                 "time, and when the rest are caught",
-         "\u00a77.5.5 \u2014 five prevented, two compile and misbehave"),
+         "\u00a77.5.5: five prevented, two compile and misbehave"),
         ("RQ4", "O4  Build and measure an incremental-adoption prototype at "
                 "the language boundary",
-         f"\u00a77.5.6 \u2014 bounded at {M['FfiOpBoundPct']}% of the "
+         f"\u00a77.5.6: bounded at {M['FfiOpBoundPct']}% of the "
          f"operation"),
     ]
     y, lane_y = 102, []
@@ -309,7 +309,7 @@ def traceability_map():
     d.footer([
         "H1 does double duty for RQ1 and RQ3, so a single wording had to "
         "cover equivalence in both its latency and its resource sense",
-        "\u2014 Chapter 8 finds that to be its main weakness.",
+        "Chapter 8 finds that to be its main weakness.",
     ], y=474)
     return d
 
@@ -437,9 +437,9 @@ def repro_artifacts():
     ], 10.5, BODY, lh=14)
     d.arrow(430, 246, 430, 262, color=GREEN)
     d.card(324, 268, 214, 92, "It calls", [
-        "plot_figures.py  \u2014 figures,",
+        "plot_figures.py: figures,",
         "tables, and gen_macros.tex",
-        "complexity.py  \u2014 size and",
+        "complexity.py: size and",
         "cyclomatic-complexity proxies",
     ], fill=WHITE, stroke=GREEN_EDGE, rx=6, title_size=11.5, body_size=10,
         pad=12, gap=16, lh=13.5)
@@ -457,8 +457,8 @@ def repro_artifacts():
                stroke=AMBER_EDGE)
         oy += 32
     d.lines(598, 288, [
-        "The environment record \u2014 CPU model,",
-        "kernel, and toolchain versions \u2014 is",
+        "The environment record (CPU model,",
+        "kernel, and toolchain versions) is",
         "captured by capture_env.sh and stored",
         "with each result set, so the conditions of",
         "a measurement travel with its data.",
@@ -515,7 +515,7 @@ def threats_validity():
              "Pairing cancels only what a block shared, so the tail "
              "percentiles stay unresolved", "partial"),
             ("A corrected p-value that does not replicate",
-             "The allocator control runs every comparison twice; "
+             "The allocator control runs every comparison twice, and "
              "replication is followed over the p-value",
              "Costs a result where the two disagree: the CPU effect is "
              "reported as unresolved", "good"),
@@ -584,7 +584,7 @@ def threats_validity():
         "would ask rather than the one a language comparison asks.",
     ], 10.5, BODY, lh=15)
     d.footer([
-        "Only the last column is a live risk; the middle column is what has "
+        "Only the last column is a live risk. The middle column is what has "
         "already been done about each.",
         "Two rows carry no mitigation at all, and are recorded as such.",
     ], y=y + 100)
@@ -604,8 +604,8 @@ def contributions():
             "Safe Rust rejects all five injected",
             "memory-safety and data-race classes at",
             "compile time. The two boundary classes",
-            "\u2014 a lock-order deadlock and a lost",
-            "update \u2014 compile and misbehave",
+            "(a lock-order deadlock and a lost",
+            "update) compile and misbehave",
             "exactly as they do in C++.",
             "",
             "Rust eliminates data races, not race",

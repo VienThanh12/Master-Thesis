@@ -35,6 +35,14 @@ else
   echo "  SKIP: cairosvg not installed; keeping existing diagrams/pdf/*.pdf"
 fi
 
+# The third prose surface. .aitells.py reads the thesis .tex and build_deck.py
+# checks the saved deck, so before this gate existed the figure labels were the
+# only reader-visible prose in the project with nothing looking at it, and about
+# two dozen dash asides and prose semicolons had accumulated there. Scope is the
+# diagrams a document actually includes, computed from the documents.
+echo "== checking diagram labels against the prose style =="
+python3 "$root/diagrams/check_labels.py"
+
 # Source-level proxies come from the code rather than from a campaign log, so
 # they are regenerated here too and are the one part of this script that stays
 # valid without a fresh measurement run.

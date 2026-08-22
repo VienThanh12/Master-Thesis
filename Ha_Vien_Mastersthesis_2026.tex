@@ -3216,7 +3216,8 @@ defect is a compile error, so none can be written. The C++ columns there are a p
 and no one sanitiser covers the five. Below the rule the Rust column joins them, and on the
 reference-cycle leak and the release-build overflow the C++ tooling is ahead. The lock-order
 deadlock is the one cell where a tool reports intermittently: ThreadSanitizer flags the inversion
-on a minority of runs while the program deadlocks on every one.\label{fig:taxonomy}}
+in $\DeadlockTsanHits$ of $\DeadlockTsanRuns$ runs while the program deadlocks on every
+one.\label{fig:taxonomy}}
 \end{figure}
 
 \subsection{Migration (RQ4)}\label{sec:migrationresults}
