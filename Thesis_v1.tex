@@ -134,49 +134,47 @@
 
 \begin{itemize}
   \item The 5G RAN control plane (the gNB-CU-CP) now runs as software on ordinary servers.
-        It is large, it keeps state for every connected device, it serves many requests at
-        once, and the 5G target for control plane latency, the transition from a
-        battery-efficient state to continuous data transfer, is 10~ms~\cite{3gpp38913}.
-        One defect, or one regression in the slowest requests, therefore degrades the whole
-        site. The work is carried out at Nokia on a UE Context Management service modelled on a
-        real gNB-CU-CP component.
-  \item This software is written mostly in C++. C++ gives the control over memory and timing
-        that such a system needs, but it leaves memory-safety and concurrency mistakes to the
-        programmer~\cite{szekeres2013sok}. Rust promises the same performance while rejecting
-        those mistakes at compile time~\cite{klabnik2023rust}. The choice has a long horizon:
-        3GPP has allocated Release 20 to the 6G studies and Release 21 to the normative work,
-        with migration from 5G in scope~\cite{3gpp2024road6g}, so a language chosen for the
-        control plane of the current generation is inherited by the next.
-  \item The problem is a lack of evidence. Telecom vendors are under growing pressure to move
-        to memory-safe languages~\cite{cisa2023memorysafe}, and the closest prior work is a
-        cluster of at least five Ericsson master's theses, none of which answers the question
-        as posed here. Three keep the runtime in play alongside the language, comparing
-        Boost.Fibers, goroutines, Tokio, Monoio, Glommio and DPDK Eventdev rather than the
-        languages that host
+        It is large. It keeps state for every connected device and serves many requests at
+        once. The 5G target for control-plane latency, the switch from a battery-saving state
+        to continuous data transfer, is 10~ms~\cite{3gpp38913}. One defect, or one regression
+        in the slowest requests, can degrade the whole site. The work is carried out at Nokia on
+        a UE Context Management service modelled on a real gNB-CU-CP component.
+  \item Today this software is written mostly in C++. C++ gives the control over memory and
+        timing that such a system needs, but the programmer must prevent memory-safety and
+        concurrency mistakes~\cite{szekeres2013sok}. Rust aims for the same performance while
+        rejecting those mistakes at compile time~\cite{klabnik2023rust}. The choice matters for
+        a long time. 3GPP has set Release 20 for 6G studies and Release 21 for normative work,
+        with migration from 5G in scope~\cite{3gpp2024road6g}. A language chosen for today's
+        control plane is inherited by the next generation.
+  \item The problem is a lack of evidence. Telecom vendors face growing pressure to move to
+        memory-safe languages~\cite{cisa2023memorysafe}. The closest prior work is a cluster of
+        at least five Ericsson master's theses, and none answers the question as posed here.
+        Three keep the runtime in play with the language. They compare Boost.Fibers, goroutines,
+        Tokio, Monoio, Glommio and DPDK Eventdev, not the languages that host
         them~\cite{karlback2021ran,olsson2023asyncpackets,arvidsson2025async}. The other two
-        report execution time and peak memory rather than tail behaviour under rising
-        load~\cite{olsson2023ranmgmt,emberg2023asn1}. Emberg and Wadsten come closest in
-        method, with a matched C++ and Rust pair joined by a C wrapper, but measure a
+        report execution time and peak memory, not tail behaviour under rising
+        load~\cite{olsson2023ranmgmt,emberg2023asn1}. Emberg and Wadsten come closest in method.
+        They build a matched C++ and Rust pair joined by a C wrapper, but they measure a
         stateless transformation~\cite{emberg2023asn1}. No study holds the specification,
-        concurrency model, and build settings fixed for a stateful, concurrent subsystem while
-        sweeping past saturation and measuring incremental migration cost.
-  \item That evidence is also concentrated in one vendor and untested outside it, while on the
-        other side there is no study of Rust among Nokia's indexed publications at all. The
-        nearest peer-reviewed position from that side argues for making memory-error sanitisation
-        practical rather than for replacing it with a compile-time
-        guarantee~\cite{gjomemo2016mesc}, which is the strategy this thesis tests against.
+        concurrency model, and build settings fixed for a stateful, concurrent subsystem, sweeps
+        past saturation, and measures incremental migration cost.
+  \item That evidence is also concentrated in one vendor and untested outside it. On the other
+        side, no study of Rust appears among Nokia's indexed publications at all. The nearest
+        peer-reviewed position argues for making memory-error sanitisation practical, not for
+        replacing it with a compile-time guarantee~\cite{gjomemo2016mesc}. That is the
+        strategy this thesis tests against.
   \item Four research questions frame the work. RQ1 compares latency predictability (median,
-        p99, p99.9, maximum) under increasing load and overload with the concurrency model held
+        p99, p99.9, maximum) under rising load and overload, with the concurrency model held
         fixed~\cite{dean2013tail}. RQ2 asks which defect classes Rust removes at compile time,
-        at what stage the rest are detected, and which classes it does not prevent. RQ3 asks what
-        overhead Rust's safety model imposes on throughput, CPU, and memory. RQ4 asks what
+        at what stage the rest are detected, and which classes it does not prevent. RQ3 asks
+        what overhead Rust's safety model imposes on throughput, CPU, and memory. RQ4 asks what
         incremental adoption costs in effort, FFI interoperability, and risk inside an existing
         C++ RAN codebase.
   \item The work contributes five things. A reproducible, telecom-relevant benchmarking
         framework. A frozen shared specification with two parity-tested implementations. A
         quantitative comparison that emphasises tail latency under overload. A defect-class
         taxonomy that marks where Rust's compile-time guarantee stops. And evidence-based
-        guidelines for incremental adoption, where the dominant cost is the learning curve and not
+        guidelines for incremental adoption. The dominant cost there is the learning curve, not
         run-time~\cite{fulton2021adopting}.
 \end{itemize}
 
@@ -186,31 +184,30 @@
 \chaptermark{Background}
 
 \begin{itemize}
-  \item In the NG-RAN architecture the base station (gNB) is split into a central and a
-        distributed unit, and the central unit is split again into a control plane and a user
-        plane. UE Context Management sits in the control plane, the gNB-CU-CP, and reaches its
+  \item In the NG-RAN architecture the base station (gNB) is split into a central unit and a
+        distributed unit. The central unit is split again into a control plane and a user plane.
+        UE Context Management sits in the control plane, the gNB-CU-CP, and talks to its
         neighbours over the standardised F1, E1, and NG interfaces~\cite{3gpp38401}.
   \item Deadlines are met or missed because of predictability, not average speed. The metrics
-        that matter are therefore the p99 and p99.9 latencies and the jitter around
-        them~\cite{dean2013tail}. They have to be measured past the saturation point and
-        recorded without coordinated omission, that is, without letting a load generator that
+        that matter are the p99 and p99.9 latencies and the jitter around
+        them~\cite{dean2013tail}. They must be measured past the saturation point. They must also
+        be recorded without coordinated omission, that is, without letting a load generator that
         has fallen behind hide its own slowest
         requests~\cite{schroeder2006openclosed,tene_hdrhistogram}.
   \item C++ offers abstractions that cost nothing at run time, deterministic cleanup through
-        RAII, and no garbage collector. Safety, however, remains the programmer's
-        responsibility~\cite{szekeres2013sok}, and sanitizers report only the errors that a
-        given test run happens to reach.
-  \item Rust has the same run-time model and also no garbage collector, but it checks memory
-        safety and freedom from data races at compile time, using ownership, borrowing, and
-        thread-safety traits such as \texttt{Send}~\cite{klabnik2023rust,jung2021safe}. Code
-        that needs to step outside
-        those rules must be marked \texttt{unsafe}, which keeps such code small and easy to
-        find.
-  \item The comparison is therefore C++ against Rust. Garbage-collected languages are left out
-        because their pauses are incompatible with the latency targets. The concurrency model
-        is held fixed in both implementations, and the C ABI is treated as the realistic
-        adoption path. No earlier study isolates the language this way for a stateful,
-        concurrent subsystem~\cite{karlback2021ran,emberg2023asn1}.
+        RAII, and no garbage collector. Safety remains the programmer's
+        responsibility~\cite{szekeres2013sok}. Sanitisers report only the errors that a given
+        test run happens to reach.
+  \item Rust has the same run-time model and also no garbage collector. It checks memory safety
+        and freedom from data races at compile time, using ownership, borrowing, and thread-safety
+        traits such as \texttt{Send}~\cite{klabnik2023rust,jung2021safe}. Code that needs to
+        step outside those rules must be marked \texttt{unsafe}. That keeps such code small and
+        easy to find.
+  \item The comparison is C++ against Rust. Garbage-collected languages are left out because
+        their pauses are incompatible with the latency targets. The concurrency model is held
+        fixed in both implementations. The C ABI is treated as the realistic adoption path. No
+        earlier study isolates the language this way for a stateful, concurrent
+        subsystem~\cite{karlback2021ran,emberg2023asn1}.
 \end{itemize}
 
 \chapter{Problem Context: UE Context Management and Predictability\label{chapter:context}}
@@ -220,25 +217,24 @@
   \item UE Context Management owns the lifecycle of one context per connected device. Each
         context moves through four states, Idle, Connected, Reconfiguring, and Released, driven
         by a small set of lifecycle operations. An operation that is illegal in the current
-        state returns a typed error instead of being carried out.
-  \item The subsystem was chosen because it is both representative and small enough to keep
+        state returns a typed error. It is not carried out.
+  \item The subsystem was chosen because it is representative and still small enough to keep
         under control. It has mutable state per device, a strict lifecycle, heavy concurrency,
-        and hard latency targets~\cite{3gpp38913,3gpp22261}, and it is still simple enough to specify
+        and hard latency targets~\cite{3gpp38913,3gpp22261}. It is still simple enough to specify
         precisely and to test for identical behaviour in two languages.
-  \item Five defect classes fall inside Rust's guarantee, and each has a natural form in this
-        subsystem: use-after-free, double-free, iterator invalidation, data race, and
-        unguarded shared mutation. What the guarantee rests on is aliasing control and
-        data-race freedom~\cite{jung2021safe}. The catalogue is this study's own.
+  \item Five defect classes fall inside Rust's guarantee. Each has a natural form in this
+        subsystem: use-after-free, double-free, iterator invalidation, data race, and unguarded
+        shared mutation. The guarantee rests on aliasing control and data-race
+        freedom~\cite{jung2021safe}. The catalogue is this study's own.
   \item Five further classes are included on purpose from outside that guarantee: a lock-order
         deadlock, a lost update, a leak through a reference cycle, an integer overflow in a
         release build, and the blast radius of a failed shard worker. They keep the study from
-        confirming a foregone conclusion and show instead where the guarantee stops. Two of
-        them return the opposite of the expected result, with the C++ tooling reporting what
-        Rust's does not.
-  \item Scale is what makes the tail matter. One procedure triggers many operations and one
-        site serves many devices, so a p99.9 measured on a single operation becomes a steady
-        rate of degraded procedures in the field~\cite{dean2013tail}. This is why the load
-        sweep is pushed past the point where the service starts to fall behind.
+        confirming a foregone conclusion. They show where the guarantee stops. Two of them return
+        the opposite of the expected result. The C++ tooling reports what Rust's does not.
+  \item Scale is what makes the tail matter. One procedure triggers many operations. One site
+        serves many devices. A p99.9 measured on a single operation becomes a steady rate of
+        degraded procedures in the field~\cite{dean2013tail}. That is why the load sweep is
+        pushed past the point where the service starts to fall behind.
 \end{itemize}
 
 \chapter{Objectives\label{chapter:objectives}}
