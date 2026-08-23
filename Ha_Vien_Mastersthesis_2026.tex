@@ -545,9 +545,12 @@ not the compiler's own work, and the binary-size ordering reverses once the two 
 to one linkage policy. Both of these results are final.
 
 On \emph{performance} (RQ1, RQ3) the answer divides at saturation, and drawing that division
-correctly is part of the contribution. Below saturation the two implementations cannot be told
-apart end to end at the median, and the far tail cannot be resolved on the available host. That
-null is less informative than it looks. An end-to-end operation here is only
+correctly is part of the contribution. Below saturation the two implementations are equivalent end
+to end in central behaviour, by a margin no deployment would notice. The paired test does resolve a
+median difference of $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators, with an
+interval reaching $\PFiftyDiffCIMax\,\mu$s, so the equivalence is practical and not statistical.
+The far tail in the same regime cannot be resolved on the available host at all. Neither result is
+as informative as it looks. An end-to-end operation here is only
 $\BudgetCoreShareMax\%$ language work and the rest is a cross-thread handoff, so the sweep bounds
 the design and not the language. Measured on its own, the operation is
 $\BudgetCoreRatio\times$ faster in Rust, while the Rust process holds a few MiB more resident
@@ -4388,8 +4391,10 @@ reasons that trace to the standard library's choice of hash-map layout and not t
 about safety.
 
 The second division is one of regime, and it is the more consequential. Below saturation the two
-languages are equivalent at the median, which is a real result about deployments of this shape.
-Their far tail stays unresolvable on a virtualised host, which is an admission about the
+languages are equivalent at the median for any purpose a deployment would care about, and that is a
+real result about deployments of this shape. The equivalence is practical rather than statistical,
+since the paired test does resolve $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both
+allocators. Their far tail stays unresolvable on a virtualised host, which is an admission about the
 instrument. Past saturation they are not equivalent. The C++ build sustains
 $\OverloadThrRatio\times$ the throughput of the Rust build, in \OverloadThrAgree{} interleaved
 repeats under both allocators, while drawing $\OverloadCpuPerOpRatio\times$ the CPU per completed

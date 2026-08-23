@@ -1459,3 +1459,183 @@ substance wins when the two conflict, so the figure is reported rather than trad
 4. **Optional:** the ten diagrams no document includes still carry breaches, which
    `check_labels.py --all` lists. They are not reader-visible, and the gate starts covering any of
    them the moment a document includes it.
+
+---
+
+## Ninth pass — 23 August 2026
+
+Graded from `Ha_Vien_Mastersthesis_2026.tex` at its 22 August 14:46 state with a current build
+(PDF and log both 14:52), the generated artefacts under `figures/`, and the published evidence
+under `bench/results/`, `faults/results/` and `ffi/results/`. No edits were made: this is a
+grading pass.
+
+**The headline: not one measured value is wrong, and seven statements about the values are.**
+This is the first pass on record to find no wrong number anywhere. Every mechanism the
+remediation pass installed still holds. What replaced the old defect class is a new one in the
+same neighbourhood: claims about the evidence that the evidence does not support.
+
+| Area | Remediation pass | This pass | Why it moved |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Unchanged |
+| 2. Scholarly framework and sources | 5 | **5** | Unchanged |
+| 3. Research data and method | 4.5 | **4.5** | Unchanged. Only the bare-metal campaign lifts it |
+| 4. Presentation of results | 4.5 | **4.0** | **Disagreement.** Three figures misstate the result they illustrate, two reproducibility claims outrun their artefacts, and three summary passages assert median equivalence that §7.5.1 resolves against. No data error is involved |
+| 5. Discussion and conclusions | 5 | **5** | Unchanged. The discussion chapter states the median result correctly, so the summary slips are not its defect |
+| 6. Academic text | 4.5 | **4.5** | Unchanged. The abstract is still the whole of the cap |
+| 7. Work during the thesis process | not assessable | **not assessable** | No manuscript settles it |
+| **Mean of the six assessable** | 4.75 | **4.67** | |
+
+### What was verified as still holding
+
+Worth recording, because the point of the generated layer is that a later pass can check it
+cheaply and did.
+
+- `bench/artefact_facts.py` regenerated into a scratch directory and `gen_artefacts.tex` came
+  back **byte-identical**.
+- `figures/tab_loc.tex` column sums verified by hand: C++ 674, Rust 762, delta +88, matching
+  `\CppRawLines`, `\RustRawLines` and `\LocGap`. The generator's assertion is doing its job.
+- Around thirty macros cross-checked against the generated table bodies. Every one agrees.
+  Sampled: `\PNineNineMaxCI` 1480 against the widest p99 interval in `tab_latency`, `\NSignificant`
+  9 and `\NExclZero` 10 counted off `tab_significance` and the overload rows, `\NEqvUnresolved` 5
+  against the five "not resolved" verdicts in `tab_equivalence`, `\EqvBoundTailMax` 1298,
+  `\BudgetBoundVsCore` 58 as 2.0 µs over 34.5 ns, `\BudgetCoreShareRest` 99.750, `\DepsJemallocShipping`
+  plus `\DepsJemallocBuildOnly` summing to `\DepsJemalloc`, `\BuildDepShareCpu` 54 from 64.8 and
+  29.6, `\FootStaticRatioAbs` 2.2 from 1577 and 723.
+- All ten rows of Table 7.9 checked against all four columns of `faults/results/taxonomy.csv`.
+  They agree.
+- Every generated figure reproduces from the current campaign, and every numeric claim in every
+  generated caption checks out.
+- Build: zero LaTeX errors, undefined references, undefined citations, multiply-defined labels,
+  overfull boxes, underfull boxes, floats too large, placeholder markers. 119 PDF pages,
+  `\pagesCount` 105 with `\appendixCount` 6.
+- Prose: zero semicolons in 35,544 words, four dash hits all legitimate typography, sentence
+  length 20.4 ± 10.4 with a range of 3 to 63. `diagrams/check_labels.py` clean over all 19
+  reader-visible diagrams.
+
+### Finding 1: the median is resolved in Chapter 7 and equivalent in three summaries
+
+The widest-reaching finding, because two of the three sites are where a reader looks first.
+§7.5.1 says "the median is now a resolved difference and not a null". `tab_significance` gives
+both p50 rows a Holm-adjusted *p* that clears (0.012 and 0.00069) and `tab_equivalence` gives
+both the verdict "significant".
+
+There were **four** sites, not three. The sync rule caught the fourth: `Thesis_v1.tex`, the
+supervisor-facing skeleton, carried the same bare claim in its chapter 9 bullet.
+
+| Where | What it said | Status |
+| --- | --- | --- |
+| Abstract, l. 226 | "Below it median latency matches" | **Open.** Already on record from the remediation pass. Untouchable by a model, so it waits for the unaided rewrite |
+| §1.4, l. 548 | "the two implementations cannot be told apart end to end at the median" | **Fixed 23 August.** Was the sharpest of the four: the paired test is precisely the instrument that does tell them apart |
+| §9, l. 4391 | "the two languages are equivalent at the median, which is a real result about deployments of this shape" | **Fixed 23 August.** Was defensible, since the trailing clause signalled practical rather than statistical equivalence, but it never mentioned the resolved difference |
+| `Thesis_v1.tex`, l. 531 | "Below saturation the two are equivalent at the median." | **Fixed 23 August.** Found by applying the sync rule rather than by reading the thesis. Supervisor-facing, so it mattered more than its length suggests |
+| §8.2, l. 3489 | "equivalent in central behaviour, by a margin no deployment would notice. The small paired difference at the median that does clear the correction is a fraction of an $80\,\mu$s operation" | **Was already correct**, and supplied the register the three fixes adopt |
+
+The thesis is strict about the mirror error, never letting "cannot tell" become "equivalent".
+Here the register slipped the other way. The honest claim is a difference too small to matter, not
+the absence of one.
+
+**What the three fixes say now.** Each states the practical equivalence first, then names the
+resolved difference through `\PFiftyDiffAbsMax`, then draws the distinction explicitly. §1.4 adds
+"so the equivalence is practical and not statistical" and §9 and the skeleton carry the same
+clause. §1.4's following sentence changed too, because "That null is less informative than it
+looks" no longer had a null to refer to at the median: it now reads "Neither result is as
+informative as it looks", covering the small resolved difference and the unresolved tail together.
+No number is typed: both new figures are macros. Build after the edits: zero LaTeX errors,
+undefined references, undefined citations, multiply-defined labels, overfull boxes, floats too
+large. `\pagesCount` unchanged at 105 with 6 appendix pages, 119 physical. `.aitells.py` on both
+files reports no new dash aside and no semicolon, and the thesis's sentence-length distribution is
+unmoved at 20.4 ± 10.4.
+
+### Finding 2: three figures misstate the result they illustrate
+
+| Figure | What it says | What the thesis says elsewhere |
+| --- | --- | --- |
+| `fig:borrowuaf`, caption l. 827 | the C++ use-after-free "is caught only at runtime (and only under AddressSanitizer, on a path a test exercises)" | `taxonomy.csv` row 1 is `use_after_free,detected,detected` and Table 7.9 prints "detected & detected & not detected". TSan catches it too |
+| `fig:ffiseam`, `diagrams/07_ffi_seam.svg` bottom band | "Per-call cost: the crossing is negligible next to the operation it invokes", 2.54 ns against 12.7 µs | §7.6 disowns exactly this ("an empty call and a full round-trip are not the same experiment") and §8.3 records the first version of the measurement as right-answer-wrong-reason. The measured $+192$ ns, its $[-954, +1341]$ interval and the 10.91 % bound appear nowhere on the diagram |
+| `fig:tailconcept`, `diagrams/11_tail_latency_concept.svg` | "so a p99 per-op delay becomes a p99 per-procedure delay" | The panel heading is "Fan-out turns a rare delay into a common one" and the caption argues amplification. With the four operations drawn it is roughly 4 %, not 1 % |
+
+Plus two smaller items: `fig:budget`'s caption says "the campaign's one resolved timing
+difference" where the body sentence it compresses says "one *language* difference in time", which
+is defensible and the caption is not. And `fig:effects`'s right-panel axis label is clipped at the
+canvas edge, because `plot_figures.py` saves it without `bbox_inches="tight"` where
+`fig_taxonomy` passes it.
+
+The diagram-11 and diagram-07 cases are the failure mode the remediation pass's own method note
+predicted: `check_labels.py` checks punctuation, not sense.
+
+### Finding 3: two reproducibility claims outrun their artefacts
+
+Same defect class the remediation pass closed in §7.2 and `ai_statement.tex`. Both narrowings
+hold. Two more of the same shape survive, and they share one root cause.
+
+| Where | The claim | What holds |
+| --- | --- | --- |
+| §5.6, l. 1623 | "every figure and table in the evaluation is produced by a single script directly from the raw measurement logs, so that rerunning the campaign on a different host regenerates the artifacts verbatim" | Fails twice. `tab:taxonomy` has no generator, its ten rows are typed at l. 3171–3182. And the artefacts come from four scripts, not one: `plot_figures.py` (11 tables), `complexity.py` (2), `adoption_cost.py` (1), `artefact_facts.py` |
+| §7.4, l. 3207 | "Table and figure come from the same log, so neither can drift from the other" | True of `fig_taxonomy.pdf`. Not of the table. The rows agree with the CSV today, so this is an unenforced claim rather than a live error |
+
+**Table 7.9 is the only results table in Chapter 7 with no generator behind it.** That single
+fact is the root of both claims failing, which is why generating it is the durable fix rather
+than rewording twice.
+
+### Finding 4: one derivable number still typed
+
+l. 2642, "so its own attainable floor is $0.000061$". This is $2/2^{15}$, determined by
+`\BudgetRepeats`, so it is a weaker instance than the eleven the eighth pass found. It would go
+stale if the repeat count moved, and it happens to equal the *p*-value `tab_budget` reports.
+
+### Why area 4 moves down, stated as a disagreement
+
+The remediation pass set area 4 at 4.5 on the strength of the generated pipeline, with the
+remaining cap being RQ1's far tail. The pipeline is intact and this pass re-verified it. But 4.5
+encodes "reporting at 5, evidence at 4", and reporting cannot read at 5 when three figures
+misstate their own results and two reproducibility claims are unenforced. Level 4's clauses all
+hold, strongly: the findings are reported clearly and logically, the figures and tables support
+the analysis, and §8.6 weighs generalisability better than most published work. Level 5's "well
+considered and apt" is what fails.
+
+Calibrated against the eighth pass, which set area 4 at 4.0 for about nine hand-typed values, a
+comparable count of comparable defects lands in the same place. The remediation path is the same
+shape too: the first six lift items below are under two hours between them and restore 4.5.
+
+### Housekeeping, not thesis defects
+
+- `bench/complexity.py` cannot run in this environment: `lizard` is not installed, so
+  `refresh_thesis.sh` would fail at that step on a fresh checkout. It **is** declared in
+  `bench/requirements.txt`, so this is an environment note.
+- `AGENT.md` is stale on the declared page count: §1 says 103 pages and §5 says 99, while the
+  `.aux` reads 105 with 6 appendix pages. The footer paragraph has 105 correct.
+- `tab:abbrev` is a float label never referenced from the body. Appendix glossary, reachable from
+  the List of Tables, discounted as in earlier passes.
+- The audit's one flagged prose number, `0.19 \%` at l. 3909, is a value quoted from
+  `gonzalez2023rustudp` and not a measurement of this study. Not a defect.
+- The abstract's Objective paragraph lists "tail latency and jitter under overload" among the open
+  dimensions, and jitter is never reported (§5.5 and §7.5.1 both say the campaign predates the
+  instrumentation). RQ1 itself does not name jitter, so the question-against-metric match is
+  clean. Decide this during the abstract rewrite.
+
+### Outstanding
+
+**Closed the same day (23 August), in a remediation edit after grading.** Finding 1's three
+editable sites: §1.4, §9, and `Thesis_v1.tex` l. 531. Both PDFs rebuilt, all gates clean. The
+abstract is the one site left, and it is the one a model may not touch. **Area 4 stays at 4.0**,
+because findings 2 and 3 are untouched and the abstract still carries the bare claim. Do not lift
+the grade on partial remediation.
+
+1. **Rewrite the abstract unaided, then set `\abstractunaidedtrue`.** Unchanged for a fifth pass,
+   still the whole of area 6's cap, still not delegable. Drop "median latency matches" and settle
+   jitter in the same edit. The wording to reach for is now in three other places in the two
+   documents: state the practical equivalence, then say the paired test resolves
+   $\PFiftyDiffAbsMax\,\mu$s, then call the equivalence practical and not statistical.
+2. **Generate `figures/tab_taxonomy.tex` from `faults/results/taxonomy.csv`.** Half a day, and the
+   most useful piece of work available. Closes findings 3 and 4's mechanism, removes the last
+   hand-maintained results table, and is the same move that caught six unnoticed lines in Table 5.4.
+3. **Four editing fixes remaining from the original six, about an hour between them:** delete "and
+   only under AddressSanitizer" from `fig:borrowuaf`; add "language" to `fig:budget`'s caption;
+   narrow §5.6 and §7.4; pass `bbox_inches="tight"` to `fig_effects`; add a macro for the 15-repeat
+   floor. (§1.4's rewording is done.)
+4. **Two artefact edits, one to two hours:** rewrite diagram 11's key label to state amplification,
+   and replace diagram 07's "Per-call cost" panel with the measured seam cost. Re-render and
+   *read* both, since the style gate will pass either way.
+5. **Bare-metal tail campaign** with hardware counters and allocation profiles on the same visit.
+   Unchanged, and still the only lift no editing reaches.
+6. **Optional:** replace `bugden2022rust` with a peer-reviewed equivalent. Area 2 is at 5 without it.

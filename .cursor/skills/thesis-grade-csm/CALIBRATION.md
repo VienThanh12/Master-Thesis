@@ -73,6 +73,11 @@ These have each consumed part of a pass and were wrong.
   `[u8; 32]`. Do not count these against the style gate.
 - **A hand-typed number written with a LaTeX thin space.** `9\,006` and `35\,030` match neither
   `9,006` nor `9006`. Grep for the `\\,` form or the audit will report a defect as closed.
+- **`texaudit.py`'s prose-number heuristic firing on a value quoted from a cited paper.** The one
+  hit it reports today, `0.19 \%` at l. 3909, is the kernel driver's slowdown from
+  `gonzalez2023rustudp`, quoted to make a point about statistical against operational significance.
+  A literature value is not a hand-typed measurement of this study. Check the citation on the line
+  before scoring it.
 - **Filtering the campaign JSONL on the `rate` field.** `offered_load(row)` in
   `bench/plot_figures.py` is `row["rate"] * row["producers"]`, and there are seven producers, so
   the representative load of 56 kops/s is `rate == 8000`. Filtering on `rate == 56000` lands in the
@@ -85,10 +90,11 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
-State as of the remediation pass, 22 August 2026 afternoon. **Most of this list is now closed.**
-A remediation pass following the eighth grading pass shut thirteen of fifteen items, so read the
-"resolved" section below before reporting anything from the numbered list, and check every item
-against the source. Two blockers remain, items 1 and 2, and neither is editing.
+State as of the **ninth pass, 23 August 2026**. That pass found **no wrong measured value
+anywhere**, the first on record to do so, and verified the generated layer still holds. It found a
+different defect class instead, listed as items 3a to 3c below, and moved area 4 from 4.5 to 4.0
+on it. Read the "resolved" section before reporting anything from the numbered list, and check
+every item against the source.
 
 1. **Rewrite the abstract unaided, then set `\abstractunaidedtrue`.** Blocking for submission and
    for area 6, and it cannot be delegated. Open since the fourth pass. Until it is set, every
@@ -103,9 +109,41 @@ against the source. Two blockers remain, items 1 and 2, and neither is editing.
    declaration's false method sentence, §5.5's indicative instrumentation, the unplaced
    equivalence table, §8.2's Figure 8.1 overclaim, and the diagram labels.** All seven are in the
    resolved list below with the mechanism that keeps each shut. Do not re-report them from
-   memory of an earlier pass. Do check the mechanisms still hold: run
-   `bench/artefact_facts.py`, `bench/complexity.py` and `diagrams/check_labels.py`, and confirm
-   `figures/tab_loc.tex` is `\input` rather than inlined.
+   memory of an earlier pass. The ninth pass confirmed all seven mechanisms hold:
+   `gen_artefacts.tex` regenerates byte-identical, `tab_loc`'s columns sum to 674 / 762 / +88 with
+   the generator asserting it, `figures/tab_loc.tex` is `\input`, and `check_labels.py` is clean
+   over 19 diagrams. Note that `bench/complexity.py` needs `lizard` from `bench/requirements.txt`
+   and will not run without it.
+
+3a. **`figures/tab_taxonomy.tex` does not exist, and two claims depend on it.** Table 7.9 is the
+   **only results table in Chapter 7 with no generator behind it**: its ten rows are typed at
+   l. 3171–3182. Its rows agree with `faults/results/taxonomy.csv` today, so this is an unenforced
+   claim and not a live error. But it falsifies §5.6's "every figure and table in the evaluation is
+   produced by a single script" (also wrong on "single": four scripts write them) and §7.4's "Table
+   and figure come from the same log, so neither can drift from the other". Generating it is half a
+   day and is the durable fix. Opened by the ninth pass.
+
+3b. **Three figures misstate the result they illustrate.** `fig:borrowuaf`'s caption (l. 827) says
+   the C++ use-after-free is caught "only under AddressSanitizer" where `taxonomy.csv` and
+   Table 7.9 both record ASan *and* TSan. `diagrams/07_ffi_seam.svg`'s bottom band is headed
+   "Per-call cost" and shows the empty-crossing-against-round-trip ratio that §7.6 disowns and
+   §8.3 records as right-answer-wrong-reason. `diagrams/11_tail_latency_concept.svg` says "a p99
+   per-op delay becomes a p99 per-procedure delay", the opposite of the amplification its own panel
+   heading and caption argue. Smaller: `fig:budget`'s caption drops the word "language" that makes
+   its claim true, and `fig:effects`'s right-panel axis label is clipped because
+   `plot_figures.py:1260` omits `bbox_inches="tight"`. Opened by the ninth pass. **Re-render and
+   read any diagram edited for these**: the style gate checks punctuation, not sense.
+
+3c. **Median equivalence asserted against §7.5.1. Three of four sites fixed 23 August, the abstract
+   left.** There were four, and the fourth was found by applying the sync rule and not by reading
+   the thesis: `Thesis_v1.tex` l. 531 carried it too, in the supervisor-facing skeleton. §1.4, §9
+   and the skeleton now state the practical equivalence, name the resolved difference through
+   `\PFiftyDiffAbsMax`, and add "practical and not statistical". **The abstract (l. 226, "median
+   latency matches") is still open** and waits for the unaided rewrite. The paired test resolves
+   −1.1 and −1.6 µs, both clearing Holm, and `tab_equivalence` marks both rows "significant". §8.2
+   was already correct and supplied the register. This is the mirror of the error the thesis guards
+   against, so do not read it as carelessness in the usual direction. **Area 4 was not lifted for
+   the partial fix**, because 3a and 3b are untouched.
 
 4. **Prose: actioned, and the only item on this list ever to move on prose grounds.**
    "rather than" stood at 154 instances and 44 per ten thousand words at the seventh pass. It now

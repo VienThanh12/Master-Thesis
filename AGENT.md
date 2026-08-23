@@ -18,7 +18,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | --- | --- | --- | --- |
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v1.tex`. |
 | **`Thesis_v1.pdf`** | `Thesis_v1.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through, all nine chapters populated since 20 Aug 2026. This is what goes to the supervisor alongside the plan. |
-| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 22 Aug 2026: abstract form declaring **103 pages + 6 appendix pages** (117 physical), up from 99 when the RQ4 adoption-cost axes landed (§7.6, `tab:adoption`). A snapshot, not a budget: see §5, *Length and layout*. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
+| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 23 Aug 2026: abstract form declaring **105 pages + 6 appendix pages** (119 physical), up from 99 when the RQ4 adoption-cost axes landed (§7.6, `tab:adoption`) and `tab:equivalence` was placed. A snapshot, not a budget: see §5, *Length and layout*. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v1.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. Kept for reference under their original names. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
 | Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Ha_Vien_Mastersthesis_2026.tex`. |
@@ -58,22 +58,27 @@ grading pass so passes stay comparable.
 | **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (5 inside + 5 outside guarantee). |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
 | **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **Bare-metal tail campaign.** Results come from a dedicated but virtualised KVM Xeon guest, where the far tail below saturation cannot be resolved. Also missing: hardware counters and allocation profiles for the unexplained peak-RSS and operation-level results. |
-| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.5** | **RQ1 far tail only, and it lifts with criterion 3.** The eleven hand-typed values that held this at 4.0 for three passes are closed as of 22 August: each is now a generated macro, `tab:loc` is generated with its column sums asserted, and `tab:equivalence` is placed in §7.5.2. Do not reintroduce a measured number as prose. |
+| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.0** | **Figure-and-claim consistency, plus RQ1's far tail.** The eleven hand-typed values are closed and no measured value is wrong (verified 23 August). What holds this at 4.0 instead is statements *about* the evidence: three figures misstate the result they illustrate (`fig:borrowuaf`'s "only under AddressSanitizer", diagram 07's retracted FFI framing, diagram 11's inverted fan-out label) and two reproducibility claims outrun their artefacts (§5.6, §7.4, both rooted in `tab:taxonomy` having no generator). The median-equivalence sites are **fixed as of 23 August** in §1.4, §9 and `Thesis_v1.tex`, leaving only the abstract. Roughly an hour of edits plus the two diagram fixes restore 4.5. Do not reintroduce a measured number as prose, and do not restate the median result as a bare null: name the resolved difference and call the equivalence practical. |
 | **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Maintain register: “cannot tell” ≠ “equivalent”. H1 is *ambiguous in framing*, not simply supported. |
-| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`: until then the build prints “Not submittable”. This is now the *only* thing between this criterion and a 5. §5.5 is conditional as of 22 August, the AI declaration no longer overstates the method, and the diagram labels are clean and gated. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
+| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`: until then the build prints “Not submittable”, and a document that declares itself unsubmittable is not camera-ready. That clause alone holds the criterion. Behind it, “excellent finishing polish” also wants the ninth pass's small defects closed: the clipped `fig:effects` axis label, the `fig:budget` and `fig:borrowuaf` caption overstatements, and the one derivable number still typed (the 15-repeat *p*-floor). §5.5 is conditional as of 22 August, the AI declaration no longer overstates the method, and the diagram labels are clean and gated. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
 
-**Overall mean (unweighted): 4.75** — criteria 3 and 4 are held at 4.5 **deliberately** until
-bare-metal tail evidence exists, criterion 6 at 4.5 until the abstract is rewritten unaided, and criterion 4
-returned to 4.5 in the remediation pass of 22 August, when the hand-typed values that had held it
-at 4.0 since the sixth pass were replaced by generated macros. Do not round those half-grades in
-prose without updating the reasoning in `docs/ASSESSMENT.md`. The class-file item is **done**: the
-document builds on the department's own `HYthesisML.cls`, and the reconstructed `UH_DS_MSc.cls` in
-the root is no longer loaded.
+**Overall mean (unweighted): 4.67** — criterion 3 is held at 4.5 **deliberately** until bare-metal
+tail evidence exists, criterion 6 at 4.5 until the abstract is rewritten unaided, and criterion 4
+returned to 4.0 in the ninth pass of 23 August. That last movement is a disagreement with the
+remediation pass and is argued in `docs/ASSESSMENT.md`: no measured value is wrong any more, but
+figure-and-claim consistency fails in five places and two reproducibility claims are unenforced. A
+remediation edit the same day closed the three editable median-equivalence sites, and the grade was
+deliberately **not** lifted for it, since the abstract and both other findings remain.
+Do not round the half-grades in prose without updating the reasoning in `docs/ASSESSMENT.md`. The
+class-file item is **done**: the document builds on the department's own `HYthesisML.cls`, and the
+reconstructed `UH_DS_MSc.cls` in the root is no longer loaded.
 
-**Two items remain, and only one of them is editing.** The abstract must be rewritten by the
+**Three items are open, and one of them is not editing.** The abstract must be rewritten by the
 author unaided, because in this programme it is the maturity test and a model may not touch it.
-The bare-metal campaign needs an instrument the author does not have. Nothing else on the
-assessment record is open.
+`figures/tab_taxonomy.tex` should be generated from `faults/results/taxonomy.csv`, which is half a
+day and closes the last hand-maintained results table along with both surviving reproducibility
+claims. The bare-metal campaign needs an instrument the author does not have. The eight
+figure-and-caption fixes behind criterion 4 are listed in the ninth pass's outstanding section.
 
 ### Criterion checklist (apply to every thesis edit)
 
@@ -263,7 +268,7 @@ rg 'gdef.(pagesCount|appendixCount)' build/Ha_Vien_Mastersthesis_2026.aux
 ```
 
 `\pagesCount` counts the body **plus** the AI statement and the bibliography, so a reference-list
-change moves the declared figure. It currently reads 99 with 6 appendix pages.
+change moves the declared figure. It currently reads 105 with 6 appendix pages.
 
 **Under 100 is a preference, not a rule.** The author set it as the target on 19 August 2026 and
 may revise it. No University of Helsinki or CSM requirement is behind it, and nothing in the
@@ -366,7 +371,17 @@ edit pass so the two do not diverge.
 
 ---
 
-*Last updated: 22 August 2026. The eighth grading pass held every area where the seventh left it
+*Last updated: 23 August 2026. The ninth grading pass found no wrong measured value anywhere, the
+first pass on record to do so, and verified that the generated layer the remediation pass installed
+still holds (`gen_artefacts.tex` byte-identical, `tab:loc`'s three column sums asserted, about
+thirty macros checked against their tables). It moved criterion 4 from 4.5 down to 4.0 on a
+different defect class: figures and captions that misstate the result they illustrate, two
+reproducibility claims the artefacts do not enforce, and three summary passages that call the
+median equivalent where §7.5.1 resolves it. Every item is editing except the standing two, and the
+durable fix is to generate `figures/tab_taxonomy.tex`, the last results table in the thesis with no
+generator behind it. See the ninth pass in `docs/ASSESSMENT.md`.*
+
+*The eighth grading pass held every area where the seventh left it
 and found one new defect, a false sentence about the method in `ai_statement.tex`. A remediation
 pass the same afternoon closed thirteen of its fifteen items and moved criterion 4 from 4.0 back
 to 4.5. The durable part of that work is that three classes of defect are now generated rather
