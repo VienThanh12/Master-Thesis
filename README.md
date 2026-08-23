@@ -44,7 +44,7 @@ The PDFs in this repository do not share a status and are not interchangeable.
 | Document | Status | Role |
 | -------- | ------ | ---- |
 | `Thesis_Plan_v2.pdf` | Reviewed, supervisor-facing | Approved plan: gap, RQs, methodology, timeline, contributions |
-| `Thesis_v1.pdf` | Reviewed, supervisor-facing | Chapter skeleton, one bullet per argument move, five bullets a chapter. All nine chapters populated since 20 August 2026, and the results bullets quote the generated macros rather than carrying their own numbers |
+| `Thesis_v2.pdf` | Reviewed, supervisor-facing | Chapter skeleton, one bullet per argument move, five bullets a chapter. All nine chapters populated since 20 August 2026, and the results bullets quote the generated macros rather than carrying their own numbers |
 | `Ha_Vien_Mastersthesis_2026.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, full argument, and everything in it still needs review. The name is the UH submission format (`Lastname_Firstname_Mastersthesis_Year`, ASCII) and says nothing about review status. It was `Thesis_POC` until 19 August 2026 |
 | `ai_statement.tex` | Declaration in the author's name | Statement on generative-AI use, shared by both thesis documents |
 | [`archive/`](archive/) | Superseded, not maintained | Earlier variants kept for reference only: `plain_thesis.tex`, `thesis-vi.tex` (renders its citations as `[?]`), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, and the v1 plan PDF. They read relative paths from the repository root, so they no longer build where they sit |
@@ -86,7 +86,7 @@ verification workflow. Read it before touching thesis text, figures, or artefact
 │   └── upstream/          Pristine CSM thesis template the class was taken from
 ├── build/             latexmk intermediates (.aux, .log, .bbl); gitignored, safe to delete
 ├── Ha_Vien_Mastersthesis_2026.tex   Canonical full draft, under the UH submission filename
-├── Thesis_v1.tex      Supervisor-facing chapter skeleton
+├── Thesis_v2.tex      Supervisor-facing chapter skeleton
 ├── Thesis_Plan_v2.tex Revised thesis plan
 ├── AGENT.md           Working rules: document roles, grade criteria, verification workflow
 ├── bibliography.bib
@@ -108,7 +108,7 @@ its own `README.md` with build and run instructions.
 | C++23 compiler (g++ 13+ / clang 17+, `std::expected` is required), CMake 3.20+, Ninja | [`cpp/`](cpp/) |
 | Rust stable, edition 2021 (developed on 1.97), `cargo` | [`rust/`](rust/) |
 | jemalloc (`libjemalloc`) | the jemalloc arms of the benchmark (`-DUECM_USE_JEMALLOC=ON`, `cargo --features jemalloc`) |
-| `latexmk`, TeX Live, bundled `HYthesisML.cls` | `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v1.tex`, `Thesis_Plan_v2.tex` |
+| `latexmk`, TeX Live, bundled `HYthesisML.cls` | `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v2.tex`, `Thesis_Plan_v2.tex` |
 | Python 3 + `matplotlib` | [`bench/`](bench/) plotting (`pip install -r bench/requirements.txt`) |
 | AddressSanitizer / ThreadSanitizer / UBSan (`g++`) | [`faults/`](faults/), `cpp/sanitise.sh` |
 
@@ -228,7 +228,7 @@ To build a document alone:
 
 ```bash
 latexmk -pdf Ha_Vien_Mastersthesis_2026.tex   # the thesis
-latexmk -pdf Thesis_v1.tex                    # supervisor skeleton
+latexmk -pdf Thesis_v2.tex                    # supervisor skeleton
 latexmk -pdf Thesis_Plan_v2.tex               # thesis plan
 ```
 
@@ -283,7 +283,7 @@ from `diagrams/png/`, which `diagrams/render.py` writes.
 | RQ2 (safety) | Final. Fault-injection taxonomy complete across ten defect classes, five inside the guarantee and five outside it, plus Loom and Shuttle results for the two concurrency classes on the boundary |
 | RQ4 (migration) | Final. FFI prototype, interleaved native-vs-seam measurement of one real operation, and seam size complete |
 | RQ1/RQ3 (performance) | Campaign complete on the virtualised host, so the saturation knee, the overload divergence, and the resource comparisons are resolved. The far tail below saturation is not, and needs the bare-metal campaign. The p99.99 and jitter instrumentation exists but no reported campaign carries the sidecars yet |
-| Writing | `Ha_Vien_Mastersthesis_2026.pdf` builds clean with zero LaTeX errors and no undefined references, as a full draft awaiting review. `Thesis_v1.pdf` covers all nine chapters in bullets, 35 pages, and its abstract is still the template placeholder |
+| Writing | `Ha_Vien_Mastersthesis_2026.pdf` builds clean with zero LaTeX errors and no undefined references, as a full draft awaiting review. `Thesis_v2.pdf` covers all nine chapters in bullets, 35 pages, and its abstract is still the template placeholder |
 
 Open items and the post-campaign re-check list are tracked in [`docs/TODO.md`](docs/TODO.md).
 

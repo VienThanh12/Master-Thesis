@@ -1,7 +1,7 @@
 # Sources evidence — citation audit of `bibliography.bib`
 
 Audit date: **15 August 2026**. Scope: all **80** entries in `bibliography.bib`, every one of them as
-actually used in `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v1.tex`, and `Thesis_Plan_v2.tex`.
+actually used in `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v2.tex`, and `Thesis_Plan_v2.tex`.
 
 For every entry this file records three things:
 
@@ -62,7 +62,7 @@ cite it), `bib_verify.py` (Crossref/DataCite field-by-field diff), `abstracts.py
 
 ### Fix list, in priority order
 
-**All were applied on 15 August 2026**, and the thesis PDF (143 pp.), `Thesis_v1.pdf`
+**All were applied on 15 August 2026**, and the thesis PDF (143 pp.), `Thesis_v2.pdf`
 (27 pp.) and `Thesis_Plan_v2.pdf` (5 pp.) were rebuilt: zero LaTeX errors, zero undefined
 references or citations, no biber warnings. The entries below describe the state *before* the fix,
 so that the reasoning stays auditable.
@@ -76,7 +76,7 @@ so that the reasoning stays auditable.
 | 5 | `Ha_Vien_Mastersthesis_2026.tex:805` (`xu2021rustcve`) | "every one of them involved `unsafe` code" is one degree stronger than the source, which says all bugs require unsafe **"except one compiler bug"**. | Add the exception, or write "all but one". |
 | 6 | `Ha_Vien_Mastersthesis_2026.tex:350` (`eu2024cra`) | "reporting obligations applying from September 2026 and the remainder from December 2027" leaves out Chapter IV (notification of conformity assessment bodies), which applies from **11 June 2026**. | "…and most of the remainder from December 2027", or name the June 2026 date. |
 | 7 | `Ha_Vien_Mastersthesis_2026.tex:3438` (`karlback2021ran`) | "a pattern they flag as unexplained". They call it *surprising* and do offer a theory — green-thread stack sizes — which is the same mechanism the thesis then argues for. | "which they call surprising and attribute tentatively to green-thread stack size" — this makes the thesis's own explanation stronger, not weaker. |
-| 8 | `tene_hdrhistogram` at `Ha_Vien_Mastersthesis_2026.tex:2402, 3922`; `Thesis_v1.tex:175`; `Thesis_Plan_v2.tex:141` | Cited for coordinated omission, but the cited page (`hdrhistogram.github.io`) documents the histogram, not coordinated omission. | The concept is already carried by `schroeder2006openclosed` in each of those citations, so either rely on that alone, or point the URL at the HdrHistogram documentation for `recordValueWithExpectedInterval`. |
+| 8 | `tene_hdrhistogram` at `Ha_Vien_Mastersthesis_2026.tex:2402, 3922`; `Thesis_v2.tex:175`; `Thesis_Plan_v2.tex:141` | Cited for coordinated omission, but the cited page (`hdrhistogram.github.io`) documents the histogram, not coordinated omission. | The concept is already carried by `schroeder2006openclosed` in each of those citations, so either rely on that alone, or point the URL at the HdrHistogram documentation for `recordValueWithExpectedInterval`. |
 | 9 | `bibliography.bib:129` (`cisa2023memorysafe`) | The `author` field is one braced string containing "and others"; it will print as a run-on corporate name, duplicating the `institution` field which already names all eight agencies correctly. | `author = {{Cybersecurity and Infrastructure Security Agency}}` and let `institution` carry the rest. |
 | 10 | `bibliography.bib:588` (`xiao2024rpkt`), `:318` (`3gpp38331`) | Small completeness items: `rpkt` is in the LNCS series (NPC 2024 conference, proceedings published 2025); TS 38.331 v17.5.0 was posted 1 July 2023, not June. | Optional. |
 
@@ -118,7 +118,7 @@ says FIX, that fix has since been applied and rebuilt — see "What was changed"
 ### `3gpp38401` — TS 38.401, NG-RAN Architecture description, V17.5.0
 **Metadata** ✔ `38401-h50.zip` in the 3GPP archive is dated **2023-06-29**, matching `jun 2023`.
 The ETSI mirror is *ETSI TS 138 401 V17.5.0 (2023-07)*. URL in the entry resolves.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:254, 372, 594, 609, 1047, 2423`; `Thesis_v1.tex:169`;
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:254, 372, 594, 609, 1047, 2423`; `Thesis_v2.tex:169`;
 `Thesis_Plan_v2.tex:59` — the CU/DU split, the CU-CP/CU-UP separation, the F1/E1/NG interfaces,
 and the gNB-CU-CP as the node hosting RRC.
 **Evidence — level A** (`ts_138401v170500p.pdf`):
@@ -163,7 +163,7 @@ it is ~1,000 pages and the claim is structural rather than numeric.
 ### `3gpp22261` — TS 22.261, Service requirements for the 5G system, V18.6.0
 **Metadata** ✔ `22261-i60.zip` (i = Release 18, 6.0) is dated **2022-04-01** in the 3GPP archive,
 consistent with `mar 2022` (SA plenary approval, posted 1 April).
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:597, 1091`; `Thesis_v1.tex:202` — the 5G system's latency and
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:597, 1091`; `Thesis_v2.tex:202` — the 5G system's latency and
 reliability KPIs.
 **Evidence — level C** ETSI no longer mirrors v18.6.0 (only 18.13.0 and later), so the KPI clause
 was not opened. The performance requirements live in clause 7. If you want a page-level anchor
@@ -173,12 +173,12 @@ here, the cleanest option is to lean on `3gpp38913` clause 7.4, which *is* verif
 ### `3gpp38913` — TR 38.913, Study on scenarios and requirements for next generation access technologies, V18.0.0
 **Metadata** ⚠ month. `38913-i00.zip` is dated **2024-04-04**; ETSI mirror is *ETSI TR 138 913
 V18.0.0 (2024-05)*. The entry says March 2024. → `month = apr`.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:261, 374, 597, 1091`; `Thesis_v1.tex:128, 202` — the millisecond-scale
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:261, 374, 597, 1091`; `Thesis_v2.tex:128, 202` — the millisecond-scale
 control-plane budget, and specifically the 10 ms target.
 **Evidence — level A** (`tr_138913v180000p.pdf`, **p. 24**, clause 7.4 "Control plane latency"):
 "Control plane latency refers to the time to move from a battery efficient state (e.g., IDLE) to
 start of continuous data transfer (e.g., ACTIVE). **The target for control plane latency should be
-10ms.**" This is exactly the claim at `Thesis_v1.tex:128` and the wording already in the entry's
+10ms.**" This is exactly the claim at `Thesis_v2.tex:128` and the wording already in the entry's
 `note` field.
 **Verdict** Claim verified; fix the month.
 
@@ -252,7 +252,7 @@ most efficient way to substantially improve software security**".
 `institution` field lists them: US CISA, US NSA, US FBI, Australian Signals Directorate's ACSC,
 Canadian Centre for Cyber Security, UK NCSC, New Zealand NCSC, CERT NZ. The `author` field,
 however, is a single braced string ending "and others" and will print as a run-on name.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:346, 525, 3648`; `Thesis_v1.tex:137`; `Thesis_Plan_v2.tex:63` — the
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:346, 525, 3648`; `Thesis_v2.tex:137`; `Thesis_Plan_v2.tex:63` — the
 "publish memory-safe roadmaps" claim.
 **Evidence — level A** (**p. 2**): "the agencies urge software manufacturers to **create and
 publish memory safe roadmaps** that detail how they will eliminate memory safety vulnerabilities
@@ -288,7 +288,7 @@ memory safety."
 ### `szekeres2013sok` — SoK: Eternal War in Memory
 **Metadata** ✔ IEEE S&P 2013, pp. 48–62. IEEE's record parses "Tao Wei" as a surname; the entry is
 correct.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:749, 1124, 3649`; `Thesis_v1.tex:134, 178` — memory corruption as a
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:749, 1124, 3649`; `Thesis_v2.tex:134, 178` — memory corruption as a
 decades-old problem whose deployed mitigations are partial.
 **Evidence — level A** (p. 1, abstract): "This problem has existed for **more than 30 years** and
 a vast number of potential solutions have been proposed, yet memory corruption attacks continue to
@@ -323,7 +323,7 @@ programs violating it to have undefined behavior."
 
 ### `jung2021safe` — Safe Systems Programming in Rust, CACM 64(4):144–152
 **Metadata** ✔ Crossref matches on every field.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:796, 3641`; `Thesis_v1.tex:182, 207` — ownership and borrowing statically
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:796, 3641`; `Thesis_v2.tex:182, 207` — ownership and borrowing statically
 forbid mutation of shared state; exceptions confined to `unsafe` behind safe APIs.
 **Evidence — level A** (author copy, p. 1): "It tackles this challenge using a strong type system
 based on the ideas of **ownership and borrowing, which statically prohibits the mutation of shared
@@ -421,7 +421,7 @@ kernel panics."
 ### `klabnik2023rust` — The Rust Programming Language, 2nd edition
 **Metadata** ✔ OpenLibrary record for ISBN 9781718503106: *Rust Programming Language, 2nd
 Edition*, Steve Klabnik and Carol Nichols, No Starch Press, 2023.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:278, 791`; `Thesis_v1.tex:135, 182` — ownership and borrowing; safety at
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:278, 791`; `Thesis_v2.tex:135, 182` — ownership and borrowing; safety at
 compile time.
 **Evidence — level C** Book not opened. The relevant chapters are 4 (ownership) and 16 (fearless
 concurrency); add a chapter to the citation if you want it tighter.
@@ -445,7 +445,7 @@ already flags replacing it as the last optional lift on criterion 2. Its use at 
 ### `dean2013tail` — The Tail at Scale, CACM 56(2):74–80
 **Metadata** ✔ Crossref matches every field.
 **Cited** twelve times, incl. `Ha_Vien_Mastersthesis_2026.tex:266, 292, 410, 670, 894, 1215, 3666, 3882`;
-`Thesis_v1.tex:147, 172, 213`; `Thesis_Plan_v2.tex:73` — fan-out makes a rare per-operation
+`Thesis_v2.tex:147, 172, 213`; `Thesis_Plan_v2.tex:73` — fan-out makes a rare per-operation
 latency a common per-request latency.
 **Evidence — level B** Crossref-deposited abstract: "Software techniques that tolerate latency
 variability are vital to building responsive large-scale Web services." The fan-out argument is
@@ -477,7 +477,7 @@ OS, and Application-level Sources of Tail Latency**", University of Washington.
 
 ### `enberg2019threadpercore` — The Impact of Thread-per-Core Architecture on Application Tail Latency, ANCS 2019, 1–8
 **Metadata** ✔ Crossref matches.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:929, 3668`; `Thesis_v1.tex:251`; `Thesis_Plan_v2.tex:130` — the
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:929, 3668`; `Thesis_v2.tex:251`; `Thesis_Plan_v2.tex:130` — the
 justification for holding the concurrency model fixed across both implementations.
 **Evidence — level A** (author copy, p. 1, abstract): "The **thread-per-core architecture has
 emerged to reduce these overheads, but it also has its challenges** from thread synchronization
@@ -488,7 +488,7 @@ impact on application tail latency is an open question**."
 ### `schroeder2006openclosed` — Open Versus Closed: A Cautionary Tale, NSDI 2006
 **Metadata** ✔ DBLP confirms NSDI 2006 and assigns **no page numbers** — the entry correctly omits
 them. USENIX page live.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:711, 2402, 3922`; `Thesis_v1.tex:175`; `Thesis_Plan_v2.tex:141` — open
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:711, 2402, 3922`; `Thesis_v2.tex:175`; `Thesis_Plan_v2.tex:141` — open
 and closed generators produce systematically different response times, the closed model reporting
 lower figures.
 **Evidence — level A** (`schroeder.pdf`, p. 1, abstract): "Workload generators may be classified
@@ -501,20 +501,20 @@ real-world settings."
 ### `tene_hdrhistogram` — HdrHistogram
 **Metadata** ✔ Gil Tene is credited on the project page (Authors, Contributors and License
 section). Accessed August 2026 as stated.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:1810, 2402, 3922`; `Thesis_v1.tex:175, 255`; `Thesis_Plan_v2.tex:141`.
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:1810, 2402, 3922`; `Thesis_v2.tex:175, 255`; `Thesis_Plan_v2.tex:141`.
 **Evidence — level A** (`hdrhistogram.github.io`): "A Histogram that supports **recording and
 analyzing sampled data value counts across a configurable integer value range with configurable
 value precision** within the range. Value precision is expressed as the number of significant
 digits…" — this fully supports the use at `Ha_Vien_Mastersthesis_2026.tex:1810` (identical HDR configuration,
 three significant figures).
 **Issue** The page does **not** discuss coordinated omission, which is what the citation is being
-asked to carry at 2402, 3922, `Thesis_v1.tex:175` and `Thesis_Plan_v2.tex:141`. In all four places
+asked to carry at 2402, 3922, `Thesis_v2.tex:175` and `Thesis_Plan_v2.tex:141`. In all four places
 `schroeder2006openclosed` is cited alongside and does carry it (fix #8).
 **Verdict** OK for the histogram; re-point or drop for coordinated omission.
 
 ### `georges2007rigorous` — Statistically Rigorous Java Performance Evaluation, OOPSLA 2007, 57–76
 **Metadata** ✔ Crossref matches; booktitle wording differs cosmetically.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:464, 716, 1572, 3678, 3920`; `Thesis_v1.tex:235, 273`;
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:464, 716, 1572, 3678, 3920`; `Thesis_v2.tex:235, 273`;
 `Thesis_Plan_v2.tex:134` — reporting a single number invites conclusions run-to-run variation does
 not support.
 **Evidence — level A** (Ghent University copy, p. 1, abstract): "This paper shows that
@@ -524,7 +524,7 @@ reason is that the data analysis is not statistically rigorous."
 
 ### `efron1993bootstrap` — An Introduction to the Bootstrap
 **Metadata** ✔ Crossref: Efron and Tibshirani, 1993, DOI 10.1007/978-1-4899-4541-9. ISBN matches.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:1567, 3920`; `Thesis_v1.tex:274`; `Thesis_Plan_v2.tex:135` —
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:1567, 3920`; `Thesis_v2.tex:274`; `Thesis_Plan_v2.tex:135` —
 nonparametric bootstrap 95 % confidence intervals.
 **Evidence — level B** Standard reference; the percentile and BCa interval construction the thesis
 uses is Chapters 12–14. Book not opened for this audit.
@@ -536,7 +536,7 @@ Sture Holm. The JSTOR stable ID in the entry's URL (4615733) matches. **Do not a
 OpenAlex advertises `10.2307/4615733`, but that handle is unregistered: `doi.org` returns 404 and
 the handle API reports "not found". It was added during this audit and then reverted. The entry
 should stay DOI-less, with the JSTOR URL as the locator.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:1613`; `Thesis_v1.tex:275`; `Thesis_Plan_v2.tex:136` — the Holm
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:1613`; `Thesis_v2.tex:275`; `Thesis_Plan_v2.tex:136` — the Holm
 step-down procedure controlling family-wise error without assuming independence.
 **Evidence — level B** Metadata verified; the paper itself is behind JSTOR. The property the
 thesis attributes to it (FWER control without independence assumptions) is the paper's own result.
@@ -544,7 +544,7 @@ thesis attributes to it (FWER control without independence assumptions) is the p
 
 ### `natella2016fault` — Assessing Dependability with Software Fault Injection: A Survey, CSUR 48(3), Article 44
 **Metadata** ✔ Crossref matches; `pages = 44:1--44:55` is the article-number convention.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:1426, 3679`; `Thesis_v1.tex:261`; `Thesis_Plan_v2.tex:142`.
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:1426, 3679`; `Thesis_v2.tex:261`; `Thesis_Plan_v2.tex:142`.
 **Evidence — level B** Crossref-deposited abstract: "**Software Fault Injection is a method to
 anticipate worst-case scenarios caused by faulty software through the deliberate injection of
 software faults.** This survey provides a comprehensive overview of the state of the art…"
@@ -612,8 +612,8 @@ and the ixgbe driver comparison against Linux and DPDK.
 ### `emmerich2019drivers` — The Case for Writing Network Drivers in High-Level Programming Languages, ANCS 2019, 1–13
 **Metadata** ✔ Author list follows the paper (IEEE's record drops "García" from Esaú García
 Sánchez-Torija — the entry is right).
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:3319, 3633, 3737, 3759, 3784`; `Thesis_v1.tex:231`;
-`Thesis_Plan_v2.tex:70` — most sharply at `Thesis_v1.tex:231`: "running 4 % slower than its C
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:3319, 3633, 3737, 3759, 3784`; `Thesis_v2.tex:231`;
+`Thesis_Plan_v2.tex:70` — most sharply at `Thesis_v2.tex:231`: "running 4 % slower than its C
 reference while executing 63 % more instructions per packet".
 **Evidence — level A** (arXiv 1909.06344, p. 1, abstract): "Out-of-order CPUs mitigate the cost of
 safety checks: **Our Rust driver executes 63% more instructions per packet but is only 4% slower
@@ -760,7 +760,7 @@ Down the Heap Between Safe and Unsafe Languages".
 
 ### `li2022crosslang` — Detecting Cross-Language Memory Management Issues in Rust, ESORICS 2022, 680–700
 **Metadata** ✔ DBLP and Crossref both give pages **680–700**.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:989, 3473, 3655`; `Thesis_v1.tex:267` — defect classes arising
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:989, 3473, 3655`; `Thesis_v2.tex:267` — defect classes arising
 specifically at Rust/C boundaries have been catalogued in their own right.
 **Evidence — level C** Springer paywall; title-level, and the thesis uses it only for the
 existence of the category.
@@ -846,7 +846,7 @@ book early when faced with difficult language concepts like Rust's ownership typ
 
 ### `fulton2021adopting` — Benefits and Drawbacks of Adopting a Secure Programming Language, SOUPS 2021, 597–616
 **Metadata** ✔ DBLP confirms pages **597–616** and the five-author list.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:3460, 3580, 3676, 3791`; `Thesis_v1.tex:157`; `Thesis_Plan_v2.tex:158` —
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:3460, 3580, 3676, 3791`; `Thesis_v2.tex:157`; `Thesis_Plan_v2.tex:158` —
 the dominant cost is human, not run-time.
 **Evidence — level A** (`soups2021-fulton.pdf`, p. 2, abstract): "a range of positive features …
 **as well as drawbacks including a steep learning curve, limited library support, and concerns
@@ -925,7 +925,7 @@ Science, Master's thesis, 30 ECTS, Datateknik, **2021**, **LIU-IDA/LITH-EX-A--20
 and embedded deployments*". One nuance: the cover lists **Anton Orö before Rasmus Karlbäck**; the
 entry and the thesis text use "Karlbäck and Orö". DiVA's own citation order is alphabetical, so
 this is defensible, but be aware the title page reads the other way.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:1005, 3438, 3692, 3697, 3762, 3792`; `Thesis_v1.tex:139, 189, 222`;
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:1005, 3438, 3692, 3697, 3762, 3792`; `Thesis_v2.tex:139, 189, 222`;
 `Thesis_Plan_v2.tex:80`.
 **Evidence — level A**, claim by claim (page numbers are PDF pages of `FULLTEXT01.pdf`):
 - *"conclude that C++ remains the choice where performance is critical"* (`Ha_Vien_Mastersthesis_2026.tex:3692`) —
@@ -966,7 +966,7 @@ this is defensible, but be aware the title page reads the other way.
 field: "Master's thesis, 30 ECTS, Computer Science and Engineering, **2025**,
 **LIU-IDA/LITH-EX-A--25/055--SE**, *Evaluating Asynchronous Programming Frameworks for 5G Control
 Plane Procedures*, **Albin Arvidsson, Martin Kaller**", external supervisor at Ericsson.
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:1007, 2933, 3338, 3708, 3761, 3793, 4128`; `Thesis_v1.tex:142, 222`;
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:1007, 2933, 3338, 3708, 3761, 3793, 4128`; `Thesis_v2.tex:142, 222`;
 `Thesis_Plan_v2.tex:85`.
 **Evidence — level A**, claim by claim (PDF pages):
 - *Frameworks compared and Boost.Fibers fastest* — p. 3, abstract: "**C++ with Boost.Fibers, Rust

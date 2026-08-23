@@ -8,7 +8,7 @@ they are maintained. Nothing here is a deliverable, and none of it is checked by
 | --- | --- | --- |
 | `plain_thesis.tex` / `.pdf` | Plain-language variant of the full draft (121 pages) for a reader with no 5G background. Same argument, same data, same generated macros | Superseded by `Thesis_POC.tex`, which is the reference version |
 | `thesis-vi.tex` / `.pdf` | Vietnamese translation (75 pages) | Broken and stale. Its 113 citations render as `[?]` because bibtex was never run for it, and it never read `figures/gen_macros.tex`, so its numbers are hand-copied and predate the 15-repeat campaign |
-| `thesis_wbm_full_backup.tex` / `.pdf` | Backup of the skeleton before the bibliography move | One word different from `Thesis_v1.tex` and still on `\bibliographystyle{abbrv}` |
+| `thesis_wbm_full_backup.tex` / `.pdf` | Backup of the skeleton before the bibliography move | One word different from `Thesis_v2.tex` and still on `\bibliographystyle{abbrv}` |
 | `Thesis_POC.tex.bak-before-cuts` | `Thesis_POC.tex` as it stood before the August length cuts | Snapshot only. Git history holds the same content |
 | `Thesis_Plan.pdf` | First thesis plan | Superseded by `Thesis_Plan_v2.pdf`. Its source is no longer in the repository |
 

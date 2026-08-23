@@ -136,7 +136,7 @@ every item against the source.
 
 3c. **Median equivalence asserted against §7.5.1. Three of four sites fixed 23 August, the abstract
    left.** There were four, and the fourth was found by applying the sync rule and not by reading
-   the thesis: `Thesis_v1.tex` l. 531 carried it too, in the supervisor-facing skeleton. §1.4, §9
+   the thesis: `Thesis_v2.tex` l. 531 carried it too, in the supervisor-facing skeleton. §1.4, §9
    and the skeleton now state the practical equivalence, name the resolved difference through
    `\PFiftyDiffAbsMax`, and add "practical and not statistical". **The abstract (l. 226, "median
    latency matches") is still open** and waits for the unaided rewrite. The paired test resolves

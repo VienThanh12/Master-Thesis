@@ -585,7 +585,7 @@ compounds attributively and leaves them open otherwise; the thesis does this cor
   gated on `\ifabstractunaided`, default false. Until it is set the statement says plainly that
   the abstract has not been rewritten unaided, and **every build prints a warning**
   (`ai_statement: ... Not submittable`). Both documents that share the file are covered:
-  `Thesis_v1.tex`'s abstract is still a placeholder.
+  `Thesis_v2.tex`'s abstract is still a placeholder.
 - **The jitter and p99.99 gap is now stated in §"Performance (RQ1, RQ3)"** where the results are,
   not only in the threats section a chapter later. The threats entry was trimmed to point back
   instead of repeating the mechanism, and its internal contradiction removed: it previously
@@ -613,7 +613,7 @@ overfull boxes, zero floats too large. 147 pages.
 2. **Bare-metal tail campaign** with counters and allocation profiles. Lifts areas 3 and 4.
 3. ~~**Align RQ1's metric list** with what is reported, or report jitter.~~ **Done.** RQ1 now
    names the median, p99, p99.9 and the maximum in all three documents — `Thesis_Plan_v2.tex`,
-   `Thesis_v1.tex` and `Ha_Vien_Mastersthesis_2026.tex` — which is exactly what the reported campaign delivers,
+   `Thesis_v2.tex` and `Ha_Vien_Mastersthesis_2026.tex` — which is exactly what the reported campaign delivers,
    and §8.6 states that jitter and p99.99 are instrumented but not yet reported. The question and
    the answer therefore match. Two consequences to keep in view: the change narrowed a
    supervisor-approved RQ, so it should be **flagged explicitly in the next submission** rather
@@ -1519,7 +1519,7 @@ The widest-reaching finding, because two of the three sites are where a reader l
 both p50 rows a Holm-adjusted *p* that clears (0.012 and 0.00069) and `tab_equivalence` gives
 both the verdict "significant".
 
-There were **four** sites, not three. The sync rule caught the fourth: `Thesis_v1.tex`, the
+There were **four** sites, not three. The sync rule caught the fourth: `Thesis_v2.tex`, the
 supervisor-facing skeleton, carried the same bare claim in its chapter 9 bullet.
 
 | Where | What it said | Status |
@@ -1527,7 +1527,7 @@ supervisor-facing skeleton, carried the same bare claim in its chapter 9 bullet.
 | Abstract, l. 226 | "Below it median latency matches" | **Open.** Already on record from the remediation pass. Untouchable by a model, so it waits for the unaided rewrite |
 | §1.4, l. 548 | "the two implementations cannot be told apart end to end at the median" | **Fixed 23 August.** Was the sharpest of the four: the paired test is precisely the instrument that does tell them apart |
 | §9, l. 4391 | "the two languages are equivalent at the median, which is a real result about deployments of this shape" | **Fixed 23 August.** Was defensible, since the trailing clause signalled practical rather than statistical equivalence, but it never mentioned the resolved difference |
-| `Thesis_v1.tex`, l. 531 | "Below saturation the two are equivalent at the median." | **Fixed 23 August.** Found by applying the sync rule rather than by reading the thesis. Supervisor-facing, so it mattered more than its length suggests |
+| `Thesis_v2.tex`, l. 531 | "Below saturation the two are equivalent at the median." | **Fixed 23 August.** Found by applying the sync rule rather than by reading the thesis. Supervisor-facing, so it mattered more than its length suggests |
 | §8.2, l. 3489 | "equivalent in central behaviour, by a margin no deployment would notice. The small paired difference at the median that does clear the correction is a fraction of an $80\,\mu$s operation" | **Was already correct**, and supplied the register the three fixes adopt |
 
 The thesis is strict about the mirror error, never letting "cannot tell" become "equivalent".
@@ -1616,7 +1616,7 @@ shape too: the first six lift items below are under two hours between them and r
 ### Outstanding
 
 **Closed the same day (23 August), in a remediation edit after grading.** Finding 1's three
-editable sites: §1.4, §9, and `Thesis_v1.tex` l. 531. Both PDFs rebuilt, all gates clean. The
+editable sites: §1.4, §9, and `Thesis_v2.tex` l. 531. Both PDFs rebuilt, all gates clean. The
 abstract is the one site left, and it is the one a model may not touch. **Area 4 stays at 4.0**,
 because findings 2 and 3 are untouched and the abstract still carries the bare claim. Do not lift
 the grade on partial remediation.

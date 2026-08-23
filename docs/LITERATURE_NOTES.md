@@ -1165,7 +1165,7 @@ compiled PDF before committing to the entry types. And the thesis cites 3GPP spe
 
 > **Status: applied, same day.** Everything in §D below is done. Fourteen entries added to
 > `bibliography.bib` (98 active entries, all cited, no orphans); `Thesis_Plan_v2.tex` §2 rewritten;
-> the three `Thesis_v1.tex` bullets corrected; `Ha_Vien_Mastersthesis_2026.tex` §`sec:gap`, the search protocol,
+> the three `Thesis_v2.tex` bullets corrected; `Ha_Vien_Mastersthesis_2026.tex` §`sec:gap`, the search protocol,
 > §`sec:relatedwork`, `tab:related`, the peak-RSS discussion, the skill-asymmetry threat and the
 > future-work list updated; `29_research_gap` rebuilt with five columns and six rows; the deck
 > slide-6 subtitle corrected. All three PDFs rebuild with zero errors, zero undefined references
@@ -1354,7 +1354,7 @@ Ordered by risk, highest first.
    ⚠ `diagrams/29_research_gap.drawio` is hand-laid-out: adding study columns means editing the
    diagram, or the figure and the table will contradict each other. Same constraint as recorded
    for `tab:threats` in the first sweep — decide deliberately, do not half-do it.
-4. **`Thesis_v1.tex`** ch. 1 and ch. 4 bullets — both say "the closest prior work does not
+4. **`Thesis_v2.tex`** ch. 1 and ch. 4 bullets — both say "the closest prior work does not
    isolate the language" and cite the two theses. Same correction, one bullet each.
 5. **§`sec:rqdiscussion`, peak RSS** — add `olsson2023ranmgmt` (same domain, same direction) and
    optionally `sundvisson2026drivers`. Keep the allocator-dominates finding intact.

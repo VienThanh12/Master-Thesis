@@ -16,10 +16,10 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 
 | Document | Source | Status | Role |
 | --- | --- | --- | --- |
-| **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v1.tex`. |
-| **`Thesis_v1.pdf`** | `Thesis_v1.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through, all nine chapters populated since 20 Aug 2026. This is what goes to the supervisor alongside the plan. |
+| **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v2.tex`. |
+| **`Thesis_v2.pdf`** | `Thesis_v2.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through, all nine chapters populated since 20 Aug 2026. This is what goes to the supervisor alongside the plan. |
 | **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 23 Aug 2026: abstract form declaring **105 pages + 6 appendix pages** (119 physical), up from 99 when the RQ4 adoption-cost axes landed (§7.6, `tab:adoption`) and `tab:equivalence` was placed. A snapshot, not a budget: see §5, *Length and layout*. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
-| `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v1.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
+| `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v2.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. Kept for reference under their original names. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
 | Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Ha_Vien_Mastersthesis_2026.tex`. |
 
@@ -27,7 +27,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 
 When you change **claims, RQs, scope, methodology, or contributions**:
 
-1. Update **`Thesis_v1.tex`** if the supervisor skeleton should reflect it.
+1. Update **`Thesis_v2.tex`** if the supervisor skeleton should reflect it.
 2. Update **`Thesis_Plan_v2.tex`** if the plan’s status, timeline, or framing changes.
 3. Update **`Ha_Vien_Mastersthesis_2026.tex`** for the full argument, figures, tables, and cross-references.
 4. Rebuild affected PDFs and run the verification steps in §5.
@@ -58,7 +58,7 @@ grading pass so passes stay comparable.
 | **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (5 inside + 5 outside guarantee). |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
 | **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **Bare-metal tail campaign.** Results come from a dedicated but virtualised KVM Xeon guest, where the far tail below saturation cannot be resolved. Also missing: hardware counters and allocation profiles for the unexplained peak-RSS and operation-level results. |
-| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.0** | **Figure-and-claim consistency, plus RQ1's far tail.** The eleven hand-typed values are closed and no measured value is wrong (verified 23 August). What holds this at 4.0 instead is statements *about* the evidence: three figures misstate the result they illustrate (`fig:borrowuaf`'s "only under AddressSanitizer", diagram 07's retracted FFI framing, diagram 11's inverted fan-out label) and two reproducibility claims outrun their artefacts (§5.6, §7.4, both rooted in `tab:taxonomy` having no generator). The median-equivalence sites are **fixed as of 23 August** in §1.4, §9 and `Thesis_v1.tex`, leaving only the abstract. Roughly an hour of edits plus the two diagram fixes restore 4.5. Do not reintroduce a measured number as prose, and do not restate the median result as a bare null: name the resolved difference and call the equivalence practical. |
+| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.0** | **Figure-and-claim consistency, plus RQ1's far tail.** The eleven hand-typed values are closed and no measured value is wrong (verified 23 August). What holds this at 4.0 instead is statements *about* the evidence: three figures misstate the result they illustrate (`fig:borrowuaf`'s "only under AddressSanitizer", diagram 07's retracted FFI framing, diagram 11's inverted fan-out label) and two reproducibility claims outrun their artefacts (§5.6, §7.4, both rooted in `tab:taxonomy` having no generator). The median-equivalence sites are **fixed as of 23 August** in §1.4, §9 and `Thesis_v2.tex`, leaving only the abstract. Roughly an hour of edits plus the two diagram fixes restore 4.5. Do not reintroduce a measured number as prose, and do not restate the median result as a bare null: name the resolved difference and call the equivalence practical. |
 | **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Maintain register: “cannot tell” ≠ “equivalent”. H1 is *ambiguous in framing*, not simply supported. |
 | **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`: until then the build prints “Not submittable”, and a document that declares itself unsubmittable is not camera-ready. That clause alone holds the criterion. Behind it, “excellent finishing polish” also wants the ninth pass's small defects closed: the clipped `fig:effects` axis label, the `fig:budget` and `fig:borrowuaf` caption overstatements, and the one derivable number still typed (the 15-repeat *p*-floor). §5.5 is conditional as of 22 August, the AI declaration no longer overstates the method, and the diagram labels are clean and gated. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
 
@@ -156,12 +156,12 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 | 9 | Conclusion and future work | 5 |
 | App. | Fault-injection example | 4 |
 
-`Thesis_v1.tex` mirrors this structure as **one bullet per argument move** per chapter. All
+`Thesis_v2.tex` mirrors this structure as **one bullet per argument move** per chapter. All
 nine chapters now carry bullets: chapters 6–9 were filled at the author's explicit request on
 20 August 2026, five bullets each, matching chapters 2–5 (chapter 1 has six). Keep that shape.
 The skeleton has no appendix and needs none.
 
-Because the results chapters quote measured values, `Thesis_v1.tex` now `\input`s the same
+Because the results chapters quote measured values, `Thesis_v2.tex` now `\input`s the same
 three generated macro files as the full draft (`gen_macros`, `gen_complexity`,
 `gen_artefacts`). It therefore has to be rebuilt whenever those are regenerated, not only when
 its own source changes.
@@ -190,7 +190,7 @@ rust/coverage.sh                 # needs `cargo install cargo-llvm-cov --locked`
 bench/refresh_thesis.sh
 
 # Supervisor documents (when their sources changed)
-latexmk -pdf Thesis_v1.tex
+latexmk -pdf Thesis_v2.tex
 latexmk -pdf Thesis_Plan_v2.tex
 ```
 
@@ -325,13 +325,13 @@ that seam is now largely worked out.
 
 ## 6. What agents should not do
 
-- **Do not** treat `Ha_Vien_Mastersthesis_2026.pdf` as supervisor-approved. The submission filename says nothing about review status: only `Thesis_Plan_v2.pdf` and `Thesis_v1.pdf` are in that bucket today.
+- **Do not** treat `Ha_Vien_Mastersthesis_2026.pdf` as supervisor-approved. The submission filename says nothing about review status: only `Thesis_Plan_v2.pdf` and `Thesis_v2.pdf` are in that bucket today.
 - **Do not** hand-edit generated files under `figures/` except source diagrams in `diagrams/`.
 - **Do not** transcribe measured numbers into `build_deck.py`; it reads them from the generated artefacts and fails loudly when one is missing.
 - **Do not** leave an em dash or a semicolon where a reader can see it, in the thesis source or on a slide. The deck build refuses to pass one.
 - **Do not** claim testbed-grade tail latency from the virtualised host.
 - **Do not** remove boundary defect classes or sanitiser-only C++ outcomes to tidy the narrative.
-- **Do not** turn `Thesis_v1.tex` into prose or let a chapter drift off five bullets. It is a bullet-per-argument skeleton on purpose, and it is supervisor-facing.
+- **Do not** turn `Thesis_v2.tex` into prose or let a chapter drift off five bullets. It is a bullet-per-argument skeleton on purpose, and it is supervisor-facing.
 - **Do not** commit secrets, Nokia-internal identifiers, or confidential traces.
 - **Do not** create git commits unless the author explicitly asks.
 
@@ -363,10 +363,10 @@ When preparing material for **Keijo Heljanko** (supervisor) and Nokia instructor
 (**Christoph Luneburg**, **Petteri Kotimaa**):
 
 1. `Thesis_Plan_v2.pdf` — plan, status, timeline (dated; status table must match repo reality).
-2. `Thesis_v1.pdf` — chapter skeleton, all nine chapters populated (35 pages).
+2. `Thesis_v2.pdf` — chapter skeleton, all nine chapters populated (35 pages).
 3. Optionally reference `Ha_Vien_Mastersthesis_2026.pdf` as the **working full draft** (clearly labelled not final).
 
-Port supervisor feedback into `Thesis_v1.tex` and `Ha_Vien_Mastersthesis_2026.tex` in the same
+Port supervisor feedback into `Thesis_v2.tex` and `Ha_Vien_Mastersthesis_2026.tex` in the same
 edit pass so the two do not diverge.
 
 ---
@@ -395,7 +395,7 @@ the author must rewrite unaided, and the bare-metal campaign.*
 (`bench/adoption_cost.py`, `docs/TODO.md` Phase 11 item 7) and wrote them into §7.6, Table 8.1, §8.4,
 §5.4 and the conclusion. Declared length moved 99 to 104 pages. Four passages that called RQ4
 environment-insensitive without qualification were corrected, since build time is a timing
-measurement. The preceding pass, on 20 August, filled `Thesis_v1.tex` chapters 6–9 at the author's
+measurement. The preceding pass, on 20 August, filled `Thesis_v2.tex` chapters 6–9 at the author's
 request (five bullets each, 24 pages to 35) and the skeleton began reading the generated macro
 files. The pass before that, on 19 August, renamed `Thesis_POC.tex` to
 `Ha_Vien_Mastersthesis_2026.tex`, retired the separate submission copy, and brought the declared
