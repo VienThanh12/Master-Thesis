@@ -534,9 +534,11 @@ language selection in cloud-native RAN evolution (Section~\ref{sec:guidelines}).
 
 The findings divide three ways. On \emph{safety} (RQ2), every injected memory-safety and
 data-race defect class is prevented at compile time in safe Rust. The same defects all compile
-in C++, and each is caught, if at all, only at run time and only under the right sanitiser. Five
+in C++, and each is caught, if at all, only at run time and only under the right sanitiser, or on
+one class under none of them. Seven
 boundary classes were chosen deliberately, and neither language prevents them. On two of those
-the C++ tooling is ahead. On \emph{migration} (RQ4), the FFI seam is small and keeps the core
+the C++ tooling is ahead, and on one the defect that safe Rust rules out returns as soon as the
+program writes \texttt{unsafe}. On \emph{migration} (RQ4), the FFI seam is small and keeps the core
 free of \texttt{unsafe}. Measured against the same operation called natively it costs at most
 $\FfiOpBoundPct\%$ of one operation, so the real adoption cost is API design and not run-time
 overhead. Three costs beyond the seam are measured for the same reason, and two of them come back
@@ -2370,12 +2372,14 @@ same structure over \FfiOpRepeats{} repeats. All three are paired by constructio
 the exact paired test of Section~\ref{sec:stats} requires.
 
 \paragraph{The fault-injection catalogue.}
-This dataset is categorical and not numeric. Each of the ten defect cases yields four tool
+This dataset is categorical and not numeric. Each of the $\FaultClasses$ defect cases yields four
+tool
 logs: the AddressSanitizer, ThreadSanitizer and UndefinedBehaviorSanitizer output for the C++
 program, and the \texttt{rustc} output for the safe-Rust counterpart. Each case also yields one
 row in a machine-readable taxonomy, recording the three sanitiser outcomes, the detection stage,
 the compiler result with the diagnostic codes that fired, and the expectation registered before
-the study. The two original boundary cases yield a second table from the model checkers. Carrying
+the study. The two original boundary cases yield a second table from the model checkers, and the
+\texttt{unsafe} one a third from the interpreter. Carrying
 the expectation in the data instead of in the prose is what lets the runner report a mismatch
 in either direction. The table and figure in Section~\ref{sec:safetyresults} are generated from
 that file, not transcribed from it.
@@ -3672,7 +3676,7 @@ treats ``memory-safe'' as ``concurrency-safe'' would therefore mis-budget its re
 effort. That is why this boundary is reported as a first-class result and not as a caveat.
 Figure~\ref{fig:boundary} draws the boundary itself, with the two halves of the
 guarantee on either side of the line and the mechanism that does the enforcing, or the absence
-of one, named in each panel. It carries the two concurrency cases rather than all five outside
+of one, named in each panel. It carries the two concurrency cases rather than all seven outside
 the guarantee, because they are the pair that makes the distinction, and
 Table~\ref{tab:taxonomy} holds the full catalogue.
 
