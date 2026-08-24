@@ -16,7 +16,7 @@
   institution = {Internet Engineering Task Force (IETF)},
   type        = {Request for Comments (RFC)},
   number      = {3393},
-  note        = {Standards Track; defines packet delay variation as the difference
+  note        = {Standards Track. Defines packet delay variation as the difference
                  between consecutive one-way delays},
   month       = nov,
   year        = {2002},
@@ -209,6 +209,12 @@
   url        = {https://doi.org/10.1109/MCOM.001.2500438}
 }
 
+% Dated from the Alliance's public release, 26 February 2026, which its own
+% announcement and SoftBank's both give. The document carries no date of its
+% own: its history table runs 0.1 (2025/04/23) to 09 (2025/10/29) and ends at
+% 10-rc1 undated, and the PDF was created 2026-01-16. The entry read
+% "oct 2025" until 24 August 2026, which was the last draft revision rather
+% than the publication. See docs/Sources_evidence.md.
 @misc{airan2026orchestrator,
   author       = {{AI-RAN Alliance}},
   title        = {{AI-RAN} Platform and Infrastructure Orchestrator},
@@ -219,9 +225,7 @@
                   notes that the two kinds of workload may have different
                   service-level agreements. Contributors from Ericsson, Nokia,
                   Nvidia, Red Hat, Samsung, SoftBank, zTouch Networks and
-                  Northeastern University. Released by the Alliance on
-                  26 February 2026, after a drafting history running from
-                  April to October 2025. Accessed August 2026},
+                  Northeastern University. Accessed August 2026},
   month        = feb,
   year         = {2026},
   url          = {https://ai-ran.org/documents/AI-RAN-Platform-Infrastructure-Orchestrator.pdf}
@@ -328,15 +332,19 @@
   url       = {https://doi.org/10.1145/1297027.1297033}
 }
 
+% Deliberately carries no DOI. Springer registered 10.1007/978-1-4899-4541-9 for
+% this monograph and Crossref still holds the record, but the handle no longer
+% resolves: doi.org and the Springer book page both return 404 (checked
+% 24 August 2026). The live 10.1201/9780429246593 is the Chapman and Hall/CRC
+% e-edition, which Crossref dates 1994 and so does not match the 1993 edition
+% cited here. The ISBN identifies it. See docs/Sources_evidence.md.
 @book{efron1993bootstrap,
   author    = {Efron, Bradley and Tibshirani, Robert J.},
   title      = {An Introduction to the Bootstrap},
   publisher  = {Chapman \& Hall},
   address    = {New York},
   year       = {1993},
-  isbn       = {978-0-412-04231-7},
-  note       = {Springer's DOI for this monograph, 10.1007/978-1-4899-4541-9, no
-                longer resolves. The title is identified here by ISBN}
+  isbn       = {978-0-412-04231-7}
 }
 
 @article{holm1979simple,
@@ -434,7 +442,7 @@
   howpublished = {3GPP Highlights, Issue 09},
   note         = {Written by the chair and the secretary of 3GPP WG SA1.
                   Release 20 carries the 6G studies and Release 21 the normative
-                  work; ITU-R sets early 2029 for technology proposals and
+                  work. ITU-R sets early 2029 for technology proposals and
                   mid-2030 for the submitted specifications. Accessed August 2026},
   month        = dec,
   year         = {2024},
@@ -1374,6 +1382,6 @@
   author       = {Larkin, Nic},
   title        = {Alsoran: A {5G} {gNodeB} Centralized Unit Written in {Rust}},
   howpublished = {Open-source software repository},
-  note         = {Proof of concept; development discontinued. Accessed August 2026},
+  note         = {Proof of concept, development discontinued. Accessed August 2026},
   url          = {https://github.com/nplrkn/alsoran}
 }

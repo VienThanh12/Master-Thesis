@@ -3,6 +3,10 @@
 Audit date: **15 August 2026**. Scope: all **80** entries in `bibliography.bib`, every one of them as
 actually used in `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v2.tex`, and `Thesis_Plan_v2.tex`.
 
+> **Re-verified 24 August 2026 across all 109 entries**, with link resolution added to the method.
+> Four things were fixed, one of them a DOI that no longer resolves. See
+> *Re-verification pass, 24 August 2026* below, before the entry-by-entry sections.
+
 For every entry this file records three things:
 
 1. **Metadata** — whether the bibliographic fields match the publisher's own record.
@@ -108,6 +112,116 @@ Recorded so nobody "corrects" them later:
 
 ---
 
+# Re-verification pass, 24 August 2026
+
+Scope: **all 109 entries**, which is 29 more than the 15 August audit covered. Three checks were
+run over the whole file rather than over a sample.
+
+1. **Citation graph.** `cite_audit.py` reports 109 entries, all 109 cited, no orphan and no
+   missing key. Biber finds 109 citekeys and logs no warning in any of the three documents.
+2. **Deposited metadata.** `bib_verify.py` compared every DOI entry field by field against
+   Crossref, or DataCite for the two LIPIcs papers. Nothing measurable is wrong.
+3. **Link resolution, which is new in this pass.** Every URL was requested and its status
+   recorded. The 15 August audit compared Crossref *fields* and never fetched the target, so a
+   registered DOI whose landing page has since been withdrawn could not be caught. One had been.
+
+### What this pass found
+
+| # | Entry | Finding | Action |
+| --- | --- | --- | --- |
+| 1 | `efron1993bootstrap` | The DOI `10.1007/978-1-4899-4541-9` is registered in Crossref but **`doi.org` returns 404**, and so does the Springer book page behind it. The 15 August audit marked the entry OK on the Crossref record alone. | `doi` and `url` removed. The ISBN identifies the 1993 Chapman & Hall edition the thesis cites, which is also how `klabnik2023rust` is identified. The withdrawn handle is recorded in a **BibTeX comment above the entry**, not in a `note`, because biblatex prints `note` and a maintenance remark has no business in the reference list. The live alternative, `10.1201/9780429246593`, is the Chapman and Hall/CRC e-edition that Crossref dates 1994, so it does not match the edition in the entry. |
+| 2 | `airan2025orchestrator` | Dated October 2025. That is the last **draft** revision in the document's own history table, which runs 0.1 (2025/04/23) to 09 (2025/10/29) and ends at 10-rc1 with no date. The Alliance released the white paper on **26 February 2026**, per its own announcement and SoftBank's, and the PDF was created 2026-01-16. | Renamed `airan2026orchestrator`, `month = feb`, `year = {2026}`. The note now carries the release date, the drafting window, and the clause the thesis leans on. The single citation site was updated. |
+| 3 | `li2026rustlinux` | No `pages`. Crossref deposits `1-33` with no article number, so the field could not be filled from Crossref alone. DBLP gives **9:1-9:33**. | `pages = {9:1--9:33}`, matching the article-number style the other ACM journal entries use. |
+| 4 | `rfc3393`, `3gpp2024road6g`, `alsoran` | Three semicolons in author-written `note` fields. Biblatex prints `note`, so these reach the reference list, where the repository's own style rule forbids them. | Rewritten with a full stop or a comma. |
+
+### Claim-level verification of the seven entries the 15 August audit did not cover
+
+All seven carry a load-bearing `note`, and every claim in those notes was read out of the source.
+
+- `cisa2025badpractices` — **level A.** Version 2.0, January 2025, both confirmed on the revision
+  table. Bad practice 1 covers new product lines for critical infrastructure in a memory-unsafe
+  language. On the exemption the source says: "Publication of a memory safety roadmap does not
+  apply to products that have an announced end-of-support date that is prior to Jan. 1, 2030."
+  That is the claim at `Ha_Vien_Mastersthesis_2026.tex:437`, at the strength the thesis states it.
+- `itu2023imt2030` — **level A** for the metadata. The ITU page gives M.2160-0 (11/2023),
+  approved 2023-11, in force, title as in the entry.
+- `3gpp2024road6g` — **level A.** Jose Almodovar (SA1 Chair) and Alain Sultan (SA1 Secretary),
+  "First published December 2024, in Highlights Issue 09". Release 20 for studies and Release 21
+  for the normative work, against an ITU calendar of early 2029 for technology proposals and
+  mid-2030 for the specifications. The migration and interworking claim sits in the TR 22.870
+  section the article names. The web page is stamped 2 January 2025, and the entry follows the
+  Highlights issue instead, which the note states.
+- `delloro2025ran3q` — **level A.** Press release of 20 November 2025. "The top five suppliers
+  accounted for 96 percent of the 1Q25-3Q25 RAN market, up from 95 percent in 2024", and the top
+  five are Huawei, Ericsson, Nokia, ZTE and Samsung. Both numbers and the ordering match.
+- `delloro2026ran` — **level A.** Press release of 17 February 2026. "Overall market
+  concentration, as measured by the Herfindahl–Hirschman Index, reached a 10-year high in 2025",
+  and "Revenue rankings did not change in 2025".
+- `airan2026orchestrator` — **level A**, clause 2.2: "The concept of 'AI-and-RAN' means using a
+  common IT infrastructure to accommodate both AI and RAN workloads. Therefore, there is a
+  fundamental requirement for the infrastructure to run AI and RAN workloads concurrently. It is
+  important to note that AI and RAN workloads may have different SLAs." The contributor list in
+  the note matches the eight organisations on page 2. Only the date was wrong, see above.
+- `polese2026airan` — **level B.** Crossref confirms IEEE Communications Magazine 64(7):90–95,
+  2026, five authors as listed.
+
+### Also confirmed in this pass
+
+- **3GPP archive dates.** The posting date of every cited spec was read from the archive.
+  `38401-h50` 2023-06-29, `38300-h50` 2023-06-30, `38331-h50` 2023-07-01, `38463-h00`
+  2022-04-06, `38913-i00` 2024-04-04. All five agree with their entries.
+- **WG21 papers.** P3081R2 carries the date 2025-02-04 on its own title page, matching `feb 2025`,
+  with Herb Sutter as sole reply-to. P3970R0 carries 2026-01-16, matching `jan 2026`, with the six
+  authors as listed. P3390R0 sits in the September 2024 mailing, matching `sep 2024`, and its
+  `safecpp.org` copy was edited later without a revision bump.
+- **`klabnik2023rust`.** ISBN 9781718503106 resolves to No Starch Press, 28 February 2023, both
+  authors, second edition. The entry carries no URL by design.
+- **`bugden2022rust` is still a preprint.** DBLP holds only the CoRR record, so the criterion 2
+  note in `AGENT.md` stands: this remains the one load-bearing arXiv cite, and replacing it is
+  still optional rather than done.
+
+### Open, and deliberately not changed
+
+- **`3gpp22261` month.** The archive posts `22261-i60.zip` on 2022-04-01 and the entry says
+  `mar 2022`, which the 15 August audit chose on purpose to follow the SA plenary approval. The
+  same audit moved `3gpp38913` from March to April on the posting date, so the two entries now
+  follow different conventions for the same situation. Both are individually defensible and the
+  divergence is one word either way. Left for the author to settle rather than reversed here.
+- **`bensalem2005deadlock` year.** The entry says 2005, which is the conference year and what
+  DBLP records. Springer and Crossref date LNCS 3875 to 2006. Left at 2005 to match DBLP.
+- **Semicolons in the 3GPP titles.** `{NG-RAN}; Architecture description` and four like it keep
+  their semicolons, because that punctuation is part of the official title. Changing them would
+  misquote the standard. Recorded here so the style gate is not applied to them by mistake.
+
+### Known-benign differences the field comparison reports every run
+
+Recorded so no future pass treats them as defects.
+
+- **ACM article-number pages.** `66:1--66:34` against Crossref's `1-34` and eight more like it.
+  ACM prints the article number, and the entry follows ACM.
+- **PACMPL issue year.** Crossref dates the POPL 2018 issue to 2017 and the POPL 2020 issue to
+  2019, because the deposit precedes the issue. ACM prints 2018 and 2020, and the entries follow
+  ACM. `xu2021rustcve` and `zheng2024security` are the same case in TOSEM.
+- **`naylor2026cherisimt`.** Crossref `issued` is 2025-12-11, `published-print` is 2026-03-22,
+  and the event is ASPLOS '26. `year = {2026}` is right.
+- **Apostrophes and particles.** D'Oro, O'Keeffe, Tao Wei, García Sánchez-Torija and di Luzio all
+  differ between the publisher record and the paper's own title page. The entries follow the
+  papers.
+- **`mccormack2026unsafe` and `cai2026interop`** are online first with no volume, issue, or page
+  range deposited yet. The entries are complete as they stand and should be revisited if the
+  articles reach an issue before submission.
+- **HTTP 403 and 202 on ACM, IEEE and Elsevier links.** Bot blocking, not dead links. Every one of
+  those DOIs resolves through the Crossref API. Two failures in the first sweep, the DiVA resolver
+  for `andersson2026stdmemsafety` and the USENIX page for `agache2020firecracker`, were transient
+  and returned 200 on retry.
+
+Result: **one dead link, one wrong date, one missing page range and three printed semicolons,
+all fixed.** No measured value, author list, venue, volume or page range in the file is wrong.
+All three documents rebuild with zero LaTeX errors, zero undefined references or citations and no
+biber warning. Declared length is unchanged at 105 pages with 6 appendix pages.
+
+---
+
 # Entry-by-entry evidence
 
 Verdicts below describe each entry **as it was found at the start of the audit**. Where a verdict
@@ -162,7 +276,10 @@ it is ~1,000 pages and the claim is structural rather than numeric.
 
 ### `3gpp22261` — TS 22.261, Service requirements for the 5G system, V18.6.0
 **Metadata** ✔ `22261-i60.zip` (i = Release 18, 6.0) is dated **2022-04-01** in the 3GPP archive,
-consistent with `mar 2022` (SA plenary approval, posted 1 April).
+consistent with `mar 2022` (SA plenary approval, posted 1 April). Re-checked 24 August 2026, date
+unchanged. Note the convention clash flagged in that pass: this entry follows the approval month
+while `3gpp38913` was moved to the posting month by this same audit, and the two situations are
+identical.
 **Cited** `Ha_Vien_Mastersthesis_2026.tex:597, 1091`; `Thesis_v2.tex:202` — the 5G system's latency and
 reliability KPIs.
 **Evidence — level C** ETSI no longer mirrors v18.6.0 (only 18.13.0 and later), so the KPI clause
@@ -523,12 +640,17 @@ reason is that the data analysis is not statistically rigorous."
 **Verdict** OK — near-verbatim support for the sentence at 1572.
 
 ### `efron1993bootstrap` — An Introduction to the Bootstrap
-**Metadata** ✔ Crossref: Efron and Tibshirani, 1993, DOI 10.1007/978-1-4899-4541-9. ISBN matches.
+**Metadata** ⚠ **superseded by the 24 August 2026 pass.** Crossref holds the record (Efron and
+Tibshirani, 1993, DOI 10.1007/978-1-4899-4541-9) and the ISBN matches, which is why this entry
+read OK on 15 August. The DOI itself **does not resolve**: `doi.org` returns 404 and so does the
+Springer book page. A field comparison against Crossref cannot see that, only a fetch can.
+→ `doi` and `url` removed, ISBN kept, withdrawn handle recorded in a BibTeX comment above the
+entry so that it does not print.
 **Cited** `Ha_Vien_Mastersthesis_2026.tex:1567, 3920`; `Thesis_v2.tex:274`; `Thesis_Plan_v2.tex:135` —
 nonparametric bootstrap 95 % confidence intervals.
 **Evidence — level B** Standard reference; the percentile and BCa interval construction the thesis
 uses is Chapters 12–14. Book not opened for this audit.
-**Verdict** OK.
+**Verdict** Claim fine, link dead, fixed.
 
 ### `holm1979simple` — A Simple Sequentially Rejective Multiple Test Procedure
 **Metadata** ✔ OpenAlex: *Scandinavian Journal of Statistics*, volume 6, pages **65–70**, 1979,
