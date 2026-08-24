@@ -1,0 +1,96 @@
+\chapter{Kết luận và Công việc tương lai\label{chapter:conclusions}}
+
+Luận văn này so sánh C++ hiện đại và Rust trên một dịch vụ Quản lý Ngữ cảnh UE mô hình hoá theo
+một thành phần gNB-CU-CP thực của Nokia, theo bốn chiều: độ dự đoán được của độ trễ đuôi, ngăn
+chặn lỗi tại thời điểm biên dịch, chi phí mô hình an toàn, và chi phí áp dụng tăng dần. Xây dựng
+trên một đặc tả cố định duy nhất và chạy qua cùng các đường mã, hai bản hiện thực cho phép tách
+hiệu ứng ngôn ngữ khỏi khác biệt về thiết kế và kỹ năng.
+
+Ba kết luận theo sau từ bằng chứng. Thứ nhất, về an toàn, khác biệt là khác biệt về \emph{loại}, và
+nó có một cạnh xác định. Rust an toàn từ chối cả bảy lớp lỗi an toàn bộ nhớ và tranh chấp dữ liệu
+được tiêm vào tại thời điểm biên dịch, và một trong bảy lớp đó là lớp mà không bộ dò lỗi C++ nào
+báo cáo. Các mối nguy mà C++ chỉ có thể hy vọng bắt được trong một bài kiểm thử có gắn công cụ trở
+thành không thể viết. Cạnh đó dừng ở đó.
+Cả bảy lớp biên
+đều biên dịch và hành xử sai trong Rust an toàn đúng như trong C++, và trên hai lớp trong số đó
+công cụ C++ là bên báo cáo. Vì vậy bảo đảm được mô tả chính xác nhất như sau. Rust loại bỏ tranh
+chấp dữ liệu, không phải điều kiện đua, và lỗi aliasing, không phải lỗi thứ tự khóa, rò rỉ, số học
+quấn vòng hay ngăn chứa lỗi, và nó không loại bỏ lớp nào trong số đó ở vùng được đánh dấu
+\texttt{unsafe}. Ở nơi các lỗi biên được bắt, chúng được
+bắt tại thời điểm kiểm thử, trong hai trong ba trường hợp chỉ sau khi được viết lại theo các
+primitive của bộ kiểm tra mô hình, đó là một chi phí thực và khác với chi phí của bộ dò lỗi.
+
+Thứ hai, về di chuyển
+chi phí chủ yếu do thiết kế API và đường cong học tập, không phải bởi bất kỳ thuế thời gian chạy
+nào. Một lõi Rust không sửa đổi có thể được điều khiển từ C++ qua một đường nối mỏng, cô lập
+\texttt{unsafe}, có chi phí trên một thao tác thực, đo so với cùng thao tác gọi bản địa, được giới
+hạn ở $\FfiOpBoundPct\%$. Các chi phí mà kỹ sư build thường nêu trước không đổi thứ tự đó.
+Phần lớn chi phí build thêm của Rust là biên dịch phụ thuộc chứ không phải công việc của chính
+trình biên dịch, khoảng cách kích thước nhị phân là chính sách liên kết và đảo chiều khi chính sách
+được khớp, và thành phần được so sánh không giải quyết mã bên thứ ba nào. Nơi C++ dẫn trước là vòng
+lặp sửa-biên dịch, và nó chỉ dẫn trước với các sửa đổi nằm trong một đơn vị dịch.
+
+Thứ ba, về hiệu năng bằng chứng chia đôi hai lần trước khi chia theo tài nguyên. Nó chia trước
+theo \emph{cái gì đang được đo}, rồi theo \emph{liệu dịch vụ còn chịu tải được}. Làm đúng cả hai
+phép chia là chỉnh sửa quan trọng nhất của nghiên cứu đối với chính nó, và mỗi phép được phát hiện
+chứ không phải dự đoán trước. Một thao tác đầu-cuối trong thiết kế này là $\BudgetCoreShareMax\%$
+công việc ngôn ngữ thực hiện, phần còn lại là bàn giao giữa luồng mà hệ điều hành thực hiện, nên
+một kết quả null đầu-cuối không thể giới hạn hiệu ứng ngôn ngữ. Đo riêng thao tác thì hai ngôn ngữ
+không tương đương. Rust nhanh hơn, theo $\BudgetCoreRatio\times$, vì
+lựa chọn bố cục bảng băm của thư viện chuẩn chứ không vì điều gì
+liên quan đến an toàn.
+
+Phép chia thứ hai là theo chế độ, và nó quan trọng hơn. Dưới bão hoà hai ngôn ngữ tương đương ở
+trung vị cho mọi mục đích triển khai quan tâm, và đó là kết quả thực về các triển khai dạng này.
+Tương đương là thực tiễn chứ không phải thống kê, vì kiểm định ghép cặp vẫn phân giải
+$\PFiftyDiffAbsMax\,\mu$s nghiêng về Rust dưới cả hai bộ cấp phát. Đuôi xa của chúng vẫn không phân
+giải được trên máy ảo hoá, đó là thừa nhận về dụng cụ đo. Qua bão hoà chúng không tương đương. Bản
+build C++ duy trì $\OverloadThrRatio\times$ thông lượng của bản build Rust, trong
+\OverloadThrAgree{} lần lặp xen kẽ dưới cả hai bộ cấp phát, trong khi tiêu thụ
+$\OverloadCpuPerOpRatio\times$ CPU trên mỗi thao tác hoàn thành, và các primitive cô lập không tái
+tạo thứ tự đó ở mức ý nghĩa (Mục~\ref{sec:contention}). Về bộ nhớ bản build Rust mang thêm vài MiB
+dấu chân cố định dưới cả hai bộ cấp phát, nhỏ hơn một bậc độ lớn so với chi phí của chính lựa chọn
+bộ cấp phát.
+
+Gộp lại, chúng ủng hộ một tuyên bố hẹp, hẹp hơn tuyên bố luận văn này dự kiến
+đưa ra. Đối với các dịch vụ mặt điều khiển có trạng thái, đồng thời, có thể phân vùng dạng này, và
+\emph{ở tải danh nghĩa}, lựa chọn giữa C++ hiện đại và Rust không phải quyết định hiệu năng. Đó là
+quyết định về lớp lỗi nào tổ chức muốn làm không thể viết, và liệu tổ chức có trả chi phí kỹ thuật
+và học tập để đạt được hay không. Dưới quá tải nó lại thành quyết định hiệu năng, và hiện nay ủng
+hộ C++. Lý do nằm ở hạ tầng đồng thời chứ không phải bảo đảm của ngôn ngữ nào, và dịch vụ bắt buộc
+phải suy giảm êm không thể coi chúng là phụ. Điều luận văn này bổ sung do đó là một dụng cụ đo chứ
+không phải phán quyết: một đặc tả cố định, một cặp hiện thực đã kiểm thử tương đương, một khung đo
+có thể tái lập vượt qua điểm gối bão hoà, một phân rã nói phần nào trong số đo đó ngôn ngữ phải
+chịu trách nhiệm, và một danh mục lỗi ánh xạ cả phần bảo đảm bao phủ lẫn nơi nó dừng.
+
+Một số hướng mở rộng công việc, mỗi hướng là biện pháp trực tiếp cho một hạn chế đã nêu ở trên.
+Ưu tiên tức thời là chiến dịch bare-metal, mục tiêu giờ đã hẹp: điểm gối bão hoà và so sánh quá
+tải đã được giải quyết, nên bare-metal sẽ mang lại đuôi xa dưới bão hoà. Bộ đếm phần cứng và hồ sơ
+cấp phát thuộc cùng chuyến đo và là khoảng trống dụng cụ đo rõ nhất trong nghiên cứu. Chúng sẽ biến
+kết quả bộ nhớ của Mục~\ref{sec:resources} từ quan sát thành giải thích, và xác nhận hoặc bác bỏ
+lời giải thích về cục bộ bộ nhớ đệm mà Mục~\ref{sec:budget} đưa ra cho khoảng cách ở mức thao tác.
+Ngoài ra:
+
+\begin{itemize}
+\item Phát lại các trace sản xuất đã ẩn danh hoá thay cho khối lượng công việc tổng hợp, để hỗn hợp
+  thao tác được xác thực chứ không chỉ được biện minh bằng đặc tả.
+\item Mở rộng so sánh sang thêm các phân hệ mặt điều khiển, hoặc sang đường L2/PHY nặng dữ liệu, nơi
+  trạng thái dùng chung có thể thay đổi và áp lực cấp phát sẽ kiểm tra hai ngôn ngữ khác với thiết
+  kế không chia sẻ.
+\item Mở rộng danh mục lỗi dọc theo biên được ánh xạ ở đây. Lạm dụng \texttt{unsafe}, và
+  các lớp biên dưới bộ kiểm tra mô hình toàn chương trình thay vì mô hình thu nhỏ thủ công, là các
+  bước tiếp theo hiển nhiên. Một bộ kiểm tra bao phủ chương trình Rust cùng phụ thuộc nước ngoài
+  của nó~\cite{pearce2026rustmc} sẽ chạm đường nối của
+  Mục~\ref{sec:migrationresults}, mà nghiên cứu này đo chi phí nhưng không khám phá các xen kẽ của
+  nó.
+\item Đánh giá runtime async của Rust so với mô hình một luồng mỗi shard dùng ở đây, dưới các kiểm
+  soát nghiên cứu này áp đặt. Điều đó sẽ tách sự phân kỳ đuôi mà Arvidsson và Kaller quy cho
+  \texttt{async}/\texttt{await} không stack~\cite{arvidsson2025async} khỏi bản thân ngôn ngữ,
+  và sẽ xác định bao nhiêu phần khoảng cách Olsson và Stenstr\"om đo giữa
+  Rust bất đồng bộ và DPDK~\cite{olsson2023asyncpackets} thuộc runtime chứ không phải framework.
+\item Đo chi phí cô lập trong tiến trình hai heap tại đường nối, vì lõi không \texttt{unsafe} cần
+  được bảo vệ cũng như
+  được xác minh~\cite{rivera2021galeed,kirth2022pkrusafe}.
+\item Theo dõi mật độ lỗi và công sức review khi Rust được áp dụng tăng dần trong mã nguồn RAN sản
+  xuất.
+\end{itemize}
