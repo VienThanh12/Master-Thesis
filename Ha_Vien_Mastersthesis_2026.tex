@@ -3684,10 +3684,15 @@ outright, grouped by the \emph{mechanism} that rejects them rather than by defec
 family: ownership and borrowing for lifetime and aliasing errors,
 which is why iterator invalidation sits with them, and the \texttt{Send}/\texttt{Sync}
 discipline for unsynchronised access to a location. On the right are the classes the
-catalogue included to find the edge, which neither compiler prevents. The diagram shows the two
-concurrency cases, and the leak, the release-build overflow and the worker-failure case added
-later sit alongside them. The phrase ``thread safety'' spans both sides of the line. The
-guarantee covers only the left.\label{fig:boundary}}
+catalogue included to find the edge, which neither compiler prevents. The diagram names one
+class per mechanism and is not the catalogue, which
+Table~\ref{tab:defectmap} lists in full: the use-after-move belongs with the
+ownership cases on the left and the shared thread-unsafe handle with the \texttt{Send}/\texttt{Sync}
+ones, while the leak, the release-build overflow, the worker-failure case, the seam double-free
+and the forgotten guard sit alongside the two on the right. The phrase ``thread safety'' spans
+both sides of the line, and the guarantee covers only the left. The line itself moves once more
+than the diagram can show, because a program that writes \texttt{unsafe} crosses it
+voluntarily.\label{fig:boundary}}
 \end{figure}
 
 \paragraph{RQ3 (overhead).} The answer splits by resource, and the splits do not all point the
