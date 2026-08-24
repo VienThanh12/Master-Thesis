@@ -2959,11 +2959,22 @@ only `sommer2025avionics` and `coblenz2022bronze` can carry an argument on their
 
 # Sixth sweep, 24 August 2026: does anyone else reach these conclusions?
 
-> **Status: not applied.** No document and no bibliography entry changed. This sweep asked one
-> question of each result the thesis reports, and the answer differs sharply between them. Eleven
-> additions are proposed and every field was read from a primary record. Three findings have no
-> independent twin at all, which is a result in itself and belongs in the threats section rather
-> than being quietly left as an absence.
+> **Status: items 1 and 2 of §I applied, 24 August 2026.** Four entries added to
+> `bibliography.bib`, which is now 109 entries with every one cited and no orphans:
+> `lu2008mistakes`, `dietz2015overflow`, `cui2024rcanary`, `clangtidyuseaftermove`. Each is cited
+> once, at the sentence it supports, in §`sec:safetyresults` and §`sec:rqdiscussion`. A new
+> `\paragraph{Replication status}` closes §`sec:threats`, and the `Thesis_v2.tex` threats bullet now
+> records that no peer-reviewed study reports the overload reversal. Both PDFs rebuild with zero
+> errors and no undefined references or citations, and `.aitells.py` still reports four dash hits
+> (the same legitimate four) and no semicolons. Declared length is unchanged at **108 pages**:
+> rebuilding a reverted copy gives 108 as well, so this prose costs no page, and the 105 recorded in
+> `AGENT.md` predates the same day's RQ2 catalogue work. Items 3 to 7 of §I are open and §F is
+> untouched.
+>
+> The sweep asked one question of each result the thesis reports, and the answer differs sharply
+> between them. Eleven additions are proposed and every field was read from a primary record. Three
+> findings have no independent twin at all, which is a result in itself and belongs in the threats
+> section rather than being quietly left as an absence.
 
 ## A. The question, and why it is not the question the first five sweeps asked
 
