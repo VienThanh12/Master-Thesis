@@ -3100,7 +3100,9 @@ rule in a comment, which is the only place C++ has to put it. In Rust that rule 
 type and \texttt{thread::spawn} asks for it in its signature, so the compiler refuses without
 analysing the body at all. One caveat belongs with the first of these. A static analyser
 configured for it would plausibly flag the use-after-move, and \texttt{clang-tidy} ships a check
-for exactly this pattern. None is run here, for the reason given in
+for exactly this pattern, one that by its own documentation reasons about control flow rather than
+paths and considers only local variables and function
+parameters~\cite{clangtidyuseaftermove}. None is run here, for the reason given in
 Section~\ref{sec:methodfaults}, so the row records what the sanitisers report and not the limit
 of what C++ tooling could reach.
 
@@ -3146,12 +3148,17 @@ in silence, because leaking is safe in Rust by explicit design and nothing in th
 toolchain looks for it. That this belongs to the language, and is not an artefact of the
 injected example, shows in the work being done to change it. Proposals to add garbage
 collection to Rust are motivated precisely by shared-ownership structures that reference counting
-expresses ``awkwardly, inefficiently, or both''~\cite{hughes2025gcrust}. UBSan reports the C++ overflow, because signed overflow is undefined.
+expresses ``awkwardly, inefficiently, or both''~\cite{hughes2025gcrust}. Where \texttt{unsafe}
+marks the memory-safety boundary explicitly, the leak boundary is implicit and the compiler stays
+silent, which is the premise of a static leak checker that found the class in $19$ of more than
+$1{,}200$ published crates~\cite{cui2024rcanary}. UBSan reports the C++ overflow, because signed overflow is undefined.
 The Rust overflow is \emph{defined} to wrap at \texttt{opt-level~=~2}, which leaves
 \texttt{overflow-checks} off, so the program has a meaning and the meaning is wrong. That
 second contrast needs stating carefully, because it does not reduce to which language is
 safer. Defined-but-wrong is easier to debug than undefined-and-wrong, and no less incorrect, and
-neither is what ``memory safe'' is usually taken to promise.
+neither is what ``memory safe'' is usually taken to promise. Deliberate wraparound is also common
+enough in C and C++ that a checker cannot treat every overflow as a defect, and undefined overflow
+has broken working programs as compilers improved~\cite{dietz2015overflow}.
 
 The deadlock result needs a qualification the earlier reading of it did not have.
 ThreadSanitizer does flag the inversion in C++, but on some runs and not others:
