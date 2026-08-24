@@ -3672,7 +3672,11 @@ livelocks reachable~\cite{tang2025converos}.
 The lost update is sharper still. It escapes
 ThreadSanitizer for precisely the reason it escapes the borrow checker, as
 Section~\ref{sec:safetyresults} sets out. With every access correctly synchronised there is no
-unsynchronised access to find. The distinction it exposes, between a data race and a race
+unsynchronised access to find. Nor is the class marginal. In the field study of $105$ real
+concurrency bugs that named these categories, about a third of the non-deadlock cases violated the
+order the programmers intended rather than their locking, and the authors record that such
+intentions are not readily expressible through locks at all~\cite{lu2008mistakes}. The distinction
+it exposes, between a data race and a race
 condition, is the one the phrase ``thread safety'' routinely runs together, and Rust removes only
 the first.
 
