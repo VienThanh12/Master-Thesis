@@ -515,13 +515,19 @@ only confirming it. These hypotheses are revisited against the evidence in
 Section~\ref{sec:hypotheses}.
 
 \section{Contributions, results, and limitations}
-The thesis makes five contributions. Two are artifacts: a reproducible benchmarking framework
+The thesis makes six contributions. Two are artifacts: a reproducible benchmarking framework
 for telecom control-plane workloads, and a frozen shared specification with two parity-tested
-implementations of a RAN control-plane subsystem, one in C++ and one in Rust. Two are results:
-a quantitative comparison that weighs tail latency and predictability alongside average
-throughput, and a defect-class taxonomy from controlled fault injection that marks where Rust's
-compile-time guarantee stops. The fifth is a set of engineering and migration guidelines for
-language selection in cloud-native RAN evolution (Section~\ref{sec:guidelines}).
+implementations of a RAN control-plane subsystem, one in C++ and one in Rust. Three are
+results. The first is a comparison of latency and resource behaviour that divides at the
+saturation knee, where the ordering between the two languages reverses. The second is a
+defect-class taxonomy from controlled fault injection that marks where the compile-time
+guarantee stops, in both directions. The third is a bound on what a comparison of this shape can
+attribute to a language at all, obtained by decomposing an end-to-end operation into the work the
+language performs and the cross-thread handoff around it. The last is a set of engineering and
+migration guidelines for language selection in cloud-native RAN evolution
+(Section~\ref{sec:guidelines}). Neither the reversal nor the attribution bound was anticipated.
+Both were found while reading results the study had planned to report differently, and
+Section~\ref{sec:hypotheses} records what the first of them cost H1.
 
 The findings divide three ways. On \emph{safety} (RQ2), every injected memory-safety and
 data-race defect class is prevented at compile time in safe Rust. The same defects all compile
@@ -537,19 +543,23 @@ against the received wisdom: most of the Rust build's extra cost is compiling th
 not the compiler's own work, and the binary-size ordering reverses once the two toolchains are held
 to one linkage policy. Both of these results are final.
 
-On \emph{performance} (RQ1, RQ3) the answer divides at saturation, and drawing that division
-correctly is part of the contribution. Below saturation the two implementations are equivalent end
-to end in central behaviour, by a margin no deployment would notice. The paired test does resolve a
+On \emph{performance} (RQ1, RQ3) the answer divides twice, and drawing both divisions correctly is
+where most of the analysis went. The first division separates what the sweep measures from what it
+can attribute. An end-to-end operation in this design is $\BudgetCoreShareMax\%$ language work and
+a cross-thread handoff takes the rest, so a matched-pair comparison on that path bounds the design
+and not the language. The limit holds whichever way such a comparison comes out, and it reaches
+any study that reports an end-to-end median without measuring the share. Timed apart from the
+handoff, the operation is $\BudgetCoreRatio\times$ faster in Rust, which the sweep cannot see.
+
+The second division is by regime. Below saturation the two implementations are equivalent end to
+end in central behaviour, by a margin no deployment would notice. The paired test does resolve a
 median difference of $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators, with an
 interval reaching $\PFiftyDiffCIMax\,\mu$s, so the equivalence is practical and not statistical.
-The far tail in the same regime cannot be resolved on the available host at all. Neither result is
-as informative as it looks. An end-to-end operation here is only
-$\BudgetCoreShareMax\%$ language work and the rest is a cross-thread handoff, so the sweep bounds
-the design and not the language. Measured on its own, the operation is
-$\BudgetCoreRatio\times$ faster in Rust, while the Rust process holds a few MiB more resident
-memory under both allocators. Past saturation the ordering reverses. The C++ build sustains
-$\OverloadThrRatio\times$ the throughput of the Rust build, and uses more CPU for each completed
-operation.
+The far tail in the same regime cannot be resolved on the available host at all. Past saturation
+the ordering reverses. The C++ build sustains $\OverloadThrRatio\times$ the throughput of the Rust
+build in \OverloadThrAgree{} interleaved repeats under both allocators, and uses more CPU for each
+completed operation. On resources the Rust process holds a few MiB more resident memory, again
+under both allocators, and an order of magnitude less than the allocator choice itself costs.
 
 Four limitations bound all of this: a synthetic workload, one simplified subsystem,
 single-author implementation bias, and a virtualised measurement host.
@@ -576,7 +586,8 @@ representative of production control-plane code. For the standards and policy di
 memory-safe roadmaps~\cite{cisa2023memorysafe,oncd2024building}, it grounds a general mandate in
 a concrete telecom data point. For the research community, the frozen specification, the
 parity-tested implementations, the reproducible benchmarking framework, and the defect-class
-taxonomy form a reusable baseline for further language and systems studies. And for practising
+taxonomy form a reusable baseline for further language and systems studies, and the latency
+decomposition gives such a study a way to check what its own measurements can attribute. And for practising
 engineers, the fault catalogue and the migration prototype double as worked examples of what
 Rust's guarantees do and do not buy in this domain.
 
@@ -4529,7 +4540,8 @@ a performance decision again, and one that currently favours C++. The reasons li
 concurrency plumbing and not in either language's guarantees, and a service required to degrade
 gracefully cannot treat them as incidental. What this thesis adds is therefore an instrument and
 not a verdict: a frozen specification, a parity-tested pair of implementations, a reproducible
-measurement framework that reaches past the saturation knee, and a defect catalogue that maps
+measurement framework that reaches past the saturation knee, a decomposition that says how much
+of what that framework measures the language is answerable for, and a defect catalogue that maps
 both what the guarantee covers and where it stops.
 
 Several directions extend the work, each the direct remedy to a limitation named above. The

@@ -170,12 +170,16 @@
         what overhead Rust's safety model imposes on throughput, CPU, and memory. RQ4 asks what
         incremental adoption costs in effort, FFI interoperability, and risk inside an existing
         C++ RAN codebase.
-  \item The work contributes five things. A reproducible, telecom-relevant benchmarking
+  \item The work contributes six things. A reproducible, telecom-relevant benchmarking
         framework. A frozen shared specification with two parity-tested implementations. A
-        quantitative comparison that emphasises tail latency under overload. A defect-class
-        taxonomy that marks where Rust's compile-time guarantee stops. And evidence-based
-        guidelines for incremental adoption. The dominant cost there is the learning curve, not
-        run-time~\cite{fulton2021adopting}.
+        comparison of latency and resource behaviour that divides at the saturation knee, where
+        the ordering between the two languages reverses. A defect-class taxonomy that marks where
+        the compile-time guarantee stops, in both directions. A bound on what a comparison of this
+        shape can attribute to a language at all, from decomposing an end-to-end operation into
+        the language's own work and the handoff around it. And evidence-based guidelines for
+        incremental adoption. The dominant cost there is the learning curve, not
+        run-time~\cite{fulton2021adopting}. The reversal and the attribution bound were both found
+        rather than planned.
 \end{itemize}
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
