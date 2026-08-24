@@ -4672,41 +4672,29 @@ theses are grey literature, so they are cited as evidence of what has been attem
 rather than as peer-reviewed results.
 
 \appendix{Statistical design: family membership and resolving power\label{appendix:stats}}
-Section~\ref{sec:stats} states two commitments: which comparisons enter the corrected family, and
-how far into a difference the design can see at all. The reasoning behind them is recorded here,
-so that neither can be read as a choice made once the $p$-values were known.
+Section~\ref{sec:stats} fixes which comparisons enter the corrected family and how far into a
+difference the design can see. Three points behind those commitments are recorded here rather
+than in the running text.
 
-\paragraph{Which comparisons enter the family.}
-The representative operating point is chosen below saturation, where every variant completes work
-as fast as it is offered. Achieved throughput there is therefore pinned to the offered load by
-construction, and it cannot express a language effect whatever the languages do. Testing it would
-re-measure the operating point and not the code. It would also not be free. Holm divides its
-budget across the whole family, so two comparisons that cannot resolve anything would make the
-correction harsher on the ones that can. Below saturation, throughput is therefore reported with
-its interval in the resource table, where its job is to confirm that the operating point is
-sustained and not merely nominal.
+\paragraph{Why an unresolvable comparison is not free.}
+Testing achieved throughput below saturation would re-measure the operating point and not the
+code. It would also cost the comparisons that can resolve something, because Holm divides its
+budget across the whole family and a test that separates nothing still takes a share of it. Above
+saturation the same reasoning runs the other way. What each variant still sustains is pinned to
+nothing there, so excluding it would discard the only observable the regime offers.
 
-Above saturation that reasoning reverses, and the design has to follow it. Once the offered rate is
-no longer being met, what each variant still sustains is pinned to nothing and becomes the one
-quantity that can separate them. Excluding it there would discard the only observable the
-regime offers. The second operating point is fixed in the overload region, defined as the deepest
-swept load at which \emph{every} variant has stopped meeting the offered rate, and sustained
-throughput and CPU utilisation are tested at it (Section~\ref{sec:overload}). Those comparisons
-join the same Holm family instead of forming a second one, so the correction covers everything
-the thesis reports. No latency percentile is tested above saturation at all. With a fixed intended
-send schedule, a producer that cannot keep up falls behind cumulatively, so the percentiles there
-measure accumulated backlog against a measurement window that cuts it off. That makes them a
-lower bound and not an estimate, and attaching a $p$-value to a lower bound would test the harness
-and not the software.
+\paragraph{Why no percentile is tested in overload.}
+Under a fixed intended send schedule, a producer that cannot keep up falls behind cumulatively, so
+a percentile measured there reports accumulated backlog against a window that cuts it off.
+Attaching a $p$-value to a lower bound would test the harness and not the software.
 
 \paragraph{The floors the design can reach.}
 An exact test on $n$ pairs cannot return a two-sided $p$ below $2/2^{n}$, and after correcting a
-family of $m$ comparisons the smallest attainable adjusted value is $m$ times that. With
-\NRepeats{} repeats and \NTests{} comparisons those two floors are $\MinAttainableP$ and
-$\CorrectedFloor$, both quoted in Section~\ref{sec:stats}. A campaign whose corrected floor lies
-above the threshold being applied cannot demonstrate significance however large the effect, so
-reporting ``not significant'' from such a campaign would say more about its repeat count than
-about the languages.
+family of $m$ comparisons the smallest attainable adjusted value is $m$ times that. That is where
+the $\MinAttainableP$ and $\CorrectedFloor$ of Section~\ref{sec:stats} come from. A campaign whose
+corrected floor lies above the threshold being applied cannot demonstrate significance however
+large the effect, so reporting ``not significant'' from such a campaign would say more about its
+repeat count than about the languages.
 
 \appendix{Host and campaign configuration\label{appendix:config}}
 Table~\ref{tab:testbed} itemises the measurement host of Section~\ref{sec:testbed} against the
