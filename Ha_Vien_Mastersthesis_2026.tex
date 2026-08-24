@@ -1902,9 +1902,9 @@ Operation & Required state & Resulting state & Errors \\
 \subsection{Sharding, the store, and the bounded queue}
 Both sides pin their hashing, so that neither standard library's hasher can become an accidental
 language advantage. Shard assignment runs the \texttt{ue\_id} through the SplitMix64 finalizer,
-three rounds of xor-shift and multiply against constants the specification pins, and then
-reduces modulo the shard
-count. The finalizer matters because the workload draws sequential identifiers, and a naive
+then reduces modulo the shard count. The finalizer is three rounds of xor-shift and multiply
+against constants the specification pins.
+It matters because the workload draws sequential identifiers, and a naive
 modulo would map those onto shards in a fixed repeating pattern. Scrambling the identifier first
 makes the offered load per shard even in both languages by construction, not by luck.
 
@@ -1928,8 +1928,8 @@ a bounded multi-producer, single-consumer channel whose \texttt{send} blocks whe
 full and whose \texttt{recv} blocks when it is empty, which is exactly the required
 backpressure in one call. The C++ standard library, through C++23, offers no
 bounded blocking queue at all. The same semantics are therefore assembled by hand from a
-\texttt{mutex}, two \texttt{condition\_variable}s and a \texttt{std::queue}, in a class of $45$
-lines.
+\texttt{mutex}, two \texttt{condition\_variable}s and a \texttt{std::queue}, in a class of
+$\CppBoundedQueueLines$ lines.
 
 The point of the comparison is not that the C++ code is badly written. It is short, it uses
 the predicate form of \texttt{wait} so that spurious wakeups are handled correctly, and it

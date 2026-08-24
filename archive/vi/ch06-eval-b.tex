@@ -394,3 +394,203 @@ trong $\DeadlockTsanHits$ trong $\DeadlockTsanRuns$ lần chạy trong khi chư�
 lần.\label{fig:taxonomy}}
 \end{figure}
 
+\subsection{Di chuyển (RQ4)}\label{sec:migrationresults}
+Áp dụng tăng dần được đánh giá bằng nguyên mẫu hoạt động, xây theo hướng di chuyển
+thực tế: host C++ hiện có giữ thành phần Rust sau ABI C. Dịch vụ Rust
+được expose qua đường nối \texttt{extern "C"} mỏng trong crate \emph{riêng}
+phụ thuộc thư viện lõi không sửa, nên áp dụng thành phần không cần đổi
+chính thành phần. Host C++ chỉ thấy handle mờ và tập điểm vào C thuần
+(header viết tay, không binding sinh), và lái toàn vòng đời UE qua
+ranh giới. Mô hình lỗi vượt qua nguyên vẹn, nên thiết lập kết nối trùng
+trả \texttt{InvalidState} qua đường nối. Hình~\ref{fig:ffiseam} cho thấy
+cấu trúc kết quả và chỗ \texttt{unsafe} nằm.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/07_ffi_seam.pdf}
+\caption[Đường nối di chuyển FFI C++-sang-Rust]{Đường nối di chuyển FFI C++-sang-Rust. Host C++ chỉ thấy handle mờ, $\FfiEntryPoints$
+điểm vào C thuần, và quy ước mã trạng thái. Crate đường nối \texttt{extern "C"} mỏng
+tập trung toàn bộ \texttt{unsafe} con trỏ thô ($\FfiUnsafeFns$ hàm) và gọi lõi Rust
+không sửa, vẫn không \texttt{unsafe}. Chi phí vượt không làm gì $\FfiCrossing$~ns
+so với thao tác $\FfiOpSeam$~\textmu s. Đo so với cùng thao tác báo hiệu gọi
+bản địa, chi phí đường nối mỗi thao tác được giới hạn ở $\FfiOpBoundPct\%$.\label{fig:ffiseam}}
+\end{figure}
+
+Nguyên mẫu cho số liệu liên vận cụ thể, tóm tắt trong Bảng~\ref{tab:ffi}. Đường nối
+nhỏ: $\FfiEntryPoints$ điểm vào ABI C trong $\FfiSeamLines$ dòng Rust, cộng
+header C $\FfiHeaderLines$ dòng, không phụ thuộc FFI bên thứ ba. Ranh giới an toàn sạch. Thư viện lõi
+không \texttt{unsafe}, và xử lý con trỏ thô mà ABI C yêu cầu gói
+trong crate đường nối, trong $\FfiUnsafeFns$ hàm \texttt{unsafe}, dưới một hợp đồng an toàn
+được ghi. Phía C++ không bao giờ thấy kiểu Rust.
+
+Chi phí mỗi lần gọi được đo hai lần, vì hai phép đo trả lời câu hỏi khác
+và chỉ cái thứ hai trả lời RQ4. Cái đầu là bản thân vượt qua. Gọi
+\texttt{extern "C"} không làm gì tốn $\FfiCrossing$~ns, là lời gọi gián tiếp thường và
+không đáng kể cạnh vòng micro giây của thao tác báo hiệu. Điều đó giới hạn
+vượt qua và không nói đường nối làm gì với thao tác thật, vì lời gọi rỗng
+và vòng đầy đủ không phải cùng thí nghiệm. Vòng bị chi phối bởi
+bàn giao giữa luồng, và lập luận bàn giao ``sẽ trả giống hệt'' là
+suy luận thay cho phép đo.
+
+Phép đo do đó làm trực tiếp. Cùng thao tác báo hiệu, trên cùng cấu hình dịch vụ
+và cùng vòng, được gọi bản địa từ Rust rồi từ C++ qua
+đường nối, xen kẽ qua \FfiOpRepeats{} lần lặp để cặp khớp. Khác biệt ghép cặp là
+$\FfiOpDelta$~ns mỗi thao tác, với khoảng bootstrap $[\FfiOpDeltaLo, \FfiOpDeltaHi]$~ns
+và $p$ ghép cặp chính xác $\FfiOpP$. Không phát hiện chi phí. Hữu ích hơn, khoảng
+giới hạn mọi chi phí phép đo có thể bỏ lỡ ở $\FfiOpBoundPct\%$ thao tác. Xen kẽ
+không tùy chọn ở đây. Một lượt mỗi bên, chạy khi chuẩn bị mục này,
+làm đường nối trông \emph{nhanh hơn} gọi bản địa một phần ba, vì độ lan giữa các lần chạy
+của bàn giao trên host chia sẻ rộng hơn nhiều so với bất cứ gì ABI C có thể đóng góp.
+Hình~\ref{fig:fficost} cho thấy lần lặp tạo các số đó, và panel trái là
+độ lan đó. Các cặp giao nhau, và dải chúng phủ rộng hơn một bậc độ lớn so với
+khác biệt đang kiểm.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/fig_ffi_cost.pdf}
+\caption[Chi phí đường nối trên một thao tác, so với độ không chắc riêng]{Chi phí liên vận đo trên thao tác thật thay vì suy từ lời gọi
+rỗng. \textbf{(a)} Cùng thao tác báo hiệu gọi bản địa từ Rust và từ C++ qua
+đường nối, một dòng mỗi lần lặp xen kẽ, trung vị màu đen. \textbf{(b)} Các cặp
+rút thành khác biệt: $\FfiOpDelta$~ns mỗi thao tác với khoảng bootstrap $95\%$
+$[\FfiOpDeltaLo, \FfiOpDeltaHi]$~ns và $p$ ghép cặp chính xác $\FfiOpP$. Không phát hiện chi phí, và
+đầu trên của khoảng giới hạn chi phí phép đo có thể bỏ lỡ ở
+$\FfiOpBoundPct\%$ thao tác. Vượt \texttt{extern "C"} rỗng, $\FfiCrossing$~ns, được
+đánh dấu để tỷ lệ chứ không phải câu trả lời: không phân biệt được với không trên trục
+thao tác được đo.\label{fig:fficost}}
+\end{figure}
+
+Nỗ lực kỹ thuật chính do đó vào \emph{thiết kế} bề mặt API
+tương thích C, với handle mờ, thao tác kiểu vô hướng và quy ước trạng thái. Nó không vào
+overhead runtime. Chiều ngược (Rust gọi vào C++) đối xứng, nhưng cần
+wrapper ABI C phía C++ và đưa \texttt{unsafe} trở lại caller Rust. Nguyên mẫu và phép đo được công bố cùng luận văn, và chúng thông tin cho hướng dẫn di chuyển
+của Chương~\ref{chapter:discussion}.
+
+\begin{table}[H]
+\centering
+\caption[Nguyên mẫu di chuyển FFI: kích thước đường nối, an toàn và chi phí]{Nguyên mẫu di chuyển FFI: kích thước đường nối, ranh giới an toàn và chi phí liên vận mỗi lần gọi
+(host C++ gọi thành phần Rust qua ABI C, \texttt{-O2}). Thư viện lõi
+không sửa và không \texttt{unsafe}. Mọi liên vận gói trong crate đường nối. Ba hàng
+cuối là so sánh trực tiếp: một thao tác báo hiệu trên cùng cấu hình dịch vụ
+và cùng vòng, gọi bản địa rồi qua đường nối, để
+khác biệt tách phần ranh giới thêm chứ không phải thao tác
+tốn.\label{tab:ffi}}
+\begin{tabular}{l r}
+\hline\hline
+Chỉ số & Giá trị \\
+\hline
+\input{figures/tab_ffi.tex}\\
+\hline
+\end{tabular}
+\end{table}
+
+\paragraph{Ba trục chi phí đường nối không chạm.}
+RQ4 hỏi áp dụng tăng dần tốn gì về công sức, liên vận và rủi ro. Đường nối trả lời
+hạng giữa bằng phép đo, và để hai hạng kia cho số dòng riêng, mô tả
+một thành phần và không nói công việc xây nó. Ba trục nữa được đo ở đây, chọn vì đội hỏi từng cái trước mọi câu đã trả lời:
+chuỗi công cụ mất bao lâu, artefact lớn cỡ nào, và bao nhiêu mã nguồn không rõ gốc
+cấu hình kéo theo. Bảng~\ref{tab:adoption} gom chúng.
+
+\begin{table}[H]
+\centering
+\small
+\caption[Trục chi phí áp dụng: thời gian build, dấu chân tĩnh, bề mặt bên thứ ba]{Trục chi phí
+áp dụng ngoài đường nối. Thời gian build là trung vị \AdoptRepeats{} lần lặp xen kẽ ở
+\AdoptJobs{} job song song trên máy phát triển cục bộ (\texttt{g++~13.3},
+\texttt{rustc~1.97}), bỏ lần khởi động nóng. ``Chỉ first-party'' build lại cùng target Rust
+với cây phụ thuộc còn ấm, nên phần chênh phía trên là hệ sinh thái
+tốn chứ không phải compiler. Dấu chân là nhị phân \texttt{\FootTarget}, cặp thực thi khớp nhất
+trong nghiên cứu, báo ở liên kết mặc định mỗi toolchain rồi ở
+cả hai chính sách khớp, vì mặc định khác và thứ tự phụ thuộc chính sách
+giữ. Số crate là bắc cầu từ \texttt{Cargo.lock}. Ô \texttt{unsafe}
+trống với C++ vì ngôn ngữ không đánh dấu vùng như vậy, nên không có số
+so sánh.\label{tab:adoption}}
+\begin{tabular}{@{}l r r@{}}
+\hline\hline
+Đo lường & C++ & Rust \\
+\hline
+\gentablebody{figures/tab_adoption.tex}\\
+\hline
+\end{tabular}
+\end{table}
+
+Hai trong ba không nhạy môi trường theo nghĩa
+Mục~\ref{sec:safetyresults} cho danh mục lỗi. Kích thước nhị phân và số phụ thuộc là
+thuộc tính toolchain chứ không của máy chủ, nên chúng mang từ phép đo
+này không đổi. Thời gian build thì không, và được xử lý tương ứng. Lấy trên máy phát triển cục bộ qua \AdoptRepeats{} lần lặp xen kẽ ở \AdoptJobs{} job song song, bỏ
+lần đầu để bộ nhớ đệm trang lạnh không bị đọc như thuộc tính compiler. Giây
+tuyệt đối mô tả máy đó. Điều mang theo là tỷ lệ ghép cặp giữa hai toolchain đo
+luân phiên trên một host, cùng lý do chiến dịch xen kẽ biến thể.
+
+\paragraph{Thời gian biên dịch tách compiler khỏi hệ sinh thái.}
+Trên phạm vi khớp, chỉ thư viện lõi không mã bên thứ ba hai bên,
+\BuildLibWallFaster{} xong sớm hơn và \BuildLibCpuCheaper{} tiêu ít thời gian máy hơn:
+$\BuildLibCppWall$~s so với $\BuildLibRustWall$~s đồng hồ tường, và $\BuildLibCppCpu$~s so với
+$\BuildLibRustCpu$~s CPU. Hai thứ tự không đồng ý vì đo khác nhau,
+và ở đây đồng hồ tường yếu hơn. Thư viện C++ là hai đơn vị dịch, nên ở
+\AdoptJobs{} job chỉ hai chạy song song, trong khi \texttt{rustc} tách một crate thành
+đơn vị codegen và giữ khoảng ba lõi bận. Đồng hồ tường ở phạm vi này do đó thưởng
+bố cục file của codebase này cũng như toolchain. Thời gian CPU là so sánh
+không phụ thuộc nó.
+
+Build đầy đủ là nơi phản đối thực tế áp dụng Rust thường đáp, và đọc lần đầu
+nó đứng. Mọi target mặc định tốn $\BuildAllRustCpu$~s CPU so với
+$\BuildAllCppCpu$~s, hệ số $\BuildAllCpuRatio$. Tách con số đó chuyển nó tới
+chỗ hữu ích hơn. Build lại với cây phụ thuộc còn ấm, cùng target Rust tốn
+$\BuildAllFirstPartyCpu$~s. Vậy $\BuildDepShareCpu\%$ build sạch là mã bên thứ ba, và
+mã riêng dự án biên dịch bằng $\BuildAllFirstPartyCpuRatio$ lần CPU \texttt{g++} cần
+cho tương đương. Trên codebase này compiler không phải thứ làm build chậm. Hai
+điều kiện giới hạn cách đọc đó. Hai tập target gần chứ không giống hệt. Và phụ thuộc C++
+không vắng, chúng được biên dịch sẵn vào bản phân phối dưới dạng thư viện chia sẻ, đó là
+lợi ích thật của hệ sinh thái trưởng thành chứ không phải artefact kế toán.
+
+\paragraph{Vòng sửa-biên dịch nhanh hơn ở C++ và kém dự đoán hơn.}
+Sau một sửa file hiện thực, C++ build lại trong $\BuildIncCppTu$~s, nhanh hơn
+$\BuildIncTuRatio$ lần so với $\BuildIncRust$~s của Rust. Sau một sửa header lõi
+mất $\BuildIncCppHeader$~s. Đó chậm hơn Rust $\BuildIncHeaderRatio$ lần và, đo
+bằng CPU, không phân biệt được với build cây từ đầu. Số Rust không đổi.
+Chạm mọi file trong crate tốn $\BuildAllFirstPartyWall$~s so với $\BuildIncRust$~s cho
+chạm một, vì đơn vị biên dịch là crate chứ không phải file. Vòng sửa-biên dịch
+nhanh hơn ở C++ khi sửa nằm trong đơn vị dịch, và chậm hơn khi không. Trường hợp nào chi phối ngày làm việc phụ thuộc kỷ luật header của codebase, không phụ thuộc
+ngôn ngữ. Hình dạng kết quả đó quen từ RQ1. Số C++ tốt hơn ở
+trung vị và tệ hơn ở đuôi.
+
+\paragraph{Thứ tự dấu chân đảo khi chính sách liên kết đổi.}
+Build theo cách mỗi toolchain giao mặc định, nhị phân Rust \texttt{\FootTarget} là
+$\FootShippedRatio$ lần C++, $\FootRustShipped$~KiB so với
+$\FootCppShipped$. So sánh đó giữa hai chính sách liên kết chứ không giữa hai ngôn ngữ,
+vì \texttt{g++} để \texttt{libstdc++} cho loader động trong khi \texttt{rustc} liên kết
+thư viện chuẩn vào nhị phân. Đo ở chính sách khớp khoảng cách hẹp rồi đổi
+dấu. Cả hai thư viện chuẩn giải quyết động, \FootDynamicSmaller{} nhỏ hơn
+$\FootDynamicRatio$ lần. Cả hai liên kết tĩnh, \FootStaticSmaller{} nhỏ hơn
+$\FootStaticRatioAbs$ lần.
+
+Sự đảo có nguyên nhân đo được chứ không lập luận. $\FootCppLocaleShare\%$ symbol
+có kích thước trong nhị phân C++ liên kết tĩnh là locale và facet stream, trong đó facet tiền,
+ngày và ký tự rộng chương trình này không bao giờ khởi tạo, vì liên kết tĩnh
+\texttt{libstdc++} mang bảng facet vào như một tập. Không cấu hình động
+miễn phí, vì mỗi cái để thư viện trên host trả một lần: $\FootSharedCpp$~KiB
+cho \texttt{libstdc++} so với $\FootSharedRust$~KiB cho thư viện chuẩn chia sẻ Rust. Kết luận
+đáng mang theo là câu hỏi có ba câu trả lời, và số $\FootShippedRatio\times$
+ít thông tin nhất. Với artefact tự chứa, điều image container hay thiết bị muốn, thứ tự ủng hộ \FootStaticSmaller{}.
+
+\paragraph{Thành phần so sánh không giải quyết mã bên thứ ba.}
+Phản đối chuẩn Rust trong codebase được quản lý là rủi ro phụ thuộc bắc cầu. Trên
+artefact nghiên cứu này so sánh nó không phát sinh: $\DepsCore$ crate và $\CoreUnsafe$
+site \texttt{unsafe}, biến tuyên bố không phụ thuộc của Mục~\ref{sec:idioms} thành
+phép đo thay vì khẳng định. Bề mặt xuất hiện trong cấu hình quanh
+thành phần đó. Liên kết bộ cấp phát khớp giải quyết $\DepsJemalloc$ crate. Trong số đó,
+$\DepsJemallocShipping$ tới artefact và $\DepsJemallocBuildOnly$ chỉ chạy khi đang
+build. Phân biệt đó quan trọng, vì phụ thuộc build không đưa lệnh vào
+nhị phân nhưng vẫn chạy mã trên máy build. Bộ điều khiển benchmark giải quyết $\DepsHarness$.
+Đếm bằng một quy tắc cú pháp trên nguồn, hai cây đó giữ
+$\DepsUnsafeJemalloc$ và $\DepsUnsafeHarness$ site \texttt{unsafe}.
+
+Hai cách đọc nên tách. Số giới hạn nơi audit phải nhìn, và
+không phải điểm rủi ro, vì crate tập trung \texttt{unsafe} trong một khối lớn điểm
+thấp hơn crate rải cùng công việc qua nhiều khối nhỏ. Cột C++ trống theo
+cấu trúc chứ không theo lợi thế. Ngôn ngữ không đánh dấu vùng như vậy, nên toàn chương trình đứng
+chỗ khối \texttt{unsafe} của Rust đứng, và ghi không ở đó là lỗi loại. Trục
+thiết lập là nơi mã chưa audit trong dự án thực sự nằm. Thành phần sẽ
+giao không mang gì, và bề mặt lớn nhất thuộc bộ máy tạo
+các phép đo.
+
