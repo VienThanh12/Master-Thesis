@@ -123,3 +123,274 @@ CPU, cộng qua các luồng, nơi khác biệt chạy chiều ngược và
 nhỏ.\label{fig:resources}}
 \end{figure}
 
+\subsection{An toàn qua tiêm lỗi (RQ2)}\label{sec:safetyresults}
+Nghiên cứu này không tuyên bố Rust không có lỗi. Nó tiêm danh mục
+$\FaultClasses$ lỗi được nêu
+trong Bảng~\ref{tab:defectmap}, mỗi lỗi là chương trình nhỏ tự chứa
+có hương miền của phân hệ để ánh xạ lên lỗi hợp lý trong dịch vụ. Sự chia
+thành hai nhóm là điều phương pháp của Mục~\ref{sec:methodfaults} bật: bảy
+lớp từ bên trong vùng Rust tuyên bố quản lý, và bảy chọn chính xác vì Rust an toàn
+\emph{không} được kỳ vọng ngăn chúng. Không có nhóm thứ hai kết quả
+sẽ do lựa chọn ca kiểm thử quyết định, xác nhận kết quả kỳ vọng và không bao giờ làm lung lay
+nó. Với nhóm đó, nghiên cứu đo một biên thay vì chứng minh một tuyên bố. Bộ chạy lỗi
+giữ kỳ vọng ghi trước cho mỗi ca và báo vi phạm theo
+cả hai chiều. Một ca biên dịch bất ngờ, hoặc không biên dịch bất ngờ, do đó nổi lên
+thay vì bị hấp thụ vào kết luận.
+
+\paragraph{Thủ tục.}
+Với mỗi lỗi C++ nghiên cứu build và chạy chương trình dưới AddressSanitizer (ASan),
+ThreadSanitizer (TSan) và UndefinedBehaviorSanitizer (UBSan), và ghi công cụ nào, nếu có,
+phát hiện nó. Công cụ thứ ba không phải tinh chỉnh hai cái kia mà là trục riêng. Tràn số có dấu
+vô hình với cả ASan và TSan, nên không có cột riêng lớp tràn số nguyên
+sẽ được ghi là không phát hiện ở C++ trong khi thực tế bị bắt. Không chạy phân tích tĩnh,
+vì lý do Mục~\ref{sec:methodfaults} nêu. Đầu ra của nó không phải từ chối
+biên dịch cũng không phải quan sát thực thi, nên không thuộc
+ba kết quả phân loại ghi. Cột C++ của Bảng~\ref{tab:taxonomy} do đó
+báo cáo công cụ nghiên cứu này chạy, không phải trần công cụ C++ có thể đạt. Cấu trúc
+khớp được viết bằng Rust an toàn và biên dịch. Nơi biên dịch, nó được chạy
+dưới timeout có giới hạn và hành vi quan sát được ghi, vì ``biên dịch được'' một mình
+không thiết lập liệu lỗi sống sót vào chương trình đang chạy. Danh mục, bộ chạy,
+và nhật ký công cụ thô được công bố cùng luận văn.
+
+\paragraph{Kết quả.}
+Kết quả trong Bảng~\ref{tab:taxonomy}, đo bằng \texttt{g++~13.3}
+(\texttt{-std=c++23}, \texttt{-O0} để optimizer không thể loại bỏ lỗi tiêm) và
+\texttt{rustc~1.97} (edition~2021). Chuỗi công cụ C++ đó là của máy phát triển cục bộ
+chứ không phải \texttt{g++~15.1.1} của máy đo, và danh mục được chạy ở đó
+có chủ ý. Liệu chương trình biên dịch, và bộ dò lỗi báo gì khi chạy, là
+thuộc tính của chuỗi công cụ chứ không của máy chủ, đó là nội dung cụ thể
+của việc gọi kết quả này không nhạy môi trường ở
+Mục~\ref{sec:testbed}.
+
+Trong phạm vi của nó kết quả không mơ hồ. Cả bảy
+lỗi an toàn bộ nhớ và tranh chấp dữ liệu đều là lỗi biên dịch trong Rust an toàn, nên không cái nào có thể
+viết cả. Ở C++ mỗi lỗi là mã hợp lệ mà lỗi chỉ lộ lúc runtime, và
+chỉ nếu bài kiểm thử thực sự đi qua đường lỗi. ASan bắt lỗi an toàn bộ nhớ. Lỗi
+đồng thời chỉ bị TSan bắt và vô hình với ASan. Tràn trong
+nhóm biên chỉ bị UBSan bắt và vô hình với cả hai. Không có bộ dò lỗi C++ đơn lẻ bao phủ
+danh mục, và ba cái vẫn để $\FaultClassesUndetected$ trong
+$\FaultClasses$ lớp không chạm, với lớp thứ năm chỉ báo cáo gián đoạn.
+Phát hiện runtime cũng có nghĩa build nhị phân có công cụ riêng và trả overhead thời gian và bộ nhớ của bộ dò lỗi, trong khi
+lỗi Rust được báo trên mọi build thường bất kể độ phủ kiểm thử. Mã
+trong ngoặc là chẩn đoán \texttt{rustc} kích hoạt. \texttt{E0499} là mượn mutable
+xung đột, \texttt{E0502} mượn mutable khi mượn shared còn sống, \texttt{E0382} dùng giá trị
+đã move, và \texttt{E0373} closure sống quá dữ liệu mượn khi thoát sang luồng
+khác.
+
+Hai hàng trong nhóm đó nói điều năm hàng kia không thể, và cả hai được thêm để kiểm
+lập luận chi phí chứ không lặp lại. Use-after-move là lớp trong bảo đảm duy nhất mà
+không bộ dò lỗi C++ nào báo cáo. Admission trả lời yêu cầu từ ngữ cảnh vừa move
+vào store, và đối tượng đã move hợp lệ nhưng không xác định, nên không gì bị hỏng,
+không gì undefined, và cả ba công cụ chạy sạch trong khi xác nhận đi ra dưới
+danh tính rỗng. Mọi lớp khác trong nhóm này bị ít nhất một trong số chúng bắt, điều
+làm lớp này thành dạng sắc hơn của lập luận: build có công cụ không chỉ
+đắt, trên lớp này nó trống. Handle không an toàn luồng là cái kia. Chẩn đoán là
+\texttt{E0277}, ràng buộc trait chứ không phải lỗi mượn, vì từ chối đến từ
+\texttt{Send} chứ không từ borrow checker. Handle C++ mang quy tắc gắn luồng
+trong comment, là chỗ duy nhất C++ có để đặt. Trong Rust quy tắc đó là phần
+kiểu và \texttt{thread::spawn} yêu cầu nó trong chữ ký, nên trình biên dịch từ chối mà không
+phân tích thân. Một cảnh báo thuộc với cái đầu. Phân tích tĩnh
+cấu hình cho nó có thể đánh dấu use-after-move hợp lý, và \texttt{clang-tidy} có sẵn check
+cho đúng mẫu này, mà tài liệu riêng ghi rằng nó theo luồng điều khiển nhưng không theo
+đường, và chỉ xét biến cục bộ và tham số
+hàm~\cite{clangtidyuseaftermove}. Không cái nào chạy ở đây, vì lý do Mục~\ref{sec:methodfaults},
+nên hàng ghi những gì bộ dò lỗi báo chứ không giới hạn công cụ C++ có thể chạm.
+
+Cả bảy ca biên hành xử như dự đoán, và chúng đánh dấu cạnh của tuyên bố. Mỗi cái
+biên dịch trong Rust an toàn và mỗi cái hành xử sai. Ca deadlock treo cả hai ngôn ngữ và phải bị
+bộ điều khiển giết. Ca lost-update kết thúc cả hai ngôn ngữ bằng câu trả lời
+sai im lặng. So với tổng kỳ vọng $\LostUpdateExpected$ lần tăng chương trình Rust an toàn
+ghi $\LostUpdateRustHandled$, mất $\LostUpdateRustLost$, và chương trình C++ dưới
+ThreadSanitizer ghi $\LostUpdateCppHandled$, mất $\LostUpdateCppLost$. Không ngôn ngữ
+có lợi đáng kể ở đây, đó là điểm của việc mang lớp này. Chu kỳ tham chiếu
+rò rỉ cả hai, tràn bản build release tạo
+TEID sai cả hai, và lỗi trong một shard worker làm sập hơn shard đó
+cả hai.
+
+Forgotten guard tách hai thứ cụm ``RAII ngăn điều này'' gộp lại. Rust
+loại bỏ dạng thường của lỗi: bản C++ lỗi trên đường xác thực trả về
+trước unlock viết tay, và bản Rust không có unlock để bỏ qua. Nó không loại bỏ
+lớp, vì lý do Mục~\ref{sec:defects} nêu. Cả hai chương trình phải bị bộ điều khiển giết,
+và công cụ không ngôn ngữ nào nói gì: không bộ dò lỗi báo bản C++,
+vì khóa không bao giờ được thả không phải race cũng không phải chu kỳ, và không có gì cho
+bộ phát hiện thứ tự khóa đóng. Đọc cạnh rò rỉ chu kỳ tham chiếu cặp là cùng bài học
+hai lần, tốn bộ nhớ ở đó và ngữ cảnh ở đây.
+
+Seam double-free là ca không báo lớp lỗi mới, và nó có trong
+danh mục vì lý do đó. Nó là double-free của nhóm trong bảo đảm, chuyển sang
+phía kia quy tắc bằng cách viết theo cách ranh giới hàm nước ngoài phải viết.
+Rust an toàn từ chối giải phóng kép bằng \texttt{E0382}, vì ownership theo dõi giá trị.
+Đưa con trỏ thô cho caller C chính là thao tác kết thúc theo dõi đó, và từ
+đó \texttt{Box::from\_raw} khẳng định ownership địa chỉ được cho. Khẳng định hai lần giải phóng lưu trữ hai lần, và chương trình abort trên check của bộ cấp phát. Nửa C++
+của cặp cố ý bình thường và không đổi, nên chỉ cột
+Rust di chuyển. Bảo đảm không phải thuộc tính của ngôn ngữ xét riêng. Nó là thuộc tính của
+ngôn ngữ cùng ranh giới thành phần được triển khai phía sau, và ranh giới đó là
+cái Mục~\ref{sec:migrationresults} đo.
+
+Hai trong bảy là ca mà công cụ C++ \emph{dẫn trước}, đó là kết quả
+danh mục hai phía được xây để có thể tạo ra. LeakSanitizer, đi kèm ASan,
+báo chu kỳ tham chiếu C++ là cấp phát không thể đến khi thoát. Chu kỳ Rust an toàn
+rò rỉ im lặng, vì rò rỉ an toàn trong Rust theo thiết kế rõ ràng và không gì trong chuỗi công cụ
+mặc định tìm nó. Điều này thuộc ngôn ngữ, không phải artefact của
+ví dụ tiêm, thể hiện ở công việc đang làm để đổi nó. Đề xuất thêm garbage
+collection cho Rust được thúc đẩy chính xác bởi cấu trúc sở hữu chung mà đếm tham chiếu
+diễn đạt ``vụng về, kém hiệu quả, hoặc cả hai''~\cite{hughes2025gcrust}. Nơi \texttt{unsafe}
+đánh dấu ranh giới an toàn bộ nhớ rõ ràng, ranh giới rò rỉ ngầm và trình biên dịch
+im lặng, đó là tiền đề của bộ kiểm tra rò rỉ tĩnh tìm lớp trong $19$ trong hơn
+$1{,}200$ crate công bố~\cite{cui2024rcanary}. UBSan báo tràn C++, vì tràn có dấu undefined ở đó,
+trong khi tràn Rust quấn theo định nghĩa ở
+\texttt{opt-level~=~2} và qua không đáng kể (Mục~\ref{sec:defects}). Tương phản thứ hai
+cần nói cẩn thận, vì nó không rút về ngôn ngữ nào an toàn hơn. Sai nhưng xác định dễ debug hơn sai undefined, và không kém sai, và
+không cái nào là điều ``an toàn bộ nhớ'' thường được hiểu hứa. Quấn vòng cố ý cũng phổ biến
+đủ trong C và C++ để checker không thể coi mọi tràn là lỗi, và tràn undefined
+đã phá chương trình đang chạy khi compiler cải thiện~\cite{dietz2015overflow}.
+
+Kết quả deadlock cần điều kiện mà cách đọc trước không có.
+ThreadSanitizer đánh dấu đảo chiều ở C++, nhưng một số lần chạy chứ không phải mọi lần:
+$\DeadlockTsanHits$ trong $\DeadlockTsanRuns$ lần lặp trong lần chạy sau bảng này, trong khi
+chương trình deadlock mọi lần. Tỷ lệ bản thân không ổn định giữa các lần chạy và không nên đọc
+như một, vì các chiến dịch lặp trên máy này trả số hai phía nửa. Điều
+tái lập là tính gián đoạn. Cơ chế cụ thể, và nó tổng quát hóa ngoài danh mục này. TSan xây đồ thị thứ tự khóa từ acquisition \emph{thành công}, nên chu kỳ chỉ đóng khi một luồng hoàn thành
+đảo chiều mà không chặn. Một lần chạy mà đảo chiều đầu chặn tạo một cạnh và
+không bao giờ cạnh thứ hai, và bộ phát hiện im lặng đúng lúc lỗi cắn. Điều khiển dương đảo cùng hai khóa mà không bao giờ chặn được báo mọi lần,
+điều thiết lập bộ phát hiện sống và không cấu hình sai. Tuyên bố
+trung thực cho lớp này do đó hẹp. Công cụ bắt đảo chiều mà chương trình sống sót,
+và nó không đáng tin trên cái deadlock, đó là đề xả khác nhiều cho
+pipeline tích hợp liên tục so với bắt sạch.
+
+Sự phân biệt tất cả điều này bộc lộ chính xác, và đó là điều cụm ``an toàn
+luồng'' thường làm mờ. Bảo đảm đồng thời của Rust là vắng mặt \emph{tranh chấp dữ liệu},
+nghĩa là truy cập đồng thời không đồng bộ cùng vị trí. Nó không bảo đảm về
+\emph{thứ tự acquisition khóa}, cũng không về \emph{tính nguyên tử của thao tác ghép}, cũng không
+về rò rỉ, số học quấn vòng hay ngăn chứa lỗi, và nó bị treo ở mọi nơi chương trình viết \texttt{unsafe}. Lost update vẫn là ca
+im lặng nhất, vì không bộ dò lỗi báo nó. Với mọi truy cập khóa đúng không có race để
+bộ phát hiện race tìm.
+
+\paragraph{Nơi các lớp biên bị bắt, và với chi phí gì.}
+RQ2 hỏi lỗi nào được ngăn, và cũng ở giai đoạn nào phần còn lại được phát hiện. Với
+nhóm biên các cột bộ dò lỗi để phần thứ hai phần lớn trống. Hai bộ kiểm tra mô hình Rust
+trả lời, và phân công lao động giữa chúng là điều hệ Rust sản xuất
+đã được xác thực. Loom khám phá xen kẽ một cách sound trong mô hình bộ nhớ release/acquire,
+dùng giảm bán thứ tự một phần để giữ không gian trạng thái. Shuttle lấy mẫu
+chúng bằng kiểm thử đồng thời xác suất, mở rộng tới ca vượt tầm Loom~\cite{bornholt2021shardstore}. Cả hai báo cả
+hai lỗi biên gốc. Loom báo deadlock là chu kỳ đóng và fail assertion lost-update, và Shuttle làm tương tự. Mỗi cái ghép với điều khiển mà lỗi
+được sửa, bằng thứ tự khóa nhất quán và giữ read-modify-write trong một vùng
+quan trọng, và cả hai điều khiển ra sạch. Báo cáo do đó đến từ lỗi
+chứ không từ công cụ.
+
+Chi phí là phần đáng ghi. Không chương trình lỗi nào chạy dưới checker nào như
+viết. Mỗi cái phải import lại theo kiểu đồng bộ và luồng riêng của checker,
+vì công cụ không chặn primitive không thể lập lịch nó. Mỗi cái cũng phải
+thu nhỏ cỡ mô hình. Mô hình lost-update giảm từ hai vạn lần lặp mỗi luồng xuống
+một, và mô hình deadlock mất sleep mở rộng cửa sổ trên phần cứng thật. Câu trả lời cho nửa Rust của biên do đó là \emph{phát hiện lúc kiểm thử, sau khi viết lại}.
+Ở nửa C++ bộ dò lỗi nhận chương trình không đổi và, với hai lớp này,
+tìm một không đáng tin và cái kia không hề. Hai nửa chỉ hướng ngược nhau, và
+câu chuyện không ngôn ngữ nào đơn giản. Hệ quả thực hành được phát triển ở
+Chương~\ref{chapter:discussion}.
+
+Seam double-free được trả lời bằng công cụ khác và đi kèm giới hạn sắc hơn. Miri
+diễn giải chương trình theo mô hình aliasing Stacked Borrows, và báo giải phóng
+thứ hai chính xác, như box treo tái tạo từ cấp phát đã giải phóng. Điều khiển
+giải phóng cùng handle một lần sạch, nên báo cáo đến từ lỗi chứ không từ
+bất cứ điều \texttt{Box::from\_raw} làm nói chung. Giai đoạn cho lớp này do đó là kiểm thử
+lần nữa, và lần này không viết lại. Giới hạn là điều di chuyển phải cân. Miri
+diễn giải Rust và không thực thi host C++, nên chương trình nó kiểm tra dùng stand-in Rust cho
+host. Công cụ tìm lỗi này không thể trỏ vào cấu hình lỗi
+được giao, đó là đường nối với C++ ở phía kia. Không gì trong chuỗi công cụ kiểm tra
+ranh giới đó, và câu trả lời thực hành là điều
+Mục~\ref{sec:migrationresults} lập luận từ nguyên mẫu: giữ đường nối đủ nhỏ để
+review bằng tay, vì review là điều còn lại.
+
+\paragraph{Một lỗi không được tiêm.}
+Mọi kết quả trên đến từ lỗi viết có chủ đích, và đó là điểm yếu cố định của
+phương pháp. Ai lắp danh mục đã biết Rust an toàn ngăn gì. Một ca trong
+nghiên cứu này không mang điểm yếu đó. Review thiết kế đặc tả thấy phần
+đồng thời cấm gửi thao tác ngoài cửa sổ chạy của dịch vụ
+(trước \texttt{start()}, hoặc sau \texttt{shutdown()}), trong khi không hiện thực nào kiểm tra
+điều đó. Lệnh cấm hướng tới caller không có cơ chế đằng sau, và trong khoảng trống đó
+hai ngôn ngữ không lỗi giống nhau. Đường submit C++ lập chỉ mục vector shard mà
+\texttt{shutdown()} đã xoá, mà AddressSanitizer báo là heap-use-after-free. Gọi
+trước \texttt{start()} là segmentation fault trên trang zero. Trong Rust cả hai lời gọi đã
+là panic, từ bounds check thường trên cùng thao tác lập chỉ mục, và không ai
+thiết kế cho nó.
+
+Điều làm ca khác về mặt bằng chứng là nguồn gốc, không mức độ nghiêm trọng. Nó nằm trong
+mã viết để đúng, trong nhánh mà tuyên bố an toàn dựa vào ThreadSanitizer, có thể đến
+qua API công khai bằng cách gọi thao tác được ghi theo thứ tự được ghi. Nó cũng sống sót
+mọi kiểm tra nghiên cứu này chạy: $\CppTestBinaries$ nhị phân kiểm thử C++, $\RustTests$ kiểm thử Rust,
+$\ConfHandOps$ thao tác tương đương viết tay và $\ConfGenOps$ sinh, và ba
+cấu hình bộ dò lỗi báo sạch. Nó sống sót vì một lý do. Không cái nào gọi thao tác ngoài
+cửa sổ chạy. ASan tìm lỗi này chỉ khi bài kiểm thử lái nó, đúng tính chất
+lập luận chi phí trên gán cho phát hiện runtime, thấy ở đây trên artefact của chính nghiên cứu thay
+vì trên lỗi gieo.
+
+Hướng không được đọc quá mức là hướng tôn vinh. Rust không
+ngăn điều này lúc biên dịch, và không gì trong borrow checker biết dịch vụ phải
+khởi động trước khi dùng. Điều biến undefined behaviour thành lỗi chẩn đoán được là
+bounds check slice. Đó là bảo đảm runtime, nên cùng loại bảo đảm
+bộ dò lỗi C++ cung cấp chứ không phải loại biên dịch Bảng~\ref{tab:taxonomy} ghi. Tuyên bố
+trung thực là kiểm tra mặc định biến khoảng trống đặc tả thành panic, không phải hệ kiểu bắt lỗi vòng đời. Điều còn lại vẫn là phân biệt chương này
+lặp lại: panic nêu nguyên nhân mọi build, so với heap-use-after-free cần
+nhị phân có công cụ và bài kiểm thử nghĩ tới việc nhìn. Cả hai hiện thực giờ từ chối
+lời gọi rõ ràng, cả hai chiều, và cả hai bộ kiểm thử bao phủ nó.
+
+\begin{table}[H]
+\centering
+\small
+\caption[Phân loại lớp lỗi: kết quả đo]{Phân loại lớp lỗi: kết quả đo cho danh mục tiêm. C++ dưới
+\texttt{g++~13.3} với ASan/TSan/UBSan. Rust dưới \texttt{rustc~1.97}, edition~2021. ``Lỗi
+biên dịch'' nghĩa chương trình Rust an toàn không build, nên lỗi không thể viết. Khối
+dưới là nhóm biên: lớp lỗi chọn vì Rust an toàn \emph{không} được kỳ vọng
+ngăn, và không ngăn. Hai trong bảy lớp đó là nơi công cụ C++ dẫn trước.
+Thân bảng sinh từ \texttt{faults/results/taxonomy.csv}, nên không thể
+mâu thuẫn lần chạy tạo ra nó.\label{tab:taxonomy}}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}l l l l l@{}}
+\hline\hline
+Lớp lỗi & ASan & TSan & UBSan & Kết quả Rust an toàn \\
+\hline
+\input{figures/tab_taxonomy.tex}\\
+\hline
+\end{tabular}
+
+\vspace{0.4em}
+{\footnotesize\raggedright
+$^{\dagger}$ Nhiều chẩn đoán kích hoạt cho các ca này. Cái đầu được hiện (race dữ liệu cũng
+nâng \texttt{E0382} và \texttt{E0502}, đột biến không bảo vệ \texttt{E0524} và
+\texttt{E0597}). \quad
+$^{\ddagger}$ Ở các hàng này nhị phân có công cụ bị bộ điều khiển giết bởi timeout thay
+vì báo gì. Không gì bị hỏng và không gì undefined, nên công cụ
+phát hiện hỏng không có gì nói. Forgotten guard im lặng dưới cả ba, và
+ca thứ tự khóa là ca TSan đôi khi bắt, như ghi chú sau ghi. \quad
+$^{\S}$ ThreadSanitizer báo đảo chiều thứ tự khóa một số lần chạy chứ không phải mọi lần, đo ở
+$\DeadlockTsanHits$ trong $\DeadlockTsanRuns$ lần lặp, trong khi chương trình deadlock
+mọi lần. Bộ phát hiện xây đồ thị thứ tự khóa từ acquisition \emph{thành công}, nên lần chạy mà đảo chiều đầu chặn không bao giờ hoàn thành cạnh thứ hai của chu kỳ.\par}
+\end{table}
+
+Đọc cả bảng làm hai điều thấy cùng lúc. Trên quy tắc biên toàn cột Rust
+là từ chối biên dịch, trong khi cột C++ là vá runtime
+và bỏ sót hẳn. Dưới quy tắc cột Rust tham gia, và trên hai hàng nó
+tụt lại. Hình~\ref{fig:taxonomy} vẽ cùng $\FaultClasses$ kết quả thành ma trận,
+nơi
+thay đổi tính chất tại quy tắc là hình dạng hình chứ không phải điều đọc từng
+hàng. Kết quả sinh từ nhật ký máy đọc được của bộ chạy
+(\texttt{faults/results/taxonomy.csv}), kết quả kiểm tra mô hình từ
+\texttt{faults/results/model\_checking.csv} và của interpreter từ
+\texttt{faults/results/miri.csv}. Bảng và hình từ cùng nhật ký, nên không
+cái nào lệch cái kia.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.72\linewidth]{figures/fig_taxonomy.pdf}
+\caption[Nơi bảo đảm dừng: ma trận kết quả]{Kết quả của Bảng~\ref{tab:taxonomy} vẽ thành ma trận, sinh từ cùng
+\texttt{faults/results/taxonomy.csv}. Trên quy tắc cột Rust là một màu: mọi
+lỗi là lỗi biên dịch, nên không cái nào viết được. Cột C++ ở đó là vá thay vì
+một bộ dò lỗi bao phủ. Hàng use-after-move là hàng không bộ dò lỗi nào bao phủ hết.
+Dưới quy tắc cột Rust tham gia, và trên
+rò rỉ chu kỳ tham chiếu và tràn bản build release công cụ C++ dẫn trước. Deadlock
+thứ tự khóa là ô công cụ báo gián đoạn: ThreadSanitizer đánh dấu đảo chiều
+trong $\DeadlockTsanHits$ trong $\DeadlockTsanRuns$ lần chạy trong khi chương trình deadlock mọi
+lần.\label{fig:taxonomy}}
+\end{figure}
+
