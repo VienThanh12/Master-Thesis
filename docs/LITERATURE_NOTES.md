@@ -2954,3 +2954,517 @@ the two where the C++ tooling came back ahead.
 Entry-type note, same as the earlier sweeps. `rustproject2026safetycritical`, `ferrocene` and
 `zaeske2024mcdc` are not peer-reviewed, and the prose must say so where each is used. Of the five,
 only `sommer2025avionics` and `coblenz2022bronze` can carry an argument on their own.
+
+---
+
+# Sixth sweep, 24 August 2026: does anyone else reach these conclusions?
+
+> **Status: not applied.** No document and no bibliography entry changed. This sweep asked one
+> question of each result the thesis reports, and the answer differs sharply between them. Eleven
+> additions are proposed and every field was read from a primary record. Three findings have no
+> independent twin at all, which is a result in itself and belongs in the threats section rather
+> than being quietly left as an absence.
+
+## A. The question, and why it is not the question the first five sweeps asked
+
+Sweeps 1 to 5 asked what would improve the argument: better sources, newer sources, sources for
+claims carried by assertion. This sweep asks something narrower and more adversarial. **For each
+conclusion the thesis states, has anybody published the same conclusion?** A finding no one has
+reproduced is not thereby wrong, but the thesis has to say which of its results stand alone,
+because an examiner reading Chapter 8 will ask exactly this.
+
+Indexes queried: OpenAlex (`title_and_abstract.search`), DBLP, Crossref for verification,
+Semantic Scholar for abstracts, and the general web. Three method notes, the third new:
+
+1. **Sweep 3's warning holds and got worse.** Free-text `rust` in OpenAlex returns plant pathology
+   and corrosion metallurgy above the language. `use-after-move` as a phrase returns 49,542 hits,
+   led by vaccine suspension and frailty-scale papers, because the index splits it into common
+   words.
+2. **DBLP searches titles only and ANDs word prefixes.** `rust mutex`, `rust atomicity` and
+   `memory allocator empirical study` all return zero, not because nothing exists but because no
+   title carries every word. One distinctive term per query is the only reliable form.
+3. **New: DBLP's publication API rate-limits at roughly one query in four seconds**, answering
+   HTTP 429 and then closing connections without response for the rest of a batch. Any scripted
+   sweep needs a delay and a backoff or it silently reports emptiness as absence.
+
+## B. Verdict, one line per result
+
+| # | Result | Corroboration | Best external witness |
+| --- | --- | --- | --- |
+| 1 | Median parity below saturation | **Strong.** Four independent studies, all already cited | `li2021ipc` (4 to 8%), `gonzalez2023rustudp` (+0.19%), `sundvisson2026drivers` (0.178%), `okawa2024ruststudy` |
+| 2 | The handoff owns the end-to-end cost, the language is a fraction of a percent | **Strong for the mechanism.** Already cited | `zhou2025oltp` |
+| 3 | The operation measured alone is $\BudgetCoreRatio\times$ faster in Rust, because of map layout | **Mechanism now sourceable, result not reproduced** | C.8 below, plus the two languages' own normative documents |
+| 4 | Overload divergence, $\OverloadThrRatio\times$ throughput and $\OverloadCpuPerOpRatio\times$ CPU per completed operation | **No twin.** The regime and the signature are well studied, the language ordering is not | C.4 to C.6 for the regime, `arvidsson2025async` for the ordering, and it is grey literature |
+| 5 | Seven in-guarantee classes rejected at compile time | **Strong.** Already cited | `qin2020rust`, `xu2021rustcve`, `andersson2026stdmemsafety` |
+| 6 | Seven boundary classes compile and misbehave | **Strong, class by class, and mostly uncited** | C.1 (lost update), C.2 (overflow), C.3 (leak), C.10 (blast radius), C.9 (use-after-move caveat) |
+| 7 | Rust carries $\RssLangDiffLo$ to $\RssLangDiffHi$ MiB more peak RSS | **Weak.** Three grey instances agree, one grey disagrees, and a PLDI 2026 paper reports no difference | `olsson2023ranmgmt`, `sundvisson2026drivers`, against `karlback2021ran` and E.1 |
+| 8 | The allocator effect is the larger one | **Partial.** Allocator choice is a studied first-order variable. The ratio is not corroborated | van Kempen and Berger, ISMM 2026, and it is still not in the bibliography |
+| 9 | The seam tax is bounded at $\FfiOpBoundPct\%$ | **No twin.** The thesis's own A/B remains the best evidence | Sweep 1 §6.3 already rejected the only circulating figure |
+| 10 | Build time: most of the Rust clean build is third-party, first-party source is cheaper than g++ | **No twin, and the web set is actively dangerous** | See §G |
+| 11 | The dependency surface is the thing to audit | **Strong, and newly citable** | C.7 |
+
+Read the table as three groups. Results 1, 2, 5 and 6 are instances of published patterns, and the
+thesis should say so rather than presenting them as discoveries. Results 3, 7 and 8 have partial
+support where the mechanism is known but the measurement is not reproduced. Results 4, 9 and 10 are
+the thesis's own, unreplicated, and two of them are its headline contributions.
+
+## C. Proposed additions, all verified against a primary record
+
+### C.1 Lu, Park, Seo and Zhou, ASPLOS 2008 -- VERIFIED
+
+"Learning from Mistakes: A Comprehensive Study on Real World Concurrency Bug Characteristics".
+ASPLOS 2008, pages 329-339. DOI 10.1145/1346281.1346323. Crossref record read, abstract read in
+full.
+
+105 concurrency bugs from MySQL, Apache, Mozilla and OpenOffice. The finding that matters here,
+quoted from the abstract: "around one third of the examined non-deadlock concurrency bugs are
+caused by violation to programmers' order intentions, which may not be easily expressed via
+synchronization primitives like locks and transactional memories". A second one is directly about
+detection: "around 34% of the examined non-deadlock concurrency bugs involve multiple variables,
+which are not well addressed by existing bug detection tools".
+
+**Why the thesis needs it.** The `lost_update` boundary class is currently defended by the
+thesis's own reasoning: every access is correctly synchronised, so there is no unsynchronised
+access for ThreadSanitizer to find and nothing for the borrow checker to reject. This is a
+canonical, heavily cited paper saying that a third of real concurrency bugs are of exactly that
+shape, and that they are not expressible as a locking discipline. It converts the thesis's most
+easily doubted RQ2 row into an instance of a documented category. Cite it in §`sec:faultcat`
+beside `natella2016fault` and in the RQ2 discussion where the lost update is explained.
+
+**Caveat to state in the same sentence.** The sample is 2008-era C and C++ desktop and server
+software, so it establishes the category and not its present-day frequency.
+
+### C.2 Dietz, Li, Regehr and Adve, TOSEM 2015 -- VERIFIED
+
+"Understanding Integer Overflow in C/C++". *ACM Transactions on Software Engineering and
+Methodology* 25(1), 2015. DOI 10.1145/2743019. **One field to settle before use: Crossref's
+deposit gives pages 1-29 while the journal numbers it as an article. Check the venue's expected
+form.**
+
+From the abstract: "intentional uses of wraparound behaviors are more common than is widely
+believed", with "over 200 distinct locations in the SPEC CINT2000 benchmarks where overflow
+occurs", and, orthogonally, "overflows are found in both well-defined and undefined flavors" with
+applications having "been broken by improvements in compiler optimizations".
+
+**Why the thesis needs it.** The `integer_overflow` row is one of the two boundary classes where
+the C++ tooling came back ahead, and the thesis's own framing is that Rust *defines* release-mode
+wrapping while C++ leaves signed overflow undefined, which is why UndefinedBehaviorSanitizer has
+something to report. Dietz et al. is the peer-reviewed source for both halves of that: wrapping is
+often deliberate, so a checker cannot treat every overflow as a bug, and undefined overflow has
+broken real programs when optimisers improved. It also justifies why the class belongs in a defect
+catalogue at all rather than being dismissed as a contrived case.
+
+### C.3 Cui, Xu, Tian and Zhou, TSE 2024 -- VERIFIED
+
+"rCanary: Detecting Memory Leaks Across Semi-Automated Memory Management Boundary in Rust". *IEEE
+Transactions on Software Engineering* 50(9), pages 2472-2484, 2024. DOI 10.1109/TSE.2024.3443624.
+Crossref and OpenAlex records read, abstract read in full.
+
+The abstract states the thesis's own `leak_cycle` conclusion in the authors' words. Rust's
+ownership model "is anticipated to eliminate memory leaks. However, we observed that user
+intervention drives it into semi-automated memory management and makes it error-prone to cause
+leaks. In contrast to violating memory-safety guarantees restricted by the `unsafe` keyword, **the
+boundary of leaking memory is implicit, and the compiler would not emit any warnings for
+developers**." Applied to more than 1,200 real crates, it found 19 with leaks.
+
+**Why this is the single best find in the sweep.** The reference-cycle leak is the boundary class
+an examiner is most likely to call artificial, and this is a 2024 journal paper whose entire
+premise is that the class is real, silent and common enough to be worth a static checker. It also
+supplies the exact framing the thesis wants: the leak boundary is implicit, where the `unsafe`
+boundary is marked. Cite it in §`sec:faultcat`, in the RQ2 discussion where LeakSanitizer catches
+what Rust misses, and in the future-work sentence about tooling, since rCanary is the Rust-side
+answer the thesis notes is missing. It pairs with `hughes2025gcrust` exactly as sweep 5 §E.1
+predicted.
+
+### C.4 Mogul and Ramakrishnan, TOCS 1997 -- VERIFIED
+
+"Eliminating receive livelock in an interrupt-driven kernel". *ACM Transactions on Computer
+Systems* 15(3), pages 217-252, 1997. DOI 10.1145/263326.263335.
+
+**This is the name for the thesis's overload signature.** §7.5.3 reports that past saturation the
+slower variant "is not simply doing less work", drawing $\OverloadCpuPerOpRatio$ times the CPU per
+completed operation, and calls that "the signature of effort spent without completing anything".
+Livelock is the established term for a system that consumes CPU making no progress under offered
+load beyond its capacity, and this is the paper that named and measured it. Using the standard
+term, with its citation, moves the sentence from an observation the reader has to accept to a
+recognised failure mode the measurement instantiates.
+
+**Scope caveat.** The mechanism there is interrupt handling in a kernel, not a bounded queue in
+user space. Cite it for the phenomenon and the term, not as a claim about the same cause.
+
+### C.5 Welsh, Culler and Brewer, SOSP 2001 -- VERIFIED
+
+"SEDA: An Architecture for Well-Conditioned, Scalable Internet Services". SOSP 2001, pages
+230-243. DOI 10.1145/502034.502057.
+
+The reference point for why a load sweep must continue past the knee: a service that is
+well-behaved below saturation degrades in a qualitatively different way above it, and the
+architecture rather than the code determines which way. Supports the methodological choice in
+§`sec:workload` that the thesis currently argues from first principles, and it supports the
+guideline in §8.5 that says to sweep past the point where the service stops coping.
+
+### C.6 Cho et al., OSDI 2020 and NSDI 2023 -- VERIFIED
+
+- "Overload Control for µs-scale RPCs with Breakwater". Inho Cho, Ahmed Saeed, Joshua Fried, Seo
+  Jin Park, Mohammad Alizadeh, Adam Belay. OSDI 2020, pages 299-314. No DOI, USENIX page live at
+  <https://www.usenix.org/conference/osdi20/presentation/cho>.
+- "Protego: Overload Control for Applications with Unpredictable Lock Contention". Inho Cho,
+  Ahmed Saeed, Seo Jin Park, Mohammad Alizadeh, Adam Belay. NSDI 2023, pages 725-738. No DOI,
+  USENIX page live at <https://www.usenix.org/conference/nsdi23/presentation/cho>.
+
+Two papers from the same group establishing that microsecond-scale services need explicit overload
+control, which is to say that the regime past saturation is a first-class engineering condition and
+not an edge case. Protego is the more useful of the two here because its subject is overload whose
+severity depends on **lock contention inside the application**, which is the shape of the thesis's
+own result: the divergence did not reproduce when the queue and the completion handle were isolated,
+so it lives in the wider handoff path.
+
+**What they do not do, and the prose must not imply otherwise.** Neither compares languages.
+They corroborate that the thesis was right to sweep into overload and right to treat the far side
+as a separate regime. The language ordering it found there remains uncorroborated.
+
+### C.7 Hejderup et al., EMSE 2022, and Soto-Valero et al., EMSE 2021 -- VERIFIED
+
+- "Präzi: from package-based to call-based dependency networks". Joseph Hejderup, Moritz Beller,
+  Konstantinos Triantafyllou, Georgios Gousios. *Empirical Software Engineering* 27(5), 2022.
+  DOI 10.1007/s10664-021-10071-9. **Crossref's deposit carries no page range, so cite by article
+  number after checking it.**
+- "A comprehensive study of bloated dependencies in the Maven ecosystem". César Soto-Valero,
+  Nicolas Harrand, Martin Monperrus, Benoit Baudry. *Empirical Software Engineering* 26(3), 2021.
+  DOI 10.1007/s10664-020-09914-8.
+
+Präzi is the on-target one and it is about **Rust**: a function-level dependency network for
+crates.io, whose headline result is that "packages call only 40% of their resolved dependencies".
+That is peer-reviewed evidence for the RQ4 axis the thesis measures as $\BuildDepShareCpu\%$ of the
+clean build being third-party code, and it strengthens the guideline that an organisation worried
+about build time or footprint "should audit its dependency budget before blaming the compiler".
+Soto-Valero et al. quantify the same thing in a different ecosystem, finding 57% of transitive
+dependencies bloated and reduction to a quarter of the declared count feasible, and they are the
+citation for treating dependency surface as a measurable cost rather than a complaint.
+
+### C.8 Richter, Alvarez and Dittrich, PVLDB 2015 -- VERIFIED
+
+"A seven-dimensional analysis of hashing methods and its implications on query processing".
+*Proceedings of the VLDB Endowment* 9(3), pages 96-107, 2015. DOI 10.14778/2850583.2850585.
+
+The mechanism support for result 3 in §B. From the abstract: picking a scheme and hash function
+combination "may have considerable impact on insert and lookup performance, as well as memory
+footprint", and the study explicitly examines "the effect of table memory layout and the use of
+SIMD instructions".
+
+**Why it is worth adding despite being a database paper.** §7.5.2 attributes the operation-level
+gap to "the standard hash map's layout, not anything about safety", and that attribution currently
+has no support of any kind. This paper is the peer-reviewed statement that layout choice between
+chained and open-addressing schemes is a first-order performance factor. The rest of the mechanism
+is documentable from normative sources rather than research: the C++ standard's bucket interface
+and its reference-stability guarantees effectively require node-based separate chaining for
+`std::unordered_map`, while Rust's `HashMap` has been a SwissTable-style open-addressing table with
+SIMD probing since 1.36. Stated that way, the operation-level difference is an artefact of what the
+two standard libraries are required to be, which is the same argument the fairness controls already
+make about hashing in §`sec:fairness`, and it is emphatically not a safety effect.
+
+**Do not overstate it.** It does not compare the two standard libraries, and sweep 4 §H recorded
+that no source does. It supports the claim that layout matters, not the measured factor.
+
+### C.9 clang-tidy `bugprone-use-after-move` documentation -- VERIFIED as tool documentation
+
+<https://clang.llvm.org/extra/clang-tidy/checks/bugprone/use-after-move.html>, read 24 August 2026.
+
+`use_after_move` is the one in-guarantee class no C++ sanitiser reports, and `AGENT.md` requires
+the clang-tidy caveat wherever that is quoted. The caveat can now be cited rather than asserted,
+and in the tool's own words: the check "currently only considers calls of `std::move` on local
+variables or function parameters. It does not check moves of member variables or global variables",
+it is flow-sensitive but not path-sensitive, and it flags a use-after-move even on types that
+define no move operations, deliberately. Cite as project documentation exactly as `tsandeadlock` is
+cited, and keep the sentence's claim to what the tool documents about itself.
+
+### C.10 Candea and Fox, HotOS 2003 -- VERIFIED
+
+"Crash-Only Software". George Candea, Armando Fox. HotOS IX, 2003, pages 67-72. No DOI, USENIX
+page live at <https://www.usenix.org/conference/hotos-ix/crash-only-software>.
+
+The `worker_failure_blast_radius` boundary class asks what a panicking worker takes down with it,
+and the answer, a shard outage, is currently presented without reference to the reliability
+literature that made failure-domain size a design variable. Crash-only software is the canonical
+statement of the position that components should fail fast and be restartable, which is precisely
+what the thesis's result says neither language gives you for free. Convenient bonus: George Candea
+is already in the bibliography through `pirelli2023safelowlevel`, so the addition sits inside
+existing lineage rather than opening a new one.
+
+## D. Where the thesis stands alone, stated plainly
+
+These three should be written into §`sec:threats` as replication status, not left as silence.
+
+1. **The overload divergence.** No peer-reviewed study, in any venue, reports a load-dependent
+   reversal between Rust and C++, and the general-web synthesis for the question returns the
+   opposite prior: that no evidence supports Rust collapsing under load relative to C++. The one
+   study reporting the same shape, `arvidsson2025async`, is a master's thesis, and it attributes
+   the shape to stackless `async`, which the thesis's design excludes. Directional support from
+   peer-reviewed work exists but is weaker than it looks: `suchert2023stamp` finds idiomatic safe
+   Rust slower on concurrent transactional workloads, and `naylor2026cherisimt` reports 46%
+   geometric-mean overhead on a like-for-like port with 34% from bounds checking. Both are about
+   overhead in general, not about behaviour past saturation. **This is the thesis's most original
+   result and also its least corroborated, and those two facts should appear in the same
+   sentence.**
+2. **The build-time decomposition.** Nothing peer-reviewed measures Rust against C++ on build
+   time. See §G for why the web result set is worse than useless here.
+3. **The ten-to-one split between the allocator and language effects on peak RSS.** The allocator
+   half is supported as a first-order variable by ISMM 2026. The language half has three grey
+   instances agreeing on sign and two published data points against it. The ratio itself is
+   uncorroborated, which is consistent with the thesis's own position that the effect is
+   established without being explained, and that position should stay.
+
+## E. Contrary results found in this sweep
+
+### E.1 Popescu et al., PLDI 2026, on peak memory -- VERIFIED, and it cuts against result 7
+
+The Cpp2Rust paper that sweep 4 §F.0a already recommended for a different reason reports, in its
+evaluation of WOFF2: "there are no meaningful differences in terms of peak memory consumption",
+with a slight reduction after an optimiser pass removes reference counters, "which is expected
+since using `Rc` incurs in additional heap allocations".
+
+Scope limits the damage and should be stated when it is cited. The Rust side is machine-translated
+rather than hand-written, it is two programs, and the translation inserts runtime ownership checks
+that a hand-written core does not have. But it is a 2026 PLDI paper reporting no peak-memory
+difference on a matched C++ and Rust pair, and criterion 2 is graded on naming results like this
+rather than on collecting agreement. It belongs next to `karlback2021ran` in the contrary-results
+passage, and the honest summary of the literature is then: on peak RSS the published record is
+mixed, three grey studies agree with the sign found here, one grey study and one PLDI paper do not,
+and none of the five isolates the allocator, which is the larger effect measured here.
+
+### E.2 Already carried, and still the right neighbours
+
+`naylor2026cherisimt`, `suchert2023stamp`, `emmerich2019drivers` and `karlback2021ran` are in the
+bibliography and cover the contrary side of results 1 and 7. No change needed, but the RQ1
+discussion should not read as though parity is the settled consensus when the same bibliography
+carries a 46% figure.
+
+## F. Earlier sweeps recommended these, and they are still absent
+
+Verified by surname search over `bibliography.bib` on 24 August 2026. Each would corroborate a
+result in §B, and each was already argued for in an earlier sweep, so the work of judging them is
+done.
+
+| Source | Sweep | Corroborates |
+| --- | --- | --- |
+| van Kempen and Berger, ISMM 2026, DOI 10.1145/3814942.3816132, pages 14-24 | 4 §D.0 | Result 8, allocator choice as a first-order variable. Abstract confirmed: it "revisits that work on a modern hardware platform with modern general-purpose allocators", covering "C, C++, or Rust" |
+| Popescu et al., PLDI 2026, DOI 10.1145/3808266 | 4 §F.0a | Results 7 and 10, and see E.1 |
+| Costanzo et al., CLEI 2021, DOI 10.1109/CLEI53233.2021.9640225 | 4 §F.2 | Result 1, matched pair with effort measured, and an independent instance of `jemalloc` treated as a variable |
+| Coblenz et al., ICSE 2022, DOI 10.1145/3510003.3510107 | 5 §E.1 | RQ4's human cost, and the only randomised controlled trial available |
+| Pereira et al., Sci. Comput. Program. 2021, DOI 10.1016/j.scico.2021.102609 | 4 §F.1 | Journal version of a citation already used, which retires `bugden2022rust` |
+| Nguyen et al., MSWiM 2025, and Giustini et al., WiSec 2026 | 1 §7.3 | Result 4's regime, in the RAN control plane specifically |
+| Liao et al., Pallas, USENIX ATC 2025, and Jia et al., Aquifer, IEEE TSC 2024 | 1 §7.5 | The thread-per-shard design choice, independent of the fairness argument |
+| Xie et al., PLOS 2025, and Teper et al., IEEE TCAD 2024 | 1 §7.7 | The async mechanism behind `arvidsson2025async`, and the honesty check that thread-based C++ is not automatically starvation-free |
+
+Recommended order if only some are taken: van Kempen and Berger, then Popescu, then Nguyen and
+Giustini. The first two attach to results that are currently unsupported, and the third pair puts
+the overload regime in the thesis's own domain.
+
+## G. Negative results, recorded so they are not searched for again
+
+- **No peer-reviewed study reports a load-dependent performance reversal between Rust and C++.**
+  Searched OpenAlex, DBLP, Crossref and the general web under overload, saturation, throughput
+  collapse, congestion collapse and knee phrasings. The web synthesis states the opposite prior
+  explicitly, which is worth knowing: the received position is that any Rust deficit under load
+  comes from allocator contention, lock choice or async runtime, and not from the language. That
+  is compatible with the thesis's own mechanism claim and it is not evidence either way.
+- **No peer-reviewed measurement of Rust against C++ build time exists, and the web set here is
+  dangerous in the way sweep 5 §G warned.** Two pages on the same domain report Rust clean builds
+  37% slower and 30 to 35% faster than C++ on comparably described premises, both with
+  fabricated-looking precision (`8m12s (±12s)`), invented cost figures and named tool versions. A
+  third, elsewhere, reports 3.2 times slower on a 47,000-file monorepo. Contradictory
+  numbers at that precision are the signature of generated content. **The thesis's own paired
+  measurement is the only real evidence in this area**, which raises rather than lowers the value
+  of §7.6, and the decomposition requirement in `AGENT.md` §3 item 6a is what keeps it honest.
+- **No peer-reviewed comparison of `std::unordered_map` against Rust's `HashMap` on speed either.**
+  Sweep 4 §H recorded the same absence for footprint. The engineering benchmarks are extensive and
+  consistent (open addressing beats node-based chaining on small keys, and the C++ standard's
+  requirements effectively mandate chaining) but they are blog and benchmark-suite material. Cite
+  the normative documents and C.8 for the mechanism, never a benchmark page for a number.
+- **No peer-reviewed study of use-after-move detection in C++.** Only tool documentation and
+  Chromium's own enablement discussion, which reports both real bugs found and a false-positive
+  rate. C.9 is the citable form.
+- **No Rust-specific atomicity-violation detector in the literature.** Searched OpenAlex, DBLP and
+  Crossref. The atomicity-violation literature is general purpose (Park and Sen, FSE 2008, DOI
+  10.1145/1453101.1453121, and Yoga and Nagarakatte, CGO 2016, DOI 10.1145/2854038.2854063) and
+  none of it is about Rust. C.1 is the right citation for the category, and the absence is itself a
+  small point in favour of the thesis's `lost_update` row being worth publishing.
+- **NPB-Rust is not citable.** "NPB-Rust: NAS Parallel Benchmarks in Rust", Martins, Faé,
+  Hoffmann, Bianchessi and Griebler, arXiv 2502.15536. A matched Rust, C++ and Fortran benchmark
+  suite that reports peak memory per benchmark, so it looks ideal for results 1 and 7. DBLP lists
+  it as CoRR only and Crossref has no published version, so it stays a preprint. Recheck once
+  before submission in case a venue version appears.
+- **Semantic Scholar returns empty abstracts for ACM-deposited papers.** OpenAlex's
+  `abstract_inverted_index` had them in every case tested, so reconstruct from OpenAlex rather than
+  concluding the abstract is unavailable.
+
+## H. BibTeX
+
+```bibtex
+@inproceedings{lu2008mistakes,
+  author    = {Lu, Shan and Park, Soyeon and Seo, Eunsoo and Zhou, Yuanyuan},
+  title     = {Learning from Mistakes: A Comprehensive Study on Real World
+               Concurrency Bug Characteristics},
+  booktitle = {Proceedings of the 13th International Conference on Architectural
+               Support for Programming Languages and Operating Systems (ASPLOS)},
+  pages     = {329--339},
+  year      = {2008},
+  doi       = {10.1145/1346281.1346323},
+  url       = {https://doi.org/10.1145/1346281.1346323}
+}
+
+@article{dietz2015overflow,
+  author    = {Dietz, Will and Li, Peng and Regehr, John and Adve, Vikram},
+  title     = {Understanding Integer Overflow in {C/C++}},
+  journal   = {ACM Transactions on Software Engineering and Methodology},
+  volume    = {25},
+  number    = {1},
+  pages     = {2:1--2:29},
+  year      = {2015},
+  doi       = {10.1145/2743019},
+  note      = {Crossref deposits the page range as 1--29},
+  url       = {https://doi.org/10.1145/2743019}
+}
+
+@article{cui2024rcanary,
+  author    = {Cui, Mohan and Xu, Hui and Tian, Hongliang and Zhou, Yangfan},
+  title     = {{rCanary}: Detecting Memory Leaks Across Semi-Automated Memory
+               Management Boundary in {Rust}},
+  journal   = {IEEE Transactions on Software Engineering},
+  volume    = {50},
+  number    = {9},
+  pages     = {2472--2484},
+  year      = {2024},
+  doi       = {10.1109/TSE.2024.3443624},
+  url       = {https://doi.org/10.1109/TSE.2024.3443624}
+}
+
+@article{mogul1997livelock,
+  author    = {Mogul, Jeffrey C. and Ramakrishnan, K. K.},
+  title     = {Eliminating Receive Livelock in an Interrupt-Driven Kernel},
+  journal   = {ACM Transactions on Computer Systems},
+  volume    = {15},
+  number    = {3},
+  pages     = {217--252},
+  year      = {1997},
+  doi       = {10.1145/263326.263335},
+  url       = {https://doi.org/10.1145/263326.263335}
+}
+
+@inproceedings{welsh2001seda,
+  author    = {Welsh, Matt and Culler, David and Brewer, Eric},
+  title     = {{SEDA}: An Architecture for Well-Conditioned, Scalable Internet
+               Services},
+  booktitle = {Proceedings of the 18th ACM Symposium on Operating Systems
+               Principles (SOSP)},
+  pages     = {230--243},
+  year      = {2001},
+  doi       = {10.1145/502034.502057},
+  url       = {https://doi.org/10.1145/502034.502057}
+}
+
+@inproceedings{cho2020breakwater,
+  author    = {Cho, Inho and Saeed, Ahmed and Fried, Joshua and Park, Seo Jin and
+               Alizadeh, Mohammad and Belay, Adam},
+  title     = {Overload Control for $\mu$s-scale {RPCs} with {Breakwater}},
+  booktitle = {Proceedings of the 14th USENIX Symposium on Operating Systems
+               Design and Implementation (OSDI)},
+  pages     = {299--314},
+  year      = {2020},
+  url       = {https://www.usenix.org/conference/osdi20/presentation/cho}
+}
+
+@inproceedings{cho2023protego,
+  author    = {Cho, Inho and Saeed, Ahmed and Park, Seo Jin and
+               Alizadeh, Mohammad and Belay, Adam},
+  title     = {{Protego}: Overload Control for Applications with Unpredictable
+               Lock Contention},
+  booktitle = {Proceedings of the 20th USENIX Symposium on Networked Systems
+               Design and Implementation (NSDI)},
+  pages     = {725--738},
+  year      = {2023},
+  url       = {https://www.usenix.org/conference/nsdi23/presentation/cho}
+}
+
+@inproceedings{candea2003crashonly,
+  author    = {Candea, George and Fox, Armando},
+  title     = {Crash-Only Software},
+  booktitle = {Proceedings of the 9th Workshop on Hot Topics in Operating
+               Systems (HotOS IX)},
+  pages     = {67--72},
+  year      = {2003},
+  url       = {https://www.usenix.org/conference/hotos-ix/crash-only-software}
+}
+
+@article{hejderup2022prazi,
+  author    = {Hejderup, Joseph and Beller, Moritz and Triantafyllou, Konstantinos
+               and Gousios, Georgios},
+  title     = {{Pr{\"a}zi}: From Package-Based to Call-Based Dependency Networks},
+  journal   = {Empirical Software Engineering},
+  volume    = {27},
+  number    = {5},
+  year      = {2022},
+  doi       = {10.1007/s10664-021-10071-9},
+  note      = {Article number not confirmed, Crossref deposits no page range},
+  url       = {https://doi.org/10.1007/s10664-021-10071-9}
+}
+
+@article{sotovalero2021bloat,
+  author    = {Soto-Valero, C{\'e}sar and Harrand, Nicolas and
+               Monperrus, Martin and Baudry, Benoit},
+  title     = {A Comprehensive Study of Bloated Dependencies in the {Maven}
+               Ecosystem},
+  journal   = {Empirical Software Engineering},
+  volume    = {26},
+  number    = {3},
+  year      = {2021},
+  doi       = {10.1007/s10664-020-09914-8},
+  note      = {Article number not confirmed, Crossref deposits no page range},
+  url       = {https://doi.org/10.1007/s10664-020-09914-8}
+}
+
+@article{richter2015hashing,
+  author    = {Richter, Stefan and Alvarez, Victor and Dittrich, Jens},
+  title     = {A Seven-Dimensional Analysis of Hashing Methods and Its
+               Implications on Query Processing},
+  journal   = {Proceedings of the VLDB Endowment},
+  volume    = {9},
+  number    = {3},
+  pages     = {96--107},
+  year      = {2015},
+  doi       = {10.14778/2850583.2850585},
+  url       = {https://doi.org/10.14778/2850583.2850585}
+}
+
+@misc{clangtidyuseaftermove,
+  author       = {{The LLVM Project}},
+  title        = {clang-tidy check {\texttt{bugprone-use-after-move}}},
+  note         = {Extra Clang Tools documentation. Accessed August 2026},
+  url          = {https://clang.llvm.org/extra/clang-tidy/checks/bugprone/use-after-move.html},
+  year         = {2026}
+}
+```
+
+Entry-type note. `clangtidyuseaftermove` is tool documentation and the prose must present it as
+such, in the same register as `tsandeadlock`. The two USENIX entries have no DOI by venue practice,
+which is normal and not a defect. Every other entry is peer-reviewed. `bibliography.bib` is
+currently 105 entries with no orphans, so anything taken from here has to be cited on the way in.
+
+## I. Order of work
+
+1. **§`sec:threats` and the RQ1 discussion: write down which results stand alone.** Costs one
+   short paragraph, buys the honesty criterion 5 is graded on, and pre-empts the obvious question
+   about the overload result. Nothing else here matters as much.
+2. **RQ2, four citations, four sentences that stop being unsupported.** C.3 for the leak, C.1 for
+   the lost update, C.2 for the overflow, C.9 for the use-after-move caveat. This is the cheapest
+   real gain in the sweep, and RQ2 is the falsifiable core of the thesis.
+3. **Result 4's regime: C.4, C.5 and C.6.** Livelock is the term the §7.5.3 sentence is reaching
+   for, and naming it costs nothing.
+4. **Result 7: add E.1 to the contrary-results passage** and rewrite the peak-RSS summary as mixed
+   rather than as agreement with two of three theses.
+5. **RQ4: C.7 for the dependency surface**, which is the one RQ4 axis where published work says
+   what the thesis says.
+6. **Result 3: C.8 plus the two normative documents**, if §7.5.2's attribution to map layout is to
+   keep standing. Optional, and lowest risk of the six.
+7. **Then reconsider §F.** Three of those eight were recommended a week ago and attach to results
+   that currently have no support at all.
