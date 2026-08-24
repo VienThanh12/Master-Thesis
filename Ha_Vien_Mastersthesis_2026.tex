@@ -2980,9 +2980,9 @@ it is reported only to confirm that the point is sustained and not merely nomina
 within $\ReprLoadShortfall\%$.
 
 Two qualifications keep the memory finding the size it actually is. It is a difference in fixed
-cost and not in cost per context. At the $5\,000$ active UEs used in the sweep, the
-eight-byte layout difference measured in Section~\ref{sec:uecontext} accounts for roughly
-$40$~kB, two orders of magnitude short of the gap. Most of the gap is therefore runtime and
+cost and not in cost per context. At the $\SweepUes$ active UEs used in the sweep, the
+$\UeCtxGapBytes$-byte layout difference measured in Section~\ref{sec:uecontext} accounts for
+roughly $\UeCtxGapTotalKB$~kB, two orders of magnitude short of the gap. Most of the gap is therefore runtime and
 allocator-arena overhead, which does not scale with the workload and would matter proportionally
 less in a larger deployment, not more. The second qualification is that the measurement
 establishes the difference without explaining it. No hardware counters or allocation profiles were
