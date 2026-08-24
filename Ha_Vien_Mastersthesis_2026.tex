@@ -355,7 +355,7 @@ telecommunications and AI workloads are orchestrated together on shared, acceler
 infrastructure, so the sites that run the radio also host distributed edge AI
 platforms~\cite{polese2026airan}. The AI-RAN Alliance states the operational requirement
 directly: one common infrastructure has to run both kinds of workload concurrently, and their
-service-level agreements may differ~\cite{airan2025orchestrator}. That changes what a language
+service-level agreements may differ~\cite{airan2026orchestrator}. That changes what a language
 choice has to buy for a control plane. Its software no longer has the host to itself. It
 contends for CPU, memory, and cache with inference work whose arrival pattern it does not
 control, and a co-tenant that takes capacity away lowers the load at which the control plane
@@ -2836,10 +2836,9 @@ Three things again bound what the finding licenses. It is one design, a shared-n
 request outstanding per producer and a queue bound of $1\,024$, and the depth of the collapse
 depends on all three. It is measured with a harness whose producers block per request, so it
 describes what this shape of client experiences and not what a pipelined one would.
-And the absolute figures belong to this host. What travels is the ordering and its cause. Below
-saturation the language choice did not matter. Above it the standard library's synchronisation
-primitives did, and the crossover is sharp enough that a comparison stopping at nominal load
-would have concluded the opposite.
+And the absolute figures belong to this host. What travels is the ordering and its cause: below
+saturation the language choice did not matter, and above it the standard library's
+synchronisation primitives did.
 
 That crossover also bears on the closest prior work, which reports a comparable degradation past
 a threshold request rate and attributes it to the asynchronous
@@ -3621,9 +3620,8 @@ nothing exercised the path. Runtime detection that depends on test coverage is a
 proposition in practice than it looks in a table where every row is driven deliberately.
 
 It also
-narrows what may be credited to Rust, because the language's contribution there was a bounds
-check and not a proof. Safe Rust turned undefined behaviour into a deterministic panic, which
-is a different and lesser claim than preventing the error. The honest generalisation is that
+narrows what may be credited to Rust, because the contribution there was a bounds check and not
+a proof. The honest generalisation is that
 the guarantee worth budgeting for is \emph{checked by default} and not \emph{ruled out at
 compile time}. The root cause is worth naming too, because it is a risk of the method
 and not of either language. A specification that states a prohibition without assigning a
@@ -3700,13 +3698,11 @@ neither figure is the safety model in any case. Throughput splits the same way a
 reason. Below saturation there is nothing to measure, because achieved throughput tracks offered
 load by construction. Above it sits the largest effect in the study.
 
-Three things bound what the memory result licenses. It is small in absolute terms, and it is a
-fixed cost rather than a per-context one, so its share of a deployment's footprint
-falls as the deployment grows. The measured layout difference between the two
-\texttt{UeContext} types contributes almost none of it. It is also unexplained. Splitting it
-between allocator arena reservation, per-thread caches, and static footprint needs allocation
-profiles and hardware counters this study did not collect, which is the clearest single gap in
-the RQ3 instrumentation. And it should not be widened into a claim about Rust's safety
+Section~\ref{sec:resources} establishes two bounds on what that result licenses: it is a fixed
+cost rather than a per-context one, so its share of a deployment's footprint falls as the
+deployment grows, and it is unexplained, since splitting it between arena reservation, per-thread
+caches and static footprint needs the allocation profiles and hardware counters this study did
+not collect. A third belongs here. It should not be widened into a claim about Rust's safety
 model, because nothing here isolates bounds checking or ownership-driven copying as the cause.
 The mechanisms the literature has localised~\cite{zhang2022runtime,harris2023morello}
 are candidates to test, not conclusions to import. What can be said is narrower and still
@@ -3784,10 +3780,9 @@ header.
 Binary size behaves worse than an argument would predict. The $\FootShippedRatio\times$
 figure that gets quoted compares two linkage policies, and once the policy is held fixed
 the ordering depends on which one was chosen. The axis that matters most for a regulated codebase
-is also the one with the cleanest answer. The component compared here resolves no third-party code
+has the cleanest answer of the three. The component compared here resolves no third-party code
 and contains no \texttt{unsafe}, so the transitive-dependency argument against Rust adoption does
-not reach the artefact under discussion. The unaudited surface this project does carry belongs to
-its measurement apparatus.
+not reach the artefact under discussion.
 
 \section{Revisiting the hypotheses}\label{sec:hypotheses}
 Section~\ref{sec:rqs} committed to three hypotheses before any measurement was
@@ -4326,10 +4321,9 @@ Third, the overload divergence is measured and replicated, and its mechanism is 
 not only argued. Isolated under the same pattern of \ContentionProducers{} producers, the bounded
 queue and completion primitives do not reproduce the full-service ordering at significance
 ($p = \ContentionP$), which rules those two constructs out alone as the whole explanation even
-though they are where the forced-idiom log predicted contention would matter. The
-cause is not unknowable. It likely includes extra work on the C++ handoff path, in the larger
-tagged \texttt{Request}, in variant dispatch, and in the map operations the microbenchmark strips
-away.
+though they are where the forced-idiom log predicted contention would matter. The cause is not
+unknowable, and Section~\ref{sec:contention} names the candidates that remain on the C++ handoff
+path.
 
 \paragraph{External validity: how far do the results travel?}
 The study covers one subsystem, one workload, one concurrency structure, and one machine, and
