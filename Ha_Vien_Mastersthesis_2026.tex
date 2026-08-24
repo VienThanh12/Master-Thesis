@@ -4528,34 +4528,32 @@ not a verdict: a frozen specification, a parity-tested pair of implementations, 
 measurement framework that reaches past the saturation knee, and a defect catalogue that maps
 both what the guarantee covers and where it stops.
 
-Several directions extend the work, each of them the direct remedy to a limitation named above.
-The immediate priority is executing the bare-metal campaign, whose target is now narrow: the
-saturation knee and the overload comparison are already resolved, and what bare metal would buy
-specifically is the far tail below saturation. Hardware counters and allocation profiles belong on
-the same visit, and they are the clearest instrumentation gap in the study as it stands. They
-would turn the memory result of Section~\ref{sec:resources} from an observation into an
-explanation, and would confirm or refute the cache-locality account Section~\ref{sec:budget}
-offers for the operation-level gap. Beyond that:
+Several directions extend the work, each the direct remedy to a limitation named above. The
+immediate priority is the bare-metal campaign, whose target is now narrow: the saturation knee and
+the overload comparison are resolved, so what bare metal would buy is the far tail below
+saturation. Hardware counters and allocation profiles belong on the same visit and are the
+clearest instrumentation gap in the study. They would turn the memory result of
+Section~\ref{sec:resources} from an observation into an explanation, and confirm or refute the
+cache-locality account Section~\ref{sec:budget} offers for the operation-level gap. Beyond that:
 
 \begin{itemize}
 \item Replay captured, anonymised production traces in place of the synthetic workload, so that
   the operation mix is validated rather than merely spec-justified.
-\item Scale the comparison to further control-plane subsystems, or to the data-heavy L2/PHY
-  path, where shared mutable state and allocation churn would exercise the two languages
-  differently than a shared-nothing design does.
-\item Extend the fault catalogue further along the boundary mapped here. Leaks, wrapping
-  arithmetic and worker failure are now in it. Misuse of \texttt{unsafe} and the behaviour of
-  the boundary classes under a whole-program model checker rather than a hand-shrunk model are
+\item Scale the comparison to further control-plane subsystems, or to the data-heavy L2/PHY path,
+  where shared mutable state and allocation churn would exercise the two languages differently
+  than a shared-nothing design does.
+\item Extend the fault catalogue along the boundary mapped here. Misuse of \texttt{unsafe}, and
+  the boundary classes under a whole-program model checker rather than a hand-shrunk model, are
   the obvious next steps. A checker that covers a Rust program together with its foreign
-  dependencies~\cite{pearce2026rustmc} would extend the same treatment to the seam of
+  dependencies~\cite{pearce2026rustmc} would reach the seam of
   Section~\ref{sec:migrationresults}, whose cost this study measures but whose interleavings it
   does not explore.
 \item Evaluate Rust async runtimes against the thread-per-shard model used here, under the
   controls this study imposes. That would separate the tail divergence Arvidsson and Kaller
   attribute to stackless \texttt{async}/\texttt{await}~\cite{arvidsson2025async} from the language
-  itself, and would settle at the same time how much of the gap Olsson and Stenstr\"om measured
-  between asynchronous Rust and DPDK~\cite{olsson2023asyncpackets} belongs to the runtime rather
-  than to the framework it was measured against.
+  itself, and would settle how much of the gap Olsson and Stenstr\"om measured between
+  asynchronous Rust and DPDK~\cite{olsson2023asyncpackets} belongs to the runtime rather than the
+  framework.
 \item Measure what in-process isolation of the two heaps costs at the seam, since that is what
   an \texttt{unsafe}-free core would need to be protected as well as
   verified~\cite{rivera2021galeed,kirth2022pkrusafe}.
