@@ -1902,8 +1902,8 @@ Operation & Required state & Resulting state & Errors \\
 \subsection{Sharding, the store, and the bounded queue}
 Both sides pin their hashing, so that neither standard library's hasher can become an accidental
 language advantage. Shard assignment runs the \texttt{ue\_id} through the SplitMix64 finalizer,
-three xor-shift and multiply rounds with the constants
-\texttt{0xBF58476D1CE4E5B9} and \texttt{0x94D049BB133111EB}, and then reduces modulo the shard
+three rounds of xor-shift and multiply against constants the specification pins, and then
+reduces modulo the shard
 count. The finalizer matters because the workload draws sequential identifiers, and a naive
 modulo would map those onto shards in a fixed repeating pattern. Scrambling the identifier first
 makes the offered load per shard even in both languages by construction, not by luck.
@@ -1917,12 +1917,10 @@ therefore keyed through a pinned FNV-1a 64-bit hash over the eight little-endian
 identifier, and a test checks that the Rust \texttt{BuildHasher} produces a digest bit-identical
 to the reference \texttt{fnv1a\_64}.
 
-Both maps reserve an initial capacity of $4\,096$ entries at start-up so that steady-state
-measurements are not disturbed by rehashing. The remaining configuration is likewise shared:
-the default eight shards, a queue bound of
-$1\,024$ requests per shard, at most eight bearers and a 64-byte signalling payload per
-context, and a ceiling of $200\,000$ contexts per shard. Only the shard count is varied from
-these defaults, and only by the campaign, which sets it to match the cores it is given.
+Both maps reserve capacity at start-up so that steady-state measurements are not disturbed by
+rehashing. Every other service parameter is shared in the same way, fixed by the specification
+and listed in Table~\ref{tab:params}. Only the shard count is varied from those defaults, and
+only by the campaign, which sets it to match the cores it is given.
 
 The bounded blocking queue is where the two standard libraries part company most sharply. Rust
 supplies the primitive the specification asks for outright. \texttt{sync\_channel(capacity)} is
@@ -1974,23 +1972,17 @@ runtime dispatch on the way back.
 
 Starting the service allocates the shards, spawns one worker thread per shard, and hands each
 worker exclusive ownership of its store. The request path is then the one described in
-Section~\ref{sec:concurrency}. Shutdown is the more delicate half. It has to stop
-workers that are blocked on an empty queue without abandoning requests that are still in
-flight. Both implementations solve it the same way, with an in-band \texttt{Stop} sentinel.
-One \texttt{Stop} request is pushed onto each shard's queue, and because the queue is strictly
-FIFO, every request already queued ahead of it runs to completion before the worker
-sees the sentinel and returns. No separate closed flag, timeout, or drain API is needed,
-and no completion handle is left unfulfilled. The worker threads are then joined, so shutdown
-returns only once every shard has actually stopped.
+Section~\ref{sec:concurrency}. Shutdown is the more delicate half, because it has to stop
+workers blocked on an empty queue without abandoning requests still in flight. Both
+implementations solve it the same way. An in-band \texttt{Stop} sentinel is pushed onto each
+shard's queue, and strict FIFO order means every request ahead of it completes first, so no
+closed flag or drain API is needed and no completion handle is left unfulfilled. The worker
+threads are then joined. Both languages tie all of this to object destruction, which is one of
+the few places the two are near-identical, and both make it idempotent, so a service that goes
+out of scope can neither leave detached threads behind nor stop twice.
 
-Both languages tie this to object destruction, and the mechanism is one of the few places
-where the two are near-identical: the C++ destructor calls \texttt{shutdown()}, and Rust's
-\texttt{Drop} implementation does the same, so a service that goes out of scope cannot leave
-detached threads behind. Both guard against double invocation with a \texttt{running} flag,
-making shutdown idempotent.
-
-The window between those two calls is a precondition on every operation, and it is written as
-one. An operation submitted before \texttt{start()} or after \texttt{shutdown()} is a caller
+The window between \texttt{start()} and \texttt{shutdown()} is a precondition on every
+operation, and it is written as one. An operation submitted outside that window is a caller
 error and not a runtime condition, so it is reported out of band and does not widen the closed
 \texttt{OpError} set of Section~\ref{sec:parity}. C++ throws \texttt{std::logic\_error} and Rust
 panics. Saying so explicitly was not a formality. The specification forbade the call from the
