@@ -1,0 +1,339 @@
+\chapter{Phương pháp nghiên cứu\label{chapter:methodology}}
+
+Chương trước nêu nghiên cứu phải đạt gì. Chương này nêu cách đạt. Nó trình bày chiến lược
+nghiên cứu tổng thể, phương pháp chọn cho từng câu hỏi nghiên cứu và vì sao phù hợp, các kiểm
+soát giúp so sánh ngôn ngữ công bằng, xử lý thống kê các phép đo, cùng các cam kết tái lập và đạo
+đức mà công trình tuân theo.
+
+\section{Hướng tiếp cận nghiên cứu}\label{sec:approach}
+Nghiên cứu mang tính thực nghiệm với yếu tố kiến tạo (khoa học thiết kế). Hiện vật là một cặp
+bản hiện thực tương đương chức năng của phân hệ, một bằng C++ và một bằng Rust, cùng khung đo
+hiệu năng. Cả hai được xây từ một đặc tả cố định duy nhất rồi đánh giá dưới thí nghiệm có kiểm
+soát. Bằng chứng được tam giác hoá qua ba phương pháp. Đo hiệu năng dưới quét tải trả lời RQ1 và
+RQ3, nghiên cứu tiêm lỗi có kiểm soát trả lời RQ2, và nghiên cứu tình huống di trú FFI, một
+phần đo một phần định tính, trả lời RQ4. Ba phương pháp độc lập. Một điểm yếu ở một trong số
+chúng, ví dụ độ nhạy môi trường của đo độ trễ đuôi, do đó không lan sang toàn bộ kết luận. Mỗi
+phép đo báo cáo phương sai qua nhiều lần chạy lặp, và Mục~\ref{sec:controls} nêu các kiểm soát
+giữ ngôn ngữ là biến duy nhất.
+
+Thiết kế đó bám theo hình dạng các câu hỏi. Mỗi câu hỏi hỏi một kết quả (độ trễ đuôi, lỗi được
+ngăn, dùng tài nguyên, chi phí di trú) phụ thuộc vào một biến, ngôn ngữ hiện thực. Ngôn ngữ vì
+thế phải là khác biệt có hệ thống duy nhất giữa hai đối tượng thử. Điều này loại trừ dạng so
+sánh ngôn ngữ phổ biến nhất trong tài liệu, nơi hai chương trình viết độc lập được đo và khoảng
+cách quy cho ngôn ngữ. Khoảng cách đó còn mang thiết kế, thư viện và kỹ năng tác giả.
+
+Xây cả hai phía từ một đặc tả loại bỏ nhiễu loạn đó. So sánh khi đó là giữa hai mã hoá của cùng
+thiết kế, và hiện vật vừa là đóng góp vừa là dụng cụ đo nó. Ở nơi câu hỏi trả lời được bằng số,
+xử lý là định lượng. Ở nơi không thể, như loại bảo đảm trong RQ2 và nỗ lực thiết kế API trong
+RQ4, xử lý là định tính nhưng vẫn có hệ thống.
+
+Khoảng trống mà thiết kế này nhắm tới (Mục~\ref{sec:gap}) chỉ tốt bằng tìm kiếm đã tìm nó, nên
+tìm kiếm đó được lưu hồ sơ. Phụ lục~\ref{appendix:search} nêu cơ sở dữ liệu, tổ hợp thuật ngữ,
+chuỗi trích dẫn và quy tắc lọc. Hai phát hiện của nó liên quan thiết kế chứ không chỉ thư mục tài
+liệu.
+
+Các luận văn do nhà cung cấp gần nhất nghiên cứu này (Mục~\ref{sec:relatedwork}) không có trong
+cơ sở dữ liệu trích dẫn. Chuỗi trích dẫn do đó không chạm tới chúng, và chúng phải được tìm bằng
+cách tra trực tiếp kho lưu trữ của cơ sở. Cùng các tìm kiếm đó cũng chứng minh sự vắng mặt phía
+kia: không có luận văn Phần Lan về Rust trong bối cảnh truy nhập vô tuyến hoặc viễn thông, và
+không có ấn phẩm được lập chỉ mục nhắc Rust từ nhà cung cấp chủ trì công trình. Tài liệu chuyên
+ngành về câu hỏi ngôn ngữ do đó là tiếng Thụy Điển và do Ericsson lưu trữ, và liệu có chuyển
+sang đây vẫn chưa được thử. Các luận văn đó là văn bản xám, nên được trích như bằng chứng về
+điều một nhà cung cấp đã thử và thấy, không như kết quả đã bình duyệt.
+
+Tìm kiếm không trả về nghiên cứu nào, có lập chỉ mục hay xám, đo hành vi độ trễ đuôi của hai bản
+hiện thực Rust và C++ cùng một phân hệ mặt điều khiển có trạng thái, đồng thời, dưới quá tải.
+
+Bảng~\ref{tab:design} ánh xạ mỗi câu hỏi nghiên cứu tới phương pháp, hiện vật, dữ liệu và chỉ số
+trả lời nó. Cả bốn chuỗi cùng kết thúc ở một chỗ: Mục~\ref{sec:rqdiscussion} phán đoán từng câu
+hỏi và Mục~\ref{sec:hypotheses} xử lý giả thuyết của nó. RQ1 và RQ3 dùng chung H1, diễn đạt để
+bao cả tương đương hiệu năng theo nghĩa độ trễ và tài nguyên. Cách diễn đạt đó hóa ra là điểm yếu
+chính của giả thuyết. RQ2 không nhạy môi trường, và RQ4 cũng vậy trừ một trục: thời gian biên
+dịch là phép đo thời gian như mọi phép đo khác, nên được đọc như tỉ số giữa hai chuỗi công cụ đo
+luân phiên trên một máy. RQ1 và RQ3 phụ thuộc máy đo và được báo cáo theo những gì máy đó chịu
+được (Mục~\ref{sec:testbed}).
+
+\begin{table}[H]
+\centering
+\caption[Thiết kế nghiên cứu: cách trả lời từng câu hỏi]{Thiết kế nghiên cứu: cách trả lời từng câu hỏi nghiên cứu. Mỗi câu hỏi gắn với một
+phương pháp cụ thể, một hiện vật công bố, dữ liệu nó tạo ra, và chỉ số mà kết luận dựa vào. RQ1
+và RQ3 mang hai phương pháp thay vì một: quét đo vòng khứ hồi mà một triển khai sẽ trải, còn phân
+rã thành phần đo phần mà ngôn ngữ chịu trách nhiệm. Mục~\ref{sec:methodperf} nêu vì sao một cái
+không thay được cái kia. RQ1 và RQ3 được kiểm với H1, RQ2 với H2, và RQ4 với H3.\label{tab:design}}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}p{0.06\linewidth} p{0.24\linewidth} p{0.24\linewidth} p{0.32\linewidth}@{}}
+\hline\hline
+RQ & Phương pháp & Hiện vật / dữ liệu & Chỉ số chính \\
+\hline
+RQ1 & Quét tải tới quá tải, lặp xen kẽ & Khung đo, histogram độ trễ &
+trung vị, độ trễ đuôi p99/p99.9, và cực đại so với tải đưa vào \\
+RQ3 & Cùng quét, thu tài nguyên & Mẫu \texttt{getrusage} mỗi lần chạy &
+RSS đỉnh, mức dùng CPU, thông lượng \\
+RQ1, RQ3 & Phân rã thành phần: gọi lõi trực tiếp, rồi qua dịch vụ &
+Cặp microbenchmark khớp, lặp xen kẽ &
+chi phí mỗi thao tác tách thao tác và bàn giao giữa luồng \\
+RQ2 & Tiêm lỗi có kiểm soát & Danh mục lỗi, ASan/TSan/UBSan, \texttt{rustc},
+nhật ký Loom/Shuttle và Miri &
+phân loại lớp lỗi (biên dịch / lúc chạy / không phát hiện) \\
+RQ4 & Nguyên mẫu di trú FFI & Máy chủ C++ $+$ đường nối C-ABI Rust &
+kích thước đường nối, phạm vi \texttt{unsafe}, chi phí tương tác mỗi lần gọi \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Phương pháp cho bốn câu hỏi nghiên cứu}
+Bảng~\ref{tab:design} ghép mỗi câu hỏi với một phương pháp.
+
+\subsection{Đo hiệu năng dưới quét tải (RQ1, RQ3)}\label{sec:methodperf}
+RQ1 và RQ3 được trả lời bằng cách lái cả hai bản hiện thực với cùng một khối lượng công việc
+tổng hợp xác định qua một quét tải đưa vào, từ tải nhẹ qua bão hoà tới quá tải. Hai quyết định
+thiết kế làm phép đo đáng tin. Bộ sinh tải theo lịch \emph{vòng hở}: mỗi yêu cầu có thời điểm gửi
+dự định cố định, và độ trễ được đo so với thời điểm đó chứ không so với lúc nhận. Điều đó sửa
+coordinated omission như Chương~\ref{chapter:background} định nghĩa. Quét được đẩy qua bão hoà
+cố ý, vì vách quá tải chỉ xuất hiện khi tải đưa vào vượt công suất phục vụ (Mục~\ref{sec:predictability}).
+Độ trễ đi vào histogram dải động cao cấu hình giống hệt hai phía, và dùng tài nguyên (RSS cư
+trú đỉnh, mức dùng CPU, thông lượng) được lấy mẫu qua hệ điều hành.
+
+\paragraph{Đo cả thành phần lẫn vòng khứ hồi.}
+Một vòng khứ hồi gói hai loại chi phí khác nhau. Một là thao tác ngôn ngữ chạy trong một luồng:
+tra băm, bảo vệ máy trạng thái, cập nhật trường, tất cả do trình biên dịch sinh. Kia là bàn
+giao quanh nó giữa các luồng: xếp hàng, đánh thức futex, chuyển ngữ cảnh, hoàn tất, không thuộc
+ngôn ngữ. Chỉ phần đầu có thể khác giữa C++ và Rust, và không phép đo end-to-end nào tách chúng.
+
+Phương pháp vì thế làm việc ở hai mức. Bộ xử lý thao tác được gọi trực tiếp, không có hàng đợi
+trên đường đi, rồi qua dịch vụ đa luồng đầy đủ. Hiệu hai mức là bàn giao. Cả hai mức là trung
+bình theo lô trên vòng lặp dài chứ không phải trung vị mỗi lần gọi, vì đọc đồng hồ tốn hàng chục
+nano giây, cùng bậc với bản thân thao tác, và dấu thời gian mỗi lần gọi sẽ đo dụng cụ. Hai ngôn
+ngữ xen kẽ qua các lần lặp và so sánh bằng cùng kiểm định ghép cặp chính xác như quét, nên hai
+mức khác nhau ở điều đo chứ không ở cách phân tích.
+
+Báo cáo cả hai tách hai câu hỏi mà các câu hỏi nghiên cứu ban đầu không phân biệt rõ: triển khai
+hình dạng này sẽ trải gì, và ngôn ngữ đang làm gì. Mục~\ref{sec:budget} thấy hai mức cách nhau
+hơn hai bậc độ lớn. Sự phân biệt do đó quyết định liệu kết quả có diễn giải được không. Mức thứ
+hai được thêm sau vòng đầu chiến dịch, và Mục~\ref{sec:threats} ghi nhận sửa đổi đó.
+
+\paragraph{Cô lập các nguyên thủ đồng bộ tranh chấp.}
+So sánh quá tải ở Mục~\ref{sec:overload} quy khoảng cách cho hai mục forced-idiom nơi thư viện
+chuẩn lệch nhau. Chúng là hàng đợi chặn có giới hạn và tay cầm hoàn tất một lần. Quy kết đó được
+lập luận từ hình dạng phép đo dịch vụ đầy đủ, nên một microbenchmark khớp thứ ba lái hai nguyên
+thủ đó một mình, không có công việc \texttt{ShardCore} trên đường đi, dưới cùng lặp xen kẽ và
+kiểm định ghép cặp. Mục~\ref{sec:contention} nêu cấu hình và báo cáo liệu nguyên thủ cô lập có
+tái tạo thứ tự mà dịch vụ đầy đủ cho thấy.
+
+\subsection{Tiêm lỗi có kiểm soát (RQ2)}\label{sec:methodfaults}
+RQ2 hỏi ngôn ngữ ngăn lớp lỗi nào. Đo mã không lỗi không trả lời được: vắng mặt lỗi trong kiểm
+thử đậu không nói gì về việc ngôn ngữ có bắt được lỗi hay không. Phương pháp vì thế đối kháng,
+theo thực hành đã thành lập của tiêm lỗi phần mềm, nơi lỗi được đưa vào cố ý để xem hệ thống
+hành xử thế nào khi có lỗi~\cite{natella2016fault}.
+
+Một danh mục các lỗi C++ đại diện được viết \emph{cố ý}, rút từ các lớp ảnh hưởng phân hệ này
+(Chương~\ref{chapter:context}). Mỗi mục là chương trình nhỏ tự chứa mang hương miền: con trỏ cũ
+vào bản đồ ngữ cảnh, giải phóng kép, thay đổi khi lặp, cập nhật dùng chung không đồng bộ. Mỗi mục
+được biên dịch và chạy dưới AddressSanitizer, ThreadSanitizer và UndefinedBehaviorSanitizer, ghi
+công cụ nào phát hiện, nếu có, và ở giai đoạn nào.
+
+Cùng cấu trúc rồi được viết bằng Rust an toàn và biên dịch. Kết quả trình biên dịch được ghi, và
+nếu biên dịch được thì hành vi chương trình cũng vậy. Các lớp ranh giới không cho trình biên dịch
+gì để nói, nên phía Rust còn đi tới hai model checker, Loom và Shuttle, và với lớp nằm trong khối
+\texttt{unsafe} tới trình thông dịch Miri. Chúng trả lời nửa ``ở giai đoạn nào và với chi phí gì''
+của RQ2 cho các lớp đó, và mỗi cái được ghép với đối chứng trong đó lỗi đã sửa, để tìm lỗi và
+báo cáo mọi thứ không trở thành cùng một quan sát.
+
+Việc ThreadSanitizer báo đảo thứ tự khoá phụ thuộc lịch trình, nên một lần chạy sẽ ghi đúng kết
+quả máy tình cờ cho. Runner chạy ca đó mười hai lần và báo tỉ lệ, để phát hiện gián đoạn không bị
+nhầm là phát hiện đáng tin.
+
+\paragraph{Vì sao phía C++ chỉ dùng sanitiser.}
+Không có trình phân tích tĩnh nào chạy trên danh mục C++, và đó là quyết định. RQ2 không hỏi công
+cụ nào tìm nhiều lỗi nhất. Nó hỏi ở \emph{giai đoạn} nào, và với lực gì, mỗi ngôn ngữ loại trừ
+lỗi, và ba kết quả của phân loại (từ chối lúc biên dịch, phát hiện lúc chạy, bỏ sót im lặng) là
+các hạng mục câu hỏi cần. Một lượt tùy chọn không thuộc hạng nào: cảnh báo mà bản dựng có thể cấu
+hình bỏ qua là đối tượng khác với biên dịch không thể thành công, và khác biệt đó là điều phương
+pháp đo.
+
+Chi phí là phía C++ hẹp hơn điều tốt nhất một dự án C++ có thể làm, vì trình phân tích cấu hình
+tốt có thể chạm các ca an toàn bộ nhớ nội thủ tục nhỏ, dù không chạm các ca đồng thời. Nghiên cứu
+vì thế báo cáo công cụ đã chạy, thực hành dựa sanitiser ở Mục~\ref{sec:cpplatency}, chứ không phải
+trần của công cụ C++.
+
+Lỗi tiêm được giữ cố định trong khi ngôn ngữ thay đổi, nên mọi khác biệt kết quả đến từ bảo đảm
+ngôn ngữ chứ không từ lỗi cụ thể. Phương pháp thiết lập \emph{loại} bảo vệ mỗi ngôn ngữ cung cấp,
+không phải một con số hiệu năng.
+
+Một quyết định thiết kế quyết định liệu phân loại đáng tin. Danh mục chỉ rút từ các lớp ngôn ngữ
+đã biết là ngăn được có thể xác nhận giả thuyết nhưng không bao giờ làm lung lay nó, và sẽ mô tả
+lựa chọn ca của tác giả nhiều như mô tả ngôn ngữ. Danh mục vì thế xây hai nhóm: các lớp trong
+bảo đảm đã nêu của Rust, và các lớp ngay ngoài nó, nơi sở hữu và kỷ luật \texttt{Send}/\texttt{Sync}
+không bảo vệ. Mỗi ca mang kỳ vọng ghi nhận và runner báo vi phạm theo cả hai chiều, nên kết quả
+bất ngờ nổi lên như sai lệch thay vì bị hấp thụ vào tường thuật. Điều này đổi lấy một ranh giới
+chứ không phải điểm số: nghiên cứu có thể nêu lớp nào ngôn ngữ loại bỏ và lớp tương đương nào còn
+lại, đó là điều quyết định di trú cần.
+
+\subsection{Nghiên cứu tình huống di trú giao diện hàm ngoại (RQ4)}\label{sec:methodffi}
+RQ4 liên quan chi phí thực tế khi áp dụng Rust trong hệ C++ sẵn có, vừa là câu hỏi kỹ thuật vừa
+là câu hỏi kỹ sư. Nó được trả lời bằng nguyên mẫu xây theo hướng di trú thực tế: máy chủ C++ gọi
+thành phần Rust qua giao diện nhị phân ứng dụng C. Ba đại lượng được đo trên đó. \emph{Kích
+thước} đường nối đếm điểm vào, dòng mã và phụ thuộc. \emph{Phạm vi} \texttt{unsafe} ghi nơi rời
+ngôn ngữ được kiểm tra và liệu lõi an toàn có bị ảnh hưởng. \emph{Chi phí mỗi lần gọi} là giá
+vượt ranh giới, đo so với cùng thao tác gọi bản địa để so sánh cô lập phần đường nối thêm vào.
+Hai đại lượng đầu đọc từ mã, đại lượng thứ ba là cặp microbenchmark khớp. Ghép chúng tách chi phí
+thời gian chạy của tương tác khỏi chi phí thật, nằm ở thiết kế API và học hỏi của con người.
+
+Tương tác là một trong ba thuật ngữ RQ4 nêu, và nguyên mẫu chỉ trả lời nó một mình. Ba đại lượng
+nữa bao hai thuật ngữ còn lại, chọn vì kỹ sư biên dịch chạm tới chúng trước mọi thứ đường nối có
+thể cho thấy. \emph{Thời gian biên dịch} được đo sạch và tăng dần, cho thư viện lõi một mình và
+cho mọi mục tiêu mặc định, với cùng số job và lặp xen kẽ hai phía để tải một máy rơi đều lên hai
+chuỗi công cụ. \emph{Dấu chân tĩnh} được đo trên runner conformance, tệp thực thi duy nhất cả
+hai ngôn ngữ dựng từ cùng đặc tả, và ở cả hai chính sách liên kết thay vì mặc định mỗi chuỗi công
+cụ, vì hai mặc định khác nhau ở việc có liên kết thư viện chuẩn hay không và một cặp số đơn sẽ báo
+lựa chọn đó như khác biệt ngôn ngữ. \emph{Bề mặt bên thứ ba} đếm crate bắc cầu mỗi cấu hình giải
+quyết và các điểm \texttt{unsafe} bên trong, làm cho tuyên bố không phụ thuộc ở Mục~\ref{sec:idioms}
+có thể kiểm. Đại lượng đầu nhạy máy chủ, hai kia thì không.
+
+\section{Công bằng như chiến lược biến kiểm soát}\label{sec:controls}
+Mỗi câu hỏi nghiên cứu quy một khác biệt cho ngôn ngữ, nên tính hợp lệ phụ thuộc giữ mọi thứ khác
+bằng nhau. Công bằng vì thế là kiểm soát trung tâm của nghiên cứu, thực thi ở nhiều mức.
+
+\emph{Đặc tả} được cố định trước khi viết mã. Nó khóa API công khai, máy trạng thái, cấu trúc
+dữ liệu và chiến lược thuật toán của chúng, cùng mô hình sharding và đồng thời (Mục~\ref{sec:fairness}).
+\emph{Nền thời gian chạy} được cân bằng bằng cách liên kết cùng bộ cấp phát hai phía và khớp mức
+tối ưu hoá bản dựng gần nhất mà hai chuỗi công cụ cho phép. \emph{Khối lượng công việc} đến từ
+một driver cấu trúc giống nhau giữa các ngôn ngữ, với một seed và quần UE hoạt động cho trước,
+lái cả hai bản hiện thực qua cùng chuỗi thao tác. Mọi khác biệt độ trễ do đó phản ánh cách mỗi
+ngôn ngữ thực thi cùng công việc, không phải khác công việc.
+
+Ở nơi hai ngôn ngữ thật sự không diễn đạt được cùng cấu trúc, độ lệch được ghi trong nhật ký
+forced-idiom. Điều còn không kiểm soát được, chủ yếu bất đối xứng kỹ năng một tác giả, được
+thừa nhận là mối đe doạ tính hợp lệ (Chương~\ref{chapter:discussion}) và không được tuyên bố là
+đã loại bỏ.
+
+Bảng~\ref{tab:controls} nêu chiến lược theo từng biến, và cột thứ ba quan trọng nhất. Thí
+nghiệm có kiểm soát đáng tin theo mức nó kế toán trung thực những gì không kiểm soát được. Ba
+hàng ghi phần dư chứ không phải sửa sạch: ngôn ngữ không luôn diễn đạt được cùng cấu trúc, chúng
+không ship cùng bố cục băm, và một người viết cả hai bản hiện thực. Nhật ký forced-idiom xử lý
+điều đầu, và hàng cuối đặt tên biến duy nhất không còn kiểm soát nào.
+
+\begin{table}[H]
+\centering
+\small
+\caption[Chiến lược biến kiểm soát]{Chiến lược biến kiểm soát: điều được giữ cố định để ngôn ngữ vẫn là khác biệt có hệ thống
+duy nhất, và điều mỗi kiểm soát không chạm tới. Cột thứ ba không phải danh sách sơ suất mà là
+tự kể giới hạn của nghiên cứu. Mỗi mục được nối lại như mối đe doạ tính hợp lệ ở
+Mục~\ref{sec:threats}. Chỉ hàng cuối đặt tên biến không có kiểm soát nào.\label{tab:controls}}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}R{0.16\linewidth} R{0.44\linewidth} R{0.32\linewidth}@{}}
+\hline\hline
+Biến & Cách giữ cố định & Điều kiểm soát không chạm tới \\
+\hline
+Thiết kế & Một đặc tả, cố định trước khi viết mã, khóa API công khai, máy trạng thái, cấu trúc dữ liệu và chiến lược thuật toán, cùng cách chia trạng thái thành shard (\S\ref{sec:fairness}) & Ở nơi hai ngôn ngữ không diễn đạt được cùng cấu trúc, độ lệch được ghi chứ không gỡ (Bảng~\ref{tab:idioms}) \\
+Mô hình đồng thời & Một luồng mỗi shard qua hàng đợi MPSC chặn có giới hạn hai phía, không runtime bất đồng bộ ở phía nào & Không còn điểm mở \\
+Băm & SplitMix64 cho chọn shard và FNV-1a trong shard, ghim giống nhau, để hasher mặc định của thư viện chuẩn không thành lợi thế tình cờ & Container vẫn là bản đồ băm riêng mỗi ngôn ngữ, và hai bên khác bố cục (\S\ref{sec:budget}) \\
+Bộ cấp phát & Cùng \texttt{jemalloc} liên kết hai phía, với bản dựng bộ cấp phát hệ thống giữ làm đối chứng mỗi phía & Không còn điểm mở \\
+Tối ưu hoá & \texttt{-O2} đối \texttt{opt-level~=~2} & Tương đương danh nghĩa không phải sinh mã giống hệt \\
+Khối lượng công việc & Một driver xác định. Với seed và quần UE hoạt động cho trước cả hai bản hiện thực thực thi cùng chuỗi thao tác, kiểm bằng đếm theo loại & Tổng hợp và biện minh bằng đặc tả chứ không phát lại từ lưu lượng sản xuất \\
+Dụng cụ đo & Cùng thuật toán và cấu hình histogram HDR, cùng lịch vòng hở, cùng kỷ luật lặp và xen kẽ & Không còn điểm mở \\
+Hành vi & Bộ kiểm thử conformance trung tính ngôn ngữ với bản ghi chuẩn được diff từng thao tác (\S\ref{sec:parity}) & Tương đương giới hạn hành vi, không phải hiệu năng \\
+\hline
+Tác giả & Không kiểm soát & Một người viết cả hai bản hiện thực và không thành thạo như nhau cả hai ngôn ngữ \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Xử lý thống kê các phép đo}\label{sec:stats}
+Các phép đo hiệu năng không xác định, nên số một lần chạy được tránh xuyên suốt. Mỗi cấu hình
+(ngôn ngữ $\times$ bộ cấp phát $\times$ mức tải) được đo qua nhiều lần lặp độc lập, và bốn biến
+thể được \emph{xen kẽ} trong mỗi lần lặp để trôi chậm, nhiệt và hoạt động nền làm nhiễu đều nhau
+thay vì lệch một phía. Kết quả được tóm bằng trung vị với khoảng tin cậy bootstrap $95\%$
+không tham số~\cite{efron1993bootstrap} thay vì trung bình với độ lệch chuẩn, vì phân phối độ
+trễ đuôi nặng và lệch và khoảng không tham số trên trung vị không giả định chuẩn. Cách này bám
+hướng dẫn đã thành lập về đánh giá hiệu năng có thống kê chặt, cảnh báo báo cáo một số duy mời
+kết luận mà biến thiên giữa các lần chạy không ủng hộ~\cite{georges2007rigorous}. Các phân vị đuôi
+(p99, p99.9, p99.99) đọc từ histogram HDR, có gom nhóm logarit giữ ba chữ số có nghĩa trên toàn
+dải để các phân vị cao không bị lượng tử hoá mất. Khoảng được báo đầy đủ, không phải nửa độ rộng
+đối xứng, vì khoảng bootstrap trên trung vị của mẫu đuôi nặng lệch rõ và nửa độ rộng đủ che biên
+trên sẽ đặt biên dưới dưới không.
+
+Hai đại lượng này cần ghi chú riêng, vì mức sâu vào đuôi mà một chiến dịch nhìn thấy là thuộc tính
+của số thao tác đã ghi. Ở tải đại diện một lần chạy hoàn tất cỡ $170$~nghìn thao tác đo, nên
+p99.99 của nó dựa trên khoảng mười bảy quan sát: p99.99 mỗi lần chạy bị nhiễu lấy mẫu chi phối
+ngay cả trên máy hoàn toàn yên. Đọc đuôi xa vì thế đòi lưu toàn bộ nội dung bucket HDR mỗi lần
+chạy cạnh các phân vị tóm tắt, để các lần lặp có thể được \emph{gộp} thành một phân phối vài
+triệu thao tác trước. Khung làm vậy hiện nay, và thiết kế tách gộp và lấy trung bình, vì chúng
+là hai thống kê khác nhau. Một số gộp sẽ lấy thao tác làm đơn vị phân tích và phân giải đuôi xa,
+với chi phí không mang khoảng giữa các lần lặp, trong khi các số trung vị-của-lần-lặp báo cáo
+kèm khoảng giữ lần lặp làm đơn vị và vẫn là cơ sở duy nhất cho so sánh ghép cặp. Jitter cũng sẽ
+được đo trực tiếp thay vì suy từ phân phối độ trễ, như hiệu trị tuyệt đối giữa độ trễ liên tiếp
+trong một producer. Đó là đại lượng biến thiên độ trễ gói của RFC~3393~\cite{rfc3393}, và khớp
+cách luận văn dùng thuật ngữ: biến thiên từ thao tác này sang thao tác kế, không phải độ trải của
+cả phân phối. Cả hai không được báo cáo ở Chương~\ref{chapter:eval}, vì chiến dịch phân tích ở đó
+trước khi có dụng cụ đo (Mục~\ref{sec:perfresults}).
+
+Dù vậy p99.99 hay jitter cũng không vào họ kiểm định ghép cặp mô tả dưới đây. Điều đó bám cùng
+quy tắc với phần còn lại của thiết kế chứ không phải hệ quả của dữ liệu thiếu: cả hai tính từ
+đúng các thao tác mà nhiễu giao thoa chạm tới, tức lớp thống kê mà ghép cặp không cứu được, nên
+khoảng ghép cặp trên chúng không thể đọc như hiệu ứng ngôn ngữ. Chúng thuộc cột mô tả, và họ
+kiểm định giữ cỡ mà thiết kế cam kết.
+
+Chỉ khoảng ước lượng thì là cơ sở yếu cho so sánh. Hai khoảng có thể chồng trong khi một biến thể
+dẫn ở mọi lần lặp, và chúng có thể tách trên khác biệt không tái lập. Nghiên cứu vì thế cũng
+kiểm định trực tiếp so sánh, và thiết kế xen kẽ là điều làm điều đó khả thi: vì bốn biến thể
+được đo liền nhau trong mỗi lần lặp, các lần chạy tạo thiết kế khớp mà nhiễu chung của một khối
+triệt tiêu trong hiệu ghép cặp. Ngôn ngữ được so với ngôn ngữ với bộ cấp phát giữ cố định, dùng
+kiểm định hoán vị ghép cặp hai phía chính xác trên hiệu theo lần lặp. Giả thuyết không là mỗi cặp
+chỉ khác nhiễu giữa các lần chạy, dưới đó dấu mỗi hiệu ghép cặp có thể hoán đổi. Với số lần lặp
+dùng ở đây mọi một trong $2^{n}$ gán dấu được liệt kê thay vì lấy mẫu, nên $p$-value thu được là
+chính xác và, như bootstrap, không giả định gì về hình dạng phân phối. Vì cùng so sánh được làm
+cho nhiều chỉ số và cả hai bộ cấp phát, họ kiểm định được hiệu chỉnh bằng thủ tục Holm bước
+xuống~\cite{holm1979simple}, kiểm soát tỉ lệ lỗi họ mà không giả định độc lập giữa các kiểm định.
+
+Hai quyết định về cách đọc họ đó được đưa ra ở đây chứ không sau kết quả, vì một trong hai có thể
+bị chọn cho hợp dữ liệu nếu không.
+
+Quyết định thứ nhất là so sánh nào vào họ, và câu trả lời phụ thuộc điểm vận hành chứ không phụ
+thuộc chỉ số. Dưới bão hoà mọi biến thể hoàn tất công việc nhanh bằng tốc độ được đưa vào, nên
+thông lượng đạt được ở đó bị ghim vào tải đưa vào theo cấu trúc và không thể biểu đạt hiệu ứng
+ngôn ngữ dù ngôn ngữ làm gì. Nó được báo cáo kèm khoảng thay vì được kiểm. Trên bão hoà lập luận
+đảo ngược, vì điều mỗi biến thể vẫn duy trì không bị ghim vào gì và trở thành đại lượng duy nhất
+có thể tách chúng, nên một điểm vận hành thứ hai được cố định trong vùng quá tải và thông lượng
+duy trì cùng mức dùng CPU được kiểm ở đó (Mục~\ref{sec:overload}). Hai cam kết đi kèm. So sánh
+quá tải gia nhập cùng họ Holm thay vì tạo họ thứ hai, để chia hai điểm vận hành không bị đọc như
+tách chọn sau khi đã biết $p$-value. Và không phân vị độ trễ nào được kiểm trên bão hoà, vì
+producer không theo kịp lịch dự định cố định sẽ tụt lại tích luỹ, khiến các phân vị ở đó là cận
+dưới chứ không phải ước lượng. Phụ lục~\ref{appendix:stats} nêu lập luận sau cả hai.
+
+Quyết định thứ hai là kết luận gì khi khoảng và $p$-value mâu thuẫn. Ở số lần lặp vừa phải chúng
+thường sẽ: khoảng ghép cặp có thể nằm hoàn toàn một phía không trong khi $p$-value đã hiệu chỉnh
+vẫn xa mọi ngưỡng thông dụng. Tin dụng cụ nào không phải lựa chọn tự do, và không phụ thuộc chỉ số
+có hấp dẫn hay không. Nó phụ thuộc liệu ghép cặp có gỡ nhiễu mà phép đo đó chịu hay không. Ghép
+cặp triệt tiêu mọi thứ một khối xen kẽ chia sẻ. Nó không triệt tiêu nhiễu rơi vào một lần chạy
+của cặp mà không rơi vào lần kia. Tóm tắt mức lần chạy như RSS đỉnh không bị lay bởi vài thao tác
+bị lên lịch lại, và thống kê bậc trung tâm như trung vị của hàng chục nghìn mẫu mỗi thao tác cũng
+vậy. Với những đại lượng đó, hiệu ghép cặp giữ dấu qua các lần lặp là khác biệt trong phần mềm.
+Phân vị cao là trường hợp ngược: p99 và p99.9 tính từ đúng các thao tác bị quấy, nên khoảng loại
+trừ không có thể vừa khớp một lần chạy của cặp không may mắn vừa khớp hiệu ứng thật. Bảng~\ref{tab:significance}
+vì thế được chia khối theo phân biệt đó, và khoảng ở khối thứ hai không được đọc như phát hiện dù
+cách không bao nhiêu so với không. Áp quy tắc cho khối thuận lợi và lặng bỏ khối kia là đúng lỗi
+mà cam kết trước này tồn tại để ngăn.
+
+Độ phân giải mà thiết kế đạt được bị giới hạn bởi số lần lặp, và được nêu rõ chứ không để ngầm.
+Với \NRepeats{} lần lặp và \NTests{} so sánh, sàn hai phía chính xác của kiểm định là
+$\MinAttainableP$, và $\CorrectedFloor$ sau hiệu chỉnh, nên null báo ở đây phản ánh dữ liệu chứ
+không phải số học. Trích cả hai là cách để độc giả phân biệt kết quả null và kết quả không phân
+giải được. Chọn số lần lặp để sàn đã hiệu chỉnh nằm dưới $5\%$ thông dụng vì thế là phần giao thức
+đo, cùng với ghim đồng hồ và cô lập lõi (Mục~\ref{sec:testbed}). Phụ lục~\ref{appendix:stats} suy
+ra hai sàn.
+
+\section{Tái lập và hiện vật nghiên cứu}\label{sec:repro}
+Nghiên cứu được thiết kế để bên thứ ba tái tạo kết quả mà không cần mã độc quyền của Nokia. Ba
+điều làm điều đó khả thi. Các bản hiện thực được lái hoàn toàn bởi đặc tả công khai đã cố định.
+Khung đo, danh mục lỗi và runner của nó, cùng nguyên mẫu FFI được công bố cùng luận văn. Và mọi
+hình và bảng trong phần đánh giá do một script duy nhất tạo trực tiếp từ nhật ký đo thô, nên
+chạy lại chiến dịch trên máy khác tái tạo hiện vật nguyên văn.
+
+Môi trường thực thi được ghi tự động cạnh mỗi tập kết quả: kiểu CPU, kernel, phiên bản trình
+biên dịch và chuỗi công cụ, cùng cài đặt tần số và lập lịch của testbed. Điều kiện của một phép
+đo vì thế đi cùng dữ liệu. Điều đó quan trọng cho một phân biệt cụ thể. Tách kết quả nhạy môi
+trường (quét hiệu năng) khỏi kết quả không nhạy (kiểm thử tương đương, tiêm lỗi, và cấu trúc FFI)
+là điều cho phép luận văn nêu, theo từng kết quả, độc giả đang nhìn loại nào. Không gì trên đường
+đi đòi mã nguồn độc quyền, đó là điều làm tái lập bên thứ ba khả thi chứ không chỉ được phép.

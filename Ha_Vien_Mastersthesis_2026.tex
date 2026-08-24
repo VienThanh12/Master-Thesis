@@ -1807,31 +1807,34 @@ The Rust version is therefore the larger of the two, by $\RawRise\%$ in raw line
 $\NlocRise\%$ in code lines. That belongs in the text and not in a footnote, for two reasons.
 Line count is one of the software-quality proxies this study set out to collect. And the
 difference is not stray verbosity: it is the net of several forced idioms pulling in opposite
-directions, which Section~\ref{sec:idioms} takes apart file by file. The rest of this section
-works outward from the data model to the concurrency machinery, and reports what each
-language-forced divergence cost as it comes up.
+directions, which Section~\ref{sec:idioms} takes apart file by file.
+
+The rest of this section works outward from the data model to the concurrency machinery. Three
+of the divergences it describes carry a measured consequence, and those are the ones to read
+closely. The record layout differs by $\UeCtxGapBytes$~bytes per context, the request
+representation differs in both size and type safety, and the bounded queue is a primitive Rust
+supplies outright where C++ has to assemble one by hand. Everything else is a matter of naming
+or mechanism. Several of those cost source lines, which Table~\ref{tab:loc} accounts for, but
+none changes what the two cores do.
 
 \subsection{The UE context and the state machine}\label{sec:uecontext}
-Each UE context stores its identifier, lifecycle state (a four-value enumeration
-\texttt{Idle}, \texttt{Connected}, \texttt{Reconfiguring}, \texttt{Released}), serving cell,
-RRC transaction id, a fixed 32-byte dummy security context, a dynamic list of up to eight data
-radio bearers, and two counters (messages handled and an activity sequence number). The data
-radio bearer list is deliberately a growable container (\texttt{std::vector} / \texttt{Vec})
-and not a fixed array, so that the allocator study (RQ3) observes realistic per-context
-allocation. Reads return an immutable snapshot (a \texttt{UeContextView}) copied out of the
-worker, not a reference into live shard state. That keeps the shared-nothing guarantee intact
-and keeps the two implementations semantically identical.
-Figure~\ref{fig:datamodel} gives the record and the read path in full.
+Each UE context stores its identifier, a four-value lifecycle state (\texttt{Idle},
+\texttt{Connected}, \texttt{Reconfiguring}, \texttt{Released}), a fixed-size dummy security
+context, and a dynamic list of data radio bearers, alongside the cell, transaction and counter
+fields that Figure~\ref{fig:datamodel} sets out in full. The bearer list is deliberately a
+growable container (\texttt{std::vector} / \texttt{Vec}) and not a fixed array, so that the
+allocator study (RQ3) observes realistic per-context allocation. Reads return an immutable
+snapshot (a \texttt{UeContextView}) copied out of the worker, not a reference into live shard
+state. That keeps the shared-nothing guarantee intact and keeps the two implementations
+semantically identical.
 
 Identical field declarations do not, however, produce identical objects. Measured on the
 evaluation host, a \texttt{UeContext} takes $\CppUeCtxBytes$~bytes in C++ and only
 $\RustUeCtxBytes$~bytes in Rust.
-Layout policy accounts for all of it. C++ guarantees that non-static data members sit
-in declaration order, so the one-byte \texttt{state} enumeration between the
-eight-byte identifier and the four-byte cell id forces $\CppUeCtxStatePad$~bytes of padding, and the
-32-byte security key, which ends at offset $\CppUeCtxKeyEnd$, forces a further $\CppUeCtxKeyPad$ before the eight-byte-aligned
-bearer vector. Rust carries no \texttt{\#[repr(C)]} annotation here, so it is free to reorder
-fields, and it does. It packs the small scalars together and both holes disappear.
+Layout policy accounts for it. C++ guarantees that non-static data members sit in declaration
+order, so the narrow fields the specification places between wider ones open two holes of
+alignment padding. Rust carries no \texttt{\#[repr(C)]} annotation here, so it is free to
+reorder fields, and it does. It packs the small scalars together and both holes close.
 
 The specification does not try to erase that difference, and the reason is worth stating.
 Pinning the Rust layout with \texttt{\#[repr(C)]} would penalise Rust for nothing but obedience

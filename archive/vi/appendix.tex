@@ -1,0 +1,198 @@
+% Inside the appendices, \appendix takes the title where \chapter would.
+\appendix{Viết tắt và thuật ngữ chính\label{appendix:terms}}
+Các viết tắt và thuật ngữ dùng xuyên suốt luận văn, cho độc giả ngoài lĩnh vực viễn thông.
+
+\begin{table}[H]
+\centering
+\caption[Viết tắt và thuật ngữ chính]{Viết tắt và thuật ngữ chính dùng xuyên suốt luận văn.\label{tab:abbrev}}
+% One size down so that a glossary of this length shares a page with the appendix
+% heading inside the class's 23cm text block. The \singlespacing is redundant while
+% the body is single-spaced, and is kept so the table survives a change back.
+\singlespacing
+\footnotesize
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{0.21\linewidth} p{0.71\linewidth}@{}}
+\hline\hline
+Thuật ngữ & Ý nghĩa \\
+\hline
+RAN & Mạng truy nhập vô tuyến: phần mạng di động nối thiết bị với lõi \\
+NG-RAN & RAN thế hệ tiếp theo, kiến trúc mạng truy nhập vô tuyến 5G \\
+IMT-2030 & Khung ITU cho thế hệ sau 5G, thường gọi là 6G \\
+AI-RAN & Kiến trúc trong đó AI và khối lượng RAN chia sẻ một hạ tầng tăng tốc \\
+gNB & Trạm gốc 5G (``next-generation NodeB'') \\
+gNB-CU / DU & Đơn vị trung tâm / Đơn vị phân tán: hai nửa tách rời của gNB \\
+gNB-CU-CP & Phần mặt điều khiển của đơn vị trung tâm: lớp hệ thống được nghiên cứu ở đây \\
+UE & Thiết bị người dùng: thiết bị đầu cuối (điện thoại, modem) gắn vào mạng \\
+UECM & Quản lý ngữ cảnh UE: phân hệ quản lý trạng thái theo UE được hiện thực lại ở đây \\
+RRC & Điều khiển tài nguyên vô tuyến: giao thức báo hiệu mặt điều khiển giữa UE và gNB \\
+DRB & Kênh mang dữ liệu vô tuyến theo UE: kênh dữ liệu mặt người dùng thiết lập trong phiên \\
+Mặt điều khiển & Đường báo hiệu và quản lý, trái với đường dữ liệu mặt người dùng \\
+Độ trễ đuôi & Độ trễ phần trăm cao (p99, p99.9), chỉ số thời gian hướng trường hợp xấu nhất \\
+Jitter & Mức độ độ trễ dao động giữa các thao tác, trái với giá trị điển hình \\
+Bão hoà & Tải đề nghị vượt quá khả năng dịch vụ theo kịp và yêu cầu bắt đầu xếp hàng \\
+Shard & Một trong các lát trạng thái UE độc lập, mỗi lát thuộc đúng một luồng worker \\
+FFI & Giao diện hàm nước ngoài: gọi Rust từ C++ qua ABI C \\
+HDR histogram & Biểu đồ tần suất dải động cao, dùng để ghi độ trễ chính xác \\
+\hline
+\end{tabular}
+\end{table}
+
+\appendix{Giao thức tìm kiếm tài liệu\label{appendix:search}}
+Mục~\ref{sec:approach} báo cáo hai phát hiện mà tìm kiếm này tạo ra. Giao thức được ghi ở đây để
+khoảng trống mà nghiên cứu tuyên bố có thể được kiểm tra chứ không phải tin theo lời nói.
+
+Tài liệu ứng viên được thu thập từ ACM Digital Library, IEEE Xplore, USENIX và Google
+Scholar, dùng các tổ hợp thuật ngữ \emph{Rust}, \emph{C++}, \emph{memory safety}, \emph{tail
+latency}, \emph{systems programming}, \emph{performance comparison}, và \emph{RAN} / \emph{5G
+control plane}. Tìm kiếm giới hạn ở hội nghị có phản biện, trừ khi báo cáo ngành hoặc
+chính phủ chính là đối tượng nghiên cứu, như các quy định an toàn bộ nhớ và thống kê lỗ hổng của
+nhà cung cấp.
+Tập kết quả sau đó được mở rộng bằng truy vết trích dẫn ngược và xuôi từ các bài an toàn Rust
+cốt lõi, và lọc giữ công trình hoặc đo ngôn ngữ hệ thống bằng thực nghiệm, hoặc hình thức hoá bảo
+đảm của Rust, hoặc báo cáo kinh nghiệm áp dụng. Tài liệu miền (đặc tả 3GPP và
+khảo sát O-RAN) được thêm riêng để cố định bối cảnh kiến trúc.
+
+Chỉ các nguồn trên sẽ bỏ sót công trình tiền nhiệm gần nhất, đó là lý do hai nguồn nữa được thêm.
+Các luận văn do nhà cung cấp lưu trữ gần nghiên cứu này nhất (Mục~\ref{sec:relatedwork}) không
+xuất hiện trong cơ sở dữ liệu trích dẫn nào: không có trong Crossref, OpenAlex, DBLP hay Semantic
+Scholar. Truy vết xuôi hay ngược không chạm tới chúng, vì không có mục được lập chỉ mục trích dẫn
+chúng và danh sách tài liệu tham khảo của chúng không được nộp. Chúng được tìm bằng cách tìm trực
+tiếp trên kho lưu trữ thể chế, DiVA cho các trường Bắc Âu và Finna cho các trường Phần Lan. Cùng hai
+tìm kiếm đó thiết lập sự vắng mặt ở phía kia. Finna, liên kết các kho luận văn đại học Phần Lan,
+không trả luận văn nào về Rust trong bối cảnh truy nhập vô tuyến hay viễn thông. Tìm theo tác giả
+thuộc Nokia trong các ấn phẩm được lập chỉ mục trên OpenAlex cũng không trả kết quả. Các thực thể của
+hãng giữ khoảng ba vạn công trình được lập chỉ mục, vài trăm trong số đó về mạng truy nhập vô tuyến,
+và một công trình nhắc Rust, trong một bản thảo trước in không liên quan về giám sát thực thi tin
+cậy.
+
+Một ghi chú thực tiễn thuộc cùng giao thức, vì nó làm méo tìm kiếm ngây thơ. Truy vấn văn bản tự do
+cho \emph{Rust} trong các chỉ mục chung xếp bệnh học thực vật và hóa học ăn mòn trên ngôn ngữ lập
+trình, nên cần truy vấn giới hạn trường hoặc lĩnh vực.
+
+\appendix{Thiết kế thống kê: thành viên họ và khả năng phân giải\label{appendix:stats}}
+Mục~\ref{sec:stats} cố định so sánh nào vào họ đã hiệu chỉnh và thiết kế nhìn sâu bao xa vào một
+khác biệt. Ba điểm đằng sau các cam kết đó được ghi ở đây thay vì trong văn bản chính.
+
+\paragraph{Vì sao một so sánh không phân giải được không miễn phí.}
+Kiểm thử thông lượng đạt được dưới bão hoà sẽ đo lại điểm vận hành chứ không phải mã. Nó cũng tốn
+các so sánh có thể phân giải điều gì, vì Holm chia ngân sách trên cả họ và một kiểm định không tách
+gì vẫn chiếm một phần. Qua bão hoà lập luận tương tự chạy ngược. Điều mỗi biến thể vẫn duy trì ở đó
+không bị ghim vào gì, nên loại trừ nó sẽ bỏ đi đại lượng quan sát duy nhất chế độ đó cung cấp.
+
+\paragraph{Vì sao không có phần trăm nào được kiểm định khi quá tải.}
+Dưới lịch gửi cố định dự định, một producer không theo kịp sẽ tụt lại tích luỹ, nên phần trăm đo ở
+đó báo cáo tồn đọng tích luỹ trước cửa sổ cắt nó. Gắn giá trị $p$ vào cận dưới sẽ kiểm định bộ
+điều khiển chứ không phải phần mềm.
+
+\paragraph{Các sàn mà thiết kế có thể chạm.}
+Một kiểm định chính xác trên $n$ cặp không thể trả $p$ hai phía dưới $2/2^{n}$, và sau hiệu chỉnh một
+họ $m$ so sánh giá trị điều chỉnh nhỏ nhất có thể là $m$ lần số đó. Đó là nguồn gốc của
+$\MinAttainableP$ và $\CorrectedFloor$ ở Mục~\ref{sec:stats}. Một chiến dịch có sàn đã hiệu chỉnh
+nằm trên ngưỡng đang áp dụng không thể chứng minh ý nghĩa dù hiệu ứng lớn đến đâu, nên báo ``không
+có ý nghĩa'' từ chiến dịch như vậy sẽ nói nhiều về số lần lặp hơn về ngôn ngữ.
+
+\appendix{Cấu hình máy chủ và chiến dịch\label{appendix:config}}
+Bảng~\ref{tab:testbed} liệt kê máy đo của Mục~\ref{sec:testbed} so với giao thức bare-metal mà số
+đuôi cấp testbed yêu cầu. Bảng~\ref{tab:params} gom cấu hình dịch vụ, khối lượng công việc và
+chiến dịch, các giá trị suy ra của chúng Mục~\ref{sec:workload} trích dẫn.
+
+\begin{table}[H]
+\centering
+\small
+\caption[Máy chủ đã dùng và giao thức testbed còn phải thực hiện]{Máy chủ mà kết quả được báo cáo đo trên, so với giao thức mà số đuôi cấp testbed yêu
+cầu (\texttt{bench/TESTBED.md}). Các hàng hai cột trùng là thuộc tính của mã nguồn và
+trình biên dịch. Các hàng khác nhau là điều một chiến dịch bare-metal vẫn mang lại. Chỉ khác biệt
+cuối giờ còn tốn một kết quả, vì điểm gối bão hoà và so sánh tài nguyên đã được giải quyết trên máy
+này: phần còn lại là đuôi xa dưới bão hoà.\label{tab:testbed}}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}R{0.22\linewidth} R{0.35\linewidth} R{0.35\linewidth}@{}}
+\hline\hline
+Khía cạnh & Dùng cho kết quả báo cáo ở đây & Yêu cầu cho số đuôi cấp testbed \\
+\hline
+Máy chủ & Máy chủ hai socket chuyên dụng, $2\times$ Xeon E5-2680~v4, $16$ vCPU, một nút NUMA & Cùng lớp máy, không hypervisor \\
+Ảo hoá & Khách KVM: tần số và turbo do host điều khiển và không quan sát được & Không. Governor và turbo đặt và xác minh \\
+CPU steal & Khác không, cỡ $10$~ms thời gian vCPU mỗi giây & Không \\
+Kernel & Rocky Linux~8.10, kernel bản phân phối & Giống, với \texttt{isolcpus} và \texttt{nohz\_full} trên lõi benchmark \\
+Toolchain & \texttt{g++~15.1.1}, \texttt{rustc~1.97} & \texttt{g++~15.1.1}, \texttt{rustc~1.97} \\
+Ghim CPU & Lõi $2$--$15$ qua \texttt{taskset}, $7$ shard, $7$ producer & Giống, trên lõi cũng bị gỡ khỏi bộ lập lịch \\
+Đa luồng đồng thời & Vắng trong topology khách thấy. vCPU có chia anh em luồng hay không do host quyết & Vắng hoặc tắt, và xác minh trên máy \\
+Khởi động nóng & Phần đầu mỗi lần chạy bỏ & Phần đầu mỗi lần chạy bỏ \\
+Lần lặp và xen kẽ & \NRepeats{} lần lặp, bốn biến thể xen kẽ mỗi lần & \NRepeats{} lần lặp, bốn biến thể xen kẽ mỗi lần \\
+Ghi môi trường & \texttt{bench/capture\_env.sh}, lưu cùng mỗi kết quả & \texttt{bench/capture\_env.sh}, lưu cùng mỗi kết quả \\
+Bộ đếm phần cứng & Không có trong khách & Có: khoảng trống dụng cụ đo rõ nhất \\
+\hline
+Đủ cho & Tương đương, tiêm lỗi, cấu trúc FFI, điểm gối bão hoà và so sánh quá tải, và so sánh tài nguyên & Thêm đuôi xa dưới bão hoà, và cơ chế đằng sau kết quả tài nguyên và thao tác \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\caption[Cấu hình dịch vụ, khối lượng công việc và chiến dịch]{Cấu hình dịch vụ được kiểm thử, khối lượng công việc điều khiển nó, và chiến dịch
+đo. Tham số dịch vụ cố định bởi đặc tả đóng băng, một ngoại lệ: số shard đặt khớp lõi máy cung cấp
+(Mục~\ref{sec:testbed}). Tất cả, kể cả ngoại lệ đó, giống nhau ở hai ngôn ngữ. Số chiến dịch sinh từ
+nhật ký đo cùng các
+bảng báo cáo chúng. Tải đại diện không chọn bằng mắt mà suy ra, là tải quét bận nhất mà cả bốn biến
+thể build vẫn giữ p99 dưới $5$~ms.\label{tab:params}}
+\footnotesize
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{@{}R{0.28\linewidth} R{0.28\linewidth} R{0.36\linewidth}@{}}
+\hline\hline
+Tham số & Giá trị & Ghi chú \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Dịch vụ được kiểm thử, giống nhau ở hai ngôn ngữ}} \\
+Shard và luồng worker & $7$ & một luồng sở hữu một shard, mỗi loại một trên lõi được ghim \\
+Giới hạn hàng đợi mỗi shard & $1\,024$ yêu cầu & có giới hạn và chặn, nên quá tải quan sát được \\
+Dung lượng bản đồ ban đầu & $4\,096$ mục & dự trữ để trạng thái ổn định không rehash \\
+Bearer mỗi ngữ cảnh & tối đa $8$ & \\
+Payload báo hiệu & $64$ byte & \\
+Trần ngữ cảnh mỗi shard & $200\,000$ & \\
+Chọn shard & SplitMix64, rồi modulo & ghim: khuếch tán định danh tuần tự \\
+Hash trong shard & FNV-1a, 64-bit & ghim hai bên và kiểm bit-bit \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Khối lượng công việc}} \\
+Khối lượng & signal, mixed & mixed đi qua toàn vòng đời RAN \\
+UE hoạt động & $5\,000$ & \\
+Mức tải đề nghị & \NLoadLevels{} & tới $\MaxOfferedLoad$~kops/s \\
+Tải đại diện & $\ReprLoad$~kops/s & suy ra, xem chú thích \\
+Bão hoà đo được & $\SatKnee$~kops/s & theo tải đề nghị tới $\TrackingLoad$~kops/s \\
+Mô hình tải & vòng hở, lịch dự định cố định & độ trễ đo từ thời điểm gửi dự định \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Chiến dịch}} \\
+Biến thể build & $\NVariants$ & hai ngôn ngữ $\times$ hai bộ cấp phát \\
+Lần lặp mỗi điểm quét & \NRepeats{} & biến thể xen kẽ trong mỗi lần lặp \\
+Lần chạy đo & $\NRuns$ & \\
+Ghi độ trễ & HDR histogram, $[1\,\text{ns}, 3.6\,\text{s}]$, 3 chữ số có nghĩa & cùng thuật toán và cấu hình hai bên \\
+Thống kê tóm tắt & trung vị với CI bootstrap $95\%$ & khoảng báo đầy đủ, không phải nửa độ rộng \\
+So sánh ngôn ngữ & kiểm định hoán vị ghép cặp chính xác & \NTests{} kiểm định, hiệu chỉnh Holm \\
+Sàn $p$ có thể đạt & $\MinAttainableP$ / $\CorrectedFloor$ & chưa hiệu chỉnh / sau hiệu chỉnh \\
+\hline
+\end{tabular}
+\end{table}
+
+\appendix{Ví dụ tiêm lỗi\label{appendix:code}}
+Là minh hoạ cho nghiên cứu tiêm lỗi (Chương~\ref{chapter:eval}, RQ2), lỗi use-after-free được
+trình bày ở cả hai ngôn ngữ. Trong C++ bí danh vào bản đồ ngữ cảnh
+sống sót sau \texttt{erase} giải phóng nó, nên chương trình sau biên dịch sạch và chỉ được
+AddressSanitizer đánh dấu lúc chạy:
+
+\begin{lstlisting}[language=C++]
+std::unordered_map<unsigned long, UeContext> ctxs;
+ctxs[1001] = UeContext{1001, 0};
+UeContext* p = &ctxs.at(1001);  // alias into the container
+ctxs.erase(1001);               // frees the node that p refers to
+p->messages_handled += 1;       // use-after-free
+\end{lstlisting}
+
+Chương trình Rust an toàn tương ứng không biên dịch: bộ kiểm tra mượn cấm sửa bản đồ
+(\texttt{remove}) trong khi tham chiếu \texttt{p} vào nó vẫn sống, nên lỗi không thể viết ngay từ
+đầu (lỗi \texttt{E0499}):
+
+\begin{lstlisting}[language=Rust]
+let mut ctxs: HashMap<u64, UeContext> = HashMap::new();
+ctxs.insert(1001, UeContext { messages_handled: 0 });
+let p = ctxs.get_mut(&1001).unwrap(); // mutable borrow starts
+ctxs.remove(&1001);                  // borrow while p live -> rejected
+p.messages_handled += 1;             // p used after the remove
+\end{lstlisting}
