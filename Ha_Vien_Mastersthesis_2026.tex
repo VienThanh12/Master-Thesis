@@ -393,59 +393,43 @@ Management (UECM), is modelled on a real gNB-CU-CP control-plane component rathe
 textbook example.
 
 The gNB-CU-CP is not a minor component. In the 3GPP disaggregated architecture it is the
-control-plane half of the central unit: it hosts RRC and manages the UE context lifecycle,
-delegating user-plane bearer handling to the CU-UP over the E1
-interface~\cite{3gpp38401,3gpp38300,3gpp38331,3gpp38463}. It does so under the
-millisecond-scale procedure budgets the 5G system places on control
-signalling~\cite{3gpp38913}, and at the very high event rates and connected-device counts a
-deployed network sustains. Because it is written in C++, it inherits both that language's
-performance and its memory-safety and concurrency hazards. That is precisely where the three
-trends above converge.
+control-plane half of the central unit, hosting RRC and managing the UE context
+lifecycle~\cite{3gpp38401,3gpp38331}, under the millisecond-scale procedure budgets the 5G system
+places on control signalling~\cite{3gpp38913} and at the event rates and connected-device counts
+a deployed network sustains. Section~\ref{sec:ranarch} places it in the wider architecture.
+Because it is written in C++, it inherits both that language's performance and its memory-safety
+and concurrency hazards. That is precisely where the three trends above converge, and software of
+this class is shipped, evolved, and operated across live operator networks, so the
+language-selection decision is a production concern rather than a hypothetical one.
 
-Software of this class is shipped, evolved, and operated across live operator networks. A
-language-selection decision here is therefore a concrete production concern rather than a
-hypothetical one, which is what makes a controlled comparison on a representative subsystem
-valuable to a vendor.
-
-UECM is a deliberate choice of study object within that setting. It is small enough to
-reimplement faithfully and to reason about in full, yet it exercises exactly the properties
-that make RAN control-plane code hard: per-UE mutable state, a strict operation lifecycle,
-high concurrency across many UEs, and hard tail-latency expectations. Conclusions drawn from
-it therefore transfer to the broader class of stateful, concurrent control-plane services.
-They also remain reproducible by readers outside Nokia, because the implementation is driven
-entirely by a public, frozen specification rather than by proprietary code.
+UECM is a deliberate choice of study object within that setting, for the reasons
+Section~\ref{sec:uecm} sets out: it is small enough to reimplement faithfully and reason about in
+full, yet it carries the properties that make control-plane code hard. The implementation is
+driven entirely by a public, frozen specification rather than by proprietary code, so the
+comparison stays reproducible by readers outside Nokia.
 
 \paragraph{A decision with a generational horizon.}
 A language choice in software of this class is not revisited often, and it outlives the
-generation it was made for. The next generation is being specified now: 3GPP has allocated
-Release 20 to the 6G studies and Release 21 to the normative work, against a calendar set by the
-ITU radiocommunication sector that asks for technology proposals in early 2029 and the submitted
-specifications by mid-2030~\cite{itu2023imt2030,3gpp2024road6g}. That work explicitly covers
-migration from and interworking with 5G, so a control plane written for the current generation is
-not retired when the next one arrives but maintained alongside it. The practical question for a
-vendor is therefore not only which language suits a 5G control plane today, but which one it can
-still afford to be maintaining a decade from now.
+generation it was made for. The next one is being specified now: 3GPP has allocated Release 20 to
+the 6G studies and Release 21 to the normative work, against an ITU calendar that asks for
+technology proposals in early 2029 and the submitted specifications by
+mid-2030~\cite{3gpp2024road6g}. That work explicitly covers migration from and interworking with
+5G, so a control plane written for the current generation is maintained alongside the next one
+rather than retired when it arrives. Nor do the next generation's objectives relax what motivates
+this comparison. IMT-2030 names security and resilience as one of its four design principles,
+expects the system to be secure by design, defines resilience as the ability to keep operating
+correctly during and after a disruptive event, and carries the ultra-reliable low-latency scenario
+forward in strengthened form~\cite{itu2023imt2030}. Freedom from whole classes of defect and
+predictable behaviour under disturbance are being written into the objectives of the next
+generation rather than left to implementers.
 
-Nothing in the next generation's stated objectives relaxes the requirements that motivate this
-comparison. The IMT-2030 framework names security and resilience as one of four design principles common to
-all of its usage scenarios, states that the system is expected to be secure by design, and
-defines resilience as the ability to keep operating correctly during and after a disruptive
-event. It also carries the ultra-reliable low-latency scenario forward in strengthened form, as
-hyper-reliable and low-latency communication~\cite{itu2023imt2030}. Freedom from whole classes of
-defect and predictable behaviour when the system is disturbed are thus being written into the
-objectives of the next generation rather than left to implementers, and both depend on the
-language and its libraries as much as on the architecture above them.
-
-The policy clock falls inside the same window, and the roadmap expectation noted above carries a
-date keyed to precisely this horizon. CISA and the FBI classify the development of new product
-lines in a memory-unsafe language as a bad practice that significantly elevates risk where the
-product serves critical infrastructure and a memory-safe alternative is available, and they
-exempt an existing product from the roadmap expectation only when its announced support ends
-before January 2030~\cite{cisa2025badpractices}. Mobile-network infrastructure sits squarely
-inside that scope, and the Cyber Resilience Act deadlines noted above fall earlier
-still~\cite{eu2024cra}. A vendor that defers the language question until the next generation is
-specified will not thereby have avoided making it. It will have made it by default, in the
-incumbent language, for another decade of deployments.
+The policy dates named above fall inside the same window. CISA and the FBI classify the
+development of new product lines in a memory-unsafe language as a bad practice where the product
+serves critical infrastructure, a scope mobile-network infrastructure sits squarely inside, and
+they exempt an existing product from the memory-safe roadmap expectation only when its announced
+support ends before January 2030~\cite{cisa2025badpractices}. A vendor that defers the language
+question until the next generation is specified will not thereby have avoided making it. It will
+have made it by default, in the incumbent language, for another decade of deployments.
 
 What this thesis contributes to that decision is bounded, and the boundary is worth stating
 plainly. The measurements here are taken on a subsystem modelled on a current-generation
@@ -594,7 +578,7 @@ Rust's guarantees do and do not buy in this domain.
 % where the full title of this chapter runs into the margin.
 \chaptermark{Background}
 
-\section{RAN control-plane systems and the gNB-CU-CP}
+\section{RAN control-plane systems and the gNB-CU-CP}\label{sec:ranarch}
 The NG-RAN architecture splits the gNB into a central unit (gNB-CU) and distributed units,
 with the control plane (gNB-CU-CP) handling RRC and connection management for each
 UE~\cite{3gpp38401,3gpp38300,3gpp38331}. Such control-plane systems must satisfy demanding
@@ -1035,13 +1019,11 @@ Chapter~\ref{chapter:methodology} sets out the methodology by which they are pur
 \chapter{Problem Context: UE Context Management and Predictability\label{chapter:context}}
 \chaptermark{Problem Context}
 
-\section{The UE Context Management subsystem}
+\section{The UE Context Management subsystem}\label{sec:uecm}
 The subsystem under study is a UE Context Management service. It is modelled on a real Nokia
 gNB-CU-CP service domain that owns the UE context lifecycle, RRC procedure
-execution~\cite{3gpp38331}, and mobility/handover. Those are the very functions the 3GPP
-architecture assigns to the control-plane part of a disaggregated gNB: the CU-CP hosts the RRC
-and the control-plane part of PDCP and manages the UE context, delegating user-plane bearer
-handling to the CU-UP over the E1 interface~\cite{3gpp38401,3gpp38300,3gpp38463}.
+execution~\cite{3gpp38331}, and mobility/handover, which are the functions the 3GPP architecture
+assigns to the control-plane part of a disaggregated gNB (Section~\ref{sec:ranarch}).
 
 Figure~\ref{fig:fsm} shows the UE-context lifecycle state machine that both implementations
 encode identically. This state machine is exactly what the mixed workload
@@ -2508,7 +2490,7 @@ interference that block carried is common to the pair, and it cancels in their d
 the second thing the interleaving discipline buys, beyond the fairness argument it was adopted
 for.
 
-\begin{table}[H]
+\begin{table}[tp]
 \centering
 \small
 \caption[Exact paired permutation test of C++ against Rust]{Exact paired permutation test of C++ against Rust at $\ReprLoad$~kops/s, with the
@@ -3537,7 +3519,7 @@ resource comparisons are resolved on the host of Section~\ref{sec:testbed}, and 
 across the allocator control. The far tail below saturation stays unresolved, for reasons that
 belong to the machine and not to the analysis.
 
-\begin{table}[H]
+\begin{table}[tp]
 \centering
 \caption[Summary of findings per research question]{Summary of findings per research question and the current strength of evidence.
 \label{tab:findings}}
@@ -4141,7 +4123,7 @@ things fixed. That is the signature of a literature in which the independent
 variable is not controlled, and it is why this thesis builds its object of study instead of
 finding one.
 
-\begin{table}[H]
+\begin{table}[tp]
 \centering
 \small
 \caption[This study beside the five vendor theses]{This study beside the five vendor theses, all
@@ -4252,7 +4234,7 @@ out single-author skill asymmetry. Its end-to-end instrument is the wrong one fo
 and RQ3 ask. And its strongest single finding, the overload divergence, rests on an attribution it
 did not measure directly.
 
-\begin{table}[H]
+\begin{table}[tp]
 \centering
 \small
 \caption[Threats to validity, their mitigations, and what remains]{Threats to validity by the kind of inference each endangers, the control applied, and
@@ -4549,8 +4531,11 @@ both what the guarantee covers and where it stops.
 Several directions extend the work, each of them the direct remedy to a limitation named above.
 The immediate priority is executing the bare-metal campaign, whose target is now narrow: the
 saturation knee and the overload comparison are already resolved, and what bare metal would buy
-specifically is the far tail below saturation, together with hardware counters and allocation
-profiles on the same visit. Beyond that:
+specifically is the far tail below saturation. Hardware counters and allocation profiles belong on
+the same visit, and they are the clearest instrumentation gap in the study as it stands. They
+would turn the memory result of Section~\ref{sec:resources} from an observation into an
+explanation, and would confirm or refute the cache-locality account Section~\ref{sec:budget}
+offers for the operation-level gap. Beyond that:
 
 \begin{itemize}
 \item Replay captured, anonymised production traces in place of the synthetic workload, so that
@@ -4558,11 +4543,6 @@ profiles on the same visit. Beyond that:
 \item Scale the comparison to further control-plane subsystems, or to the data-heavy L2/PHY
   path, where shared mutable state and allocation churn would exercise the two languages
   differently than a shared-nothing design does.
-\item Instrument the comparison with hardware performance counters and allocation profiles. This
-  is what would turn the memory result of Section~\ref{sec:resources} from an observation into
-  an explanation, and what would confirm or refute the cache-locality account offered in
-  Section~\ref{sec:budget} for the operation-level gap. It is the clearest instrumentation gap
-  in the study as it stands.
 \item Extend the fault catalogue further along the boundary mapped here. Leaks, wrapping
   arithmetic and worker failure are now in it. Misuse of \texttt{unsafe} and the behaviour of
   the boundary classes under a whole-program model checker rather than a hand-shrunk model are
@@ -4570,14 +4550,12 @@ profiles on the same visit. Beyond that:
   dependencies~\cite{pearce2026rustmc} would extend the same treatment to the seam of
   Section~\ref{sec:migrationresults}, whose cost this study measures but whose interleavings it
   does not explore.
-\item Evaluate Rust async runtimes against the thread-per-shard model used here. That would
-  separate the tail divergence Arvidsson and Kaller attribute to stackless
-  \texttt{async}/\texttt{await}~\cite{arvidsson2025async} from the language itself, under the
-  controls this study imposes. The same experiment would settle a second question at the same
-  time. Olsson and Stenstr\"om measured asynchronous Rust at a fraction of DPDK's throughput on
-  a thread-per-core packet processor~\cite{olsson2023asyncpackets}, and nothing in the literature
-  yet separates how much of that gap belongs to the runtime and how much to the framework it was
-  measured against.
+\item Evaluate Rust async runtimes against the thread-per-shard model used here, under the
+  controls this study imposes. That would separate the tail divergence Arvidsson and Kaller
+  attribute to stackless \texttt{async}/\texttt{await}~\cite{arvidsson2025async} from the language
+  itself, and would settle at the same time how much of the gap Olsson and Stenstr\"om measured
+  between asynchronous Rust and DPDK~\cite{olsson2023asyncpackets} belongs to the runtime rather
+  than to the framework it was measured against.
 \item Measure what in-process isolation of the two heaps costs at the seam, since that is what
   an \texttt{unsafe}-free core would need to be protected as well as
   verified~\cite{rivera2021galeed,kirth2022pkrusafe}.
@@ -4665,11 +4643,9 @@ entities hold on the order of thirty thousand indexed works, several hundred of 
 radio access network, and one mentions Rust, in an unrelated preprint on trusted-execution
 monitoring.
 
-Two practical notes belong with the protocol, since both distort a naive search. Free-text queries
+One practical note belongs with the protocol, since it distorts a naive search. Free-text queries
 for \emph{Rust} in the general indexes rank plant pathology and corrosion chemistry above the
-programming language, so field-restricted or discipline-restricted queries are necessary. And the
-theses are grey literature, so they are cited as evidence of what has been attempted and found
-rather than as peer-reviewed results.
+programming language, so field-restricted or discipline-restricted queries are necessary.
 
 \appendix{Statistical design: family membership and resolving power\label{appendix:stats}}
 Section~\ref{sec:stats} fixes which comparisons enter the corrected family and how far into a
