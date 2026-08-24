@@ -52,8 +52,11 @@ bench/results/
 # become the newest campaign in bench/results.
 docker/.scratch/
 
-# Fault-injection built binaries (taxonomy.md/.csv are kept; *.log matched above)
+# Fault-injection built binaries (taxonomy.md/.csv are kept; *.log matched above).
+# .miri is the throwaway package run_miri.sh generates so Miri has something to
+# build; the case sources it points at live in faults/rust/.
 faults/results/.bin/
+faults/results/.miri/
 
 # FFI prototype build artifacts (Rust target dir covered by target/ above)
 ffi/host

@@ -12,8 +12,12 @@
 // way: LeakSanitizer reports the C++ version, while a stock `cargo build` and
 // `cargo test` say nothing at all. Rust's guarantee does not cover leaks and
 // neither does its default toolchain.
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
+
+thread_local! {
+    static DROPPED: Cell<u32> = Cell::new(0);
+}
 
 struct UeContext {
     ue_id: u64,
@@ -22,6 +26,16 @@ struct UeContext {
     // `Weak<RefCell<UeContext>>` here would be the fix, and is the same fix as
     // `std::weak_ptr` on the C++ side.
     peer: Option<Rc<RefCell<UeContext>>>,
+}
+
+// The leak is counted rather than asserted. Nothing in the default toolchain
+// reports it, so without a destructor that records itself the program would end
+// successfully and the run would be indistinguishable from one that collected
+// both contexts.
+impl Drop for UeContext {
+    fn drop(&mut self) {
+        DROPPED.with(|d| d.set(d.get() + 1));
+    }
 }
 
 fn main() {
@@ -54,6 +68,8 @@ fn main() {
     }
     // Both roots are gone. Each context is still held by the other, so both
     // counts remain at one, neither is dropped, and the memory is unreachable
-    // and live. The process exits successfully and reports nothing.
-    println!("scope exited; contexts were never dropped");
+    // and live.
+    let dropped = DROPPED.with(|d| d.get());
+    println!("scope exited; contexts dropped: {dropped} of 2");
+    std::process::exit(if dropped == 2 { 0 } else { 1 });
 }

@@ -166,8 +166,10 @@ def fault_facts(root):
     # A class is untouched when no C++ sanitiser reports it at all. The
     # intermittently detected deadlock is deliberately not counted here: it is
     # detected, unreliably, which is a different claim and the thesis makes it
-    # separately.
-    undetected = [r["defect"] for r in rows if r["cpp_detection"] == "undetected"]
+    # separately. A run that had to be killed still counts as untouched, since
+    # "undetected (hung)" records how the run ended and not a report anyone got.
+    undetected = [r["defect"] for r in rows
+                  if r["cpp_detection"].startswith("undetected")]
 
     lost = {}
     for lang, stem in (("Rust", "lost_update.rust.log"), ("Cpp", "lost_update.tsan.log")):

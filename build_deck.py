@@ -166,6 +166,10 @@ DEFECTS = {
                   "Two workers update the same context field without synchronisation"),
     "unguarded_shared_mutation": ("Unguarded shared mutation",
                                   "A context shared across threads is mutated without a lock"),
+    "use_after_move": ("Use-after-move",
+                       "Admission answers from the context it has just moved into the store"),
+    "thread_unsafe_sharing": ("Thread-unsafe handle shared",
+                              "A handle whose refcount is not atomic is passed to two shard workers"),
     "lock_order_deadlock": ("Lock-order deadlock",
                             "Two procedures take the same two shard locks in opposite orders"),
     "lost_update": ("Lost update",
@@ -176,6 +180,10 @@ DEFECTS = {
                          "A bearer's TEID stride computation exceeds the width of its type"),
     "worker_failure_blast_radius": ("Worker failure blast radius",
                                     "One shard worker fails mid-procedure and the others do not survive it"),
+    "seam_double_free": ("Double-free across the seam",
+                         "The C++ host releases an opaque Rust handle twice"),
+    "forgotten_guard": ("Forgotten lock guard",
+                        "A validation failure returns without releasing the context lock"),
 }
 
 

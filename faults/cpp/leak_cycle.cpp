@@ -19,6 +19,11 @@
 
 struct UeContext;
 
+// The leak is counted rather than asserted, and symmetrically with the Rust
+// counterpart: a destructor that records itself is what lets the program state
+// how many contexts were actually collected instead of claiming none were.
+static int destroyed = 0;
+
 struct UeContext {
   std::uint64_t ue_id;
   std::uint64_t messages_handled = 0;
@@ -27,6 +32,7 @@ struct UeContext {
   std::shared_ptr<UeContext> peer;
 
   explicit UeContext(std::uint64_t id) : ue_id(id) {}
+  ~UeContext() { ++destroyed; }
 };
 
 int main() {
@@ -47,8 +53,8 @@ int main() {
                 static_cast<long>(src.use_count()),
                 static_cast<long>(dst.use_count()));
   }
-  // Both roots are gone. Neither destructor ran; both allocations are
+  // Both roots are gone. Neither destructor ran, so both allocations are
   // unreachable and still live.
-  std::printf("scope exited; contexts were never destroyed\n");
-  return 0;
+  std::printf("scope exited; contexts destroyed: %d of 2\n", destroyed);
+  return destroyed == 2 ? 0 : 1;
 }

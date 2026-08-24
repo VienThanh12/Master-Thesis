@@ -73,12 +73,20 @@ Do not round the half-grades in prose without updating the reasoning in `docs/AS
 class-file item is **done**: the document builds on the department's own `HYthesisML.cls`, and the
 reconstructed `UH_DS_MSc.cls` in the root is no longer loaded.
 
-**Three items are open, and one of them is not editing.** The abstract must be rewritten by the
+**Two items are open, and neither of them is editing.** The abstract must be rewritten by the
 author unaided, because in this programme it is the maturity test and a model may not touch it.
-`figures/tab_taxonomy.tex` should be generated from `faults/results/taxonomy.csv`, which is half a
-day and closes the last hand-maintained results table along with both surviving reproducibility
-claims. The bare-metal campaign needs an instrument the author does not have. The eight
+The bare-metal campaign needs an instrument the author does not have. The eight
 figure-and-caption fixes behind criterion 4 are listed in the ninth pass's outstanding section.
+
+The third item is **done as of 24 August 2026**: `figures/tab_taxonomy.tex` is now generated from
+`faults/results/taxonomy.csv` by `write_taxonomy_table()` in `bench/plot_figures.py`, so Table 7.6
+is no longer hand-maintained and §7.3's claim that table and figure come from the same log is
+enforced rather than asserted. Two things about that generator are load-bearing. It groups rows on
+`rust_expected`, the expectation recorded *before* the run, and not on what the compiler did:
+grouping on the result would make the table's structure a restatement of it. And it refuses to
+write a boundary row whose misbehaviour the runner did not record, so a cell cannot go blank
+quietly. Row labels and the misbehaviour phrasing are declared in `faults/run_faults.sh` beside
+the expectation the runner enforces, not in the LaTeX.
 
 ### Criterion checklist (apply to every thesis edit)
 
@@ -88,7 +96,7 @@ Before considering a change done, ask:
 
 - [ ] Does the edit preserve the precise gap (language isolated; spec + concurrency model fixed)?
 - [ ] Are all four RQs still answered in the right chapter with the right artefact?
-- [ ] Does RQ2 still include the five boundary classes (deadlock, lost update, reference-cycle leak, release-build overflow, worker-failure blast radius) that can refute the premise?
+- [ ] Does RQ2 still include the seven boundary classes (deadlock, lost update, reference-cycle leak, release-build overflow, worker-failure blast radius, seam double-free, forgotten lock guard) that can refute the premise?
 
 **2 — Sources**
 
@@ -128,7 +136,7 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 
 1. **Frozen specification** — both implementations built from one language-neutral spec; forced-idiom log for unavoidable divergences (`spec/SPECIFICATION.md`).
 2. **Fairness controls** — same algorithms, shard count, SplitMix64/FNV-1a hashing, jemalloc + system-allocator control, matched `-O2` / `opt-level = 2`, conformance transcripts diffed line by line.
-3. **RQ2 is falsifiable** — five in-guarantee defect classes + **five** boundary classes; catalogue must not contain only defects Rust prevents. Two boundary classes (reference-cycle leak, release-build integer overflow) came back with the **C++ tooling ahead**; do not drop them to tidy the narrative. The lock-order deadlock is detected by TSan **intermittently**, not reliably and not never. Take the rate from `faults/results/taxonomy.csv`, which records **7 of 12 runs**; the thesis prose and Table 7.6's footnote still print "four of twelve", which the sixth grading pass flagged as stale. Fix the prose to match the artefact, not the artefact to match the prose.
+3. **RQ2 is falsifiable** — seven in-guarantee defect classes + **seven** boundary classes; catalogue must not contain only defects Rust prevents. Two boundary classes (reference-cycle leak, release-build integer overflow) came back with the **C++ tooling ahead**; do not drop them to tidy the narrative. Two in-guarantee classes carry mechanism coverage the others do not: `use_after_move` is the only one no C++ sanitiser reports (state the `clang-tidy` caveat wherever it is quoted), and `thread_unsafe_sharing` is the only `E0277` rejection, so it is the table's evidence for the `Send`/`Sync` discipline rather than the borrow checker. `seam_double_free` is not a new class but `double_free` rewritten through `unsafe`, which is the point: keep the C++ half of that pair unchanged so the Rust column is the only thing that moves. The lock-order deadlock is detected by TSan **intermittently**, not reliably and not never. Take the rate from `faults/results/taxonomy.csv` and never from memory or from prose: it is genuinely unstable, with 4, 5, 7 and 9 hits of 12 recorded across runs, so do not let prose call it a majority or a minority without re-reading the artefact. Fix the prose to match the artefact, not the artefact to match the prose.
 4. **Honest performance claims** — the end-to-end sweep is dominated by the cross-thread handoff and the operation is a fraction of a percent of it (`\BudgetCoreShareMax`), so a median comparison on that path cannot bound a language effect; the far tail still requires bare metal. Past saturation the languages *do* diverge (`\OverloadThrRatio`), and that result is resolved.
 5. **Peak RSS** — a real language effect that reproduces under both allocators, but the **allocator effect is the larger one**; do not revert to “allocator only” or drop the language effect. Quote the generated macros rather than remembered numbers.
 6. **FFI** — interleaved native vs seam calls; tax bounded, not “free”; `unsafe` confined to seam; core stays `unsafe`-free.
@@ -175,8 +183,9 @@ its own source changes.
 spec/conformance/run.sh          # 3 phases: oracle, hand-written vectors, generated vectors
 cd cpp && ctest --test-dir build --output-on-failure
 cd rust && cargo test --release
-faults/run_faults.sh
-faults/run_model_checking.sh     # Loom + Shuttle on the two boundary classes (fast)
+faults/run_faults.sh             # ~4 min: two boundary cases hang by construction
+faults/run_model_checking.sh     # Loom + Shuttle on the two concurrency boundary classes (fast)
+faults/run_miri.sh               # Miri on the unsafe boundary class + its control (fast)
 ffi/build.sh   # CAUTION: this re-measures; see the note below before running it
 
 # Deeper checks (slower; categorical, so safe on the virtualised host)

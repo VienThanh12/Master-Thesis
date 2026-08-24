@@ -222,15 +222,17 @@
         under control. It has mutable state per device, a strict lifecycle, heavy concurrency,
         and hard latency targets~\cite{3gpp38913,3gpp22261}. It is still simple enough to specify
         precisely and to test for identical behaviour in two languages.
-  \item Five defect classes fall inside Rust's guarantee. Each has a natural form in this
-        subsystem: use-after-free, double-free, iterator invalidation, data race, and unguarded
-        shared mutation. The guarantee rests on aliasing control and data-race
-        freedom~\cite{jung2021safe}. The catalogue is this study's own.
-  \item Five further classes are included on purpose from outside that guarantee: a lock-order
+  \item Seven defect classes fall inside Rust's guarantee. Each has a natural form in this
+        subsystem: use-after-free, double-free, iterator invalidation, data race, unguarded
+        shared mutation, use-after-move, and a thread-unsafe handle shared between workers. The
+        guarantee rests on aliasing control and data-race freedom~\cite{jung2021safe}. The
+        catalogue is this study's own.
+  \item Seven further classes are included on purpose from outside that guarantee: a lock-order
         deadlock, a lost update, a leak through a reference cycle, an integer overflow in a
-        release build, and the blast radius of a failed shard worker. They keep the study from
-        confirming a foregone conclusion. They show where the guarantee stops. Two of them return
-        the opposite of the expected result. The C++ tooling reports what Rust's does not.
+        release build, the blast radius of a failed shard worker, a double release across the
+        C-ABI seam, and a lock guard that is never dropped. They keep the study from confirming a
+        foregone conclusion. They show where the guarantee stops. Two of them return the opposite
+        of the expected result. The C++ tooling reports what Rust's does not.
   \item Scale is what makes the tail matter. One procedure triggers many operations. One site
         serves many devices. A p99.9 measured on a single operation becomes a steady rate of
         degraded procedures in the field~\cite{dean2013tail}. That is why the load sweep is
@@ -391,20 +393,24 @@
         handle on their own does not reproduce that ordering at significance. The mechanism sits
         in the wider handoff path. This is the largest and most reproducible language effect in
         the study. A comparison that stopped at nominal load would have concluded the opposite.
-  \item Safety is measured by injecting ten defects. Five come from inside the region Rust
-        claims to govern. Five were chosen because safe Rust is expected \emph{not} to prevent
-        them~\cite{natella2016fault}. Every one of the first five is a compile error in Rust. It
-        cannot be written at all. In C++ each is valid code. The defect appears only if a test
-        drives it, and no single sanitiser covers the five. All five boundary cases compile in
-        safe Rust and misbehave. On two of them the C++ tooling is the one that reports.
-        LeakSanitizer flags the reference cycle that Rust leaks in silence.
+  \item Safety is measured by injecting $\FaultClasses$ defects. Seven come from inside the
+        region Rust claims to govern. Seven were chosen because safe Rust is expected \emph{not}
+        to prevent them~\cite{natella2016fault}. Every one of the first seven is a compile error
+        in Rust. It cannot be written at all. In C++ each is valid code. The defect appears only
+        if a test drives it, and no single sanitiser covers them. The use-after-move is the case
+        where no sanitiser reports anything: a moved-from object is valid but unspecified, so
+        there is nothing to detect and the identity is simply lost. All seven boundary cases
+        compile in safe Rust and misbehave. On two of them the C++ tooling is the one that
+        reports. LeakSanitizer flags the reference cycle that Rust leaks in silence.
         UndefinedBehaviorSanitizer flags the overflow that Rust defines to wrap. ThreadSanitizer
-        catches the lock-order inversion on a minority of runs only. It builds its lock-order
-        graph from acquisitions that succeed. A run whose first inversion blocks never closes the
-        cycle. Two Rust model checkers do report both original boundary defects, but only after
+        catches the lock-order inversion on some runs and not others, at a rate that is itself
+        unstable. It builds its lock-order graph from acquisitions that succeed. A run whose first
+        inversion blocks never closes the cycle. Two Rust model checkers do report both original boundary defects, but only after
         each was re-imported against the checker's own primitives and shrunk to model
-        size~\cite{bornholt2021shardstore}. That half of the boundary is caught at test time and
-        after a rewrite.
+        size~\cite{bornholt2021shardstore}. Miri reports the seam double release, the one class
+        that safe Rust rejects and unsafe Rust does not, but it interprets Rust and cannot
+        execute the C++ host the defect ships behind. That half of the boundary is caught at test
+        time, and for the concurrency cases only after a rewrite.
   \item Resource use separates the variants where latency could not. It holds two effects of
         unequal size. The Rust build costs $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak
         resident set than the C++ build under either allocator. Linking \texttt{jemalloc} at all
@@ -453,7 +459,7 @@
         is no unsynchronised access to find. Adopting Rust retires one category of concurrency
         defect and leaves untouched the category that fails silently. A migration plan reading
         ``memory-safe'' as ``concurrency-safe'' would mis-budget its review effort. One case
-        reaches past the ten injected programs and narrows the credit due on both sides. A
+        reaches past the injected programs and narrows the credit due on both sides. A
         specification gap let an operation be submitted outside the service's running window. It
         survived every test, every parity vector and all three sanitisers because nothing ever
         called that path. That is the weakness of detection conditional on coverage. What turned
@@ -483,9 +489,10 @@
         above it. It is not in the direction its wording anticipated. The difference appeared in
         overload, not in the far tail H1 actually named. It was also not well posed.
         ``Performance-equivalent'' reads as one quantity and names at least three. H2 holds
-        without exception for the five injected classes of its kind. It fails in the looser
-        reading its wording invites. It is accepted for memory safety and data-race freedom and
-        rejected for concurrency correctness at large. H3 is supported by the bound on a cost the
+        without exception for the seven injected classes of its kind. It fails in the looser
+        reading its wording invites. It is accepted for memory safety and data-race freedom,
+        rejected for concurrency correctness at large, and it is a claim about \emph{safe} Rust
+        only: the seam case shows the same class returning inside \texttt{unsafe}. H3 is supported by the bound on a cost the
         measurement could have missed, not by the failure to detect one. Three threats stay
         load-bearing behind all of it. One author wrote both implementations. The parity suite
         bounds behaviour and not performance~\cite{emberg2023asn1}. The end-to-end instrument
@@ -515,13 +522,14 @@
         code paths. That is what lets a language effect be told apart from a difference of design
         or of skill.
   \item On safety the difference is one of kind and it has a definite edge. The edge stops where
-        the catalogue says it does. Safe Rust rejects all five injected memory-safety and
+        the catalogue says it does. Safe Rust rejects all seven injected memory-safety and
         data-race classes at compile time. Hazards that C++ can only hope to catch with
-        instrumented tests become programs that cannot be written. All five boundary classes
+        instrumented tests become programs that cannot be written. All seven boundary classes
         compile and misbehave in safe Rust as they do in C++. On two of them the C++ tooling
         reports what Rust's does not. Stated precisely, Rust eliminates data races and aliasing
         errors. It does not eliminate race conditions, lock-ordering errors, leaks, wrapping
-        arithmetic or the blast radius of a failed worker.
+        arithmetic or the blast radius of a failed worker, and it eliminates nothing inside an
+        \texttt{unsafe} block.
   \item On performance the evidence divides twice before it divides by resource. Getting both
         divisions right was this study's most consequential correction to itself. It divides first
         by what is being measured. An end-to-end operation here is $\BudgetCoreShareMax\%$

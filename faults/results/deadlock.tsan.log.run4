@@ -1,1 +1,73 @@
+==================
+WARNING: ThreadSanitizer: lock-order-inversion (potential deadlock) (pid=47730)
+  Cycle in lock order graph: M0 (0x7fffffffdd80) => M1 (0x7fffffffddb0) => M0
+
+  Mutex M1 acquired here while holding mutex M0 in thread T1:
+    #0 pthread_mutex_lock ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1341 (libtsan.so.2+0x59a13) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 __gthread_mutex_lock /usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:749 (deadlock.tsan+0x25c5) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #2 std::mutex::lock() /usr/include/c++/13/bits/std_mutex.h:113 (deadlock.tsan+0x268c) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #3 std::lock_guard<std::mutex>::lock_guard(std::mutex&) /usr/include/c++/13/bits/std_mutex.h:249 (deadlock.tsan+0x2896) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #4 handover /home/vienha/thesis.local/faults/cpp/deadlock.cpp:25 (deadlock.tsan+0x14bc) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #5 operator() /home/vienha/thesis.local/faults/cpp/deadlock.cpp:33 (deadlock.tsan+0x15fe) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #6 __invoke_impl<void, main()::<lambda()> > /usr/include/c++/13/bits/invoke.h:61 (deadlock.tsan+0x23ca) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #7 __invoke<main()::<lambda()> > /usr/include/c++/13/bits/invoke.h:96 (deadlock.tsan+0x22b8) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #8 _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292 (deadlock.tsan+0x217a) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #9 operator() /usr/include/c++/13/bits/std_thread.h:299 (deadlock.tsan+0x20c6) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #10 _M_run /usr/include/c++/13/bits/std_thread.h:244 (deadlock.tsan+0x2032) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #11 <null> <null> (libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+
+  Mutex M0 previously acquired by the same thread here:
+    #0 pthread_mutex_lock ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1341 (libtsan.so.2+0x59a13) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 __gthread_mutex_lock /usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:749 (deadlock.tsan+0x25c5) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #2 std::mutex::lock() /usr/include/c++/13/bits/std_mutex.h:113 (deadlock.tsan+0x268c) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #3 std::lock_guard<std::mutex>::lock_guard(std::mutex&) /usr/include/c++/13/bits/std_mutex.h:249 (deadlock.tsan+0x2896) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #4 handover /home/vienha/thesis.local/faults/cpp/deadlock.cpp:22 (deadlock.tsan+0x1483) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #5 operator() /home/vienha/thesis.local/faults/cpp/deadlock.cpp:33 (deadlock.tsan+0x15fe) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #6 __invoke_impl<void, main()::<lambda()> > /usr/include/c++/13/bits/invoke.h:61 (deadlock.tsan+0x23ca) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #7 __invoke<main()::<lambda()> > /usr/include/c++/13/bits/invoke.h:96 (deadlock.tsan+0x22b8) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #8 _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292 (deadlock.tsan+0x217a) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #9 operator() /usr/include/c++/13/bits/std_thread.h:299 (deadlock.tsan+0x20c6) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #10 _M_run /usr/include/c++/13/bits/std_thread.h:244 (deadlock.tsan+0x2032) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #11 <null> <null> (libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+
+  Mutex M0 acquired here while holding mutex M1 in thread T2:
+    #0 pthread_mutex_lock ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1341 (libtsan.so.2+0x59a13) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 __gthread_mutex_lock /usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:749 (deadlock.tsan+0x25c5) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #2 std::mutex::lock() /usr/include/c++/13/bits/std_mutex.h:113 (deadlock.tsan+0x268c) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #3 std::lock_guard<std::mutex>::lock_guard(std::mutex&) /usr/include/c++/13/bits/std_mutex.h:249 (deadlock.tsan+0x2896) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #4 handover /home/vienha/thesis.local/faults/cpp/deadlock.cpp:25 (deadlock.tsan+0x14bc) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #5 operator() /home/vienha/thesis.local/faults/cpp/deadlock.cpp:34 (deadlock.tsan+0x1672) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #6 __invoke_impl<void, main()::<lambda()> > /usr/include/c++/13/bits/invoke.h:61 (deadlock.tsan+0x2341) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #7 __invoke<main()::<lambda()> > /usr/include/c++/13/bits/invoke.h:96 (deadlock.tsan+0x2219) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #8 _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292 (deadlock.tsan+0x2120) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #9 operator() /usr/include/c++/13/bits/std_thread.h:299 (deadlock.tsan+0x207c) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #10 _M_run /usr/include/c++/13/bits/std_thread.h:244 (deadlock.tsan+0x1fe0) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #11 <null> <null> (libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+
+  Mutex M1 previously acquired by the same thread here:
+    #0 pthread_mutex_lock ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1341 (libtsan.so.2+0x59a13) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 __gthread_mutex_lock /usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:749 (deadlock.tsan+0x25c5) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #2 std::mutex::lock() /usr/include/c++/13/bits/std_mutex.h:113 (deadlock.tsan+0x268c) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #3 std::lock_guard<std::mutex>::lock_guard(std::mutex&) /usr/include/c++/13/bits/std_mutex.h:249 (deadlock.tsan+0x2896) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #4 handover /home/vienha/thesis.local/faults/cpp/deadlock.cpp:22 (deadlock.tsan+0x1483) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #5 operator() /home/vienha/thesis.local/faults/cpp/deadlock.cpp:34 (deadlock.tsan+0x1672) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #6 __invoke_impl<void, main()::<lambda()> > /usr/include/c++/13/bits/invoke.h:61 (deadlock.tsan+0x2341) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #7 __invoke<main()::<lambda()> > /usr/include/c++/13/bits/invoke.h:96 (deadlock.tsan+0x2219) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #8 _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292 (deadlock.tsan+0x2120) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #9 operator() /usr/include/c++/13/bits/std_thread.h:299 (deadlock.tsan+0x207c) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #10 _M_run /usr/include/c++/13/bits/std_thread.h:244 (deadlock.tsan+0x1fe0) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+    #11 <null> <null> (libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+
+  Thread T1 (tid=47732, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1022 (libtsan.so.2+0x5ac1a) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 std::thread::_M_start_thread(std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >, void (*)()) <null> (libstdc++.so.6+0xeceb0) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #2 main /home/vienha/thesis.local/faults/cpp/deadlock.cpp:33 (deadlock.tsan+0x1754) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+
+  Thread T2 (tid=47733, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1022 (libtsan.so.2+0x5ac1a) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 std::thread::_M_start_thread(std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >, void (*)()) <null> (libstdc++.so.6+0xeceb0) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #2 main /home/vienha/thesis.local/faults/cpp/deadlock.cpp:34 (deadlock.tsan+0x17a5) (BuildId: e5eb09d6f5cd3e262ff54121c388b4de62d689b8)
+
+SUMMARY: ThreadSanitizer: lock-order-inversion (potential deadlock) /usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:749 in __gthread_mutex_lock
+==================
   [run timed out -- hung]

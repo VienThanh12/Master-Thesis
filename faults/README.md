@@ -40,8 +40,31 @@ just its interior.
 | Iterator invalidation | `cpp/iterator_invalidation.cpp` | `rust/iterator_invalidation.rs` |
 | Data race | `cpp/data_race.cpp` | `rust/data_race.rs` |
 | Unguarded shared mutation | `cpp/unguarded_mutation.cpp` | `rust/unguarded_mutation.rs` |
+| Use-after-move | `cpp/use_after_move.cpp` | `rust/use_after_move.rs` |
+| Thread-unsafe handle shared | `cpp/thread_unsafe_sharing.cpp` | `rust/thread_unsafe_sharing.rs` |
 
 Each Rust file here is expected to **fail to compile**, that failure *is* the result.
+
+Two of these seven carry information the other five do not.
+
+**`use_after_move` is the only in-guarantee class no C++ sanitizer reports.** Admission
+answers the request from the context it has just moved into the store. A moved-from
+object is in a valid but unspecified state, so nothing is corrupted, nothing is
+undefined, and ASan, TSan and UBSan all run clean while the acknowledgement goes out
+under an empty identity. The rest of the group is caught by at least one of the three,
+which is what makes this row the sharper form of the cost argument: the instrumented
+build is not merely expensive here, it is empty. Note the honest caveat, which the
+thesis states too: `clang-tidy` ships `bugprone-use-after-move` and would plausibly
+flag this. No static analyser is run in this study (see the thesis §5.4), so the row
+records what the sanitizers report and not a ceiling on C++ tooling.
+
+**`thread_unsafe_sharing` is rejected by a trait bound rather than by the borrow
+checker.** Its diagnostic is `E0277`, not an aliasing error: `Rc` is `!Send`, and
+`thread::spawn` asks for `Send` in its signature, so the compiler refuses without
+analysing the body. The C++ handle carries the same constraint in a comment, because a
+comment is the only place C++ has to put it. Every other row in this group is a
+borrow-checker rejection, so without this one the table would evidence one mechanism
+and the prose would claim two.
 
 ### Boundary of the guarantee: expected to compile and misbehave
 
@@ -52,12 +75,37 @@ Each Rust file here is expected to **fail to compile**, that failure *is* the re
 | Leak through a reference cycle | `cpp/leak_cycle.cpp` | `rust/leak_cycle.rs` | Reference counting cannot collect a cycle in either language, and leaking is safe in Rust by explicit design |
 | Integer overflow in a release build | `cpp/integer_overflow.cpp` | `rust/integer_overflow.rs` | `opt-level = 2` leaves `overflow-checks` off, so Rust *defines* the wrap where C++ leaves it undefined |
 | Worker failure blast radius | `cpp/worker_failure.cpp` | `rust/worker_failure.rs` | Neither type system says anything about whether a shard is a failure domain |
+| Double-free across the seam | `cpp/seam_double_free.cpp` | `rust/seam_double_free.rs` | `Box::into_raw` is where ownership tracking ends, and a C ABI cannot avoid it |
+| Forgotten lock guard | `cpp/forgotten_guard.cpp` | `rust/forgotten_guard.rs` | A guard is a value, and leaking a value is safe |
 
-Each Rust file here is expected to **compile and then misbehave** (hang, leak, or
-produce a wrong result). The runner records the expected outcome per case and
+Each Rust file here is expected to **compile and then misbehave** (hang, leak, abort,
+or produce a wrong result). The runner records the expected outcome per case and
 flags any mismatch in either direction as `[UNEXPECTED]`, so a case that
 unexpectedly compiled (or unexpectedly did not) is visible rather than silently
-absorbed into the conclusion.
+absorbed into the conclusion. It also records *which* misbehaviour each boundary case
+should exhibit and checks that against the run, so a boundary case that quietly stopped
+reproducing is a violation rather than a row that still reads as evidence.
+
+Two of these seven are newer and are worth reading together.
+
+**`seam_double_free` is not a new defect class, and that is the point.** It is
+`double_free` moved to the other side of the rule by being written the way a
+foreign-function boundary has to write it. `rust/double_free.rs` is a compile error
+because ownership tracks the value; handing a C caller a raw pointer is precisely the
+operation that ends that tracking, and `Box::from_raw` then asserts ownership of
+whatever address it is given. The C++ half of the pair is deliberately unremarkable and
+unchanged, so the Rust column is the only thing that moves. The guarantee is a property
+of the language *plus the boundary the component is deployed behind*, which is the
+boundary `ffi/` is built on.
+
+**`forgotten_guard` separates "Rust removes this bug" from "Rust removes this class".**
+The C++ version fails because a validation path returns before a hand-written unlock,
+and there is no hand-written unlock in the Rust version to skip: RAII does remove that
+form of it. What it does not remove is the class, because a guard parked anywhere that
+outlives the procedure leaves the context locked forever. Where `leak_cycle` shows a
+leak costing memory, this shows one costing liveness. No sanitizer reports the C++ side
+either: a lock that is never released is not a race and not a cycle, so there is nothing
+for a lock-order detector to close.
 
 **Two of the five go the other way, and that is the point of having them.**
 LeakSanitizer reports the C++ reference cycle while safe Rust leaks in silence,
@@ -123,23 +171,25 @@ the toolchain versions actually used.
 
 Key observations:
 
-- Within its scope the guarantee is absolute: every one of the five memory-safety
+- Within its scope the guarantee is absolute: every one of the seven memory-safety
   and data-race defects is a **compile error** in Rust, none can be written in
   safe Rust, whereas in C++ each is valid code whose defect only manifests (if at
   all) at runtime.
 - The memory-safety defects (use-after-free, double-free, iterator invalidation)
   are caught by ASan; the data-race defects are caught only by TSan and are
-  **invisible to ASan**. No single sanitizer covers the catalogue.
+  **invisible to ASan**. No single sanitizer covers the catalogue, and one
+  in-guarantee class (`use_after_move`) is reported by none of the three.
 - Runtime detection requires (a) building a dedicated instrumented binary,
   (b) paying the sanitizer's time/memory overhead, and (c) a test input that
   actually exercises the buggy path, none of which is needed for the Rust errors,
   which are reported for every build regardless of test coverage.
-- **The guarantee stops at the boundary group.** All five boundary defects compile
+- **The guarantee stops at the boundary group.** All seven boundary defects compile
   in safe Rust and misbehave exactly as their C++ counterparts do. Rust eliminates
   data races and aliasing errors; it does not eliminate lock-ordering errors,
   atomicity violations, leaks, wrapping arithmetic, or the blast radius of a
-  failed worker. A migration plan that reads "memory-safe" as "concurrency-safe",
-  or as "leak-free", or as "fault-tolerant", will mis-budget its review effort.
+  failed worker, and it eliminates nothing at all inside an `unsafe` block. A
+  migration plan that reads "memory-safe" as "concurrency-safe", or as
+  "leak-free", or as "fault-tolerant", will mis-budget its review effort.
 - **On two boundary classes the C++ tooling is ahead**, which a one-sided
   catalogue could never have shown: LSan reports the reference cycle that safe
   Rust leaks silently, and UBSan reports the overflow that Rust defines to wrap.
@@ -200,9 +250,13 @@ because a single-run harness would hide it.
 since the upstream sanitizers documentation says the detector is off by default
 while the libtsan shipped with g++ 13.3 has it on, and an outcome that depends on
 which the host provides is not evidence. With it pinned, TSan reports the
-lock-order inversion on **a minority of runs**: 4 of 12 repeats in the recorded
-table, 6 of 20 and 7 of 20 in longer trials, while the program deadlocks on
-*every* run.
+lock-order inversion on **some runs and not others**, while the program deadlocks
+on *every* run. Take the rate from `results/taxonomy.csv` rather than from here:
+successive 12-repeat runs on this host have recorded 4, 5, 7 and 9 hits, and
+longer trials 6 of 20 and 7 of 20. The rate is unstable enough that prose should
+not describe it as a majority or a minority without checking the current run.
+Twelve repeats establish that the detection is intermittent. They do not pin the
+rate, and raising `DEADLOCK_REPEATS` is the way to estimate it.
 
 The mechanism is specific and generalises beyond this catalogue. TSan builds its
 lock-order graph from acquisitions that **succeed**. `deadlock.cpp` loops, so on
@@ -255,3 +309,32 @@ opposite directions, and neither language's story here is the simple one.
 The crate is deliberately separate from `rust/` rather than a dev-dependency of
 it: spec §12 records the core as dependency-free, and that claim is load-bearing
 for the RQ4 supply-chain argument.
+
+## The unsafe boundary class under Miri
+
+```bash
+./run_miri.sh
+```
+
+`seam_double_free` is the third boundary class whose detection stage had to be
+established rather than argued, and Loom and Shuttle are the wrong tools for it:
+nothing about it is a schedule. Miri is the right one. It interprets the program
+against the Stacked Borrows aliasing model and reports the second release exactly,
+as a dangling box reconstructed from a freed allocation. `run_miri.sh` records the
+outcome to `results/miri.{md,csv}` and runs `rust/seam_double_free_control.rs`
+beside it, in which the same handle is released once, for the same reason
+`deadlock_control.cpp` exists: without a control, "Miri reported the double
+release" and "Miri reports anything that goes through `Box::from_raw`" are the
+same observation. The control comes out clean.
+
+Miri needs a package rather than a loose file, so the runner generates a throwaway
+one under `results/.miri/` whose `[[bin]]` entries point straight at the sources in
+`rust/`. Copying them would create a second copy of a defect program that could
+drift from the one `run_faults.sh` builds.
+
+**The limit is the finding for a migration.** Miri interprets Rust and cannot
+execute a C++ host, so the program checked here uses a Rust stand-in for the host.
+The tool that finds this defect cannot be pointed at the configuration the defect
+ships in, which is the seam in `ffi/`. Nothing in either toolchain checks that
+boundary, which is why the practical answer is to keep the seam small enough to
+review by hand.

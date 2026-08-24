@@ -157,11 +157,12 @@ is already known, it targets four less-explored dimensions:
 \end{tightitemize}
 
 RQ2 is deliberately two-sided: a catalogue containing only defects Rust
-prevents would confirm its own premise, so it spans the boundary: five
-classes safe Rust rejects and five it does not. Memory-safety defects in real
-Rust code invariably trace back to \texttt{unsafe}~\cite{xu2021rustcve}, while
+prevents would confirm its own premise, so it spans the boundary: seven
+classes safe Rust rejects and seven it does not. Memory-safety defects in real
+Rust code invariably trace back to \texttt{unsafe}~\cite{xu2021rustcve}, which
+one boundary class now reproduces directly, while
 deadlock remains an open problem for the language~\cite{zhang2026deadlock}.
-Two of the five boundary classes returned the opposite of the expected result,
+Two of the seven boundary classes returned the opposite of the expected result,
 with the C++ tooling reporting what Rust's does not, which is the kind of
 finding a one-sided catalogue could not have produced.
 

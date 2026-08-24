@@ -24,6 +24,7 @@ import json
 import math
 import os
 import random
+import re
 import statistics
 from collections import defaultdict
 
@@ -669,9 +670,13 @@ def fig_taxonomy(taxonomy_csv, outdir):
         return None
     rows = list(csv.DictReader(open(taxonomy_csv)))
     # Cases Rust prevents first, then the boundary cases it does not, so the figure
-    # reads as a map of where the guarantee stops rather than as a scoreboard.
-    prevented = [r for r in rows if "compile-time" in r["rust_compile"]]
-    boundary = [r for r in rows if "compile-time" not in r["rust_compile"]]
+    # reads as a map of where the guarantee stops rather than as a scoreboard. The
+    # split is on the expectation recorded before the run, which is what
+    # write_taxonomy_table uses: a figure that grouped on the result and a table
+    # that grouped on the expectation would put a case that changed sides in
+    # different halves, and the caption claims the two cannot disagree.
+    prevented = [r for r in rows if r["rust_expected"].strip() == "prevented"]
+    boundary = [r for r in rows if r["rust_expected"].strip() != "prevented"]
     rows = prevented + boundary
     defects = [r["defect"].replace("_", " ") for r in rows]
     # UBSan is a third axis, not a refinement of the other two: signed overflow
@@ -748,6 +753,99 @@ def fig_taxonomy(taxonomy_csv, outdir):
     out = os.path.join(outdir, "fig_taxonomy.pdf")
     fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
+    return out
+
+
+def write_taxonomy_table(taxonomy_csv, outdir):
+    """Emit the body of tab:taxonomy from the fault runner's own log.
+
+    This table was typed by hand beside the artefact for longer than any other
+    results table in the thesis, which meant the runner could record one outcome
+    and the page print another with nothing to catch it. Everything below is
+    derived: the class labels and the misbehaviour each boundary case exhibits
+    are declared in faults/run_faults.sh, where the expectation the runner
+    enforces is declared, and the outcomes come from the run.
+
+    The two groups are split on the expectation recorded *before* the run
+    (rust_expected) rather than on what the compiler did. Splitting on the
+    result would make the table's own structure a restatement of it, so a case
+    that changed sides would silently move rather than show up as the
+    discrepancy the design exists to surface.
+    """
+    if not os.path.exists(taxonomy_csv):
+        return None
+    with open(taxonomy_csv, newline="") as fh:
+        rows = list(csv.DictReader(fh))
+    if not rows:
+        return None
+
+    # A sanitiser that never reported and a sanitiser whose program deadlocked
+    # under it both leave the defect undetected, and the table says so in one
+    # phrase. Which of the two happened is not lost: a row that hung anywhere
+    # carries the dagger whose footnote explains that nothing was corrupted and
+    # nothing was undefined, the binary simply had to be killed.
+    cell = {"detected": "detected", "clean": "not detected", "hung": "not detected",
+            "flaky": "intermittent$^{\\S}$"}
+
+    def sanitiser(value):
+        v = value.strip()
+        if v not in cell:
+            raise SystemExit(
+                f"plot_figures.py: taxonomy.csv reports sanitiser outcome {v!r}, "
+                "which has no cell in tab:taxonomy. Add it here rather than "
+                "letting the table print a blank")
+        return cell[v]
+
+    def rust(r):
+        outcome = r["rust_compile"]
+        prevented = re.match(r"compile-time prevented \((.*)\)", outcome)
+        if prevented:
+            codes = prevented.group(1).split(",")
+            # Several diagnostics fire on some cases. The table shows the first
+            # and the footnote names the rest, because five error codes in a
+            # cell read as severity rather than as one rejection.
+            marker = "$^{\\dagger}$" if len(codes) > 1 else ""
+            return f"compile error ({codes[0]}{marker})"
+        observed = r.get("rust_observed", "").strip()
+        if not observed:
+            raise SystemExit(
+                f"plot_figures.py: boundary case {r['defect']!r} records no "
+                "misbehaviour in taxonomy.csv. Give it one in the eighth field "
+                "of the defect list in faults/run_faults.sh")
+        return f"compiles, {observed}"
+
+    groups = [("prevented", "Within the guarantee"),
+              ("not-prevented", "Boundary of the guarantee")]
+    lines = []
+    for expected, heading in groups:
+        sel = [r for r in rows if r["rust_expected"].strip() == expected]
+        if not sel:
+            continue
+        if lines:
+            lines.append("\\hline")
+        # A \multicolumn has to be the first token of its cell and cannot be
+        # when the row arrives through \input, so the heading is set in an
+        # \rlap, which contributes no width. Same reason as tab:significance.
+        lines.append(f"\\rlap{{\\emph{{{heading}}}}} & & & &")
+        for r in sel:
+            label = r.get("label", "").strip() or r["defect"].replace("_", " ")
+            if "hung" in (r["cpp_asan"], r["cpp_tsan"], r["cpp_ubsan"]):
+                label += "$^{\\ddagger}$"
+            lines.append(f"{label} & {sanitiser(r['cpp_asan'])} & "
+                         f"{sanitiser(r['cpp_tsan'])} & {sanitiser(r['cpp_ubsan'])} & "
+                         f"{rust(r)}")
+
+    out = os.path.join(outdir, "tab_taxonomy.tex")
+    with open(out, "w") as f:
+        body = ""
+        for i, line in enumerate(lines):
+            if line == "\\hline":
+                body += "\\\\\n\\hline\n"
+                continue
+            if i and lines[i - 1] != "\\hline":
+                body += " \\\\\n"
+            body += line
+        f.write(body + "\n")
     return out
 
 
@@ -2172,9 +2270,14 @@ def main():
     produced.append(fig_throughput_vs_load(rows, outdir))
     produced.append(fig_tail_percentiles(rows, outdir, load))
     produced.append(fig_resources(rows, outdir, load))
-    tax = fig_taxonomy(os.path.abspath(os.path.join(here, args.taxonomy)) if not os.path.isabs(args.taxonomy) else args.taxonomy, outdir)
+    taxonomy_csv = (args.taxonomy if os.path.isabs(args.taxonomy)
+                    else os.path.abspath(os.path.join(here, args.taxonomy)))
+    tax = fig_taxonomy(taxonomy_csv, outdir)
     if tax:
         produced.append(tax)
+    tax_tab = write_taxonomy_table(taxonomy_csv, outdir)
+    if tax_tab:
+        produced.append(tax_tab)
 
     ffi_json = os.path.abspath(os.path.join(here, args.ffi)) if not os.path.isabs(args.ffi) else args.ffi
     ffi_fig = fig_ffi(ffi_json, outdir)

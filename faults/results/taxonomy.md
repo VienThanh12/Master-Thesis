@@ -25,8 +25,12 @@ record whichever outcome the scheduler happened to give.
 | iterator_invalidation | detected | detected | clean | runtime (ASan+TSan) | compile-time prevented (E0502) | - |
 | data_race | clean | detected | clean | runtime (TSan) | compile-time prevented (E0373,E0382,E0502) | - |
 | unguarded_shared_mutation | clean | detected | clean | runtime (TSan) | compile-time prevented (E0502,E0524,E0597) | - |
-| lock_order_deadlock | hung | flaky | hung | runtime, intermittent (TSan) | not prevented (compiles; deadlocks) | TSan reported in 7/12 runs |
+| use_after_move | clean | clean | clean | undetected | compile-time prevented (E0382) | - |
+| thread_unsafe_sharing | clean | detected | clean | runtime (TSan) | compile-time prevented (E0277) | - |
+| lock_order_deadlock | hung | flaky | hung | runtime, intermittent (TSan) | not prevented (compiles; deadlocks) | TSan reported in 5/12 runs |
 | lost_update | clean | clean | clean | undetected | not prevented (compiles; wrong result) | - |
-| leak_cycle | detected | clean | clean | runtime (ASan) | not prevented (compiles; ran clean) | - |
+| leak_cycle | detected | clean | clean | runtime (ASan) | not prevented (compiles; wrong result) | - |
 | integer_overflow | clean | clean | detected | runtime (UBSan) | not prevented (compiles; wrong result) | - |
 | worker_failure_blast_radius | clean | clean | clean | undetected | not prevented (compiles; wrong result) | - |
+| seam_double_free | detected | clean | clean | runtime (ASan) | not prevented (compiles; crashes) | - |
+| forgotten_guard | hung | hung | hung | undetected (hung) | not prevented (compiles; deadlocks) | - |

@@ -53,7 +53,8 @@ REPEAT_TIMEOUT="${REPEAT_TIMEOUT:-3}"
 DEADLOCK_REPEATS="${DEADLOCK_REPEATS:-12}"
 
 # Defect list:
-#   id | source stem | expected sanitizer (asan|tsan|ubsan) | expected Rust outcome | rustc flags | repeats
+#   id | source stem | expected sanitizer (asan|tsan|ubsan) | expected Rust outcome |
+#   rustc flags | repeats | display label | observable
 #
 # The script always runs ALL THREE sanitizers; the third field only picks the
 # "C++ detection" column. The fourth field records what safe Rust is *expected*
@@ -74,17 +75,29 @@ DEADLOCK_REPEATS="${DEADLOCK_REPEATS:-12}"
 # (spec §3), and that profile leaves `overflow-checks` off, so the case must be
 # built the way the measured configuration is built or the table would record a
 # detection the compared arm does not have.
+#
+# The seventh and eighth fields exist so the thesis table can be generated from
+# this run instead of typed beside it. Seven is the display name of the class and
+# eight names, for a boundary case, *which* misbehaviour the program exhibits.
+# The runner measures whether the program misbehaves and refuses a boundary case
+# that comes out clean, so field eight labels a checked outcome rather than
+# standing in for one: "leaks" is printed only for a run that ended non-zero
+# because nothing was dropped.
 defects=(
-  "use_after_free|uaf|asan|prevented|"
-  "double_free|double_free|asan|prevented|"
-  "iterator_invalidation|iterator_invalidation|asan|prevented|"
-  "data_race|data_race|tsan|prevented|"
-  "unguarded_shared_mutation|unguarded_mutation|tsan|prevented|"
-  "lock_order_deadlock|deadlock|tsan|not-prevented||$DEADLOCK_REPEATS"
-  "lost_update|lost_update|tsan|not-prevented|"
-  "leak_cycle|leak_cycle|asan|not-prevented|"
-  "integer_overflow|integer_overflow|ubsan|not-prevented|-O -C debug-assertions=off -C overflow-checks=off"
-  "worker_failure_blast_radius|worker_failure|none|not-prevented|"
+  "use_after_free|uaf|asan|prevented|||Use-after-free|"
+  "double_free|double_free|asan|prevented|||Double-free|"
+  "iterator_invalidation|iterator_invalidation|asan|prevented|||Iterator invalidation|"
+  "data_race|data_race|tsan|prevented|||Data race|"
+  "unguarded_shared_mutation|unguarded_mutation|tsan|prevented|||Unguarded shared mutation|"
+  "use_after_move|use_after_move|none|prevented|||Use-after-move|"
+  "thread_unsafe_sharing|thread_unsafe_sharing|tsan|prevented|||Thread-unsafe handle shared|"
+  "lock_order_deadlock|deadlock|tsan|not-prevented||$DEADLOCK_REPEATS|Lock-order deadlock|deadlocks"
+  "lost_update|lost_update|tsan|not-prevented|||Lost update|wrong result"
+  "leak_cycle|leak_cycle|asan|not-prevented|||Reference-cycle leak|leaks"
+  "integer_overflow|integer_overflow|ubsan|not-prevented|-O -C debug-assertions=off -C overflow-checks=off||Integer overflow (release)|wrong result"
+  "worker_failure_blast_radius|worker_failure|none|not-prevented|||Worker-failure blast radius|shard outage"
+  "seam_double_free|seam_double_free|asan|not-prevented|||Double-free across the seam|aborts"
+  "forgotten_guard|forgotten_guard|none|not-prevented|||Forgotten lock guard|deadlocks"
 )
 
 timeout_prefix=()
@@ -187,11 +200,22 @@ run_rust() {
     return
   fi
   echo "--- compiled cleanly; running (bounded at ${RUN_TIMEOUT}s) ---" >>"$log"
-  "${timeout_prefix[@]}" "$bin" >>"$log" 2>&1
+  # One of these defects aborts by design, and a shell announces a signal-killed
+  # child on its own stderr, so the run goes through an inner bash whose stderr
+  # is discarded. Same treatment as the C++ side, and for the same reason.
+  bash -c '"$@"' _ "${timeout_prefix[@]}" "$bin" >>"$log" 2>&1
   local rc=$?
-  if [ $rc -ge 124 ]; then
+  # 124 is `timeout` firing and 137 its follow-up SIGKILL. Any other status
+  # above 128 is the program dying on a signal, which is a different outcome:
+  # an abort from glibc's double-free check is the defect manifesting, not the
+  # run hanging. Reading every high status as a timeout would record the seam
+  # double free as a deadlock.
+  if [ $rc -eq 124 ] || [ $rc -eq 137 ]; then
     echo "  [run timed out after ${RUN_TIMEOUT}s -- hung]" >>"$log"
     echo "compiles:hangs"
+  elif [ $rc -gt 128 ]; then
+    echo "  [killed by signal $((rc - 128))]" >>"$log"
+    echo "compiles:crashes"
   elif [ $rc -ne 0 ]; then
     echo "compiles:wrong-result"
   else
@@ -227,7 +251,7 @@ echo
 
 csv="$out_dir/taxonomy.csv"
 md="$out_dir/taxonomy.md"
-echo "defect,cpp_asan,cpp_tsan,cpp_ubsan,cpp_detection,rust_compile,rust_expected,note" >"$csv"
+echo "defect,label,cpp_asan,cpp_tsan,cpp_ubsan,cpp_detection,rust_compile,rust_observed,rust_expected,note" >"$csv"
 
 {
   echo "# RQ2 defect-class taxonomy"
@@ -263,8 +287,9 @@ hit() { [ "$1" = "detected" ] || [ "$1" = "flaky" ]; }
 
 violations=0
 for row in "${defects[@]}"; do
-  IFS='|' read -r id stem expect expect_rust rust_flags repeats <<<"$row"
+  IFS='|' read -r id stem expect expect_rust rust_flags repeats label observed <<<"$row"
   repeats="${repeats:-1}"
+  label="${label:-$id}"
   note=""
 
   # Repeats apply only to the sanitizer named in field 3: that is the one whose
@@ -311,15 +336,39 @@ for row in "${defects[@]}"; do
   else
     case "${rust#compiles:}" in
       hangs)        rust_label="not prevented (compiles; deadlocks)" ;;
+      crashes)      rust_label="not prevented (compiles; crashes)" ;;
       wrong-result) rust_label="not prevented (compiles; wrong result)" ;;
       *)            rust_label="not prevented (compiles; ran clean)" ;;
     esac
-    [ "$expect_rust" = "not-prevented" ] || { rust_label="$rust_label [UNEXPECTED]"; violations=$((violations+1)); }
+    if [ "$expect_rust" != "not-prevented" ]; then
+      rust_label="$rust_label [UNEXPECTED]"
+      violations=$((violations+1))
+    else
+      # A boundary case earns its place in the catalogue by misbehaving, so the
+      # run has to agree with the misbehaviour field eight names. "deadlocks"
+      # means the harness had to kill the program; anything else means the
+      # program ended by itself with a failing status. Without this check a
+      # boundary case that quietly stopped reproducing would still be recorded
+      # as "not prevented" and would still read as evidence.
+      case "$observed" in
+        deadlocks) want="hangs" ;;
+        aborts)    want="crashes" ;;
+        "")        want="" ;;
+        *)         want="wrong-result" ;;
+      esac
+      if [ -z "$want" ]; then
+        rust_label="$rust_label [UNEXPECTED: no misbehaviour recorded for a boundary case]"
+        violations=$((violations+1))
+      elif [ "${rust#compiles:}" != "$want" ]; then
+        rust_label="$rust_label [UNEXPECTED: recorded as '$observed', ran as '${rust#compiles:}']"
+        violations=$((violations+1))
+      fi
+    fi
   fi
 
   printf "%-28s %-9s %-9s %-9s %-30s %s\n" "$id" "$asan" "$tsan" "$ubsan" "$detection" "$rust_label"
   [ -n "$note" ] && printf "%-28s   %s\n" "" "($note)"
-  echo "$id,$asan,$tsan,$ubsan,\"$detection\",\"$rust_label\",$expect_rust,\"$note\"" >>"$csv"
+  echo "$id,\"$label\",$asan,$tsan,$ubsan,\"$detection\",\"$rust_label\",\"$observed\",$expect_rust,\"$note\"" >>"$csv"
   echo "| $id | $asan | $tsan | $ubsan | $detection | $rust_label | ${note:--} |" >>"$md"
 done
 

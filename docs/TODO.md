@@ -763,6 +763,76 @@ cheap (two small programs and a taxonomy row) and each a case where **safe Rust 
 The two `rust_binder` CVEs are already verified in `LITERATURE_NOTES.md` and would let §7.5.6
 cite production instances of its own boundary argument rather than only demonstrating it.
 
+### 5b. Four more defect classes, and the taxonomy table generated — DONE (24 Aug 2026)
+
+**Why.** The catalogue was 5 + 5 and every in-guarantee class was caught by at least one
+sanitiser, so the "at what stage and cost" half of RQ2 rested on an argument (an instrumented
+build is expensive, and detection needs a test that drives the path) rather than on a row.
+Nothing in the catalogue tested the `Send`/`Sync` discipline either: all five Rust rejections
+were borrow-checker diagnostics while the prose claimed two mechanisms.
+
+- [x] **The taxonomy table is generated, and that was done first.** `write_taxonomy_table()` in
+      `bench/plot_figures.py` writes `figures/tab_taxonomy.tex` from `faults/results/taxonomy.csv`,
+      and Table 7.6 `\input`s it. This was the last hand-maintained results table in the thesis
+      and the ninth grading pass's durable fix for criterion 4. §7.3's claim that table and figure
+      come from the same log is now enforced instead of asserted. It was done before any new class
+      went in, because hand-typing four rows into the table that was already flagged for being
+      hand-typed is the wrong order.
+- [x] **The figure now groups the same way the table does.** Both split on `rust_expected`, the
+      expectation recorded before the run, rather than on the measured result. Grouping on the
+      result would make the structure a restatement of it, and a case that changed sides would land
+      in different halves of the table and the figure while the caption claimed they agree.
+- [x] **Catalogue is now 7 in-guarantee + 7 boundary.** `use_after_move` and
+      `thread_unsafe_sharing` inside the guarantee, `seam_double_free` and `forgotten_guard`
+      outside it. Added in pairs on purpose: the two sides being the same size is the defence
+      against "the author picked the cases", and it was 5 + 5 for the same reason.
+- [x] **`use_after_move` is the row the catalogue did not have.** No C++ sanitiser reports it,
+      because a moved-from object is valid but unspecified, so nothing is corrupted and nothing is
+      undefined while the acknowledgement goes out under an empty identity. Every other
+      in-guarantee class is caught by at least one of the three. Quote it with the caveat: a static
+      analyser would plausibly flag it (`clang-tidy` has `bugprone-use-after-move`), and this study
+      runs none, by the decision recorded in §5.4.
+- [x] **`thread_unsafe_sharing` is the only `E0277` in the table.** `Rc` is `!Send` and
+      `thread::spawn` asks for `Send` in its signature, so the rejection is a trait bound rather
+      than an aliasing analysis. The C++ handle states the same rule in a comment, because a
+      comment is the only place C++ has for it.
+- [x] **`seam_double_free` is not a new class, and that is why it earns a row.** It is
+      `double_free` rewritten through the `unsafe` a C ABI forces, so it appears on both sides of
+      the rule. The C++ half is deliberately unchanged, which makes the Rust column the only thing
+      that moves. This reproduces the CVE finding that Rust memory-safety bugs trace back to
+      `unsafe` (`xu2021rustcve`) under controlled conditions instead of only citing it.
+- [x] **`forgotten_guard` separates "Rust removes this bug" from "removes this class".** RAII
+      removes the C++ form, a validation path returning before a hand-written unlock. It does not
+      remove the class, because a guard is a value and leaking one is safe. No sanitiser reports
+      the C++ side: a lock never released is neither a race nor a cycle. The liveness counterpart
+      to `leak_cycle`.
+- [x] **Miri answers the detection stage for the unsafe class**, `faults/run_miri.sh` with
+      `rust/seam_double_free_control.rs` as its control, writing `results/miri.{md,csv}`. Miri
+      names the defect exactly and the control is clean. **The limit is the finding**: Miri
+      interprets Rust and cannot execute a C++ host, so the tool that catches this defect cannot be
+      pointed at the configuration it ships in.
+- [x] **A latent runner bug surfaced, the mirror of the one section 5 found.** `run_rust`
+      classified any `rc >= 124` as "hung", so the seam double free's `SIGABRT` would have been
+      recorded as a deadlock. Only 124 and 137 are timeouts now, and `crashes` is a distinct
+      outcome from `wrong-result`.
+- [x] **The boundary group is now policed.** Each boundary case declares which misbehaviour it
+      exhibits and the runner checks the run against it, so a case that quietly stopped reproducing
+      is a violation rather than a row that still reads as evidence. `leak_cycle` needed a real fix
+      to satisfy this: it printed that nothing was dropped without observing it, and now counts
+      destructor calls on both sides and exits non-zero.
+- [x] Prose synced in `Ha_Vien_Mastersthesis_2026.tex` (§3.2 catalogue and `tab:defectmap`, §5.4,
+      §7.3, Table 8.1, §8.2, §8.5 threats, §9), `Thesis_v2.tex`, `Thesis_Plan_v2.tex`,
+      `faults/README.md`, `build_deck.py`'s `DEFECTS`, `AGENT.md` and the workspace rule. Declared
+      length 105 to 108 pages.
+- [ ] **The abstract still says "five" and "Five further classes", twice.** It is the only place
+      the counts are now wrong, and it is the one place a model may not edit. The author has to
+      make that change when rewriting the abstract unaided.
+- [ ] **The deadlock detection rate is not stable and the prose leans on it.** Successive 12-repeat
+      runs recorded 4, 5, 7 and 9 hits, so "a majority of runs" was true at 7 and 9 and false at 4
+      and 5. Twelve repeats establish intermittency but do not estimate the rate. Raising
+      `DEADLOCK_REPEATS` to 60 costs about three minutes and would let the prose say something
+      stable, or the sentence should be rewritten to claim only intermittency.
+
 ### 6. One robustness arm against the compiler, not just the language
 
 `tab:threats` has no row separating the language from its toolchain. Every performance number is

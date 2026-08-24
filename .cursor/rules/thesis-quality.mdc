@@ -22,7 +22,7 @@ When claims, RQs, methodology, or numbers change: sync plan + v1 + `Ha_Vien_Mast
 
 | # | Criterion | Grade | Blocker to 5 |
 | --- | --- | --- | --- |
-| 1 | Objectives & RQs | 5 | Keep falsifiable RQ2 (5 in-guarantee + 2 boundary defects) |
+| 1 | Objectives & RQs | 5 | Keep falsifiable RQ2 (7 in-guarantee + 7 boundary defects) |
 | 2 | Scholarly sources | 5 | Acknowledge contrary results; consistent terminology |
 | 3 | Method & data | 4.5 | Bare-metal tail campaign; counters for RSS/op gap |
 | 4 | Results presentation | 4.5 | RQ1 far tail open on the virtualised host; figures must match tables |
@@ -69,6 +69,9 @@ a generated table cell of `---` marks a value that does not exist, which `detex(
 ## Non-negotiable claims
 
 - Frozen spec + parity suite; interleaved design + Holm-corrected paired tests.
+- RQ2's catalogue is 7 in-guarantee + 7 boundary and both tables are generated: `figures/tab_taxonomy.tex` comes from `faults/results/taxonomy.csv`, so add a class in `faults/run_faults.sh` (and in `build_deck.py`'s `DEFECTS`) rather than typing a row.
+- `seam_double_free` is `double_free` rewritten through `unsafe`, not a new class. Keep its C++ half unchanged so only the Rust column moves.
+- Never quote the TSan deadlock detection rate from memory: it is unstable across runs (4, 5, 7, 9 of 12 recorded). Read `taxonomy.csv`.
 - The measurement host is a virtualised KVM guest: the **far tail below saturation** is unresolved there. The overload divergence and the resource results are resolved.
 - Peak RSS: real language + allocator effect; allocator effect is larger.
 - End-to-end sweep ≈ handoff cost; the operation is a fraction of a percent of it, so do not bound a language effect from that sweep.
