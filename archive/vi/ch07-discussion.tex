@@ -180,3 +180,729 @@ nữa so với sơ đồ thể hiện, vì chương trình viết \texttt{unsafe
 tự nguyện.\label{fig:boundary}}
 \end{figure}
 
+\paragraph{RQ3 (overhead).} Câu trả lời chia theo tài nguyên, và các phép chia không cùng
+chiều. Về bộ nhớ có phạt. Bản build Rust mang vài MiB peak resident set
+hơn bản C++, và giữ dấu đó dưới cả hai bộ cấp phát. Hai điều làm nó đáng tin
+ngoài giá trị $p$. Peak RSS là max cấp lần chạy chứ không phải
+thống kê đuôi, nên jitter lập lịch phá p99 không chạm nó. Và
+hiệu ứng nhỏ hơn một bậc độ lớn so với của bộ cấp phát, đó là cách hữu ích để định cỡ
+nó. Đội chọn giữa hai ngôn ngữ này di chuyển ít bộ nhớ hơn đội chọn giữa
+hai bộ cấp phát này.
+
+Về CPU câu trả lời phụ thuộc tải, và phụ thuộc đó chính là phát hiện chứ không phải
+biến chứng. Dưới bão hoà Rust tiêu \emph{ít} hơn một chút, nhất quán dưới cả hai
+bộ cấp phát. Qua bão hoà dấu đảo và biên độ tăng
+(Mục~\ref{sec:overload}). Một số duy nhất cho ``chi phí CPU của
+mô hình an toàn Rust'' sẽ trung bình hai chế độ hành xử ngược chiều, và
+không số nào là mô hình an toàn. Thông lượng chia cùng cách vì cùng
+lý do. Dưới bão hoà không có gì để đo, vì thông lượng đạt theo tải đề nghị
+theo cấu trúc. Phía trên nằm hiệu ứng lớn nhất nghiên cứu.
+
+Ba điều giới hạn điều kết quả bộ nhớ cấp phép. Nó nhỏ về tuyệt đối, và là
+chi phí cố định chứ không phải mỗi ngữ cảnh, nên phần dấu chân triển khai
+giảm khi triển khai lớn. Khác biệt bố cục đo giữa hai kiểu
+\texttt{UeContext} gần như không đóng góp. Nó cũng chưa giải thích. Tách nó
+giữa dự trữ arena bộ cấp phát, bộ nhớ đệm mỗi luồng và dấu chân tĩnh cần hồ sơ
+cấp phát và bộ đếm phần cứng nghiên cứu không thu, đó là khoảng trống dụng cụ đo đơn
+rõ nhất trong RQ3. Và không nên mở rộng thành tuyên bố về mô hình an toàn Rust, vì không gì ở đây tách bounds checking hay sao chép do ownership là nguyên nhân.
+Cơ chế tài liệu đã định vị~\cite{zhang2022runtime,harris2023morello}
+là ứng viên kiểm chứ không phải kết luận nhập. Điều có thể nói hẹp hơn và vẫn
+hữu ích cho nhà cung cấp định cỡ nút mặt điều khiển. Áp dụng Rust ở đây tốn vài megabyte
+dấu chân cố định mỗi tiến trình, và đổi lấy thao tác lõi nhanh hơn
+(Mục~\ref{sec:budget}) mà cấu trúc khối lượng công việc này không biến thành thông lượng dưới
+bão hoà, và thành thâm hụt phía trên.
+
+Dấu kết quả đáng bảo vệ, vì một trong công trình tiền nhiệm gần nhất trong miền
+báo dấu ngược, trong khi hai cái khác đồng ý. Đồng ý trước, vì nói nhanh.
+Nghiên cứu thứ hai do Ericsson lưu trữ về phần mềm quản lý nút RAN thấy peak memory Rust
+thường cao hơn C~\cite{olsson2023ranmgmt}, và cặp driver thiết bị user-space khớp
+ngoài viễn thông đặt dấu chân Rust khoảng 29\% trên bản
+C~\cite{sundvisson2026drivers}. Không cái nào tách bộ cấp phát khỏi ngôn ngữ, đó là
+phân biệt Mục~\ref{sec:resources} dựa vào, nên chúng ủng hộ hướng
+hiệu ứng chứ không cách nó chia.
+
+Bất đồng là ca hướng dẫn hơn. Karlb\"ack và Or\"o đo peak resident set trên khối lượng RAN và
+thấy Rust \emph{thấp nhất} trong ba ngôn ngữ và C++ cao nhất, khoảng cách nới
+khi đồng thời tăng. Họ gọi mẫu bất ngờ và quy tạm cho kích thước stack ban đầu
+của green thread~\cite{karlback2021ran}. Hai
+phát hiện tương thích khi rõ chúng đo đại lượng khác. C++ của họ
+chạy trên Boost.Fibers, cấp phát stack mỗi fiber, nên mười nghìn chuỗi đồng thời tốn
+mười nghìn stack. Rust của họ chạy trên Tokio, nơi task là future heap vài
+trăm byte. Số của họ do đó bắt chi phí mỗi ngữ cảnh của runtime
+đồng thời, đúng lý do nó tăng với số ngữ cảnh.
+
+Thiết kế đo ở đây
+không có green thread hai bên. Pool cố định một luồng mỗi shard không để cấp phát mỗi ngữ cảnh
+khác, và còn lại là dấu chân cố định báo ở trên, hằng theo số UE chứ không tỷ lệ. Bất đồng của họ với kết quả này do đó
+giữa hai runtime đồng thời chứ không giữa hai ngôn ngữ, đó là minh chứng trực tiếp
+nhất tài liệu cho việc nghiên cứu này giữ mô hình đồng thời cố định. Nó cũng
+làm sắc điều kiện gắn với số hiện tại. Nó không cấp phép gì về hành vi bộ nhớ Rust
+dưới thiết kế một task mỗi UE, đó là thí nghiệm khác.
+
+\paragraph{RQ4 (di chuyển).} Nguyên mẫu cho thấy áp dụng tăng dần về mặt kỹ thuật
+rẻ. Host C++ có thể gọi lõi Rust không sửa qua đường nối ABI C mỏng có chi phí trên
+thao tác thật được giới hạn ở $\FfiOpBoundPct\%$, và mọi \texttt{unsafe} ở trong đường nối.
+Giới hạn đó từ so sánh khớp Mục~\ref{sec:migrationresults}, không
+từ đặt vượt rỗng
+so với vòng đầy đủ. Hai thứ không cùng thí nghiệm, và trên máy này một
+lượt không ghép mỗi bên đủ đảo thứ tự biểu kiến. Chi phí chủ đạo do đó
+là con người chứ không phải máy: thiết kế bề mặt tương thích C và, như nghiên cứu áp dụng
+báo cáo~\cite{fulton2021adopting,crichton2024learning}, leo đường cong học Rust.
+Điều đó biến rủi ro di chuyển thành mối quan tâm tổ chức chứ không phải hiệu năng, và hai
+áp dụng lớn nhất được ghi vào codebase C và C++ sẵn có báo cùng thứ tự
+chi phí~\cite{li2026rustlinux,fan2026android}.
+
+Một ranh giới trên kết quả đó phải vẽ rõ, vì cách đọc tự nhiên phóng đại
+nó. ``Mọi \texttt{unsafe} gói trong đường nối'' là tuyên bố về điều compiler xác minh,
+và đúng như đo. Crate lõi không chứa \texttt{unsafe}, và mọi thao tác con trỏ thô
+nằm trong $\FfiUnsafeFns$ hàm có thể review. Nó không phải tuyên bố lõi được bảo vệ lúc chạy.
+Host và thành phần chia không gian địa chỉ, và lỗi bộ nhớ phía C++ có thể làm hỏng
+dữ liệu Rust dù phía Rust được kiểm cẩn thận. Đó là lý do biện pháp trong
+tài liệu cô lập hai heap bằng hỗ trợ phần cứng thay vì chỉ kỷ luật giao diện
+~\cite{rivera2021galeed,kirth2022pkrusafe}, và lớp lỗi phát sinh tại ranh giới như vậy
+đã được phân loại riêng~\cite{li2022crosslang}. Di chuyển
+dạng này mua ít hơn ``phần Rust an toàn''. Nó mua thành phần đã di chuyển
+\emph{ngừng đóng góp} lỗi an toàn bộ nhớ mới, trong khi vẫn lộ với lỗi
+của host cho đến khi host cũng di chuyển. Đó vẫn là hướng đi đúng, và
+là lý do xếp thứ tự di chuyển để các thành phần chia nhiều trạng thái mutable nhất
+cùng qua thay vì từng cái một.
+
+Ba trục đo ngoài đường nối làm sắc cùng kết luận, và làm phức tạp hai phiên bản
+dân gian. Thời gian build là phản đối thường gặp nhất chống Rust trong codebase lớn, và
+nó chỉ sống sót ở tổng hợp. Build đầy đủ tốn $\BuildAllCpuRatio$ lần CPU. Nhưng
+$\BuildDepShareCpu\%$ là mã bên thứ ba, nên mã nguồn riêng biên dịch bằng
+$\BuildAllFirstPartyCpuRatio$ lần những gì \texttt{g++} chi cho tương đương. Tổ chức
+lo ngại thời gian build nên nhìn ngân sách phụ thuộc trước compiler. Vòng sửa-biên dịch là trục C++ thực sự dẫn, và dẫn không đều. Lợi thế
+giữ với sửa trong đơn vị dịch và đảo với sửa header được include rộng.
+
+Kích thước nhị phân hành xử tệ hơn lập luận dự đoán. Số $\FootShippedRatio\times$
+thường được trích dẫn so hai chính sách liên kết, và khi chính sách được giữ cố định
+thứ tự phụ thuộc cái nào được chọn. Trục quan trọng nhất cho codebase được quản lý
+cũng là trục có câu trả lời sạch nhất. Thành phần so sánh ở đây không giải quyết mã bên thứ ba
+và không chứa \texttt{unsafe}, nên lập luận phụ thuộc bắc cầu chống áp dụng Rust không
+chạm artefact đang bàn. Bề mặt chưa audit dự án mang thuộc
+bộ máy đo.
+
+\section{Xem lại các giả thuyết}\label{sec:hypotheses}
+Mục~\ref{sec:rqs} cam kết ba giả thuyết trước mọi phép đo
+được lấy. Nêu rõ phán quyết của chúng, thay vì để kết quả tự
+nói, là điều phân biệt kiểm định với mô tả.
+
+\begin{description}
+  \item[H1: được ủng hộ dưới bão hoà, bác bỏ phía trên.]
+        Giả thuyết có hai phần: hai ngôn ngữ tương đương hiệu năng dưới
+        bão hoà, và mọi khác biệt chỉ ở đuôi xa. Phần đầu được
+        ủng hộ. Phần hai bị bác bỏ, và không theo hướng cách diễn đạt dự đoán,
+        vì lý do Mục~\ref{sec:rqdiscussion} nêu. Đuôi xa dưới bão hoà,
+        điều H1 thực sự đặt tên, vẫn chưa giải quyết trên máy này. Khác biệt
+        xuất hiện nằm ở quá tải. Giả thuyết như viết sẽ dẫn chiến dịch
+        nhìn sai chỗ, và kết quả chỉ tìm được vì quét được đẩy
+        qua bão hoà vì lý do phương pháp chứ không vì kỳ vọng nó.
+
+        Một phán quyết thứ hai là giả thuyết không được đặt tốt.
+        ``Tương đương hiệu năng'' được viết như thể nó đặt tên một đại lượng.
+        Mục~\ref{sec:budget} cho thấy nó đặt tên ít nhất ba. Có thao tác
+        giao dưới bão hoà, nơi hai ngôn ngữ tương đương. Có mã compiler
+        phát ra, nơi chúng không, và nơi đo đầu-cuối pha loãng khác biệt hơn
+        hai bậc độ lớn. Và có công việc bền dưới quá tải, nơi chúng
+        cũng không tương đương và khác biệt chạy chiều kia. Cả ba đều đúng, và
+        giả thuyết không tách chúng là giả thuyết nghiên cứu này nên nêu cẩn thận hơn
+        trước khi đo.
+  \item[H2: được ủng hộ ở dạng chính xác, bác bỏ ở dạng lỏng.] Giả thuyết là
+        Rust an toàn ngăn lúc biên dịch ``các lớp lỗi an toàn bộ nhớ và đồng thời mà C++ để cho phát hiện nỗ lực tốt nhất''. Với bảy lớp tiêm
+        loại đó nó đúng không ngoại lệ. Nghiên cứu tiêm lỗi vẫn bác bỏ
+        cách đọc rộng mà cách diễn đạt mời gọi. Bảy lớp biên đúng loại
+        C++ để cho phát hiện nỗ lực tốt nhất, Rust an toàn cũng không ngăn, và trên
+        rò rỉ và tràn bản build release công cụ C++ là bên báo cáo. H2 do đó
+        được chấp nhận cho an toàn bộ nhớ và
+        tự do tranh chấp dữ liệu, và bị từ chối cho tính đúng đồng thời rộng. Nó cũng mang điều kiện tiền đề chưa nói, mà ca seam làm rõ: giả thuyết về
+        Rust \emph{an toàn}, và cùng lớp nó loại trừ trở lại ngay khi chương trình viết
+        \texttt{unsafe}. Cách đọc thứ hai
+        là điều thực hành thường giả định.
+  \item[H3: được ủng hộ, và được kiểm đúng cách ở lần thử thứ hai.] Giả thuyết là
+        chi phí liên vận không đáng kể so với thao tác được gọi. Đo
+        trực tiếp (Mục~\ref{sec:migrationresults}), không phát hiện chi phí và mọi thuế mỗi thao tác
+        được giới hạn ở $\FfiOpBoundPct\%$. Điều ủng hộ giả thuyết là giới hạn, không phải
+        không phát hiện khác biệt. Phiên bản đầu của phép đo này
+        không mang điều đó. Nó đặt vượt rỗng so với vòng đầy đủ và suy
+        câu trả lời, so hai thí nghiệm khác và sẽ cho
+        kết luận đúng vì lý do sai. Tuyên bố kèm theo, chi phí thật
+        là công sức kỹ thuật, được ủng hộ về cấu trúc chứ không thống kê. Đường nối
+        nhỏ và cơ học, nhưng thiết kế bề mặt tương thích C là phần nguyên mẫu
+        đòi quyết định thiết kế thực sự.
+\end{description}
+
+\section{Hướng dẫn kỹ thuật cho áp dụng tăng dần}
+\label{sec:guidelines}
+Kết quả nhằm dùng được, và nhà cung cấp cân nhắc Rust cho thành phần mặt điều khiển
+cần hơn một tập phép đo. Các hướng dẫn sau là dạng thực hành của
+bằng chứng trên. Mỗi cái gắn phát hiện ủng hộ nó, và giới hạn của
+ứng hỗ được nêu chứ không bóp. Hướng dẫn trích dẫn không kèm giới hạn là cách kết quả
+RQ2 thành ``thành phần di chuyển an toàn'' và RQ4 thành ``di chuyển
+rẻ'', và nghiên cứu này không thiết lập cái nào. Chúng theo thứ tự di chuyển
+đầu tiên sẽ chạy.
+
+\paragraph{Chọn thành phần đầu theo giao diện, không theo kích thước.}
+Chi phí runtime của ranh giới được giới hạn ở $\FfiOpBoundPct\%$ một thao tác (RQ4), nên
+tiêu chí thành phần Rust đầu không phải nó nhỏ hay nóng đến đâu. Đó là giao diện
+hẹp và vô hướng đến đâu. Đường nối ở đây giữ $\FfiEntryPoints$ điểm vào vì API phân hệ
+đã hướng vòng đời, có kiểu, và không có cấu trúc mutable chia sẻ qua
+ranh giới. Thành phần giao diện truyền đối tượng C++ phong phú, template hay callback sẽ cần
+thiết kế bỏ chúng trước, và thiết kế lại đó là rủi ro lịch, không phải FFI.
+
+\paragraph{Đặt ABI trong crate riêng và giữ lõi không \texttt{unsafe}.}
+Tập trung mọi thao tác con trỏ thô trong crate đường nối riêng phụ thuộc lõi không sửa
+(Mục~\ref{sec:migrationresults}) đáng áp dụng như quy tắc, không coi là
+tình cờ của nguyên mẫu này. Nó giữ vấn đề lan phụ thuộc Evans et al.\
+mô tả~\cite{evans2020rust} xa mã quan trọng an toàn, và làm bề mặt
+có thể review của di chuyển thành thứ cố định, đếm được. Hai điều kiện đi kèm. Nó giới hạn
+điều phải \emph{review}, không phải điều có thể \emph{làm hỏng}. Khi host vẫn là C++ hai bên
+chia heap, nên đội cần tính chất mạnh hơn phải nhìn cô lập trong tiến trình
+~\cite{rivera2021galeed,kirth2022pkrusafe} chứ không chỉ kỷ luật giao diện.
+Và phần sinh của đường nối không miễn nghi ngờ, vì generator binding có lịch sử
+lỗi riêng~\cite{cai2026interop}. Review nó như mã thay vì tin như đầu ra
+công cụ.
+
+\paragraph{Đừng lập lại ngân sách review đồng thời dựa trên an toàn bộ nhớ.}
+Điều này theo trực tiếp các ca biên. Áp dụng Rust loại bỏ use-after-free,
+double-free, vô hiệu hoá iterator và tranh chấp dữ liệu khỏi ngân sách lỗi hoàn toàn, và đó
+là các lớp chi phối thống kê bảo mật~\cite{msrc2019memory,google2022android}.
+Nó không bớt gì khỏi ngân sách deadlock và vi phạm tính nguyên tử. Kỷ luật thứ tự khóa,
+bất biến về khóa nào có thể giữ đồng thời, và review cho
+thao tác ghép nhưng không nguyên tử vẫn cần thiết như trong C++, và
+nên giữ trong checklist code review và chương trình design review sau di chuyển.
+
+\paragraph{Ưu tiên cấu trúc không chia sẻ hơn chia sẻ-và-khóa, ở cả hai ngôn ngữ.}
+Kết quả đồng thời mạnh nhất nghiên cứu này không thuộc ngôn ngữ nào. Thiết kế
+một luồng mỗi shard loại khóa khỏi đường nóng hoàn toàn, đó là lý do lỗi biên
+phải xây thành chương trình độc lập thay vì tìm trong hiện thực.
+Nơi trạng thái có thể phân vùng theo khóa tự nhiên, như trạng thái UE theo
+\texttt{ue\_id}, phân vùng biến một lớp lỗi đồng thời thành
+không thể về cấu trúc cho cả hai ngôn ngữ, và làm vậy không cần trợ giúp compiler nào.
+
+\paragraph{Ngân sách cho đường cong học tập, và đo nó.}
+Chi phí chủ đạo xác định ở đây là con người, khớp nghiên cứu áp dụng
+báo cáo~\cite{fulton2021adopting}. Luận văn này không định lượng chi phí đó, vì đây là
+nghiên cứu một tác giả, nên hướng dẫn tương ứng khiêm tốn. Coi thành phần đầu như
+đầu tư đào tạo với lịch cố ý rộng rãi, và gắn dụng cụ, ghi
+thời gian review và mật độ lỗi, để thành phần thứ hai lập kế hoạch trên công sức
+đo thay vì giả định.
+
+\paragraph{Đo thành phần, không đo vòng, và đừng tổng quát hoá cả hai.}
+Phát hiện hiệu năng mang cảnh báo phương pháp đi xa hơn
+số. Đo request/response đầu-cuối của thiết kế như thế này là
+$\BudgetCoreShareMax\%$ ngôn ngữ và phần còn lại scheduler (Mục~\ref{sec:budget}). Dưới
+bão hoà nó do đó trả ``không khác'' giữa hầu hết hai hiện thực thành thạo, và đọc đó như bằng chứng về ngôn ngữ là sai lầm nghiên cứu này mắc
+trước khi đo thành phần riêng. Nhà cung cấp tự so sánh nên ngân sách cho
+cả hai: đo đầu-cuối, nói triển khai sẽ cảm thấy thế nào, và đo thành phần,
+nói ngôn ngữ đang làm gì.
+
+\paragraph{Quét qua bão hoà, vì đó là nơi hai ngôn ngữ ngừng đồng ý.}
+Đây là hướng dẫn nghiên cứu muốn đã theo từ đầu thay vì
+đến tới. Mọi kết luận về hiệu năng khi quét dừng ở tải danh nghĩa
+là null. Mỗi cái đúng ở điểm vận hành đó và im lặng về điểm hai
+hiện thực khác $\OverloadThrRatio\times$ (Mục~\ref{sec:overload}). Điểm gối không
+là chi tiết ở rìa đồ thị. Với mặt điều khiển nó là vùng quyết định
+bão báo hiệu làm suy giảm dịch vụ hay kết thúc nó, và nơi thiết kế chặn có giới hạn
+không còn hành vi êm. So sánh dừng khi hệ thống vẫn đáp ứng tải
+đề nghị đã đo nửa dễ của câu hỏi. Quét qua điểm gối tốn thêm
+một buổi chiều thời gian máy.
+
+Ngoài cả hai, artefact tái sử dụng là khung benchmark chứ không phải đầu ra
+hiện tại. Quyết định nó nên thông tin là ``đo điều này trên thành phần của bạn, và đo qua
+điểm thành phần ngừng chịu tải'', không phải ``Rust đủ nhanh, tiếp tục''.
+
+\section{Công trình liên quan}\label{sec:relatedwork}
+Chương~\ref{chapter:background} đặt nền công trình này đứng trên, theo bốn mảng. Phần
+sau định vị luận văn so với chúng rồi xử lý kỹ hai nghiên cứu nó phải
+trả lời. Điều quan trọng ở đây là tính chất bốn mảng chia sẻ.
+
+Đo liên ngôn ngữ đặt ngôn ngữ hệ thống biên dịch gần nhau về thời gian và
+năng lượng~\cite{bugden2022rust,pereira2017energy}, và thấy an toàn Rust rẻ lúc chạy
+~\cite{balasubramanian2017rust,levy2017kernel}. Điều đó giữ nơi thời gian chặt nhất: hypervisor nhúng
+~\cite{mo2023rustshyper}, hạ tầng đám mây sản xuất~\cite{agache2020firecracker},
+và xử lý gói trong vài phần trăm so với tham chiếu C
+~\cite{emmerich2019drivers,xiao2024rpkt}. Nơi chi phí xuất hiện nó đã được ghim
+xuống, vào biên, tràn và kiểm tra chia
+~\cite{zhang2022runtime}, vào cùng tập kiểm tra biên
+so với khả năng phần cứng~\cite{harris2023morello}, và vào anti-pattern
+lặp~\cite{cui2025perfbugs}. Bản port like-for-like một bộ từ C++ sang Rust đặt
+chi phí kiểm tra biên ở 34\% của overhead trung bình hình học 46\%. Nó cũng cảnh báo nơi compiler được ghi nhận loại bỏ kiểm tra rẻ, mã đo đôi khi khai báo
+hàm nóng \texttt{unsafe}~\cite{naylor2026cherisimt}. Cảnh báo đó không áp dụng cho
+lõi không \texttt{unsafe} so sánh ở đây. Tất cả công trình này là trường hợp trung bình, và không cái nào báo
+hành vi qua điểm bão hoà, đó là chế độ luận văn này nhắm.
+
+Bằng chứng an toàn cũng được giải quyết cùng cách một phần. Có nền tảng kiểm tra máy cho
+mảnh an toàn và cho kỷ luật aliasing mà mã \texttt{unsafe} phải
+tôn trọng~\cite{jung2018rustbelt,jung2021safe,jung2020stacked}. Có xác nhận
+\texttt{unsafe} dùng tiết kiệm và CVE an toàn bộ nhớ luôn liên quan
+nó~\cite{qin2020rust,astrauskas2020unsafe,xu2021rustcve}. Có audit tìm
+lỗi ở quy mô dù vậy~\cite{bae2021rudra,zheng2024security,qin2024safety}, và cảnh báo
+unsafety lan qua chuỗi phụ thuộc~\cite{evans2020rust}. Và có báo cáo
+thúc đẩy chuyển dịch, đặt cạnh hồ sơ dài hỏng bộ nhớ chống lại giảm thiểu runtime
+~\cite{msrc2019memory,google2022android,google2024securebydesign,cisa2023memorysafe,oncd2024building,szekeres2013sok}.
+
+Mảng thứ ba điều kiện hoá lập luận áp dụng. Mục~\ref{sec:interop} nêu giới hạn
+trung tâm. Gói \texttt{unsafe} trong đường nối không bảo vệ phía Rust, vì mã nước ngoài trong
+cùng không gian địa chỉ vẫn có thể làm hỏng dữ liệu Rust
+~\cite{rivera2021galeed,kirth2022pkrusafe}. Đường nối có lớp lỗi
+riêng~\cite{li2022crosslang}, và công cụ của nó có lỗi riêng~\cite{cai2026interop}. Mô hình
+vượt qua nhẹ hơn tồn tại cho nhúng~\cite{schuermann2023encapsulated}. Điều mục đó không
+bao phủ là tầm với. Mẫu aliasing diễn đạt được trong C nhưng không trong Rust an toàn giới hạn dịch về nguyên tắc
+~\cite{emre2023aliasing}, liên vận là bài toán mở trung tâm trong Rust
+nhúng~\cite{sharma2024embedded}, và \texttt{unsafe} tập trung đúng các
+ranh giới này~\cite{mccormack2026unsafe}. Hai áp dụng lớn nhất được ghi vào C và C++
+sẵn có báo cáo ma sát đó bằng thực nghiệm~\cite{li2026rustlinux,fan2026android}.
+Tự động hoá viết lại là hướng đang hoạt động chứ không phải bài toán đã giải, vì translator hiện tại vẫn phát mã mà compiler không xác thực an toàn
+~\cite{hong2025ctorust}. Đó là lý do chi phí di chuyển đo ở đây là chi phí đường nối viết tay.
+
+Mảng thứ tư là miền và phương pháp: tài liệu độ trễ đuôi và quy mô micro giây
+~\cite{dean2013tail,barroso2017microseconds,li2014tales,huang2017predictability},
+cấu trúc một lõi mỗi luồng tự di chuyển đuôi
+~\cite{enberg2019threadpercore}, tách rời O-RAN~\cite{polese2023oran}, độ trễ mặt điều khiển là mục tiêu tích cực trong lõi mạng
+~\cite{liu2023l25gc,park2025ctrlbench}, bằng chứng áp dụng trỏ vào đường cong học thay
+vì chi phí runtime~\cite{fulton2021adopting,crichton2024learning,ardito2021verbosity}, và hướng dẫn chuẩn về đánh giá lặp
+~\cite{georges2007rigorous} và tiêm
+lỗi~\cite{natella2016fault}. Rust có tiền lệ mạng di động ở
+datapath~\cite{qazi2017pepc} và, phía mặt điều khiển, gNB-CU mã nguồn mở với CU-CP và CU-UP tách qua E1. Cái sau liên quan khoảng trống hơn phương pháp. Nó thiết lập
+bề mặt giao thức ASN.1 và SCTP không phải rào cản về nguyên tắc, nhưng nó là chứng minh tồn tại
+chứ không phải so sánh, không báo độ trễ và không mang đối tác C++ xây cùng
+đặc tả~\cite{alsoran}.
+
+Bốn nghiên cứu hệ thống gần nhất về phương pháp, dù không về miền, vì chúng cũng xây
+cùng thành phần hai lần và quy khác biệt. Một so sánh cơ chế IPC hiện thực một
+chức năng mạng trong C++ và Rust~\cite{li2021ipc}. RedLeaf được đánh giá so baseline C
+xây cho mục đích~\cite{narayanan2020redleaf}. Bản dịch thủ công bộ benchmark giao dịch STAMP
+sang Rust là bản khớp công bố gần nhất với thiết kế nghiên cứu này,
+vì khối lượng đồng thời và cả hai phiên bản hiện thực một
+đặc tả~\cite{suchert2023stamp}. Cái thứ tư đo driver tunnel UDP Rust trong
+kernel Linux so driver C tương đương~\cite{gonzalez2023rustudp}. Cái sau đáng xem lại vì phương pháp chứ không phải kết quả. Nó báo Rust chậm hơn 0,19\% ở
+$p = 1{,}5 \times 10^{-15}$, khác biệt áp đảo về thống kê và không đáng kể về
+vận hành. Giữ hai phần tách là điều quy tắc khoảng-so với-$p$ cam kết trước của
+Mục~\ref{sec:stats} tồn tại để làm. Như tài liệu rộng hơn, không cái nào trong bốn đo qua
+bão hoà.
+
+Năm luận văn thạc sĩ, đều tại Ericsson, là công trình tiền nhiệm gần nhất theo miền và
+xứng được xử lý riêng. Không cái nào được phản biện, và không cái nào được lập chỉ mục bởi cơ sở dữ liệu trích dẫn
+nào, nên chúng được trích ở đây như hồ sơ nhà cung cấp đã thực sự thử chứ không
+phải kết quả đã thiết lập.
+
+Karlb\"ack và Or\"o so sánh Rust và Go với C++ cho ứng dụng RAN trên x86 và ARM,
+kết hợp đo runtime với chỉ số hiệu quả phát triển, và kết luận C++ vẫn
+lựa chọn nơi hiệu năng quan trọng~\cite{karlback2021ran}. Kiểm soát của họ đáng
+trích nguyên văn chứ không diễn giải, vì đó là tuyên bố rõ nhất trong tài liệu này về
+nhiễu mà nghiên cứu hiện tại xây để loại. Tác giả ghi họ cố ý không
+viết cùng chương trình ba lần. Họ ``nhằm giải pháp tốt nhất mỗi ngôn ngữ,
+thay vì cố làm mã giống nhau tối đa giữa ngôn ngữ'', và họ
+``tránh dùng đúng cùng giải pháp mỗi
+ngôn ngữ''~\cite{karlback2021ran}. Với câu hỏi họ hỏi, đội viết mã idiom mỗi ngôn ngữ sẽ được gì, đó là lựa chọn
+đúng. Đó là kiểm soát sai
+cho câu hỏi ở đây. Runtime đồng thời rồi thay đổi theo ngôn ngữ
+(Boost.Fibers trên libevent, goroutine và Tokio), nên không khác biệt đo được
+chia giữa hai. Mục~\ref{sec:rqdiscussion} quay lại với ca cụ thể,
+nơi kết quả tài nguyên của họ và kết quả báo ở đây có dấu đối, và
+bất đồng giải thành khác biệt runtime chứ không phải ngôn ngữ.
+
+Olsson hỏi phiên bản hẹp hơn cùng câu hỏi hai năm sau, so Rust với C cho
+phần mềm quản lý nút RAN, và thấy tốc độ thực thi Rust ngang hoặc tốt hơn C,
+peak memory thường cao hơn, và an toàn cải thiện đáng
+kể~\cite{olsson2023ranmgmt}. Hai trong ba phát hiện đó đồng ý với kết quả báo ở đây,
+kể cả kết quả tài nguyên mà Karlb\"ack và Or\"o bất đồng với nghiên cứu này, được
+xử lý ở Mục~\ref{sec:rqdiscussion}. Điều nghiên cứu không làm là báo phần trăm, hay
+đẩy phần mềm qua sức chứa: so sánh là thời gian thực thi và peak memory ở
+tải ứng dụng chạy.
+
+Olsson và Stenstr\"om là công trình tiền nhiệm gần nhất về mô hình đồng thời luận văn này áp dụng,
+và kết quả là minh hoạ sắc nhất trong tài liệu vì sao mô hình phải được giữ
+cố định. Họ xây bộ xử lý gói một lõi mỗi luồng trên Rust bất đồng bộ qua runtime Glommio,
+phản chiếu hai ứng dụng DPDK Eventdev hiện có, và đo thông lượng giữa
+20\% và 50\% phiên bản DPDK với độ trễ họ mô tả tệ
+hơn nhiều~\cite{olsson2023asyncpackets}. Đọc như so sánh ngôn ngữ kết quả tệ hại. Đọc như
+điều nó là, so runtime bất đồng bộ trẻ với framework kernel-bypass tinh chỉnh
+một thập kỷ, nó gần như không nói gì về Rust và nói nhiều về runtime: hiệu ứng
+hai đến năm lần không phải quy mô mà sinh mã hoạt động. Đó cũng là
+lý do thiết kế đo ở đây dùng một luồng mỗi shard và không runtime bất đồng bộ hai bên, và Chương~\ref{chapter:conclusions} ghi so sánh tách hai
+đúng cách.
+
+Arvidsson và Kaller còn gần hơn. Họ đánh giá framework lập trình bất đồng bộ, C++
+với Boost.Fibers, Rust với Tokio và Monoio, Go và Erlang, trên thủ tục mặt điều khiển 5G,
+và báo cả độ trễ trung vị và phần trăm thứ 99 qua quét
+tải~\cite{arvidsson2025async}. Kết quả là thách thức trực tiếp nhất trong tài liệu với
+kỳ vọng luận văn này bắt đầu. Boost.Fibers có độ trễ thấp nhất mọi tải,
+và trong khi runtime Rust theo kịp ở trung vị, phần trăm thứ 99 của chúng tăng dốc hơn
+qua một tốc độ yêu cầu nhất định. Đó là phân kỳ đuôi đúng miền, và sẽ
+không trung thực nếu bỏ qua. Tuy nhiên đó cũng là so sánh mà runtime
+đồng biến với ngôn ngữ: tác giả quy hiệu ứng cho
+\texttt{async}/\texttt{await} không stack cho phép chuyển ngữ cảnh ngay trước khi thao tác I/O
+bắt đầu, đó là tính chất Tokio và Monoio chứ không phải Rust.
+
+Sự quy kết đó không cần tin mù quáng, vì runtime sau đó được
+xem trực tiếp trong bối cảnh thời gian thực. \v{S}koudlil et al.\ mổ mô hình thực thi của
+Rust bất đồng bộ so C++ dựa luồng tương đương. Họ báo chính sách lập lịch của
+runtime ``phức tạp và khó hiểu vì lớp trừu tượng'', và Tokio cụ thể ``thiết kế tối đa hoá thông lượng thay vì
+tính xác định thời gian''. Tái cấu trúc cùng ứng dụng lên luồng ưu tiên qua runtime
+khác cho thời gian phản hồi khớp phân tích thời gian phản hồi cổ điển, điều cấu hình
+work-stealing idiom không~\cite{skoudlil2025asyncrust}. Công cụ xây quanh
+runtime chỉ cùng hướng. Lập lịch ưu tiên là thứ runtime Rust bất đồng bộ
+phải được thư viện cung cấp, không phải thứ nó đã
+có~\cite{zhuang2026flowprioritize}. Hành vi đuôi đang bàn do đó là
+tính chất runtime, và đổi khi runtime đổi. Nhiễu đó chính xác là điều đặc tả đóng băng và mô hình một luồng mỗi shard trong luận văn này
+thiết kế để loại. Hai nghiên cứu bổ sung chứ không mâu thuẫn.
+Của họ thiết lập khác biệt đuôi quan sát được trong miền này. Cái này được
+xây để xác định liệu ngôn ngữ có phải nguyên nhân.
+
+Emberg và Wadsten gần nhất về phương pháp, và cách trung thực định vị
+luận văn là so với họ thay vì so các framework. Họ xây hai
+hiện thực một bộ giải mã ASN.1, C++ và Rust, cho cả hai gọi cùng mã C++ bên thứ ba,
+đến từ Rust bằng bọc C, và so hai bằng kiểm định rank-sum. Họ
+cũng phỏng vấn developer về trải nghiệm viết phía Rust~\cite{emberg2023asn1}.
+Đó là cặp khớp, đường nối FFI, so sánh thống kê và đo công sức, tức
+bốn trong số việc luận văn này làm, cùng ngành, hai năm trước. Ba khác biệt
+còn lại, và chúng là điều mang khoảng trống. Đối tượng là biến đổi không trạng thái thay
+vì phân hệ đồng thời có trạng thái, nên không có mô hình đồng thời để giữ cố định và không
+trạng thái chia sẻ để tranh. Đo ở tải benchmark tình cờ tạo thay vì quét tới bão hoà và qua, nên không báo hành vi đuôi dưới quá tải. Và phía an toàn được lập luận từ phỏng vấn developer thay vì danh mục lỗi, nên không thiết lập lớp nào compiler thực sự từ chối.
+
+Nghiên cứu của họ cũng cung cấp điều hữu ích hơn so sánh, đó là cảnh báo.
+Hai phiên benchmark của họ đảo phán quyết. Phiên đầu, sau code review loại
+thường làm trong thực tế, thấy hai hiện thực tương đương. Phiên thứ hai, sau khi hai bên
+tối ưu thêm, thấy bản Rust tệ hơn 85--91\%. Tác giả lập luận
+phiên đầu đại diện hơn cho phần mềm nói chung, đó là cách đọc biện minh được. Quan sát quan trọng hơn là cặp khớp một tác giả có thể bị làm
+cho ra câu trả lời khác, tùy nỗ lực tối ưu rơi đâu.
+Mục~\ref{sec:threats} coi đó là mối đe doạ chính tới tính hợp lệ cấu trúc của chính nghiên cứu này và mô tả điều làm về nó.
+
+Hai luận văn 2026 ngoài tập nhà cung cấp áp dụng phần phương pháp luận văn này cho đối tượng
+nhỏ hơn, và cả hai đáng ghi nhận vì đến câu trả lời tương thích độc lập
+~\cite{sundvisson2026drivers,andersson2026stdmemsafety}. Không có đồng thời, khối lượng viễn thông hay quét
+tải, và cả hai là công trình cử nhân. Chúng được trích như bằng chứng hội tụ cho câu hỏi
+nhỏ hơn, không thay thế so sánh thử ở đây.
+
+Bảng~\ref{tab:vendortheses} đặt nghiên cứu này cạnh năm cái trực tiếp, và hai điều đáng
+đọc ra. Cột giữa cho thấy công trước không yếu hơn, chỉ nhắm khác. Bốn trong năm đo ngôn ngữ cùng framework nó viết trên,
+và cái thứ năm đo cặp khớp trên đối tượng không trạng thái ở tải cố định. Cột cuối cho thấy
+hệ quả. Rust có peak memory thấp nhất trong một nghiên cứu và cao hơn trong
+nghiên cứu khác. Ngang C trong một và bằng một phần năm thông lượng DPDK trong nghiên cứu khác. Theo kịp C++ ở trung vị trong một, và tương đương rồi tệ hơn nhiều qua hai phiên của một
+nghiên cứu. Các phát hiện không thể điều hoà với nhau, vì không hai cái giữ cố định
+cùng thứ. Đó là dấu hiệu tài liệu mà biến độc lập
+không được kiểm soát, và đó là lý do luận văn này xây đối tượng nghiên cứu thay vì
+tìm một.
+
+\begin{table}[tp]
+\centering
+\small
+\caption[Nghiên cứu này cạnh năm luận văn nhà cung cấp]{Nghiên cứu này cạnh năm luận văn nhà cung cấp, đều
+tại Ericsson và không phản biện. Hàng sắp theo năm. Cột cuối
+báo phán quyết riêng của mỗi nghiên cứu theo thuật ngữ riêng, đó là lý do mục không khớp: chúng
+là câu trả lời câu hỏi khác, đo trên đối tượng và chế độ khác. Phán quyết ghi cho luận văn này là điều Mục~\ref{sec:rqdiscussion} bảo vệ, kể cả
+phần máy đo không giải quyết. Hình~\ref{fig:gapmap} đặt cùng năm nghiên cứu trên
+trục khoảng trống thay vì, cạnh tài liệu
+đã phản biện.\label{tab:vendortheses}}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}R{0.18\linewidth} R{0.25\linewidth} R{0.20\linewidth} R{0.26\linewidth}@{}}
+\hline\hline
+Nghiên cứu & Đối tượng đo & Chế độ báo cáo & Phán quyết về Rust \\
+\hline
+Karlb\"ack \& Or\"o, 2021~\cite{karlback2021ran} &
+Ứng dụng RAN trên x86 và ARM, một hiện thực idiom mỗi ngôn ngữ &
+Runtime và tài nguyên ở tải thực hành &
+C++ được ưu tiên nơi hiệu năng quan trọng. Peak memory Rust thấp nhất trong ba
+ngôn ngữ \\
+Olsson, 2023~\cite{olsson2023ranmgmt} &
+Phần mềm quản lý nút RAN, Rust so C &
+Thời gian thực thi và peak memory &
+Tốc độ ngang hoặc tốt hơn C, peak memory cao hơn, an toàn cải thiện đáng kể \\
+Olsson \& Stenstr\"om, 2023~\cite{olsson2023asyncpackets} &
+Xử lý gói: Rust bất đồng bộ trên Glommio so DPDK Eventdev C &
+Thông lượng và độ trễ theo số lõi &
+20--50\% thông lượng DPDK với độ trễ tệ hơn nhiều. Rust bất đồng bộ được xét chưa
+khả thi hiện tại \\
+Emberg \& Wadsten, 2023~\cite{emberg2023asn1} &
+Bộ giải mã {ASN.1} xây hai lần, phía Rust tới C++ qua wrapper C &
+Thời gian thực thi trong hai phiên benchmark &
+Tương đương phiên đầu, tệ hơn 85--91\% phiên hai. Được ưu tiên thực tế vì
+lý do không hiệu năng \\
+Arvidsson \& Kaller, 2025~\cite{arvidsson2025async} &
+Thủ tục mặt điều khiển 5G qua năm framework bất đồng bộ &
+Trung vị và phần trăm thứ 99 qua quét tải &
+Trung vị theo C++. Phần trăm thứ 99 tăng dốc hơn qua ngưỡng tốc độ yêu cầu \\
+\hline
+Luận văn này, 2026 &
+Dịch vụ Quản lý Ngữ cảnh UE xây hai lần từ một đặc tả đóng băng, mô hình đồng thời,
+bộ cấp phát và cấu hình build cố định &
+Trung vị, p99, p99.9 và max qua quét tới và qua bão hoà &
+Tương đương ở trung vị dưới bão hoà. Đuôi xa ở đó chưa giải quyết trên máy này. Qua
+bão hoà \OverloadSustainedFaster{} duy trì $\OverloadThrRatio\times$ thông lượng của
+\OverloadSustainedSlower{} \\
+\hline
+\end{tabular}
+\end{table}
+
+Mục~\ref{sec:gap} ghi cả năm đến từ một nhà cung cấp. Đọc cạnh bảng, tập trung
+đó có hệ quả sắc hơn. ``C++ vẫn lựa chọn nơi hiệu năng quan trọng''
+và ``Rust bất đồng bộ chưa khả thi hiện tại'' là phát hiện về phần mềm cụ thể trên
+hạ tầng cụ thể, và lặp trong một tổ chức không thiết lập tính tổng quát. Câu hỏi do đó không được giải quyết nơi khác rồi nhập. Nó mở, chưa được khảo sát
+trong bối cảnh này, và câu trả lời ở đây là câu tổ chức độc lập có thể kiểm, vì
+đặc tả, cả hai hiện thực và bộ điều khiển được công bố cùng nó.
+
+Không phải mọi bằng chứng cùng chiều, và phát hiện điều kiện được xử lý nghiêm
+ở đây như phát hiện thuận lợi. Ngay kết quả mạng tích cực ghi chi phí thật. Driver Rust idiom phát
+nhiều lệnh mỗi gói hơn tham chiếu C và chậm hơn đo được về
+tuyệt đối. Kiểm tra an toàn được CPU out-of-order hấp thụ, không
+hoàn toàn miễn phí~\cite{emmerich2019drivers}. Hai so sánh khớp khác chỉ cùng hướng trên
+khối lượng khác. Hiện thực Rust an toàn idiom của benchmark giao dịch STAMP chạy
+chậm hơn cả bản C gốc và Rust dịch máy~\cite{suchert2023stamp}, và
+nghiên cứu chung Rust so C báo đôi khi chậm hơn đáng
+kể~\cite{okawa2024ruststudy}. Nghiên cứu lớn nhất Rust trong codebase C sẵn có đến
+kết luận tương tự từ hướng khác. Nó thấy tính năng an toàn Rust đưa
+overhead runtime và phức tạp phát triển khi không được quản lý
+cẩn thận~\cite{li2026rustlinux}.
+
+Bằng chứng không chạy một chiều, dù vậy. Mã mức thấp an toàn không overhead runtime đã
+được chứng minh cho driver thiết bị mạng, cùng lớp chương trình Emmerich, khi
+nghĩa vụ an toàn được thực hiện qua bất biến kiểu thay vì kiểm tra~\cite{pirelli2023safelowlevel}.
+Khung ``zero-cost''~\cite{balasubramanian2017rust} do đó nên đọc không phải
+đã thiết lập hay bác bỏ nói chung, mà là tính chất của một chương trình trên một
+khối lượng. Đó là lý do hành vi đuôi phải đo trên khối lượng mục tiêu chứ không giả định.
+
+Câu chuyện an toàn cũng không tuyệt đối. Nghiên cứu thực nghiệm Rust thực tế thấy lỗi
+an toàn bộ nhớ và luồng vẫn xảy ra trong thực tế, trong đó lỗi chặn và đồng bộ
+lạm dụng~\cite{qin2020rust,qin2024safety}. Chúng cũng thấy phần đáng kể
+hệ sinh thái không thể kiểm tra tĩnh đầy đủ, vì \texttt{unsafe} lan qua
+chuỗi phụ thuộc~\cite{evans2020rust}.
+
+Các điều kiện này không lật đổ lập luận cho Rust, nhưng thúc đẩy hai lựa chọn thiết kế của luận văn. Thứ nhất là đo độ dự đoán và ngăn lỗi trực tiếp trên
+phân hệ thay vì nhập kết luận trung bình mục đích chung. Thứ hai là giữ
+lõi quan trọng an toàn không \texttt{unsafe}, để điều kiện lan phụ thuộc không
+áp dụng cho nó.
+
+Ba trục tách luận văn này khỏi tất cả. Thứ nhất là liệu so sánh có kiểm soát
+thiết kế bằng cách xây cả hai hệ từ một đặc tả. Thứ hai là liệu nó có báo hành vi
+đuôi dưới quá tải thay vì hiệu năng trung bình. Thứ ba là liệu nó có đo
+chi phí áp dụng thay vì mô tả. Không trục nào trong ba trống một mình, như hiện thực khớp
+~\cite{emmerich2019drivers,li2021ipc,narayanan2020redleaf,suchert2023stamp,gonzalez2023rustudp,pirelli2023safelowlevel,emberg2023asn1},
+quét phần trăm dừng ở yêu cầu độ trễ~\cite{arvidsson2025async}, và đo
+công sức~\cite{karlback2021ran,fulton2021adopting} trên hết cho thấy. Không nghiên cứu trước kết hợp
+ba cho khối lượng mặt điều khiển đồng thời có trạng thái, và đó là khoảng trống hẹp hơn công trình này
+chiếm.
+
+\section{Mối đe doạ tính hợp lệ và biện pháp giảm thiểu}\label{sec:threats}
+Mọi kết luận ở đây quy khác biệt cho ngôn ngữ hiện thực. Độ tin cậy của nghiên cứu do đó dựa trên kiểm soát giữ mọi thứ khác bằng nhau, và trên
+tài khoản trung thực nơi kiểm soát dừng. Bảng~\ref{tab:threats} ánh xạ mối đe doạ trước, theo
+loại suy luận mỗi cái làm nguy hiểm, để rủi ro còn lại đọc như một tập thay vì
+gom từng cái từ văn bản. Ba cái chịu tải. Nghiên cứu không thể loại trừ
+bất đối xứng kỹ năng một tác giả. Dụng cụ đầu-cuối sai cho phần RQ1
+và RQ3 hỏi. Và phát hiện đơn mạnh nhất, phân kỳ quá tải, dựa trên quy kết
+không đo trực tiếp.
+
+\begin{table}[tp]
+\centering
+\small
+\caption[Mối đe doạ tính hợp lệ, biện pháp giảm thiểu và phần còn lại]{Mối đe doạ tính hợp lệ theo loại suy luận mỗi cái làm nguy hiểm, kiểm soát áp dụng, và
+điều kiểm soát để lại. Chỉ mục cột cuối là rủi ro sống. Cột
+giữa là điều đã làm cho mỗi mối. Hàng không có kiểm soát
+nào, bộ đếm phần cứng thiếu sau RQ3, nói vậy thay vì
+làm mềm.\label{tab:threats}}
+\singlespacing
+\footnotesize
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}R{0.23\linewidth} R{0.35\linewidth} R{0.32\linewidth}@{}}
+\hline\hline
+Mối đe doạ & Kiểm soát áp dụng & Phần còn lại \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Nội tại: ngôn ngữ có thực sự là khác biệt duy nhất?}} \\
+Thiên lệch hiện thực giữa hai phiên bản & Đặc tả đóng băng, bộ cấp phát và mức tối ưu chung, hàm băm ghim, log idiom bắt buộc, kiểm thử tương đương cấp transcript & Bất đối xứng kỹ năng một tác giả. Tương đương giới hạn hành vi, không hiệu năng \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Cấu trúc: chỉ số có đo đúng câu hỏi?}} \\
+Quét đo thiết kế, không ngôn ngữ & Thao tác đo tách khỏi bàn giao và cả hai được báo (\S\ref{sec:budget}) & Một thao tác trên một cấu trúc dữ liệu hẹp hơn quét nó bổ sung \\
+Kết quả quá tải được quy kết nhưng không định vị & Thu hẹp hai mục log idiom bắt buộc (\S\ref{sec:overload}). Microbenchmark primitive tranh chấp (\S\ref{sec:contention}) loại hai cái đó một mình làm giải thích đầy đủ & Đường bàn giao đầy đủ dưới tải vẫn gồm điều phối variant và yêu cầu lớn hơn phía C++ \\
+Danh mục lỗi là mẫu tác giả chọn & Bảy lớp từ ngoài bảo đảm, kỳ vọng ghi trước & Mười bốn chương trình vẫn là mười bốn chương trình \\
+RQ3 bắt chi phí tài nguyên nhưng không nguồn gốc & Không có trên máy này & Kết quả bộ nhớ thiết lập nhưng chưa giải thích \\
+RQ4 đo đường nối, không an toàn toàn thể & Phân biệt được nêu mọi nơi trích kết quả & Một không gian địa chỉ: thuộc tính biên dịch phía Rust không giới hạn gì lúc chạy \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Kết luận: khác biệt có thật hay nhiễu?}} \\
+Không xác định giữa các lần chạy & \NRepeats{} lần lặp xen kẽ, khoảng bootstrap, kiểm định hoán vị ghép cặp chính xác, hiệu chỉnh Holm, sàn được trích & Ghép cặp chỉ triệt tiêu điều khối chia sẻ, nên đuôi xa dưới bão hoà vẫn chưa giải quyết \\
+$p$ đã hiệu chỉnh không tái lập & Kiểm soát bộ cấp phát chạy mọi so sánh hai lần. Tái lập được theo $p$ & Nó đã tốn một kết quả trước và sẽ lại. Ở đây hàng đuôi là hàng nó giữ lại \\
+Lần chạy nhiễm đánh bại thống kê dựa trên trung bình & Quy tắc đọc \S\ref{sec:stats}, cố định trước, cộng số lần lặp ghép cặp đồng ý & Peak RSS dưới \texttt{jemalloc} đọc từ khoảng so $p$ riêng \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Ngoại tại: kết quả đi xa bao nhiêu?}} \\
+Một phân hệ, một khối lượng, một máy & RQ2 dựa compiler, RQ4 dựa compiler, ABI C và đồ thị phụ thuộc & Kết quả hiệu năng không đi xa, và quá tải đi xa nhất. Giây build RQ4 mô tả một máy, tỷ lệ thì không \\
+Máy đo ảo hoá & Xen kẽ, ghép cặp và \NRepeats{} lần lặp. Giới hạn khách ghi trong dữ liệu (\S\ref{sec:testbed}) & Tần số không quan sát được và CPU steal khác không, không gỡ từ trong khách \\
+\hline
+\end{tabular}
+\end{table}
+
+\paragraph{Tính hợp lệ nội tại: ngôn ngữ có thực sự là khác biệt duy nhất?}
+Mối đe doạ trung tâm là thiên lệch hiện thực giữa hai phiên bản, giảm thiểu về cấu trúc bởi
+chiến lược biến kiểm soát Mục~\ref{sec:fairness} và Bảng~\ref{tab:controls} và bởi
+kiểm thử tương đương cấp transcript Mục~\ref{sec:parity}. Điều chưa kiểm soát là
+bất đối xứng kỹ năng một tác giả. Một người viết cả hai hiện thực và không thành thạo
+bằng nhau cả hai, nên lợi thế cho ngôn ngữ người đó biết hơn không thể loại trừ.
+Bộ tương đương giới hạn mối đe doạ này cho \emph{hành vi} chứ không cho \emph{hiệu năng}.
+
+Rằng mối đe doạ thật chứ không chỉ có thể tưởng được được ghi trong cùng ngành, bởi hai
+phiên benchmark của Emberg và Wadsten đảo phán quyết của chính họ
+~\cite{emberg2023asn1}. Một cặp khớp ủng hộ hai kết luận khác, tùy
+nỗ lực tối ưu rơi đâu. Kiểm soát ở đây chọn chống chế độ lỗi đó.
+Đặc tả đóng băng trước khi viết hiện thực, không đàm phán
+giữa chúng. Mức tối ưu và bộ cấp phát khớp, không tinh chỉnh mỗi bên. Và
+phân kỳ bắt buộc được ghi, không giải quyết theo hướng tác giả thấy dễ.
+Không điều nào giảm rủi ro còn lại về không. Nó làm rủi ro đó nhìn thấy, đó là lý do
+log idiom bắt buộc là sản phẩm chứ không phải phụ lục.
+
+\paragraph{Tính hợp lệ cấu trúc: chỉ số có đo đúng câu hỏi?}
+RQ1 được trả lời bằng phần trăm cao và max thay vì trung bình, đó là cách
+chuẩn đo độ dự đoán trong tài liệu này~\cite{dean2013tail}. Hai rủi ro còn. Danh sách
+chỉ số thu hẹp thành bốn trong quá trình làm, vì jitter giữa thao tác và p99.99
+được gắn công cụ nhưng sau chiến dịch báo cáo (Mục~\ref{sec:perfresults}). Và p99.9 trên
+khối lượng tổng hợp không cùng đại lượng với deadline thủ tục bỏ lỡ trong mạng sống.
+
+Khoảng cách cấu trúc lớn hơn trong RQ1 được tìm chứ không dự đoán. Độ trễ đầu-cuối
+quét báo cáo là $\BudgetCoreShareMax\%$ thao tác và phần còn lại bàn giao giữa luồng
+(Mục~\ref{sec:budget}), nên nó đo chi phí giao của thiết kế trung thực và
+chi phí ngôn ngữ hầu như không. RQ1 hỏi cái nào phụ thuộc độc giả. Nhà cung cấp
+định cỡ nút muốn cái đầu, so sánh ngôn ngữ muốn cái thứ hai. Nghiên cứu báo cả hai và giữ
+chúng tách, nhưng câu hỏi ban đầu không tách chúng. Hai biện pháp được
+áp dụng, và không lượng thống kê nào thay thế được cả hai. Thao tác đo tách
+khỏi bàn giao, và quét được đẩy vào chế độ thiết kế ngừng hấp thụ
+khác biệt. Còn lại là microbenchmark một thao tác hẹp hơn đối tượng
+quét nó bổ sung.
+
+Ba điều còn lại nêu trong Bảng~\ref{tab:threats} và giới hạn ở đây. Danh mục RQ2 là
+mẫu tác giả chọn. Bảy lớp biên giảm thiểu điều đó, vì buộc nó
+chứa ca kết luận kỳ vọng không bao phủ, và hai trong số đó trả kết quả
+ngược. Mười bốn chương trình vẫn là mười bốn chương trình. RQ3 bắt chi phí tài nguyên nhưng không nguồn gốc, vì không thu bộ đếm phần cứng hay hồ sơ cấp phát, nên nghiên cứu có thể nói phạt bộ nhớ
+xuất hiện chứ không vì sao. Cơ chế có khả năng nhất đã được cô lập
+nơi khác~\cite{zhang2022runtime,harris2023morello}. RQ4 đo kích thước đường nối,
+\texttt{unsafe} nó tập trung, và chi phí mỗi lần gọi. Đó là đại lượng đúng cho
+câu hỏi như đặt, và chúng không đo hệ thống ghép an toàn đến đâu. Host và
+thành phần chia không gian địa chỉ, nên thuộc tính biên dịch phía Rust không giới hạn gì
+phía C++ có thể làm hỏng lúc chạy~\cite{rivera2021galeed,kirth2022pkrusafe}.
+
+\paragraph{Tính hợp lệ kết luận: khác biệt có thật hay nhiễu?}
+Xử lý thống kê nêu ở Mục~\ref{sec:stats} và kết quả trong
+Bảng~\ref{tab:significance}. Số lần lặp chọn để thiết kế không phải ràng buộc chính: kiểm định chính xác trên \NRepeats{} cặp sàn ở $\MinAttainableP$, và ở
+$\CorrectedFloor$ sau hiệu chỉnh \NTests{} so sánh, nên null ở đây phản ánh dữ liệu chứ không
+phải số học. Một lượt sớm bảy lần lặp không có tính chất đó, và
+sàn đã hiệu chỉnh trên $0{,}05$ làm mọi null trong bảng không diễn giải được.
+
+Ba hạn chế còn. Thứ nhất, phép đo lấy trong máy ảo
+không lộ tần số hay điều khiển turbo và ghi CPU steal khác không
+(Mục~\ref{sec:testbed}). Đuôi xa do đó chứa đóng góp từ hypervisor
+không tách khỏi phần mềm được kiểm thử. Đó là lý do đuôi xa dưới bão hoà
+báo chưa giải quyết chứ không phải null. Nó tương tác với ghép cặp theo cách đáng đặt tên.
+Ghép cặp gỡ nhiễu \emph{chung} cho một lần lặp, đó là lý do thống kê cấp lần chạy như peak RSS, CPU và thông lượng bền vững đi qua sạch. Nó không
+gỡ nhiễu rơi một lần chạy mà không đối tác, và đó chính chế độ
+phần trăm đuôi sống. Đó cũng là lý do so sánh quá tải làm trên thông lượng chứ không
+trên độ trễ. Trung bình cấp lần chạy là thống kê ghép cặp có thể cứu trên host như thế này.
+
+Thứ hai, $p$ đã hiệu chỉnh dưới $0{,}05$ cần thiết ở đây và rõ ràng chưa đủ, và
+điều ngược cũng đúng. Trong chiến dịch trước, trước khi hai build \texttt{jemalloc} giữ
+một cấu hình, sử dụng CPU vượt hiệu chỉnh Holm dưới một bộ cấp phát và đảo dấu
+dưới bộ kia. Không ngưỡng nào bắt được điều đó. Chỉ thiết kế
+chạy mọi so sánh hai lần mới thấy. Trong chiến dịch hiện tại kiểm soát không giữ
+gì ngưỡng sẽ thăng, dù hàng đuôi vẫn không vượt. Chiều ngược cũng có ca
+trong peak resident set size dưới \texttt{jemalloc} mô tả ở
+Mục~\ref{sec:resources}. Ở đó khoảng xa không và $18$ trong $20$ lần lặp đồng ý
+đối $p$ gần đơn vị, mà vài outlier thấp đủ tạo. Hàng đó
+đọc từ khoảng, theo quy tắc cố định Mục~\ref{sec:stats} chứ không chọn sau khi
+bất đồng xuất hiện. Hai phân cực đằng sau là khuyết điểm đo chứ không phải
+bộ cấp phát nào, vì ảnh hưởng cả hai ngôn ngữ cùng số lượng và xuất hiện mọi mức
+tải. Chẩn đoán để lại là công việc dụng cụ.
+
+Thứ ba, phân kỳ quá tải được đo và tái lập, và cơ chế giờ được kiểm chứ không
+chỉ lập luận. Mục~\ref{sec:contention} cô lập hàng đợi có giới hạn và
+primitive hoàn thành dưới cùng mẫu \ContentionProducers{} producer. Chúng không tái tạo thứ tự toàn dịch vụ
+ở mức ý nghĩa ($p = \ContentionP$). Điều đó loại hai cấu trúc đó một mình làm giải thích
+đầy đủ, dù chúng là nơi log idiom bắt buộc dự đoán tranh chấp. Nguyên nhân
+không không biết. Nó có thể gồm công việc thêm trên đường bàn giao C++, trong
+\texttt{Request} gắn thẻ lớn hơn, điều phối variant và thao tác bản đồ microbenchmark loại bỏ.
+
+\paragraph{Tính hợp lệ ngoại tại: kết quả đi xa bao nhiêu?}
+Nghiên cứu bao một phân hệ, một khối lượng, một cấu trúc đồng thời và một máy, và
+mỗi cái giới hạn tầm với kết luận khác nhau. Kết quả an toàn và di chuyển
+(RQ2, RQ4) đi xa nhất, vì chúng là thuộc tính compiler và
+ABI C chứ không phải phân hệ này. Mọi codebase C++ viết các lớp lỗi này nhận
+cùng kết quả biên dịch, và mọi giao diện hẹp kiểu vô hướng nhận đường nối
+tương tự rẻ. Hai trục áp dụng RQ4 mang theo cùng cách, vì kích thước nhị phân và hình dạng đồ thị phụ thuộc
+theo toolchain. Trục thứ ba không đi xa như tuyệt đối, vì
+giây build thuộc máy đo chúng, và điều mang theo là tỷ lệ
+giữa hai toolchain đo luân phiên. \emph{Hình dạng} thời gian build cũng đặc thù, theo cách
+đáng đặt tên. Thư viện C++ hai file và một crate Rust đều nhỏ, và kết quả
+tăng dần đặc biệt sẽ dịch chuyển trên codebase cấu trúc header khác.
+
+Kết quả hiệu năng
+đi xa ít nhất. UECM được chọn cố ý nhỏ và
+có thể phân vùng, và thiết kế không chia sẻ loại tranh chấp khóa khỏi đường nóng. Phân hệ với trạng thái mutable chia sẻ thật, đồ thị gọi sâu hay áp lực cấp phát nặng
+do đó có thể kiểm tra chi phí trừu tượng và cấp phát hai ngôn ngữ khá khác. Khối lượng tổng hợp và được biện minh đặc tả, không phát lại từ traffic sản xuất, nên hỗn hợp thao tác
+hợp lý nhưng chưa xác thực. Không gì ở đây nói PHY hay xử lý L2, mặt người dùng nặng dữ liệu, hay mối quan tâm vận hành (nâng cấp, quan sát, đa tenant) mà triển khai
+sản xuất sẽ nêu.
+
+Tuyên bố biện minh do đó hẹp và mang điều kiện. Đối với
+dịch vụ mặt điều khiển có trạng thái, đồng thời, có thể phân vùng loại này, và khi chúng
+đáp ứng tải đề nghị, lựa chọn ngôn ngữ không phải quyết định hiệu năng. Khi chúng không
+đáp ứng, lựa chọn ngôn ngữ là một. Và kết quả quá tải là phát hiện ít chuyển
+nhất trong nghiên cứu chứ không phải nhiều nhất, vì nó phụ thuộc giới hạn hàng đợi, một yêu cầu
+outstanding mỗi producer, và hai primitive thư viện chuẩn cụ thể. Mở rộng
+tuyên bố nào vượt lớp này nghĩa là chạy lại khung, đó là lý do khung chứ không phải
+số được đưa ra như đóng góp tái sử dụng.
+
+Giới hạn cuối về tầm với là thời gian chứ không cấu trúc, và nó áp dụng cho
+bản thân so sánh chứ không một kết quả. Một trong hai đối tượng so sánh đang di chuyển. Phía C++
+ghim C++23 như đặc tả và giao, và phiên bản compiler ghi Mục~\ref{sec:testbed}, trong khi ủy ban chuẩn đang theo đuổi profile an toàn
+bắt buộc (Mục~\ref{sec:cpplatency}). Điều này không điều kiện gì đo ở đây, vì
+không công việc đó chuẩn hoá hay triển khai rộng, và profile đồng thời
+chạm lớp biên RQ2 đến sau tập ban đầu vẫn chưa được đặc tả
+~\cite{vandevoorde2026profiles}. Nó có nghĩa kết quả RQ2 nên đọc như
+tuyên bố về hai ngôn ngữ như hiện tại, không phải vĩnh viễn. Profile vòng đời
+triển khai và bắt buộc sẽ thu hẹp nửa an toàn bộ nhớ danh mục. Profile
+đồng thời triển khai sẽ liên quan nửa đặt cố ý ngoài bảo đảm Rust. Một lần nữa khung là thứ sống sót. Danh mục được thiết kế để chạy lại với
+compiler bắt buộc profile, và câu trả lời khi đó được đo thay vì dự đoán.
+
+\paragraph{Trạng thái tái lập: phát hiện nào đứng một mình.}
+Mục~\ref{sec:approach} ghi không nghiên cứu trước đo so sánh này. Mệnh đề
+đối lập thuộc đây, giờ kết quả tồn tại: cái nào tài liệu rộng đồng ý. Tái lập nội bộ được thiết kế vào chiến dịch, trong \NRepeats{} lần lặp xen kẽ và trong
+mọi so sánh chạy hai lần dưới bộ cấp phát khác. Tái lập ngoài là câu hỏi
+riêng, và câu trả lời không đều. Ba phát hiện có công ty đã xuất bản. Tương đương trung vị dưới
+bão hoà là kết quả được ủng hộ nhất, với cặp khớp độc lập trong ba
+bối cảnh đặt Rust an toàn trong vài phần trăm đối tác C hoặc C++
+~\cite{emmerich2019drivers,li2021ipc,gonzalez2023rustudp}. Rằng bàn giao giữa luồng
+chứ không phải thao tác chi phối chi phí đầu-cuối là trường hợp của mẫu báo cáo cho
+cơ sở dữ liệu không chia sẻ trưởng thành~\cite{zhou2025oltp}. Hầu hết lớp biên RQ2 là mối nguy tài liệu đã ghi. Ba phát hiện đứng một mình. Không nghiên cứu giao thức
+Phụ lục~\ref{appendix:search} tìm báo cáo đảo phụ thuộc tải giữa hai ngôn ngữ, và
+cái báo cùng hình dạng là luận văn thạc sĩ quy cho runtime thiết kế này
+loại trừ~\cite{arvidsson2025async}. Không cái nào đo thời gian build hai toolchain, chưa kể
+tách cây phụ thuộc khỏi mã nguồn riêng. Giới hạn mỗi thao tác trên
+đường nối cũng không có đối tác công bố. Peak resident set size nằm giữa hai nhóm, với
+dấu tìm ở đây được hai luận văn lân cận báo cáo và đảo bởi
+thứ ba~\cite{olsson2023ranmgmt,sundvisson2026drivers,karlback2021ran}. Chưa tái lập không
+có nghĩa không được ủng hộ. Điều nó đặt là mỗi kết quả mang được bao nhiêu trọng lượng một mình, và phân kỳ
+quá tải, hiệu ứng đơn lớn nhất đo ở đây, là phát hiện ít chứng cứ ngoài
+nhất.
+
+\section{Suy ngẫm đạo đức và chuyên môn}
+Tiến hành nghiên cứu không nêu câu hỏi bảo vệ dữ liệu. Nó không xử lý dữ liệu
+cá nhân, thuê bao hay nhà mạng bí mật. Mọi traffic là tổng hợp và do
+bộ điều khiển xác định tạo, ngữ cảnh mang định danh giả và trường bảo mật
+cố định giả, và phân hệ được mô hình theo mã sản xuất chứ không sao chép từ nó. Không mối quan tâm
+riêng tư, đồng ý hay lưu giữ dữ liệu phát sinh, nên artefact có thể phát hành công khai để
+tái tạo. \emph{Cách dùng} nghiên cứu là chuyện khác và đáng nêu rõ,
+vì khuyến nghị chọn ngôn ngữ trong miền này không phải đầu ra kỹ thuật trung lập.
+
+Hai trách nhiệm theo sau. Thứ nhất liên quan phóng đại tuyên bố. Nhà cung cấp có thể đọc hợp lý
+kết quả RQ2 như giấy phép mô tả thành phần di chuyển là ``an toàn'', và ca biên
+là lý do cách đọc đó sai. Mặt điều khiển deadlock là sự cố, cập nhật bộ đếm
+mất im lặng có thể làm sai quyết định mobility, và không gì chứng minh ở đây
+ngăn cả hai. Báo cáo biên nổi bật như bảo đảm là
+nghĩa vụ chuyên môn chứ không phải lựa chọn phong cách, chính xác vì đối tượng
+công việc này đang ra quyết định ảnh hưởng mạng người ta phụ thuộc.
+
+Thứ hai liên quan trọng lượng
+đặt lên bằng chứng host không hỗ trợ đầy đủ. Số độ trễ đuôi đo trong máy ảo
+với CPU steal khác không không phải cơ sở vững cho cam kết sản xuất. Nói vậy
+trong văn bản chỉ có tác dụng nếu điều kiện đi cùng số khi chúng được trích
+nơi khác. Đó là phần
+lý do bảng tóm tắt ghi trạng thái bằng chứng mỗi câu hỏi nghiên cứu chứ không chỉ
+phát hiện. Ngoài kết quả trực tiếp, khuyến nghị di chuyển cũng mang
+hệ quả tổ chức rơi lên người chứ không hệ thống: đào tạo lại, tuyển dụng và
+giai đoạn giảm vận tốc. Cách khung trung thực cho phát hiện RQ4 là chi phí
+chuyển từ thời gian chạy sang công sức con người, không bị xoá.
+
