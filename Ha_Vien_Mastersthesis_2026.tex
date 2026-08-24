@@ -40,6 +40,13 @@
 \usepackage[section]{placeins} % flush pending floats before each \section
 \usepackage{listings} % For the side-by-side C++/Rust excerpts in Chapter 6
 
+% The four largest tables are set [tp]. At the stock \topfraction they exceed what may sit
+% at the top of a text page, so each claimed a float page of its own; these let them share
+% a page with text instead.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.75}
+
 % Ragged-right paragraph column: avoids stretched inter-word spacing in narrow cells.
 \newcolumntype{R}[1]{>{\raggedright\arraybackslash}p{#1}}
 
@@ -1079,7 +1086,7 @@ or corrupting state. This closed, well-typed operation set is what lets the same
 and the same workload drive both implementations along identical paths
 (Section~\ref{sec:parity}).
 
-\section{Memory-safety and concurrency defect classes}
+\section{Memory-safety and concurrency defect classes}\label{sec:defects}
 The defects that affect C++ control-plane code of this kind fall into two families. The
 \emph{memory-safety} family concerns the lifetime and bounds of objects: a \emph{use-after-free}
 accesses storage that has already been released, a \emph{double-free} releases the same storage
@@ -3100,16 +3107,14 @@ cycle leaks in both, the release-build overflow produces a
 wrong TEID in both, and a failure inside one shard worker takes down more than that shard in
 both.
 
-The forgotten guard is the newest liveness case and it separates two things the phrase ``RAII
-prevents this'' runs together. Rust does remove the ordinary form of the bug. The C++ version
-fails because a validation path returns before a hand-written unlock, and there is no
-hand-written unlock in the Rust version to skip. What Rust does not remove is the class, because
-a guard is a value and leaking a value is safe, so a guard parked anywhere that outlives the
-procedure leaves the context locked and the next worker waiting. Both programs had to be killed
-by the timeout, and neither language's tooling said anything: no sanitiser reported the C++
-version, because a lock that is never released is not a race and not a cycle, and there is
-nothing for a lock-order detector to close. Read beside the reference-cycle leak the pair is the
-same lesson twice. There leaking costs memory, here it costs the context.
+The forgotten guard separates two things the phrase ``RAII prevents this'' runs together. Rust
+removes the ordinary form of the bug: the C++ version fails on a validation path that returns
+before a hand-written unlock, and the Rust version has no unlock to skip. It does not remove the
+class, for the reason Section~\ref{sec:defects} gives. Both programs had to be killed by the
+timeout, and neither language's tooling said anything: no sanitiser reported the C++ version,
+because a lock that is never released is not a race and not a cycle, and there is nothing for a
+lock-order detector to close. Read beside the reference-cycle leak the pair is the same lesson
+twice, costing memory there and the context here.
 
 The seam double-free is the case that does not report a new defect class at all, and it is in
 the catalogue for that reason. It is the double-free of the in-guarantee group, moved to the
@@ -3133,11 +3138,10 @@ collection to Rust are motivated precisely by shared-ownership structures that r
 expresses ``awkwardly, inefficiently, or both''~\cite{hughes2025gcrust}. Where \texttt{unsafe}
 marks the memory-safety boundary explicitly, the leak boundary is implicit and the compiler stays
 silent, which is the premise of a static leak checker that found the class in $19$ of more than
-$1{,}200$ published crates~\cite{cui2024rcanary}. UBSan reports the C++ overflow, because signed overflow is undefined.
-The Rust overflow is \emph{defined} to wrap at \texttt{opt-level~=~2}, which leaves
-\texttt{overflow-checks} off, so the program has a meaning and the meaning is wrong. That
-second contrast needs stating carefully, because it does not reduce to which language is
-safer. Defined-but-wrong is easier to debug than undefined-and-wrong, and no less incorrect, and
+$1{,}200$ published crates~\cite{cui2024rcanary}. UBSan reports the C++ overflow, because signed
+overflow is undefined there, while the Rust overflow wraps by definition at
+\texttt{opt-level~=~2} and passes unremarked (Section~\ref{sec:defects}). That second contrast
+needs stating carefully, because it does not reduce to which language is safer. Defined-but-wrong is easier to debug than undefined-and-wrong, and no less incorrect, and
 neither is what ``memory safe'' is usually taken to promise. Deliberate wraparound is also common
 enough in C and C++ that a checker cannot treat every overflow as a defect, and undefined overflow
 has broken working programs as compilers improved~\cite{dietz2015overflow}.
@@ -4473,8 +4477,8 @@ language effects be isolated from design and skill differences.
 Three conclusions follow from the evidence. First, on safety the difference is one of
 \emph{kind}, and it has a definite edge. Safe Rust rejects all seven injected memory-safety and
 data-race classes at compile time, and one of those seven is a class no C++ sanitiser reports at
-all. Runtime hazards that C++ can only hope to catch with
-sanitiser-instrumented tests become errors that cannot be written at all. The edge stops there.
+all. Hazards C++ can only hope to catch under an instrumented test become unwriteable. The edge
+stops there.
 All seven boundary
 classes compile and misbehave in safe Rust exactly as they do in C++, and on two of them the C++
 tooling is the one that reports. The guarantee is therefore best described precisely. Rust
@@ -4554,11 +4558,11 @@ cache-locality account Section~\ref{sec:budget} offers for the operation-level g
   itself, and would settle how much of the gap Olsson and Stenstr\"om measured between
   asynchronous Rust and DPDK~\cite{olsson2023asyncpackets} belongs to the runtime rather than the
   framework.
-\item Measure what in-process isolation of the two heaps costs at the seam, since that is what
-  an \texttt{unsafe}-free core would need to be protected as well as
-  verified~\cite{rivera2021galeed,kirth2022pkrusafe}.
-\item Track defect density and review effort in a longer-term case study, as Rust is adopted
-  incrementally in a production RAN codebase.
+\item Measure what in-process isolation of the two heaps costs at the seam, since an
+  \texttt{unsafe}-free core needs protecting as well as
+  verifying~\cite{rivera2021galeed,kirth2022pkrusafe}.
+\item Track defect density and review effort as Rust is adopted incrementally in a production RAN
+  codebase.
 \end{itemize}
 
 % Declaration of generative-AI use, required by the University when a language model has
