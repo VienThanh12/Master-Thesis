@@ -3100,8 +3100,8 @@ rule in a comment, which is the only place C++ has to put it. In Rust that rule 
 type and \texttt{thread::spawn} asks for it in its signature, so the compiler refuses without
 analysing the body at all. One caveat belongs with the first of these. A static analyser
 configured for it would plausibly flag the use-after-move, and \texttt{clang-tidy} ships a check
-for exactly this pattern, one that by its own documentation reasons about control flow rather than
-paths and considers only local variables and function
+for exactly this pattern, one whose own documentation records that it follows control flow but not
+paths, and that it considers only local variables and function
 parameters~\cite{clangtidyuseaftermove}. None is run here, for the reason given in
 Section~\ref{sec:methodfaults}, so the row records what the sanitisers report and not the limit
 of what C++ tooling could reach.
@@ -3672,10 +3672,10 @@ livelocks reachable~\cite{tang2025converos}.
 The lost update is sharper still. It escapes
 ThreadSanitizer for precisely the reason it escapes the borrow checker, as
 Section~\ref{sec:safetyresults} sets out. With every access correctly synchronised there is no
-unsynchronised access to find. Nor is the class marginal. In the field study of $105$ real
-concurrency bugs that named these categories, about a third of the non-deadlock cases violated the
-order the programmers intended rather than their locking, and the authors record that such
-intentions are not readily expressible through locks at all~\cite{lu2008mistakes}. The distinction
+unsynchronised access to find. Nor is the class marginal. In a field study of $105$ real
+concurrency bugs, about a third of the non-deadlock cases violated the order the programmers
+intended, not their locking, and the authors record that such intentions are not readily
+expressible through locks at all~\cite{lu2008mistakes}. The distinction
 it exposes, between a data race and a race
 condition, is the one the phrase ``thread safety'' routinely runs together, and Rust removes only
 the first.
