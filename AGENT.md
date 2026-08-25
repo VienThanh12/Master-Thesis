@@ -18,7 +18,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | --- | --- | --- | --- |
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v2.tex`. |
 | **`Thesis_v2.pdf`** | `Thesis_v2.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through, all nine chapters populated since 20 Aug 2026. This is what goes to the supervisor alongside the plan. |
-| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 25 Aug 2026: abstract form declaring **102 pages + 6 appendix pages** (116 physical). It read 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. The three pages back down came from the 25 August **layout** pass and cost no argument. The duplication passes that preceded it removed 875 words and no pages, which is the lesson recorded in §5, *Length and layout*. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
+| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 25 Aug 2026: abstract form declaring **100 pages + 6 appendix pages** (114 physical). It read 102 earlier the same day, 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. Three pages came back from the 25 August **layout** pass and two more from the §6.4 duplication pass that followed it, neither costing an argument. See §5, *Length and layout*, for why the second one paid when the earlier duplication passes did not. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v2.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. Kept for reference under their original names. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
 | Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Ha_Vien_Mastersthesis_2026.tex`. |
@@ -287,7 +287,7 @@ rg 'gdef.(pagesCount|appendixCount)' build/Ha_Vien_Mastersthesis_2026.aux
 ```
 
 `\pagesCount` counts the body **plus** the AI statement and the bibliography, so a reference-list
-change moves the declared figure. It currently reads 102 with 6 appendix pages (116 physical).
+change moves the declared figure. It currently reads 100 with 6 appendix pages (114 physical).
 
 **Under 100 is a preference, not a rule.** The author set it as the target on 19 August 2026 and
 may revise it. No University of Helsinki or CSM requirement is behind it, and nothing in the
@@ -334,27 +334,51 @@ absorbed by float whitespace and by the chapter-opening rule. The layout pass th
 recovered three, from five per-table float changes and 160 words taken off two chapter tails. Cut
 duplication because it makes the thesis read better, not because it will shorten it.
 
+The §6.4 pass of 25 August qualifies that, and the qualification is about *order* and not about
+the rule. It removed 420 words of restatement and recovered two declared pages, 102 to 100, which
+looks like a counterexample and is not one. The first 375 words took one page off downstream and
+left body page 70 holding four lines instead of eighteen, and 45 more words then closed that page
+outright and took the chapter from 27 pages to 26. So the sequence is what pays. Shorten the
+chapter tails by layout first, then cut duplication, and a stranded page that was previously
+immovable becomes cheap. Cutting the same 420 words before the layout pass would have bought
+nothing. What still does not work is cutting duplication *instead of* fixing layout.
+
 One trap belongs with the tails. Once the preceding page is full, shaving words moves nothing
 until a whole *line* comes out, and the final word of a chapter can sit alone on a page while its
 own page is 98 per cent full. Fix that by removing a line from the paragraph, not by rewording
 its last sentence.
 
-**What is left after 25 August 2026:** thirteen short pages holding about 5.2 pages of stranded
-whitespace, down from nineteen and 8.0. Most of it now sits at chapter boundaries (body pages 7,
-32, 43, 71 and 72), which is `twoside,openright` behaving as intended rather than a defect. One
-page resisted deliberately. Body page 71 carries the last paragraph of §6.4.8 with page 70 full,
-so closing it needs roughly four lines out of the RQ4 adoption-cost prose, and every candidate
-there is protected by §3 item 6a: the three footprint rows, the build-time decomposition, and the
-empty C++ `unsafe` cell. It was compressed from 1.9 to 1.4 per cent ink and then left. Do not
-trade a protected claim for that page.
+**What is left after 25 August 2026:** most of the remaining stranded whitespace sits at chapter
+boundaries, which is `twoside,openright` behaving as intended rather than a defect.
 
-Compressing load-bearing prose is the last resort, and duplication is no longer a source. As of
-25 August 2026 the sentence and paragraph scans return only structural pairs: a hypothesis stated
-in §1.3 and revisited in §7.3, the abstract against the conclusion, and prose against its own
-figure caption. Those are the layering working, not repetition. What remains that a reader would
-notice is a form tic rather than a duplicate claim: the "N things bound what this licenses" move
-opens eleven passages in chapters 6 and 7, one of which says "Three things *again* bound what the
-finding licenses". Each carries different content, so vary the openings rather than cutting them.
+The §6.4.8 tail page is **closed** as of the §6.4 duplication pass, and how it closed is the
+transferable part. It had resisted a direct attack, because closing it needed about four lines out
+of the RQ4 adoption-cost prose and every candidate there is protected by §3 item 6a: the three
+footprint rows, the build-time decomposition, and the empty C++ `unsafe` cell. That constraint
+still holds. What worked instead was taking the lines from *upstream* restatement in §6.4.1,
+§6.4.6 and §6.4.7, which pulled the tail forward without touching a protected claim. When a
+stranded tail page has no spendable lines of its own, look further up the same chapter before
+concluding it cannot move. Do not trade a protected claim for a page.
+
+Compressing load-bearing prose is the last resort. The sentence and paragraph *scans* return only
+structural pairs: a hypothesis stated in §1.3 and revisited in §7.3, the abstract against the
+conclusion, and prose against its own figure caption. Those are the layering working, not
+repetition.
+
+What the scans miss, and the §6.4 pass of 25 August found by reading, is an argument re-derived
+from scratch at each site instead of cross-referenced. No two of those passages share enough
+wording to pair, so a scan cannot see them. The largest was the claim that this host cannot
+resolve the far tail, stated eight times in chapter 6 and derived in full at five of them. The
+same shape held for the borrow-checker disclaimer, the environment-insensitivity definition, and
+§6.4.6's closing synthesis, which restated a subsection that §7.2 and Table 7.1 then restate
+again. **Search for repeated *arguments*, not repeated sentences.** Two things are now closed
+that were open: the "N things bound what this licenses" openings have been varied, including the
+one that read "Three things *again* bound what the finding licenses", and §6.4's opening no longer
+inventories six resolved findings that Table 7.1 tabulates a chapter later.
+
+What is deliberately **not** cut in §6.4.7, and should stay uncut: the boundary group's
+"in both languages" clauses. They read as repetitive and they are RQ2's falsifiability evidence,
+which is criterion 1's blocker.
 
 **Acceptance gates**
 
@@ -424,8 +448,12 @@ edit pass so the two do not diverge.
 
 ---
 
-*Last updated: 25 August 2026. Two length passes on 24 and 25 August took the declared figure from
-105 to 102 pages and removed no argument. The first cut 875 words of duplication, found by
+*Last updated: 25 August 2026. Three length passes on 24 and 25 August took the declared figure
+from 105 to 100 pages and removed no argument. The third was scoped to §6.4 at the author's
+request and is the one that finally cleared 100: 420 words of re-derived argument out, the §6.4.8
+tail page closed from upstream, chapter 6 down from 27 pages to 26, every float still within two
+pages of its citation. Its lesson is in §5 and it is about ordering, since the same 420 words
+would have bought nothing before the layout pass. The first cut 875 words of duplication, found by
 scanning every sentence and paragraph pair in the document rather than by reading: a claim was
 typically stated in three places, such as the environment record in §4.5, §6.1 and §6.3, the
 pairing rule in §4.4, §7.6 and Table 7.3, and the frozen specification's contents in §4.3, Table

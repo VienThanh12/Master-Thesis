@@ -2383,21 +2383,13 @@ on it along one axis only. The performance and resource results do, and
 Section~\ref{sec:testbed} states what that host can and cannot carry. Every figure and table
 below is measured on it unless stated otherwise.
 
-Resolved and unresolved outcomes are reported side by side. Saying at the outset which is which
-keeps a null result from being read as an absent one. Six findings are resolved: the
-defect-class taxonomy and its boundary (Section~\ref{sec:safetyresults}), the cost of the FFI seam
-(Section~\ref{sec:migrationresults}), the memory difference between the two builds
-(Section~\ref{sec:resources}), the cost of the bare operation (Section~\ref{sec:budget}), the
-equivalence of the four variants at the median below saturation, and their divergence past it
-(Section~\ref{sec:overload}). That last one is the largest and most reproducible language effect
-in the study.
-
-The far tail \emph{below} saturation is the one unresolved outcome, and the host is the reason.
-Run-to-run spread at p99 exceeds every difference between the variants, and no number of
-repeats on a virtualised machine with non-zero CPU steal closes that gap
-(Section~\ref{sec:perfresults}). Only the bare-metal protocol of Section~\ref{sec:testbed} will
-answer it. The overload divergence is resolved as a measurement, though not fully as a mechanism
-(Section~\ref{sec:contention}).
+Resolved and unresolved outcomes are reported side by side, because saying at the outset which is
+which keeps a null result from being read as an absent one. Everything below is resolved on this
+host except the far tail \emph{below} saturation.
+Section~\ref{sec:perfresults} sets out why that one belongs to the machine and not to the
+analysis, and Section~\ref{sec:testbed} names the protocol that would settle it. One resolved
+outcome is resolved only as a measurement and not as a mechanism, the divergence past saturation,
+and Section~\ref{sec:contention} reports how far the mechanism could be narrowed.
 
 \subsection{Performance (RQ1, RQ3)}\label{sec:perfresults}
 The hypothesis under test is H1 (Section~\ref{sec:rqs}): equivalence below saturation, with any
@@ -2430,15 +2422,12 @@ ordering can be read off. Reporting one would be reporting the scheduler. The sa
 with greater force at p99.9 and at the maximum.
 
 This is the concrete form of the limitation stated in Section~\ref{sec:testbed}, and its cost is
-bounded. It does not touch the throughput and saturation behaviour, the resource results below,
-or anything in the RQ2 and RQ4 chapters. What it does mean is that one half of RQ1 gets only a
-negative answer from this campaign, namely how the two languages behave in the high percentiles
-while the service is still meeting its offered load. That tail is not yet measurable. The other
-half is untouched, and Section~\ref{sec:overload} resolves it decisively on this same host.
-Closing the gap needs the bare-metal protocol, not more repeats here, because the spread is
-systematic interference and not sampling noise. Section~\ref{sec:budget} also shows that the
-quantity a language could affect lies more than three orders of magnitude below the one this
-measurement resolves.
+bounded. One half of RQ1 gets only a negative answer from this campaign, namely how the two
+languages behave in the high percentiles while the service is still meeting its offered load.
+Nothing else is touched. The throughput and saturation behaviour, the resource results below and
+the RQ2 and RQ4 results all stand, and Section~\ref{sec:overload} resolves the other half of RQ1
+decisively on this same host. Closing the gap needs the bare-metal protocol, not more
+repeats, because the spread is systematic interference and not sampling noise.
 
 One qualification about the metrics belongs here and not only in the validity discussion.
 Predictability is evidenced at p99 and p99.9 and no further, because the campaign reported here
@@ -2522,40 +2511,32 @@ easier to see there than in a table of fourteen rows: which effects survive the 
 whether an effect keeps its sign when the allocator changes, and how much wider the tail
 intervals are than the rest.
 
-Five things follow. First, \NSignificant{} of the \NTests{} tests in the family survive the Holm
-correction. At this operating point they are the two median-latency rows, peak resident set size
-under the system allocator, and both CPU rows. The four remaining survivors are the overload
-comparisons of Section~\ref{sec:overload}. Peak resident set size under jemalloc is the one
-upper-block row that does not clear the correction, despite an interval nowhere near zero, and
+\NSignificant{} of the \NTests{} tests in the family survive the Holm correction: the two
+median-latency rows, peak resident set size under the system allocator, both CPU rows, and the
+four overload comparisons of Section~\ref{sec:overload}. Peak resident set size under jemalloc is
+the one upper-block row that does not clear it, despite an interval nowhere near zero, and
 Section~\ref{sec:resources} takes up why.
 
-Second, the reading rule fixed in Section~\ref{sec:stats} has to be applied before any of those
-are interpreted. \NExclZero{} paired intervals exclude zero. In the tail block the ones that do
-are: \TailExclZeroRows. The rule is stated in advance, and not at this point, precisely
-because that outcome is not guaranteed. An earlier seven-repeat pass of the same campaign did
-produce tail intervals excluding zero, and more repeats then removed them. That is the behaviour
-the rule anticipates.
+Before any of those are interpreted, the reading rule fixed in Section~\ref{sec:stats} applies.
+\NExclZero{} paired intervals exclude zero, and in the tail block the ones that do are:
+\TailExclZeroRows. Fixing the rule in advance, and not at this point, was the whole
+precaution, because that outcome is not guaranteed. An earlier seven-repeat pass of this same
+campaign produced tail intervals excluding zero, and more repeats then removed them again.
 
-Third, the allocator control supplies a second check, independent of the first. Every comparison
-is run twice under conditions that should not change a language effect, so an effect that really
-is the language ought to keep its sign whichever allocator is linked. Here
-\CrossAllocConsistent{} all do, and \NCrossAllocReversed{} reverse. The control confirming rather
-than vetoing is no evidence that it was unnecessary, and Section~\ref{sec:threats} records the
-earlier campaign on which it did veto. A control earns its place by what it would have caught,
-not by what it happens to catch.
+The allocator control supplies a second check, independent of the first. Every comparison is run
+twice under conditions that should not change a language effect, so an effect that really is the
+language ought to keep its sign whichever allocator is linked. Here \CrossAllocConsistent{} all
+do, and \NCrossAllocReversed{} reverse. That the control confirmed here and did not veto is no
+evidence it was unnecessary. Section~\ref{sec:threats} records the earlier campaign on which it
+did veto, and a control earns its place by what it would have caught.
 
-Fourth, the \NEqvUnresolved{} rows the correction does not clear are not all saying the same
-thing, and Table~\ref{tab:equivalence} is what separates them. A test that fails to resolve a
-difference still bounds it: there is a tightest margin within which the two variants can be
-called equivalent, and it is a property of the data rather than of the verdict. Read that way the
-upper block and the tail block come apart sharply. At the median the bound is
-$\EqvBoundPFifty\,\mu$s, so the difference the test does resolve is also small in absolute terms
-and the two readings agree. In the tail block the bounds run out to $\EqvBoundTailMax\,\mu$s,
-which is this host's inability to see stated as a quantity instead of as a null. The distinction
-matters because the two are routinely reported the same way. A null with a tight bound is a
-result. A null with a bound wider than any difference a deployment would care about is the
-campaign declining to answer, and saying which is which is the least this table can do for the
-half of RQ1 the host cannot resolve.
+The \NEqvUnresolved{} rows the correction does not clear are not all saying the same thing, and
+Table~\ref{tab:equivalence} is what separates them. A test that fails to resolve a difference
+still bounds it, and that bound is a property of the data rather than of the verdict. At the
+median it is $\EqvBoundPFifty\,\mu$s, small enough that the two readings agree. In the tail block
+the bounds run out to $\EqvBoundTailMax\,\mu$s, wider than any difference a deployment would care
+about. The first is a null worth reporting. The second is the campaign declining to answer, and
+saying which is which is the least this table can do for the half of RQ1 the host cannot resolve.
 
 \begin{table}[tp]
 \centering
@@ -2576,7 +2557,7 @@ Metric & Allocator & $|$Effect$|$ & Equivalent within & Verdict \\
 \end{tabular}
 \end{table}
 
-Fifth, the median is now a resolved difference and not a null: $\PFiftyDiffAbsMax\,\mu$s
+The median itself is a resolved difference and not a null: $\PFiftyDiffAbsMax\,\mu$s
 in Rust's favour, consistent under both allocators. The interval on it reaches
 $\PFiftyDiffCIMax\,\mu$s against a median of roughly $80\,\mu$s, and the temptation is to report
 that as a bound on the language effect. That reading would be wrong, and the next section
@@ -2633,14 +2614,13 @@ Two conclusions follow, and they pull in opposite directions.
 
 The first is that the sweep cannot bound the language effect, and the bound quoted above must
 not be read as though it does. An interval of $\PFiftyDiffCIMax\,\mu$s on the paired median
-difference is $\BudgetBoundVsCore$ times the operation's own cost. A language effect could be
+difference is $\BudgetBoundVsCore$ times the operation's own cost, so a language effect could be
 several hundred percent of the work being done and still sit comfortably inside it. What the sweep
 does establish is weaker and still useful: neither language disturbs the
 scheduler-dominated round-trip, which is what a deployment of this shape would actually
-experience. What it cannot establish, at any repeat count, is anything about the code the
-compilers emit. That limit comes from how the measurement is built and not from the host,
-so unlike the tail result it will not be fixed by moving to bare metal. It is fixed by
-measuring the component on its own, which is what this section does.
+experience. The limit comes from how the measurement is built and not from the host, so unlike
+the tail result it will not be fixed by moving to bare metal. It is fixed by measuring the
+component on its own, which is what this section does.
 
 The second is that once the component \emph{is} measured on its own, the languages are not
 equivalent. \BudgetCoreFaster{} runs the bare operation about $\BudgetCoreRatio\times$ faster,
@@ -2688,7 +2668,7 @@ Section~\ref{sec:threats} lists as the clearest instrumentation gap.
 Three limits keep the finding the size it is. It is a single-threaded, uncontended
 microbenchmark, so it says what the operation costs and not what a loaded system does with it.
 It is measured on the same host as the sweep, so the absolute figures carry the
-same caveat, though the ratio is far less sensitive to that than either term is. And it is one
+same caveat, though the ratio is far less sensitive to it than either term is. And it is one
 operation on one data structure. Generalising from it to ``Rust is $\BudgetCoreRatio\times$
 faster'' would repeat exactly the error this thesis criticises in the average-case literature.
 
@@ -2745,12 +2725,10 @@ warm-up iterations bias neither the numerator nor the denominator.\label{fig:thr
 Figure~\ref{fig:tailpct} holds the load fixed instead and sweeps the percentile. The four
 variants coincide at the median and fan out as the percentile rises. That is the expected shape
 for a heavy-tailed distribution, and it is why a percentile-aware methodology is used throughout.
-The fanning is not a language effect, and the right-hand panel shows why. It sets the spread
-between the four variants at each percentile against the widest interval any single variant
-carries there. At the median the spread is the larger of the two, which is the regime
-in which an ordering means something. From p90 upward the interval exceeds the spread several
-times over. The fan therefore marks where the measurement loses resolution, not where the
-languages differ.
+The fanning is not a language effect. Its right-hand panel sets the spread between the four
+variants against the widest interval on any one of them, and from p90 upward the interval wins,
+so the fan marks where the measurement loses resolution and not where the languages differ
+(Section~\ref{sec:perfresults}).
 
 \begin{figure}[ht]
 \centering
@@ -2815,11 +2793,10 @@ saturation the producers spend almost all their time in two places recorded in
 Table~\ref{tab:idioms}: the bounded blocking queue and the completion handle.
 Section~\ref{sec:contention} isolates those primitives, and they do not reproduce the
 full-service ordering at significance. That rules them out \emph{alone} as the whole explanation
-for a $\OverloadThrRatio\times$ gap. As in Section~\ref{sec:budget}, nothing in the borrow checker,
-in bounds checking, or in ownership is implicated, and the finding should not be quoted as though
-it were.
+for a $\OverloadThrRatio\times$ gap. As in Section~\ref{sec:budget}, nothing in the safety model
+is implicated.
 
-Three things again bound what the finding licenses. It is one design, a shared-nothing service with one
+The setting bounds what the finding licenses. It is one design, a shared-nothing service with one
 request outstanding per producer and a queue bound of $1\,024$, and the depth of the collapse
 depends on all three. It is measured with a harness whose producers block per request, so it
 describes what this shape of client experiences and not what a pipelined one would.
@@ -2963,11 +2940,9 @@ collected, so the split between arena pre-reservation, per-thread caches, and st
 not resolved here. Both points are revisited in Chapter~\ref{chapter:discussion}.
 
 The RQ3 finding is therefore neither the flat ``no resource penalty'' that overlapping intervals
-would suggest, nor a general performance penalty. Rust costs a few megabytes more of fixed
-footprint, reproducibly and under both allocators, but an order of magnitude less than the allocator
-choice itself. It is slightly cheaper in CPU while the service is coping, and considerably more
-expensive once it is not. On the bare operation of Section~\ref{sec:budget} it is the faster of
-the two.
+would suggest nor a general one. Rust costs a few megabytes more of fixed footprint under both
+allocators, an order of magnitude less than the allocator choice itself, and its CPU cost changes
+sign with the load regime.
 
 \begin{table}[H]
 \centering
@@ -3067,16 +3042,13 @@ Section~\ref{sec:methodfaults}, so the row records what the sanitisers report an
 of what C++ tooling could reach.
 
 All seven boundary cases behave as predicted, and they mark out the edge of the claim. Every one
-compiles in safe
-Rust and every one misbehaves. The deadlock case hangs in both languages and had to be killed
-by the harness timeout. The lost-update case ends in both languages with a silently wrong
-answer. Against an expected total of $\LostUpdateExpected$ increments the safe-Rust program
-recorded $\LostUpdateRustHandled$, losing $\LostUpdateRustLost$, and the C++ program under
-ThreadSanitizer recorded $\LostUpdateCppHandled$, losing $\LostUpdateCppLost$. Neither language
-is meaningfully better off here, which is the point of carrying the class at all. The reference
-cycle leaks in both, the release-build overflow produces a
-wrong TEID in both, and a failure inside one shard worker takes down more than that shard in
-both.
+compiles in safe Rust and every one misbehaves. The lost-update case ends in both languages with
+a silently wrong answer: against an expected total of $\LostUpdateExpected$ increments the
+safe-Rust program recorded $\LostUpdateRustHandled$ and the C++ program under ThreadSanitizer
+$\LostUpdateCppHandled$, losing $\LostUpdateRustLost$ and $\LostUpdateCppLost$. Neither language
+is meaningfully better off, which is the point of carrying the class at all. The deadlock hangs
+in both, the reference cycle leaks in both, the release-build overflow produces a wrong TEID in
+both, and a failure inside one shard worker takes down more than that shard in both.
 
 The forgotten guard separates two things the phrase ``RAII prevents this'' runs together. Rust
 removes the ordinary form of the bug: the C++ version fails on a validation path that returns
@@ -3131,14 +3103,13 @@ statement for this class is therefore narrow. The tool catches the inversion the
 and it is unreliable on the one that deadlocks, which is a very different proposition for a
 continuous-integration pipeline than a clean catch.
 
-The distinction all of this exposes is precise, and it is the one the phrase ``thread
-safety'' routinely blurs. Rust's concurrency guarantee is the absence of \emph{data races},
-meaning unsynchronised concurrent access to the same location. It is not a guarantee about
-\emph{lock-acquisition order}, nor about the \emph{atomicity of a composed operation}, nor
-about leaks, wrapping arithmetic, or fault containment, and it is suspended wherever a
-program writes \texttt{unsafe}. The lost update stays the quietest
-case, because no sanitiser reports it. With every access properly locked there is no race for a
-race detector to find.
+The scope all of this exposes is precise. Rust's concurrency guarantee is the absence of
+\emph{data races}, meaning unsynchronised concurrent access to the same location. It is not a
+guarantee about \emph{lock-acquisition order}, nor about the \emph{atomicity of a composed
+operation}, nor about leaks, wrapping arithmetic, or fault containment, and it is suspended
+wherever a program writes \texttt{unsafe}. The lost update stays the quietest case, because no
+sanitiser reports it either. With every access properly locked there is no race for a race
+detector to find.
 
 \paragraph{Where the boundary classes are caught, and at what cost.}
 RQ2 asks which defects are prevented, and also at what stage the rest are detected. For
@@ -3204,13 +3175,13 @@ of on a planted one.
 The direction in which it must \emph{not} be over-read is the flattering one. Rust did not
 prevent this at compile time, and nothing in the borrow checker knows that a service must be
 started before it is used. What turned undefined behaviour into a diagnosable failure was a
-slice bounds check. That is a runtime guarantee, so it is the same kind of assurance the
-C++ sanitiser offers and not the compile-time kind Table~\ref{tab:taxonomy} records. The
+slice bounds check, which is a runtime guarantee and so the same kind of assurance the C++
+sanitiser offers, and not the compile-time kind Table~\ref{tab:taxonomy} records. The
 honest claim is that checking by default turned a specification gap into a panic, not that a
-type system caught a lifecycle error. What is left is still the distinction this chapter keeps
-returning to: a panic that names its cause on every build, against a heap-use-after-free that
-needs an instrumented binary and a test that thinks to look. Both implementations now reject the
-call explicitly, in both directions, and both suites cover it.
+type system caught a lifecycle error. What remains is a panic naming its cause on every build
+against a heap-use-after-free that needs an instrumented binary and a test that thinks to look.
+Both implementations now reject the call explicitly, in both directions, and both suites cover
+it.
 
 \begin{table}[tp]
 \centering
@@ -3248,15 +3219,10 @@ every one. The detector builds its lock-order graph from acquisitions that \emph
 run whose first inversion blocks never completes the second edge of the cycle.\par}
 \end{table}
 
-Read as a whole the table makes two things visible at once. Above the boundary rule the entire
-Rust column is a compile-time rejection, while the C++ columns are a patchwork of runtime
-detections and outright misses. Below the rule the Rust column joins them, and on two rows it
-falls behind. Figure~\ref{fig:taxonomy} draws the same $\FaultClasses$ outcomes as a matrix,
-where that
-change of character at the rule is the shape of the picture and not something to be read off
-row by row. The outcomes are recorded in the fault-injection logs of
-Section~\ref{sec:repro}. Table~\ref{tab:taxonomy} and Figure~\ref{fig:taxonomy} are both
-generated from the taxonomy log, so neither can drift from the other.
+Figure~\ref{fig:taxonomy} draws the same $\FaultClasses$ outcomes as a matrix, where the change
+of character at the boundary rule is the shape of the picture and not something to be read off
+row by row. Both it and Table~\ref{tab:taxonomy} are generated from the fault-injection taxonomy
+log of Section~\ref{sec:repro}, so neither can drift from the other.
 
 \begin{figure}[ht]
 \centering
@@ -3394,9 +3360,8 @@ Measure & C++ & Rust \\
 \end{tabular}
 \end{table}
 
-Two of the three are environment-insensitive in the sense
-Section~\ref{sec:safetyresults} gives the defect catalogue. Binary sizes and dependency counts are
-properties of the toolchain and not of the machine hosting it, so they carry from this measurement
+Binary sizes and dependency counts are environment-insensitive in the sense
+Section~\ref{sec:safetyresults} gives the defect catalogue, so they carry from this measurement
 unchanged. Build time is not, and it is treated accordingly. It was taken on the local development
 machine over \AdoptRepeats{} interleaved repeats at \AdoptJobs{} parallel jobs, with the first
 repeats discarded so that a cold page cache is not read as a property of a compiler. The absolute
@@ -3470,13 +3435,12 @@ and counted with one syntactic rule those two trees hold
 $\DepsUnsafeJemalloc$ and $\DepsUnsafeHarness$ \texttt{unsafe} sites.
 
 Two readings should be kept apart. The count bounds where an audit would have to look and is not
-a risk score, since a crate concentrating its \texttt{unsafe} in one large block scores
-below one that spreads the same work across many small ones. The C++ column is empty by
-construction and not by advantage: the language marks no such region, so the whole program stands
-where Rust's
-\texttt{unsafe} blocks stand, and entering a zero there would be a category error. What the axis
-establishes is that the component that would ship carries none of the unaudited code in this
-project, and that the largest surface belongs to the apparatus that produced the measurements.
+a risk score, since a crate concentrating its \texttt{unsafe} in one large block scores below one
+that spreads the same work across many small ones. The C++ column is empty by construction and
+not by advantage, because the language marks no such region, so the whole program stands where
+Rust's \texttt{unsafe} blocks stand and a zero there would be a category error. The axis
+establishes that the component which would ship carries none of this project's unaudited code,
+and that the largest surface belongs to the apparatus that produced the measurements.
 
 \chapter{Discussion\label{chapter:discussion}}
 
