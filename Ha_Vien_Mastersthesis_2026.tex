@@ -2203,66 +2203,63 @@ Each bounds the claims made about its own implementation.
 \chapter{Experimental Setup and Evaluation\label{chapter:eval}}
 
 \section{Testbed configuration\label{sec:testbed}}
-Two execution environments must be distinguished, because the thesis deliberately reports
-results of two different evidential strengths and the distinction rests entirely on where
-they were produced.
+This chapter reports results from two kinds of measurement environment. Some numbers follow
+from the compilers and the source code alone. Others depend on the physical machine, and the
+host used here cannot settle them. Table~\ref{tab:testbed} keeps the two sides separate.
 
 \paragraph{The environment used.}
-All performance results reported in this chapter were measured on one dedicated dual-socket
-server: two Xeon E5-2680~v4 processors, $16$ vCPUs on a single NUMA node presented as one thread
-per core, running Rocky Linux~8.10 with \texttt{g++~15.1.1} and \texttt{rustc~1.97}. The
-benchmark is pinned to cores $2$--$15$, so that every worker and every producer owns a core and
-none contends with the operating system. Table~\ref{tab:testbed} lists the host against the
-protocol described below, and every run captures the environment record of
-Section~\ref{sec:repro} alongside its measurement data.
+All performance results in this chapter come from one dedicated dual-socket server: two Xeon
+E5-2680~v4 processors, $16$ vCPUs on a single NUMA node with one thread per core, running Rocky
+Linux~8.10 with \texttt{g++~15.1.1} and \texttt{rustc~1.97}. Cores $2$--$15$ are pinned to the
+benchmark, so each worker and producer has its own core and does not share one with the
+operating system. Table~\ref{tab:testbed} lists this host next to the protocol described
+below. Every run also records the environment metadata from Section~\ref{sec:repro}.
 
-One property of this host has to be stated plainly, because it bounds every tail claim below: it
-is a virtual machine. The environment record identifies a KVM guest, and three consequences
-follow. First, the CPU frequency governor and turbo state are host-controlled. They are not
-merely unset but unobservable from inside the guest, so frequency stability is assumed and not
-enforced. Second, the record shows non-zero CPU steal, on the order of ten milliseconds of vCPU
-time per second. That is small in aggregate, but it is the same order as the tail latencies being
-measured, and nothing inside the guest can remove it. Third, the topology is not what it appears
-to be. The guest is shown two
-sockets of eight single-threaded cores, which is not the shape of an E5-2680~v4, a fourteen-core
-part with simultaneous multithreading. That topology is therefore synthetic. Whether the
-sixteen vCPUs sit on distinct physical cores or share thread siblings is a host decision, and it
-cannot be read from inside the guest. Siblings would compete for one core's execution resources.
-The cores were also not removed from the scheduler with
-\texttt{isolcpus}, so a benchmark thread can still lose its core to other work.
+One fact about this host limits every tail-latency claim in what follows: it is a virtual machine.
+The environment record shows a KVM guest. That brings three limitations. First, the CPU
+frequency governor and turbo state are controlled by the host. They cannot even be read from
+inside the guest, so frequency stability is assumed rather than enforced. Second, the record
+reports non-zero CPU steal, on the order of ten milliseconds of vCPU time per second. That loss
+is small in total, but it is the same order of magnitude as the tail latencies under study, and
+the guest cannot remove it. Third, the reported topology does not match the hardware name. The
+guest sees two sockets of eight single-threaded cores, which is not how an E5-2680~v4 is built
+(a fourteen-core part with simultaneous multithreading). Whether the sixteen vCPUs map to
+separate physical cores or to hyperthread siblings is decided by the host and cannot be checked
+from inside the guest. Siblings would share one core's execution units. The cores were not
+isolated from the scheduler with \texttt{isolcpus}, so a benchmark thread can still be
+preempted.
 
-This is a much better instrument than the shared development laptop an earlier pass of this
-campaign used. The cores are uniform and server-class, nothing else of
-consequence runs on the machine, and the run-to-run spread at p99 fell by more than an order
-of magnitude between the two. It is still not the bare-metal host the protocol below specifies.
+Compared with the shared development laptop used in an earlier pass, this server is a much
+better instrument. The cores are uniform and server-class, little else runs on the machine, and
+the run-to-run spread at p99 fell by more than an order of magnitude. It is still not the
+bare-metal host that the protocol below calls for.
 
 \paragraph{The protocol the performance campaign still lacks.}
-Testbed-grade tail figures need a dedicated bare-metal host. The protocol for one is
-specified, scripted, and published with the benchmark package
-(Section~\ref{sec:repro}), so it can be run without further design work, and its requirements sit in the right-hand column of
-Table~\ref{tab:testbed}. What running it would add is narrower than it once was. Three of the
-four things it was going to buy have arrived without it: the saturation knee, the shape of
-the overload cliff
-(Section~\ref{sec:overload}), and the replication of the resource comparisons across the allocator
-control (Section~\ref{sec:resources}). What is left is the far tail \emph{below} saturation.
-There the confidence interval on a single variant's p99 is still several times the spread between
-all four variants, and the likely cause is steal and losing the core to other work, not
-anything either language does. That one result is therefore reported as unresolved and not as
-a null, and the machine has to fix it, not the analysis.
+Reliable tail figures at testbed grade need a dedicated bare-metal host. The protocol for such a
+host is already specified, scripted, and published with the benchmark package
+(Section~\ref{sec:repro}). Its requirements appear in the right-hand column of
+Table~\ref{tab:testbed}, and the campaign could be run without further design work. Running it
+would now answer less than originally hoped. Three of the four questions it was meant to settle
+already have answers from the current host: the saturation knee, the shape of the overload cliff
+(Section~\ref{sec:overload}), and the resource comparisons with the allocator control
+(Section~\ref{sec:resources}). What remains open is the far tail \emph{below} saturation. There,
+the $95\%$ confidence interval around one variant's p99 is still several times wider than the
+spread between all four variants. Steal time and core preemption are the likely causes, not a
+difference between the languages. That result is therefore reported as unresolved rather than as
+a null finding, and only a better machine can close it.
 
 \paragraph{Measurement discipline common to both.}
-Whatever the host, the repeat and interleaving discipline of Section~\ref{sec:stats} applies:
-each sweep point is a median over \NRepeats{} interleaved repeats with a bootstrap $95\%$
-confidence interval, never a single run. That interleaving is what makes a contended host usable
-for a \emph{comparative} conclusion even though it ruins the absolute numbers, because
-interference is then shared and not assigned. Throughput is counted over the measured phase
-alone, with the warm-up iterations left out of both numerator and denominator, so achieved
+On any host, the repeat and interleaving rules of Section~\ref{sec:stats} apply. Each sweep
+point is the median over \NRepeats{} interleaved repeats with a bootstrap $95\%$ confidence
+interval, never a single run. Interleaving shares host interference across variants instead of
+assigning it to one side. That trade-off harms absolute latency numbers but still supports
+\emph{comparative} conclusions between C++ and Rust. Throughput is measured only during the
+steady phase, with warm-up iterations excluded from both numerator and denominator, so achieved
 throughput can be compared directly with offered load.
 
-The division Table~\ref{tab:testbed} draws is not between important and unimportant results. It
-is between results that are properties of the compilers and the source, which this host settles
-as firmly as any host would, and results that are properties of the machine, which it cannot
-settle at all.
+Table~\ref{tab:testbed} does not rank results as important versus unimportant. It separates what
+the compilers and source code determine, which this host can settle as well as any host would,
+from what only the machine can determine, which this host cannot settle at all.
 
 \section{Workload and evaluation measurements\label{sec:workload}}
 A synthetic but spec-justified telecom workload is generated by a deterministic driver whose
