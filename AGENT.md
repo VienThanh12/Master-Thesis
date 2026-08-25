@@ -18,7 +18,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | --- | --- | --- | --- |
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v2.tex`. |
 | **`Thesis_v2.pdf`** | `Thesis_v2.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through, all nine chapters populated since 20 Aug 2026. This is what goes to the supervisor alongside the plan. |
-| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 24 Aug 2026: abstract form declaring **108 pages + 6 appendix pages** (122 physical). It read 105 on 23 Aug, and 99 before the RQ4 adoption-cost axes landed (§7.6, `tab:adoption`) and `tab:equivalence` was placed. The three pages since are the RQ2 catalogue growing to fourteen classes: the replication-status paragraph added to §`sec:threats` the same day cost none, measured against a reverted rebuild. A snapshot, not a budget: see §5, *Length and layout*. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
+| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 25 Aug 2026: abstract form declaring **102 pages + 6 appendix pages** (116 physical). It read 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. The three pages back down came from the 25 August **layout** pass and cost no argument. The duplication passes that preceded it removed 875 words and no pages, which is the lesson recorded in §5, *Length and layout*. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v2.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. Kept for reference under their original names. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
 | Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Ha_Vien_Mastersthesis_2026.tex`. |
@@ -156,16 +156,26 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 | 1 | Introduction | 1 |
 | 2 | Background | 2 |
 | 3 | Problem context (UECM) | 1, 2 |
-| 4 | Objectives | 1 |
-| 5 | Research methodology | 3 |
-| 6 | Design and implementation | 3 |
-| 7 | Experimental setup and evaluation | 3, 4 |
-| 8 | Discussion | 5 |
-| 9 | Conclusion and future work | 5 |
-| App. | Fault-injection example | 4 |
+| 4 | Research methodology | 3 |
+| 5 | Design and implementation | 3 |
+| 6 | Experimental setup and evaluation | 3, 4 |
+| 7 | Discussion | 5 |
+| 8 | Conclusion and future work | 5 |
+| App. A–E | Abbreviations and key terms, literature search protocol, statistical design, host and campaign configuration, fault-injection example | 2, 3, 4 |
 
-`Thesis_v2.tex` mirrors this structure as **one bullet per argument move** per chapter. All
-nine chapters now carry bullets: chapters 6–9 were filled at the author's explicit request on
+**The skeleton and the full draft no longer carry the same chapter list, and that is unresolved
+as of 25 August 2026.** `Thesis_v2.tex` has nine chapters, because it keeps a standalone
+`Objectives` chapter between problem context and methodology. The full draft has eight and no
+such chapter: that material sits in §1.3 (research questions and hypotheses) and §1.4
+(contributions, results, limitations), which is why its evaluation chapter is 6 and not 7.
+Nothing is broken, since no cross-reference in the full draft points at `chapter:objectives` and
+the build reports no undefined reference, but the sync rule of §1 is not satisfied, and the
+author has to decide which list is canonical before either document goes to the supervisor again.
+Older notes in this file and in `.cursor/rules/thesis-quality.mdc` that call the evaluation
+chapter 7 or the discussion chapter 8 are using the skeleton's numbering.
+
+`Thesis_v2.tex` mirrors its own structure as **one bullet per argument move** per chapter. All
+nine of its chapters carry bullets: chapters 6–9 were filled at the author's explicit request on
 20 August 2026, five bullets each, matching chapters 2–5 (chapter 1 has six). Keep that shape.
 The skeleton has no appendix and needs none.
 
@@ -277,7 +287,7 @@ rg 'gdef.(pagesCount|appendixCount)' build/Ha_Vien_Mastersthesis_2026.aux
 ```
 
 `\pagesCount` counts the body **plus** the AI statement and the bibliography, so a reference-list
-change moves the declared figure. It currently reads 105 with 6 appendix pages.
+change moves the declared figure. It currently reads 102 with 6 appendix pages (116 physical).
 
 **Under 100 is a preference, not a rule.** The author set it as the target on 19 August 2026 and
 may revise it. No University of Helsinki or CSM requirement is behind it, and nothing in the
@@ -294,9 +304,15 @@ Two traps, both found by measurement on 19 August 2026:
   `\mainmatter`**. The class's own comment calls 1 to 1.5 the normal range for a one-column
   computer-science thesis, so single spacing is inside the template's norm. Do not "fix" the
   commented-out spacing lines back into the preamble.
-- **`[H]` on tables is deliberate and measured.** Converting the 23 tables to `[htbp]` made the
-  document *four pages longer*, so leave the `float` pinning alone. `[H]` does strand whitespace
-  when a large table cannot fit the remaining space, which is where most short pages come from.
+- **`[H]` on tables is deliberate, and only a *per-table* change to it pays.** Converting all 23
+  tables to `[htbp]` at once made the document *four pages longer*, so never repeat that. The
+  mechanism worth knowing is that `[H]` forbids the text after a table from flowing back to fill
+  the gap when the table does not fit, which is where most short pages come from. Converting one
+  table at a time and rebuilding after each does work: on 25 August 2026 `tab:taxonomy` moved to
+  `[tp]` for a whole page, and `tab:equivalence`, `tab:contention`, `tab:budget` and
+  `tab:adoption` closed short pages at no cost. Two were measured and reverted, so do not retry
+  them: `tab:defectmap` at `[tp]` *added* a page, and `tab:findings` at `[H]` was mixed. After any
+  such change, check that no converted table drifted past the page that cites it.
 
 Measured cost of the layout settings, cumulative, at unchanged content: 1.5 spacing 22 pages,
 full-width figures 4, `twoside,openright` 15 blank versos, loose heading and float gaps 3, and a
@@ -305,12 +321,40 @@ keeping whatever the target is, and any of them can be handed back deliberately 
 prefers the looser look to the shorter document.
 
 If pages are genuinely needed, take them in this order, because it costs no argument: the short
-pages `[H]` strands, and the section tails that spill five or six lines onto a near-empty page.
-The Chapter 8 future-work list is the current worst at about 11% ink. Rank pages by ink coverage
-with PyMuPDF (installed, see `pdfpreview.py`) rather than guessing from the source. Compressing
-load-bearing prose is the last resort, not the first: the 19 August pass found the thesis's real
-slack was duplication (one sentence repeated verbatim, one framing move made three times), and
-that seam is now largely worked out.
+pages `[H]` strands, and the chapter tails that spill a few lines onto a near-empty page. Rank
+pages by ink coverage with PyMuPDF (installed, see `pdfpreview.py`) rather than guessing from the
+source, and diagnose each short page before editing it, because the two causes take opposite
+fixes. A page whose gap sits below its last line of text, with a table opening the next page,
+wants a float change. A page holding nothing but the tail of a chapter wants lines removed
+upstream.
+
+The contrast between the two is the part worth remembering. The 875 words of duplication cut on
+24 and 25 August recovered **no** declared pages on their own, because the freed lines were
+absorbed by float whitespace and by the chapter-opening rule. The layout pass that followed
+recovered three, from five per-table float changes and 160 words taken off two chapter tails. Cut
+duplication because it makes the thesis read better, not because it will shorten it.
+
+One trap belongs with the tails. Once the preceding page is full, shaving words moves nothing
+until a whole *line* comes out, and the final word of a chapter can sit alone on a page while its
+own page is 98 per cent full. Fix that by removing a line from the paragraph, not by rewording
+its last sentence.
+
+**What is left after 25 August 2026:** thirteen short pages holding about 5.2 pages of stranded
+whitespace, down from nineteen and 8.0. Most of it now sits at chapter boundaries (body pages 7,
+32, 43, 71 and 72), which is `twoside,openright` behaving as intended rather than a defect. One
+page resisted deliberately. Body page 71 carries the last paragraph of §6.4.8 with page 70 full,
+so closing it needs roughly four lines out of the RQ4 adoption-cost prose, and every candidate
+there is protected by §3 item 6a: the three footprint rows, the build-time decomposition, and the
+empty C++ `unsafe` cell. It was compressed from 1.9 to 1.4 per cent ink and then left. Do not
+trade a protected claim for that page.
+
+Compressing load-bearing prose is the last resort, and duplication is no longer a source. As of
+25 August 2026 the sentence and paragraph scans return only structural pairs: a hypothesis stated
+in §1.3 and revisited in §7.3, the abstract against the conclusion, and prose against its own
+figure caption. Those are the layering working, not repetition. What remains that a reader would
+notice is a form tic rather than a duplicate claim: the "N things bound what this licenses" move
+opens eleven passages in chapters 6 and 7, one of which says "Three things *again* bound what the
+finding licenses". Each carries different content, so vary the openings rather than cutting them.
 
 **Acceptance gates**
 
@@ -380,7 +424,26 @@ edit pass so the two do not diverge.
 
 ---
 
-*Last updated: 23 August 2026. The ninth grading pass found no wrong measured value anywhere, the
+*Last updated: 25 August 2026. Two length passes on 24 and 25 August took the declared figure from
+105 to 102 pages and removed no argument. The first cut 875 words of duplication, found by
+scanning every sentence and paragraph pair in the document rather than by reading: a claim was
+typically stated in three places, such as the environment record in §4.5, §6.1 and §6.3, the
+pairing rule in §4.4, §7.6 and Table 7.3, and the frozen specification's contents in §4.3, Table
+4.2 and §5.1. Chapter 7's related-work section lost the most, since it re-narrated Chapter 2's
+four strands and then re-told the five vendor theses that Table 7.2 already tabulates. Every one
+of the 109 citation keys survived, because the technique was to keep the citation clusters and
+delete the prose narrating them. Those 875 words bought no pages at all, which is the finding to
+carry forward: cut duplication for readability, and expect layout to decide length. The second
+pass did the length work, and its findings are in §5: `[H]` pays to change one table at a time
+and never in bulk, and 160 words off two chapter tails deleted two pages outright. The standing
+two blockers are untouched by any of it. Two defects were found on the way and neither is fixed.
+The abstract still says safe Rust rejects "all five injected memory-safety and data-race defect
+classes" with "five further classes" outside, where §1.4, §6.4.7, Table 6.9, Table 7.1 and the
+conclusion all say seven, so it is the last place in the thesis carrying the old catalogue size,
+and a model may not fix it. And §4 now records the second: the skeleton and the full draft
+disagree on the chapter list, which the sync rule of §1 is supposed to prevent.*
+
+*The ninth grading pass found no wrong measured value anywhere, the
 first pass on record to do so, and verified that the generated layer the remediation pass installed
 still holds (`gen_artefacts.tex` byte-identical, `tab:loc`'s three column sums asserted, about
 thirty macros checked against their tables). It moved criterion 4 from 4.5 down to 4.0 on a
