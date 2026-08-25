@@ -2203,63 +2203,46 @@ Each bounds the claims made about its own implementation.
 \chapter{Experimental Setup and Evaluation\label{chapter:eval}}
 
 \section{Testbed configuration\label{sec:testbed}}
-This chapter reports results from two kinds of measurement environment. Some numbers follow
-from the compilers and the source code alone. Others depend on the physical machine, and the
-host used here cannot settle them. Table~\ref{tab:testbed} keeps the two sides separate.
+This chapter reports two kinds of result. Some follow from the compilers and the source. Others
+depend on the machine, which this host cannot settle. Table~\ref{tab:testbed} keeps the split
+clear.
 
 \paragraph{The environment used.}
-All performance results in this chapter come from one dedicated dual-socket server: two Xeon
-E5-2680~v4 processors, $16$ vCPUs on a single NUMA node with one thread per core, running Rocky
-Linux~8.10 with \texttt{g++~15.1.1} and \texttt{rustc~1.97}. Cores $2$--$15$ are pinned to the
-benchmark, so each worker and producer has its own core and does not share one with the
-operating system. Table~\ref{tab:testbed} lists this host next to the protocol described
-below. Every run also records the environment metadata from Section~\ref{sec:repro}.
+All performance numbers here come from one dedicated dual-socket server: two Xeon E5-2680~v4
+processors, $16$ vCPUs on one NUMA node with one thread per core, Rocky Linux~8.10,
+\texttt{g++~15.1.1}, and \texttt{rustc~1.97}. Cores $2$--$15$ are pinned to the benchmark.
+Table~\ref{tab:testbed} contrasts this host with the bare-metal protocol below, and every run
+records the environment metadata of Section~\ref{sec:repro}.
 
-One fact about this host limits every tail-latency claim in what follows: it is a virtual machine.
-The environment record shows a KVM guest. That brings three limitations. First, the CPU
-frequency governor and turbo state are controlled by the host. They cannot even be read from
-inside the guest, so frequency stability is assumed rather than enforced. Second, the record
-reports non-zero CPU steal, on the order of ten milliseconds of vCPU time per second. That loss
-is small in total, but it is the same order of magnitude as the tail latencies under study, and
-the guest cannot remove it. Third, the reported topology does not match the hardware name. The
-guest sees two sockets of eight single-threaded cores, which is not how an E5-2680~v4 is built
-(a fourteen-core part with simultaneous multithreading). Whether the sixteen vCPUs map to
-separate physical cores or to hyperthread siblings is decided by the host and cannot be checked
-from inside the guest. Siblings would share one core's execution units. The cores were not
-isolated from the scheduler with \texttt{isolcpus}, so a benchmark thread can still be
-preempted.
+The host is a KVM guest, which bounds every tail claim. CPU frequency and turbo are
+host-controlled and unreadable inside the guest. The record also shows steal on the order of ten
+milliseconds per second of vCPU time, comparable to the tail latencies measured. The topology
+is synthetic: two sockets of eight single-threaded cores, not the fourteen-core SMT layout of an
+E5-2680~v4, and whether vCPUs map to distinct cores or hyperthread siblings cannot be checked
+from inside. Without \texttt{isolcpus}, benchmark threads can still be preempted.
 
-Compared with the shared development laptop used in an earlier pass, this server is a much
-better instrument. The cores are uniform and server-class, little else runs on the machine, and
-the run-to-run spread at p99 fell by more than an order of magnitude. It is still not the
-bare-metal host that the protocol below calls for.
+Compared with the shared laptop used in an earlier pass, this server cut p99 run-to-run spread by
+more than an order of magnitude. It is still not bare metal.
 
 \paragraph{The protocol the performance campaign still lacks.}
-Reliable tail figures at testbed grade need a dedicated bare-metal host. The protocol for such a
-host is already specified, scripted, and published with the benchmark package
-(Section~\ref{sec:repro}). Its requirements appear in the right-hand column of
-Table~\ref{tab:testbed}, and the campaign could be run without further design work. Running it
-would now answer less than originally hoped. Three of the four questions it was meant to settle
-already have answers from the current host: the saturation knee, the shape of the overload cliff
-(Section~\ref{sec:overload}), and the resource comparisons with the allocator control
-(Section~\ref{sec:resources}). What remains open is the far tail \emph{below} saturation. There,
-the $95\%$ confidence interval around one variant's p99 is still several times wider than the
-spread between all four variants. Steal time and core preemption are the likely causes, not a
-difference between the languages. That result is therefore reported as unresolved rather than as
-a null finding, and only a better machine can close it.
+Testbed-grade tail figures need dedicated bare metal. The protocol is specified, scripted, and
+published (Section~\ref{sec:repro}), with requirements in Table~\ref{tab:testbed}, and needs no
+further design before it can run. Three of the four targets it was meant to hit are already met
+on the current host: the saturation knee, the overload cliff (Section~\ref{sec:overload}), and
+the resource comparisons with the allocator control (Section~\ref{sec:resources}). Only the far
+tail \emph{below} saturation remains open. There the $95\%$ confidence interval on one variant's
+p99 is still several times the spread across all four variants, likely from steal and
+preemption, not from either language. That finding is unresolved, not a null, and needs a better
+machine.
 
 \paragraph{Measurement discipline common to both.}
-On any host, the repeat and interleaving rules of Section~\ref{sec:stats} apply. Each sweep
-point is the median over \NRepeats{} interleaved repeats with a bootstrap $95\%$ confidence
-interval, never a single run. Interleaving shares host interference across variants instead of
-assigning it to one side. That trade-off harms absolute latency numbers but still supports
-\emph{comparative} conclusions between C++ and Rust. Throughput is measured only during the
-steady phase, with warm-up iterations excluded from both numerator and denominator, so achieved
-throughput can be compared directly with offered load.
+On any host, Section~\ref{sec:stats} applies: each sweep point is a median over \NRepeats{}
+interleaved repeats with a bootstrap $95\%$ confidence interval. Interleaving shares interference
+across variants. Absolute latency suffers, but comparative C++/Rust conclusions remain valid.
+Throughput is counted over the measured phase only, warm-up excluded.
 
-Table~\ref{tab:testbed} does not rank results as important versus unimportant. It separates what
-the compilers and source code determine, which this host can settle as well as any host would,
-from what only the machine can determine, which this host cannot settle at all.
+Table~\ref{tab:testbed} does not rank results by importance. It separates what compilers and
+source settle from what only the machine can settle.
 
 \section{Workload and evaluation measurements\label{sec:workload}}
 A synthetic but spec-justified telecom workload is generated by a deterministic driver whose
