@@ -2246,7 +2246,7 @@ the overload cliff
 (Section~\ref{sec:overload}), and the replication of the resource comparisons across the allocator
 control (Section~\ref{sec:resources}). What is left is the far tail \emph{below} saturation.
 There the confidence interval on a single variant's p99 is still several times the spread between
-all four variants, and the likely cause is steal and scheduler preemption, not
+all four variants, and the likely cause is steal and losing the core to other work, not
 anything either language does. That one result is therefore reported as unresolved and not as
 a null, and the machine has to fix it, not the analysis.
 
