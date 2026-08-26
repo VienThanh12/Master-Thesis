@@ -14,13 +14,19 @@ is a slide they are not listening through.
 
 Every measured number is read at build time from the artefacts that
 bench/refresh_thesis.sh regenerates: figures/gen_macros.tex,
-figures/gen_complexity.tex, the figures/tab_*.tex table bodies the thesis itself
-\\input, faults/results/taxonomy.csv, and the environment capture belonging to
-the campaign the figures were plotted from. Nothing is transcribed, so a rerun of
-the campaign cannot leave the deck contradicting the thesis. A macro the deck
-asks for and the data does not provide is a hard error rather than a stale
-literal, and a diagram whose own labels disagree with the macros is refused
-before it can reach a slide.
+figures/gen_complexity.tex, figures/gen_baremetal.tex, the figures/tab_*.tex
+table bodies the thesis itself \\input, faults/results/taxonomy.csv, and the
+environment capture belonging to the campaign the figures were plotted from.
+Nothing is transcribed, so a rerun of the campaign cannot leave the deck
+contradicting the thesis. A macro the deck asks for and the data does not
+provide is a hard error rather than a stale literal, and a diagram whose own
+labels disagree with the macros is refused before it can reach a slide.
+
+Two campaigns are reported and they are kept apart. The sweep on the virtualised
+guest carries the unprefixed macros, and the bare-metal confirmation carries the
+Bm ones. A slide quoting a Bm value names its host, because the confirmation
+changes the shard count, the load grid, the repeat count and the toolchain along
+with the machine.
 """
 import csv
 import glob
@@ -1348,11 +1354,12 @@ _threats = [
     ("Construct: do the metrics measure the questions?",
      "The operation is reported apart from the handoff rather than folded into it. "
      "What remains: one operation on one data structure is narrower than the sweep it "
-     "supplements, and RQ3 captures the cost but not its origin."),
+     "supplements, and RQ3's footprint is located outside the allocator but not attributed "
+     "to a call site."),
     ("Conclusion: are the differences real, or noise?",
      f"{M('NRepeats')} interleaved repeats, an exact paired permutation test, and the Holm "
      "correction, with the floors quoted. What remains: pairing cancels only what a block "
-     "shared, so the tail percentiles stay unresolved."),
+     "shared, so the far tail below saturation needed a quieter machine."),
     ("External: how far do the results travel?",
      "RQ2 and RQ4 rest on the compilers and the C ABI rather than on the host, so they "
      "travel. What remains: the performance results do not, because shared mutable state "
@@ -1471,9 +1478,9 @@ _pictures = sum(1 for sl in prs.slides for sh in sl.shapes if sh.shape_type == 1
 print("Saved", OUT, "with", len(prs.slides._sldIdLst), "slides")
 print(f"Figures placed: {_pictures}")
 print("Data read from:")
-print("  figures/gen_macros.tex, figures/gen_complexity.tex "
+print("  figures/gen_{macros,complexity,baremetal}.tex "
       f"({len(MACROS)} macros)")
-print("  figures/tab_{latency,resource,overload,budget,contention,ffi}.tex")
+print("  figures/tab_{latency,resource,overload,budget,contention,ffi,resident}.tex")
 print("  figures/fig_*.pdf, diagrams/png/*.png")
 print(f"  faults/results/taxonomy.csv ({len(IN_GUARANTEE)} in-guarantee "
       f"+ {len(BOUNDARY)} boundary classes)")
@@ -1482,6 +1489,8 @@ print(f"  {os.path.relpath(ENV['_path'], ROOT)} "
       f"({ENV.get('cpu_model', 'unknown host')}, {ENV.get('virt', '?')})")
 print(f"Campaign: {M('NRepeats')} repeats, {M('NRuns')} runs, "
       f"representative load {M('ReprLoad')} kops/s, overload {M('OverloadLoad')} kops/s")
+print(f"Confirmation: {M('BmRepeats')} repeats, {M('BmRuns')} runs on {M('BmCpu')} "
+      f"(virtualisation {M('BmVirt')}), pooled p99.99")
 
 _layout = check_layout(prs)
 if _layout:
