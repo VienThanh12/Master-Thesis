@@ -96,8 +96,12 @@ def read_macros(*paths):
     return macros
 
 
+#: The bare-metal campaign keeps its own file, and every macro in it carries the
+#: Bm prefix, because the two campaigns must not be quotable as one. A slide
+#: naming a Bm value has to say which host it belongs to.
 MACROS = read_macros(os.path.join(FIGURES, "gen_macros.tex"),
-                     os.path.join(FIGURES, "gen_complexity.tex"))
+                     os.path.join(FIGURES, "gen_complexity.tex"),
+                     os.path.join(FIGURES, "gen_baremetal.tex"))
 
 
 def M(name):
@@ -110,7 +114,8 @@ def M(name):
         return MACROS[name]
     except KeyError:
         raise SystemExit(
-            f"macro \\{name} is not in figures/gen_macros.tex; {REFRESH_HINT}") from None
+            f"macro \\{name} is in none of figures/gen_"
+            f"{{macros,complexity,baremetal}}.tex; {REFRESH_HINT}") from None
 
 
 def read_table(stem):
@@ -288,6 +293,7 @@ OVERLOAD = read_table("tab_overload")
 BUDGET = read_table("tab_budget")
 CONTENTION = read_table("tab_contention")
 FFI = read_table("tab_ffi")
+RESIDENT = read_table("tab_resident")
 TAXONOMY = read_taxonomy()
 ENV = read_env()
 
@@ -363,7 +369,7 @@ def _as_number(text):
 def _known_numbers():
     """Every number the generated artefacts publish, as floats."""
     values = set(MACROS.values())
-    for table in (LATENCY, RESOURCE, OVERLOAD, BUDGET, CONTENTION, FFI):
+    for table in (LATENCY, RESOURCE, OVERLOAD, BUDGET, CONTENTION, FFI, RESIDENT):
         for row in table:
             for cell in row:
                 for part in (cell if isinstance(cell, tuple) else (cell,)):
@@ -999,35 +1005,52 @@ _png, _crop = diagram("17_guarantee_boundary")
 add_figure(s, _png, crop_top=_crop)
 
 # =====================================================================
-# Slide 16: The measurement host
+# Slide 16: The two measurement hosts
+#
+# The left column is read from the environment capture stored beside the
+# campaign the figures were plotted from; the right one from the macros
+# bench/baremetal_facts.py writes. Neither is typed, so the slide cannot come
+# to describe a host the results did not run on.
 # =====================================================================
-s = headline(1, "What the measurement host can and cannot carry",
-             "Dedicated and server-class, but virtualised: this is where the tail claim stops")
+s = headline(1, "Two hosts, because one of them cannot hold the far tail",
+             "The sweep runs on a virtualised guest. A second campaign confirms it on bare metal")
 _, tbl_bottom = add_data_table(
     s,
     [
-        ("Aspect", "This host, from the environment capture stored with the campaign"),
+        ("Aspect", "Main sweep: virtualised guest", "Confirmation: bare metal"),
         ("CPU", f"{ENV.get('cpu_model', 'unknown')}: {ENV.get('cpus', '?')} cores, "
-                f"{ENV.get('sockets', '?')} sockets, {ENV.get('numa', '?')} NUMA node, SMT {ENV.get('smt', 'unknown')}"),
-        ("OS / kernel", f"{ENV.get('distro', 'unknown')}, kernel {ENV.get('kernel', 'unknown')}"),
-        ("Toolchains", f"{ENV.get('gpp', 'unknown')} and {ENV.get('rustc', 'unknown')}"),
-        ("Virtualisation", f"{ENV.get('virt', 'unknown')} guest. Frequency governor {ENV.get('governor', 'unknown')} "
-                           "and turbo host-controlled, so stability is assumed rather than enforced"),
+                f"{ENV.get('sockets', '?')} sockets, {ENV.get('numa', '?')} NUMA node, "
+                f"SMT {ENV.get('smt', 'unknown')}",
+         f"{M('BmCpu')}: {M('BmCores')} cores, {M('BmSockets')} socket, "
+         f"{M('BmNumaNodes')} NUMA node, SMT {M('BmSmt')}"),
+        ("OS / kernel", f"{ENV.get('distro', 'unknown')}, kernel {ENV.get('kernel', 'unknown')}",
+         f"{M('BmDistro')}, kernel {M('BmKernel')}"),
+        ("Toolchains", f"{ENV.get('gpp', 'unknown')} and {ENV.get('rustc', 'unknown')}",
+         f"g++ {M('BmGpp')} and rustc {M('BmRustc')}"),
+        ("Timing floor", f"{ENV.get('virt', 'unknown')} guest, governor {ENV.get('governor', 'unknown')}, "
+                         "turbo host-controlled, steal comparable to the tail measured",
+         f"virtualisation {M('BmVirt')}, governor {M('BmGovernor')}, steal in "
+         f"{M('BmStealWithSteal')} of {M('BmStealIntervals')} sampling intervals"),
         ("Core isolation", f"isolcpus {ENV.get('isolcpus', 'unknown')}, nohz_full {ENV.get('nohz', 'unknown')}: "
-                           "a benchmark thread can still lose its core"),
-        ("Campaign size", f"{M('NRepeats')} repeats \u00d7 {M('NLoadLevels')} load levels \u00d7 "
-                          f"{M('NVariants')} variants = {M('NRuns')} runs"),
+                           "a benchmark thread can lose its core",
+         "also none recorded, so this half of the protocol is unmet on both hosts"),
+        ("Campaign", f"{M('NRepeats')} repeats \u00d7 {M('NLoadLevels')} loads \u00d7 "
+                     f"{M('NVariants')} variants = {M('NRuns')} runs",
+         f"{M('BmRepeats')} repeats \u00d7 {M('BmLoadLevels')} loads \u00d7 {M('NVariants')} variants "
+         f"= {M('BmRuns')} runs, on {M('BmShards')} shards"),
     ],
     top=Cm(3.45),
-    col_widths_cm=[4.2, 18.8],
-    aligns=[PP_ALIGN.LEFT, PP_ALIGN.LEFT],
-    row_height_cm=1.05,
-    body_size=11.5,
+    col_widths_cm=[3.4, 10.4, 9.2],
+    aligns=[PP_ALIGN.LEFT, PP_ALIGN.LEFT, PP_ALIGN.LEFT],
+    row_height_cm=1.15,
+    header_height_cm=0.8,
+    body_size=10.5,
 )
 add_caption(s, tbl_bottom + Cm(0.3), size=11, text=
-            "Adequate for parity, fault injection, the FFI seam, the saturation knee, the overload comparison, "
-            "and the resource comparisons, but not for the far tail below saturation, which needs the "
-            "bare-metal protocol in bench/TESTBED.md.")
+            "The guest settles parity, fault injection, the seam, the saturation knee, the overload comparison "
+            "and the resource comparisons. What it cannot settle is the far tail below saturation. The "
+            "confirmation campaign moves shard count, load grid, repeats and toolchain along with the host, so "
+            "it corroborates the sweep rather than replacing it.")
 
 # =====================================================================
 # Slide 17: How the comparison is tested (diagram)
@@ -1049,7 +1072,7 @@ add_notes(s, [
     (f"p99: {M('PNineNineRange')} \u00b5s vs {M('PNineNineMaxCI')} \u00b5s",
      "Uncertainty about one exceeds the gap between all four."),
     ("Cannot tell \u2260 equivalent",
-     "The far tail here needs bare metal, not more repeats."),
+     "The far tail is not open for want of repeats here. A quieter machine settles it."),
 ], top=Cm(10.55), height=Cm(2.4))
 
 # =====================================================================
@@ -1127,13 +1150,90 @@ add_notes(s, [
      f"under both allocators (interval [{M('RssLangCILo')}, {M('RssLangCIHi')}] MiB), a "
      "language effect that replicates."),
     (f"+{M('RssAllocDiffLo')}\u2013{M('RssAllocDiffHi')} MiB for jemalloc",
-     "in either language: an order of magnitude more, so the allocator is the larger lever."),
-    ("Established, unexplained",
-     "Attributing it needs hardware counters this virtualised guest cannot provide."),
+     f"in either language on this host, an order of magnitude more. On bare metal it is "
+     f"{M('BmRssAllocLo')}\u2013{M('BmRssAllocHi')} against {M('BmRssLangLo')}\u2013"
+     f"{M('BmRssLangHi')} MiB."),
+    ("Ordering travels, ratio does not",
+     "Which is why the next two slides read the footprint on a host that can decompose it."),
 ], top=Cm(10.55), height=Cm(2.4))
 
 # =====================================================================
-# Slide 23: The migration seam (diagram)
+# Slide 23: The far tail, on the confirmation host
+#
+# The guest column and the bare-metal column are the same statistic computed
+# the same way, which is the point: what changes between them is the machine,
+# so the null on the left is a property of the host and not of the languages.
+# =====================================================================
+s = headline(1, "The far tail, on a machine quiet enough to hold it",
+             f"The confirmation campaign: {M('BmRuns')} runs on bare metal, repeats pooled to p99.99")
+_, tbl_bottom = add_data_table(
+    s,
+    [
+        ("Below saturation", "Virtualised guest", "Bare metal"),
+        ("Widest 95% interval on one variant's own p99",
+         f"{M('PNineNineMaxCI')} \u00b5s", f"{M('BmPNineNineMaxCI')} \u00b5s"),
+        ("Range across the four variants' p99",
+         f"{M('PNineNineRange')} \u00b5s", f"{M('BmPNineNineRange')} \u00b5s"),
+        ("Pooled p99.99, the two C++ variants", "no ordering readable",
+         f"{M('BmFarTailCppLo')}\u2013{M('BmFarTailCppHi')} \u00b5s"),
+        ("Pooled p99.99, the two Rust variants", "no ordering readable",
+         f"{M('BmFarTailRustLo')}\u2013{M('BmFarTailRustHi')} \u00b5s"),
+    ],
+    top=Cm(3.5),
+    col_widths_cm=[9.6, 6.6, 6.8],
+    aligns=[PP_ALIGN.LEFT, PP_ALIGN.CENTER, PP_ALIGN.CENTER],
+    row_height_cm=0.95,
+    header_height_cm=0.8,
+)
+add_notes(s, [
+    ("Rust lower at p99.99",
+     f"From {M('BmFarTailSepLoad')} to {M('BmFarTailSepHi')} kops/s the pooled ranges do not "
+     "meet. Below that the four are alike."),
+    ("The median sharpens too",
+     f"{M('BmPFiftyFaster')} lower at {M('BmPFiftySig')} of {M('BmPFiftyTested')} points, by "
+     f"{M('BmPFiftyDiffLo')}\u2013{M('BmPFiftyDiffHi')} \u00b5s on a {M('BmPFiftyMedian')} \u00b5s operation."),
+    ("One load is held out",
+     f"At {M('BmFarTailTopLoad')} kops/s the pooled median falls while every percentile above "
+     "it stays flat."),
+], top=tbl_bottom + Cm(0.35), height=Cm(2.5))
+add_caption(s, Cm(11.35), size=11, text=
+            f"Pooling gives {M('BmPoolSamplesMin')} to {M('BmPoolSamplesMax')} operations per group, which is "
+            f"what makes p99.99 a measurement and not a handful of draws. The same campaign reproduces the "
+            f"overload divergence at {M('BmOverloadThrRatio')}\u00d7 on another vendor's silicon, and its "
+            f"counters show Rust retiring {M('BmInstrDelta')}% {M('BmInstrDeltaDir')} instructions in "
+            f"{M('BmCycleDelta')}% {M('BmCycleDeltaDir')} cycles.")
+
+# =====================================================================
+# Slide 24: The resident set decomposed
+# =====================================================================
+s = headline(1, "Where the extra resident set actually sits",
+             f"jemalloc's own accounting, read in each of the {M('BmJeRuns')} runs of the two jemalloc arms")
+_, tbl_bottom = add_data_table(
+    s,
+    [("Component of the footprint, median MiB", "C++", "Rust", "Difference")] + RESIDENT,
+    top=Cm(3.5),
+    col_widths_cm=[10.6, 3.9, 3.9, 4.6],
+    aligns=[PP_ALIGN.LEFT, PP_ALIGN.CENTER, PP_ALIGN.CENTER, PP_ALIGN.CENTER],
+    row_height_cm=0.8,
+    header_height_cm=0.75,
+)
+add_notes(s, [
+    ("Fixed arena bookkeeping",
+     f"Arena metadata is {M('BmJeMetadataDelta')} MiB in the Rust build and drifts "
+     f"{M('BmJeMetaDrift')}% across the load range."),
+    ("Not more application data",
+     f"{M('BmJeLiveLower')} holds less live allocation and fewer resident bytes inside jemalloc, "
+     f"and still peaks {M('BmJeRssDelta')} MiB higher."),
+    ("So it is not the allocator",
+     f"Outside jemalloc's mappings the gap is {M('BmJeOutsideDelta')} MiB: the runtime a Rust "
+     "process carries before it allocates."),
+], top=tbl_bottom + Cm(0.35), height=Cm(2.5))
+add_caption(s, Cm(12.15), size=10.5, text=
+            "Peak RSS is a getrusage maximum against sampled jemalloc figures, so the derived row is an "
+            "upper bound and the column does not sum exactly.")
+
+# =====================================================================
+# Slide 25: The migration seam (diagram)
 # =====================================================================
 s = headline(1, "RQ4: a C++ host driving an unmodified Rust core",
              "All unsafe is confined to a thin seam crate. The core stays free of it")
@@ -1141,7 +1241,7 @@ _png, _crop = diagram("07_ffi_seam")
 add_figure(s, _png, crop_top=_crop)
 
 # =====================================================================
-# Slide 24: What the seam costs (generated figure)
+# Slide 26: What the seam costs (generated figure)
 # =====================================================================
 s = headline(1, "RQ4: incremental adoption is technically cheap",
              "Bounded against the same operation called natively, not declared free")
@@ -1159,7 +1259,7 @@ add_notes(s, [
 ], top=Cm(10.55), height=Cm(2.4))
 
 # =====================================================================
-# Slide 25: Migration playbook (diagram)
+# Slide 27: Migration playbook (diagram)
 # =====================================================================
 s = headline(1, "A playbook for a first Rust component in a C++ control plane",
              "Each step carries the measurement that justifies it, and what it does not buy")
@@ -1167,7 +1267,7 @@ _png, _crop = diagram("19_migration_playbook")
 add_figure(s, _png, crop_top=_crop)
 
 # =====================================================================
-# Slide 26: Summary of findings
+# Slide 28: Summary of findings
 # =====================================================================
 s = headline(1, "Summary of findings and evidence strength",
              "Safety and migration are final. The performance answer divides at saturation")
@@ -1175,29 +1275,32 @@ add_data_table(
     s,
     [
         ("RQ", "Headline finding", "Evidence"),
-        ("RQ1", f"Equivalent at the median below saturation, and the end-to-end number is only "
-                f"{M('BudgetCoreShareMax')}% operation. Past saturation {M('OverloadSustainedFaster')} sustains "
+        ("RQ1", f"Equivalent at the median below saturation, where the end-to-end number is only "
+                f"{M('BudgetCoreShareMax')}% operation. On a quiet host the pooled p99.99 of the Rust "
+                f"variants sits below the C++ ones. Past saturation {M('OverloadSustainedFaster')} sustains "
                 f"{M('OverloadThrRatio')}\u00d7 the throughput",
-         "Overload and operation resolved, far tail unresolved"),
+         "Overload and operation resolved. Far tail resolved on bare metal, at one shard count"),
         ("RQ2", f"All {len(IN_GUARANTEE)} in-guarantee classes are compile errors in safe Rust. The "
                 f"{len(BOUNDARY)} boundary classes compile in both languages", "Final"),
         ("RQ3", f"{M('RssLangDiffLo')}\u2013{M('RssLangDiffHi')} MiB more peak RSS in Rust under both allocators, "
                 f"an order of magnitude less than the allocator's own "
-                f"{M('RssAllocDiffLo')}\u2013{M('RssAllocDiffHi')} MiB", "Resolved, unexplained"),
+                f"{M('RssAllocDiffLo')}\u2013{M('RssAllocDiffHi')} MiB on this host and about half of it on bare "
+                f"metal, where the allocator's own accounting locates it outside the allocator",
+         "Resolved, and located outside the allocator"),
         ("RQ4", f"Thin, unsafe-isolated seam. No cost detected and any tax bounded at "
                 f"{M('FfiOpBoundPct')}% of an operation", "Final"),
     ],
     top=Cm(3.6),
     col_widths_cm=[2.0, 14.6, 6.4],
     aligns=[PP_ALIGN.CENTER, PP_ALIGN.LEFT, PP_ALIGN.LEFT],
-    row_height_cm=1.95,
+    row_height_cm=2.14,
     header_height_cm=0.8,
-    body_size=12,
+    body_size=11.5,
     cell_fill=lambda r, c, v: (LIGHTGREEN if v == "Final" else LIGHTAMBER) if c == 2 else None,
 )
 
 # =====================================================================
-# Slide 27: Hypotheses versus verdict
+# Slide 29: Hypotheses versus verdict
 # =====================================================================
 s = headline(1, "The three prior hypotheses against the evidence",
              "Stated up front so the evaluation could refute them, two needed refining")
@@ -1226,7 +1329,7 @@ add_data_table(
 )
 
 # =====================================================================
-# Slide 28: Threats to validity
+# Slide 30: Threats to validity
 #
 # diagrams/25_threats_validity carries the full three-column version, but it is
 # the tallest artwork in the set and shrinks to about a third of the slide when
@@ -1260,7 +1363,7 @@ add_notes(s, _threats[2:], top=Cm(8.6), height=Cm(4.3), gap=Cm(0.5),
           accent=ORANGE, fill=LIGHTAMBER)
 
 # =====================================================================
-# Slide 29: Conclusions and what comes next (diagram)
+# Slide 31: Conclusions and what comes next (diagram)
 # =====================================================================
 s = headline(1, "At nominal load the choice is about defects, not speed",
              "What the thesis concludes, what it leaves behind, and where it goes next")
@@ -1268,7 +1371,7 @@ _png, _crop = diagram("26_contributions")
 add_figure(s, _png, crop_top=_crop)
 
 # =====================================================================
-# Slide 30: End slide
+# Slide 32: End slide
 # =====================================================================
 prs.slides.add_slide(L(71))  # End slide Blue
 
