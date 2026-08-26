@@ -24,24 +24,28 @@ needs.
    be published" is the one that can force rework rather than just a signature: the repository is
    already public (`github.com/VienThanh12/Master-Thesis`, compiled PDF included), so hearing a
    Nokia objection now costs far less than hearing it in November.
-2. **Line up the bare-metal host** (Phase 8). Still the only substantive blocker, and now a
-   narrow one: §7.5.2 showed the operation itself to be 0.04% of the end-to-end cost, so the
-   testbed buys the tail and the overload cliff specifically, not a better median comparison.
-   `bench/setup_testbed.sh` provisions a fresh box and prints a GREEN/RED readiness check. The
-   fallbacks named in the plan are a cloud bare-metal instance or a Nokia lab host.
-3. **Do the harness work before that visit, not during it** (Phase 7a). Three things are in this
-   category, and all three are cheap now and expensive later:
-   - p99.99 and a jitter statistic. **The instrumentation is done** (Aug 2026: `--jitter`,
-     `--hist-out`, `bench/pool_hist.py`; see Phase 5). What is not done is *using* it — no
-     reported campaign carries the sidecars, so the numbers still cannot be quoted. Run a
-     campaign with both flags before the visit rather than discovering on the day that the
-     bare-metal data came back with the same hole as the WSL2 data, on the one question the
-     visit exists to answer. Costed as item 2 of "Highest-value work still available".
-   - `perf` counters. Two results are currently significant but unexplained (peak RSS) or resting
-     on a plausibility argument (the 1.9x operation gap, attributed to `std::unordered_map` being
-     node-based against Rust's open-addressed `HashMap`).
-   - An allocation profile per variant, to attribute the peak-RSS difference to allocation sites.
-   The last two do not work under WSL2 at all, so the visit is the only chance to collect them.
+2. **DONE 26 Aug 2026, with one caveat that is now the follow-up.** A bare-metal campaign ran on
+   a rented Cherry Servers AMD EPYC 7443P (24 cores, one socket, SMT off, governor
+   `performance`, `virtualisation: none`, zero steal over a 60 s probe). It collected everything
+   the visit existed for: the far tail from pooled HDR sidecars, `perf` counters at both scopes,
+   and a matched jemalloc allocation profile for both languages. Results in
+   `bench/results-baremetal/`, macros in `figures/gen_baremetal.tex` via
+   `bench/baremetal_facts.py`, reported in §`sec:baremetal`.
+
+   **The caveat is the new item.** The run used the `TESTBED.md` example configuration, which is
+   8 shards and 8 producers over 8 load levels at 15 repeats. The canonical campaign
+   (`campaign-20260812-154528`) is 7 and 7 over 14 levels at 20 repeats. Shard count is a
+   fairness control and the repeat count sets the exact test's floor, so the bare-metal data
+   corroborates the main sweep and does not replace it. **Repeating it at the canonical
+   configuration is the one measurement still outstanding**, and it is about two hours and one
+   euro of rented machine.
+3. **Harness work: done, and it paid off.** p99.99 and jitter sidecars, `perf` counters and the
+   allocation profile were all collected on the bare-metal visit, which is what the earlier
+   version of this item was trying to ensure. Two lessons are recorded for a repeat run:
+   - `kernel.perf_event_paranoid` defaults to 4 on Ubuntu 24.04 and blocks `counters.sh`. Set it
+     to 1 for the session.
+   - `alloc_profile.sh --check` reports the Rust arm as unbuildable when `cargo` is not on
+     `PATH`, which is what a non-login SSH session gives you. Source `~/.cargo/env` first.
 4. **Decide what the companion documents are for, and fix the broken one** (new Phase 9b).
    `thesis-vi.pdf` currently renders 113 citations as `[?]` and predates the 15-repeat campaign.
 5. **Rebuild the slide deck against the current results** (Phase 10). Three of its slides now

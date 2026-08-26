@@ -137,10 +137,32 @@ n = len(thr[arms[0]])
 
 served = statistics.median(thr["cpp-deque"]) / offered
 print(f"offered {offered:,.0f} ops/s, {n} repeats per arm")
+
+usable = True
 if served > 0.95:
     print("WARNING: the baseline arm served %.0f%% of the offered rate, so the host"
           % (served * 100))
     print("         is not in overload and these numbers answer nothing. Raise --rate.")
+    usable = False
+
+# The first swept load past the knee is metastable: an arm serves the full rate
+# in some repeats and collapses in others, and a median across a distribution
+# with a mode at each end is not a measurement. This cost one real probe run, so
+# it is checked rather than left to the reader of the numbers.
+for a in arms:
+    vals = thr[a]
+    cv = statistics.pstdev(vals) / statistics.mean(vals)
+    if cv > 0.05:
+        lo, hi = min(vals) / 1000, max(vals) / 1000
+        print(f"WARNING: {a} varies by {cv * 100:.0f}% across repeats "
+              f"({lo:.0f} to {hi:.0f} kops/s).")
+        print("         This operating point is metastable. Its median is not a"
+              " measurement,")
+        print("         and no ratio below may be quoted. Move further past the knee.")
+        usable = False
+if not usable:
+    print()
+    print("REFUSING TO CERTIFY: see the warnings above before using any number here.")
 print()
 
 print(f"{'arm':<14}{'sustained kops/s':>18}{'95% CI':>22}")

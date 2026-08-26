@@ -706,6 +706,30 @@ microbenchmark isolated primitives but shrank the allocation rate fivefold by us
 smaller job. Each looked like a controlled experiment and each silently varied a second
 thing along with the first.
 
+**Bare-metal status (2026-08-26).** The divergence itself reproduces on a dedicated
+AMD EPYC 7443P: at 640 kops/s offered, where every arm has collapsed and each one's
+15 repeats agree to within 0.4%, C++ sustains 158 kops/s against Rust's 96, a ratio of
+1.64 against the 1.8 the thesis reports from the KVM guest. Different vendor, different
+microarchitecture, no hypervisor, same ordering and roughly the same magnitude.
+
+The three probe results above are **not** re-established on that host, and one attempt to
+do so has to be discarded. It ran at 512 kops/s, the first swept load past the knee, which
+the same campaign shows to be **metastable**: the Rust arms are bimodal across repeats
+there, serving the full offered rate in some and collapsing in others, with throughput
+varying by 37%. A median across a distribution with a mode at each end is not a
+measurement, and the probe ratios computed from it (which appeared to reverse the
+divergence) mean nothing. A re-run at 640 kops/s was started and the machine was released
+before it finished. **Treat the WSL2 probe results above as the current evidence, and do
+not quote any bare-metal probe number until one is collected past the metastable band.**
+
+The lesson generalises the one above it: a substitution probe also has to be run at an
+operating point whose repeats agree. `bench/queue_probes.sh` builds all four arms and runs
+them interleaved inside one repeat, so both probes share their baselines. It refuses to
+certify a run when the baseline arm is still serving its offered rate, and when any arm's
+throughput varies by more than 5% across repeats. Replayed against the discarded 512 kops/s
+data that second check fires on three of the four arms, the Rust channel at 39%, so the run
+that produced the misleading ratios would not have been reportable.
+
 **Benchmark harness (recorded 2026-07, `bench/`):**
 - Latency capture: C++ uses a from-scratch, header-only HDR histogram
   (`cpp/bench/hdr.hpp`, a port of the canonical HdrHistogram bucketing algorithm);

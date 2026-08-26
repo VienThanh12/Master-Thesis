@@ -100,6 +100,7 @@
 \input{figures/gen_complexity.tex}
 \input{figures/gen_artefacts.tex}
 \input{figures/gen_adoption.tex}
+\input{figures/gen_baremetal.tex}
 
 \begin{document}
 
@@ -372,7 +373,7 @@
         roughly the order of the latencies under study. Run-level statistics survive that. The
         overload and the resource comparisons are resolved here. The far tail below saturation
         is not. It is reported as unresolved, not as a null. The bare-metal protocol that would
-        settle it is specified and published.
+        settle it is specified, published, and was executed on a second machine.
   \item Below saturation the four variants sit within $\PFiftyRange\,\mu$s of one another at the
         median, $\PFiftySpread\%$. The paired test resolves a difference of
         $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators. Higher up the
@@ -385,7 +386,14 @@
         system~\cite{zhou2025oltp}. This sweep cannot bound a language effect in either
         direction. Measured on its own the bare operation is $\BudgetCoreRatio\times$ faster in
         \BudgetCoreFaster{}. The likely cause is the standard hash map's layout, not anything
-        about safety.
+        about safety. A confirmation campaign on a bare-metal \BmCpu{} closes the tail question
+        the guest leaves open. The same widest interval is $\BmPNineNineMaxCI\,\mu$s there
+        against $\BmPNineNineRange\,\mu$s of between-variant spread, so the relation inverts and
+        an ordering can be read. Pooled over \BmRepeats{} repeats, p99.99 runs
+        $\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s for the C++ variants and
+        $\BmFarTailRustLo$--$\BmFarTailRustHi\,\mu$s for the Rust ones, without overlap. That
+        campaign uses \BmShards{} shards and \BmRepeats{} repeats, so it corroborates this one
+        and does not replace it.
   \item Past saturation the languages are not equivalent. The margin is not marginal. At
         $\OverloadLoad$~kops/s offered, \OverloadSustainedFaster{} sustains
         $\OverloadThrCpp$~kops/s where \OverloadSustainedSlower{} sustains
@@ -420,8 +428,10 @@
         resident set than the C++ build under either allocator. Linking \texttt{jemalloc} at all
         costs $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB in either language. Both are real. The
         allocator's effect is an order of magnitude the larger. The language difference is a
-        fixed cost, not a per-context one. No hardware counters were collected, so it is
-        established without being explained. CPU inverts with the regime. It is marginally lower
+        fixed cost, not a per-context one. Counters from the bare-metal host supply the
+        explanation the guest could not: at the operation scope the Rust build retires
+        $\BmInstrDelta\%$ \BmInstrDeltaDir{} instructions and misses cache $\BmMissDelta\%$
+        \BmMissDeltaDir{} often per thousand instructions. CPU inverts with the regime. It is marginally lower
         for Rust while the service copes and much higher per completed operation once it does
         not. The migration seam is small on every axis measured: $\FfiEntryPoints$ C entry
         points in $\FfiSeamLines$ lines of Rust. All raw-pointer work is confined to
@@ -442,7 +452,8 @@
   \item RQ1's answer divides at saturation. Reporting either half on its own would
         misrepresent it. Below the knee the two languages are equivalent in central behaviour by
         a margin no deployment would notice. That is a result about services of this shape. The
-        far tail in the same regime stays unresolved. That is an admission about the instrument.
+        far tail in the same regime stays unresolved on that host. That is an admission about the
+        instrument, and a quiet machine settles it in Rust's favour.
         Past the knee they diverge by $\OverloadThrRatio\times$. The closest prior work measures
         this quantity for 5G control-plane procedures. It finds the same shape and traces it to
         stackless \texttt{async}/\texttt{await}~\cite{arvidsson2025async}. That attribution is
@@ -544,7 +555,8 @@
         the two are equivalent at the median for any purpose a deployment would care about. The
         paired test does resolve $\PFiftyDiffAbsMax\,\mu$s in Rust's favour, so that equivalence is
         practical and not statistical. Their far tail is unresolvable on a virtualised
-        host. Past saturation \OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$ the
+        host and resolves in Rust's favour on bare metal. Past saturation
+        \OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$ the
         throughput of \OverloadSustainedSlower{} while drawing $\OverloadCpuPerOpRatio\times$
         the CPU per completed operation. On memory the Rust build carries a few MiB more fixed
         footprint under both allocators. That is an order of magnitude less than the allocator
@@ -560,10 +572,10 @@
         What the thesis adds is an instrument, not a verdict: a frozen specification, a
         parity-tested pair of implementations, a measurement framework that reaches past the
         saturation knee, and a defect catalogue that maps where the guarantee stops.
-  \item Future work answers the limitations one at a time. The immediate priority is the
-        bare-metal campaign. Its target is now narrow: the far tail below saturation, with
-        hardware counters and allocation profiles collected on the same visit. That is what would
-        turn the memory result from an observation into an explanation. Beyond it, replaying
+  \item Future work answers the limitations one at a time. The immediate priority is to repeat
+        the bare-metal campaign at the main sweep's own shard count, load grid and repeat count.
+        The confirmation run changed three things besides the host, which is why it corroborates
+        the findings and does not carry them. Beyond it, replaying
         anonymised production traces would validate the operation mix. A subsystem with
         genuinely shared mutable state would exercise the two languages differently than a
         shared-nothing design does. Evaluating Rust async runtimes against the thread-per-shard

@@ -21,6 +21,13 @@ root="$(cd "$here/.." && pwd)"
 echo "== regenerating figures, tables, and generated macros =="
 python3 "$here/plot_figures.py" "$@"
 
+# The bare-metal confirmation campaign is a separate dataset with its own design,
+# so it has its own generator rather than a flag on the one above. It describes a
+# host that no longer exists, which is the strongest possible reason for its
+# numbers to be derived rather than typed.
+echo "== regenerating bare-metal confirmation macros =="
+python3 "$here/baremetal_facts.py" >/dev/null || echo "  WARN: bare-metal macros not regenerated"
+
 # Diagrams 20-29 quote campaign numbers straight out of figures/gen_macros.tex,
 # so they are rebuilt here for the same reason the prose is: a fresh campaign
 # must not leave a stale figure behind. Diagrams 01-19 are hand-authored SVG
