@@ -184,10 +184,21 @@ def fault_facts(root):
             "artefact_facts.py: the two lost-update runs expected different totals "
             f"({lost['Rust'][1]} vs {lost['Cpp'][1]}); the prose quotes one figure for both")
 
+    # The catalogue's two halves, counted rather than typed. RQ2's falsifiability
+    # rests on the boundary half existing and on both halves being the same size,
+    # so an abstract or an introduction that states the split should quote these
+    # and not a remembered number. Grouped on the expectation recorded before the
+    # run, for the reason write_taxonomy_table() groups the same way: grouping on
+    # the outcome would make the count a restatement of the result.
+    prevented = [r for r in rows if r["rust_expected"] == "prevented"]
+    boundary = [r for r in rows if r["rust_expected"] != "prevented"]
+
     macros = {
         "DeadlockTsanHits": hits,
         "DeadlockTsanRuns": runs,
         "FaultClasses": len(rows),
+        "FaultClassesPrevented": len(prevented),
+        "FaultClassesBoundary": len(boundary),
         "FaultClassesUndetected": len(undetected),
         "LostUpdateExpected": thousands(lost["Rust"][1]),
     }
