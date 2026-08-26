@@ -100,6 +100,14 @@ def host_facts(macros):
     macros["BmGovernor"] = grab(r"governors:\s+(\S+)", "unknown")
     macros["BmSmt"] = grab(r"smt/control:\s+(\S+)", "unknown")
     macros["BmPinned"] = grab(r"cpus allowed here:\s+(\S+)", "unknown")
+    # Core isolation, which the protocol of bench/TESTBED.md asks for and this
+    # host did not have. Read from the capture rather than typed, because a
+    # repeat visit that fixes it has to move the table without an edit. The
+    # capture writes "(none)" when the kernel command line carries no setting,
+    # which reads better in a table cell as "none".
+    for field, key in (("isolcpus", "BmIsolcpus"), ("nohz_full", "BmNohzFull")):
+        val = grab(rf"{field}:\s+(.+)", "unknown")
+        macros[key] = "none" if val.strip() == "(none)" else val.strip()
     gpp = grab(r"(g\+\+ \(.*?\) [\d.]+)")
     if gpp:
         macros["BmGpp"] = re.sub(r"g\+\+ \(.*?\) ", "", gpp)
