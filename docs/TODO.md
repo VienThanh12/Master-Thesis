@@ -93,22 +93,38 @@ repeat measurement, and the abstract.
    the peak-RSS order-of-magnitude phrasing carries a host at five sites, all five figure defects
    are closed, and six new macros retire the last typed measured values in Chapter 6. Mean back to
    4.67. Detail in `docs/ASSESSMENT.md`, remediation pass.
-5. **NOW THE TOP PRIORITY, and it is analysis and not measurement: analyse the allocation profile
-   already on disk** (Phase 7a below). Half a day, and it is the cheapest remaining lift on
-   criterion 4. The thesis now states plainly that the profile was captured and is unanalysed, so
-   the gap is visible to a reader rather than only to this file.
-6. **Report the jitter that was collected, and add the p99.99 column to `tab:latency`.** Half a
+5. **NOW THE TOP PRIORITY, and it is two hours of reading with no new measurement: the `je`
+   statistics the confirmation campaign already recorded.** The twelfth grading pass found that
+   **480 bare-metal runs carry jemalloc's own decomposition of the resident set** through the
+   instrumentation of Phase 11 item 3, that no generator in `bench/` reads it, that §6.3 does not
+   list it, and that §7.2 meanwhile declares that exact split unresolved and pins it on an
+   allocation profile. Aggregate the seven fields, write the split, then rewrite the four sites that
+   call it open. **Read the numbers before writing them**: Rust holds *less* live data and *less*
+   allocator-resident memory while its process peak is higher, so the difference is neither
+   application data nor fully inside `jemalloc`, which points at the Rust runtime's own fixed pages.
+   That is a better finding than the placeholder. Mind the two caveats: peak RSS is a `getrusage`
+   maximum against sampled `je` figures, and the two arms link different builds of jemalloc.
+6. **Forty minutes of editing that criterion 5 is waiting on**, plus half an hour of finishing.
+   Four sites give the counter result the wrong job, claiming an operation-scope cache-miss rate
+   accounts for a fixed footprint. Appendix D's intro says the confirmation campaign "satisfies" the
+   protocol column its own caption says it missed on three rows, and that page is 80 per cent white
+   because `tab:testbed` floats away, which is what took `\appendixCount` from 6 to 7. Full list in
+   `docs/ASSESSMENT.md`, twelfth pass.
+7. **Analyse the allocation profile** (Phase 7a below). Half a day, and note it answers a *different*
+   question from item 5: call-site attribution, which code allocates, rather than the composition of
+   the resident set.
+8. **Report the jitter that was collected, and add the p99.99 column to `tab:latency`.** Half a
    day. `\LatencyCols` and `\LatencyHead` are generated so this needs no preamble edit, and the
    `tab_jitter.tex` machinery has been proven since 20 Aug. Also consider giving §`sec:baremetal` a
    figure: it answers the chapter's headline question in prose alone, and its central result is two
    non-overlapping ranges across seven load levels.
-7. **Rebuild the slide deck against the bare-metal results** (Phase 10). `build_deck.py` holds no
+9. **Rebuild the slide deck against the bare-metal results** (Phase 10). `build_deck.py` holds no
    `Bm` macro and l. 1052 still reads "The far tail here needs bare metal, not more repeats". The
    deck passes both its gates while contradicting the thesis, which is the quiet failure mode: the
    gates check layout and punctuation, not agreement with the source.
-8. **Decide what the companion documents are for, and fix the broken one** (Phase 9b).
+10. **Decide what the companion documents are for, and fix the broken one** (Phase 9b).
    `thesis-vi.pdf` currently renders 113 citations as `[?]` and predates the 15-repeat campaign.
-9. **Then:** the proofread round. The two title-page items are not on this path and are not yours
+11. **Then:** the proofread round. The two title-page items are not on this path and are not yours
    to schedule: the examiners come from the faculty, and the official class file from the UH
    Overleaf/Moodle.
 
@@ -772,13 +788,34 @@ zeros - the same convention `counters.sh` already uses.
       which sits inside the measured `\RssLangDiffLo`-`\RssLangDiffHi` MiB language
       effect. §7.5.4's "the split ... is not resolved here" is resolvable without the
       testbed.
-- [~] **The bare-metal campaign records the `je` object in every run**, so the data for this now
-      exists at campaign scale rather than one run per arm: `je` is a top-level field in all 960
-      bare-metal records. **Nothing reads it yet.** Two questions it can now answer. Check the
-      30 MiB bimodality against `stats.metadata`: if the low-RSS runs are runs where fewer arenas
-      were touched, the measurement defect behind peak RSS failing Holm under jemalloc has a named
-      cause. And check whether `stats.metadata` explains why the allocator effect fell from ~33 MiB
-      on the guest to ~2.5 MiB on bare metal, which is the new unreported finding above.
+- [~] **The bare-metal campaign records the `je` object in every run, and this is now the top item in
+      "Next up".** The twelfth grading pass promoted it: `je` is a top-level field in all 960
+      bare-metal records, 480 of which carry values (the system arms emit nulls, correctly), and
+      **nothing reads it**. Meanwhile §7.2 declares the split it measures unresolved and pins it on
+      an allocation profile. Medians over the 90 runs per arm at steady state, jemalloc arms, MiB:
+
+      | Field | C++ | Rust | Rust − C++ |
+      | --- | --- | --- | --- |
+      | `allocated` | 0.78 | 0.62 | −0.16 |
+      | `active` | 1.43 | 0.79 | −0.64 |
+      | `metadata` | 4.19 | 6.26 | **+2.07** |
+      | `resident` | 11.02 | 9.10 | −1.92 |
+      | `mapped` | 42.82 | 44.83 | +2.01 |
+      | `retained` | 27.72 | 31.67 | +3.95 |
+      | peak RSS | 15.08 | 16.82 | **+1.74** |
+
+      **Read this before writing it up, because the obvious reading is wrong.** It is tempting to
+      say metadata explains the +1.74 MiB and stop. But jemalloc's own `resident` goes the *other*
+      way by 1.92 MiB, and Rust holds less live data, so the extra process footprint is neither
+      application data nor inside the allocator's mappings at all. It points at the Rust runtime's
+      own fixed pages, which is a sharper and more interesting claim than the placeholder. Mind that
+      peak RSS is a `getrusage` maximum while the `je` figures are sampled at a point, so the two are
+      not strictly commensurable and the write-up has to say so.
+- [ ] **Two further questions the same field can answer.** Check the 30 MiB bimodality against
+      `metadata`: if the low-RSS runs are runs where fewer arenas were touched, the measurement
+      defect behind peak RSS failing Holm under jemalloc has a named cause. And check whether
+      `metadata` explains why the allocator effect fell from ~33 MiB on the guest to ~2.5 MiB on bare
+      metal.
 - [ ] **Name the confound when writing it up.** The C++ arm links the distribution's
       jemalloc while the Rust arm builds 5.3.1 from source, so part of a metadata
       difference is two builds of the allocator, not two programs. Pinning `narenas`

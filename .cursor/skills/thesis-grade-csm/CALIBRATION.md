@@ -129,18 +129,29 @@ pass the same evening and closed its whole editing tier except the abstract. Thr
 have found **no wrong measured value anywhere**.
 
 **Items 3b, 3d, 3f, 3g and 3h are CLOSED. Do not re-report them.** They are kept below with the fix
-against each, because the fixes are the transferable part. The defect class they belong to, claims
-about the evidence the evidence does not support, is the class that moved area 4 from 4.5 to 4.0 at
-the ninth pass and areas 5 and 6 at the eleventh. It is now empty for the first time since the
-eighth pass, and area 4 is held at 4.0 on three different things: the abstract, a subsection with no
-float, and two unreported results. Read the "resolved" section before reporting anything from the
+against each, because the fixes are the transferable part. **But the defect class is not closed**:
+the remediation pass of 26 August said it was, and the twelfth pass the same evening found two new
+live members, recorded as 3i and 3j. Read the "resolved" section before reporting anything from the
 numbered list, and check every item against the source.
 
 **The pattern to expect on the next pass.** Every drop since the ninth has come from prose
-describing an older state of the evidence than the artefacts hold, and every one has been an edit.
-When a new results section lands, the four places that get missed are the summary-of-findings table,
-the threats table, the hypothesis revisit, and the methodology section that said the metric was
-unavailable. Check those four first and the rest of the pass gets cheap.
+describing a different state of the evidence than the artefacts hold, and every one has been an edit.
+Three shapes, in the order they were discovered:
+
+1. **Prose behind the artefacts.** A new results section lands and the four places that get missed
+   are the summary-of-findings table, the threats table, the hypothesis revisit, and the methodology
+   section that said the metric was unavailable. Check those four first and the rest of the pass gets
+   cheap.
+2. **A claim propagated rather than checked.** A remediation pass rewrites every *sentence* that says
+   X while never asking whether X is true. This is how the counter over-claim (3i) spread from one
+   site to four. When a pass reports "all N sites rewritten", check whether the claim they now share
+   is sound.
+3. **Half a pair fixed.** A caption is corrected and the paragraph introducing it is not (3j). After
+   any caption edit, read the sentence above the float.
+
+**A rule this thesis has now demonstrated twice: a remediation pass must not grade its own work.**
+The two failures above are invisible from inside the pass that made them. Grade the remediation
+separately, and ask specifically what it propagated and what it half-fixed.
 
 **The one thing to internalise before grading this thesis again.** Its failure mode is not wrong
 numbers and never has been. It is **prose that describes an older state of the evidence than the
@@ -332,6 +343,49 @@ methodology section that said the metric was unavailable.
    phrasing needs a host. Also §`sec:baremetal` claims the campaign "changes one thing that matters,
    the machine" while the toolchain changed too, and `tab:testbed`'s caption claims the confirmation
    host met a protocol column it missed on four rows.
+
+3i. **The counters are given the wrong job at four sites. Opened by the twelfth pass.** §6.4.4
+   l. 3056 ("less work and worse locality is one account of both RQ3 results at once"), §7.2 l. 3761
+   ("a plausible account of a larger resident set and a faster operation at once"),
+   `tab:findings`'s RQ3 status ("direction accounted for by counters") and `tab:threats`'s RQ3 row.
+   An operation-scope cache-miss rate cannot explain a fixed allocator and runtime footprint, and
+   §6.4.3 says in its own words that the gap is arena and runtime overhead and a fixed cost rather
+   than a per-context one. If anything the arrow runs the other way: a larger resident set is a
+   reason to miss cache more often. The **conclusion** is right, the direction *is* accounted for,
+   but by the allocator statistics of 3j and not by the counters. The first site came in with the
+   bare-metal integration (`240346a`) and the remediation propagated it to the other three, which is
+   pattern 2 above. Hedged with "one account" and "plausible", so score it as an imprecision, but the
+   pairing with 3j in one paragraph is what took area 5 off 5.
+
+3j. **The largest unrealised asset in the repository, and the thesis says it does not exist. Opened
+   by the twelfth pass.** Both bare-metal campaigns record jemalloc's own statistics in every run of
+   their two jemalloc arms, **480 runs**, through instrumentation built for exactly this purpose
+   (`cpp/bench/jestats.hpp` with a weak `mallctl`, `je_stats()` in `rust/examples/bench.rs`, system
+   arms emitting nulls and never zeros). The seven fields (`allocated`, `active`, `metadata`,
+   `resident`, `mapped`, `retained`, `available`) decompose the resident set into live allocation
+   against arena bookkeeping against retained-but-unmapped, **which is word for word the split §7.2
+   calls unresolved** and pins on an allocation profile the study supposedly lacks. No generator in
+   `bench/` reads them, §6.3 does not list them among the confirmation dataset's fields, and the
+   guest campaign has none of them. Medians over 90 runs per arm at steady state, MiB: `allocated`
+   0.78 against 0.62, `active` 1.43 against 0.79, `metadata` 4.19 against **6.26**, `resident` 11.02
+   against 9.10, peak RSS 15.08 against 16.82. **Read it before writing it up**: Rust holds *less*
+   live data and *less* allocator-resident memory while its process peak is higher, so the difference
+   is neither application data nor fully inside `jemalloc`, which points at the Rust runtime's own
+   fixed pages. That is a sharper finding than the placeholder and it argues the same direction as
+   the conclusion. Two caveats: peak RSS is a `getrusage` maximum against sampled `je` figures, and
+   the C++ arm links the distribution `jemalloc` while the Rust arm builds 5.3.1 from source
+   (`docs/TODO.md` Phase 11 item 3 records the confound). Cost: **two hours**, not the half day
+   assigned to the profile, which answers the different question of call-site attribution.
+
+3k. **Appendix D, both defects created by the remediation. Opened by the twelfth pass.** Its opening
+   paragraph says "Section~\ref{sec:baremetal} reports a campaign that **satisfies** it" where the
+   caption four lines below lists three protocol rows the host missed. And that page carries four
+   lines of text and is otherwise white, because `tab:testbed` at `[tp]` floats to the next page:
+   **this stranded page is what took `\appendixCount` from 6 to 7**, so the fix is a per-table float
+   change and not a prose cut. Two smaller descriptions from the same pass: §6.3 calls the
+   confirmation dataset "the same record shape as the sweep and two additions" where it adds `je`,
+   `jitter_ns`, `p25`, `p75`, `p9999` and `stdev` (this is why 3j was invisible), and §5.6 calls
+   §`sec:baremetal` "exactly that exercise" of rerunning the campaign when it is a different design.
 
 4. **Prose: actioned, and the only item on this list ever to move on prose grounds.**
    "rather than" stood at 154 instances and 44 per ten thousand words at the seventh pass. It now

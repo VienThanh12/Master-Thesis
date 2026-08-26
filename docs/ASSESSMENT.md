@@ -2181,3 +2181,173 @@ sign, and the new `\BmCpu*` macros report it that way in §`sec:baremetal`.
 3. **Report the jitter that was collected, and add p99.99 to `tab:latency`.** Half a day.
 4. **Rebuild the deck against the bare-metal results.** It still holds no `Bm` macro.
 5. **Repeat the campaign at the canonical configuration and toolchain.** The measurement.
+
+---
+
+## Twelfth pass — 26 August 2026, late evening
+
+Graded from `Ha_Vien_Mastersthesis_2026.tex` at its 18:18 state against a current build (PDF and log
+both 18:23). Declared length **103 pages with 7 appendix pages, 118 physical**. Run deliberately as
+an **audit of the remediation pass** rather than as a fresh look, because the remediation graded its
+own work and that is the one thing rule 3 of the grading skill forbids. The question asked throughout
+was what that pass broke or over-credited. No edits were made.
+
+**The headline: the remediation over-credited itself by one area, and the reason generalises.** It
+closed the five figure defects and the far-tail sync, and those really are closed. It also declared
+the ninth-pass defect class closed, and that was wrong. **The class has two live members and both
+were created or propagated by the remediation itself.** Area 5 goes back to 4.5 and area 4 stays at
+4.0.
+
+| Area | After remediation | This pass | Why |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Catalogue re-verified off `taxonomy.csv` at 7 and 7. H1's revisit is the strongest version on record |
+| 2. Scholarly framework and sources | 5 | **5** | 109 of 109 cited, 66 per cent peer-reviewed venues, all keys survived two editing passes |
+| 3. Research data and method | 4.5 | **4.5** | Method got *better* (three volunteered caveats in §6.4.4). Data held, and now carries a description defect in §6.3 |
+| 4. Presentation of results | 4.0 | **4.0** | The figure defects are genuinely closed. The claims-about-the-evidence class is **not**, and its two live members are new |
+| 5. Discussion and conclusions | 5 | **4.5** | **Disagreement with the remediation pass.** §7.2's RQ3 paragraph over-claims and under-claims at once, and both halves reach the findings and threats tables |
+| 6. Academic text | 4.5 | **4.5** | Held. Body consistency is repaired. Two new finishing defects in Appendix D, both created by the remediation |
+| 7. Work during the thesis process | n/a | **n/a** | No manuscript settles it |
+| **Mean of the six assessable** | 4.67 | **4.58** | |
+
+### Finding 1: the thesis declares open a question its own reported dataset answers
+
+**Both bare-metal campaigns record jemalloc's own statistics in every run of their two jemalloc
+arms, 480 runs in total.** The instrumentation was purpose-built in both languages
+(`cpp/bench/jestats.hpp` with a weak `mallctl`, `je_stats()` in `rust/examples/bench.rs`), the system
+arms correctly emit nulls and never zeros, and the seven fields are `allocated`, `active`,
+`metadata`, `resident`, `mapped`, `retained` and `available`. Those fields decompose the resident set
+into live allocation against arena bookkeeping against retained-but-unmapped, which is word for word
+the split §7.2 calls unresolved.
+
+**No generator in `bench/` reads them.** They reach no macro, no table, no figure and no sentence,
+and §6.3 does not list them among the fields the confirmation dataset carries. The guest campaign has
+none of them, so the capability arrived with the confirmation campaign and nothing was built on it.
+
+Median over the 90 runs per arm at steady-state loads (offered $\ge 32$ kops/s), jemalloc arms of
+`campaign-20260826-102047`, in MiB:
+
+| Field | C++ | Rust | Rust − C++ |
+| --- | --- | --- | --- |
+| `allocated` | 0.78 | 0.62 | −0.16 |
+| `active` | 1.43 | 0.79 | −0.64 |
+| `metadata` | 4.19 | 6.26 | **+2.07** |
+| `resident` | 11.02 | 9.10 | −1.92 |
+| `mapped` | 42.82 | 44.83 | +2.01 |
+| `retained` | 27.72 | 31.67 | +3.95 |
+| peak RSS | 15.08 | 16.82 | **+1.74** |
+
+**The answer in the data is better than the placeholder it would replace, and it is not the simple
+one.** Rust holds less live data *and* less allocator-resident memory while its process peak is
+higher, so the footprint difference is neither application data nor fully inside `jemalloc`. That
+points at the Rust runtime's own fixed pages, which is sharper than what the thesis currently claims
+and argues in the same direction as its conclusion. Two caveats belong in any write-up. Peak RSS is a
+`getrusage` maximum while the `je` figures are sampled at a point, so the two are not strictly
+commensurable. And the C++ arm links the distribution `jemalloc` while the Rust arm builds 5.3.1 from
+source, which `docs/TODO.md` Phase 11 item 3 already records as a confound on any metadata
+comparison. Note also that this reproduces at campaign scale what that TODO item recorded from a
+single laptop run (4.1 against 6.2 MiB of metadata), so the finding is not new to the repository,
+only to the thesis.
+
+Estimated cost: **two hours**, not the half day the previous passes assigned to the profile. The
+allocation profile answers a different question, call-site attribution, and is still worth having.
+
+### Finding 2: four sites give the counter result the wrong job
+
+The counters are a real result and they explain something real, the operation-level timing difference
+§6.4.1 had previously argued from structure. What they cannot explain is peak RSS. §6.4.3 states in
+its own words that the gap is runtime and allocator-arena overhead and a fixed cost rather than a
+per-context one, and an operation's cache-miss rate does not generate fixed overhead. If anything the
+causal arrow runs the other way, since a larger resident set is a reason to miss cache more often.
+
+| Site | What it says | Provenance |
+| --- | --- | --- |
+| §6.4.4 l. 3056 | "Less work and worse locality is one account of both RQ3 results at once" | The bare-metal integration (`240346a`), **not** the remediation |
+| §7.2 l. 3761 | "a plausible account of a larger resident set and a faster operation at once" | Propagated by the remediation |
+| `tab:findings` RQ3 | "direction accounted for by counters" | The remediation. Right conclusion, wrong instrument |
+| `tab:threats` RQ3 | Control "Counters on the confirmation host", residual "Direction accounted for" | The remediation |
+
+The mirror of it, in the same paragraph and the same two tables: the split is declared unresolved and
+pinned on an instrument the campaign already holds. §7.2 l. 3762, `tab:findings`'s "split within the
+resident set open", and `tab:threats`'s "the split inside the resident set not".
+
+**Why this costs area 5 and not only area 4.** One paragraph of the discussion over-claims and
+under-claims at the same time, on the same result, and both halves reach the findings table and the
+threats table. The threats table *is* the reliability apparatus, so a wrong entry there fails the
+sub-factor the area scores rather than being a reporting slip. Everything else in area 5 is still
+exceptional, which is why this is 4.5 and not 4. The over-claim is hedged ("one account", "a
+plausible account"), which is why it is an imprecision rather than a false claim, but the pairing of
+the two errors in one paragraph is not defensible.
+
+### Finding 3: two defects the remediation created, both in Appendix D
+
+- **The intro contradicts its own table.** The caption was fixed to say the confirmation host met the
+  protocol on four aspects and missed it on three. The paragraph four lines above still says
+  "Section~\ref{sec:baremetal} reports a campaign that **satisfies** it". One of the two was edited
+  and the other was not, which is the eleventh pass's failure mode reproduced at small scale while
+  fixing it.
+- **The opening page is 80 per cent white.** Four lines of text and nothing else, because
+  `tab:testbed` at `[tp]` floats to the following page. **That stranded page is what took
+  `\appendixCount` from 6 to 7.** It is exactly the diagnosis `AGENT.md` §5 gives for this shape, so
+  the fix is a per-table float change and not a prose cut.
+
+### Finding 4 (smaller): two descriptions the remediation got wrong
+
+- §6.3's new paragraph says the confirmation dataset has "the same record shape as the sweep and two
+  additions". It has at least three kinds of addition, and one of them is Finding 1: `je`,
+  `jitter_ns`, and four latency fields (`p25`, `p75`, `p9999`, `stdev`) that §6.3's own enumeration
+  of the sweep's record does not include. The section whose job is describing the data understates
+  what was captured, which is why Finding 1 was invisible.
+- §5.6 says a rerun on another host regenerates by procedure and not by value, and calls
+  §`sec:baremetal` "exactly that exercise". It is not a rerun of the campaign, it is a different
+  design, which §`sec:baremetal` spends a closing paragraph establishing.
+- §7.2's paragraph lost its structure: it announces two bounds, digresses into a mechanism, then says
+  "A third bound belongs here."
+
+### What the remediation genuinely closed, verified again
+
+- All five figure defects, checked by rendering and not by reading the source. `fig:effects`' axis
+  label is whole, `fig:borrowuaf`'s caption matches `taxonomy.csv`, diagram 11's label argues the
+  amplification its heading claims, diagram 07's band shows the direct A/B.
+- Four of the five far-tail sites. The abstract is the fifth and is the author's.
+- The `\SatKnee` axis confusion, at all four sites.
+- Every typed measured value in Chapter 6, through seven new macros, all recomputed and matching.
+- The toolchain named in §6.4.4, and three caveats volunteered there that no reviewer asked for.
+  Those are area 3 evidence and should not be edited away.
+
+### Lifts, ordered by cost
+
+| Work | Kind | Cost | Areas |
+| --- | --- | --- | --- |
+| Fix Appendix D's intro sentence to match its caption | Editing | 5 min | 4, 6 |
+| Move `tab:testbed` off `[tp]`, one table at a time, to close the white page | Editing | 10 min | 6 |
+| Fix §6.3's record-shape sentence and §5.6's "exactly that exercise" | Editing | 15 min | 3, 4 |
+| Re-attach the counters to the operation-level result at all four sites | Editing | 30 min | 4, 5 |
+| Repair §7.2's "two bounds … a third bound" enumeration | Editing | 10 min | 5, 6 |
+| **Read the `je` statistics and write the split**, then rewrite the four "unresolved" sites | Analysis on data in hand | **2 h** | 3, 4, 5 |
+| Allocation profile, for call-site attribution | Analysis on data in hand | Half a day | 3, 4 |
+| A figure for §`sec:baremetal`, jitter, and p99.99 in `tab:latency` | Analysis on data in hand | Half a day | 3, 4 |
+| Rebuild the deck. Zero `Bm` macros, and l. 1052 still contradicts the thesis | Editing artefacts | 1 h | Repository |
+| Canonical-configuration repeat, on the sweep's toolchain, with `isolcpus` | New measurement | ~2 h | 3, 4 |
+| Rewrite the abstract unaided | Author only | One sitting | 6, and 4 follows |
+
+The first five are about seventy minutes and restore area 5 to 5. The two-hour row is the next one
+worth doing, because it is the only item that moves three areas without new measurement.
+
+### The durable lesson from today
+
+Three passes and two remediations in one day produced one clear rule. **A remediation pass must not
+grade its own work**, because the two failures it is most likely to make are invisible from inside
+it: propagating a claim it did not originate (the counters), and fixing one half of a pair (the
+Appendix D caption without its intro). Both happened. The second rule is narrower and just as
+useful: **closing a sentence is not closing the claim inside it.** Every site that said "the profiles
+were not collected" was rewritten, and not one of them asked whether the question those profiles were
+for had already been answered by a different instrument in the same dataset.
+
+### Outstanding
+
+1. **The abstract.** Five items, author only. Still the sole blocker on area 6's level 5.
+2. **Seventy minutes of editing**, listed above, restoring area 5 to 5.
+3. **Two hours on the `je` statistics.** The highest-value item in the project, and it needs no
+   measurement, no rented machine and no new code beyond a reader.
+4. **Repeat the campaign at the canonical configuration and toolchain.** Still the only thing holding
+   area 3's data half below 5.
