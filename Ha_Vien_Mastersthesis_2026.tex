@@ -4268,10 +4268,8 @@ did not measure directly.
 \centering
 \small
 \caption[Threats to validity, their mitigations, and what remains]{Threats to validity by the kind of inference each endangers, the control applied, and
-what that control leaves behind. Only the entries in the last column are live risks. The
-middle column is what has already been done about each, and two of those controls arrived after the
-main campaign rather than with it, on the confirmation host of
-Section~\ref{sec:baremetal}.\label{tab:threats}}
+what that control leaves behind. Only the last column holds live risks. Two of the controls arrived
+with the confirmation host of Section~\ref{sec:baremetal}.\label{tab:threats}}
 % Slightly opened row height on the densest table in the thesis, which overruns the
 % page without it. The \singlespacing is redundant now that the body is single-spaced
 % too, but it is kept because it reselects the current size, which is why it has to
@@ -4290,17 +4288,17 @@ Implementation bias between the two versions & Frozen specification, shared allo
 The sweep measures the design, not the language & The operation is measured apart from the handoff and both are reported (\S\ref{sec:budget}) & One operation on one data structure is narrower than the sweep it supplements \\
 The overload result is attributed but not localised & Narrowed to two entries in the forced-idiom log (\S\ref{sec:overload}). The contended-primitive microbenchmark (\S\ref{sec:contention}) rules out those two alone as the full explanation & The full handoff path under load still includes variant dispatch and larger requests on the C++ side \\
 A defect catalogue is a sample the author chose & Seven classes drawn from outside the guarantee, with expectations recorded in advance & Fourteen programs remain fourteen programs \\
-RQ3 captures resource cost, its origin only in part & Counters on the confirmation host: less work retired, worse locality (\S\ref{sec:baremetal}) & Direction accounted for, the split inside the resident set not. Its allocation profile is captured, not analysed \\
+RQ3 captures resource cost, its origin only in part & Counters on the confirmation host (\S\ref{sec:baremetal}) & Direction accounted for. The split inside the resident set is unanalysed \\
 RQ4 measures the seam, not the safety of the whole & The distinction is stated wherever the result is quoted & One address space: a compile-time property of the Rust side bounds nothing at run time \\
 \hline
 \multicolumn{3}{@{}l}{\emph{Conclusion: are the differences real or noise?}} \\
-Run-to-run non-determinism & \NRepeats{} interleaved repeats, bootstrap intervals, exact paired permutation test, Holm correction, floors quoted & Pairing cancels only what a block shared, so the far tail below saturation needed a quieter machine and not a better statistic (\S\ref{sec:baremetal}) \\
+Run-to-run non-determinism & \NRepeats{} interleaved repeats, bootstrap intervals, exact paired permutation test, Holm correction, floors quoted & Pairing cancels only what a block shared, so the far tail below saturation needed a quieter machine (\S\ref{sec:baremetal}) \\
 A corrected $p$-value that does not replicate & The allocator control runs every comparison twice. Replication is followed over the $p$-value & It has cost a result before and would again. Here the tail rows are the ones it withholds \\
 A contaminated run defeating a mean-based statistic & The reading rule of \S\ref{sec:stats}, fixed in advance, plus the per-repeat agreement count & Peak RSS under \texttt{jemalloc} is read from its interval against its own $p$-value \\
 \hline
 \multicolumn{3}{@{}l}{\emph{External: how far do the results travel?}} \\
 One subsystem, one workload, one machine & RQ2 rests on the compilers, RQ4 on the compilers, the C ABI and the dependency graph & The performance results do not travel, and the overload result travels least of all. RQ4's build-time seconds describe one machine, its ratio does not \\
-A virtualised measurement host & Interleaving, pairing, and \NRepeats{} repeats. The guest's limits recorded in the data (\S\ref{sec:testbed}). The findings re-measured on bare metal (\S\ref{sec:baremetal}) & Frequency unobservable and CPU steal non-zero, neither removable from inside the guest. The confirmation runs a different shard and repeat count, so it corroborates rather than replaces \\
+A virtualised measurement host & Interleaving, pairing, \NRepeats{} repeats, the guest's limits recorded in the data (\S\ref{sec:testbed}), and re-measurement on bare metal (\S\ref{sec:baremetal}) & Frequency unobservable and steal non-zero, neither removable from inside the guest. The confirmation moves shard count, repeats and toolchain, so it corroborates rather than replaces \\
 \hline
 \end{tabular}
 \end{table}
