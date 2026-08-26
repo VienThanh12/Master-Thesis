@@ -375,23 +375,40 @@ took 154 words and again recovered nothing. Total across the four passes: **960 
 **The durable diagnosis, measured 26 August: §6.4 reads long because of how it is divided, not
 because of how it is written.**
 
-| RQ | Words | Share | Subsections |
+| RQ | Words | Share | Subsections (before the 26 Aug consolidation) |
 | --- | --- | --- | --- |
 | RQ1 | 2986 | 39% | **five** (§6.4.1 to §6.4.5) plus 12 of the 21 floats |
 | RQ2 | 2507 | 33% | one (§6.4.7), eight paragraphs of per-class narration |
 | RQ3 | 523 | 7% | one |
 | RQ4 | 1513 | 20% | one |
 
-RQ1's answer arrives in five installments with no single place stating it, and RQ1 and RQ2 together
-are 71 per cent of the section. That is the reading problem, and no further word-shaving touches it.
+RQ1's answer arrived in five installments with no single place stating it, and RQ1 and RQ2 together
+are 71 per cent of the section. That was the reading problem, and no amount of word-shaving touched
+it. RQ2's 33 per cent share is untouched and is the next place to look, but most of that subsection
+is protected by §3 item 3.
 
-**The fix is already specified by an approved document.** `Thesis_v2.tex` organises this chapter as
-**five argument bullets**: workload and host, below saturation (with the budget decomposition inside
-it), past saturation (with the contention microbenchmark inside it), safety, and resources with
-migration. The full draft's eight subsections do not match that, which is the same
-skeleton-versus-draft structural disagreement §4 records as unresolved. Consolidating §6.4 to the
-skeleton's grouping would make RQ1 legible, remove two or three headings with their float-packing
-breaks, and satisfy the sync rule, while changing no claim, no number and no float.
+**That was fixed on 26 August by consolidating §6.4 to the grouping `Thesis_v2.tex` already uses.**
+The skeleton organises this chapter as five argument bullets, and the full draft's eight
+subsections did not match it. §6.4 is now **five subsections**: below saturation (RQ1, RQ3), past
+saturation (RQ1), resource use (RQ3), safety (RQ2), migration (RQ4). RQ1 went from five subsections
+to two. Nothing was deleted, no claim, number or float changed, and the chapter stayed at 25 pages,
+so this is a **readability** change and not a length one.
+
+Two mechanics matter if this is ever revisited:
+
+- **Demoted labels keep their anchors.** `sec:budget` and `sec:contention` moved from
+  `\subsection` to `\paragraph` and kept their `\label`. `\ref` now returns the *enclosing
+  subsection* number, so `Section~\ref{sec:budget}` prints 6.4.1 while its `.aux` entry still
+  records page 51 and anchors to `paragraph*.44`. PDF links therefore land exactly on the
+  paragraph, and only the printed number is coarser. That is tolerable here because all 11
+  `sec:budget` references name their target in the sentence. Check that before demoting anything
+  else.
+- **Merging creates circular references.** Two pointers became self-references the moment their
+  subsection absorbed the target (the sweep paragraph citing `sec:perfresults`, and the overload
+  prose citing `sec:contention`). The build does not catch these, since the labels resolve fine.
+  After any merge, grep each merged range for references to labels now inside it.
+
+Still unresolved, and larger: the skeleton has nine chapters to the draft's eight (§4).
 
 The one float lever left is the author's call because it drops a reader aid rather than a claim:
 `tab:taxonomy` and `fig:taxonomy` show the same $14$ outcomes from the same log and cost about 1.1
