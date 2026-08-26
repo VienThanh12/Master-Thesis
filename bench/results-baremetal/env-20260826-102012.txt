@@ -1,0 +1,53 @@
+# Testbed environment capture (20260826-102012)
+
+## Host / OS
+Linux touched-reptile 6.17.0-23-generic #23~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Apr 14 16:11:48 UTC 2 x86_64 x86_64 x86_64 GNU/Linux
+distro: Ubuntu 24.04.4 LTS
+
+## Toolchains
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+rustc 1.98.0 (88d9e12ae 2026-08-18)
+cargo 1.98.0 (797e8a9bc 2026-08-05)
+cmake version 3.28.3
+
+## CPU
+CPU(s):                                  48
+Model name:                              AMD EPYC 7443P 24-Core Processor
+BIOS Model name:                         AMD EPYC 7443P 24-Core Processor                Unknown CPU @ 2.8GHz
+Thread(s) per core:                      1
+Core(s) per socket:                      24
+Socket(s):                               1
+CPU(s) scaling MHz:                      64%
+CPU max MHz:                             4035.6440
+CPU min MHz:                             0.0000
+NUMA node(s):                            1
+NUMA node0 CPU(s):                       0-23
+
+## Frequency governor / turbo / SMT
+governors: performance
+intel_pstate/no_turbo: (not present)
+smt/control: off
+
+## Virtualisation and core isolation
+virtualisation: none
+container: none
+cgroup cpu quota: (not exposed)
+cgroup memory limit: (not exposed)
+cgroup cpuset: 0-23
+seccomp mode: 0 (0 = off, 2 = filter on every syscall)
+cpus allowed here: 2-17
+kernel cmdline: BOOT_IMAGE=/boot/vmlinuz-6.17.0-23-generic root=UUID=4d87ed80-aa1a-4a6a-9b31-c6cdf2dee6c0 ro
+isolcpus: (none)
+nohz_full: (none)
+steal ticks (1 s sample): 0
+
+## Allocator
+system jemalloc: /lib/x86_64-linux-gnu/libjemalloc.so.2
+MALLOC_CONF (C++ jemalloc): thp:never,narenas:16
+_RJEM_MALLOC_CONF (Rust jemalloc): thp:never,narenas:16
+transparent hugepages: madvise
+
+## Warnings
+  [NOISOL] No isolcpus= on the kernel command line: benchmark threads share
+           their cores with the rest of the system, and a lost timeslice
+           lands directly in p99.
