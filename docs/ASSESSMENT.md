@@ -2077,3 +2077,107 @@ the ethics section are all untouched and all still read at 5, which is why this 
    only lift on the list that closes a cell in the threats table.
 4. **Repeat the bare-metal campaign at the canonical configuration and toolchain.** The last thing
    holding area 3's data half below 5.
+
+---
+
+## Remediation pass — 26 August 2026, evening
+
+Worked the eleventh pass's editing tier the same evening. **Every item on it is closed except the
+abstract**, which is the author's alone. Areas 5 and 6 return to 5 and 4.5, so the mean goes back to
+4.67, and area 4's two long-standing figure defects are closed as well. Declared length 103 pages
+with 7 appendix pages, 118 physical, up one appendix page from the pass that graded it. The build is
+clean on every gate and `refresh_thesis.sh` runs end to end.
+
+| Area | Eleventh pass | After remediation | What moved it |
+| --- | --- | --- | --- |
+| 1 | 5 | **5** | Held |
+| 2 | 5 | **5** | Held |
+| 3 | 4.5 | **4.5** | Held deliberately. The toolchain is now named and `tab:testbed`'s caption is honest, which was the *reporting* half of the finding. The canonical-configuration repeat is still the measurement |
+| 4 | 4.0 | **4.0** | Held deliberately, and it is now much closer to 4.5 than to 3.5. Every claims-about-the-evidence site is closed and so are all five figure defects. What is left is the abstract and the two analyses on data in hand, so this is the next area to move and the cheapest one |
+| 5 | 4.5 | **5** | The three Chapter 7 statements denying collected instruments are rewritten, and H1's revisit now uses the campaign that settles H1's own clause |
+| 6 | 4.0 | **4.5** | The level-4 consistency clause holds again: §4.4, §6.3, §5.6 and `tab:testbed`'s caption all describe the study as it is. Level 5 still waits on the abstract, exactly as the tenth pass argued |
+| 7 | n/a | **n/a** | No manuscript settles it |
+| **Mean** | 4.50 | **4.67** | |
+
+### Finding 1 (the six denials): closed, all six
+
+| Site | Now reads |
+| --- | --- |
+| §6.4.3 | "What this campaign cannot do is explain the gap, because the guest exposes no hardware counters", pointing at §`sec:baremetal` for the half it supplies |
+| §7.2 | Names the counter result in mechanism, then scopes what is still open to the split inside the resident set, and says the allocation profile was captured and not analysed |
+| §7.6 construct validity | p99.99 is reported on one host, and the question is now answered with a metric its own wording does not name |
+| §7.6 conclusion validity | Same narrowing for the resource origin |
+| `tab:threats` RQ3 row | Control column reads "Counters on the confirmation host (§6.4.4)", residual "Direction accounted for, the split inside the resident set not" |
+| §4.4 | "The main campaign ... reports neither. The confirmation campaign carries both", and jitter is recorded and left undiscussed because no research question asks for it |
+
+The honest half is preserved everywhere: the profile is described as captured and unanalysed rather
+than quietly dropped, so the lift stays visible in the document instead of only in this file.
+
+### Finding 2 (the far tail): four of five closed, the abstract remains
+
+`tab:findings`'s RQ1 row now says this host resolves no tail ordering while a quiet host puts the
+pooled p99.99 of the Rust variants below the C++ variants, with an evidence status of "unresolved
+here, resolved on bare metal at one shard count". §7.1, `tab:threats`'s non-determinism row and
+§6.3 follow. §6.3's "provisionally ... replaces these numbers" paragraph is replaced by a
+description of the fourth dataset, which §6.3 previously did not describe at all, and its opening
+count went from three campaigns to four.
+
+### Finding 3 (the fifth variable): closed, and two more caveats added unprompted
+
+§`sec:baremetal` now says the campaign "differs from the main sweep in four ways at once" and names
+`g++` and `rustc` among them, then makes the toolchain change do some work: it is the only evidence
+in the study separating either language from one implementation of it. `tab:testbed`'s caption no
+longer claims the host met the right-hand column. It says which four rows it met and which three it
+did not. Two caveats were added that no pass had asked for, both found while checking the capture:
+no `isolcpus` or `nohz_full`, and the jitter sidecar was enabled on the confirmation campaign and
+not on the sweep, so the two hosts' paired differences are comparable and their absolute footprints
+are not.
+
+### Finding 4 (the RSS ratio): closed at five sites
+
+§1.4, `tab:findings`'s RQ3 row, §6.4.3, §7.2 and the conclusion all attach a host to the
+order-of-magnitude phrasing, and §`sec:baremetal` now flags the collapse itself: both effects are
+smaller on the confirmation host and the allocator's is smaller by far the more, so the ratio
+narrows to roughly two with the arena count pinned identically. §7.2 states the general form, that
+the ordering travels and the ratio does not. The non-negotiable claim is untouched.
+
+### The figure and macro defects: all closed
+
+| Item | How |
+| --- | --- |
+| `fig:effects` clipped axis label | **Not** by `bbox_inches`, which was tried and did not work: a tight bbox crops to the artists it can measure and the overhang was not one of them. Fixed by one shared `fig.supxlabel` instead of a per-axes copy, which is also better design since both panels plot the same normalised quantity. Verified by extracting the text from the PDF and by reading the render |
+| `fig:borrowuaf` "only under AddressSanitizer" | Now "only under a sanitiser on a path a test exercises", which matches `taxonomy.csv`'s `detected,detected` |
+| Diagram 11's inverted fan-out label | Now "so a 1-in-100 per-op delay is a 1-in-25 procedure delay". With the four ops the panel draws, $1-0.99^4 = 3.9\%$, so the label finally argues the amplification its own heading claims |
+| Diagram 07's disowned per-call framing | The band now shows the direct A/B the harness runs, the same operation native against through the seam, with the two bars almost the same length because that is the finding. The crossing-against-round-trip ratio is gone |
+| Diagram 07's typed numbers | A regression was introduced and then fixed. The first rewrite typed eight measured values into a hand-authored SVG, worse than the two it replaced. The statistics moved to the caption as macros and the band now types only the two bar lengths, which a bar chart cannot avoid |
+| The five typed chapter-6 values plus the floor | Six new generated macros: `\PFiftyMedian` 80, `\PNineNineLightest` 245, `\PNineNinePreCliff` 6, `\RssAgree` 18/20, `\RssLowRunOffset` 31, `\BudgetFloor` 0.000061, and `\BmPFiftyMedian` 74. All seven were recomputed from the raw logs and match |
+| `\SatKnee` used as a load-axis position | Reworded at all four sites. The sweep now "tracks to an offered `\TrackingLoad` where it plateaus at an achieved `\SatKnee`", the knee is described as bracketed by the rate ladder rather than pinned by it, `fig:loadsweep`'s caption no longer lists a knee marker it does not draw, and `tab:params`'s row is relabelled "Measured throughput plateau". §`sec:baremetal` already did it correctly and supplied the pattern |
+| §5.6's "regenerates the artifacts verbatim" | Replaced. The scope is now "every result table, every plot of measured data, and every quoted number", with the two exclusions named: hand-drawn schematics are authored, and a rerun on another host regenerates by the same procedure and not to the same values, which §`sec:baremetal` is the worked example of. `bench/results-baremetal/` is now listed beside `bench/results/` |
+
+### Two mechanical fixes to the pipeline
+
+`bench/refresh_thesis.sh` now pools the bare-metal histogram sidecars before calling
+`baremetal_facts.py`. Without that step the far-tail macros silently kept whatever
+`gen_baremetal.tex` last held, which is the quiet-staleness failure mode the script exists to
+prevent. And `rss_low_run_offset()` in `plot_figures.py` measures the contaminated-run offset by
+splitting each variant's repeats at their largest gap rather than at a threshold, refuses a variant
+whose runs are unimodal or whose low group is not a minority, and returns nothing when no variant
+qualifies, so the macro is absent rather than zero on a campaign that does not show the defect.
+
+### One number the pass had wrong, corrected here
+
+The eleventh pass called the bare-metal CPU result a resolution of a guest non-result. It is not:
+§6.4.3 already reports the below-saturation CPU comparison as clearing the correction under both
+allocators, and the "reverses under jemalloc" reading came from a stale `docs/TODO.md` note about an
+earlier campaign. What the bare-metal data adds is a cleaner confirmation, 16 of 16 points with one
+sign, and the new `\BmCpu*` macros report it that way in §`sec:baremetal`.
+
+### What is left
+
+1. **The abstract.** Five items, author only, unchanged. It is now the sole blocker on area 6's
+   level 5 and it is the last far-tail site in the document.
+2. **Analyse the allocation profile.** Half a day. Area 4's cheapest remaining lift, and the
+   document now says plainly that the profile exists and is unanalysed, so the gap is visible.
+3. **Report the jitter that was collected, and add p99.99 to `tab:latency`.** Half a day.
+4. **Rebuild the deck against the bare-metal results.** It still holds no `Bm` macro.
+5. **Repeat the campaign at the canonical configuration and toolchain.** The measurement.

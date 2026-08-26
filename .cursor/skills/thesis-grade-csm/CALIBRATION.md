@@ -124,12 +124,23 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
-State as of the **eleventh pass, 26 August 2026 evening**, taken after the bare-metal campaign
-landed. Three passes running have found **no wrong measured value anywhere**. The defect class that
-moved area 4 from 4.5 to 4.0 at the ninth pass is claims about the evidence that the evidence does
-not support, listed as items 3a to 3h below. It is now also what moved areas 5 and 6, because the
-campaign created nine new instances of it in one day. Read the "resolved" section before reporting
-anything from the numbered list, and check every item against the source.
+State as of the **remediation pass of 26 August 2026 evening**, which followed the eleventh grading
+pass the same evening and closed its whole editing tier except the abstract. Three passes running
+have found **no wrong measured value anywhere**.
+
+**Items 3b, 3d, 3f, 3g and 3h are CLOSED. Do not re-report them.** They are kept below with the fix
+against each, because the fixes are the transferable part. The defect class they belong to, claims
+about the evidence the evidence does not support, is the class that moved area 4 from 4.5 to 4.0 at
+the ninth pass and areas 5 and 6 at the eleventh. It is now empty for the first time since the
+eighth pass, and area 4 is held at 4.0 on three different things: the abstract, a subsection with no
+float, and two unreported results. Read the "resolved" section before reporting anything from the
+numbered list, and check every item against the source.
+
+**The pattern to expect on the next pass.** Every drop since the ninth has come from prose
+describing an older state of the evidence than the artefacts hold, and every one has been an edit.
+When a new results section lands, the four places that get missed are the summary-of-findings table,
+the threats table, the hypothesis revisit, and the methodology section that said the metric was
+unavailable. Check those four first and the rest of the pass gets cheap.
 
 **The one thing to internalise before grading this thesis again.** Its failure mode is not wrong
 numbers and never has been. It is **prose that describes an older state of the evidence than the
@@ -178,7 +189,23 @@ methodology section that said the metric was unavailable.
    in the same period to name `bench/refresh_thesis.sh` instead of claiming one script, which
    answers the count objection but not the scope one: see 3d.
 
-3b. **Three figures misstate the result they illustrate.** `fig:borrowuaf`'s caption (l. 827) says
+3b. **CLOSED 26 August 2026, remediation pass. Do not re-report.** All five are fixed and each fix
+   is worth carrying. `fig:borrowuaf`'s caption now says "only under a sanitiser on a path a test
+   exercises", which matches `taxonomy.csv`. Diagram 07's band shows the direct A/B the harness runs
+   (same operation native against through the seam) instead of the disowned
+   crossing-against-round-trip ratio, and the two bars are almost the same length because that is
+   the finding. Diagram 11 now reads "so a 1-in-100 per-op delay is a 1-in-25 procedure delay",
+   which is $1-0.99^4$ over the four ops its own panel draws, so the label finally argues the
+   amplification the heading claims. `fig:budget`'s caption carries "language". And **`fig:effects`
+   was not fixed by `bbox_inches="tight"`**, which was tried and failed, because a tight bbox crops
+   to the artists it can measure and the overhang was not one of them. One shared `fig.supxlabel`
+   fixed it, and it is better design since both panels plot the same normalised quantity. Two
+   method notes. Re-render and **read** any diagram edited here, since the style gate checks
+   punctuation and not sense. And count the numbers you leave in a hand-authored SVG: the first
+   rewrite of diagram 07's band typed eight measured values where two had been, before the
+   statistics moved to the caption as macros.
+
+   *Original text, kept for the reasoning:* `fig:borrowuaf`'s caption (l. 827) says
    the C++ use-after-free is caught "only under AddressSanitizer" where `taxonomy.csv` and
    Table 7.9 both record ASan *and* TSan. `diagrams/07_ffi_seam.svg`'s bottom band is headed
    "Per-call cost" and shows the empty-crossing-against-round-trip ratio that §7.6 disowns and
@@ -200,8 +227,20 @@ methodology section that said the metric was unavailable.
    against, so do not read it as carelessness in the usual direction. **Area 4 was not lifted for
    the partial fix**, because 3a and 3b are untouched.
 
-3d. **§6.3 promises a generated macro for every measured quantity the chapter quotes, and §6.4.3
-   types two.** l. 2323 makes the claim. l. 2894–2895 quote "$18$ of the $20$ paired repeats agree"
+3d. **CLOSED 26 August 2026, remediation pass. Do not re-report.** Six new generated macros retire
+   every typed measured value in Chapter 6: `\RssAgree` 18/20, `\RssLowRunOffset` 31,
+   `\PFiftyMedian` 80, `\PNineNineLightest` 245, `\PNineNinePreCliff` 6 and `\BudgetFloor`
+   0.000061, plus `\BmPFiftyMedian` 74 in `baremetal_facts.py`. All seven were recomputed from the
+   raw logs and match. Two of the generators are worth knowing about. `rss_low_run_offset()` splits
+   each variant's repeats at their largest gap rather than at a threshold, refuses a variant whose
+   runs are unimodal or whose low group is not a minority, and returns `None` when none qualifies,
+   so the macro is absent rather than zero on a campaign without the defect. `\BudgetFloor` comes
+   from the same `attainable_floor()` as `\MinAttainableP`, so changing `BudgetRepeats` moves it.
+   §5.6's scope claim was rewritten in the same pass to name its two exclusions, hand-drawn
+   schematics and the fact that a rerun on another host regenerates by procedure and not to the same
+   values. Diagram 07 now types only the two bar lengths, which a bar chart cannot avoid.
+
+   *Original text, kept for the reasoning:* l. 2323 makes the claim. l. 2894–2895 quote "$18$ of the $20$ paired repeats agree"
    and "a resident set some $30$~MiB low", which together are the whole justification for reading
    peak RSS under `jemalloc` from its interval rather than its $p$-value. Neither has a macro, and
    `\OverloadThrAgree` is the identical quantity for the overload family and *is* generated at
@@ -222,7 +261,17 @@ methodology section that said the metric was unavailable.
    call the document submittable and one rewrite closes all four, but say plainly in any pass that
    submitted as it stands this abstract puts area 6 at 4.0 and area 4 follows it.
 
-3f. **`\SatKnee` is a throughput value used as a load-axis position.** `plot_figures.py:1652`
+3f. **CLOSED 26 August 2026, remediation pass. Do not re-report.** Reworded at all four sites. The
+   sweep now "tracks the ideal line up to an offered `\TrackingLoad` kops/s, where it plateaus at an
+   achieved `\SatKnee` kops/s", and the prose adds that the rate ladder brackets the knee rather
+   than pinning it, since the next rung is where the arms stop tracking. `fig:loadsweep`'s caption
+   no longer lists a knee marker panel (b) does not draw, `tab:params`'s row is relabelled "Measured
+   throughput plateau", and `Thesis_v2.tex` follows. The macro names were left alone deliberately:
+   renaming one used in six places plus the deck buys nothing that the wording does not.
+   §`sec:baremetal` had already done this correctly, bracketing its own knee between `\BmKneeLo` and
+   `\BmKneeHi`, and supplied the pattern.
+
+   *Original text, kept for the reasoning:* `plot_figures.py:1652`
    defines it as the highest achieved throughput in the sweep, minimised across variants, so it
    belongs to the vertical axis. `\TrackingLoad` is an offered load. §6.4.1 l. 2702 prints them as
    tracking to 336 kops/s and saturating at 335, and `fig:loadsweep`'s caption lists "the knee at
@@ -231,8 +280,19 @@ methodology section that said the metric was unavailable.
    §`sec:baremetal` brackets its own knee between `\BmKneeLo` 448 and `\BmKneeHi` 512 because the
    sweep steps over it, which is the honest form. Copy that.
 
-3g. **Six statements deny an instrument the study used. Opened by the eleventh pass, and the
-   largest single finding on this list.** The bare-metal visit collected `perf` counters at both
+3g. **CLOSED 26 August 2026, remediation pass. Do not re-report.** All six rewritten, and the honest
+   half was preserved rather than dropped: the allocation profile is now described in the thesis as
+   captured and unanalysed, so the gap stays visible in the document instead of only in this file.
+   `tab:threats`'s RQ3 row reads "Counters on the confirmation host" against "Direction accounted
+   for, the split inside the resident set not". §4.4 says the main campaign reports neither metric
+   and the confirmation campaign carries both. **Note the table overflowed its page while this row
+   was being lengthened**, which cost several rebuild cycles: `tab:threats` is the densest table in
+   the thesis and sits within a few points of its page, so measure after any row edit. One number
+   the eleventh pass had wrong is corrected in the remediation record: the bare-metal CPU result
+   *confirms* the guest's below-saturation CPU finding rather than resolving a non-result, and the
+   "reverses under jemalloc" reading came from a stale `docs/TODO.md` note about an earlier campaign.
+
+   *Original text, kept for the reasoning, and the largest single finding on the eleventh pass:* The bare-metal visit collected `perf` counters at both
    scopes and a jemalloc allocation profile for both languages, and §`sec:baremetal` reports the
    counters under the heading *A mechanism, from counters the guest did not expose*. Yet §6.4.3
    l. 2930 says the gap is unexplained "for want of hardware counters and allocation profiles",
@@ -245,8 +305,21 @@ methodology section that said the metric was unavailable.
    unreported, so that sentence needs splitting rather than deleting. **This is what took area 5 off
    5**, because three of the six are chapter-7 text.
 
-3h. **Five summary sites still call the far tail unresolved, and the peak-RSS ratio claim lost its
-   host. Opened by the eleventh pass.** The integration reached §1.4, §6.4, §7.2, the conclusion,
+3h. **CLOSED 26 August 2026 except the abstract, which is item 1. Do not re-report the other four.**
+   `tab:findings`'s RQ1 row, §7.1, `tab:threats`'s non-determinism row and §6.3 are synced. §6.3's
+   "provisionally ... replaces these numbers" paragraph became a description of the fourth dataset,
+   which §6.3 had not described at all, and its opening count went from three campaigns to four. The
+   peak-RSS ratio carries a host at five sites, and §`sec:baremetal` now flags the collapse itself
+   with the arena count noted as pinned identically, so it cannot be read as the fairness control
+   moving. §7.2 states the general form: the ordering travels and the ratio does not. The toolchain
+   is named in §`sec:baremetal`'s list of differences, which now says four ways and not three, and
+   `tab:testbed`'s caption lists the three protocol rows the confirmation host missed instead of
+   claiming it met the column. Two caveats were added that no pass asked for: no `isolcpus` or
+   `nohz_full` on the confirmation host, and the jitter sidecar was on for that campaign and off for
+   the sweep, so the two hosts' paired differences are comparable and their absolute footprints are
+   not.
+
+   *Original text, kept for the reasoning:* The integration reached §1.4, §6.4, §7.2, the conclusion,
    `tab:threats`'s virtualised-host row, `tab:testbed`, `Thesis_v2.tex` and `Thesis_Plan_v2.tex`,
    and missed the abstract (l. 245), `tab:findings`'s RQ1 row ("no tail ordering is resolvable"),
    §7.1 l. 3506, `tab:threats`'s non-determinism row, and §6.3 l. 2389 (which promises the

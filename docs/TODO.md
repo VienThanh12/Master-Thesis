@@ -84,21 +84,31 @@ repeat measurement, and the abstract.
      to 1 for the session.
    - `alloc_profile.sh --check` reports the Rust arm as unbuildable when `cargo` is not on
      `PATH`, which is what a non-login SSH session gives you. Source `~/.cargo/env` first.
-4. **NOW THE TOP PRIORITY: three hours of sync editing.** The eleventh grading pass moved
-   criterion 5 off 5 for the first time and criterion 6 from 4.5 to 4.0, both on staleness rather
-   than on anything the campaign did. Fourteen sites describe less evidence than exists. The list
-   with line numbers is in `docs/ASSESSMENT.md`, eleventh pass, findings 1 to 4. The six worst say
-   that hardware counters and allocation profiles "were not collected" in a document that reports
-   the counters. **Doing this restores criterion 5 to 5 and criterion 6 to 4.5.**
-5. **Analyse the allocation profile already on disk** (Phase 7a below). Half a day, moves three
-   criteria, and it is the only remaining item that closes a cell in `tab:threats`.
-6. **Rebuild the slide deck against the bare-metal results** (Phase 10). `build_deck.py` holds no
+4. **DONE 26 Aug 2026, evening: the sync editing.** The eleventh grading pass moved criterion 5 off
+   5 and criterion 6 from 4.5 to 4.0, both on staleness rather than on anything the campaign did,
+   and a remediation pass the same evening closed every item except the abstract and restored both.
+   All six statements denying an instrument the study used are rewritten, four of the five far-tail
+   sites are synced, the toolchain is named in §`sec:baremetal`, `tab:testbed`'s caption stops
+   claiming a protocol the host missed, H1's revisit uses the campaign that settles H1's own clause,
+   the peak-RSS order-of-magnitude phrasing carries a host at five sites, all five figure defects
+   are closed, and six new macros retire the last typed measured values in Chapter 6. Mean back to
+   4.67. Detail in `docs/ASSESSMENT.md`, remediation pass.
+5. **NOW THE TOP PRIORITY, and it is analysis and not measurement: analyse the allocation profile
+   already on disk** (Phase 7a below). Half a day, and it is the cheapest remaining lift on
+   criterion 4. The thesis now states plainly that the profile was captured and is unanalysed, so
+   the gap is visible to a reader rather than only to this file.
+6. **Report the jitter that was collected, and add the p99.99 column to `tab:latency`.** Half a
+   day. `\LatencyCols` and `\LatencyHead` are generated so this needs no preamble edit, and the
+   `tab_jitter.tex` machinery has been proven since 20 Aug. Also consider giving §`sec:baremetal` a
+   figure: it answers the chapter's headline question in prose alone, and its central result is two
+   non-overlapping ranges across seven load levels.
+7. **Rebuild the slide deck against the bare-metal results** (Phase 10). `build_deck.py` holds no
    `Bm` macro and l. 1052 still reads "The far tail here needs bare metal, not more repeats". The
    deck passes both its gates while contradicting the thesis, which is the quiet failure mode: the
    gates check layout and punctuation, not agreement with the source.
-7. **Decide what the companion documents are for, and fix the broken one** (Phase 9b).
+8. **Decide what the companion documents are for, and fix the broken one** (Phase 9b).
    `thesis-vi.pdf` currently renders 113 citations as `[?]` and predates the 15-repeat campaign.
-8. **Then:** the proofread round. The two title-page items are not on this path and are not yours
+9. **Then:** the proofread round. The two title-page items are not on this path and are not yours
    to schedule: the examiners come from the faculty, and the official class file from the UH
    Overleaf/Moodle.
 
@@ -278,10 +288,11 @@ latexmk -C                   # clean build artifacts
       one account of the operation-level gap and the peak-RSS effect together, and it replaces the
       node-based-`unordered_map` argument with a measurement. Reported in §`sec:baremetal`.
       `kernel.perf_event_paranoid` defaults to 4 on Ubuntu 24.04 and blocks the script; set it to 1.
-- [ ] **Three places still say these counters were never collected.** §6.4.3 l. 2930, §7.2 l. 3704
-      and §7.6 l. 4281, plus `tab:threats`'s RQ3-origin row whose control column reads "None
-      available on this host". The first of those is falsified 90 lines later in its own chapter.
-      Part of item 4 in "Next up".
+- [x] **Fixed 26 Aug 2026, evening.** Four places said these counters were never collected (§6.4.3,
+      §7.2, §7.6, and `tab:threats`'s RQ3-origin row, whose control column read "None available on
+      this host"), and the first was falsified 90 lines later in its own chapter. All four now name
+      §`sec:baremetal`. Watch out when editing that table row: `tab:threats` is the densest table in
+      the thesis and sits within a few points of its page, so a longer cell overflows it.
 - [~] Allocation profile per variant: **`bench/alloc_profile.sh` written** (Aug 2026), to be *run*
       on the testbed visit. Uses jemalloc's own `prof` on **both** jemalloc arms rather than
       heaptrack for C++ and dhat for Rust, so the two sides are measured by one instrument with
@@ -308,8 +319,9 @@ latexmk -C                   # clean build artifacts
       confound recorded in Phase 11 item 3: the C++ arm links the distribution jemalloc while the
       Rust arm builds 5.3.1 from source, so part of any metadata difference is two builds of the
       allocator. Symbolise from the kept binary rather than assuming `jeprof` is on this host.
-- [ ] **Two places still say allocation profiles were never collected**, the same sites as the
-      counters item above. Cheapest order: analyse first, then rewrite once.
+- [x] **Fixed 26 Aug 2026, evening.** The places that said allocation profiles were never collected
+      now say they were captured and are unanalysed, which is the truth and keeps the lift visible.
+      Rewrite them again when the analysis lands.
 - [x] **The profile would have come back empty, and that is now fixed** (20 Aug 2026, found by
       running it in the container rather than on the testbed). Three defects, all in the
       instrument and none of them visible without running it end to end: the distribution
@@ -507,7 +519,7 @@ Section numbers below use the full draft's current eight-chapter numbering, not 
       item 4.
 - [x] **Peak RSS reproduces.** 16 of 16 points significant, same sign, language effect 0.7 to
       1.8 MiB. The prose leaning on it is safe.
-- [ ] **NEW AND UNREPORTED: the peak-RSS *ratio* did not reproduce.** The allocator effect fell
+- [x] **FIXED 26 Aug 2026, evening: the peak-RSS *ratio* did not reproduce, and now the thesis says so.** The allocator effect fell
       from 32.9-34.4 MiB on the guest to **1.9-3.2 MiB** on bare metal, while the language effect
       only halved. So the gap between the two effects went from about thirteenfold to about
       twofold, with the allocator configuration matched at `thp:never,narenas:16` on both hosts.
@@ -518,14 +530,15 @@ Section numbers below use the full draft's current eight-chapter numbering, not 
       still larger. Note the confound worth naming while writing it: the C++ arm links the
       distribution jemalloc, which is 5.2.x on Rocky and 5.3.x on Ubuntu, and the Rust arm builds
       5.3.1 from source on both.
-- [ ] **NEW AND UNREPORTED: the CPU non-result resolves cleanly, and nothing quotes it.** On the
-      guest it cleared Holm under the system allocator and reversed under jemalloc, so §6.4.3
-      reports it unresolved. On bare metal it is significant at **16 of 16 points with one sign**:
-      Rust draws **less** CPU, by 0.3 to 7.6 percentage points, monotonically increasing with
-      offered load, under both allocators. `baremetal_facts.py` computes no CPU macro at all, so
-      this result exists only in the JSONL. **Add the macros and a sentence.** This is the cheapest
-      unreported result in the repository, and it is exactly the outcome this item predicted
-      ("on a quiet host it should either resolve consistently or vanish").
+- [x] **FIXED 26 Aug 2026, evening, and this note was wrong about the guest.** The claim above that
+      the CPU comparison "clears Holm under the system allocator and reverses under jemalloc" came
+      from an earlier campaign. §6.4.3 has for some time reported the below-saturation CPU result as
+      clearing the correction under **both** allocators, so there was no non-result to resolve. What
+      bare metal adds is a cleaner confirmation, **16 of 16 points with one sign**: Rust draws
+      **less** CPU, by 0.3 to 7.6 percentage points, the gap widening with offered load, under both
+      allocators. Six `\BmCpu*` macros now carry it and §`sec:baremetal` reports it. Lesson worth
+      keeping: a re-check list that predates two campaigns will describe a state the thesis has
+      already left, so re-read the thesis before scoring an item on this list.
 - [ ] **The core-operation gap was NOT re-measured.** `bench/results-baremetal/latency_budget.json`
       is byte-identical to `bench/results/latency_budget.json`, so it is a copied guest file and
       `\BudgetCoreRatio` remains a guest number. Its presence in that directory is misleading and
@@ -533,21 +546,21 @@ Section numbers below use the full draft's current eight-chapter numbering, not 
       this item asked for: the op-scope counters give the attribution directly (11 % fewer
       instructions, 15 % fewer cycles, 29 % more cache misses per thousand instructions), which is
       what "consider isolating the attribution with cache-miss counters" meant.
-- [ ] **`tab:findings`'s evidence-status column.** RQ1 still reads "Far tail: unresolved on this
-      host" and RQ3 still reads "Memory: resolved, unexplained". Both are now behind the evidence.
-      RQ3's is closed properly by analysing the allocation profile rather than by rewording.
-- [ ] **H1 in §`sec:hypotheses`.** The revisit still says "The far tail below saturation, which is
-      what H1 actually named, remains unresolved on this host" and does not record that a second
-      host resolved that exact clause, in Rust's favour. This is the one place in the thesis where
-      an examiner checks whether the author followed their own evidence, so it matters more than
-      its length.
+- [x] **Fixed 26 Aug 2026, evening.** RQ1's status now reads "unresolved here, resolved on bare
+      metal at one shard count" and its finding cell names the pooled p99.99 result. RQ3's reads
+      "direction accounted for by counters, split within the resident set open". The remaining half
+      of RQ3's is closed properly by analysing the allocation profile, not by rewording again.
+- [x] **Fixed 26 Aug 2026, evening.** The revisit now records the clause H1 named as **half right**:
+      the main host cannot resolve the far tail at all, the confirmation host does and finds a
+      difference there in Rust's favour, so H1 was right about where to look and wrong that it was
+      the only place. The overload finding is framed as something H1 did not consider rather than as
+      a refutation of the tail clause. `Thesis_v2.tex` carries the same reading.
 - [x] **p99.99 is reportable and reported.** The pooled far tail is in §`sec:baremetal`, and
       `pool_hist.py` wrote `campaign-20260826-102047.hist.pooled.csv`. `NTests` still reads 14 and
       p99.99 stayed out of the Holm family, as §`sec:stats` committed.
-- [ ] **Two stale statements about p99.99 remain.** §`sec:stats` l. 1597 says "Neither is reported
-      in Chapter 6", and §`sec:threats` l. 4263 says both metrics "postdate the reported
-      campaign". The second is half true and needs splitting, since jitter genuinely is still
-      unreported.
+- [x] **Fixed 26 Aug 2026, evening.** §`sec:stats` now says the main campaign reports neither and
+      the confirmation campaign carries both, with jitter recorded and left undiscussed because no
+      research question asks for it. §`sec:threats` splits the two the same way.
 - [ ] **`tab:latency` has not gained its p99.99 column.** `\LatencyCols` and `\LatencyHead` are
       generated precisely so this needs no preamble edit. The bare-metal campaign records the
       column. Check the table still fits the text width at six columns.
@@ -557,14 +570,16 @@ Section numbers below use the full draft's current eight-chapter numbering, not 
       proven on 20 Aug and is idle. If it is adopted it needs a float and a caption, plus the
       `\Jitter*` / `\FarTail*` / `\Iqr*` prose. Keep it descriptive and out of the tested family,
       for the reason §`sec:stats` already gives.
-- [ ] **`pool_hist.py` is not in the refresh pipeline.** `far_tail_facts()` reads a pooled CSV that
-      `bench/refresh_thesis.sh` never produces, so the far-tail macros silently keep their last
-      values if that file goes missing. One line in the script closes it. Run
-      `python3 bench/pool_hist.py <hist.jsonl> --verify <jsonl>` when adding it.
-- [ ] **§`sec:repro` promises something the campaign disproved.** It says rerunning on a different
-      host "regenerates the artifacts verbatim". §`sec:baremetal` is a rerun on a different host
-      that deliberately produced different numbers. Drop "verbatim", and add
-      `bench/results-baremetal/` beside `bench/results/` in the list of logs.
+- [x] **Fixed 26 Aug 2026, evening.** `refresh_thesis.sh` now pools every
+      `results-baremetal/campaign-*.hist.jsonl` before calling `baremetal_facts.py`, so the far-tail
+      macros can no longer keep stale values silently. It does not pass `--verify`, which is a
+      one-time lossless check and not a per-refresh one, so run
+      `python3 bench/pool_hist.py <hist.jsonl> --verify <jsonl>` by hand after a new campaign.
+- [x] **Fixed 26 Aug 2026, evening.** "Verbatim" is gone. The scope now reads "every result table,
+      every plot of measured data, and every quoted number", with the two exclusions stated: a
+      hand-drawn schematic is authored, and a rerun on another host regenerates by the same
+      procedure and not to the same values, of which §`sec:baremetal` is the worked example.
+      `bench/results-baremetal/` is listed beside `bench/results/`.
 
 ---
 
