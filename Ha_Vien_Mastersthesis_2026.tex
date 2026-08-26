@@ -2669,7 +2669,7 @@ effect. \textbf{(a)} The round-trip at true proportion: the operation the langua
 $\BudgetCoreShareMax\%$ of the bar, the remainder the cross-thread handoff. \textbf{(b)} The
 same quantities on a log axis against the smallest paired difference the sweep can resolve,
 shown as a blind zone. Both operation measurements fall inside it by a factor of
-$\BudgetBoundVsCore$, and (b) is also where the campaign's one resolved timing difference
+$\BudgetBoundVsCore$, and (b) is also where the sweep's one resolved language difference in time
 lives.\label{fig:budget}}
 \end{figure}
 
@@ -3349,9 +3349,11 @@ resulting structure and where the \texttt{unsafe} sits.
 \caption[The C++-to-Rust FFI migration seam]{The C++-to-Rust FFI migration seam. The C++ host sees only an opaque handle, $\FfiEntryPoints$
 plain-C entry points, and a status-code convention. A thin \texttt{extern "C"} seam crate
 concentrates all of the raw-pointer \texttt{unsafe} ($\FfiUnsafeFns$ functions) and calls the unmodified Rust
-core, which remains free of \texttt{unsafe}. The do-nothing crossing costs $\FfiCrossing$~ns
-against a $\FfiOpSeam$~\textmu s operation. Measured against the same signalling operation called
-natively, the seam's cost per operation is bounded at $\FfiOpBoundPct\%$.\label{fig:ffiseam}}
+core, which remains free of \texttt{unsafe}. The band along the bottom is the comparison the
+argument rests on: the same signalling operation called natively at $\FfiOpNative$~\textmu s and
+through the seam at $\FfiOpSeam$~\textmu s, whose paired difference is not resolved and is bounded
+at $\FfiOpBoundPct\%$ of one operation. The two bars are meant to look alike. The do-nothing
+crossing costs $\FfiCrossing$~ns and bounds only itself.\label{fig:ffiseam}}
 \end{figure}
 
 Table~\ref{tab:ffi} summarises the interop cost. The
