@@ -1639,3 +1639,185 @@ the grade on partial remediation.
 5. **Bare-metal tail campaign** with hardware counters and allocation profiles on the same visit.
    Unchanged, and still the only lift no editing reaches.
 6. **Optional:** replace `bugden2022rust` with a peer-reviewed equivalent. Area 2 is at 5 without it.
+
+## Tenth pass — 26 August 2026
+
+Graded from `Ha_Vien_Mastersthesis_2026.tex` at its 26 August 11:42 state against a current build
+(PDF and log both 11:43), the generated artefacts under `figures/`, and the evidence under
+`bench/results/`, `faults/results/` and `ffi/results/`. Declared length 99 pages with 6 appendix
+pages, 113 physical. No edits were made: this is a grading pass.
+
+**Standard applied.** This is the full draft, and it declares itself unfinished: the build prints
+`Not submittable` and the printed declaration on page 99 says the summary has not been rewritten
+unaided. The abstract is therefore graded as provisional text rather than as submitted text, which
+matters for area 6 and is argued below.
+
+**The headline: every area holds, and the reason is narrow.** The one durable fix the ninth pass
+asked for is done, and nothing else on its list moved. `figures/tab_taxonomy.tex` is generated now,
+which removed the last hand-maintained results table and turned §6.4.4's no-drift claim from an
+assertion into a property of the pipeline. The five figure defects are untouched. Two new items of
+the same class turned up, one of them a claim in Chapter 6 that prose in the same chapter
+falsifies.
+
+| Area | Ninth pass | This pass | Why it held |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | RQ2 is still two-sided at seven and seven, and the two contrary boundary results are still carried |
+| 2. Scholarly framework and sources | 5 | **5** | 109 entries, 109 cited, 72 peer-reviewed venues at 66 per cent, contrary results engaged |
+| 3. Research data and method | 4.5 | **4.5** | Method at 5, data at 4. Only the bare-metal campaign moves it |
+| 4. Presentation of results | 4.0 | **4.0** | One of three ninth-pass findings closed, two untouched, two new items of the same class opened |
+| 5. Discussion and conclusions | 5 | **5** | Hypotheses revisited individually, validity by type with residual risk per row, register held |
+| 6. Academic text | 4.5 | **4.5** | Writing at 5, finishing not. The abstract is still the whole of the cap, and it now carries three errors rather than one |
+| 7. Work during the thesis process | not assessable | **not assessable** | No manuscript settles feedback uptake, independence, or schedule |
+| **Mean of the six assessable** | 4.67 | **4.67** | |
+
+### What was verified as still holding
+
+- Build: zero LaTeX errors, undefined references, undefined citations, multiply-defined labels,
+  overfull boxes, floats too large, placeholder markers. 113 physical pages, `\pagesCount` 99 with
+  `\appendixCount` 6.
+- **Second consecutive pass to find no wrong measured value.** About forty macros checked against
+  the generated table bodies. Sampled: `\PFiftyRange` 2 and `\PFiftySpread` 2.1 against
+  `tab_latency`, `\PNineNineMaxCI` 1480 as the widest p99 interval, `\NSignificant` 9 and
+  `\NExclZero` 10 counted off `tab_significance` plus the four overload rows, `\NEqvUnresolved` 5,
+  `\EqvBoundTailMax` 1298, `\BudgetCoreRatio` 1.6 from 34.5 over 21.3, `\BudgetBoundVsCore` 58,
+  `\OverloadCpuPerOpRatio` 1.9 from 632.7/62.4 against 611.6/116.6, `\RssAllocDiffLo` 32.9 and
+  `\RssLangDiffHi` 3.4 off `tab_resource`, `\FfiOpBoundPct` 10.91 from 1340.8 over 12284.4 in
+  `ffi/results/metrics.json`, `\FaultClassesUndetected` 4 counted off `taxonomy.csv`.
+- `\DeadlockTsanHits` and `\DeadlockTsanRuns` read 5 and 12, matching `taxonomy.csv`'s
+  `TSan reported in 5/12 runs`, in all three places the rate appears. The macro layer is doing its
+  job: the rate moved since the ninth pass and the prose moved with it.
+- Twelve of the thirteen generated result tables are `\input` and the thirteenth
+  (`tab_adoption`) goes through `\gentablebody`.
+- Prose: zero semicolons in 34,708 words. Three dash hits, all legitimate typography (one compound
+  proper name, two numeric ranges). Sentence length 21.3 ± 11.0.
+
+### Finding 1 (new): §6.3's generated-macro claim is falsified 570 lines later
+
+l. 2323 states that **every measured quantity this chapter quotes reaches the page as a generated
+macro**, so a rerun moves the prose and cannot leave a headline number behind. l. 2894–2895 then
+type two:
+
+| Typed value | What it is | Macro |
+| --- | --- | --- |
+| "$18$ of the $20$ paired repeats agree" | Per-repeat sign-agreement count for peak RSS under `jemalloc` | None. `\OverloadThrAgree` is the same quantity for the overload table and is generated at 20/20 |
+| "a resident set some $30$~MiB low" | The offset of the contaminated runs | None |
+
+Both are load-bearing rather than decorative: together they are the whole justification for reading
+that row from its interval rather than its $p$-value, which is the pre-committed reading rule doing
+the one thing it exists to do. A rerun moves neither number.
+
+Two more instances of the same claim failing. The AI declaration carries its own version ("the
+quantities the thesis quotes reach the page as macros regenerated from the raw logs"), and
+`diagrams/07_ffi_seam.svg` has `12.7 µs` and `2.54 ns` typed into the drawing, in a figure included
+at l. 3218 inside the chapter making the claim. All match their macros today, so these are
+unenforced claims and not live errors, which is exactly what the ninth pass said about the taxonomy
+table before it was generated.
+
+The cheapest fix is the generator, not the wording: `_paired_effect` already computes the agreement
+count for the overload family, so extending it to the significance family is an hour.
+
+### Finding 2 (new): `\SatKnee` is a throughput value used as a position on the load axis
+
+`bench/plot_figures.py:1652` defines the knee as the highest achieved throughput anywhere in the
+sweep, taken as the minimum across variants. That is a quantity on the vertical axis.
+`\TrackingLoad` is an offered load, on the horizontal one. l. 2685 puts them in one sentence:
+"Every variant tracks the ideal offered-equals-achieved line up to $\TrackingLoad$~kops/s and
+saturates at around $\SatKnee$~kops/s", which prints as tracking to 336 and saturating at 335. Read
+as written the service tracks past its own saturation point.
+
+`fig:loadsweep`'s caption compounds it: "the dotted line marking the ideal offered-equals-achieved
+regime and the knee at $\SatKnee$~kops/s", where panel (b) draws one dotted line and no knee marker
+at all. The fix is to say the plateau is 335 kops/s of achieved throughput reached at 336 kops/s
+offered, and either draw the knee or drop it from the caption's list.
+
+### Finding 3: the abstract now carries three errors, not one
+
+The ninth pass listed the abstract once. It has two more, and they are the worse pair.
+
+| What the abstract says | What the rest of the thesis says |
+| --- | --- |
+| l. 228 "all **five** injected memory-safety and data-race defect classes" | Seven. §1.4, §6.4.4, Table 6.9, Figure 6.9, Table 7.1 and the conclusion, and `Thesis_v2.tex` in four places |
+| l. 230 "**Five** further classes fail in both languages" | Seven boundary classes, and the count is RQ2's falsifiability evidence, which is criterion 1's own blocker |
+| l. 232 "Below it median latency matches" | The paired test resolves 1.1 and 1.6 µs, both clearing Holm, and `tab_equivalence` marks both rows significant. Open since the remediation pass |
+| Objective lists "tail latency and jitter under overload" | Jitter is never reported. RQ1 does not name it, so only the abstract creates the mismatch |
+
+`AGENT.md` recorded the catalogue-size error during a length pass on 26 August, but it has not been
+on the grading record before, and it is worse than the median slip: it understates the size of the
+catalogue that makes RQ2 falsifiable, on the page an examiner reads first, in the document's only
+maturity-test text.
+
+**Why area 6 is not deflated to 4.0 for it.** Level 4 asks for a text that is logical and
+consistent on research questions, setup, findings and conclusions, and an abstract contradicting
+the findings fails that clause. Two things hold it at 4.5 anyway. The document does not present
+this paragraph as finished, since the build refuses to call it submittable and the printed
+declaration says so. And every item in the table above is closed by the one rewrite already
+scheduled and already blocking. Deflating for defects inside a paragraph that has to be replaced
+wholesale counts the same blocker twice. **Stated plainly: submitted as it stands, this abstract
+puts area 6 at 4.0 and area 4 follows it.**
+
+### The ninth pass's list, checked item by item
+
+| Item | Status |
+| --- | --- |
+| Rewrite the abstract unaided, set `\abstractunaidedtrue` | **Open.** `ai_statement.tex:27` still `\abstractunaidedfalse`, build log l. 1552 still warns. Sixth consecutive pass |
+| Generate `figures/tab_taxonomy.tex` | **Done.** `write_taxonomy_table()` in `plot_figures.py`, table `\input` like the other twelve |
+| Delete "and only under AddressSanitizer" from `fig:borrowuaf` | **Open.** l. 834 unchanged, `taxonomy.csv` row 1 is `detected,detected` |
+| Add "language" to `fig:budget`'s caption | **Open.** l. 2639 still reads "the campaign's one resolved timing difference", and the p50 rows are also resolved timing differences |
+| Narrow §5.6 and §6.4.4 | **Half.** §6.4.4 fixed, and by generation rather than wording. §5.6 now names `refresh_thesis.sh` instead of claiming one script, which answers the count objection, but "every figure and table in the evaluation" still covers two hand-drawn diagrams and "regenerates the artifacts verbatim" cannot hold for a timing measurement on a different host |
+| `bbox_inches="tight"` on `fig_effects` | **Open.** `plot_figures.py:1429`. Rendered at 130 dpi the right panel's axis label reads "…(% of the C++ media" |
+| Macro for the 15-repeat floor | **Open.** l. 2621 still types 0.000061 |
+| Diagram 11's fan-out label, diagram 07's per-call band | **Open.** Both unchanged, both included (l. 691, l. 3218) |
+| Bare-metal campaign | **Open.** Still the only lift no editing reaches |
+| Optional: replace `bugden2022rust` | Open, still not blocking |
+
+### Lifts, ordered by cost
+
+| Work | Kind | Cost | Areas |
+| --- | --- | --- | --- |
+| `bbox_inches="tight"` in `fig_effects`, rerun `plot_figures.py` | Editing | 5 min | 4, 6 |
+| Delete "and only under AddressSanitizer"; restore "language" to `fig:budget` | Editing | 10 min | 4 |
+| Fix the knee sentence and `fig:loadsweep`'s caption | Editing | 15 min | 4, 6 |
+| Narrow §5.6 to what the pipeline enforces, and drop "verbatim" | Editing | 20 min | 4 |
+| Macros for the peak-RSS agreement count, the low-run offset, and the 15-repeat floor | Analysis on data in hand | 1 h | 4, 6 |
+| Diagram 11's label and diagram 07's per-call band. Re-render and **read** both | Editing artefacts | 1–2 h | 4, 6 |
+| Rewrite the abstract unaided: seven and seven, the practical-not-statistical median, jitter, then set the switch | Author only | One sitting | 6, and 4 follows |
+| Bare-metal tail campaign with counters and allocation profiles | New measurement | Testbed access | 3, 4 |
+
+The first six are under two and a half hours between them and restore area 4 to 4.5.
+
+### Discounted, and one new false positive to record
+
+- `tab:abbrev` unreferenced from the body: appendix glossary, reachable from the List of Tables.
+  Discounted as in every earlier pass.
+- The audit's one flagged prose number, `0.19 \%`, is quoted from `gonzalez2023rustudp`. Not a
+  measurement of this study.
+- `.aitells.py`'s L708 hit, "not just at nominal load but , which is why": the tool strips
+  `\emph{into overload}`. The source is fine.
+- **New.** The longest "sentence" `.aitells.py` reports comes from table rows, not prose. Its
+  `is_prose` filter drops lines starting with a backslash but keeps `RQ1 & The answer divides…`, so
+  the 63-to-71-word movement since the ninth pass is not a prose regression. The standard deviation
+  of 11.0 is the number to read there. Mean sentence length rose 20.4 to 21.3 while the document
+  lost 836 words, which is what removing short framing sentences from §6.4 does.
+- Peak RSS under `jemalloc`, interval `[+3.3, +3.5]` against $p$ 0.727: **not a defect.** §6.4.3
+  explains it in mechanism and the threats table records the reading rule as costing that row.
+- The contended-primitive microbenchmark has Rust ahead where the full service under overload has
+  C++ ahead. The sign genuinely reverses, the thesis says so, and that is the finding.
+- `\OverloadThrBound` prints 50 where the tighter interval bound is 49.6. Rounding, at 0.8 per
+  cent. Noted and not scored.
+
+### Housekeeping
+
+- `Thesis_v2.pdf` was built 24 August 23:30 from a source of 24 August 20:01, while
+  `figures/gen_macros.tex` carries a 26 August 10:15 timestamp. `AGENT.md` records that the third
+  §6.4 pass regenerated it byte-identical, so the skeleton's numbers are in step, but the
+  timestamps no longer show it. Rebuild it before it next goes to the supervisor.
+- The skeleton's nine chapters against the draft's eight is still unresolved (`AGENT.md` §4). It
+  costs no grade today, since no cross-reference is broken, but it is a sync-rule violation and the
+  author has to pick a canonical list.
+
+### Outstanding
+
+1. **Rewrite the abstract unaided, then set `\abstractunaidedtrue`.** Now four items in one edit:
+   seven and seven, the practical-not-statistical median, jitter, and the switch.
+2. **Six editing fixes, under two and a half hours, restoring area 4 to 4.5.** Listed above.
+3. **Bare-metal tail campaign.** Unchanged.

@@ -58,7 +58,7 @@ grading pass so passes stay comparable.
 | **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (5 inside + 5 outside guarantee). |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
 | **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **Bare-metal tail campaign.** Results come from a dedicated but virtualised KVM Xeon guest, where the far tail below saturation cannot be resolved. Also missing: hardware counters and allocation profiles for the unexplained peak-RSS and operation-level results. |
-| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.0** | **Figure-and-claim consistency, plus RQ1's far tail.** The eleven hand-typed values are closed and no measured value is wrong (verified 23 August). What holds this at 4.0 instead is statements *about* the evidence: three figures misstate the result they illustrate (`fig:borrowuaf`'s "only under AddressSanitizer", diagram 07's retracted FFI framing, diagram 11's inverted fan-out label) and two reproducibility claims outrun their artefacts (§5.6, §7.4, both rooted in `tab:taxonomy` having no generator). The median-equivalence sites are **fixed as of 23 August** in §1.4, §9 and `Thesis_v2.tex`, leaving only the abstract. Roughly an hour of edits plus the two diagram fixes restore 4.5. Do not reintroduce a measured number as prose, and do not restate the median result as a bare null: name the resolved difference and call the equivalence practical. |
+| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.0** | **Figure-and-claim consistency, plus RQ1's far tail.** The eleven hand-typed values are closed and no measured value is wrong (verified 23 and 26 August, two passes running). What holds this at 4.0 instead is statements *about* the evidence: three figures misstate the result they illustrate (`fig:borrowuaf`'s "only under AddressSanitizer", diagram 07's retracted FFI framing, diagram 11's inverted fan-out label) and reproducibility claims that outrun their artefacts. The §7.4 claim is **closed** by generating `tab:taxonomy`, but two survive and one is new: §5.6 still says "every figure and table in the evaluation", which covers two hand-drawn diagrams, and §6.3 promises that every measured quantity the chapter quotes is a generated macro while §6.4.3 types two of them ("18 of the 20 paired repeats agree", "some 30 MiB low"). The median-equivalence sites are **fixed as of 23 August** in §1.4, §9 and `Thesis_v2.tex`, leaving only the abstract. Under two and a half hours of edits restore 4.5. Do not reintroduce a measured number as prose, and do not restate the median result as a bare null: name the resolved difference and call the equivalence practical. |
 | **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Maintain register: “cannot tell” ≠ “equivalent”. H1 is *ambiguous in framing*, not simply supported. |
 | **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`: until then the build prints “Not submittable”, and a document that declares itself unsubmittable is not camera-ready. That clause alone holds the criterion. Behind it, “excellent finishing polish” also wants the ninth pass's small defects closed: the clipped `fig:effects` axis label, the `fig:budget` and `fig:borrowuaf` caption overstatements, and the one derivable number still typed (the 15-repeat *p*-floor). §5.5 is conditional as of 22 August, the AI declaration no longer overstates the method, and the diagram labels are clean and gated. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
 
@@ -545,6 +545,21 @@ classes" with "five further classes" outside, where §1.4, §6.4.7, Table 6.9, T
 conclusion all say seven, so it is the last place in the thesis carrying the old catalogue size,
 and a model may not fix it. And §4 now records the second: the skeleton and the full draft
 disagree on the chapter list, which the sync rule of §1 is supposed to prevent.*
+
+*The tenth grading pass, 26 August 2026, held every area where the ninth left it and found no wrong
+measured value either, so that is now two passes running. It confirmed the taxonomy generator closed
+§7.4's claim, and found two more of the same defect class. §6.3 promises that every measured quantity
+the chapter quotes reaches the page as a generated macro, and §6.4.3 types two: "18 of the 20 paired
+repeats agree" and "some 30 MiB low", which together are the whole justification for reading peak RSS
+under jemalloc from its interval. `\OverloadThrAgree` is the same quantity for the overload table and
+is generated, so the fix is the generator and not the wording. And `\SatKnee` is an achieved-throughput
+value (`plot_figures.py:1652`) used in §6.4.1 and in `fig:loadsweep`'s caption as though it were a
+position on the offered-load axis, which prints as tracking to 336 kops/s and saturating at 335. The
+pass also put the abstract's catalogue size on the grading record: with "five" and "five" against the
+body's seven and seven, plus the median claim and jitter, the unaided rewrite now has four items to
+settle rather than one. Area 6 was **not** deflated for it, on the grounds that the build refuses to
+call the document submittable and one rewrite closes all four, but submitted as it stands that
+abstract puts area 6 at 4.0 and area 4 follows. See the tenth pass in `docs/ASSESSMENT.md`.*
 
 *The ninth grading pass found no wrong measured value anywhere, the
 first pass on record to do so, and verified that the generated layer the remediation pass installed
