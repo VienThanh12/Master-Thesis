@@ -29,21 +29,54 @@ repeat measurement, and the abstract.
    be published" is the one that can force rework rather than just a signature: the repository is
    already public (`github.com/VienThanh12/Master-Thesis`, compiled PDF included), so hearing a
    Nokia objection now costs far less than hearing it in November.
-2. **DONE 26 Aug 2026, with one caveat that is now the follow-up.** A bare-metal campaign ran on
-   a rented Cherry Servers AMD EPYC 7443P (24 cores, one socket, SMT off, governor
-   `performance`, `virtualisation: none`, zero steal over a 60 s probe). It collected everything
-   the visit existed for: the far tail from pooled HDR sidecars, `perf` counters at both scopes,
-   and a matched jemalloc allocation profile for both languages. Results in
-   `bench/results-baremetal/`, macros in `figures/gen_baremetal.tex` via
-   `bench/baremetal_facts.py`, reported in §`sec:baremetal`.
+2. **DONE 26 Aug 2026. Two campaigns, and what each one settled.** A bare-metal visit ran on a
+   rented Cherry Servers AMD EPYC 7443P (24 cores, one socket, SMT off, governor `performance`,
+   `virtualisation: none`, **0 of 60 sampling intervals showed any steal** on the 16 pinned cores).
+   It wrote two sweeps, kept apart on purpose because they answer different questions:
 
-   **The caveat is the new item.** The run used the `TESTBED.md` example configuration, which is
-   8 shards and 8 producers over 8 load levels at 15 repeats. The canonical campaign
-   (`campaign-20260812-154528`) is 7 and 7 over 14 levels at 20 repeats. Shard count is a
-   fairness control and the repeat count sets the exact test's floor, so the bare-metal data
-   corroborates the main sweep and does not replace it. **Repeating it at the canonical
-   configuration is the one measurement still outstanding**, and it is about two hours and one
-   euro of rented machine.
+   | Campaign | Offered load | What it settled |
+   | --- | --- | --- |
+   | `campaign-20260826-102047` | 8 to 128 kops/s | The far tail, the paired median, peak RSS |
+   | `campaign-20260826-124950` | 128 to 640 kops/s | The knee, the overload divergence, the metastable point |
+
+   Both are 480 runs (8 levels x 15 repeats x 4 variants). Macros in `figures/gen_baremetal.tex`
+   via `bench/baremetal_facts.py`, which `refresh_thesis.sh` calls. Reported in §`sec:baremetal`.
+
+   **What it returned**, all of it verified against the raw logs by the eleventh grading pass:
+   - **The far tail resolves and favours Rust.** Pooled p99.99 over 32 to 96 kops/s is 147 to
+     228 µs for the two C++ variants and 88 to 115 µs for the two Rust variants, and the ranges do
+     not meet. Below 32 kops/s the four are indistinguishable. Pooling gives 360 000 to 5 761 198
+     operations per group against about seventeen for a single run's p99.99.
+   - **The instrument inverted, which is the reason the trip was worth taking.** The widest 95 %
+     interval on one variant's p99 is 2.8 µs against a between-variant range of 3.6 µs. On the
+     guest those numbers are 1480 and 293.
+   - **The median difference sharpens.** 14 of 16 load-and-allocator points clear Holm, Rust lower
+     by 0.5 to 1.1 µs on a 73.6 µs operation.
+   - **Peak RSS reproduces in direction**, 16 of 16 significant, language effect 0.7 to 1.8 MiB,
+     allocator effect 1.9 to 3.2 MiB. **But see the new item 7 below: the order-of-magnitude gap
+     between the two effects did not survive the change of host.**
+   - **The overload divergence reproduces on another vendor's silicon.** Tracking to 448 kops/s,
+     knee between 448 and 512, and at 640 kops/s C++ sustains 158 kops/s against Rust's 96, a
+     ratio of 1.64 against the guest's 1.8. The 512 kops/s point is **not quotable**: the Rust arms
+     are bimodal there with 37 % dispersion.
+   - **Counters give the mechanism the thesis had argued.** At the operation scope over 10
+     interleaved repeats, Rust retires 11 % fewer instructions (*p* = 0.002) in 15 % fewer cycles
+     (*p* = 0.0117) while missing cache 29 % more often per thousand instructions (*p* = 0.002).
+
+   **Two caveats, and both are now follow-up items.** First, the run used the `TESTBED.md` example
+   configuration: 8 shards and 8 producers over 8 load levels at 15 repeats, against the canonical
+   campaign's (`campaign-20260812-154528`) 7 and 7 over 14 levels at 20 repeats. Shard count is a
+   fairness control and the repeat count sets the exact test's floor, so this corroborates the main
+   sweep and cannot replace it. Second, and **not yet stated anywhere in the thesis**: the
+   toolchain moved too, `g++ 15.1.1`/`rustc 1.97` on Rocky 8.10 against `g++ 13.3.0`/`rustc 1.98.0`
+   on Ubuntu 24.04. §`sec:baremetal` says the campaign "changes one thing that matters, the
+   machine", and `tab:testbed`'s caption says a machine meeting the protocol was used. Neither is
+   true as written: the protocol column also asks for the same toolchain, `isolcpus` and
+   `nohz_full` (the capture's own warning block reports neither), and 20 repeats.
+
+   **Repeating it at the canonical configuration and toolchain is the one measurement still
+   outstanding**, about two hours and one euro of rented machine. Set
+   `kernel.perf_event_paranoid=1`, source `~/.cargo/env`, and add `isolcpus`/`nohz_full` this time.
 3. **Harness work: done, and it paid off.** p99.99 and jitter sidecars, `perf` counters and the
    allocation profile were all collected on the bare-metal visit, which is what the earlier
    version of this item was trying to ensure. Two lessons are recorded for a repeat run:
@@ -51,14 +84,23 @@ repeat measurement, and the abstract.
      to 1 for the session.
    - `alloc_profile.sh --check` reports the Rust arm as unbuildable when `cargo` is not on
      `PATH`, which is what a non-login SSH session gives you. Source `~/.cargo/env` first.
-4. **Decide what the companion documents are for, and fix the broken one** (new Phase 9b).
+4. **NOW THE TOP PRIORITY: three hours of sync editing.** The eleventh grading pass moved
+   criterion 5 off 5 for the first time and criterion 6 from 4.5 to 4.0, both on staleness rather
+   than on anything the campaign did. Fourteen sites describe less evidence than exists. The list
+   with line numbers is in `docs/ASSESSMENT.md`, eleventh pass, findings 1 to 4. The six worst say
+   that hardware counters and allocation profiles "were not collected" in a document that reports
+   the counters. **Doing this restores criterion 5 to 5 and criterion 6 to 4.5.**
+5. **Analyse the allocation profile already on disk** (Phase 7a below). Half a day, moves three
+   criteria, and it is the only remaining item that closes a cell in `tab:threats`.
+6. **Rebuild the slide deck against the bare-metal results** (Phase 10). `build_deck.py` holds no
+   `Bm` macro and l. 1052 still reads "The far tail here needs bare metal, not more repeats". The
+   deck passes both its gates while contradicting the thesis, which is the quiet failure mode: the
+   gates check layout and punctuation, not agreement with the source.
+7. **Decide what the companion documents are for, and fix the broken one** (Phase 9b).
    `thesis-vi.pdf` currently renders 113 citations as `[?]` and predates the 15-repeat campaign.
-5. **Rebuild the slide deck against the current results** (Phase 10). Three of its slides now
-   contradict the thesis.
-6. **Then, once the data lands:** `bench/refresh_thesis.sh`, reread the six claims listed under
-   "After the bare-metal campaign" at the end of this file, and start the proofread round. The two
-   title-page items are not on this path and are not yours to schedule: the examiners come from
-   the faculty, and the official `UH_DS_MSc.cls` from the UH Overleaf/Moodle.
+8. **Then:** the proofread round. The two title-page items are not on this path and are not yours
+   to schedule: the examiners come from the faculty, and the official class file from the UH
+   Overleaf/Moodle.
 
 ---
 
@@ -225,9 +267,18 @@ latexmk -C                   # clean build artifacts
       lives in `bench/parse_perf.py` with `--self-test`, so it is known-good before the visit
       instead of being debugged during it; `--software` exercises the whole path on events that
       need no PMU.
-- [ ] Run `bench/counters.sh` on the testbed. Two live claims need it: the peak-RSS effect is
-      significant but unexplained, and the operation-level gap rests on the
-      node-based-`unordered_map` argument rather than on a measurement.
+- [x] **Run `bench/counters.sh` on the testbed. DONE 26 Aug 2026**, `counters-20260826-105541.jsonl`,
+      10 interleaved repeats at both the `op` and `e2e` scopes. The `op` scope is the one that
+      speaks to the language and it answers both live claims at once: Rust retires **11 % fewer
+      instructions** (*p* = 0.002) in **15 % fewer cycles** (*p* = 0.0117) while missing cache
+      **29 % more often per thousand instructions** (*p* = 0.002). Less work and worse locality is
+      one account of the operation-level gap and the peak-RSS effect together, and it replaces the
+      node-based-`unordered_map` argument with a measurement. Reported in §`sec:baremetal`.
+      `kernel.perf_event_paranoid` defaults to 4 on Ubuntu 24.04 and blocks the script; set it to 1.
+- [ ] **Three places still say these counters were never collected.** §6.4.3 l. 2930, §7.2 l. 3704
+      and §7.6 l. 4281, plus `tab:threats`'s RQ3-origin row whose control column reads "None
+      available on this host". The first of those is falsified 90 lines later in its own chapter.
+      Part of item 4 in "Next up".
 - [~] Allocation profile per variant: **`bench/alloc_profile.sh` written** (Aug 2026), to be *run*
       on the testbed visit. Uses jemalloc's own `prof` on **both** jemalloc arms rather than
       heaptrack for C++ and dhat for Rust, so the two sides are measured by one instrument with
@@ -240,11 +291,22 @@ latexmk -C                   # clean build artifacts
       dump, only `jeprof` is missing, and `--raw-ok` collects dumps plus their binaries for later
       symbolisation so a one-off visit is never wasted. Parsing is in `bench/parse_jeprof.py` with
       `--self-test`.
-- [ ] Run `bench/alloc_profile.sh` on the testbed to attribute the 2.1-2.5 MiB peak-RSS
-      difference to allocation sites. §7.5.4 already establishes the difference is fixed rather
-      than per-context (the `UeContext` layout accounts for ~40 kB at 5000 active UEs, three
-      orders of magnitude short of the gap), so the profile is what turns "unexplained" into a
-      cause.
+- [x] **Collected 26 Aug 2026.** `bench/results-baremetal/alloc_profile-20260826-110718/` holds
+      40 interval heap dumps per arm, both stderr transcripts, the C++ allocation trajectory as a
+      TSV, and the Rust binary kept for later symbolisation. The instrument the thesis has said it
+      lacked since the first grading pass now exists as data.
+- [ ] **ANALYSE IT. This is the highest-value half day left in the project.** Nothing in the
+      document mentions the profile, so under the grading rule that a grade describes the
+      manuscript and not the repository it currently earns nothing. What it buys: `tab:findings`'s
+      RQ3 status goes from "resolved, unexplained" to a mechanism, and `tab:threats` loses its one
+      row whose control column is empty. §6.4.3 already establishes the difference is fixed rather
+      than per-context (the `UeContext` layout accounts for ~40 kB at 5000 active UEs, orders of
+      magnitude short of the gap), so the profile is what turns "unexplained" into a cause. Note the
+      confound recorded in Phase 11 item 3: the C++ arm links the distribution jemalloc while the
+      Rust arm builds 5.3.1 from source, so part of any metadata difference is two builds of the
+      allocator. Symbolise from the kept binary rather than assuming `jeprof` is on this host.
+- [ ] **Two places still say allocation profiles were never collected**, the same sites as the
+      counters item above. Cheapest order: analyse first, then rewrite once.
 - [x] **The profile would have come back empty, and that is now fixed** (20 Aug 2026, found by
       running it in the container rather than on the testbed). Three defects, all in the
       instrument and none of them visible without running it end to end: the distribution
@@ -294,12 +356,16 @@ latexmk -C                   # clean build artifacts
 - [x] Tooling: `bench/campaign.sh` (repeats + interleaving + env capture + pinning) ->
       `bench/aggregate.py` (bootstrap median + 95% CI per metric, tidy CSV + auto `tab:latency`
       LaTeX) -> `bench/plot_campaign.py` (median + CI-band latency-vs-load). Pipeline smoke-tested.
-- [ ] **Execute the campaign on a bare-metal testbed** (WSL2 numbers are not testbed-grade),
-      provision with `bench/setup_testbed.sh` (toolchain + CPU hygiene + GREEN/RED readiness check).
-      Keep **15+ repeats**: the exact paired test cannot return p < 2/2^n, and at 7 repeats the
-      corrected floor sat above 0.05 so no result could survive Holm however large the effect.
-      At 15 the floor is 0.00061 and three results now clear it. Thesis tables currently use the
-      480-run 15-repeat WSL2 campaign (`campaign-20260807-122430.jsonl`).
+- [x] **Execute the campaign on a bare-metal testbed. DONE 26 Aug 2026**, two 480-run sweeps at 15
+      repeats (below saturation and through the knee). See "Next up" item 2 for what each returned.
+      Kept **15+ repeats** for the reason this item always gave: the exact paired test cannot return
+      p < 2/2^n, and at 7 repeats the corrected floor sat above 0.05 so no result could survive Holm
+      however large the effect.
+- [ ] **Repeat it at the canonical configuration**: 7 shards, 7 producers, 14 load levels, 20
+      repeats, on `g++ 15.1.1`/`rustc 1.97`, with `isolcpus` and `nohz_full` on the benchmark cores.
+      Until then every thesis table is the KVM-guest campaign (`campaign-20260812-154528`) and the
+      bare-metal sweeps corroborate rather than replace it. This is the last thing holding criterion
+      3's data half below 5.
 - [x] Compute variance + confidence intervals across runs (`plot_figures.py`; reported as explicit
       asymmetric [lo, hi] bootstrap intervals, not symmetric half-widths, which at these
       dispersions implied negative latencies)
