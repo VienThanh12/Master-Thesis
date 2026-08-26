@@ -1821,3 +1821,259 @@ The first six are under two and a half hours between them and restore area 4 to 
    seven and seven, the practical-not-statistical median, jitter, and the switch.
 2. **Six editing fixes, under two and a half hours, restoring area 4 to 4.5.** Listed above.
 3. **Bare-metal tail campaign.** Unchanged.
+
+---
+
+## Eleventh pass — 26 August 2026, evening
+
+Graded from `Ha_Vien_Mastersthesis_2026.tex` at its 16:55 state, after the bare-metal confirmation
+campaign was integrated (commits `240346a` and `dd6bb01`). The PDF was **stale** on arrival: it was
+built at 16:58 while `figures/gen_baremetal.tex` was regenerated at 17:02 and
+`figures/gen_artefacts.tex` at 17:19. It was rebuilt before grading and came back byte-identical at
+1 346 119 bytes, so both regenerations were no-ops and the grade describes a current build.
+Declared length **103 pages with 6 appendix pages, 117 physical**, up from 99 and 113. No thesis
+edits were made in this pass.
+
+**Standard applied.** Unchanged from the tenth pass. The build prints `Not submittable` and the
+printed declaration says the summary has not been rewritten unaided, so the abstract is graded as
+provisional text rather than as submitted text.
+
+**The headline. The campaign lands and the document has not caught up.** The bare-metal visit is
+real work and it does what it was scheduled to do: virtualisation none, zero CPU steal across 60
+sampling intervals on 16 pinned cores, `perf` counters at the operation and end-to-end scopes, and
+pooled HDR sidecars giving 360 000 to 5 761 198 operations per group where a single run's p99.99
+rested on about seventeen. Twenty of its macros were recomputed from the raw logs in this pass and
+every one matched to the printed digit. That closes the instrument gap that has held area 3's data
+half at 4 since the third pass. The cost is that **fourteen sites elsewhere in the document still
+describe a study with less evidence than this one now has**, six of them by naming an instrument
+that was in fact used. Three of those six sit in the discussion chapter, which is why area 5 moves
+off 5 for the first time on record, and the rest push area 6 down from 4.5 on the level-4
+consistency clause rather than on the abstract.
+
+| Area | Tenth pass | This pass | Why it moved, or held |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Four RQs still traced end to end, RQ2 still two-sided at seven and seven, and the campaign closes the one half of RQ1 that had only a negative answer |
+| 2. Scholarly framework and sources | 5 | **5** | 109 entries, 109 cited, 72 peer-reviewed venues at 66 per cent, Arvidsson's contrary tail result engaged at four sites |
+| 3. Research data and method | 4.5 | **4.5** | Method 5, data **4.5 rather than 4**. Real movement, inside the half grade. Held by an off-protocol confirmation and an unanalysed profile, not by a missing instrument |
+| 4. Presentation of results | 4.0 | **4.0** | Held, and now at the bottom of the band. The claims-about-the-evidence class went from five sites to about fourteen, and the new subsection carries no float |
+| 5. Discussion and conclusions | 5 | **4.5** | **Disagreement.** Three statements in Chapter 7 deny instruments the study used, and H1's revisit does not use the evidence that settles H1's own clause |
+| 6. Academic text | 4.5 | **4.0** | **Disagreement.** Level 4's clause on consistency of setup, findings and conclusions now fails in a countable set of sites. Not scored on the abstract, which is separate and still open |
+| 7. Work during the thesis process | not assessable | **not assessable** | No manuscript settles feedback uptake, independence, or schedule |
+| **Mean of the six assessable** | 4.67 | **4.50** | |
+
+### What was verified as still holding
+
+- Build: zero LaTeX errors, undefined references, undefined citations, multiply-defined labels,
+  overfull boxes, floats too large, placeholder markers. `\pagesCount` 103, `\appendixCount` 6.
+- Prose: **zero semicolons in 35 536 words.** Five dash hits, all legitimate typography (one
+  compound proper name, four numeric ranges, two of them new in the bare-metal section and both
+  correct). Sentence length 21.3 ± 11.0, inside the human band.
+- **Third consecutive pass with no wrong measured value.** Twenty bare-metal quantities were
+  re-derived from `bench/results-baremetal/` using the same `paired_permutation_test` and
+  `holm_adjust` that `baremetal_facts.py` imports. All matched: `\BmFarTailCppLo/Hi` 147 and 228
+  against a recomputed 147.4 and 228.0, `\BmFarTailRustLo/Hi` 88 and 115 against 87.6 and 115.4
+  (and the two ranges genuinely do not meet), `\BmPFiftySig` 14 of 16 with every sign negative,
+  `\BmPFiftyDiffLo/Hi` 0.5 and 1.1 against 0.51 and 1.09, all three counter deltas with their
+  *p*-values (10.9 % / 0.0020, 15.3 % / 0.0117, 29.4 % / 0.0020, n = 10),
+  `\BmOverloadThrRatio` 1.64 from 157.5 over 96.1, `\BmMetastableCv` 37 from 37.1 %,
+  `\BmStealWithSteal` 0 of 60, and the pooled sample bounds exactly.
+- `refresh_thesis.sh` **does** call `baremetal_facts.py`, so the new macros are inside the
+  regeneration pipeline rather than beside it.
+- The sync rule was mostly obeyed: `Thesis_v2.tex` carries the campaign in five bullets and reads
+  `gen_baremetal.tex`, `Thesis_Plan_v2.tex` records the campaign as run, and the conclusion names
+  the canonical-configuration repeat as the immediate priority.
+
+### Finding 1 (new, and the reason two areas moved): six statements deny an instrument the study used
+
+The visit collected `perf` counters at both scopes **and** a matched jemalloc allocation profile for
+both languages. §6.4.4 reports the counters under the heading *A mechanism, from counters the guest
+did not expose*, and says the result "replaces an argument from structure with a measurement". Six
+other places say those instruments were unavailable or their outputs unreported. The worst pair is
+inside one chapter, ninety lines apart.
+
+| Site | What it says | What is true |
+| --- | --- | --- |
+| §6.4.3, l. 2930 | "for want of hardware counters and allocation profiles" | Counters collected and reported 90 lines later. Profiles collected |
+| §7.2, l. 3704 | "needs the allocation profiles and hardware counters this study did not collect" | Both were collected on 26 August |
+| §7.6, l. 4281 | "because no hardware counters or allocation profiles were collected" | Same, in the construct-validity paragraph |
+| `tab:threats`, RQ3 origin row | Control applied: "None available on this host" | True of the guest, false of the study. The virtualised-host row of the same table already names §6.4.4 |
+| §4.4, l. 1597 | "Neither is reported in Chapter 6, because the campaign analysed there predates the instrumentation" | p99.99 is reported in §6.4.4, pooled exactly as this paragraph describes in the conditional |
+| §7.6, l. 4263 | "jitter and p99.99 are instrumented but postdate the reported campaign" | Half true. p99.99 is reported. Splitting the sentence fixes it |
+
+**The unrealised asset behind it.** `bench/results-baremetal/alloc_profile-20260826-110718/` holds
+forty interval heap dumps per arm, both stderr transcripts, the C++ allocation trajectory as a TSV,
+and the Rust binary kept for later symbolisation. That is the instrument the thesis has said it
+lacked since the first pass, and it is the one thing that turns RQ3's memory result from resolved
+and unexplained into resolved and explained. Nothing in the document mentions it, so under the rule
+that a grade describes the manuscript it earns nothing today. It is the highest-value half day
+available.
+
+Jitter is the smaller half of the same shape: all 32 pooled groups carry `jitter_p50_ns`,
+`jitter_p99_ns`, `jitter_p999_ns` and `jitter_max_ns`, RQ1 does not name jitter so no promise is
+broken, and `tab_jitter.tex`'s machinery already exists from the 20 August validation run.
+
+### Finding 2 (new): five summary sites still say the far tail is unresolved
+
+The integration was mostly done well, which is what makes the exceptions legible. §1.4, §6.4, §7.2,
+the conclusion, `tab:threats`'s virtualised-host row, `tab:testbed`, `Thesis_v2.tex` and
+`Thesis_Plan_v2.tex` all point at §6.4.4 correctly. Five sites did not move, and they cluster where
+a reader looks for the verdict.
+
+| Site | Text | Why it matters |
+| --- | --- | --- |
+| Abstract, l. 245 | "The far tail below saturation cannot be settled on a virtualised host." | Literally true, and the Results paragraph's last word on RQ1. **Author-only fix** |
+| `tab:findings`, RQ1 row | "no tail ordering is resolvable"; status "Far tail: unresolved on this host" | The findings table is the verdict |
+| §7.1, l. 3506 | "The far tail below saturation stays unresolved" | The summary paragraph immediately above that table |
+| `tab:threats`, non-determinism row | "so the far tail below saturation stays unresolved" | The residual column |
+| §6.3, l. 2389 | "answer RQ1 and RQ3 provisionally … replaces these numbers with testbed-grade ones" | §6.4.4 says the opposite: a confirmation and **not** a replacement |
+
+§5.6's "rerunning the campaign on a different host regenerates the artifacts verbatim" belongs with
+these. The ninth pass called it a claim that *cannot* hold for a timing measurement. It is now
+*falsified by this document*, because §6.4.4 is a rerun on a different host that produced different
+numbers on purpose. §5.6 also still lists `bench/results/` as where campaigns live, and the new one
+is under `bench/results-baremetal/`.
+
+### Finding 3 (new): the confirmation changed a fifth variable, and a caption promises it did not
+
+§6.4.4's closing paragraph is one of the best in the chapter. It lists three differences from the
+main sweep (8 shards and producers against 7, 8 load levels against 14, 15 repeats against 20),
+argues that substituting them would change a control, a design and the host at once, and concludes
+"Kept separate it changes one thing that matters, the machine."
+
+The environment captures do not support that last clause. The main sweep ran `g++ 15.1.1` and
+`rustc 1.97` on Rocky Linux 8.10; the confirmation ran **`g++ 13.3.0` and `rustc 1.98.0`** on Ubuntu
+24.04.4. Two major versions of the C++ compiler, and the distribution jemalloc the C++ arm links
+moves with the distribution. Arguably that *strengthens* external validity, since the findings
+survived a toolchain change too, but it has to be named, and Phase 11 item 6 of `docs/TODO.md` is
+about exactly this confound.
+
+`tab:testbed`'s caption compounds it: "A machine meeting the right-hand column was used for the
+confirmation campaign." That column asks for the same toolchain (missed), `isolcpus` and
+`nohz_full` on the benchmark cores (missed, and the capture's own warning block says so), benchmark
+cores removed from the scheduler (missed), and `\NRepeats` repeats (missed, 15 against 20). Four
+rows of eleven.
+
+### Finding 4 (new): the peak-RSS order-of-magnitude claim does not survive the change of host
+
+| Host | Language effect (Rust − C++) | Allocator effect (jemalloc − system) | Ratio |
+| --- | --- | --- | --- |
+| KVM guest, every table in the thesis | 1.9–3.4 MiB | 32.9–34.4 MiB | ≈ 13× |
+| Bare metal, confirmation | 0.7–1.8 MiB | 1.9–3.2 MiB | ≈ 2× |
+
+Allocator configuration is matched across hosts at `thp:never,narenas:16`, so the collapse is not a
+configuration artefact. §6.4.4 is careful and says only that the allocator effect "remains the
+larger of the two", which is true on both hosts. What it does not say is that the ratio fell by a
+factor of six, because the allocator effect fell thirteenfold while the language effect only halved.
+Three summary sites state the finding as a bare order of magnitude with no host attached: §1.4,
+`tab:findings`'s RQ3 row, and the conclusion. A reader comparing the two sections will notice
+before the thesis tells them, because the bare-metal *allocator* effect (1.9–3.2 MiB) is numerically
+almost the guest's *language* effect (1.9–3.4 MiB).
+
+**The non-negotiable claim is untouched**: both effects are real, they reproduce under both
+allocators, and the allocator effect is still the larger. Only the order-of-magnitude phrasing has
+to acquire a host.
+
+### Finding 5 (smaller): the new subsection has no float, and adds a sixth hand-typed value
+
+§6.4.4 is roughly 72 lines answering the chapter's headline open question, quoting about forty
+generated values, with **no figure and no table**. Its central result is two non-overlapping ranges
+across seven load levels, which is a figure. Level 5 in area 4 asks that the use of pictures and
+tables be "well considered and apt", and this is the one place in the chapter where the visual layer
+is simply absent. `tab:latency`'s column specification is generated precisely so a p99.99 column can
+appear without a preamble edit, and it has not been used.
+
+The chapter-6 hand-typed count is now five against §6.3's promise that every measured quantity the
+chapter quotes reaches the page as a generated macro: "roughly $80\,\mu$s" (l. 2572), "roughly
+$240\,\mu$s" (l. 2684), "$18$ of the $20$ paired repeats agree" and "some $30$~MiB low" (l.
+2911–2912, both from the tenth pass), and the new "an operation of about $74\,\mu$s" (l. 3004). The
+recomputed bare-metal median is 73.6 µs, so the value is right, which is what makes this an
+unenforced claim rather than an error. The 15-repeat *p*-floor is still typed at l. 2638.
+
+### The tenth pass's list, checked item by item
+
+| Item | Status |
+| --- | --- |
+| Rewrite the abstract unaided, set `\abstractunaidedtrue` | **Open, seventh consecutive pass**, and now five items rather than four. `ai_statement.tex:27` still `\abstractunaidedfalse` |
+| Delete "only under AddressSanitizer" from `fig:borrowuaf` | **Open.** l. 843 unchanged; `taxonomy.csv` row 1 is `detected,detected` with detection recorded as `runtime (ASan+TSan)` |
+| `bbox_inches="tight"` on `fig_effects` | **Open.** `plot_figures.py:1429` still bare; the only `bbox_inches` in the file is at l. 825 for `fig_taxonomy` |
+| Diagram 11's fan-out label, diagram 07's per-call band | **Open.** Both strings unchanged in the SVG sources |
+| Fix the `\SatKnee` axis confusion | **Open.** l. 2702–2703 still print tracking to 336 and saturating at 335. §6.4.4 solves the same problem correctly by bracketing its own knee between 448 and 512, so the pattern to copy is already in the document |
+| Macro for the 15-repeat floor | **Open.** l. 2638 still types `0.000061` |
+| Macros for the peak-RSS agreement count and low-run offset | **Open**, and the class grew by one |
+| Narrow §5.6 | **Worse.** "verbatim" is now falsified by §6.4.4 rather than merely unenforceable |
+| `fig:budget`'s missing "language" | **Closed.** The caption now reads "why the sweep cannot bound a language effect" |
+| Bare-metal campaign | **Done, with a caveat that is the new item.** Off-protocol on four rows of `tab:testbed`, so it corroborates and cannot replace |
+| Rebuild `Thesis_v2.pdf` | **Done.** Source 16:56, PDF 16:57 |
+| Optional: replace `bugden2022rust` | Open, still not blocking |
+
+### Lifts, ordered by cost
+
+| Work | Kind | Cost | Areas |
+| --- | --- | --- | --- |
+| Rewrite the six statements that deny an instrument the study used; split the p99.99-and-jitter sentence | Editing | 45 min | 4, 5, 6 |
+| Sync the five far-tail sites, including `tab:findings`'s RQ1 row and §6.3's provisional paragraph | Editing | 30 min | 4, 5, 6 |
+| Name the toolchain in §6.4.4; stop `tab:testbed`'s caption claiming the host met the right-hand column | Editing | 20 min | 3, 4, 6 |
+| H1's revisit: record that the clause H1 named resolves on bare metal, in Rust's favour, on one machine | Editing | 15 min | 5 |
+| Attach a host to the peak-RSS order-of-magnitude phrasing in §1.4, `tab:findings` and the conclusion | Editing | 20 min | 4, 5 |
+| Narrow §5.6: drop "verbatim", add `bench/results-baremetal/` | Editing | 20 min | 4, 6 |
+| `bbox_inches="tight"` on `fig_effects`; delete "only under AddressSanitizer"; bracket the knee | Editing | 30 min | 4, 6 |
+| Diagram 11's label and diagram 07's per-call band. Re-render and **read** both | Editing artefacts | 1–2 h | 4, 6 |
+| Macros for the five typed chapter-6 values and the 15-repeat floor | Analysis on data in hand | 1 h | 4 |
+| **Analyse `alloc_profile-20260826-110718/`.** Turns "resolved, unexplained" into a mechanism and closes `tab:threats`'s one empty control cell | Analysis on data in hand | Half a day | 3, 4, 5 |
+| Give §6.4.4 a figure and the jitter data a home; add p99.99 to `tab:latency` | Analysis on data in hand | Half a day | 3, 4 |
+| Rebuild the deck. `build_deck.py` holds no `Bm` macro and l. 1052 still reads "The far tail here needs bare metal, not more repeats" | Editing artefacts | 1 h | Repository consistency |
+| Repeat the campaign at 7 shards, 7 producers, 14 loads, 20 repeats, on the main sweep's toolchain, with `isolcpus` set | New measurement | ~2 h, one euro | 3, 4 |
+| Rewrite the abstract unaided, then set the switch | Author only | One sitting | 6, and 4 follows |
+
+The first seven are under three hours between them and they restore area 5 to 5 and area 6 to 4.5.
+
+### Why area 5 and area 6 moved, stated as disagreements
+
+The tenth pass held both, and its reasoning for area 6 was explicit: deflating for defects inside a
+paragraph that has to be replaced wholesale counts the same blocker twice. **That reasoning still
+holds and it is not what moved area 6.** The abstract is graded exactly as the tenth pass graded it.
+What moved area 6 is a different set of sites, none of them in the abstract, and none of them closed
+by the rewrite: §4.4 denying that Chapter 6 reports p99.99, §6.3 promising a replacement §6.4.4
+declines to be, and `tab:testbed`'s caption claiming a protocol the host missed on four rows. Level
+4 asks that the whole text be consistent on the description of the research setup and the findings,
+and those three are inconsistencies in exactly that.
+
+Area 5 moved on the discussion chapter's own sites, so this is not the area-4 finding counted twice:
+§7.2, §7.6 and `tab:threats` are chapter-7 text, and H1's revisit is chapter-7 text. A discussion
+that says an instrument was not collected, one section after the results report its output, is a
+failure of the reliability sub-factor. The insight, the register, the four-way validity analysis and
+the ethics section are all untouched and all still read at 5, which is why this is 4.5 and not 4.
+
+### Discounted
+
+- `tab:abbrev` unreferenced: appendix glossary, reachable from the List of Tables. Every pass.
+- `0.19 \%` at l. 3985: quoted from `gonzalez2023rustudp`, not a measurement of this study.
+- The 71-word longest "sentence" comes from a table row. Read the stdev, 11.0.
+- `.aitells.py`'s l. 717 gap: the tool strips `\emph{...}`. The source is fine.
+- §6.4.4's refusal to quote the 512 kops/s point, where the Rust arms are bimodal at 37 per cent
+  dispersion, is the same discipline as the pre-committed reading rule. It costs a load rather than
+  rescuing one, and it is evidence for areas 3 and 5.
+- "every percentile above it stays flat" (l. 2998) is loose: at the excluded top load p90, p99 and
+  p99.9 are flat but pooled p99.99 moves both ways. The exclusion itself is right. Noted, not scored.
+
+### Housekeeping
+
+- The far-tail macros read `campaign-20260826-102047.hist.pooled.csv`, which `refresh_thesis.sh`
+  never produces because it does not call `pool_hist.py`. One line closes that gap.
+- The deck passes both its gates and is stale in content, which is the quiet failure mode. Its gates
+  check layout and punctuation, not whether a slide still agrees with the thesis.
+- `Thesis_Plan_v2.tex`'s timeline still schedules the campaign for September while its status
+  paragraph records it as run.
+- The skeleton's nine chapters against the draft's eight is still unresolved (`AGENT.md` §4).
+
+### Outstanding
+
+1. **Rewrite the abstract unaided, then set `\abstractunaidedtrue`.** Now **five** items in one
+   edit: seven and seven, the practical-not-statistical median, jitter, the far tail that is no
+   longer unsettled, and the switch.
+2. **Seven editing fixes, under three hours, restoring area 5 to 5 and area 6 to 4.5.** Listed
+   above.
+3. **Analyse the allocation profile already on disk.** Half a day, moves three areas, and it is the
+   only lift on the list that closes a cell in the threats table.
+4. **Repeat the bare-metal campaign at the canonical configuration and toolchain.** The last thing
+   holding area 3's data half below 5.

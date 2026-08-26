@@ -10,14 +10,19 @@ primary control against implementation bias.
 
 ---
 
-## Next up (as of 9 Aug 2026)
+## Next up (as of 26 Aug 2026, after the bare-metal campaign)
 
-Implementation, analysis, and writing are finished: the thesis builds at 161 pages (17 Aug
-2026) with zero LaTeX errors, zero undefined references or citations and zero overfull boxes, and
-every quoted number regenerates from the raw logs. What is left is one measurement, one review round, and housekeeping. The plan
+Implementation, analysis, and writing are finished: the thesis builds at **103 declared pages plus
+6 appendix pages, 117 physical** (26 Aug 2026) with zero LaTeX errors, zero undefined references or
+citations and zero overfull boxes, and every quoted number regenerates from the raw logs. The plan
 document (`Thesis_Plan_v2.pdf`, dated 9 Aug 2026) puts measurement in September, RQ1/RQ3
-resolution in October, and submission in November, so the ordering below is what that timeline
-needs.
+resolution in October, and submission in November. **Measurement is now ahead of that schedule and
+the writing is behind it**: the bare-metal campaign ran on 26 August and the eleventh grading pass
+found fourteen places in the document that still describe a study with less evidence than it has.
+
+**The shape of the remaining work has changed.** It used to be one measurement plus review. It is
+now three hours of sync editing, two half-days of analysis on data already on disk, one two-hour
+repeat measurement, and the abstract.
 
 1. **Send the spec and the plan to the supervisors** (Phase 1, Phase 2). This needs no repo work
    and everything gated on `spec-v1.0` is queued behind it. Of the three Phase 1 items, "what can
