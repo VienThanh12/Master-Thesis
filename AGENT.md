@@ -366,7 +366,34 @@ pages and the document to 99. Four things are worth carrying:
 - Figure numbering shifts when a figure is removed, so re-run the citation-distance check. All 21
   remaining chapter 6 floats sit within two pages of a citation.
 
-What is left, and it is the author's call because it drops a reader aid rather than a claim:
+A fourth pass de-duplicated §6.4's in-place bounding passages against §7.6, which bounds nearly
+every one of them a second time (the p99.99 instrumentation gap, the microbenchmark's narrowness,
+RQ3's unexplained origin, the `jemalloc` peak-RSS bimodality, the primitives ruled out alone). It
+took 154 words and again recovered nothing. Total across the four passes: **960 words out of §6.4,
+27 pages to 25**, and the last two passes contributed no pages at all.
+
+**The durable diagnosis, measured 26 August: §6.4 reads long because of how it is divided, not
+because of how it is written.**
+
+| RQ | Words | Share | Subsections |
+| --- | --- | --- | --- |
+| RQ1 | 2986 | 39% | **five** (§6.4.1 to §6.4.5) plus 12 of the 21 floats |
+| RQ2 | 2507 | 33% | one (§6.4.7), eight paragraphs of per-class narration |
+| RQ3 | 523 | 7% | one |
+| RQ4 | 1513 | 20% | one |
+
+RQ1's answer arrives in five installments with no single place stating it, and RQ1 and RQ2 together
+are 71 per cent of the section. That is the reading problem, and no further word-shaving touches it.
+
+**The fix is already specified by an approved document.** `Thesis_v2.tex` organises this chapter as
+**five argument bullets**: workload and host, below saturation (with the budget decomposition inside
+it), past saturation (with the contention microbenchmark inside it), safety, and resources with
+migration. The full draft's eight subsections do not match that, which is the same
+skeleton-versus-draft structural disagreement §4 records as unresolved. Consolidating §6.4 to the
+skeleton's grouping would make RQ1 legible, remove two or three headings with their float-packing
+breaks, and satisfy the sync rule, while changing no claim, no number and no float.
+
+The one float lever left is the author's call because it drops a reader aid rather than a claim:
 `tab:taxonomy` and `fig:taxonomy` show the same $14$ outcomes from the same log and cost about 1.1
 pages between them. Criterion 4 sits at 4.0 on figure-and-claim consistency, so weigh that before
 dropping either.

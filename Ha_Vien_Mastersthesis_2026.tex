@@ -2425,11 +2425,9 @@ the RQ2 and RQ4 results all stand, and Section~\ref{sec:overload} resolves the o
 decisively on this same host. Closing the gap needs the bare-metal protocol, not more
 repeats, because the spread is systematic interference and not sampling noise.
 
-One qualification about the metrics belongs here.
-Predictability is evidenced at p99 and p99.9 and no further, because the campaign reported here
-predates the jitter and p99.99 instrumentation Section~\ref{sec:stats} describes. That is a gap
-in the evidence and not in the design, and it closes with the bare-metal campaign the tail claims
-already wait on.
+Predictability is evidenced at p99 and p99.9 and no further, because the campaign predates the
+jitter and p99.99 instrumentation of Section~\ref{sec:stats}. Section~\ref{sec:threats} takes that
+up as a gap in the evidence and not in the design.
 
 \begin{table}[H]
 \centering
@@ -2457,12 +2455,11 @@ below zero.\label{tab:latency}}
 \paragraph{Testing the comparison rather than eyeballing it.}
 Overlapping intervals are a weak instrument in both directions, so the comparison is also tested
 directly, by the procedure fixed in Section~\ref{sec:stats} and reported in
-Table~\ref{tab:significance}. What licenses the pairing is a property of this campaign and
-not of the statistic. The four variants are interleaved inside every repeat, so the
-$i$-th run of each was measured in the same block under the same ambient conditions. Whatever
-interference that block carried is common to the pair, and it cancels in their difference. That is
-the second thing the interleaving discipline buys, beyond the fairness argument it was adopted
-for.
+Table~\ref{tab:significance}. What licenses the pairing is a property of this campaign and not of
+the statistic: the four variants are interleaved inside every repeat, so the $i$-th run of each met
+the same ambient conditions and whatever interference that block carried cancels in their
+difference. That is the second thing the interleaving discipline buys, beyond the fairness argument
+it was adopted for.
 
 \begin{table}[tp]
 \centering
@@ -2658,12 +2655,11 @@ whichever one their language ships. It is not evidence about Rust's safety model
 not be quoted as such. Confirming the mechanism would need the cache-miss counters
 Section~\ref{sec:threats} lists as the clearest instrumentation gap.
 
-Three limits keep the finding the size it is. It is a single-threaded, uncontended
-microbenchmark, so it says what the operation costs and not what a loaded system does with it.
-It is measured on the same host as the sweep, so the absolute figures carry the
-same caveat, though the ratio is far less sensitive to it than either term is. And it is one
-operation on one data structure. Generalising from it to ``Rust is $\BudgetCoreRatio\times$
-faster'' would repeat exactly the error this thesis criticises in the average-case literature.
+Two limits keep the finding the size it is. It is a single-threaded, uncontended
+microbenchmark, so it says what the operation costs and not what a loaded system does with it, and
+it is one operation on one data structure. Generalising from it to ``Rust is
+$\BudgetCoreRatio\times$ faster'' would repeat exactly the error this thesis criticises in the
+average-case literature.
 
 \subsection{Latency, throughput, and saturation across the sweep}
 Figure~\ref{fig:loadsweep}(a) plots p99 latency against offered load, and the shape it shows is
@@ -2784,13 +2780,11 @@ full-service ordering at significance. That rules them out \emph{alone} as the w
 for a $\OverloadThrRatio\times$ gap. As in Section~\ref{sec:budget}, nothing in the safety model
 is implicated.
 
-The setting bounds what the finding licenses. It is one design, a shared-nothing service with one
-request outstanding per producer and a queue bound of $1\,024$, and the depth of the collapse
-depends on all three. It is measured with a harness whose producers block per request, so it
-describes what this shape of client experiences and not what a pipelined one would.
-And the absolute figures belong to this host. What travels is the ordering and its cause: below
-saturation the language choice did not matter, and above it the standard library's
-synchronisation primitives did.
+The setting bounds what the finding licenses, and Section~\ref{sec:threats} says how far it
+travels. The depth of the collapse depends on one design, one request outstanding per producer and
+a queue bound of $1\,024$, measured with a harness whose producers block per request. What travels
+is the ordering and its cause: below saturation the language choice did not matter, and above it
+the standard library's synchronisation primitives did.
 
 The closest prior work reports a comparable degradation past a threshold request rate and
 attributes it to the asynchronous runtime~\cite{arvidsson2025async}.
@@ -2871,14 +2865,13 @@ Language & Throughput (kops/s) & Mean ns/op & Paired $p$ \\
 
 The isolated primitives do not reproduce the overload ordering. C++ sustains
 \ContentionThrCpp{}~kops/s and Rust \ContentionThrRust{}~kops/s, a gap of only
-$\ContentionRatio\times$ with $p = \ContentionP$. The full service at
-$\OverloadLoad$~kops/s separates by $\OverloadThrRatio\times$, with the corrected $p$ at the
-family floor. The honest reading is therefore that the overload divergence involves extra
-work the microbenchmark strips away: the larger tagged \texttt{Request} on the C++ side, the
-worker's variant dispatch, and the map operations that still execute in the overload regime.
-What the result does establish is still useful. An orders-of-magnitude difference in the primitives
-alone is ruled out, and the search for the mechanism moves to the rest of the handoff path and not
-to the safety model.
+$\ContentionRatio\times$ with $p = \ContentionP$, where the full service at
+$\OverloadLoad$~kops/s separates by $\OverloadThrRatio\times$ with its corrected $p$ at the
+family floor. So the overload divergence involves extra work the microbenchmark strips away: the
+larger tagged \texttt{Request} on the C++ side, the worker's variant dispatch, and the map
+operations that still execute in the overload regime. An orders-of-magnitude difference in the
+primitives alone is ruled out, which moves the search for the mechanism to the rest of the handoff
+path and not to the safety model.
 
 \subsection{Resource use (RQ3)}\label{sec:resources}
 Table~\ref{tab:resource} reports resource use at the same
@@ -2897,15 +2890,12 @@ count identically, so that neither language's default could become an accidental
 pinning it high is what makes the arena metadata a large fixed cost on both sides. A deployment
 tuning \texttt{jemalloc} for footprint instead of for comparability would not pay that cost.
 
-The one row in the upper block of Table~\ref{tab:significance} that does not clear the
-correction is peak RSS under
-\texttt{jemalloc}, and the reason lies in the statistic and not in the software. The
-interval there is tight, nowhere near zero, and $18$ of the $20$ paired repeats agree. What
-defeats the test is a handful of runs reporting a resident set some $30$~MiB below their variant's
-median while staying indistinguishable in throughput, wall time and error count, and a permutation
-statistic built on a mean of paired differences is dominated by one such run.
-Section~\ref{sec:threats} takes up both the reading rule of Section~\ref{sec:stats} that this case
-was written in advance to cover and the measurement defect behind it.
+The one row in the upper block of Table~\ref{tab:significance} that does not clear the correction
+is peak RSS under \texttt{jemalloc}, and the reason lies in the statistic and not in the software.
+The interval is tight and $18$ of the $20$ paired repeats agree, while a handful of runs reporting
+a resident set some $30$~MiB low dominate a permutation statistic built on a mean of paired
+differences. That row is read from its interval, under the rule fixed in advance in
+Section~\ref{sec:stats}, and Section~\ref{sec:threats} takes up the measurement defect behind it.
 
 CPU utilisation behaves differently again, and by regime rather than by noise.
 At this below-saturation operating point Rust draws slightly \emph{less} CPU, by
@@ -2916,15 +2906,13 @@ Section~\ref{sec:stats} gives. At a below-saturation point it is pinned to the o
 it is reported only to confirm that the point is sustained and not merely nominal, which it is to
 within $\ReprLoadShortfall\%$.
 
-Two qualifications keep the memory finding the size it actually is. It is a difference in fixed
-cost and not in cost per context. At the $\SweepUes$ active UEs used in the sweep, the
-$\UeCtxGapBytes$-byte layout difference measured in Section~\ref{sec:uecontext} accounts for
-roughly $\UeCtxGapTotalKB$~kB, two orders of magnitude short of the gap, so most of the gap is
-runtime and allocator-arena overhead, which does not scale with the workload and would matter
-proportionally less in a larger deployment. And the measurement establishes the difference without
-explaining it, because no hardware counters or allocation profiles were
-collected, so the split between arena pre-reservation, per-thread caches and static footprint is
-not resolved here. Both points are revisited in Chapter~\ref{chapter:discussion}.
+The finding is a difference in fixed cost and not in cost per context. At the $\SweepUes$ active
+UEs used in the sweep, the $\UeCtxGapBytes$-byte layout difference measured in
+Section~\ref{sec:uecontext} accounts for roughly $\UeCtxGapTotalKB$~kB, two orders of magnitude
+short of the gap, so most of it is runtime and allocator-arena overhead, which does not scale with
+the workload and would matter proportionally less in a larger deployment. What the measurement does
+not do is explain the gap, for want of hardware counters and allocation profiles, and
+Chapter~\ref{chapter:discussion} revisits both points.
 
 The RQ3 finding is therefore neither the flat ``no resource penalty'' that overlapping intervals
 would suggest nor a general one. Rust costs a few megabytes more of fixed footprint under both
