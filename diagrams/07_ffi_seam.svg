@@ -65,7 +65,7 @@
        bars are meant to look almost identical, because no seam cost is resolved
        at all and the bound comes from the paired interval and not from the gap. -->
   <rect x="36" y="404" width="886" height="80" rx="10" fill="#fbfcfd" stroke="#d7dde3"/>
-  <text x="54" y="422" font-size="13" font-weight="700" fill="#12233a">Per-operation cost: no seam tax is resolved, and any tax is bounded at +10.9% of one operation</text>
+  <text x="54" y="422" font-size="13" font-weight="700" fill="#12233a">Per-operation cost: the same signalling operation, called natively and through the seam</text>
   <!-- Bars scaled so 12.7 us spans 340 px, both starting at the same x so the
        comparison is the length difference and nothing else. -->
   <text x="286" y="442" text-anchor="end" font-size="11" fill="#33475b">same op, native caller</text>
@@ -74,5 +74,9 @@
   <text x="286" y="461" text-anchor="end" font-size="11" fill="#33475b">same op through the seam</text>
   <rect x="296" y="451" width="340" height="13" fill="#7fa8d4"/>
   <text x="646" y="461" font-size="11" fill="#1c4e86"><tspan font-weight="700">12.7 &#181;s</tspan></text>
-  <text x="54" y="478" font-size="10.5" fill="#5b6770">Paired over 15 interleaved repeats: +192 ns, 95% interval &#8722;954 to +1341 ns, p = 0.24. The empty crossing costs 2.54 ns and bounds only itself.</text>
+  <!-- The paired statistics and the crossing cost are deliberately not drawn here.
+       This is a hand-authored schematic, so any number inside it is typed and a
+       rerun cannot move it. The caption carries them as generated macros instead,
+       and the two bar values stay because a bar has to have a length. -->
+  <text x="54" y="478" font-size="10.5" fill="#5b6770">The paired difference between the two is not resolved. The do-nothing crossing bounds itself and not the operation. Figures in the caption.</text>
 </svg>
