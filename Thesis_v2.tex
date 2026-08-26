@@ -283,11 +283,14 @@
         pinned cores. Open-loop means the generator keeps to its send schedule instead of
         waiting for replies. Latency is recorded in identically configured HDR
         histograms~\cite{tene_hdrhistogram}. Resource use is sampled through the operating
-        system. The results so far come from a dedicated dual-socket Xeon host running as a
-        KVM guest. That host resolves the overload divergence and the resource comparison. It
-        does not resolve the far tail below saturation. The frequency governor is not observable
-        from inside the guest and CPU steal is non-zero. Locking frequency requires the
-        bare-metal campaign.
+        system. The main sweep runs on a dedicated dual-socket Xeon host, which is a KVM guest.
+        That host resolves the overload divergence and the resource comparison. It does not
+        resolve the far tail below saturation, because the frequency governor is not observable
+        from inside the guest and CPU steal is non-zero. A second sweep on a bare-metal
+        \BmCpu{} settles it. The governor is fixed at \BmGovernor{} there and no steal appears
+        in \BmStealIntervals{} sampling intervals, so the far tail can be read. That sweep also
+        varies the shard count, the load grid, the repeat count and the toolchain, so it
+        confirms the main one without standing in for it.
   \item RQ2 is answered by controlled fault injection~\cite{natella2016fault}. A fixed catalogue
         of defects is written in both languages. The expected outcome of each one is recorded in
         advance. A surprise then shows up as a discrepancy, not as something explained away
@@ -393,8 +396,8 @@
         an ordering can be read. Pooled over \BmRepeats{} repeats, p99.99 runs
         $\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s for the C++ variants and
         $\BmFarTailRustLo$--$\BmFarTailRustHi\,\mu$s for the Rust ones, without overlap. That
-        campaign uses \BmShards{} shards and \BmRepeats{} repeats and a different toolchain, so it
-        corroborates this one and does not replace it.
+        campaign uses \BmShards{} shards, \BmLoadLevels{} load levels, \BmRepeats{} repeats and a
+        different toolchain, so it corroborates this one and does not replace it.
   \item Past saturation the languages are not equivalent. The margin is not marginal. At
         $\OverloadLoad$~kops/s offered, \OverloadSustainedFaster{} sustains
         $\OverloadThrCpp$~kops/s where \OverloadSustainedSlower{} sustains
@@ -444,8 +447,8 @@
         points in $\FfiSeamLines$ lines of Rust. All raw-pointer work is confined to
         $\FfiUnsafeFns$ functions. The core is left free of \texttt{unsafe}. No cost is detected
         against the same operation called natively. That bounds any per-operation tax at
-        $\FfiOpBoundPct\%$. Three adoption costs beyond the seam were measured for the first time
-        in this pass. Two contradict the received objection. $\BuildDepShareCpu\%$ of the Rust
+        $\FfiOpBoundPct\%$. Three adoption costs beyond the seam were measured as well. Two of
+        them contradict the received objection. $\BuildDepShareCpu\%$ of the Rust
         clean build is third-party code. The project's own source compiles in
         $\BuildAllFirstPartyCpuRatio$ times the CPU \texttt{g++} needs. The
         $\FootShippedRatio\times$ binary-size gap is a linkage policy that reverses when the
@@ -491,9 +494,16 @@
         without a mechanism behind it leaves each implementation to fail in its own idiom.
   \item RQ3 splits by resource and the splits do not point the same way. RQ4 comes out cheap in
         the machine and expensive in the people. The memory penalty reproduces under both
-        allocators. It is credible beyond its $p$-value. Peak resident set is a run-level
-        maximum insensitive to the jitter that destroys a p99. It is a few MiB of fixed cost
-        against an allocator effect an order of magnitude larger. One close study reports the
+        allocators and on a second machine with a different compiler. It is credible beyond its
+        $p$-value. Peak resident set is a run-level maximum insensitive to the jitter that
+        destroys a p99. It is a few MiB of fixed cost, and sized against the allocator's own
+        effect it is an order of magnitude smaller on the main host and about half as large on
+        the quiet one. The ordering travels and the ratio does not. The quiet host also locates
+        the cost. \texttt{jemalloc}'s own accounting puts it \emph{outside} the allocator,
+        because the Rust build holds less live data and fewer resident bytes there and still
+        peaks $\BmJeRssDelta$~MiB higher. What a Rust process carries before it allocates is the
+        standard library and the runtime. Which of its pages hold the difference is not
+        attributed to a call site. One close study reports the
         opposite sign, with Rust lowest and the gap widening as concurrency
         rises~\cite{karlback2021ran}. The two are compatible. Their C++ runs on Boost.Fibers,
         which allocates a stack per fiber. Their Rust runs on Tokio, where a task is a small
