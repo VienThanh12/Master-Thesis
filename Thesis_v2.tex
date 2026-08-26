@@ -367,8 +367,8 @@
         it, so frequency stability is assumed instead of enforced. CPU steal is non-zero at
         roughly the order of the latencies under study. Run-level statistics survive that. The
         overload and the resource comparisons are resolved here. The far tail below saturation
-        is not. It is reported as unresolved, not as a null. The bare-metal protocol that would
-        settle it is specified, published, and was executed on a second machine.
+        is not, and is reported as unresolved rather than as a null. The bare-metal protocol that
+        settles it is published, and it was executed on a rented \BmCpu{}.
   \item Below saturation the four variants sit within $\PFiftyRange\,\mu$s of one another at the
         median, $\PFiftySpread\%$. The paired test resolves a difference of
         $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators. Higher up the

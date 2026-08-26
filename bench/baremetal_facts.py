@@ -99,7 +99,11 @@ def host_facts(macros):
     macros["BmVirt"] = grab(r"virtualisation:\s+(\S+)", "unknown")
     macros["BmGovernor"] = grab(r"governors:\s+(\S+)", "unknown")
     macros["BmSmt"] = grab(r"smt/control:\s+(\S+)", "unknown")
-    macros["BmPinned"] = grab(r"cpus allowed here:\s+(\S+)", "unknown")
+    # The capture writes the pinned set as "2-17". House typography uses -- for a
+    # numeric range, and the sweep's own row in tab:testbed is written that way,
+    # so convert here rather than leaving the two columns inconsistent.
+    pinned = grab(r"cpus allowed here:\s+(\S+)", "unknown")
+    macros["BmPinned"] = re.sub(r"(\d)-(\d)", r"\1--\2", pinned)
     # Core isolation, which the protocol of bench/TESTBED.md asks for and this
     # host did not have. Read from the capture rather than typed, because a
     # repeat visit that fixes it has to move the table without an edit. The
