@@ -4286,7 +4286,7 @@ Implementation bias between the two versions & Frozen specification, shared allo
 \hline
 \multicolumn{3}{@{}l}{\emph{Construct: do the metrics measure what the questions ask?}} \\
 The sweep measures the design, not the language & The operation is measured apart from the handoff and both are reported (\S\ref{sec:budget}) & One operation on one data structure is narrower than the sweep it supplements \\
-The overload result is attributed but not localised & Narrowed to two entries in the forced-idiom log (\S\ref{sec:overload}). The contended-primitive microbenchmark (\S\ref{sec:contention}) rules out those two alone as the full explanation & The full handoff path under load still includes variant dispatch and larger requests on the C++ side \\
+The overload result is attributed but not localised & Narrowed to two entries in the forced-idiom log (\S\ref{sec:overload}), and the contended-primitive microbenchmark rules those two out alone (\S\ref{sec:contention}) & The full handoff path under load still includes variant dispatch and larger requests on the C++ side \\
 A defect catalogue is a sample the author chose & Seven classes drawn from outside the guarantee, with expectations recorded in advance & Fourteen programs remain fourteen programs \\
 RQ3 captures resource cost, its origin only in part & Counters on the confirmation host (\S\ref{sec:baremetal}) & Direction accounted for, the split inside the resident set not \\
 RQ4 measures the seam, not the safety of the whole & The distinction is stated wherever the result is quoted & One address space: a compile-time property of the Rust side bounds nothing at run time \\
