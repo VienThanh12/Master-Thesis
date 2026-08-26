@@ -248,10 +248,33 @@ def paired_facts(macros, below):
         macros["BmPFiftyDiffHi"] = fmt(max(abs(m) for m in sig) / NS_PER_US, 1)
         macros["BmPFiftyFaster"] = "Rust" if statistics.median(sig) < 0 else "C++"
 
+    # The median's own magnitude, so the prose can say what a difference of a
+    # microsecond is a difference *in* without typing the scale. Rounded to the
+    # nearest microsecond, and taken over the whole sweep because it is flat
+    # below saturation.
+    macros["BmPFiftyMedian"] = fmt(
+        statistics.median([r["lat_ns"]["p50"] for r in below]) / NS_PER_US)
+
     raw, adj = contrast(lambda r: r["rss_peak_kb"])
     sig = [md for (md, _p), pa in zip(raw, adj) if pa < 0.05]
     macros["BmRssTested"] = str(len(raw))
     macros["BmRssSig"] = str(len(sig))
+
+    # CPU utilisation. On the guest this comparison cleared Holm under one
+    # allocator and reversed under the other, so Section 6.4.3 reports it
+    # unresolved. On a quiet host it resolves: whether it resolves with one sign
+    # is the thing worth recording, so the sign agreement is counted rather than
+    # asserted and the direction is read from the data.
+    raw, adj = contrast(lambda r: r["cpu_pct"])
+    sig = [md for (md, _p), pa in zip(raw, adj) if pa < 0.05]
+    macros["BmCpuTested"] = str(len(raw))
+    macros["BmCpuSig"] = str(len(sig))
+    if sig:
+        macros["BmCpuDiffLo"] = fmt(min(abs(m) for m in sig), 1)
+        macros["BmCpuDiffHi"] = fmt(max(abs(m) for m in sig), 1)
+        macros["BmCpuLower"] = "Rust" if statistics.median(sig) < 0 else "C++"
+        one_sign = all(m < 0 for m in sig) or all(m > 0 for m in sig)
+        macros["BmCpuOneSign"] = "yes" if one_sign else "no"
 
     # Language and allocator effects at steady state. Below 32 kops/s the
     # footprint is still filling, so the early loads describe warm-up.

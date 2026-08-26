@@ -637,6 +637,40 @@ def _paired_effect(rows, key_a, key_b, load, metric_fn):
     return bootstrap_ci([y - x for x, y in zip(a, b)])
 
 
+def rss_low_run_offset(rows, load):
+    """How far below its own mode a contaminated peak-RSS run sits, in MiB.
+
+    Section 6.4.3 reads one peak-RSS row from its interval rather than its
+    p-value, and the justification is that a few runs report a resident set well
+    below their variant's mode while being otherwise indistinguishable. That
+    offset was typed into the prose until now, which meant a rerun could not
+    move it. It is measured here instead.
+
+    The split is by the largest gap between consecutive sorted values rather
+    than by a threshold, because a threshold would be a number chosen after
+    seeing the data. A variant whose runs are unimodal contributes nothing: the
+    minority group has to be a minority, and the gap has to be the dominant
+    feature of the spread, or the variant is skipped. Returns None when no
+    variant qualifies, so the macro is absent rather than zero on a campaign
+    that does not show the defect.
+    """
+    offsets = []
+    for key in variants_present(rows):
+        vals = sorted(r["rss_peak_kb"] / 1024.0 for r in _subset(rows, key, load))
+        if len(vals) < 6:
+            continue
+        gaps = [(vals[i + 1] - vals[i], i) for i in range(len(vals) - 1)]
+        gap, at = max(gaps)
+        lo, hi = vals[:at + 1], vals[at + 1:]
+        # The low group must be the minority, and the gap must dominate the
+        # dispersion inside either group, or this is spread and not bimodality.
+        inner = max(hi[-1] - hi[0], lo[-1] - lo[0])
+        if len(lo) >= len(hi) or gap <= inner:
+            continue
+        offsets.append(statistics.median(hi) - statistics.median(lo))
+    return statistics.median(offsets) if offsets else None
+
+
 def fig_resources(rows, outdir, load):
     """Resource use at the representative load, and the two effects inside it.
 
@@ -1426,7 +1460,10 @@ def fig_effects(sig_results, outdir):
 
     fig.tight_layout()
     out = os.path.join(outdir, "fig_effects.pdf")
-    fig.savefig(out)
+    # bbox_inches is needed here and not on most of the others: the right panel's
+    # axis label is long enough that tight_layout alone clipped it mid-word in
+    # the shipped PDF.
+    fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
     return out
 
@@ -1672,6 +1709,25 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
         "PNineNineRange": f"{max(p99) - min(p99):.0f}",
         "PNineNineMaxCI": f"{max(p99_ci):.0f}" if p99_ci else "0",
         "MaxOfferedLoad": f"{max(loads) / 1000.0:.0f}",
+        # The median's own magnitude, so prose can say what a resolved difference
+        # of a microsecond or two is a difference *in* without typing the scale.
+        # Rounded to ten because it is quoted as an order of size and not as a
+        # measurement: a reader comparing "1.6 against 80" should not be invited
+        # to read the second figure to the same precision as the first.
+        "PFiftyMedian": f"{round(statistics.median(p50) / 10.0) * 10:.0f}",
+        # The two ends of the tracking region's p99 climb. The prose describes the
+        # shape of Figure fig:loadsweep panel (a), so the numbers anchoring that
+        # description belong here rather than in the sentence. Both are the
+        # median across variants and not an extreme, because the sentence is
+        # about the four climbing together: quoting one variant's worst point
+        # would describe a curve the figure does not draw.
+        "PNineNineLightest": (
+            f"{statistics.median([med_at(k, min(loads), p99_us) for k in variants]):.0f}"
+        ),
+        "PNineNinePreCliff": (
+            f"{statistics.median([med_at(k, max(tracking), p99_us) for k in variants]) / 1000.0:.0f}"
+            if tracking else "0"
+        ),
     }
 
     # The preamble of tab:latency travels with its generated body. The table gains
@@ -1787,6 +1843,17 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
                 "RssLangCILo": f"{min(r['lo'] for r in rss_rows):.1f}",
                 "RssLangCIHi": f"{max(r['hi'] for r in rss_rows):.1f}",
             })
+            # The per-repeat sign agreement for the peak-RSS row that fails Holm,
+            # and the size of the contaminated runs that make it fail. Together
+            # these are the whole justification for reading that row from its
+            # interval instead of its p-value, so a rerun has to be able to move
+            # them: OverloadThrAgree is the same quantity for the overload family
+            # and has been generated since the eighth pass.
+            worst = max(rss_rows, key=lambda r: r["holm"])
+            macros["RssAgree"] = f"{worst['agree']}/{worst['n']}"
+            low_offset = rss_low_run_offset(rows, load)
+            if low_offset is not None:
+                macros["RssLowRunOffset"] = f"{low_offset:.0f}"
         if cpu_rows:
             macros["CpuDiffAbsMax"] = f"{max(abs(r['diff']) for r in cpu_rows):.1f}"
 
@@ -1873,6 +1940,12 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
         core_cpp, core_rust = med("cpp", "core_ns"), med("rust", "core_ns")
         macros.update({
             "BudgetRepeats": str(min(len(budget["cpp"]), len(budget["rust"]))),
+            # The decomposition runs fewer repeats than the sweep, so it has its
+            # own floor and the prose has to quote that one and not the sweep's.
+            # Derived from the same helper as MinAttainableP rather than typed,
+            # so changing BudgetRepeats moves it.
+            "BudgetFloor": fmt_p(
+                attainable_floor(min(len(budget["cpp"]), len(budget["rust"])))),
             "BudgetCoreCpp": f"{core_cpp:.1f}",
             "BudgetCoreRust": f"{core_rust:.1f}",
             "BudgetSvcCpp": fmt_us_adaptive(med("cpp", "service_ns")),

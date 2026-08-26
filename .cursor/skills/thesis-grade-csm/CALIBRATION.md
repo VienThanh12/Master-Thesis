@@ -21,8 +21,10 @@ is that they are fixed points.
 | 4 | 4.5 | Every campaign result reaches the page through a generated macro rebuilt from raw logs, so headline numbers cannot drift from the data. Evidence status stated per research question, and the one schematic says in its own caption that it is not this study's data. Capped by a research question half-answered only in the negative, one table never referenced from the body, and about nine measured values still typed into prose by hand. |
 | 4 | 2 | Roughly 28 values quoted in the results prose disagreed with the tables they described, one reversing the direction of change. A promised baseline and a promised condition were never reported. No result figures at all. |
 | 5 | 5 | Hypotheses revisited individually, including one the author declares ill-posed. Four-way validity analysis with residual risk graded per row. Contradictory prior results reconciled mechanically. The study records its own methodological errors. Register held: "cannot tell" never becomes "equivalent". |
+| 5 | 5 → 4.5 | The eleventh pass took it back the day a new results section landed. Everything above still held, and three sentences in the discussion chapter said an instrument "was not collected" that the results chapter reported the output of, while the revisit of the hypothesis about the far tail did not use the campaign that resolved the far tail. **A discussion one section behind its own results fails the reliability sub-factor even when the reasoning in it is excellent.** Scored from chapter-7 sites only, so it is not the area-4 finding counted twice. |
 | 5 | 2 | No discussion chapter. Own results never compared with previous research, reliability never assessed, ethics absent, and a contribution claimed that the preface credits to the partner. |
 | 6 | 5 → 4.5 | The third pass gave 5 for the writing. The fourth took it back, because level 5 asks for presentation that is technically camera-ready with excellent finishing polish and the *finishing* failed: the printed AI declaration asserted the abstract was written unaided while a source comment recorded it as model-drafted, alongside a float overflowing its page, two overfull boxes, and sentences of 93 and 86 words. Writing quality does not carry this area on its own. |
+| 6 | 4.5 → 4.0 | The eleventh pass, on **level 4's** clause and not level 5's: the whole text logical and consistent on the description of the research setup, findings and conclusions. Four sites failed it after one integration, none of them the abstract, which is graded separately for the reason the tenth pass gives. The pattern to expect: a new results section falsifies the methodology section that said the metric was unavailable, the data section that promised a replacement, the reproducibility section that promised byte-identical reruns, and a table caption that promised the protocol was met. |
 | 6 | 2 | Template dummies surviving on the abstract page, three different dates, duplicated and undefined labels, a stray Cyrillic word in the results, dense grammar errors, and no statement of AI use in the document. |
 | 7 | n/a | Every pass. The manuscript cannot settle it. |
 
@@ -94,6 +96,22 @@ These have each consumed part of a pass and were wrong.
   `gonzalez2023rustudp`, quoted to make a point about statistical against operational significance.
   A literature value is not a hand-typed measurement of this study. Check the citation on the line
   before scoring it.
+- **`bench/results-baremetal/latency_budget.json` is not bare-metal evidence.** It is byte-identical
+  to `bench/results/latency_budget.json` (md5 `634e0b11…`), so it is a copied guest file and
+  `\BudgetCoreRatio` remains a guest number. `bench/latency_budget.sh` was **not** re-run on the
+  visit. Do not credit the decomposition to bare metal, and do not report the copy as a defect in
+  the results either: what the visit did deliver for that claim is better, namely the op-scope
+  counters. The file's presence in that directory is misleading and worth removing.
+- **`env-20260812-*.txt` inside `bench/results-baremetal/`.** The directory holds copies of three
+  guest campaigns and their environment captures alongside the two bare-metal ones.
+  `baremetal_facts.py` reads `sorted(glob(env-*.txt))[-1]`, so it correctly takes the newest, but a
+  grader eyeballing the directory can easily read a Rocky Linux capture as the confirmation host's.
+  The confirmation host is `env-20260826-102012.txt`, `touched-reptile`, Ubuntu 24.04.4.
+- **The four bare-metal `\Bm*` values that look like they contradict the main sweep.** They are
+  supposed to differ: 1.64 against 1.8 for the overload ratio, 0.5--1.1 against 1.6 µs for the
+  median, 2.8 against 1480 µs for the widest p99 interval. The `Bm` prefix exists so the two
+  datasets cannot be confused, and a value moving between hosts is the confirmation working. The one
+  genuine finding in that family is the peak-RSS *ratio*, item 3h.
 - **Filtering the campaign JSONL on the `rate` field.** `offered_load(row)` in
   `bench/plot_figures.py` is `row["rate"] * row["producers"]`, and there are seven producers, so
   the representative load of 56 kops/s is `rate == 8000`. Filtering on `rate == 56000` lands in the
@@ -106,21 +124,42 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
-State as of the **tenth pass, 26 August 2026**. Two passes running have found **no wrong measured
-value anywhere**, and both verified the generated layer still holds. The defect class that moved
-area 4 from 4.5 to 4.0 at the ninth pass is claims about the evidence that the evidence does not
-support, listed as items 3a to 3e below. 3a is now **closed**. Read the "resolved" section before
-reporting anything from the numbered list, and check every item against the source.
+State as of the **eleventh pass, 26 August 2026 evening**, taken after the bare-metal campaign
+landed. Three passes running have found **no wrong measured value anywhere**. The defect class that
+moved area 4 from 4.5 to 4.0 at the ninth pass is claims about the evidence that the evidence does
+not support, listed as items 3a to 3h below. It is now also what moved areas 5 and 6, because the
+campaign created nine new instances of it in one day. Read the "resolved" section before reporting
+anything from the numbered list, and check every item against the source.
+
+**The one thing to internalise before grading this thesis again.** Its failure mode is not wrong
+numbers and never has been. It is **prose that describes an older state of the evidence than the
+artefacts hold.** Every pass since the ninth has found more of it and no pass has found a wrong
+measured value. So budget the pass accordingly: spot-check a dozen macros to confirm the generated
+layer still holds, then spend the time on the four places a new result has to reach and usually does
+not, namely the summary-of-findings table, the threats table, the hypothesis revisit, and the
+methodology section that said the metric was unavailable.
 
 1. **Rewrite the abstract unaided, then set `\abstractunaidedtrue`.** Blocking for submission and
    for area 6, and it cannot be delegated. Open since the fourth pass. Until it is set, every
    build prints `ai_statement: ... Not submittable` and the printed declaration says the summary
-   has not yet been rewritten unaided. Drop the abstract's "median latency matches" in the same
-   edit: the paired test resolves −1.1 and −1.6 µs under the two allocators, both clearing Holm.
-2. **Bare-metal tail campaign, with hardware counters and allocation profiles on the same visit**
-   (`bench/TESTBED.md`). The only thing holding area 3's data half at 4, and the only lift no
-   amount of editing reaches. What it buys is narrow and specific: far-tail ordering below
-   saturation, plus a mechanism for the peak-RSS effect and for the operation-level gap.
+   has not yet been rewritten unaided. **Five items now.** Seven and seven rather than five and
+   five (3e). "Median latency matches" (3c): the paired test resolves −1.1 and −1.6 µs under the
+   two allocators, both clearing Holm. The Objective's jitter dimension, still unreported. And new
+   at the eleventh pass: the paragraph still ends "The far tail below saturation cannot be settled
+   on a virtualised host", which §`sec:baremetal` settles.
+2. **Bare-metal tail campaign. RUN on 26 August 2026, and the item has changed shape.** Two 480-run
+   sweeps on a rented AMD EPYC 7443P, `virtualisation: none`, 0 of 60 sampling intervals with any
+   steal. It delivered everything this item promised: pooled p99.99 separating the languages over 32
+   to 96 kops/s with Rust lower, `perf` counters at the operation scope giving the mechanism
+   (11 % fewer instructions, 15 % fewer cycles, 29 % more cache misses per thousand instructions),
+   and a jemalloc allocation profile. Area 3's data half moved 4 to 4.5 for it. **What is left is
+   two things.** The run used the `TESTBED.md` example configuration (8 shards, 8 producers, 8
+   loads, 15 repeats) against the canonical 7/7/14/20, **and it changed the toolchain too**
+   (`g++ 13.3.0`/`rustc 1.98.0` against `g++ 15.1.1`/`rustc 1.97`), so it corroborates and cannot
+   replace. And the allocation profile sits unanalysed in
+   `bench/results-baremetal/alloc_profile-20260826-110718/`, which is why RQ3's memory result is
+   still "resolved, unexplained" in `tab:findings`. Do not report this item as an open measurement
+   without saying which half is open.
 3. **Closed 22 August: the eleven hand-typed values, §7.2's reproducibility claim, the
    declaration's false method sentence, §5.5's indicative instrumentation, the unplaced
    equivalence table, §8.2's Figure 8.1 overclaim, and the diagram labels.** All seven are in the
@@ -185,10 +224,41 @@ reporting anything from the numbered list, and check every item against the sour
 
 3f. **`\SatKnee` is a throughput value used as a load-axis position.** `plot_figures.py:1652`
    defines it as the highest achieved throughput in the sweep, minimised across variants, so it
-   belongs to the vertical axis. `\TrackingLoad` is an offered load. §6.4.1 l. 2685 prints them as
+   belongs to the vertical axis. `\TrackingLoad` is an offered load. §6.4.1 l. 2702 prints them as
    tracking to 336 kops/s and saturating at 335, and `fig:loadsweep`'s caption lists "the knee at
    335 kops/s" among things a dotted line marks, where panel (b) draws no knee marker. Opened by the
-   tenth pass.
+   tenth pass, still open at the eleventh. **The fix pattern is now inside the document**:
+   §`sec:baremetal` brackets its own knee between `\BmKneeLo` 448 and `\BmKneeHi` 512 because the
+   sweep steps over it, which is the honest form. Copy that.
+
+3g. **Six statements deny an instrument the study used. Opened by the eleventh pass, and the
+   largest single finding on this list.** The bare-metal visit collected `perf` counters at both
+   scopes and a jemalloc allocation profile for both languages, and §`sec:baremetal` reports the
+   counters under the heading *A mechanism, from counters the guest did not expose*. Yet §6.4.3
+   l. 2930 says the gap is unexplained "for want of hardware counters and allocation profiles",
+   §7.2 l. 3704 says the split "needs the allocation profiles and hardware counters this study did
+   not collect", §7.6 l. 4281 says "no hardware counters or allocation profiles were collected", and
+   `tab:threats`'s RQ3-origin row has a control column reading "None available on this host". The
+   first is falsified ninety lines later in its own chapter. Two more of the same shape on the other
+   metric: §5.5 l. 1597 says "Neither is reported in Chapter 6" of p99.99 and jitter where p99.99 is
+   reported, and §7.6 l. 4263 says both "postdate the reported campaign". Jitter genuinely is still
+   unreported, so that sentence needs splitting rather than deleting. **This is what took area 5 off
+   5**, because three of the six are chapter-7 text.
+
+3h. **Five summary sites still call the far tail unresolved, and the peak-RSS ratio claim lost its
+   host. Opened by the eleventh pass.** The integration reached §1.4, §6.4, §7.2, the conclusion,
+   `tab:threats`'s virtualised-host row, `tab:testbed`, `Thesis_v2.tex` and `Thesis_Plan_v2.tex`,
+   and missed the abstract (l. 245), `tab:findings`'s RQ1 row ("no tail ordering is resolvable"),
+   §7.1 l. 3506, `tab:threats`'s non-determinism row, and §6.3 l. 2389 (which promises the
+   bare-metal run "replaces these numbers" where §`sec:baremetal` says confirmation and not
+   replacement). Separately: the peak-RSS allocator effect fell from `\RssAllocDiff` 32.9--34.4 MiB
+   to `\BmRssAlloc` 1.9--3.2 MiB with `thp:never,narenas:16` matched on both hosts, so the "order of
+   magnitude" gap between allocator and language effects did not survive the change of host. §1.4,
+   `tab:findings`'s RQ3 row and the conclusion state it with no host attached. **The non-negotiable
+   claim is untouched**: both effects are real and the allocator's is still larger. Only the
+   phrasing needs a host. Also §`sec:baremetal` claims the campaign "changes one thing that matters,
+   the machine" while the toolchain changed too, and `tab:testbed`'s caption claims the confirmation
+   host met a protocol column it missed on four rows.
 
 4. **Prose: actioned, and the only item on this list ever to move on prose grounds.**
    "rather than" stood at 154 instances and 44 per ten thousand words at the seventh pass. It now
@@ -201,6 +271,23 @@ reporting anything from the numbered list, and check every item against the sour
 6. **Optional, not reader-visible:** the ten diagrams no document includes still carry dash asides
    and prose semicolons. `diagrams/check_labels.py --all` lists them. The gate covers any of them
    from the moment a document includes it, so this is housekeeping and not a defect.
+7. **Unrealised assets. Report these in the lift list, never in the grade** (rule 1: grade the
+   document, not the repository). Three results exist in `bench/results-baremetal/` and reach no
+   page, and the first two are each worth about half a day.
+   - **The allocation profile**, 40 interval heap dumps per arm plus the Rust binary for
+     symbolisation. Closes `tab:threats`'s only empty control cell and RQ3's "unexplained".
+   - **The CPU result, which resolves.** On the guest it cleared Holm under one allocator and
+     reversed under the other, so §6.4.3 reports it unresolved. On bare metal it is significant at
+     **16 of 16 points with one sign**: Rust draws less CPU, by 0.3 to 7.6 percentage points,
+     monotonically increasing with offered load, under both allocators. `baremetal_facts.py`
+     computes no CPU macro at all, so this is the cheapest unreported result in the project.
+   - **Jitter**, in all 32 pooled groups. RQ1 does not name it so nothing is promised, and
+     `tab_jitter.tex`'s machinery has been idle since 20 August.
+
+   Also: `refresh_thesis.sh` does not call `pool_hist.py`, so `far_tail_facts()` reads a pooled CSV
+   the pipeline never regenerates. One line closes it. And the deck passed both its gates in the
+   same run that regenerated the bare-metal macros while contradicting the thesis, because those
+   gates check layout and punctuation and not agreement with the source.
 
 **Resolved 22 August 2026, with the mechanism that keeps each shut. Do not re-report.**
 

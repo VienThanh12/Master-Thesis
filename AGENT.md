@@ -18,7 +18,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | --- | --- | --- | --- |
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v2.tex`. |
 | **`Thesis_v2.pdf`** | `Thesis_v2.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through, all nine chapters populated since 20 Aug 2026. This is what goes to the supervisor alongside the plan. |
-| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 26 Aug 2026: abstract form declaring **99 pages + 6 appendix pages** (113 physical). It read 100 and 102 on 25 Aug, 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. Six pages came back across three §6.4 passes on 25 and 26 August and none of them cost an argument: three from layout, two from cutting re-derived argument, and one from merging two single-panel figures into `fig:loadsweep`. Chapter 6 went 27 pages to 25 over the same work. See §5, *Length and layout*, for the ordering rule that made each of them pay. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
+| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 26 Aug 2026, **after** the bare-metal campaign landed: abstract form declaring **103 pages + 6 appendix pages** (117 physical). The campaign added four declared pages and that is substance, not drift, so do not go hunting for them (see §5, *Length and layout*: under 100 is a preference and substance wins). Before it, the same day, it read 99 + 6 (113 physical). It read 100 and 102 on 25 Aug, 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. Six pages came back across three §6.4 passes on 25 and 26 August and none of them cost an argument: three from layout, two from cutting re-derived argument, and one from merging two single-panel figures into `fig:loadsweep`. Chapter 6 went 27 pages to 25 over the same work. See §5, *Length and layout*, for the ordering rule that made each of them pay. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v2.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. Kept for reference under their original names. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
 | Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Ha_Vien_Mastersthesis_2026.tex`. |
@@ -55,31 +55,40 @@ grading pass so passes stay comparable.
 
 | # | Criterion | Target | Current (post-refinement) | What still blocks a 5 |
 | --- | --- | --- | --- | --- |
-| **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (5 inside + 5 outside guarantee). |
+| **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (7 inside + 7 outside guarantee). One cheap alignment item: RQ1 names the median, p99, p99.9 and the maximum, and the decisive far-tail result is a pooled p99.99. The narrowing was right while the statistic was unavailable; it is in hand now, so RQ1 can name it and §7.6's explanation of the narrowing can go. |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
-| **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **A matched bare-metal campaign.** The far tail, the counters and the allocation profiles were all collected on bare metal on 26 Aug 2026 (§`sec:baremetal`), so the instrumentation gap is closed. What is not closed is that the confirmation run changed the shard count (8 against 7), the load grid (8 levels against 14) and the repeat count (15 against 20) alongside the host, so it corroborates the main sweep and cannot replace it. Repeating it at the canonical configuration is the remaining work. |
-| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.0** | **Figure-and-claim consistency, plus RQ1's far tail.** The eleven hand-typed values are closed and no measured value is wrong (verified 23 and 26 August, two passes running). What holds this at 4.0 instead is statements *about* the evidence: three figures misstate the result they illustrate (`fig:borrowuaf`'s "only under AddressSanitizer", diagram 07's retracted FFI framing, diagram 11's inverted fan-out label) and reproducibility claims that outrun their artefacts. The §7.4 claim is **closed** by generating `tab:taxonomy`, but two survive and one is new: §5.6 still says "every figure and table in the evaluation", which covers two hand-drawn diagrams, and §6.3 promises that every measured quantity the chapter quotes is a generated macro while §6.4.3 types two of them ("18 of the 20 paired repeats agree", "some 30 MiB low"). The median-equivalence sites are **fixed as of 23 August** in §1.4, §9 and `Thesis_v2.tex`, leaving only the abstract. Under two and a half hours of edits restore 4.5. Do not reintroduce a measured number as prose, and do not restate the median result as a bare null: name the resolved difference and call the equivalence practical. |
-| **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Maintain register: “cannot tell” ≠ “equivalent”. H1 is *ambiguous in framing*, not simply supported. |
-| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`: until then the build prints “Not submittable”, and a document that declares itself unsubmittable is not camera-ready. That clause alone holds the criterion. Behind it, “excellent finishing polish” also wants the ninth pass's small defects closed: the clipped `fig:effects` axis label, the `fig:budget` and `fig:borrowuaf` caption overstatements, and the one derivable number still typed (the 15-repeat *p*-floor). §5.5 is conditional as of 22 August, the AI declaration no longer overstates the method, and the diagram labels are clean and gated. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
+| **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **A matched bare-metal campaign.** The far tail, the counters and the allocation profiles were all collected on bare metal on 26 Aug 2026 (§`sec:baremetal`), so the instrumentation gap is closed and the data half moved from 4 to 4.5, inside the half grade. Two things hold it. The confirmation run changed the shard count (8 against 7), the load grid (8 levels against 14) and the repeat count (15 against 20) alongside the host, so it corroborates the main sweep and cannot replace it. And it changed a **fifth** variable the thesis does not name: the toolchain, `g++ 13.3.0`/`rustc 1.98.0` against `g++ 15.1.1`/`rustc 1.97`. §`sec:baremetal` claims it "changes one thing that matters, the machine" and `tab:testbed`'s caption claims the host met the protocol column, which asks for the same toolchain, `isolcpus`, `nohz_full` and 20 repeats. Repeating it at the canonical configuration and toolchain is the remaining work. |
+| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.0** | **Claims about the evidence that the evidence does not support.** No measured value is wrong (verified 23 and 26 August twice, three passes running, including twenty bare-metal macros recomputed from the raw logs). What holds this at 4.0 is the class the ninth pass opened, and it grew from five sites to about fourteen at the eleventh. **Six statements say the study lacks an instrument it used**: §6.4.3 l. 2930, §7.2 l. 3704, §7.6 l. 4281 and `tab:threats`'s RQ3 control cell all deny the counters and profiles, and §5.5 l. 1597 plus §7.6 l. 4263 deny that p99.99 is reported. §6.4.3's is falsified 90 lines later in its own chapter. **Five summary sites still call the far tail unresolved**, including `tab:findings`'s RQ1 row. Three figures still misstate the result they illustrate (`fig:borrowuaf`'s "only under AddressSanitizer" against `taxonomy.csv`'s ASan *and* TSan, diagram 07's retracted FFI framing, diagram 11's inverted fan-out label) and `fig:effects` still ships with a clipped axis label. §6.3's generated-macro promise is now typed against five times, the newest being "an operation of about $74\,\mu$s" in §`sec:baremetal`. And that subsection has **no figure and no table** while answering the chapter's headline question. Do not reintroduce a measured number as prose, and do not restate the median result as a bare null: name the resolved difference and call the equivalence practical. |
+| **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **4.5** | **Dropped from 5 at the eleventh pass, on currency and not on insight.** The critical apparatus still reads at 5: hypotheses revisited one at a time, four-way validity analysis with a residual per row, substantive ethics, register held. What fails is that three statements in Chapter 7 deny instruments the study used (§7.2 l. 3704, §7.6 l. 4281, `tab:threats`'s RQ3-origin control cell reading “None available on this host”), and H1's revisit says the far tail “remains unresolved on this host” without recording that a second host resolved the clause H1 named. About an hour of editing restores 5. Maintain register: “cannot tell” ≠ “equivalent”. H1 is *ambiguous in framing*, not simply supported. |
+| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.0** | **Dropped from 4.5 at the eleventh pass, and not on the abstract.** Level 4 asks the whole text be consistent on the description of the research setup and the findings, and that now fails in a countable set of places created by the bare-metal integration: §5.5 says “Neither is reported in Chapter 6” of a chapter that reports p99.99, §6.3 promises the bare-metal run “replaces these numbers” where §`sec:baremetal` says confirmation and not replacement, §5.6 still promises a rerun “regenerates the artifacts verbatim” which that section falsifies, and `tab:testbed`'s caption claims the confirmation host met its protocol column. Separately and still open: **rewrite the abstract unaided**, then set `\abstractunaidedtrue`. Until then the build prints “Not submittable”, and a document that declares itself unsubmittable is not camera-ready. The abstract now carries **five** defects, the newest being that it still ends “The far tail below saturation cannot be settled on a virtualised host”. Behind all that, “excellent finishing polish” still wants the clipped `fig:effects` axis label, the `fig:borrowuaf` caption overstatement, and the 15-repeat *p*-floor still typed at l. 2638. `fig:budget`'s caption is fixed. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
 
-**Overall mean (unweighted): 4.67** — criterion 3 is held at 4.5 **deliberately** until bare-metal
-tail evidence exists, criterion 6 at 4.5 until the abstract is rewritten unaided, and criterion 4
-returned to 4.0 in the ninth pass of 23 August. That last movement is a disagreement with the
-remediation pass and is argued in `docs/ASSESSMENT.md`: no measured value is wrong any more, but
-figure-and-claim consistency fails in five places and two reproducibility claims are unenforced. A
-remediation edit the same day closed the three editable median-equivalence sites, and the grade was
-deliberately **not** lifted for it, since the abstract and both other findings remain.
+**Overall mean (unweighted): 4.50**, down from 4.67 at the eleventh pass of 26 August. Criteria 5
+and 6 both moved, both downward, and **both are disagreements with the tenth pass that are argued in
+`docs/ASSESSMENT.md`**. The reason is uncomfortable and worth stating plainly, because it is the
+single most useful fact in this section: **the bare-metal campaign removed the thesis's largest
+ceiling and cost it two criteria, because the rest of the document has not caught up.** Consistency
+between claim and evidence is scored in three criteria while the campaign lifts half of one, so a
+day of measurement that answers the study's biggest open question shows up as a net loss until the
+sync editing is done. Every defect behind the drop is an edit, so this is the cheapest 0.17 the
+record has ever shown. Criterion 3 is held at 4.5 **deliberately** until a canonical-configuration
+repeat exists, and criterion 4 has been at 4.0 since the ninth pass.
 Do not round the half-grades in prose without updating the reasoning in `docs/ASSESSMENT.md`. The
 class-file item is **done**: the document builds on the department's own `HYthesisML.cls`, and the
 reconstructed `UH_DS_MSc.cls` in the root is no longer loaded.
 
-**Two items are open, and neither of them is editing.** The abstract must be rewritten by the
-author unaided, because in this programme it is the maturity test and a model may not touch it.
-That rewrite is now overdue on substance and not only on style: the abstract still ends
-"The far tail below saturation cannot be settled on a virtualised host", which §`sec:baremetal`
-contradicts, and no model may fix it. A matched bare-metal repeat needs a rented machine.
-The eight figure-and-caption fixes behind criterion 4 are listed in the ninth pass's outstanding
-section.
+**Two items are not editing, and the third now is.** First, the abstract must be rewritten by the
+author unaided, because in this programme it is the maturity test and a model may not touch it. That
+rewrite is overdue on substance and not only on style: the abstract still ends "The far tail below
+saturation cannot be settled on a virtualised host", which §`sec:baremetal` contradicts, and it is
+the fifth defect in that paragraph. Second, a canonical-configuration bare-metal repeat needs a
+rented machine, about two hours and one euro. **Third and new: about three hours of sync editing,
+which is now the top priority in `docs/TODO.md` because it restores criterion 5 to 5 and criterion 6
+to 4.5 on its own.** The site list with line numbers is in the eleventh pass of
+`docs/ASSESSMENT.md`, findings 1 to 4. Two half-days of analysis on data already on disk sit behind
+it: the allocation profile in `bench/results-baremetal/alloc_profile-20260826-110718/`, which turns
+RQ3's "resolved, unexplained" into a mechanism and closes the one empty control cell in
+`tab:threats`, and the CPU result, which resolves at 16 of 16 points with one sign on bare metal
+where the guest reported it unresolved, and which no macro reads.
 
 The third item is **done as of 24 August 2026**: `figures/tab_taxonomy.tex` is now generated from
 `faults/results/taxonomy.csv` by `write_taxonomy_table()` in `bench/plot_figures.py`, so Table 7.6
@@ -522,6 +531,33 @@ Port supervisor feedback into `Thesis_v2.tex` and `Ha_Vien_Mastersthesis_2026.te
 edit pass so the two do not diverge.
 
 ---
+
+*The eleventh grading pass, 26 August 2026 evening, is the first on record to lower two areas at
+once, and the cause is worth carrying because it will recur. The bare-metal campaign closed the
+instrumentation ceiling that had held criterion 3's data half at 4 since the third pass: zero CPU
+steal over 60 sampling intervals, `perf` counters at the operation scope, pooled histograms giving
+360 000 to 5 761 198 operations per group, and a far tail that separates the two languages with Rust
+lower. Twenty of its macros were recomputed from the raw logs and every one matched, so that is
+three consecutive passes with no wrong measured value. **Then the pass found fourteen places still
+describing a study with less evidence than this one has.** Six deny an instrument that was used, and
+the worst of those is falsified ninety lines later in its own chapter (§6.4.3 says the gap is
+unexplained "for want of hardware counters" and §`sec:baremetal` reports the counters). Five summary
+sites still call the far tail unresolved, including `tab:findings`'s RQ1 row and the abstract. §6.3
+promises the bare-metal run "replaces these numbers" where §`sec:baremetal` says confirmation and
+not replacement, and §5.6's promise that a rerun "regenerates the artifacts verbatim" is now
+falsified by the thesis's own new section rather than merely unenforceable. Two further findings are
+not staleness but substance. The confirmation changed a **fifth** variable nobody named, the
+toolchain, so §`sec:baremetal`'s "changes one thing that matters, the machine" is false as written
+and `tab:testbed`'s caption promises a protocol the host missed on four rows. And the peak-RSS
+allocator effect fell from 32.9--34.4 MiB to 1.9--3.2 MiB with the allocator configuration matched,
+so the "order of magnitude" gap between the allocator and language effects did not survive the
+change of host, which three summary sites state without attaching a host. Criterion 5 went 5 to 4.5
+on the three Chapter 7 sites and H1's revisit, criterion 6 went 4.5 to 4.0 on the level-4
+consistency clause and not on the abstract. **The lesson for the next integration: sync the summary
+tables, the threats table, the hypothesis revisit and the statistical-treatment section in the same
+pass as the new results section, because those four are where a grader looks and they are the four
+that were missed.** See the eleventh pass in `docs/ASSESSMENT.md` for the site list with line
+numbers, and `docs/TODO.md` "Next up" item 4.*
 
 *Last updated: 26 August 2026. Four length passes on 24, 25 and 26 August took the declared figure
 from 105 to **99 pages** and removed no argument. The last three were scoped to §6.4 at the

@@ -109,8 +109,11 @@ repeat measurement, and the abstract.
 - [x] Obtain the `UH_DS_MSc.cls` class file (local reconstruction from UH_*_MSc family; see note)
 - [x] Create `bibliography.bib` with all cited references (97 active entries as of 17 Aug 2026,
       all cited, no orphans; one superseded entry is commented out)
-- [x] Verify `Ha_Vien_Mastersthesis_2026.tex` compiles to PDF end-to-end (161 pages as of 17 Aug 2026, all
-      refs/citations resolve; bibliography style is now `IEEEtran`, numbered in citation order)
+- [x] Verify `Ha_Vien_Mastersthesis_2026.tex` compiles to PDF end-to-end (103 declared pages plus 6
+      appendix, 117 physical, as of 26 Aug 2026; all refs/citations resolve; bibliography style is
+      now `IEEEtran`, numbered in citation order). Read the declared figure from
+      `build/Ha_Vien_Mastersthesis_2026.aux`, not from the PDF's physical total, which includes
+      front matter
 - [x] Initialize git repository; add `.gitignore` (build artifacts, LaTeX aux files)
 - [x] (Optional) Replace reconstructed `UH_DS_MSc.cls` with the official one from Overleaf/Moodle
 - [x] Confirm the cover-page programme label ("Master's Programme in Computer Science") is correct
@@ -484,44 +487,84 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       measurement host and what it cannot carry, the pre-committed statistical treatment, the
       latency decomposition, the overload divergence, and the contended-primitive mechanism test.
       `build_deck.py` also gates its own layout against the template's content band.
+- [ ] **Stale again as of 26 Aug 2026, and the gates did not catch it.** `build_deck.py` reads no
+      `Bm` macro and l. 1052 still reads "The far tail here needs bare metal, not more repeats",
+      which the thesis now contradicts. The deck rebuilt clean in the same `refresh_thesis.sh` run
+      that regenerated the bare-metal macros and reported both "Layout" and "Prose style" passing,
+      because those gates check placement and punctuation and not agreement with the source. Add
+      the far-tail slide, correct the RQ3 slide's mechanism now that the counters exist, and
+      consider whether the "what this host cannot carry" slide becomes a two-host slide.
 - [ ] Final PDF + submission (`Ha_Vien_Mastersthesis_2026.pdf`, written directly by `bench/refresh_thesis.sh`)
 
-### After the bare-metal campaign, re-check these
-The prose is generated from the data, so most of it updates itself. These are the claims that
-are currently shaped by the **15-repeat WSL2** dataset and should be reread once bare-metal
-numbers land:
-- §7.5.1 "the tail is not yet measurable" -- becomes a real finding or a bounded null result.
-  This is the only remaining blocker. Note §7.5.2 now shows the end-to-end number to be
-  0.04% operation and the rest handoff, so bare metal will sharpen the *tail* question without
-  making the end-to-end sweep any more informative about the language.
-- §7.5.4/§8.2 the peak-RSS language effect: 2.1-2.5 MiB, Holm p = 0.00061, same sign under
-  both allocators. Confirm it reproduces; it is now the campaign's one solid quantitative
-  result and the prose leans on it.
-- §7.5.4 the CPU non-result. Currently clears Holm under the system allocator (+27.4 pp) and
-  reverses under jemalloc, so it is reported as unresolved. On a quiet host it should either
-  resolve consistently or vanish; either outcome needs a sentence.
-- §7.5.2 the core-operation gap (Rust 10.0 ns vs C++ 19.0 ns, p = 0.00024). Re-run
-  `bench/latency_budget.sh` on the testbed. If the ratio holds, consider isolating the
-  attribution with cache-miss counters rather than leaving it as the most likely explanation.
-- Table 8.1 evidence-status column, and the RQ1/RQ3 "preliminary" labels throughout.
-- H1 in §8.3, currently recorded as supported end to end, untested in the tail, and ambiguous
-  in framing.
-- **p99.99 and jitter become reportable for the first time.** The instrumentation landed in
-  Aug 2026 but the campaign the thesis reports predates it, so §8.6 currently states plainly
-  that RQ1 is answered with p99/p99.9/max and that these two metrics are instrumented but not
-  yet reported. Once the new campaign lands:
-  - `tab:latency` gains a p99.99 column with **no thesis edit required** -- its column
-    specification and header are generated (`\LatencyCols`, `\LatencyHead`) precisely so the
-    preamble cannot fall out of step with the `\input` body. Check the table still fits the
-    text width at six columns.
-  - `figures/tab_jitter.tex` starts being written; it needs a float and a caption in §7.5,
-    plus prose using `\JitterRange`, `\JitterSpread`, `\JitterPNineNineRange`,
-    `\JitterVsMedian`, `\FarTailSpread`, `\FarTailRange`, `\IqrSpread`.
-  - Update the §8.6 paragraph that currently says these are not yet reported, and the
-    §5.5 note explaining why they stay descriptive rather than joining the tested family.
-  - Run `python3 bench/pool_hist.py <hist.jsonl> --verify <jsonl>` before relying on any of
-    it, and quote the **pooled** p99.99 for the far tail while keeping the per-repeat figures
-    for anything paired. `NTests` must still read 14.
+### After the bare-metal campaign: what each re-check returned (26 Aug 2026)
+
+Section numbers below use the full draft's current eight-chapter numbering, not the skeleton's.
+
+- [x] **The far tail (§6.4.1's "not measurable on this host") became a real finding.** Pooled
+      p99.99 separates the languages over 32 to 96 kops/s and does not below it, with Rust lower.
+      Reported in §`sec:baremetal`. **But five sites still say it is unresolved**, and one of them
+      is `tab:findings`'s RQ1 row, which is where an examiner reads the verdict. See "Next up"
+      item 4.
+- [x] **Peak RSS reproduces.** 16 of 16 points significant, same sign, language effect 0.7 to
+      1.8 MiB. The prose leaning on it is safe.
+- [ ] **NEW AND UNREPORTED: the peak-RSS *ratio* did not reproduce.** The allocator effect fell
+      from 32.9-34.4 MiB on the guest to **1.9-3.2 MiB** on bare metal, while the language effect
+      only halved. So the gap between the two effects went from about thirteenfold to about
+      twofold, with the allocator configuration matched at `thp:never,narenas:16` on both hosts.
+      §`sec:baremetal` says only that the allocator effect "remains the larger of the two", which
+      is true and incomplete. Three sites state the finding as a bare "order of magnitude" with no
+      host attached: §1.4, `tab:findings`'s RQ3 row, and the conclusion. **Attach a host to that
+      phrase.** The non-negotiable claim is untouched: both effects are real and the allocator's is
+      still larger. Note the confound worth naming while writing it: the C++ arm links the
+      distribution jemalloc, which is 5.2.x on Rocky and 5.3.x on Ubuntu, and the Rust arm builds
+      5.3.1 from source on both.
+- [ ] **NEW AND UNREPORTED: the CPU non-result resolves cleanly, and nothing quotes it.** On the
+      guest it cleared Holm under the system allocator and reversed under jemalloc, so §6.4.3
+      reports it unresolved. On bare metal it is significant at **16 of 16 points with one sign**:
+      Rust draws **less** CPU, by 0.3 to 7.6 percentage points, monotonically increasing with
+      offered load, under both allocators. `baremetal_facts.py` computes no CPU macro at all, so
+      this result exists only in the JSONL. **Add the macros and a sentence.** This is the cheapest
+      unreported result in the repository, and it is exactly the outcome this item predicted
+      ("on a quiet host it should either resolve consistently or vanish").
+- [ ] **The core-operation gap was NOT re-measured.** `bench/results-baremetal/latency_budget.json`
+      is byte-identical to `bench/results/latency_budget.json`, so it is a copied guest file and
+      `\BudgetCoreRatio` remains a guest number. Its presence in that directory is misleading and
+      it should either be re-measured or removed. What *did* land is better than the timing repeat
+      this item asked for: the op-scope counters give the attribution directly (11 % fewer
+      instructions, 15 % fewer cycles, 29 % more cache misses per thousand instructions), which is
+      what "consider isolating the attribution with cache-miss counters" meant.
+- [ ] **`tab:findings`'s evidence-status column.** RQ1 still reads "Far tail: unresolved on this
+      host" and RQ3 still reads "Memory: resolved, unexplained". Both are now behind the evidence.
+      RQ3's is closed properly by analysing the allocation profile rather than by rewording.
+- [ ] **H1 in §`sec:hypotheses`.** The revisit still says "The far tail below saturation, which is
+      what H1 actually named, remains unresolved on this host" and does not record that a second
+      host resolved that exact clause, in Rust's favour. This is the one place in the thesis where
+      an examiner checks whether the author followed their own evidence, so it matters more than
+      its length.
+- [x] **p99.99 is reportable and reported.** The pooled far tail is in §`sec:baremetal`, and
+      `pool_hist.py` wrote `campaign-20260826-102047.hist.pooled.csv`. `NTests` still reads 14 and
+      p99.99 stayed out of the Holm family, as §`sec:stats` committed.
+- [ ] **Two stale statements about p99.99 remain.** §`sec:stats` l. 1597 says "Neither is reported
+      in Chapter 6", and §`sec:threats` l. 4263 says both metrics "postdate the reported
+      campaign". The second is half true and needs splitting, since jitter genuinely is still
+      unreported.
+- [ ] **`tab:latency` has not gained its p99.99 column.** `\LatencyCols` and `\LatencyHead` are
+      generated precisely so this needs no preamble edit. The bare-metal campaign records the
+      column. Check the table still fits the text width at six columns.
+- [ ] **Jitter is measured and unreported.** All 32 pooled groups carry `jitter_p50_ns`,
+      `jitter_p99_ns`, `jitter_p999_ns` and `jitter_max_ns`. RQ1 does not name jitter, so nothing
+      is promised and this is an upgrade rather than a hole, but `tab_jitter.tex`'s machinery was
+      proven on 20 Aug and is idle. If it is adopted it needs a float and a caption, plus the
+      `\Jitter*` / `\FarTail*` / `\Iqr*` prose. Keep it descriptive and out of the tested family,
+      for the reason §`sec:stats` already gives.
+- [ ] **`pool_hist.py` is not in the refresh pipeline.** `far_tail_facts()` reads a pooled CSV that
+      `bench/refresh_thesis.sh` never produces, so the far-tail macros silently keep their last
+      values if that file goes missing. One line in the script closes it. Run
+      `python3 bench/pool_hist.py <hist.jsonl> --verify <jsonl>` when adding it.
+- [ ] **§`sec:repro` promises something the campaign disproved.** It says rerunning on a different
+      host "regenerates the artifacts verbatim". §`sec:baremetal` is a rerun on a different host
+      that deliberately produced different numbers. Drop "verbatim", and add
+      `bench/results-baremetal/` beside `bench/results/` in the list of logs.
 
 ---
 
@@ -661,9 +704,17 @@ Holm family, for the reason §5.5 already gives.
       persisted buckets on a shared lattice. `NTests` still read 14. So the §7.5 float, its
       caption and the prose can be written against the real macro names *before* the run,
       instead of discovering their shape afterwards.
-- [ ] **What is left is the KVM guest**, not the harness. Run the same campaign there and use it,
-      since the laptop run is not quotable. The container makes it one command with the same
-      toolchain as the reported numbers.
+- [x] **Overtaken by events, 26 Aug 2026.** The bare-metal campaign carries `--jitter` and
+      `--hist-out` and its pooled p99.99 is now reported in §`sec:baremetal`, which is what this
+      item existed to make possible. `NTests` still reads 14. Running the same campaign on the KVM
+      guest would now buy only a jitter comparison between two hosts, which no research question
+      asks for, so this is closed rather than done. What is still open is *reporting* the jitter
+      that was collected, which is tracked in the post-campaign re-check list above.
+- [ ] **One thing this item warned about now applies to the reported RSS numbers.** `--jitter` costs
+      about 264 KiB per producer of peak RSS. The bare-metal campaign ran with it and the guest
+      campaign did not, so the two hosts' **absolute** peak RSS figures are not comparable, only
+      their paired within-host differences are. §`sec:baremetal` compares differences and is
+      therefore safe as written, but say so if any absolute figure is ever quoted across the two.
 
 ### 3. Read jemalloc's own statistics instead of only `ru_maxrss`
 
@@ -706,10 +757,13 @@ zeros - the same convention `counters.sh` already uses.
       which sits inside the measured `\RssLangDiffLo`-`\RssLangDiffHi` MiB language
       effect. §7.5.4's "the split ... is not resolved here" is resolvable without the
       testbed.
-- [ ] **Re-measure on the KVM host across the campaign**, since the above is one run per
-      arm on the laptop. Then check the 30 MiB bimodality against `stats.metadata`: if
-      the low-RSS runs are runs where fewer arenas were touched, the measurement defect
-      behind peak RSS failing Holm under jemalloc has a named cause.
+- [~] **The bare-metal campaign records the `je` object in every run**, so the data for this now
+      exists at campaign scale rather than one run per arm: `je` is a top-level field in all 960
+      bare-metal records. **Nothing reads it yet.** Two questions it can now answer. Check the
+      30 MiB bimodality against `stats.metadata`: if the low-RSS runs are runs where fewer arenas
+      were touched, the measurement defect behind peak RSS failing Holm under jemalloc has a named
+      cause. And check whether `stats.metadata` explains why the allocator effect fell from ~33 MiB
+      on the guest to ~2.5 MiB on bare metal, which is the new unreported finding above.
 - [ ] **Name the confound when writing it up.** The C++ arm links the distribution's
       jemalloc while the Rust arm builds 5.3.1 from source, so part of a metadata
       difference is two builds of the allocator, not two programs. Pinning `narenas`
@@ -911,11 +965,21 @@ were borrow-checker diagnostics while the prose claimed two mechanisms.
 ### 6. One robustness arm against the compiler, not just the language
 
 `tab:threats` has no row separating the language from its toolchain. Every performance number is
-g++ 13.3 / libstdc++ against rustc 1.97, so "C++ is slower on the core operation" is, strictly, a
+g++ / libstdc++ against rustc, so "C++ is slower on the core operation" is, strictly, a
 statement about one implementation of each. A single clang++ / libc++ arm at the representative
 load and the overload point would bound that confound. Same for `-O3` / `opt-level = 3` and LTO,
 which test whether the matched `-O2` choice is load-bearing. Cheap, and it either adds a
 robustness sentence or finds something.
+
+> **Status, 26 Aug 2026: a partial answer arrived by accident and has to be reported either way.**
+> The bare-metal campaign ran `g++ 13.3.0` and `rustc 1.98.0` where the guest campaign ran
+> `g++ 15.1.1` and `rustc 1.97`. Every finding survived, across two major versions of the C++
+> compiler and a minor version of rustc. That is a free robustness result and it argues *for* the
+> thesis. It is also a fifth difference between the two campaigns that §`sec:baremetal` does not
+> name while claiming the campaign "changes one thing that matters, the machine", and
+> `tab:testbed`'s caption says the confirmation host met a protocol column that asks for the same
+> toolchain. **Either name it as a robustness arm or stop claiming one variable moved.** The clang
+> arm would still be worth having, and it is now less urgent.
 
 ### 7. The RQ4 cost axes that were never measured — DONE (21 Aug 2026)
 
@@ -1031,12 +1095,14 @@ given size, so the September repeat count is currently guesswork.
       against a median of roughly 43 µs. So "cannot tell" now has a number on it: the
       difference could be thirty times the median. That is a far stronger argument for
       the bare-metal campaign than "the intervals overlap".
-- [ ] **Adopt it in the document, or stop generating it.** `tab_equivalence.tex` is
-      written but nothing `\input`s it — exactly the trap flagged in item 12 below. It
-      needs a float and a caption in §7.5 and a sentence in §5.5 explaining why an
-      equivalence bound is not the over-claim the register forbids, or it should be
-      dropped. This is a claim-level change, so it is the author's call, not the script's.
-- [ ] **Still open: the power calculation** for choosing the September repeat count.
+- [x] **Adopted, 22 Aug 2026.** `tab:equivalence` is placed in the equivalence subsection as the
+      fourth of five readings of the test family, with a paragraph separating tight bounds from
+      wide ones.
+- [ ] **Still open, and now cheap: the power calculation.** It was for choosing the September
+      repeat count and the campaign already ran at 15. Its remaining use is the canonical repeat:
+      the bare-metal far tail separated at 15 repeats where the guest could not separate at 20, so
+      the binding constraint was never the repeat count, and a power calculation on the bare-metal
+      dispersion would say what n the canonical repeat actually needs.
 
 ### 9. Sensitivity of the ordering to the configuration
 
@@ -1087,17 +1153,23 @@ by "the artefacts" once the repository keeps moving after submission.
 ---
 
 ### Notes / open questions
-- Timeline: writing and implementation complete; remaining work is spec freeze, bare-metal
-  campaign, supervisor review, and submission. `Thesis_Plan_v2.pdf` schedules these as
-  September (measure), October (resolve RQ1/RQ3), November (colloquium + submit).
-- Current artefact status (verified Aug 2026): spec + C++/Rust implementations + conformance
-  suite + bench/fault/ffi harnesses + generated figures/tables + 143-page thesis PDF. All green
-  on `spec/conformance/run.sh`, `ctest`, `cargo test`, `faults/run_faults.sh`, `ffi/build.sh`.
-- **Remaining critical path:** (1) supervisor review → spec v1.0 freeze, (2) bare-metal campaign
-  including counters + allocation profile, (3) `bench/refresh_thesis.sh` with definitive data,
-  (4) final proofread + submission.
-- Three overfull boxes remain in `thesis.log`; all three are the known abstract-page overflow,
-  and they are present in pre-refinement builds too. Nothing else in the build is dirty.
+- Timeline: writing and implementation complete, and the bare-metal campaign ran on 26 August,
+  ahead of the plan's September slot. Remaining work is spec freeze, the sync editing the campaign
+  created, supervisor review, and submission. `Thesis_Plan_v2.pdf` still schedules measurement for
+  September in its timeline table while its status paragraph records the campaign as run; those two
+  have to move together before the plan goes out again.
+- Current artefact status (verified 26 Aug 2026): spec + C++/Rust implementations + conformance
+  suite + bench/fault/ffi harnesses + generated figures/tables + a **103-page** thesis PDF (117
+  physical). All green on `spec/conformance/run.sh`, `ctest`, `cargo test`,
+  `faults/run_faults.sh`, `ffi/build.sh`.
+- **Remaining critical path:** (1) supervisor review → spec v1.0 freeze, (2) the fourteen sync
+  edits the campaign created, about three hours, (3) analyse the allocation profile and add the CPU
+  macros, about a day, (4) repeat the bare-metal campaign at the canonical configuration and
+  toolchain, about two hours, (5) rewrite the abstract unaided, (6) final proofread + submission.
+  Only (4) needs anything the author does not already have.
+- Overfull boxes are **zero** as of 26 Aug 2026, so the abstract-page overflow this note used to
+  record is fixed. The abstract box is still full to the line, so check page 3 visually after
+  editing it.
 - Two load-bearing citations are still arXiv preprints rather than peer-reviewed work (Bugden and
   Alahmar for "Rust matches C/C++ on performance", Zhang et al. for deadlock detection). Optional,
   but replacing either removes the last soft spot in the bibliography. See `ASSESSMENT.md`

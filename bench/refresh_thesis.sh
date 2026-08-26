@@ -25,6 +25,20 @@ python3 "$here/plot_figures.py" "$@"
 # so it has its own generator rather than a flag on the one above. It describes a
 # host that no longer exists, which is the strongest possible reason for its
 # numbers to be derived rather than typed.
+#
+# Pooling comes first, because the far-tail macros read the pooled CSV and not
+# the campaign JSONL. A single run's p99.99 rests on about seventeen operations,
+# so the percentile is only a measurement once the repeats are pooled. Without
+# this step baremetal_facts.py silently skips the far tail and leaves whatever
+# gen_baremetal.tex last held, which is the quiet-staleness failure mode rather
+# than a loud one.
+echo "== pooling bare-metal histogram sidecars =="
+for hist in "$root"/bench/results-baremetal/campaign-*.hist.jsonl; do
+  [ -e "$hist" ] || continue
+  python3 "$here/pool_hist.py" "$hist" >/dev/null \
+    || echo "  WARN: pooling failed for $(basename "$hist")"
+done
+
 echo "== regenerating bare-metal confirmation macros =="
 python3 "$here/baremetal_facts.py" >/dev/null || echo "  WARN: bare-metal macros not regenerated"
 
