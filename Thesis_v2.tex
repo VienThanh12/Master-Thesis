@@ -366,7 +366,8 @@
         $95\%$ confidence interval~\cite{georges2007rigorous,efron1993bootstrap}. The
         representative operating point is not chosen by eye. It is the busiest swept load at
         which all four variants still hold p99 below $5$~ms, $\ReprLoad$~kops/s against a
-        measured saturation knee of $\SatKnee$~kops/s. All of it runs on a dedicated dual-socket
+        measured throughput plateau of $\SatKnee$~kops/s reached at an offered
+        $\TrackingLoad$~kops/s. All of it runs on a dedicated dual-socket
         Xeon pinned to cores $2$--$15$. That host bounds what the campaign may claim, because it
         is a KVM guest. The frequency governor and the turbo state are unobservable from inside
         it, so frequency stability is assumed instead of enforced. CPU steal is non-zero at
@@ -392,8 +393,8 @@
         an ordering can be read. Pooled over \BmRepeats{} repeats, p99.99 runs
         $\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s for the C++ variants and
         $\BmFarTailRustLo$--$\BmFarTailRustHi\,\mu$s for the Rust ones, without overlap. That
-        campaign uses \BmShards{} shards and \BmRepeats{} repeats, so it corroborates this one
-        and does not replace it.
+        campaign uses \BmShards{} shards and \BmRepeats{} repeats and a different toolchain, so it
+        corroborates this one and does not replace it.
   \item Past saturation the languages are not equivalent. The margin is not marginal. At
         $\OverloadLoad$~kops/s offered, \OverloadSustainedFaster{} sustains
         $\OverloadThrCpp$~kops/s where \OverloadSustainedSlower{} sustains
