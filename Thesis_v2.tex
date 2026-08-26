@@ -428,7 +428,9 @@
         unequal size. The Rust build costs $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak
         resident set than the C++ build under either allocator. Linking \texttt{jemalloc} at all
         costs $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB in either language. Both are real. The
-        allocator's effect is an order of magnitude the larger. The language difference is a
+        allocator's effect is an order of magnitude the larger here, and only about twice the
+        larger on the bare-metal host, where both effects shrink and the allocator's shrinks by far
+        the more. The ordering travels and the ratio does not. The language difference is a
         fixed cost, not a per-context one. Counters from the bare-metal host supply the
         explanation the guest could not: at the operation scope the Rust build retires
         $\BmInstrDelta\%$ \BmInstrDeltaDir{} instructions and misses cache $\BmMissDelta\%$
@@ -502,8 +504,11 @@
         the edit-compile loop for changes that stay inside a translation unit.
   \item The three hypotheses were committed before any measurement. Stating their disposition is
         what separates a test from a description. H1 is supported below saturation and refuted
-        above it. It is not in the direction its wording anticipated. The difference appeared in
-        overload, not in the far tail H1 actually named. It was also not well posed.
+        above it. It is not in the direction its wording anticipated. The largest difference
+        appeared in overload, which H1 did not consider. The far tail H1 did name is half right:
+        this host cannot resolve it at all, and the quiet one puts a difference there in Rust's
+        favour, so H1 was right about where to look and wrong that it was the only place. It was
+        also not well posed.
         ``Performance-equivalent'' reads as one quantity and names at least three. H2 holds
         without exception for the seven injected classes of its kind. It fails in the looser
         reading its wording invites. It is accepted for memory safety and data-race freedom,
@@ -560,8 +565,8 @@
         \OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$ the
         throughput of \OverloadSustainedSlower{} while drawing $\OverloadCpuPerOpRatio\times$
         the CPU per completed operation. On memory the Rust build carries a few MiB more fixed
-        footprint under both allocators. That is an order of magnitude less than the allocator
-        choice costs.
+        footprint under both allocators. That is less than the allocator choice costs on either
+        host measured, by an order of magnitude on one and a factor of about two on the other.
   \item What follows is a narrow claim, narrower than this thesis expected to make. An unmodified
         Rust core can be driven from C++ across a thin seam. The cost on a real operation is
         bounded at $\FfiOpBoundPct\%$. All \texttt{unsafe} is confined to the seam. The core is
@@ -574,9 +579,9 @@
         parity-tested pair of implementations, a measurement framework that reaches past the
         saturation knee, and a defect catalogue that maps where the guarantee stops.
   \item Future work answers the limitations one at a time. The immediate priority is to repeat
-        the bare-metal campaign at the main sweep's own shard count, load grid and repeat count.
-        The confirmation run changed three things besides the host, which is why it corroborates
-        the findings and does not carry them. Beyond it, replaying
+        the bare-metal campaign at the main sweep's own shard count, load grid, repeat count and
+        toolchain. The confirmation run changed four things besides the host, which is why it
+        corroborates the findings and does not carry them. Beyond it, replaying
         anonymised production traces would validate the operation mix. A subsystem with
         genuinely shared mutable state would exercise the two languages differently than a
         shared-nothing design does. Evaluating Rust async runtimes against the thread-per-shard
