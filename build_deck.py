@@ -1308,10 +1308,11 @@ add_data_table(
     s,
     [
         ("Hypothesis", "Statement, and what the evidence did to it", "Verdict"),
-        ("H1", "Equivalent below saturation with any difference in the far tail. The first half holds. "
-               "The second is refuted, because the difference is in overload, not the tail. \u201cPerformance-"
-               "equivalent\u201d also names three quantities that answer differently.",
-         "Split, and too loosely worded"),
+        ("H1", "Equivalent below saturation, with any difference confined to the far tail. The first half "
+               "holds. The second is half right: a quiet machine does find a far-tail difference, in Rust's "
+               "favour, while the largest difference in the study sits in overload, which H1 never considered. "
+               "\u201cPerformance-equivalent\u201d also names three quantities that answer differently.",
+         "Half right, and too loosely worded"),
         ("H2", "Safe Rust prevents the classes C++ leaves to best-effort detection. Exact for the "
                f"{len(IN_GUARANTEE)} injected classes. The boundary classes are concurrency defects it does not prevent.",
          "Supported precisely, refuted loosely"),
@@ -1322,9 +1323,9 @@ add_data_table(
     top=Cm(3.6),
     col_widths_cm=[3.0, 13.8, 6.2],
     aligns=[PP_ALIGN.CENTER, PP_ALIGN.LEFT, PP_ALIGN.LEFT],
-    row_height_cm=2.65,
+    row_height_cm=2.85,
     header_height_cm=0.8,
-    body_size=12,
+    body_size=11.5,
     cell_fill=lambda r, c, v: (LIGHTGREEN if v == "Supported" else LIGHTAMBER) if c == 2 else None,
 )
 
