@@ -57,14 +57,22 @@
        stroke-width 2.4 and reaches back to x=677; the label is centred clear of it. -->
   <text x="646" y="190" text-anchor="middle" font-size="11" fill="#33475b">safe call</text>
 
-  <!-- cost comparison -->
+  <!-- Cost comparison. This band used to set the empty crossing against a full
+       operation round-trip, which bounds the crossing and not the seam: the two
+       are different experiments and the thesis disowns that framing in its RQ4
+       discussion. What it shows now is the direct A/B the harness actually runs,
+       the same signaling operation called natively and through the seam. The two
+       bars are meant to look almost identical, because no seam cost is resolved
+       at all and the bound comes from the paired interval and not from the gap. -->
   <rect x="36" y="404" width="886" height="80" rx="10" fill="#fbfcfd" stroke="#d7dde3"/>
-  <text x="54" y="423" font-size="13" font-weight="700" fill="#12233a">Per-call cost: the crossing is negligible next to the operation it invokes</text>
-  <!-- The right-hand label runs to x=860, so the bar row sits below the band
-       headline rather than beside it, where the two texts shared a line. -->
-  <text x="470" y="445" font-size="12" fill="#1c4e86">signaling op round-trip: <tspan font-weight="700">12.7 &#181;s</tspan>  (&#8776; 4 orders of magnitude larger)</text>
-  <!-- tiny bar -->
-  <rect x="54" y="453" width="6" height="20" fill="#d35400"/>
-  <text x="70" y="468" font-size="12" fill="#a04000">FFI crossing (do-nothing extern "C"): <tspan font-weight="700">2.54 ns</tspan></text>
-  <rect x="470" y="453" width="360" height="20" fill="#2f6db3"/>
+  <text x="54" y="422" font-size="13" font-weight="700" fill="#12233a">Per-operation cost: no seam tax is resolved, and any tax is bounded at +10.9% of one operation</text>
+  <!-- Bars scaled so 12.7 us spans 340 px, both starting at the same x so the
+       comparison is the length difference and nothing else. -->
+  <text x="286" y="442" text-anchor="end" font-size="11" fill="#33475b">same op, native caller</text>
+  <rect x="296" y="432" width="329" height="13" fill="#2f6db3"/>
+  <text x="635" y="442" font-size="11" fill="#1c4e86"><tspan font-weight="700">12.3 &#181;s</tspan></text>
+  <text x="286" y="461" text-anchor="end" font-size="11" fill="#33475b">same op through the seam</text>
+  <rect x="296" y="451" width="340" height="13" fill="#7fa8d4"/>
+  <text x="646" y="461" font-size="11" fill="#1c4e86"><tspan font-weight="700">12.7 &#181;s</tspan></text>
+  <text x="54" y="478" font-size="10.5" fill="#5b6770">Paired over 15 interleaved repeats: +192 ns, 95% interval &#8722;954 to +1341 ns, p = 0.24. The empty crossing costs 2.54 ns, which bounds the crossing and not the operation.</text>
 </svg>
