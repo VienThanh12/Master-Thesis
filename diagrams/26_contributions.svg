@@ -5,11 +5,11 @@
   <text x="440.0" y="54" font-size="12.5" fill="#5b6b7b" text-anchor="middle">The evidence divides by what is being measured before it divides by resource</text>
   <rect x="15" y="76" width="278" height="218" rx="10" fill="#f4fbf6" stroke="#2e8b57" stroke-width="1.8"/>
   <text x="30" y="101.325" font-size="11.5" fill="#1f6b41" font-weight="700">Safety: a difference in kind</text>
-  <text x="30" y="122.325" font-size="10.5" fill="#5b6b7b">Safe Rust rejects all five injected</text>
+  <text x="30" y="122.325" font-size="10.5" fill="#5b6b7b">Safe Rust rejects all 7 injected</text>
   <text x="30" y="136.325" font-size="10.5" fill="#5b6b7b">memory-safety and data-race classes at</text>
-  <text x="30" y="150.325" font-size="10.5" fill="#5b6b7b">compile time. The two boundary classes</text>
-  <text x="30" y="164.325" font-size="10.5" fill="#5b6b7b">(a lock-order deadlock and a lost</text>
-  <text x="30" y="178.325" font-size="10.5" fill="#5b6b7b">update) compile and misbehave</text>
+  <text x="30" y="150.325" font-size="10.5" fill="#5b6b7b">compile time. The 7 boundary</text>
+  <text x="30" y="164.325" font-size="10.5" fill="#5b6b7b">classes, from a deadlock to a forgotten</text>
+  <text x="30" y="178.325" font-size="10.5" fill="#5b6b7b">lock guard, compile and misbehave</text>
   <text x="30" y="192.325" font-size="10.5" fill="#5b6b7b">exactly as they do in C++.</text>
   <text x="30" y="206.325" font-size="10.5" fill="#5b6b7b"></text>
   <text x="30" y="220.325" font-size="10.5" fill="#5b6b7b">Rust eliminates data races, not race</text>
@@ -31,8 +31,8 @@
   <text x="602" y="122.325" font-size="10.5" fill="#5b6b7b">End to end, an operation is 0.250% the</text>
   <text x="602" y="136.325" font-size="10.5" fill="#5b6b7b">work the language performs and the rest</text>
   <text x="602" y="150.325" font-size="10.5" fill="#5b6b7b">a cross-thread handoff. The two are</text>
-  <text x="602" y="164.325" font-size="10.5" fill="#5b6b7b">equivalent at the median and</text>
-  <text x="602" y="178.325" font-size="10.5" fill="#5b6b7b">unresolvable at the tail.</text>
+  <text x="602" y="164.325" font-size="10.5" fill="#5b6b7b">equivalent at the median, and on a</text>
+  <text x="602" y="178.325" font-size="10.5" fill="#5b6b7b">quiet host Rust's far tail sits lower.</text>
   <text x="602" y="192.325" font-size="10.5" fill="#5b6b7b"></text>
   <text x="602" y="206.325" font-size="10.5" fill="#5b6b7b">Measured on the operation alone they</text>
   <text x="602" y="220.325" font-size="10.5" fill="#5b6b7b">are not equivalent: Rust is faster by</text>
@@ -50,18 +50,18 @@
   <text x="662.5999999999999" y="360.78" font-size="10.5" fill="#33475b" text-anchor="middle">A catalogue of what the guarantee misses</text>
   <rect x="15" y="396" width="850" height="78" rx="9" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.7"/>
   <text x="31" y="418" font-size="12.5" fill="#1c4e86" font-weight="700">Where it goes next</text>
-  <text x="206" y="418" font-size="10.5" fill="#33475b">the bare-metal campaign first. What bare metal now buys is the tail and the overload cliff, not the repeat count.</text>
+  <text x="206" y="418" font-size="10.5" fill="#33475b">a canonical-configuration repeat. Bare metal already bought the far tail, the counters and the allocator's accounting.</text>
   <rect x="31" y="434" width="122.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
   <text x="92.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Production traces</text>
   <rect x="162.0" y="434" width="128.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
   <text x="226.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Further subsystems</text>
-  <rect x="299.0" y="434" width="122.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
-  <text x="360.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Hardware counters</text>
-  <rect x="430.0" y="434" width="140.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
-  <text x="500.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Extend the catalogue</text>
-  <rect x="579.0" y="434" width="104.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
-  <text x="631.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Async runtimes</text>
-  <rect x="692.0" y="434" width="122.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
-  <text x="753.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Isolate the heaps</text>
+  <rect x="299.0" y="434" width="146.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="372.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Call-site attribution</text>
+  <rect x="454.0" y="434" width="140.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="524.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Extend the catalogue</text>
+  <rect x="603.0" y="434" width="104.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="655.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Async runtimes</text>
+  <rect x="716.0" y="434" width="122.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="777.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Isolate the heaps</text>
   <text x="440.0" y="502" font-size="11.5" fill="#8794a3" text-anchor="middle">For stateful, concurrent, partitionable control-plane services of this kind, the choice between modern C++ and Rust is not a performance decision.</text>
 </svg>

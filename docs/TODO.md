@@ -122,10 +122,12 @@ repeat measurement, and the abstract.
    `tab_jitter.tex` machinery has been proven since 20 Aug. Also consider giving §`sec:baremetal` a
    figure: it answers the chapter's headline question in prose alone, and its central result is two
    non-overlapping ranges across seven load levels.
-9. **Rebuild the slide deck against the bare-metal results** (Phase 10). `build_deck.py` holds no
-   `Bm` macro and l. 1052 still reads "The far tail here needs bare metal, not more repeats". The
-   deck passes both its gates while contradicting the thesis, which is the quiet failure mode: the
-   gates check layout and punctuation, not agreement with the source.
+9. **DONE 26 Aug 2026, evening: the slide deck is resynced** (Phase 10). It reads
+   `gen_baremetal.tex` and `tab_resident.tex`, carries a far-tail slide and a resident-set slide,
+   names both hosts, and no longer contradicts the thesis at the five sites that did. Details in
+   the Phase 10 entry. The quiet failure mode it demonstrates is worth keeping in mind: both gates
+   passed on every stale build, because they check layout and punctuation and not agreement with
+   the source.
 10. **Decide what the companion documents are for, and fix the broken one** (Phase 9b).
    `thesis-vi.pdf` currently renders 113 citations as `[?]` and predates the 15-repeat campaign.
 11. **Then:** the proofread round. The two title-page items are not on this path and are not yours
@@ -463,8 +465,8 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       decomposition, and the corrected RQ3 reading. Moved to `archive/` on 18 Aug 2026, where it
       reads as a superseded variant rather than unfinished work. Reviving it means porting the
       generated macros across, not just running bibtex.
-- [ ] `Thesis_v2.tex` - 35-page bullet digest of all nine chapters, useful for a supervisor
-      read-through. Chapters 6 to 9 were filled on 20 Aug 2026 at the author's request, five
+- [ ] `Thesis_v2.tex` - 35-page bullet digest of all eight chapters, useful for a supervisor
+      read-through. The last four were filled on 20 Aug 2026 at the author's request, five
       bullets each, and the results bullets read `figures/gen_macros.tex` and its two companions
       instead of holding their own copies of the numbers, so the file has to be rebuilt after
       `bench/refresh_thesis.sh`. Its abstract is still the template placeholder, "Abstract to be
@@ -519,13 +521,21 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       measurement host and what it cannot carry, the pre-committed statistical treatment, the
       latency decomposition, the overload divergence, and the contended-primitive mechanism test.
       `build_deck.py` also gates its own layout against the template's content band.
-- [ ] **Stale again as of 26 Aug 2026, and the gates did not catch it.** `build_deck.py` reads no
-      `Bm` macro and l. 1052 still reads "The far tail here needs bare metal, not more repeats",
-      which the thesis now contradicts. The deck rebuilt clean in the same `refresh_thesis.sh` run
-      that regenerated the bare-metal macros and reported both "Layout" and "Prose style" passing,
-      because those gates check placement and punctuation and not agreement with the source. Add
-      the far-tail slide, correct the RQ3 slide's mechanism now that the counters exist, and
-      consider whether the "what this host cannot carry" slide becomes a two-host slide.
+- [x] **Resynced against the bare-metal campaign, 26 Aug 2026 evening. 30 slides to 32.**
+      `build_deck.py` now reads `figures/gen_baremetal.tex` and `figures/tab_resident.tex` beside
+      the files it already read, so every `Bm` value on a slide is generated. Two slides are new
+      and both sit after the resource slide, where the thesis puts the confirmation: the far tail,
+      as the guest's p99 interval against bare metal's and the two pooled p99.99 ranges, and the
+      resident set decomposed from `jemalloc`'s own accounting. The host slide is now two columns,
+      guest against confirmation, and says which host settles what. Four slides that contradicted
+      the thesis are corrected: the RQ1 note that called for bare metal, the RQ3 note that denied
+      the counters, the summary table's "far tail unresolved" and "resolved, unexplained", and H1's
+      verdict. `diagrams/26_contributions` was the worst of them and is deck-only, so it went
+      unnoticed: it still said five injected classes and two boundary ones, and called the tail
+      unresolvable. It now reads its counts from `gen_artefacts.tex`. **The lesson is the one the
+      last entry predicted:** both gates passed on every stale build, because they check placement
+      and punctuation and not agreement with the source. Nothing in the repository compares deck
+      prose against the thesis, and a claim only becomes gated when it is spelled as a macro.
 - [ ] Final PDF + submission (`Ha_Vien_Mastersthesis_2026.pdf`, written directly by `bench/refresh_thesis.sh`)
 
 ### After the bare-metal campaign: what each re-check returned (26 Aug 2026)

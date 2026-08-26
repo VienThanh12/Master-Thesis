@@ -1156,11 +1156,12 @@ add_notes(s, [
      f"under both allocators (interval [{M('RssLangCILo')}, {M('RssLangCIHi')}] MiB), a "
      "language effect that replicates."),
     (f"+{M('RssAllocDiffLo')}\u2013{M('RssAllocDiffHi')} MiB for jemalloc",
-     f"in either language on this host, an order of magnitude more. On bare metal it is "
+     f"in either language here, an order of magnitude more. On bare metal, "
      f"{M('BmRssAllocLo')}\u2013{M('BmRssAllocHi')} against {M('BmRssLangLo')}\u2013"
      f"{M('BmRssLangHi')} MiB."),
-    ("Ordering travels, ratio does not",
-     "Which is why the next two slides read the footprint on a host that can decompose it."),
+    ("The ordering travels",
+     "The ratio does not, so the next two slides read the footprint on a host that can "
+     "decompose it."),
 ], top=Cm(10.55), height=Cm(2.4))
 
 # =====================================================================
@@ -1176,7 +1177,7 @@ _, tbl_bottom = add_data_table(
     s,
     [
         ("Below saturation", "Virtualised guest", "Bare metal"),
-        ("Widest 95% interval on one variant's own p99",
+        ("Widest 95% interval on one variant's p99",
          f"{M('PNineNineMaxCI')} \u00b5s", f"{M('BmPNineNineMaxCI')} \u00b5s"),
         ("Range across the four variants' p99",
          f"{M('PNineNineRange')} \u00b5s", f"{M('BmPNineNineRange')} \u00b5s"),
@@ -1217,11 +1218,12 @@ s = headline(1, "Where the extra resident set actually sits",
 _, tbl_bottom = add_data_table(
     s,
     [("Component of the footprint, median MiB", "C++", "Rust", "Difference")] + RESIDENT,
-    top=Cm(3.5),
+    top=Cm(3.4),
     col_widths_cm=[10.6, 3.9, 3.9, 4.6],
     aligns=[PP_ALIGN.LEFT, PP_ALIGN.CENTER, PP_ALIGN.CENTER, PP_ALIGN.CENTER],
     row_height_cm=0.8,
     header_height_cm=0.75,
+    body_size=12,
 )
 add_notes(s, [
     ("Fixed arena bookkeeping",
@@ -1234,7 +1236,7 @@ add_notes(s, [
      f"Outside jemalloc's mappings the gap is {M('BmJeOutsideDelta')} MiB: the runtime a Rust "
      "process carries before it allocates."),
 ], top=tbl_bottom + Cm(0.35), height=Cm(2.5))
-add_caption(s, Cm(12.15), size=10.5, text=
+add_caption(s, Cm(11.95), size=10, text=
             "Peak RSS is a getrusage maximum against sampled jemalloc figures, so the derived row is an "
             "upper bound and the column does not sum exactly.")
 
@@ -1290,8 +1292,8 @@ add_data_table(
                 f"{len(BOUNDARY)} boundary classes compile in both languages", "Final"),
         ("RQ3", f"{M('RssLangDiffLo')}\u2013{M('RssLangDiffHi')} MiB more peak RSS in Rust under both allocators, "
                 f"an order of magnitude less than the allocator's own "
-                f"{M('RssAllocDiffLo')}\u2013{M('RssAllocDiffHi')} MiB on this host and about half of it on bare "
-                f"metal, where the allocator's own accounting locates it outside the allocator",
+                f"{M('RssAllocDiffLo')}\u2013{M('RssAllocDiffHi')} MiB here and about half of it on bare metal, "
+                f"where it sits outside the allocator",
          "Resolved, and located outside the allocator"),
         ("RQ4", f"Thin, unsafe-isolated seam. No cost detected and any tax bounded at "
                 f"{M('FfiOpBoundPct')}% of an operation", "Final"),

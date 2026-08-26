@@ -44,7 +44,7 @@ The PDFs in this repository do not share a status and are not interchangeable.
 | Document | Status | Role |
 | -------- | ------ | ---- |
 | `Thesis_Plan_v2.pdf` | Reviewed, supervisor-facing | Approved plan: gap, RQs, methodology, timeline, contributions |
-| `Thesis_v2.pdf` | Reviewed, supervisor-facing | Chapter skeleton, one bullet per argument move, five bullets a chapter. All nine chapters populated since 20 August 2026, and the results bullets quote the generated macros rather than carrying their own numbers |
+| `Thesis_v2.pdf` | Reviewed, supervisor-facing | Chapter skeleton, one bullet per argument move, five bullets a chapter and seven in the introduction. All eight chapters populated, matching the full draft's chapter list since 26 August 2026, and the results bullets quote the generated macros rather than carrying their own numbers |
 | `Ha_Vien_Mastersthesis_2026.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, full argument, and everything in it still needs review. The name is the UH submission format (`Lastname_Firstname_Mastersthesis_Year`, ASCII) and says nothing about review status. It was `Thesis_POC` until 19 August 2026 |
 | `ai_statement.tex` | Declaration in the author's name | Statement on generative-AI use, shared by both thesis documents |
 | [`archive/`](archive/) | Superseded, not maintained | Earlier variants kept for reference only: `plain_thesis.tex`, `thesis-vi.tex` (renders its citations as `[?]`), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, and the v1 plan PDF. They read relative paths from the repository root, so they no longer build where they sit |
@@ -282,8 +282,8 @@ from `diagrams/png/`, which `diagrams/render.py` writes.
 | Specification + parity | Both languages pass and agree byte-for-byte on the shared conformance suite: hand-written vectors plus a generated campaign whose expectations come from an independent Python model, with mirrored per-language invariant and concurrency suites. Spec is v0.1 draft, pending supervisor freeze |
 | RQ2 (safety) | Final. Fault-injection taxonomy complete across ten defect classes, five inside the guarantee and five outside it, plus Loom and Shuttle results for the two concurrency classes on the boundary |
 | RQ4 (migration) | Final. FFI prototype, interleaved native-vs-seam measurement of one real operation, and seam size complete |
-| RQ1/RQ3 (performance) | Campaign complete on the virtualised host, so the saturation knee, the overload divergence, and the resource comparisons are resolved. The far tail below saturation is not, and needs the bare-metal campaign. The p99.99 and jitter instrumentation exists but no reported campaign carries the sidecars yet |
-| Writing | `Ha_Vien_Mastersthesis_2026.pdf` builds clean with zero LaTeX errors and no undefined references, as a full draft awaiting review. `Thesis_v2.pdf` covers all nine chapters in bullets, 35 pages, and its abstract is still the template placeholder |
+| RQ1/RQ3 (performance) | Campaign complete on the virtualised host, so the saturation knee, the overload divergence, and the resource comparisons are resolved there. That host cannot resolve the far tail below saturation, and a bare-metal confirmation campaign does, with Rust's pooled p99.99 below C++'s at every load the two separate. What remains is a matched repeat at the main sweep's own shard count, load grid, repeat count and toolchain. The collected jitter and the p99.99 column of the latency table are still unreported |
+| Writing | `Ha_Vien_Mastersthesis_2026.pdf` builds clean with zero LaTeX errors and no undefined references, as a full draft awaiting review. `Thesis_v2.pdf` covers all eight chapters in bullets, 35 pages, and its abstract is still the template placeholder |
 
 Open items and the post-campaign re-check list are tracked in [`docs/TODO.md`](docs/TODO.md).
 

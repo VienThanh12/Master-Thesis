@@ -148,8 +148,12 @@
         with migration from 5G in scope~\cite{3gpp2024road6g}. A language chosen for today's
         control plane is inherited by the next generation.
   \item The problem is a lack of evidence. Telecom vendors face growing pressure to move to
-        memory-safe languages~\cite{cisa2023memorysafe}. The closest prior work is a cluster of
-        at least five Ericsson master's theses, and none answers the question as posed here.
+        memory-safe languages~\cite{cisa2023memorysafe}. A documented search of the citation
+        databases and of the Nordic thesis repositories found no study that holds a stateful
+        control-plane subsystem fixed while measuring tail latency past saturation under one
+        concurrency model. The closest prior work is a cluster of at least five Ericsson
+        master's theses, and it sits in those repositories and not in the databases. None
+        answers the question as posed here.
         Three keep the runtime in play with the language. They compare Boost.Fibers, goroutines,
         Tokio, Monoio, Glommio and DPDK Eventdev, not the languages that host
         them~\cite{karlback2021ran,olsson2023asyncpackets,arvidsson2025async}. The other two
@@ -171,6 +175,16 @@
         what overhead Rust's safety model imposes on throughput, CPU, and memory. RQ4 asks what
         incremental adoption costs in effort, FFI interoperability, and risk inside an existing
         C++ RAN codebase.
+  \item Three hypotheses are stated in advance so that the measurements can refute them instead
+        of describing results after the fact. H1: below saturation the two implementations
+        perform the same, with any difference confined to the far tail. Prior evidence points to
+        near-parity with a measurable residual, not to equality. A Rust network driver runs
+        4\% slower than its C reference while executing 63\% more instructions per
+        packet~\cite{emmerich2019drivers}. H2: safe Rust prevents at compile time the defect
+        classes for which C++ can only offer best-effort detection. It is worded so that it can
+        fail, and the catalogue behind it spans both sides of the guarantee. H3: the cost of
+        calling Rust from C++ is negligible against the operations invoked, so the real cost of
+        incremental adoption is engineering effort.
   \item The work contributes six things. A reproducible, telecom-relevant benchmarking
         framework. A frozen shared specification with two parity-tested implementations. A
         comparison of latency and resource behaviour that divides at the saturation knee, where
@@ -180,7 +194,11 @@
         the language's own work and the handoff around it. And evidence-based guidelines for
         incremental adoption. The dominant cost there is the learning curve, not
         run-time~\cite{fulton2021adopting}. The reversal and the attribution bound were both found
-        rather than planned.
+        rather than planned. The standard the work holds itself to is evidence good enough to
+        base a decision on, so every number is reproducible from the published artefacts. Scope
+        is drawn narrowly to protect that internal validity. The full gNB, the PHY and L2
+        layers, the user plane, captured traffic traces, managed languages, and production
+        operations are all left out.
 \end{itemize}
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
@@ -242,33 +260,6 @@
         serves many devices. A p99.9 measured on a single operation becomes a steady rate of
         degraded procedures in the field~\cite{dean2013tail}. That is why the load sweep is
         pushed past the point where the service starts to fall behind.
-\end{itemize}
-
-\chapter{Objectives\label{chapter:objectives}}
-
-\begin{itemize}
-  \item A documented literature search of the citation databases and of the Nordic thesis
-        repositories found no study that holds a stateful control-plane subsystem fixed while
-        measuring tail latency of Rust and C++ past saturation under the same concurrency model.
-        The closest work turns out to live in those Nordic
-        repositories~\cite{karlback2021ran,arvidsson2025async,emberg2023asn1}.
-  \item Five objectives follow from the research questions. O1 measures predictability. O2
-        establishes which defect classes are prevented. O3 measures the resource overhead. O4
-        builds and measures a migration prototype. O5 publishes reusable artefacts and guidance.
-  \item Three hypotheses are stated in advance so that the measurements can refute them. H1:
-        below saturation the two implementations perform the same. Prior evidence points to
-        near-parity with a measurable residual, not to equality. A Rust network driver runs
-        4\% slower than its C reference while executing 63\% more instructions per
-        packet~\cite{emmerich2019drivers}. H2: Rust prevents at compile time the defect classes
-        for which C++ can only offer best-effort detection. H3: the cost of calling Rust from
-        C++ is negligible.
-  \item The work succeeds if the evidence is good enough to base a decision on. Runs are
-        repeated and reported with confidence intervals~\cite{georges2007rigorous}. Defect claims
-        are shown on programs that really compile and run. Migration cost is read off a working
-        prototype. Every number is reproducible from the published artefacts.
-  \item The scope is drawn narrowly to protect internal validity. The full gNB, the PHY and L2
-        layers, the user plane, captured traffic traces, managed languages, and production
-        operations are all left out.
 \end{itemize}
 
 \chapter{Research Methodology\label{chapter:methodology}}

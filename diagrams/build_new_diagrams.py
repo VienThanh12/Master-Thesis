@@ -22,26 +22,32 @@ from dsl import (
 )
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-MACROS_TEX = os.path.join(HERE, os.pardir, "figures", "gen_macros.tex")
+FIGURES = os.path.join(HERE, os.pardir, "figures")
+MACRO_FILES = ("gen_macros.tex", "gen_artefacts.tex")
 
 
 def load_macros():
     """Read the campaign numbers the analysis generates.
 
     The diagrams quote the same values the prose does, so they are taken from
-    figures/gen_macros.tex rather than typed in: a fresh campaign moves both.
+    the generated macro files rather than typed in: a fresh campaign moves
+    both. gen_artefacts.tex is read for the catalogue sizes, which the
+    fault-injection runner counts and which a diagram must not state from
+    memory.
     """
     values = {}
-    with open(MACROS_TEX, encoding="utf-8") as fh:
-        for line in fh:
-            m = re.match(r"\\newcommand\{\\([A-Za-z]+)\}\{(.*)\}\s*$", line)
-            if m:
-                values[m.group(1)] = m.group(2)
+    for name in MACRO_FILES:
+        with open(os.path.join(FIGURES, name), encoding="utf-8") as fh:
+            for line in fh:
+                m = re.match(r"\\newcommand\{\\([A-Za-z]+)\}\{(.*)\}\s*$", line)
+                if m:
+                    values[m.group(1)] = m.group(2)
     missing = {"NRepeats", "NLoadLevels", "NRuns", "MaxOfferedLoad", "NTests",
                "MinAttainableP", "CorrectedFloor", "FfiOpBoundPct",
-               "BudgetCoreShareMax"} - values.keys()
+               "BudgetCoreShareMax", "FaultClassesPrevented",
+               "FaultClassesBoundary"} - values.keys()
     if missing:
-        raise SystemExit(f"gen_macros.tex is missing {sorted(missing)}")
+        raise SystemExit(f"{' and '.join(MACRO_FILES)} are missing {sorted(missing)}")
     return values
 
 
@@ -601,11 +607,11 @@ def contributions():
     )
     cards = [
         (15, GREEN, GREEN_FILL, GREEN_DEEP, "Safety: a difference in kind", [
-            "Safe Rust rejects all five injected",
+            f"Safe Rust rejects all {M['FaultClassesPrevented']} injected",
             "memory-safety and data-race classes at",
-            "compile time. The two boundary classes",
-            "(a lock-order deadlock and a lost",
-            "update) compile and misbehave",
+            f"compile time. The {M['FaultClassesBoundary']} boundary",
+            "classes, from a deadlock to a forgotten",
+            "lock guard, compile and misbehave",
             "exactly as they do in C++.",
             "",
             "Rust eliminates data races, not race",
@@ -629,8 +635,8 @@ def contributions():
             f"{M['BudgetCoreShareMax']}% the",
             "work the language performs and the rest",
             "a cross-thread handoff. The two are",
-            "equivalent at the median and",
-            "unresolvable at the tail.",
+            "equivalent at the median, and on a",
+            "quiet host Rust's far tail sits lower.",
             "",
             "Measured on the operation alone they",
             "are not equivalent: Rust is faster by",
@@ -656,12 +662,12 @@ def contributions():
 
     d.rect(15, 396, 850, 78, BLUE_FILL, BLUE, rx=9, sw=1.7)
     d.text(31, 418, "Where it goes next", 12.5, BLUE_DEEP, weight=700)
-    d.text(206, 418, "the bare-metal campaign first. What bare metal now buys "
-                     "is the tail and the overload cliff, not the repeat "
-                     "count.", 10.5, BODY)
+    d.text(206, 418, "a canonical-configuration repeat. Bare metal already "
+                     "bought the far tail, the counters and the allocator's "
+                     "accounting.", 10.5, BODY)
     cx = 31
     for label in ["Production traces", "Further subsystems",
-                  "Hardware counters", "Extend the catalogue",
+                  "Call-site attribution", "Extend the catalogue",
                   "Async runtimes", "Isolate the heaps"]:
         w = 6.0 * len(label) + 20
         d.chip(cx, 434, w, 24, label, WHITE, BLUE_DEEP, size=10, rx=5,

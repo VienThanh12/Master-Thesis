@@ -17,7 +17,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | Document | Source | Status | Role |
 | --- | --- | --- | --- |
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v2.tex`. |
-| **`Thesis_v2.pdf`** | `Thesis_v2.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through, all nine chapters populated since 20 Aug 2026. This is what goes to the supervisor alongside the plan. |
+| **`Thesis_v2.pdf`** | `Thesis_v2.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through, all eight chapters populated. Filled out on 20 Aug 2026 and cut from nine chapters to eight on 26 Aug 2026, when the standalone `Objectives` chapter was folded into the introduction to match the draft (§4). This is what goes to the supervisor alongside the plan. |
 | **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 26 Aug 2026, **after** the bare-metal campaign landed: abstract form declaring **103 pages + 6 appendix pages** (117 physical). The campaign added four declared pages and that is substance, not drift, so do not go hunting for them (see §5, *Length and layout*: under 100 is a preference and substance wins). Before it, the same day, it read 99 + 6 (113 physical). It read 100 and 102 on 25 Aug, 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. Six pages came back across three §6.4 passes on 25 and 26 August and none of them cost an argument: three from layout, two from cutting re-derived argument, and one from merging two single-panel figures into `fig:loadsweep`. Chapter 6 went 27 pages to 25 over the same work. See §5, *Length and layout*, for the ordering rule that made each of them pay. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v2.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. Kept for reference under their original names. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
@@ -97,8 +97,13 @@ disk, and they are what take criterion 4 to 5: the allocation profile in
 now names correctly (which runtime pages carry the footprint, attributed to a call site), and the
 collected jitter plus the p99.99 column `tab:latency`'s generated preamble already allows. Fourth, a
 canonical-configuration bare-metal repeat needs a rented machine, about two hours and one euro, and
-it is the only thing holding criterion 3's data half below 5. The deck costs no grade and is still
-stale: zero `Bm` macros, and one slide contradicts the thesis.
+it is the only thing holding criterion 3's data half below 5. The deck costs no grade and was the
+last stale artefact in the repository. It is **resynced as of 26 August 2026, evening**: it reads
+`gen_baremetal.tex` and `tab_resident.tex`, carries a far-tail slide and a resident-set slide, names
+both hosts on one slide, and the five passages that contradicted the thesis are corrected. The one
+worth remembering is `diagrams/26_contributions`, which no `.tex` includes, so nothing checked it:
+it still showed the pre-catalogue counts of five injected classes and two boundary ones long after
+the thesis said seven and seven. A diagram only the deck uses is outside every gate the thesis has.
 
 The third item is **done as of 24 August 2026**: `figures/tab_taxonomy.tex` is now generated from
 `faults/results/taxonomy.csv` by `write_taxonomy_table()` in `bench/plot_figures.py`, so Table 7.6
@@ -185,21 +190,32 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 | 8 | Conclusion and future work | 5 |
 | App. A–E | Abbreviations and key terms, literature search protocol, statistical design, host and campaign configuration, fault-injection example | 2, 3, 4 |
 
-**The skeleton and the full draft no longer carry the same chapter list, and that is unresolved
-as of 25 August 2026.** `Thesis_v2.tex` has nine chapters, because it keeps a standalone
-`Objectives` chapter between problem context and methodology. The full draft has eight and no
-such chapter: that material sits in §1.3 (research questions and hypotheses) and §1.4
-(contributions, results, limitations), which is why its evaluation chapter is 6 and not 7.
-Nothing is broken, since no cross-reference in the full draft points at `chapter:objectives` and
-the build reports no undefined reference, but the sync rule of §1 is not satisfied, and the
-author has to decide which list is canonical before either document goes to the supervisor again.
-Older notes in this file and in `.cursor/rules/thesis-quality.mdc` that call the evaluation
-chapter 7 or the discussion chapter 8 are using the skeleton's numbering.
+**The skeleton and the full draft carry the same chapter list again, resolved 26 August 2026 on
+the author's decision.** `Thesis_v2.tex` had nine chapters, because it kept a standalone
+`Objectives` chapter between problem context and methodology where the draft has eight and no
+such chapter. **The draft was the canonical list**, and the archive is why: `archive/plain_thesis.tex`
+and `archive/thesis_wbm_full_backup.tex` both carry an `Objectives` chapter with live
+cross-references to it, so the draft once had that chapter and folding it into the introduction
+was a deliberate earlier decision the skeleton never followed. Do not propose adding it back.
+
+The skeleton is now eight chapters matching the draft title for title. Its `Objectives` bullets
+went where the draft already keeps that material. The hypotheses became a chapter 1 bullet placed
+directly after the RQ bullet, mirroring §1.3, which is the only one that needed a bullet of its
+own because the skeleton had stated H1 to H3 nowhere except its discussion revisit. The
+documented literature search folded into the evidence-gap bullet, and the evidence standard and
+the scope exclusions folded into the contributions bullet, mirroring §1.4. **The numbered
+objectives O1 to O5 are gone on purpose**, because the draft has no numbered objectives anywhere
+and keeping them would have re-opened the divergence in a different form.
 
 `Thesis_v2.tex` mirrors its own structure as **one bullet per argument move** per chapter. All
-nine of its chapters carry bullets: chapters 6–9 were filled at the author's explicit request on
-20 August 2026, five bullets each, matching chapters 2–5 (chapter 1 has six). Keep that shape.
-The skeleton has no appendix and needs none.
+eight of its chapters carry bullets, five each, except chapter 1 which carries seven: it had six
+and absorbed the hypotheses in the fold. Chapters 5 to 8 were filled at the author's explicit
+request on 20 August 2026, when the fold had not happened and they were numbered 6 to 9. Keep
+that shape. The skeleton has no appendix and needs none.
+
+Older notes in this file, in `docs/ASSESSMENT.md` and in `.cursor/rules/thesis-quality.mdc` that
+call the evaluation chapter 7 or the discussion chapter 8 are using the retired nine-chapter
+numbering. The assessment passes are historical records and were left as written.
 
 Because the results chapters quote measured values, `Thesis_v2.tex` now `\input`s the same
 three generated macro files as the full draft (`gen_macros`, `gen_complexity`,
@@ -430,7 +446,8 @@ Two mechanics matter if this is ever revisited:
   prose citing `sec:contention`). The build does not catch these, since the labels resolve fine.
   After any merge, grep each merged range for references to labels now inside it.
 
-Still unresolved, and larger: the skeleton has nine chapters to the draft's eight (§4).
+The skeleton's chapter list is no longer the outlier it was here: it matches the draft's eight
+since 26 August 2026 (§4).
 
 The one float lever left is the author's call because it drops a reader aid rather than a claim:
 `tab:taxonomy` and `fig:taxonomy` show the same $14$ outcomes from the same log and cost about 1.1
@@ -534,7 +551,7 @@ When preparing material for **Keijo Heljanko** (supervisor) and Nokia instructor
 (**Christoph Luneburg**, **Petteri Kotimaa**):
 
 1. `Thesis_Plan_v2.pdf` — plan, status, timeline (dated; status table must match repo reality).
-2. `Thesis_v2.pdf` — chapter skeleton, all nine chapters populated (35 pages).
+2. `Thesis_v2.pdf` — chapter skeleton, all eight chapters populated (35 pages).
 3. Optionally reference `Ha_Vien_Mastersthesis_2026.pdf` as the **working full draft** (clearly labelled not final).
 
 Port supervisor feedback into `Thesis_v2.tex` and `Ha_Vien_Mastersthesis_2026.tex` in the same
