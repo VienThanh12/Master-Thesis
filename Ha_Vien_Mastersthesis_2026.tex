@@ -2141,16 +2141,14 @@ the failure path are visible and identical on both sides. It also means the same
 vectors (Section~\ref{sec:parity}) can assert op-for-op agreement on both the returned value and
 the resulting state.
 
-Two points in that semantics are worth stating, because the state machine as drawn does not show
-them and both implementations commit to them identically. \texttt{Released} is never stored:
-\texttt{release\_context} erases the entry from the shard map, so the state is a passing label in
-the specification and not a value an implementation can be caught resting in, and a second release
-returns \texttt{NotFound} instead of \texttt{InvalidState}. And \texttt{abort\_reconfigure} restores
-the \emph{state} to \texttt{Connected} without restoring the serving cell that
-\texttt{begin\_reconfigure} overwrote with the handover target, because the model keeps no
-pre-handover cell to roll back to. That is a deliberate simplification rather than an oversight, it
-is a semantic commitment either way, and the parity suite of Section~\ref{sec:parity} is what holds
-both languages to it.
+Two points in that semantics need stating, because the state machine as drawn hides them.
+\texttt{Released} is never stored: \texttt{release\_context} erases the entry, so the state is a
+passing label rather than one an implementation can rest in, and a second release returns
+\texttt{NotFound} and not \texttt{InvalidState}. And \texttt{abort\_reconfigure} restores the
+\emph{state} to \texttt{Connected} without restoring the serving cell
+\texttt{begin\_reconfigure} overwrote, because the model keeps none to roll back to. That is a
+deliberate simplification and a semantic commitment either way, and the parity suite of
+Section~\ref{sec:parity} holds both languages to it.
 
 \section{Parity verification}
 \label{sec:parity}

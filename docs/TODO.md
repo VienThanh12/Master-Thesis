@@ -12,8 +12,8 @@ primary control against implementation bias.
 
 ## Next up (as of 26 Aug 2026, after the bare-metal campaign)
 
-Implementation, analysis, and writing are finished: the thesis builds at **103 declared pages plus
-6 appendix pages, 117 physical** (26 Aug 2026) with zero LaTeX errors, zero undefined references or
+Implementation, analysis, and writing are finished: the thesis builds at **101 declared pages plus
+6 appendix pages, 115 physical** (26 Aug 2026, after a priced length pass) with zero LaTeX errors, zero undefined references or
 citations and zero overfull boxes, and every quoted number regenerates from the raw logs. The plan
 document (`Thesis_Plan_v2.pdf`, dated 9 Aug 2026) puts measurement in September, RQ1/RQ3
 resolution in October, and submission in November. **Measurement is now ahead of that schedule and

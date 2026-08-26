@@ -18,7 +18,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | --- | --- | --- | --- |
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v2.tex`. |
 | **`Thesis_v2.pdf`** | `Thesis_v2.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through, all eight chapters populated. Filled out on 20 Aug 2026 and cut from nine chapters to eight on 26 Aug 2026, when the standalone `Objectives` chapter was folded into the introduction to match the draft (§4). This is what goes to the supervisor alongside the plan. |
-| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 26 Aug 2026, **after** the bare-metal campaign landed: abstract form declaring **103 pages + 6 appendix pages** (117 physical). The campaign added four declared pages and that is substance, not drift, so do not go hunting for them (see §5, *Length and layout*: under 100 is a preference and substance wins). Before it, the same day, it read 99 + 6 (113 physical). It read 100 and 102 on 25 Aug, 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. Six pages came back across three §6.4 passes on 25 and 26 August and none of them cost an argument: three from layout, two from cutting re-derived argument, and one from merging two single-panel figures into `fig:loadsweep`. Chapter 6 went 27 pages to 25 over the same work. See §5, *Length and layout*, for the ordering rule that made each of them pay. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
+| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 26 Aug 2026, after the bare-metal campaign and a priced length pass: abstract form declaring **101 pages + 6 appendix pages** (115 physical). It peaked at 105 when the `je` decomposition landed, and the length pass took it to 101 by the only two levers that return anything (a `\scriptsize` bibliography and §5.4.1's state-machine narration, whose two semantic commitments moved to §5.5). **Do not go looking for more: §5, *Length and layout*, now records every lever measured, and all but the bibliography return zero.** Before the campaign, the same day, it read 99 + 6 (113 physical). It read 100 and 102 on 25 Aug, 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. Six pages came back across three §6.4 passes on 25 and 26 August and none of them cost an argument: three from layout, two from cutting re-derived argument, and one from merging two single-panel figures into `fig:loadsweep`. Chapter 6 went 27 pages to 25 over the same work. See §5, *Length and layout*, for the ordering rule that made each of them pay. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v2.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. Kept for reference under their original names. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
 | Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Ha_Vien_Mastersthesis_2026.tex`. |
@@ -357,6 +357,49 @@ full-width figures 4, `twoside,openright` 15 blank versos, loose heading and flo
 12pt bibliography with default item gaps 4. That is 48 pages of layout, so the settings are worth
 keeping whatever the target is, and any of them can be handed back deliberately if the author
 prefers the looser look to the shorter document.
+
+**Every remaining layout lever is now measured, and all but one return nothing.** Asked on 26 August
+2026 to reach under 90 declared pages, each candidate was applied, built and reverted. Do not re-run
+these:
+
+| Lever | Declared pages saved |
+| --- | --- |
+| Every figure from `0.78\linewidth` to `0.62` (all 19 images) | **0** |
+| `\textfloatsep`, `\floatsep`, `\intextsep` all to 8pt | **0** |
+| Wider margins via `geometry` after the class | **0**, the class fixes the text block and overrides it |
+| Global `\arraystretch{1.0}` on every table | **0** |
+| Deleting all 11 hand-drawn diagrams | 2, and it orphans 11 references |
+| Bibliography `\footnotesize` to `\scriptsize` | **2** |
+
+The mean vertical fill across the body is 104 per cent and only twelve pages sit under 72 per cent,
+almost all of them chapter or appendix opening pages the class creates by rule. **There is no
+density left to harvest.** The `\scriptsize` bibliography was taken on 26 August and is legible.
+
+**Deletion is also priced, and the exchange rate is poor.** Whole-section deletions measured: §7.5
+Related work 2792 words for 7 pages, §5.4 Implementation details 3388 words for 7, §3.3 Tail latency
+in RAN 421 words for 1, §2.3 C++ for latency-critical systems 655 words for 1. Roughly 400 to 500
+words per page, and only the two large sections yield at all.
+
+**The important half of that pricing is what the cuts cost, and it is why 90 is not reachable.**
+Every candidate is named by a grade descriptor:
+
+- **§7.5 Related work** holds `tab:related`, the Arvidsson reconciliation and the contrary results.
+  Area 2's level 5 requires "contrary results engaged rather than omitted" and area 5's requires
+  "contradictory prior results reconciled mechanically". Deleting it drops both from 5.
+- **§5.4.2** describes the pinned FNV-1a hashing, which area 3's level-5 anchor names, and the
+  hand-built bounded queue, which is one of the two forced-idiom entries the overload attribution
+  rests on.
+- **§5.4.3** contains the lifecycle-gap defect found by design review, which the calibration file
+  calls area 5's strongest single passage.
+- **§3.3** owns `fig:cliff`, which §6.4.2's overload prose depends on.
+- **§2.3** is the only citation site for four sources, so deleting it creates uncited entries and
+  breaks area 2's "every entry cited" property.
+
+So the ladder is **101 at no grade cost** (taken), 94 only by dropping the diagrams that helped area
+4 reach 4.5, and 87 only by deleting §7.5 and paying about a third of a grade point. If a sub-90
+figure is ever required, the honest route is to move material into appendices, since `\pagesCount`
+counts main matter only. That changes the declared number and not the document, and it should be
+labelled as such.
 
 If pages are genuinely needed, take them in this order, because it costs no argument: the short
 pages `[H]` strands, and the chapter tails that spill a few lines onto a near-empty page. Rank
