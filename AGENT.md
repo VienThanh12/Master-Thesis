@@ -58,43 +58,47 @@ grading pass so passes stay comparable.
 | **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (7 inside + 7 outside guarantee). One cheap alignment item: RQ1 names the median, p99, p99.9 and the maximum, and the decisive far-tail result is a pooled p99.99. The narrowing was right while the statistic was unavailable; it is in hand now, so RQ1 can name it and §7.6's explanation of the narrowing can go. |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
 | **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **A matched bare-metal campaign.** The far tail, the counters and the allocation profiles were all collected on bare metal on 26 Aug 2026 (§`sec:baremetal`), so the instrumentation gap is closed and the data half moved from 4 to 4.5, inside the half grade. Two things hold it. The confirmation run changed the shard count (8 against 7), the load grid (8 levels against 14) and the repeat count (15 against 20) alongside the host, so it corroborates the main sweep and cannot replace it. And it changed a **fifth** variable the thesis does not name: the toolchain, `g++ 13.3.0`/`rustc 1.98.0` against `g++ 15.1.1`/`rustc 1.97`. §`sec:baremetal` claims it "changes one thing that matters, the machine" and `tab:testbed`'s caption claims the host met the protocol column, which asks for the same toolchain, `isolcpus`, `nohz_full` and 20 repeats. Repeating it at the canonical configuration and toolchain is the remaining work. |
-| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.0** | No measured value is wrong (four passes running). The **figure** half of the ninth-pass defect class is genuinely closed and was re-verified by rendering: `fig:borrowuaf`, `fig:effects`, `fig:budget`, diagram 07's disowned per-call framing, diagram 11's inverted fan-out label, plus the `\SatKnee` axis confusion and all typed chapter-6 values. **The claims-about-the-evidence half is not closed**, and the twelfth pass found its two live members are new: the counter over-claim and the "split unresolved" under-claim, four sites each (see criterion 5). Two smaller consistency defects came with them, both in Appendix D: its opening paragraph says the confirmation campaign "satisfies" the protocol column its own caption says it missed on three rows, and that page is 80 per cent white because `tab:testbed` floats away, which is what took `\appendixCount` from 6 to 7. Behind all that, §`sec:baremetal` still has **no figure and no table** while answering the chapter's headline question, and jitter plus the p99.99 column are still unreported. Do not reintroduce a measured number as prose, and do not restate the median result as a bare null. |
-| **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **4.5** | **Back down at the twelfth pass, which audited the remediation that had raised it.** The critical apparatus is still at 5 and H1's revisit is the best version on record. What fails is one paragraph, §7.2's RQ3 block, which **over-claims and under-claims at the same time on the same result**: it says the counters account for the direction of the peak-RSS effect (an operation's cache-miss rate cannot generate a fixed allocator and runtime footprint, and §6.4.3 says so itself), and it says the split inside the resident set needs an instrument the reported campaign already carries in 480 runs. Both halves reach `tab:findings` and `tab:threats`, so the reliability apparatus is what states them. About forty minutes of editing restores 5. Maintain register: “cannot tell” ≠ “equivalent”. |
+| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.5** | Restored from 4.0 on the night of 26 August, and the ninth-pass defect class is now closed on **both** halves. The figure half was closed by the second remediation and re-verified by rendering. The claims-about-the-evidence half is closed by the third: the counter over-claim is gone from all four sites, and the "split inside the resident set is unresolved" under-claim is gone because the split is now **measured** from `jemalloc`'s own accounting in `tab:resident`. §`sec:baremetal` finally has a float, which was the other standing area-4 item. No measured value is wrong, four passes running. **Level 5 wants two things.** The abstract, which is the author's. And two results still unreported from data on disk: the allocation profile's call-site attribution, and the collected jitter with the p99.99 column `tab:latency`'s generated preamble already allows. Do not reintroduce a measured number as prose, and do not restate the median result as a bare null. |
+| **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Dropped to 4.5 at the twelfth pass, which audited the remediation that had raised it, and restored the same night. §7.2's RQ3 paragraph no longer attributes the footprint to a cache-miss rate and no longer calls the resident-set split unresolved: it is rebuilt around three bounds, the third being that the effect is **located outside the allocator**. Its enumeration is repaired and its antecedent named. Maintain register: “cannot tell” ≠ “equivalent”, the memory result is *located* and not *attributed to a call site*, and the counters explain the operation-level timing and nothing about the footprint. |
 | **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`: until then the build prints “Not submittable”, and a document that declares itself unsubmittable is not camera-ready. That clause alone holds the criterion, and the abstract now carries **five** defects rather than four, the newest being that it still ends “The far tail below saturation cannot be settled on a virtualised host”. This criterion fell to 4.0 at the eleventh pass on level 4's consistency clause and was **restored the same evening**: §4.4, §6.3, §5.6 and `tab:testbed`'s caption now describe the study as it is. The finishing defects behind level 5 are also closed: `fig:effects`' axis label is whole (one shared `supxlabel`, since `bbox_inches` did not fix it), `fig:borrowuaf`'s caption matches `taxonomy.csv`, and the 15-repeat *p*-floor reads `\BudgetFloor`. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
 
-**Overall mean (unweighted): 4.58.** The day went 4.67 to 4.50 (eleventh pass, after the bare-metal
-campaign landed and the document lagged it) to 4.67 (remediation, three hours of sync editing) to
-**4.58** (twelfth pass, which audited that remediation and found it had over-credited itself by one
-criterion). Two lessons are worth more than the number. First, **the bare-metal campaign removed the
-thesis's largest ceiling and briefly cost it two criteria, because the rest of the document had not
-caught up.** Consistency between claim and evidence is scored in three criteria while a campaign
-lifts half of one, so when a new results section lands, sync the summary tables, the threats table,
-the hypothesis revisit and the statistical-treatment section in the same pass: those four are where a
-grader looks and those four are what got missed. Second, **a remediation pass must not grade its own
-work.** The two failures it is most likely to make are invisible from inside it: propagating a claim
-it did not originate, and fixing one half of a pair. Both happened, and the twelfth pass found them.
-Criterion 3 is held at 4.5 **deliberately** until a canonical-configuration repeat exists, and
-criterion 4 has been at 4.0 since the ninth pass.
+**Overall mean (unweighted): 4.75**, the highest on record. The day of 26 August went 4.67 to 4.50
+(eleventh pass, after the bare-metal campaign landed and the document lagged it) to 4.67 (second
+remediation, three hours of sync editing) to 4.58 (twelfth pass, which audited that remediation and
+found it had over-credited itself) to **4.75** (third remediation, which closed the twelfth pass's
+list including the two-hour item that turned out to matter most). Criterion 4 left 4.0 for the first
+time since the ninth pass. Three lessons are worth more than the number.
+
+1. **The bare-metal campaign removed the thesis's largest ceiling and briefly cost it two criteria,
+   because the rest of the document had not caught up.** When a new results section lands, sync the
+   summary tables, the threats table, the hypothesis revisit and the statistical-treatment section in
+   the same pass: those four are where a grader looks and those four are what got missed.
+2. **A remediation pass must not grade its own work.** The two failures it is most likely to make are
+   invisible from inside it: propagating a claim it did not originate, and fixing one half of a pair.
+   Both happened, and the twelfth pass found them. This applies to the third remediation too, which
+   has not yet been audited.
+3. **Before believing a limitation, check whether the dataset already refutes it.** The largest single
+   improvement of the day came from reading seven fields that had sat in 480 campaign records while
+   four places in the thesis said the instrument did not exist. Cost: two hours, no measurement.
+
+Criterion 3 is held at 4.5 **deliberately** until a canonical-configuration repeat exists.
 Do not round the half-grades in prose without updating the reasoning in `docs/ASSESSMENT.md`. The
 class-file item is **done**: the document builds on the department's own `HYthesisML.cls`, and the
 reconstructed `UH_DS_MSc.cls` in the root is no longer loaded.
 
-**Five items are open.** First, the abstract must be rewritten by the author unaided, because in this
-programme it is the maturity test and a model may not touch it. That rewrite is overdue on substance
-and not only on style: the abstract still ends "The far tail below saturation cannot be settled on a
-virtualised host", which §`sec:baremetal` contradicts, and it is the fifth defect in that paragraph.
-It is the sole holder of criterion 6's level 5 and the last far-tail site in the document. Second,
-**seventy minutes of editing** listed in the twelfth pass of `docs/ASSESSMENT.md`, which restores
-criterion 5 to 5. Third, and the highest-value item in the whole project, **two hours reading the
-`je` statistics the confirmation campaign already recorded**: 480 runs carry jemalloc's own
-decomposition of the resident set through purpose-built instrumentation (`cpp/bench/jestats.hpp`,
-`je_stats()` in the Rust bench), no generator reads them, and they answer the exact question §7.2
-declares open. Fourth, the allocation profile in
-`bench/results-baremetal/alloc_profile-20260826-110718/`, which answers a different question,
-call-site attribution, plus the collected jitter and the p99.99 column `tab:latency`'s generated
-preamble already allows. Fifth, a canonical-configuration bare-metal repeat needs a rented machine,
-about two hours and one euro, and it is the only thing holding criterion 3's data half below 5. The
-deck costs no grade and is still stale: zero `Bm` macros, and one slide contradicts the thesis.
+**Four items are open and the first is the only blocker.** First, the abstract must be rewritten by
+the author unaided, because in this programme it is the maturity test and a model may not touch it.
+That rewrite is overdue on substance and not only on style: the abstract still ends "The far tail
+below saturation cannot be settled on a virtualised host", which §`sec:baremetal` contradicts, and it
+is the fifth defect in that paragraph. **It is now the only thing holding criterion 6 below 5** and
+the last far-tail site in the document. Second and third are half-days of analysis on data already on
+disk, and they are what take criterion 4 to 5: the allocation profile in
+`bench/results-baremetal/alloc_profile-20260826-110718/`, which answers the question `tab:threats`
+now names correctly (which runtime pages carry the footprint, attributed to a call site), and the
+collected jitter plus the p99.99 column `tab:latency`'s generated preamble already allows. Fourth, a
+canonical-configuration bare-metal repeat needs a rented machine, about two hours and one euro, and
+it is the only thing holding criterion 3's data half below 5. The deck costs no grade and is still
+stale: zero `Bm` macros, and one slide contradicts the thesis.
 
 The third item is **done as of 24 August 2026**: `figures/tab_taxonomy.tex` is now generated from
 `faults/results/taxonomy.csv` by `write_taxonomy_table()` in `bench/plot_figures.py`, so Table 7.6
@@ -538,7 +542,29 @@ edit pass so the two do not diverge.
 
 ---
 
-*The twelfth grading pass, late on 26 August, audited that remediation instead of taking a fresh
+*A third remediation pass on the night of 26 August closed the twelfth pass's list, and the item that
+mattered was the two-hour one. `bench/baremetal_facts.py` now reads `jemalloc`'s own accounting into
+26 macros and `figures/tab_resident.tex`, and §`sec:baremetal` reports the resident set decomposed
+rather than bounded by elimination. **The result relocates the RQ3 memory finding.** Arena metadata
+costs the Rust build $+2.07$ MiB more and drifts by $0.5\%$ across the whole load range, so it is a
+constant of the process, and Rust holds $0.16$ MiB *less* live allocation, which settles that the
+larger resident set is not more application data. But `jemalloc`'s own resident bytes are $1.92$ MiB
+*lower* in the Rust build while its peak is $1.74$ MiB higher, and paired inside each run the
+footprint outside the allocator's mappings differs by $+3.8$ MiB. **So the peak-RSS language effect is
+not an allocator effect**: it is the standard library and runtime a Rust process carries before it
+allocates. A third reading is a negative result about the guest: the $31$ MiB bimodality that costs
+peak RSS under `jemalloc` its row does not appear on the quiet host, where no arm spans more than
+$1.7$ MiB, so that defect belonged to the machine. Two caveats are in the text, not left to a reader:
+peak RSS is a `getrusage` maximum against sampled `je` figures, and the derived row is a median of
+per-run differences, so the table's column does not sum exactly and the caption says why. The counter
+over-claim is gone from all four sites and §7.2 is rebuilt around three bounds. Criterion 4 left 4.0
+for the first time since the ninth pass and criterion 5 returned to 5. **Two layout lessons.** The
+stranded appendix page was caused by `[H]` forbidding reflow, and the fix was to *float* the table to
+`[ht]`, which is the reverse of every earlier length pass in this repository, so diagnose before
+choosing a direction. And a two-line prose addition to §5.6 stranded a chapter-tail page, recovered by
+tightening the same passage. See the third remediation pass in `docs/ASSESSMENT.md`.*
+
+*The twelfth grading pass, late on 26 August, audited the second remediation instead of taking a fresh
 look, and found the two things a self-graded pass cannot see. It **propagated a claim it did not
 originate**: §6.4.4's "less work and worse locality is one account of both RQ3 results at once" came
 in with the bare-metal integration, and the remediation carried it into §7.2, `tab:findings` and

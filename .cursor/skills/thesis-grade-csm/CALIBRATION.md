@@ -128,11 +128,13 @@ State as of the **remediation pass of 26 August 2026 evening**, which followed t
 pass the same evening and closed its whole editing tier except the abstract. Three passes running
 have found **no wrong measured value anywhere**.
 
-**Items 3b, 3d, 3f, 3g and 3h are CLOSED. Do not re-report them.** They are kept below with the fix
-against each, because the fixes are the transferable part. **But the defect class is not closed**:
-the remediation pass of 26 August said it was, and the twelfth pass the same evening found two new
-live members, recorded as 3i and 3j. Read the "resolved" section before reporting anything from the
-numbered list, and check every item against the source.
+**Items 3b, 3d, 3f, 3g, 3h, 3i, 3j and 3k are CLOSED.** They are kept below with the fix against
+each, because the fixes are the transferable part. **The claims-about-the-evidence class is empty as
+of the third remediation of 26 August, for the first time since the eighth pass** (3i, 3j and 3k
+were its last members and all three were closed that night). The second remediation also claimed the
+class was empty and was wrong, so **verify before believing this**: grep for the phrases in 3i and
+3j and check that §7.2 and both summary tables read as the fixes describe. Read the "resolved"
+section before reporting anything from the numbered list, and check every item against the source.
 
 **The pattern to expect on the next pass.** Every drop since the ninth has come from prose
 describing a different state of the evidence than the artefacts hold, and every one has been an edit.
@@ -344,7 +346,17 @@ methodology section that said the metric was unavailable.
    the machine" while the toolchain changed too, and `tab:testbed`'s caption claims the confirmation
    host met a protocol column it missed on four rows.
 
-3i. **The counters are given the wrong job at four sites. Opened by the twelfth pass.** §6.4.4
+3i. **CLOSED 26 August 2026, third remediation. Do not re-report.** §`sec:baremetal` now calls the
+   counters "a mechanism for the operation-level result" and adds the sentence that was missing: the
+   worse locality is not evidence about the resident set, because a larger footprint is a reason to
+   miss cache more often and the two are related in the opposite direction. `tab:findings` reads
+   "located outside the allocator by its own accounting", and `tab:threats`'s residual is narrowed to
+   the honest gap, which is call-site attribution. §7.2 is rebuilt around three bounds.
+   **The transferable part:** the conclusion was right and the instrument was wrong, which is the
+   hardest version of this defect to spot, because nothing the sentence asserts is false on its face.
+   When a pass reports "all N sites rewritten", ask what instrument the shared claim rests on.
+
+   *Original text, kept for the reasoning:* §6.4.4
    l. 3056 ("less work and worse locality is one account of both RQ3 results at once"), §7.2 l. 3761
    ("a plausible account of a larger resident set and a faster operation at once"),
    `tab:findings`'s RQ3 status ("direction accounted for by counters") and `tab:threats`'s RQ3 row.
@@ -357,8 +369,24 @@ methodology section that said the metric was unavailable.
    pattern 2 above. Hedged with "one account" and "plausible", so score it as an imprecision, but the
    pairing with 3j in one paragraph is what took area 5 off 5.
 
-3j. **The largest unrealised asset in the repository, and the thesis says it does not exist. Opened
-   by the twelfth pass.** Both bare-metal campaigns record jemalloc's own statistics in every run of
+3j. **CLOSED 26 August 2026, third remediation, and it was the highest-value two hours in the
+   project. Do not re-report.** `je_facts()` and `write_resident_table()` in
+   `bench/baremetal_facts.py` emit 26 macros and `figures/tab_resident.tex`, and
+   §`sec:baremetal` reports the decomposition in three readings. **The result relocated the finding**:
+   arena metadata is $+2.07$ MiB and drifts $0.5\%$ across the load range (so it *measures* the fixed
+   cost §6.4.3 argued by elimination), Rust holds $0.16$ MiB less live allocation, but the allocator's
+   own resident bytes are $1.92$ MiB *lower* while the peak is $1.74$ MiB higher, so the difference
+   sits outside the allocator, in the runtime a Rust process carries before it allocates. A third
+   reading is a negative result about the guest: no arm's peak RSS spans more than $1.7$ MiB on bare
+   metal, so the $31$ MiB bimodality belonged to the host. Two caveats are in the text: peak RSS is a
+   `getrusage` maximum against sampled figures, and the derived row is a median of per-run differences
+   so the table's column does not sum exactly (the caption says why, and pairing inside the run is the
+   better statistic). **Two transferable lessons.** First, before believing a stated limitation, check
+   whether the dataset already refutes it: four places said the instrument did not exist while 480
+   records carried it. Second, the obvious reading of this data is wrong, so a future pass should not
+   "correct" the write-up back to "metadata explains it".
+
+   *Original text, kept for the reasoning:* Both bare-metal campaigns record jemalloc's own statistics in every run of
    their two jemalloc arms, **480 runs**, through instrumentation built for exactly this purpose
    (`cpp/bench/jestats.hpp` with a weak `mallctl`, `je_stats()` in `rust/examples/bench.rs`, system
    arms emitting nulls and never zeros). The seven fields (`allocated`, `active`, `metadata`,
@@ -377,7 +405,17 @@ methodology section that said the metric was unavailable.
    (`docs/TODO.md` Phase 11 item 3 records the confound). Cost: **two hours**, not the half day
    assigned to the profile, which answers the different question of call-site attribution.
 
-3k. **Appendix D, both defects created by the remediation. Opened by the twelfth pass.** Its opening
+3k. **CLOSED 26 August 2026, third remediation. Do not re-report.** The intro reads "not fully
+   satisfied either" and points at the caption's itemisation. §6.3 names three kinds of addition and
+   explains the system arms' nulls. §5.6 says "demonstrates on a campaign of its own design".
+   **The layout lesson is the transferable part and it reverses this repository's usual rule:** the
+   stranded appendix page was caused by `[H]` forbidding the following text from flowing back into the
+   gap, and the fix was to *float* the table to `[ht]`, recovering the page. Every earlier length pass
+   here moved tables *to* `[H]`. Diagnose the cause before choosing a direction. A second, smaller
+   one: the §5.6 rewrite added two lines and stranded a chapter-tail page, recovered by tightening the
+   same passage, which is the "shaving words moves nothing until a whole line comes out" trap.
+
+   *Original text, kept for the reasoning:* Its opening
    paragraph says "Section~\ref{sec:baremetal} reports a campaign that **satisfies** it" where the
    caption four lines below lists three protocol rows the host missed. And that page carries four
    lines of text and is otherwise white, because `tab:testbed` at `[tp]` floats to the next page:

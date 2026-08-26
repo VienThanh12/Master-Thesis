@@ -2351,3 +2351,102 @@ for had already been answered by a different instrument in the same dataset.
    measurement, no rented machine and no new code beyond a reader.
 4. **Repeat the campaign at the canonical configuration and toolchain.** Still the only thing holding
    area 3's data half below 5.
+
+---
+
+## Remediation pass — 26 August 2026, night
+
+Worked the twelfth pass's list. **Items 1 to 5 of its lift table are closed, and so is the two-hour
+`je` item, which was the point of the exercise.** Declared length **104 pages with 6 appendix
+pages, 118 physical**: the new subsection and table cost two pages and the two layout fixes gave one
+back, for a net of one page against the 103 the twelfth pass graded.
+
+| Area | Twelfth pass | After this pass | Why |
+| --- | --- | --- | --- |
+| 1 | 5 | **5** | Held |
+| 2 | 5 | **5** | Held |
+| 3 | 4.5 | **4.5** | Held deliberately. The description defect in §6.3 is fixed and the campaign's own instrument is now used, but the canonical-configuration repeat is still the measurement |
+| 4 | 4.0 | **4.5** | Both live members of the defect class are closed, §`sec:baremetal` has a float, and the RQ3 memory result is located rather than bounded by elimination |
+| 5 | 4.5 | **5** | §7.2's paragraph no longer over-claims or under-claims, and its enumeration is repaired |
+| 6 | 4.5 | **4.5** | Two finishing defects closed, both stranded pages recovered. The abstract still holds level 5 |
+| 7 | n/a | **n/a** | |
+| **Mean** | 4.58 | **4.75** | Highest on record since the first remediation pass |
+
+### The `je` result, written up
+
+`bench/baremetal_facts.py` gained `je_facts()` and `write_resident_table()`. Twenty-six macros and
+`figures/tab_resident.tex`, all recomputed from the raw logs and matching. The new §`sec:baremetal`
+paragraph group reports three readings, in the order they change the claim:
+
+1. **The bookkeeping is fixed.** Arena metadata costs the Rust build $+2.07$ MiB more and that
+   figure moves by $0.5\%$ across the whole swept range, so it is a constant of the process. This
+   *measures* what §6.4.3 previously argued by elimination from the struct layout. Rust holds
+   $0.16$ MiB **less** live allocation, which settles outright that the larger resident set is not
+   more application data.
+2. **The finding relocates.** `jemalloc`'s own resident bytes are $1.92$ MiB **lower** in the Rust
+   build while its peak resident set is $1.74$ MiB higher. Paired inside each run, the footprint
+   outside the allocator's mappings is $4.0$ MiB for C++ against $7.9$ for Rust, a difference of
+   $+3.8$ MiB. **So the peak-RSS language effect is not an allocator effect at all**: it is the
+   standard library and runtime a Rust process carries before it allocates, and the allocator
+   comparison runs the other way and partly offsets it.
+3. **A negative result about the guest.** The bimodality that costs peak RSS under `jemalloc` its
+   place in `tab:significance`, a handful of runs $31$ MiB low, does not appear here: no arm's peak
+   RSS spans more than $1.7$ MiB across its repeats. That defect belonged to the host, which is what
+   the reading rule of §`sec:stats` assumed without being able to show.
+
+Two caveats are stated in the text rather than left for a reader to find. Peak RSS is a `getrusage`
+maximum while the `je` figures are sampled once, so the outside-mappings figure is an upper bound.
+And the derived row is a median of per-run differences and not a difference of medians, because the
+two figures come from one process at one moment, so **the table's column does not sum exactly**
+(15.06 against 15.08 for C++, 16.96 against 16.82 for Rust). The caption says so. Pairing inside the
+run is the better method and it is what `_paired_effect` does elsewhere, so the arithmetic slack is
+the honest cost of the better statistic.
+
+**This also closes the twelfth pass's other area-4 finding for free**: §`sec:baremetal` now has a
+float, and `tab:resident` is exactly the kind of six-row decomposition a table is for.
+
+### The counter over-claim, closed at all four sites
+
+§`sec:baremetal` now says the counters are "a mechanism for the operation-level result" and adds the
+sentence that was missing: "It says nothing about the resident set, and the worse locality is not
+evidence that it does: a larger footprint is a reason to miss cache more often, so the two are
+related in the opposite direction." `tab:findings` reads "resolved, and located outside the allocator
+by its own accounting". `tab:threats`'s row reads "RQ3 captures resource cost, and its origin outside
+the allocator" against a residual of "Which runtime pages carry it is not attributed to a call
+site", which is the honest remaining gap and is what the allocation profile is actually for. §7.2's
+paragraph is rebuilt around three bounds with the third being the new location, and it opens "Back to
+the memory penalty" because the antecedent had drifted two paragraphs away.
+
+### The four smaller items
+
+| Item | Fix |
+| --- | --- |
+| Appendix D's intro contradicting its caption | Now "not fully satisfied either", pointing at the caption's itemisation |
+| Appendix D's 80-per-cent-white opening page | `tab:testbed` moved from `[H]` to `[ht]`. **The cause was `[H]`, not `[tp]`**: `[H]` forbade the following text from flowing back into the gap. Recovered the seventh appendix page |
+| §6.3's "same record shape and two additions" | Now three ways, naming the wider latency block, the sidecars and counters, and the allocator accounting, with the system arms' nulls explained on the same principle as the governor state |
+| §5.6's "exactly that exercise" | Now "demonstrates on a campaign of its own design". Shortened in the same edit, because the first version spilled a line onto a near-empty chapter-tail page |
+
+### Two layout lessons
+
+- **The stranded appendix page was caused by `[H]`, and the fix was to float the table.** Every
+  earlier length pass in this repository moved tables *to* `[H]` or measured `[tp]` as worse. This is
+  the first case of the reverse, and it is the mechanism `AGENT.md` §5 describes rather than an
+  exception to it: `[H]` forbids reflow, so a table that does not fit under its own intro strands the
+  page. Diagnose before choosing a direction.
+- **A two-line prose addition stranded a different page.** The §5.6 edit pushed a chapter's last
+  line onto a page of its own. Tightening the same passage recovered it. That is the trap
+  `AGENT.md` §5 names: shaving words moves nothing until a whole line comes out.
+
+### What is left
+
+1. **The abstract.** Five items, author only, unchanged, and it is now the only thing holding area 6
+   at 4.5 rather than 5.
+2. **The allocation profile**, for call-site attribution. Half a day. Its scope is now stated
+   correctly in `tab:threats`: which runtime pages carry the footprint is not attributed to a call
+   site.
+3. **Jitter and the p99.99 column in `tab:latency`.** Half a day.
+4. **Rebuild the deck.** Zero `Bm` macros, and one slide still contradicts the thesis.
+5. **Repeat the campaign at the canonical configuration and toolchain.** The only thing holding
+   area 3's data half below 5.
+6. **A pass that did not write any of this.** Two remediations in a row have now been audited by a
+   grading pass and both were found to have over-credited themselves. This one should be too.

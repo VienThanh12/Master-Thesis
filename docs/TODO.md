@@ -93,26 +93,30 @@ repeat measurement, and the abstract.
    the peak-RSS order-of-magnitude phrasing carries a host at five sites, all five figure defects
    are closed, and six new macros retire the last typed measured values in Chapter 6. Mean back to
    4.67. Detail in `docs/ASSESSMENT.md`, remediation pass.
-5. **NOW THE TOP PRIORITY, and it is two hours of reading with no new measurement: the `je`
-   statistics the confirmation campaign already recorded.** The twelfth grading pass found that
-   **480 bare-metal runs carry jemalloc's own decomposition of the resident set** through the
-   instrumentation of Phase 11 item 3, that no generator in `bench/` reads it, that §6.3 does not
-   list it, and that §7.2 meanwhile declares that exact split unresolved and pins it on an
-   allocation profile. Aggregate the seven fields, write the split, then rewrite the four sites that
-   call it open. **Read the numbers before writing them**: Rust holds *less* live data and *less*
-   allocator-resident memory while its process peak is higher, so the difference is neither
-   application data nor fully inside `jemalloc`, which points at the Rust runtime's own fixed pages.
-   That is a better finding than the placeholder. Mind the two caveats: peak RSS is a `getrusage`
-   maximum against sampled `je` figures, and the two arms link different builds of jemalloc.
-6. **Forty minutes of editing that criterion 5 is waiting on**, plus half an hour of finishing.
-   Four sites give the counter result the wrong job, claiming an operation-scope cache-miss rate
-   accounts for a fixed footprint. Appendix D's intro says the confirmation campaign "satisfies" the
-   protocol column its own caption says it missed on three rows, and that page is 80 per cent white
-   because `tab:testbed` floats away, which is what took `\appendixCount` from 6 to 7. Full list in
-   `docs/ASSESSMENT.md`, twelfth pass.
-7. **Analyse the allocation profile** (Phase 7a below). Half a day, and note it answers a *different*
-   question from item 5: call-site attribution, which code allocates, rather than the composition of
-   the resident set.
+5. **DONE 26 Aug 2026, night: the `je` statistics are read and written up.** `je_facts()` and
+   `write_resident_table()` in `bench/baremetal_facts.py` emit 26 macros and
+   `figures/tab_resident.tex`, and §`sec:baremetal` reports the decomposition in three readings.
+   **The result relocates the RQ3 memory finding.** Arena metadata costs the Rust build +2.07 MiB
+   more and drifts 0.5% across the whole load range, so it measures the fixed cost §6.4.3 previously
+   argued by elimination, and Rust holds 0.16 MiB *less* live allocation. But jemalloc's own resident
+   bytes are 1.92 MiB *lower* in the Rust build while its peak is 1.74 MiB higher, and paired inside
+   each run the footprint outside the allocator's mappings differs by +3.8 MiB. **So the peak-RSS
+   language effect is not an allocator effect**: it is the standard library and runtime a Rust process
+   carries before it allocates. Third reading, a negative result about the guest: no arm's peak RSS
+   spans more than 1.7 MiB on bare metal, so the 31 MiB bimodality belonged to the host. This also
+   gave §`sec:baremetal` the float it was missing. Criterion 4 left 4.0 for the first time since the
+   ninth pass.
+6. **DONE 26 Aug 2026, night: the twelfth pass's editing list.** The counter over-claim is gone from
+   all four sites, §7.2's enumeration is repaired, Appendix D's intro matches its caption, §6.3 names
+   three kinds of addition to the confirmation record, and §5.6 no longer calls §`sec:baremetal` a
+   rerun. Two stranded pages recovered: `tab:testbed` moved from `[H]` to `[ht]` (the cause was `[H]`
+   forbidding reflow, which is the reverse of this repo's usual fix, so diagnose first), and a §5.6
+   tightening pulled back a chapter-tail line. Net cost of the whole night: **one declared page**,
+   103 to 104.
+7. **NOW THE TOP PRIORITY: analyse the allocation profile** (Phase 7a below). Half a day. Its scope
+   is now stated correctly in `tab:threats`: which runtime pages carry the footprint is not
+   attributed to a call site. That is what the profile is for, and it is a *different* question from
+   item 5, which located the footprint without attributing it.
 8. **Report the jitter that was collected, and add the p99.99 column to `tab:latency`.** Half a
    day. `\LatencyCols` and `\LatencyHead` are generated so this needs no preamble edit, and the
    `tab_jitter.tex` machinery has been proven since 20 Aug. Also consider giving §`sec:baremetal` a
@@ -788,8 +792,8 @@ zeros - the same convention `counters.sh` already uses.
       which sits inside the measured `\RssLangDiffLo`-`\RssLangDiffHi` MiB language
       effect. §7.5.4's "the split ... is not resolved here" is resolvable without the
       testbed.
-- [~] **The bare-metal campaign records the `je` object in every run, and this is now the top item in
-      "Next up".** The twelfth grading pass promoted it: `je` is a top-level field in all 960
+- [x] **DONE 26 Aug 2026, night.** Read, aggregated and written into §`sec:baremetal` as
+      `tab:resident`, from `je_facts()` in `bench/baremetal_facts.py`. The twelfth grading pass found it: `je` is a top-level field in all 960
       bare-metal records, 480 of which carry values (the system arms emit nulls, correctly), and
       **nothing reads it**. Meanwhile §7.2 declares the split it measures unresolved and pins it on
       an allocation profile. Medians over the 90 runs per arm at steady state, jemalloc arms, MiB:
@@ -811,18 +815,24 @@ zeros - the same convention `counters.sh` already uses.
       own fixed pages, which is a sharper and more interesting claim than the placeholder. Mind that
       peak RSS is a `getrusage` maximum while the `je` figures are sampled at a point, so the two are
       not strictly commensurable and the write-up has to say so.
-- [ ] **Two further questions the same field can answer.** Check the 30 MiB bimodality against
-      `metadata`: if the low-RSS runs are runs where fewer arenas were touched, the measurement
-      defect behind peak RSS failing Holm under jemalloc has a named cause. And check whether
-      `metadata` explains why the allocator effect fell from ~33 MiB on the guest to ~2.5 MiB on bare
-      metal.
+- [x] **First of the two follow-ups answered, in the negative, which is the useful outcome.** The
+      30 MiB bimodality does not appear on bare metal at all: no arm's peak RSS spans more than
+      1.7 MiB across its repeats, so the defect belonged to the host and not to the allocator. That
+      is now the third reading in §`sec:baremetal` and it retrospectively supports the §`sec:stats`
+      reading rule, which assumed exactly this without being able to show it. The guest campaign
+      carries no `je` fields, so the *guest's* low runs still cannot be checked against `metadata`.
+- [ ] **Second follow-up still open.** Whether `metadata` explains the allocator effect falling from
+      ~33 MiB on the guest to ~2.5 MiB on bare metal. Only the bare-metal side can be measured, so
+      this is a partial answer at best, and the two hosts link different jemalloc builds.
 - [ ] **Name the confound when writing it up.** The C++ arm links the distribution's
       jemalloc while the Rust arm builds 5.3.1 from source, so part of a metadata
       difference is two builds of the allocator, not two programs. Pinning `narenas`
       removes the larger part but not the version difference.
-- [ ] **Aggregate it.** `bench/aggregate.py` and `plot_figures.py` do not read the `je`
-      fields yet, so nothing reaches a table. Decide whether this becomes a column in
-      `tab:resource` or a short subsection of its own.
+- [x] **Aggregated, and it became a subsection of its own rather than a column.** `tab:resource` is
+      the guest's table and the `je` fields exist only on the confirmation host, so a column there
+      would have been empty for every row the chapter reports. `baremetal_facts.py` writes
+      `figures/tab_resident.tex` instead. `bench/aggregate.py` and `plot_figures.py` still do not
+      read the fields and do not need to.
 
 ### 4. Finish RQ2's second half for the two boundary classes
 
