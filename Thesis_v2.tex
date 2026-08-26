@@ -431,10 +431,14 @@
         allocator's effect is an order of magnitude the larger here, and only about twice the
         larger on the bare-metal host, where both effects shrink and the allocator's shrinks by far
         the more. The ordering travels and the ratio does not. The language difference is a
-        fixed cost, not a per-context one. Counters from the bare-metal host supply the
-        explanation the guest could not: at the operation scope the Rust build retires
-        $\BmInstrDelta\%$ \BmInstrDeltaDir{} instructions and misses cache $\BmMissDelta\%$
-        \BmMissDeltaDir{} often per thousand instructions. CPU inverts with the regime. It is marginally lower
+        fixed cost, not a per-context one, and the bare-metal host locates it. \texttt{jemalloc}'s own
+        accounting there puts $\BmJeMetadataDelta$~MiB more in arena bookkeeping and
+        $\BmJeAllocatedDelta$~MiB \emph{less} in live allocation, and its resident bytes are
+        $\BmJeResidentDelta$~MiB lower while the process peak is $\BmJeRssDelta$~MiB higher. So the
+        footprint sits outside the allocator, in the runtime a Rust process carries before it
+        allocates. Counters at the operation scope explain the timing result instead: the Rust build
+        retires $\BmInstrDelta\%$ \BmInstrDeltaDir{} instructions in $\BmCycleDelta\%$
+        \BmCycleDeltaDir{} cycles. CPU inverts with the regime. It is marginally lower
         for Rust while the service copes and much higher per completed operation once it does
         not. The migration seam is small on every axis measured: $\FfiEntryPoints$ C entry
         points in $\FfiSeamLines$ lines of Rust. All raw-pointer work is confined to

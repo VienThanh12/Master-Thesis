@@ -37,6 +37,7 @@ from plot_figures import holm_adjust, paired_permutation_test  # noqa: E402
 
 NS_PER_US = 1000.0
 KB_PER_MIB = 1024.0
+MB_PER_MIB = 1024.0 * 1024.0
 
 #: The below-saturation sweep and the sweep through the knee are two runs on one
 #: host on one day. They are kept apart because they answer different questions
@@ -371,6 +372,141 @@ def overload_facts(macros):
 
 
 # --------------------------------------------------------------------------- #
+# The resident set, decomposed by the allocator that owns most of it.
+#
+# Section 6.4.3 establishes that the peak-RSS language effect is a fixed cost
+# and not a per-context one, and it argues that from the UeContext layout: the
+# measured struct difference accounts for three orders of magnitude less than
+# the gap, so the rest must be runtime and arena overhead. That is an argument
+# from elimination, and until now the split inside "the rest" was open.
+#
+# It need not be. Both benches read jemalloc's own accounting through mallctl
+# (cpp/bench/jestats.hpp) and tikv-jemalloc-ctl (je_stats() in the Rust bench),
+# and every run of the two jemalloc arms carries it. The system-allocator arms
+# emit nulls, never zeros, so they are skipped rather than counted as empty.
+#
+# One quantity here is derived rather than read, and it carries the finding:
+# peak RSS minus the allocator's own resident bytes is the footprint that does
+# not belong to the allocator at all. It is computed per run and then
+# aggregated, not differenced between medians, because the two figures come
+# from the same process at the same moment and pairing them inside the run is
+# what makes the subtraction mean anything.
+#
+# The comparison is approximate in one direction that the prose has to state:
+# rss_peak_kb is a getrusage maximum over the whole run while the jemalloc
+# figures are sampled once, so the difference is an upper bound on the
+# non-allocator footprint rather than an exact measure of it.
+# --------------------------------------------------------------------------- #
+JE_FIELDS = ("allocated", "active", "metadata", "resident", "mapped", "retained")
+
+
+def je_facts(macros, below):
+    have = [r for r in below
+            if r.get("je") and r["je"].get("metadata") is not None]
+    if not have:
+        return ["no jemalloc statistics in the campaign records"]
+    macros["BmJeRuns"] = str(len(have))
+
+    steady = [r for r in have if offered(r) >= 32000]
+    if not steady:
+        return ["no steady-state runs carry jemalloc statistics"]
+
+    def med(lang, field):
+        return statistics.median(
+            [r["je"][field] for r in steady if r["lang"] == lang]) / MB_PER_MIB
+
+    for field in JE_FIELDS:
+        c, r = med("cpp", field), med("rust", field)
+        macros[f"BmJe{field.capitalize()}Cpp"] = fmt(c, 2)
+        macros[f"BmJe{field.capitalize()}Rust"] = fmt(r, 2)
+        macros[f"BmJe{field.capitalize()}Delta"] = f"{r - c:+.2f}"
+
+    # The footprint outside the allocator's own mappings, paired inside each run.
+    def outside(lang):
+        return statistics.median([
+            r["rss_peak_kb"] / KB_PER_MIB - r["je"]["resident"] / MB_PER_MIB
+            for r in steady if r["lang"] == lang])
+
+    out_cpp, out_rust = outside("cpp"), outside("rust")
+    macros["BmJeOutsideCpp"] = fmt(out_cpp, 1)
+    macros["BmJeOutsideRust"] = fmt(out_rust, 1)
+    macros["BmJeOutsideDelta"] = f"{out_rust - out_cpp:+.1f}"
+
+    # The peak-RSS language effect on these same two arms, so the decomposition
+    # can be read against the quantity it decomposes rather than against the
+    # both-allocator range BmRssLang* reports.
+    def rss(lang):
+        return statistics.median(
+            [r["rss_peak_kb"] for r in steady if r["lang"] == lang]) / KB_PER_MIB
+
+    macros["BmJeRssCpp"] = fmt(rss("cpp"), 2)
+    macros["BmJeRssRust"] = fmt(rss("rust"), 2)
+    macros["BmJeRssDelta"] = f"{rss('rust') - rss('cpp'):+.2f}"
+    macros["BmJeLiveLower"] = "Rust" if med("rust", "allocated") < med(
+        "cpp", "allocated") else "C++"
+
+    # Whether the arena bookkeeping is a fixed cost or grows with the workload.
+    # This is the claim Section 6.4.3 makes from the struct layout, tested here
+    # directly: quoted as the drift across the whole swept range.
+    drift = []
+    for lang in ("cpp", "rust"):
+        vals = []
+        for rate in sorted({r["rate"] for r in have}):
+            at = [r["je"]["metadata"] for r in have
+                  if r["lang"] == lang and r["rate"] == rate]
+            if at:
+                vals.append(statistics.median(at))
+        if len(vals) > 1 and min(vals):
+            drift.append(100.0 * (max(vals) / min(vals) - 1))
+    if drift:
+        macros["BmJeMetaDrift"] = fmt(max(drift), 1)
+
+    # The widest within-arm spread of peak RSS at steady state, which says
+    # whether the bimodality that costs the guest its jemalloc row appears here.
+    spreads = []
+    for lang in ("cpp", "rust"):
+        for alloc in ("system", "jemalloc"):
+            vals = [r["rss_peak_kb"] / KB_PER_MIB for r in below
+                    if offered(r) >= 32000 and r["lang"] == lang
+                    and r["alloc"] == alloc]
+            if vals:
+                spreads.append(max(vals) - min(vals))
+    if spreads:
+        macros["BmRssSpreadMax"] = fmt(max(spreads), 1)
+
+    write_resident_table(steady, med, out_cpp, out_rust, rss)
+    return []
+
+
+def write_resident_table(steady, med, out_cpp, out_rust, rss):
+    """figures/tab_resident.tex: the decomposition, generated like the rest.
+
+    Row order runs from what the program asked for to what the process ended up
+    holding, so the table reads as an accumulation rather than as a list. The
+    last two rows are the ones the argument turns on and they are separated by a
+    rule for that reason.
+    """
+    rows = [
+        ("Live allocation (\\texttt{allocated})", "allocated"),
+        ("In active pages (\\texttt{active})", "active"),
+        ("Arena bookkeeping (\\texttt{metadata})", "metadata"),
+        ("Resident in allocator mappings (\\texttt{resident})", "resident"),
+    ]
+    # Signed cells go in math mode, the same convention write_ffi_table uses, so
+    # a negative delta typesets as a minus and not as a hyphen.
+    out = os.path.join(ROOT, "figures", "tab_resident.tex")
+    with open(out, "w", encoding="utf-8") as fh:
+        for label, field in rows:
+            c, r = med("cpp", field), med("rust", field)
+            fh.write(f"{label} & {c:.2f} & {r:.2f} & ${r - c:+.2f}$ \\\\\n")
+        fh.write("\\hline\n")
+        fh.write(f"Outside those mappings (derived) & {out_cpp:.2f} & "
+                 f"{out_rust:.2f} & ${out_rust - out_cpp:+.2f}$ \\\\\n")
+        fh.write(f"Peak resident set (\\texttt{{getrusage}}) & {rss('cpp'):.2f} & "
+                 f"{rss('rust'):.2f} & ${rss('rust') - rss('cpp'):+.2f}$")
+
+
+# --------------------------------------------------------------------------- #
 # Hardware counters. The operation scope is the one that speaks to the language,
 # because the end-to-end path is almost entirely cross-thread handoff.
 # --------------------------------------------------------------------------- #
@@ -434,6 +570,7 @@ def main():
     notes += instrument_facts(macros, below)
     notes += far_tail_facts(macros)
     notes += paired_facts(macros, below)
+    notes += je_facts(macros, below)
     notes += overload_facts(macros)
     notes += counter_facts(macros)
 
