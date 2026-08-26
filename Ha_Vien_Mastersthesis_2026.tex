@@ -22,7 +22,9 @@
 % 105 references at the body's 12pt run to twelve pages, and the page count on the
 % abstract form counts them. 10pt with no gap between entries is an ordinary size
 % for a reference list and saves four of those pages.
-\renewcommand*{\bibfont}{\footnotesize}
+% \scriptsize rather than \footnotesize: measured 26 Aug 2026 as two declared pages
+% off a 109-entry list, with no other lever in the document returning anything.
+\renewcommand*{\bibfont}{\scriptsize}
 \setlength{\bibitemsep}{0pt}
 % Without a mark of its own the bibliography keeps the last chapter's title in
 % the running head of its continuation pages.
@@ -1882,51 +1884,6 @@ dynamic \texttt{Vec}/\texttt{std::vector} on purpose, to exercise the allocator 
 \texttt{lookup} returns an immutable \texttt{UeContextView} copied out by value rather than an
 alias into live shard state, preserving the shared-nothing guarantee.\label{fig:datamodel}}
 \end{figure}
-
-That record is driven by the lifecycle of Figure~\ref{fig:fsm}. Each operation is a single
-guarded transition, and Table~\ref{tab:transitions} gives the implemented table in full.
-Two properties hold everywhere, and they are what make the two implementations comparable op for
-op. First, every operation checks before it changes anything. The guard sequence validates the
-identifier, then locates the context, then tests the state, and it returns the matching
-\texttt{OpError} before touching any field. A rejected operation therefore leaves the context
-bit-identical to what it was. Second, no operation can half-succeed, because each performs at
-most one mutation once the last guard has passed.
-
-Two behaviours need saying out loud, because the table hides them. The
-\texttt{Released} state is never actually stored. \texttt{release\_context} erases the entry
-from the shard map outright, so \texttt{Released} is a passing label in the
-specification and not a value an implementation can be caught resting in. A second
-release therefore returns \texttt{NotFound} and not \texttt{InvalidState}.
-The other case is \texttt{abort\_reconfigure}. It restores the \emph{state} to
-\texttt{Connected}, but it does not restore the serving cell that \texttt{begin\_reconfigure}
-overwrote with the handover target. That is a deliberate simplification, since the model saves
-no pre-handover cell to roll back to. It is still a semantic commitment and not an oversight,
-and both implementations make it the same way, which is what the parity suite of
-Section~\ref{sec:parity} checks.
-
-\begin{table}[H]
-\centering
-\small
-\caption[The implemented state-transition table]{The implemented state-transition table, identical in both languages. Every operation
-additionally returns \texttt{InvalidArgument} for a zero \texttt{ue\_id}, and a rejected
-operation leaves the context unmodified. \texttt{Released} is never stored: release erases
-the entry.\label{tab:transitions}}
-\begin{tabular}{@{}l l l R{0.31\linewidth}@{}}
-\hline\hline
-Operation & Required state & Resulting state & Errors \\
-\hline
-\texttt{create\_context}       & context absent   & \texttt{Idle}          & \texttt{AlreadyExists}, \texttt{CapacityExceeded} \\
-\texttt{setup\_connection}     & \texttt{Idle}          & \texttt{Connected}     & \texttt{NotFound}, \texttt{InvalidState} \\
-\texttt{handle\_signalling}     & \texttt{Connected}     & \texttt{Connected}     & \texttt{NotFound}, \texttt{InvalidState} \\
-\texttt{add\_drb}              & \texttt{Connected}     & \texttt{Connected}     & \texttt{NotFound}, \texttt{InvalidState}, \texttt{CapacityExceeded}, \texttt{AlreadyExists} \\
-\texttt{begin\_reconfigure}    & \texttt{Connected}     & \texttt{Reconfiguring} & \texttt{NotFound}, \texttt{InvalidState} \\
-\texttt{complete\_reconfigure} & \texttt{Reconfiguring} & \texttt{Connected}     & \texttt{NotFound}, \texttt{InvalidState} \\
-\texttt{abort\_reconfigure}    & \texttt{Reconfiguring} & \texttt{Connected}     & \texttt{NotFound}, \texttt{InvalidState} \\
-\texttt{release\_context}      & any live state   & entry erased           & \texttt{NotFound} \\
-\texttt{lookup}                & any live state   & unchanged              & \texttt{NotFound} \\
-\hline
-\end{tabular}
-\end{table}
 
 \subsection{Sharding, the store, and the bounded queue}
 Both sides pin their hashing, so that neither standard library's hasher can become an accidental
