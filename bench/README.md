@@ -373,6 +373,9 @@ python3 bench/plot_figures.py --campaign results/campaign-XXXX.jsonl \
 Produces (vector PDF, all nine embedded by `Ha_Vien_Mastersthesis_2026.tex`):
 - `fig_latency_vs_load.pdf`: p99 latency vs offered load, median + bootstrap 95% CI band.
 - `fig_throughput_vs_load.pdf`: achieved vs offered throughput (saturation knee).
+- `fig_load_sweep.pdf`: the two above as one two-panel figure. The thesis uses this one, because it
+  reads the two sweeps as a pair against a single x axis and pays one caption instead of two. The
+  single-panel versions stay because `build_deck.py` places them side by side on their own slide.
 - `fig_tail_percentiles.pdf`: latency by percentile at the representative load, with
   bootstrap bands, beside the between-variant spread against the within-variant interval.
   The second panel is where the host stops resolving the comparison (RQ1).

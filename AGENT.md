@@ -18,7 +18,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | --- | --- | --- | --- |
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v2.tex`. |
 | **`Thesis_v2.pdf`** | `Thesis_v2.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through, all nine chapters populated since 20 Aug 2026. This is what goes to the supervisor alongside the plan. |
-| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 25 Aug 2026: abstract form declaring **100 pages + 6 appendix pages** (114 physical). It read 102 earlier the same day, 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. Three pages came back from the 25 August **layout** pass and two more from the §6.4 duplication pass that followed it, neither costing an argument. See §5, *Length and layout*, for why the second one paid when the earlier duplication passes did not. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
+| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 26 Aug 2026: abstract form declaring **99 pages + 6 appendix pages** (113 physical). It read 100 and 102 on 25 Aug, 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. Six pages came back across three §6.4 passes on 25 and 26 August and none of them cost an argument: three from layout, two from cutting re-derived argument, and one from merging two single-panel figures into `fig:loadsweep`. Chapter 6 went 27 pages to 25 over the same work. See §5, *Length and layout*, for the ordering rule that made each of them pay. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v2.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. Kept for reference under their original names. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
 | Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Ha_Vien_Mastersthesis_2026.tex`. |
@@ -287,7 +287,7 @@ rg 'gdef.(pagesCount|appendixCount)' build/Ha_Vien_Mastersthesis_2026.aux
 ```
 
 `\pagesCount` counts the body **plus** the AI statement and the bibliography, so a reference-list
-change moves the declared figure. It currently reads 100 with 6 appendix pages (114 physical).
+change moves the declared figure. It currently reads 99 with 6 appendix pages (113 physical).
 
 **Under 100 is a preference, not a rule.** The author set it as the target on 19 August 2026 and
 may revise it. No University of Helsinki or CSM requirement is behind it, and nothing in the
@@ -342,6 +342,34 @@ outright and took the chapter from 27 pages to 26. So the sequence is what pays.
 chapter tails by layout first, then cut duplication, and a stranded page that was previously
 immovable becomes cheap. Cutting the same 420 words before the layout pass would have bought
 nothing. What still does not work is cutting duplication *instead of* fixing layout.
+
+A second §6.4 pass on 26 August found the prose floor. It removed 373 more words, all of it
+framing that announced what the next sentence said, and recovered **zero** pages: the freed lines
+went into float whitespace, and the chapter stayed at 26 pages with the document at 100. §6.4 was
+by then **18.6 pages of prose against 8.0 pages of floats** across 22 floats, which is the
+diagnosis: a further page had to come from a float and not from a sentence. **Do not shave §6.4
+prose expecting pages from it.**
+
+The third pass took that page from a float and confirms the ordering rule a third time.
+`fig:latency-load` and `fig:throughput-load` were two single-panel plots against the same $x$
+axis, which the prose already read as a pair, so `fig_load_sweep()` in `bench/plot_figures.py` now
+emits them as one two-panel figure and the thesis includes that instead. Chapter 6 went to 25
+pages and the document to 99. Four things are worth carrying:
+
+- **The two single-panel generators stay.** `build_deck.py` places them side by side on their own
+  slide, where two images are what the layout wants. Deleting them breaks the deck.
+- **The merge alone did not deliver the page.** It left body page 69 holding a single line, and
+  about twenty words off the §6.4.8 closing paragraph then closed it. Same shape as the 25 August
+  pass: the structural change strands a nearly empty tail page, and a small prose cut collects it.
+- **Nothing measured moved.** `gen_macros.tex` and every `tab_*.tex` came back byte-identical, so
+  the figure count is the only thing that changed. Re-check that after any figure work.
+- Figure numbering shifts when a figure is removed, so re-run the citation-distance check. All 21
+  remaining chapter 6 floats sit within two pages of a citation.
+
+What is left, and it is the author's call because it drops a reader aid rather than a claim:
+`tab:taxonomy` and `fig:taxonomy` show the same $14$ outcomes from the same log and cost about 1.1
+pages between them. Criterion 4 sits at 4.0 on figure-and-claim consistency, so weigh that before
+dropping either.
 
 One trap belongs with the tails. Once the preceding page is full, shaving words moves nothing
 until a whole *line* comes out, and the final word of a chapter can sit alone on a page while its
@@ -448,12 +476,15 @@ edit pass so the two do not diverge.
 
 ---
 
-*Last updated: 25 August 2026. Three length passes on 24 and 25 August took the declared figure
-from 105 to 100 pages and removed no argument. The third was scoped to §6.4 at the author's
-request and is the one that finally cleared 100: 420 words of re-derived argument out, the §6.4.8
-tail page closed from upstream, chapter 6 down from 27 pages to 26, every float still within two
-pages of its citation. Its lesson is in §5 and it is about ordering, since the same 420 words
-would have bought nothing before the layout pass. The first cut 875 words of duplication, found by
+*Last updated: 26 August 2026. Four length passes on 24, 25 and 26 August took the declared figure
+from 105 to **99 pages** and removed no argument. The last three were scoped to §6.4 at the
+author's request: 793 words of re-derived argument and framing out, the §6.4.8 tail page closed
+twice from upstream, `fig:latency-load` and `fig:throughput-load` merged into `fig:loadsweep`, and
+chapter 6 down from 27 pages to 25 with all 21 of its floats still within two pages of a citation.
+The lesson is in §5 and it is about ordering rather than volume: layout first, then duplication,
+then a float, and each step strands the tail page the next one collects. The middle pass of the
+three removed 373 words and bought nothing, which is what located the prose floor. The first cut
+875 words of duplication, found by
 scanning every sentence and paragraph pair in the document rather than by reading: a claim was
 typically stated in three places, such as the environment record in §4.5, §6.1 and §6.3, the
 pairing rule in §4.4, §7.6 and Table 7.3, and the frozen specification's contents in §4.3, Table

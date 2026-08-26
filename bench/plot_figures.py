@@ -382,6 +382,77 @@ def fig_throughput_vs_load(rows, outdir):
 
 
 # --------------------------------------------------------------------------- #
+# Figure 2b: the same two sweeps as one two-panel figure, for the thesis.
+#
+# The single-panel versions above are kept because build_deck.py places them
+# side by side on their own slide, where two separate images are what the layout
+# wants. The thesis reads them as a pair against one x axis, so it takes this
+# one instead and pays a single caption and a single block of float whitespace.
+# The variant styling is drawn once, in (a), and (b) carries only the ideal
+# line in its legend.
+# --------------------------------------------------------------------------- #
+def fig_load_sweep(rows, outdir, percentile="p99"):
+    loads = loads_present(rows)
+    variants = variants_present(rows)
+    xs_ideal = [l / 1000.0 for l in loads]
+
+    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(9.6, 3.6))
+
+    def curve(ax, g, key):
+        label, color, ls, mk = VARIANT_STYLE[key]
+        xs, meds, los, his = [], [], [], []
+        for load in loads:
+            vals = g.get((key[0], key[1], load))
+            if not vals:
+                continue
+            m, lo, hi = bootstrap_ci(vals)
+            xs.append(load / 1000.0)
+            meds.append(m)
+            los.append(lo)
+            his.append(hi)
+        if not xs:
+            return
+        ax.plot(xs, meds, ls, color=color, marker=mk, ms=4, lw=1.6, label=label)
+        ax.fill_between(xs, los, his, color=color, alpha=0.15, lw=0)
+
+    # ---- (a) tail latency against offered load ---------------------------- #
+    g_lat = group_metric(rows, lambda r: r["lat_ns"][percentile] / NS_PER_US)
+    for key in variants:
+        curve(ax_a, g_lat, key)
+    ax_a.set_xlabel("Offered load (kops/s)")
+    ax_a.set_ylabel(f"{percentile} latency (\u00b5s)")
+    ax_a.set_yscale("log")
+    ax_a.set_title(f"(a) Tail latency ({percentile}) against offered load", fontsize=9.5)
+    ax_a.grid(True, which="both", ls=":", alpha=0.4)
+    ax_a.set_axisbelow(True)
+    ax_a.legend(fontsize=8, framealpha=0.95, loc="upper left")
+
+    # ---- (b) achieved throughput against the same axis -------------------- #
+    g_thr = group_metric(rows, lambda r: r["throughput_ops_s"] / 1000.0)
+    ax_b.plot(xs_ideal, xs_ideal, color="0.6", ls=":", lw=1.2,
+              label="ideal (offered = achieved)")
+    for key in variants:
+        curve(ax_b, g_thr, key)
+    ax_b.set_xlabel("Offered load (kops/s)")
+    ax_b.set_ylabel("Achieved throughput (kops/s)")
+    ax_b.set_title("(b) Achieved throughput, and the saturation knee", fontsize=9.5)
+    ax_b.grid(True, ls=":", alpha=0.4)
+    ax_b.set_axisbelow(True)
+    # Only the ideal line, because (a) already establishes the variant styling.
+    ideal_handle = [h for h, l in zip(*ax_b.get_legend_handles_labels())
+                    if l.startswith("ideal")]
+    if ideal_handle:
+        ax_b.legend(handles=ideal_handle, fontsize=8, framealpha=0.95,
+                    loc="upper left")
+
+    fig.tight_layout()
+    out = os.path.join(outdir, "fig_load_sweep.pdf")
+    fig.savefig(out)
+    plt.close(fig)
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # Figure 3: latency-by-percentile "tail curve" at a representative load.
 # --------------------------------------------------------------------------- #
 def pick_representative_load(rows):
@@ -2268,6 +2339,7 @@ def main():
     produced = []
     produced.append(fig_latency_vs_load(rows, outdir))
     produced.append(fig_throughput_vs_load(rows, outdir))
+    produced.append(fig_load_sweep(rows, outdir))
     produced.append(fig_tail_percentiles(rows, outdir, load))
     produced.append(fig_resources(rows, outdir, load))
     taxonomy_csv = (args.taxonomy if os.path.isabs(args.taxonomy)
