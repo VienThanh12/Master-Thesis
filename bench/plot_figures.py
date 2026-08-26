@@ -1443,7 +1443,6 @@ def fig_effects(sig_results, outdir):
                         xy=(0.985, (min(tail_ys) + max(tail_ys)) / 2.0),
                         xycoords=("axes fraction", "data"),
                         ha="right", va="center", fontsize=8, color="#5b6770")
-        ax.set_xlabel("Paired effect, Rust $-$ C++ (% of the C++ median)")
         load_kops = ordered[0]["load"] / 1000.0 if ordered else 0.0
         ax.set_title(f"({panel}) {title}, {load_kops:.0f} kops/s", fontsize=9.5)
         ax.grid(True, axis="x", ls=":", alpha=0.4)
@@ -1458,11 +1457,16 @@ def fig_effects(sig_results, outdir):
     ]
     axes[0].legend(handles=handles, fontsize=8, framealpha=0.95, loc="lower left")
 
-    fig.tight_layout()
+    # One shared label rather than one per panel. Both panels measure the same
+    # quantity on the same normalised axis, so the label was duplicated anyway,
+    # and a per-axes copy is wider than the right-hand axes: centred on that
+    # axes it overhung the figure and lost its last word, which no amount of
+    # bbox_inches recovered because a tight bbox crops to the artists it can
+    # measure and the overhang was not one of them.
+    fig.supxlabel("Paired effect, Rust $-$ C++ (% of the C++ median)",
+                  fontsize=10, y=0.02)
+    fig.tight_layout(rect=(0, 0.045, 1, 1))
     out = os.path.join(outdir, "fig_effects.pdf")
-    # bbox_inches is needed here and not on most of the others: the right panel's
-    # axis label is long enough that tight_layout alone clipped it mid-word in
-    # the shipped PDF.
     fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
     return out
