@@ -112,6 +112,10 @@ def host_facts(macros):
     for field, key in (("isolcpus", "BmIsolcpus"), ("nohz_full", "BmNohzFull")):
         val = grab(rf"{field}:\s+(.+)", "unknown")
         macros[key] = "none" if val.strip() == "(none)" else val.strip()
+    # The hugepage policy, because it is the candidate Section sec:hostcompare
+    # names for the allocator effect that did not survive the change of host, and
+    # a candidate is only checkable if all three captures report it.
+    macros["BmThp"] = grab(r"transparent hugepages:\s+(\S+)", "unknown")
     gpp = grab(r"(g\+\+ \(.*?\) [\d.]+)")
     if gpp:
         macros["BmGpp"] = re.sub(r"g\+\+ \(.*?\) ", "", gpp)

@@ -79,8 +79,17 @@ def host_facts(macros):
     # this host measured and no bare-metal host reproduced.
     macros["GuestThp"] = grab(r"transparent hugepages:\s+(\S+)")
     macros["GuestSteal"] = grab(r"steal ticks \(1 s sample\):\s+(\S+)")
-    isol = grab(r"isolcpus:\s+(.+)")
-    macros["GuestIsolcpus"] = "none" if isol.strip() == "(none)" else isol.strip()
+    for field, key in (("isolcpus", "GuestIsolcpus"), ("nohz_full", "GuestNohzFull")):
+        val = grab(rf"{field}:\s+(.+)")
+        macros[key] = "none" if val.strip() == "(none)" else val.strip()
+    macros["GuestGovernor"] = grab(r"governors:\s+(.+)")
+    macros["GuestSmt"] = grab(r"smt/control:\s+(\S+)")
+    gpp = grab(r"(g\+\+ \(.*?\) [\d.]+)")
+    if gpp:
+        macros["GuestGpp"] = re.sub(r"g\+\+ \(.*?\) ", "", gpp)
+    rustc = grab(r"rustc (\d+\.\d+\.\d+|\d+\.\d+)")
+    if rustc:
+        macros["GuestRustc"] = rustc
     return []
 
 
