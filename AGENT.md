@@ -685,9 +685,9 @@ consistency clause and not on the abstract. **The lesson for the next integratio
 tables, the threats table, the hypothesis revisit and the statistical-treatment section in the same
 pass as the new results section, because those four are where a grader looks and they are the four
 that were missed.** See the eleventh pass in `docs/ASSESSMENT.md` for the site list with line
-numbers, and `docs/TODO.md` "Next up" item 4.*
+numbers. Current open work is `docs/TODO.md` § *Do now*.*
 
-*Last updated: 26 August 2026. Four length passes on 24, 25 and 26 August took the declared figure
+*Last updated: 27 August 2026. Open checklist rewritten in `docs/TODO.md` (*Do now*). Prior note: Four length passes on 24, 25 and 26 August took the declared figure
 from 105 to **99 pages** and removed no argument. The last three were scoped to §6.4 at the
 author's request: 793 words of re-derived argument and framing out, the §6.4.8 tail page closed
 twice from upstream, `fig:latency-load` and `fig:throughput-load` merged into `fig:loadsweep`, and

@@ -10,129 +10,132 @@ primary control against implementation bias.
 
 ---
 
-## Next up (as of 26 Aug 2026, after the bare-metal campaign)
+## Do now (as of 27 Aug 2026)
 
-Implementation, analysis, and writing are finished: the thesis builds at **101 declared pages plus
-6 appendix pages, 115 physical** (26 Aug 2026, after a priced length pass) with zero LaTeX errors, zero undefined references or
-citations and zero overfull boxes, and every quoted number regenerates from the raw logs. The plan
-document (`Thesis_Plan_v2.pdf`, dated 9 Aug 2026) puts measurement in September, RQ1/RQ3
-resolution in October, and submission in November. **Measurement is now ahead of that schedule and
-the writing is behind it**: the bare-metal campaign ran on 26 August and the eleventh grading pass
-found fourteen places in the document that still describe a study with less evidence than it has.
+Thesis builds clean. Sync editing, deck, `je` resident-set write-up, and the Aug 26 bare-metal
+**confirmation** visit are done. Mean self-grade **4.75**. Four open items move grades; everything
+else is process or housekeeping. Detail and grade reasoning: `docs/ASSESSMENT.md`, `AGENT.md` §2.
 
-**The shape of the remaining work has changed.** It used to be one measurement plus review. It is
-now three hours of sync editing, two half-days of analysis on data already on disk, one two-hour
-repeat measurement, and the abstract.
+### Already done (do not re-run)
 
-1. **Send the spec and the plan to the supervisors** (Phase 1, Phase 2). This needs no repo work
-   and everything gated on `spec-v1.0` is queued behind it. Of the three Phase 1 items, "what can
-   be published" is the one that can force rework rather than just a signature: the repository is
-   already public (`github.com/VienThanh12/Master-Thesis`, compiled PDF included), so hearing a
-   Nokia objection now costs far less than hearing it in November.
-2. **DONE 26 Aug 2026. Two campaigns, and what each one settled.** A bare-metal visit ran on a
-   rented Cherry Servers AMD EPYC 7443P (24 cores, one socket, SMT off, governor `performance`,
-   `virtualisation: none`, **0 of 60 sampling intervals showed any steal** on the 16 pinned cores).
-   It wrote two sweeps, kept apart on purpose because they answer different questions:
+| What | Artefact / status |
+| --- | --- |
+| Bare-metal confirmation (far tail, RSS, overload, counters, alloc dump) | `bench/results-baremetal/campaign-20260826-*`, §`sec:baremetal` |
+| Sync editing after the visit | Far-tail sites, threats table, H1 revisit, toolchain named |
+| `je` resident-set decomposition | `figures/tab_resident.tex`, §`sec:baremetal` |
+| Slide deck resync | Reads `gen_baremetal.tex` / `tab_resident.tex` |
+| Taxonomy table generator | `figures/tab_taxonomy.tex` from `faults/results/taxonomy.csv` |
 
-   | Campaign | Offered load | What it settled |
-   | --- | --- | --- |
-   | `campaign-20260826-102047` | 8 to 128 kops/s | The far tail, the paired median, peak RSS |
-   | `campaign-20260826-124950` | 128 to 640 kops/s | The knee, the overload divergence, the metastable point |
+The Aug 26 visit used **8 shards / 8 producers / 15 repeats / 8 load levels** and Ubuntu
+`g++ 13.3` / `rustc 1.98`. It **corroborates** the main sweep. It does **not** replace
+`campaign-20260812-154528` (7 / 7 / 20 / 14 rates, Rocky `g++ 15.1` / `rustc 1.97`).
 
-   Both are 480 runs (8 levels x 15 repeats x 4 variants). Macros in `figures/gen_baremetal.tex`
-   via `bench/baremetal_facts.py`, which `refresh_thesis.sh` calls. Reported in §`sec:baremetal`.
+### Open work (ordered)
 
-   **What it returned**, all of it verified against the raw logs by the eleventh grading pass:
-   - **The far tail resolves and favours Rust.** Pooled p99.99 over 32 to 96 kops/s is 147 to
-     228 µs for the two C++ variants and 88 to 115 µs for the two Rust variants, and the ranges do
-     not meet. Below 32 kops/s the four are indistinguishable. Pooling gives 360 000 to 5 761 198
-     operations per group against about seventeen for a single run's p99.99.
-   - **The instrument inverted, which is the reason the trip was worth taking.** The widest 95 %
-     interval on one variant's p99 is 2.8 µs against a between-variant range of 3.6 µs. On the
-     guest those numbers are 1480 and 293.
-   - **The median difference sharpens.** 14 of 16 load-and-allocator points clear Holm, Rust lower
-     by 0.5 to 1.1 µs on a 73.6 µs operation.
-   - **Peak RSS reproduces in direction**, 16 of 16 significant, language effect 0.7 to 1.8 MiB,
-     allocator effect 1.9 to 3.2 MiB. **But see the new item 7 below: the order-of-magnitude gap
-     between the two effects did not survive the change of host.**
-   - **The overload divergence reproduces on another vendor's silicon.** Tracking to 448 kops/s,
-     knee between 448 and 512, and at 640 kops/s C++ sustains 158 kops/s against Rust's 96, a
-     ratio of 1.64 against the guest's 1.8. The 512 kops/s point is **not quotable**: the Rust arms
-     are bimodal there with 37 % dispersion.
-   - **Counters give the mechanism the thesis had argued.** At the operation scope over 10
-     interleaved repeats, Rust retires 11 % fewer instructions (*p* = 0.002) in 15 % fewer cycles
-     (*p* = 0.0117) while missing cache 29 % more often per thousand instructions (*p* = 0.002).
+| # | Task | Effort | Lifts | Who |
+| --- | --- | --- | --- | --- |
+| **A** | **Rewrite the abstract yourself**, then set `\abstractunaidedtrue` | 1–2 h | Crit. **6 → 5** (only blocker). Also last stale far-tail sentence in the PDF | **You only** (model must not write it) |
+| **B** | **Analyse the allocation profile** already on disk | ~½ day | Crit. **4 → 5** (call-site attribution `tab:threats` still lacks) | You or agent |
+| **C** | **Report collected jitter** + add **p99.99 column** to `tab:latency` (optional: a §`sec:baremetal` figure) | ~½ day | Crit. **4 → 5** | You or agent |
+| **D** | **Canonical bare-metal repeat** (matched to main campaign) | ~2 h + ~€1 machine | Crit. **3 data → 5** (only measurement left) | You on rented host |
+| **E** | Send **spec + plan** to supervisors; settle Nokia “what can be published” | Email | Unblocks Phase 1/2 sign-off | You |
+| **F** | Companion docs: decide fate of `thesis-vi` / archive companions | Short | Repo hygiene, no grade | You or agent |
+| **G** | Full proofread pass | Half day+ | Submission polish | You |
+| — | Examiners / official class file | n/a | Not yours to schedule | Faculty / Moodle |
 
-   **Two caveats, and both are now follow-up items.** First, the run used the `TESTBED.md` example
-   configuration: 8 shards and 8 producers over 8 load levels at 15 repeats, against the canonical
-   campaign's (`campaign-20260812-154528`) 7 and 7 over 14 levels at 20 repeats. Shard count is a
-   fairness control and the repeat count sets the exact test's floor, so this corroborates the main
-   sweep and cannot replace it. Second, and **not yet stated anywhere in the thesis**: the
-   toolchain moved too, `g++ 15.1.1`/`rustc 1.97` on Rocky 8.10 against `g++ 13.3.0`/`rustc 1.98.0`
-   on Ubuntu 24.04. §`sec:baremetal` says the campaign "changes one thing that matters, the
-   machine", and `tab:testbed`'s caption says a machine meeting the protocol was used. Neither is
-   true as written: the protocol column also asks for the same toolchain, `isolcpus` and
-   `nohz_full` (the capture's own warning block reports neither), and 20 repeats.
+**Recommended order:** A (blocker, only you) → B then C (data already on disk, no machine) → D when you next rent a box → E in parallel whenever → F/G before submission.
 
-   **Repeating it at the canonical configuration and toolchain is the one measurement still
-   outstanding**, about two hours and one euro of rented machine. Set
-   `kernel.perf_event_paranoid=1`, source `~/.cargo/env`, and add `isolcpus`/`nohz_full` this time.
-3. **Harness work: done, and it paid off.** p99.99 and jitter sidecars, `perf` counters and the
-   allocation profile were all collected on the bare-metal visit, which is what the earlier
-   version of this item was trying to ensure. Two lessons are recorded for a repeat run:
-   - `kernel.perf_event_paranoid` defaults to 4 on Ubuntu 24.04 and blocks `counters.sh`. Set it
-     to 1 for the session.
-   - `alloc_profile.sh --check` reports the Rust arm as unbuildable when `cargo` is not on
-     `PATH`, which is what a non-login SSH session gives you. Source `~/.cargo/env` first.
-4. **DONE 26 Aug 2026, evening: the sync editing.** The eleventh grading pass moved criterion 5 off
-   5 and criterion 6 from 4.5 to 4.0, both on staleness rather than on anything the campaign did,
-   and a remediation pass the same evening closed every item except the abstract and restored both.
-   All six statements denying an instrument the study used are rewritten, four of the five far-tail
-   sites are synced, the toolchain is named in §`sec:baremetal`, `tab:testbed`'s caption stops
-   claiming a protocol the host missed, H1's revisit uses the campaign that settles H1's own clause,
-   the peak-RSS order-of-magnitude phrasing carries a host at five sites, all five figure defects
-   are closed, and six new macros retire the last typed measured values in Chapter 6. Mean back to
-   4.67. Detail in `docs/ASSESSMENT.md`, remediation pass.
-5. **DONE 26 Aug 2026, night: the `je` statistics are read and written up.** `je_facts()` and
-   `write_resident_table()` in `bench/baremetal_facts.py` emit 26 macros and
-   `figures/tab_resident.tex`, and §`sec:baremetal` reports the decomposition in three readings.
-   **The result relocates the RQ3 memory finding.** Arena metadata costs the Rust build +2.07 MiB
-   more and drifts 0.5% across the whole load range, so it measures the fixed cost §6.4.3 previously
-   argued by elimination, and Rust holds 0.16 MiB *less* live allocation. But jemalloc's own resident
-   bytes are 1.92 MiB *lower* in the Rust build while its peak is 1.74 MiB higher, and paired inside
-   each run the footprint outside the allocator's mappings differs by +3.8 MiB. **So the peak-RSS
-   language effect is not an allocator effect**: it is the standard library and runtime a Rust process
-   carries before it allocates. Third reading, a negative result about the guest: no arm's peak RSS
-   spans more than 1.7 MiB on bare metal, so the 31 MiB bimodality belonged to the host. This also
-   gave §`sec:baremetal` the float it was missing. Criterion 4 left 4.0 for the first time since the
-   ninth pass.
-6. **DONE 26 Aug 2026, night: the twelfth pass's editing list.** The counter over-claim is gone from
-   all four sites, §7.2's enumeration is repaired, Appendix D's intro matches its caption, §6.3 names
-   three kinds of addition to the confirmation record, and §5.6 no longer calls §`sec:baremetal` a
-   rerun. Two stranded pages recovered: `tab:testbed` moved from `[H]` to `[ht]` (the cause was `[H]`
-   forbidding reflow, which is the reverse of this repo's usual fix, so diagnose first), and a §5.6
-   tightening pulled back a chapter-tail line. Net cost of the whole night: **one declared page**,
-   103 to 104.
-7. **NOW THE TOP PRIORITY: analyse the allocation profile** (Phase 7a below). Half a day. Its scope
-   is now stated correctly in `tab:threats`: which runtime pages carry the footprint is not
-   attributed to a call site. That is what the profile is for, and it is a *different* question from
-   item 5, which located the footprint without attributing it.
-8. **Report the jitter that was collected, and add the p99.99 column to `tab:latency`.** Half a
-   day. `\LatencyCols` and `\LatencyHead` are generated so this needs no preamble edit, and the
-   `tab_jitter.tex` machinery has been proven since 20 Aug. Also consider giving §`sec:baremetal` a
-   figure: it answers the chapter's headline question in prose alone, and its central result is two
-   non-overlapping ranges across seven load levels.
-9. **DONE 26 Aug 2026, evening: the slide deck is resynced** (Phase 10). It reads
-   `gen_baremetal.tex` and `tab_resident.tex`, carries a far-tail slide and a resident-set slide,
-   names both hosts, and no longer contradicts the thesis at the five sites that did. Details in
-   the Phase 10 entry. The quiet failure mode it demonstrates is worth keeping in mind: both gates
-   passed on every stale build, because they check layout and punctuation and not agreement with
-   the source.
-10. **Decide what the companion documents are for, and fix the broken one** (Phase 9b).
-   `thesis-vi.pdf` currently renders 113 citations as `[?]` and predates the 15-repeat campaign.
-11. **Then:** the proofread round. The two title-page items are not on this path and are not yours
-   to schedule: the examiners come from the faculty, and the official class file from the UH
-   Overleaf/Moodle.
+**Abstract rewrite must fix five defects in one pass:** seven-and-seven catalogue, practical-not-statistical median, jitter, far tail **is** settled on bare metal (delete “cannot be settled on a virtualised host”), then flip `\abstractunaidedtrue`.
+
+### A — Abstract (you alone)
+
+Edit `Ha_Vien_Mastersthesis_2026.tex` abstract by hand. Do not ask a model to draft it. After
+rewrite, set `\abstractunaidedtrue`, rebuild, visually check page 3 (CCS overflow).
+
+### B — Allocation profile (data on disk)
+
+Input: `bench/results-baremetal/alloc_profile-20260826-110718/`.
+
+Goal: attribute which runtime / call sites carry the peak-RSS language effect that `tab:resident`
+already **located** outside jemalloc. Update prose + `tab:threats` residual. Regenerate via
+`bench/refresh_thesis.sh` if you add macros. Phase 7a below has the longer write-up.
+
+### C — Jitter and p99.99 in the main tables
+
+- Jitter was collected on the confirmation visit and left undiscussed (`tab_jitter.tex` path proven
+  since 20 Aug).
+- `\LatencyCols` / `\LatencyHead` already allow a p99.99 column; fill it from pooled HDR data.
+- Optional: one figure for §`sec:baremetal` (two non-overlapping far-tail ranges).
+
+### D — Canonical bare-metal repeat (run sheet)
+
+Match **`campaign-20260812-154528`**, change **only the host** (plus isolation the guest never had).
+
+| Knob | Must be |
+| --- | --- |
+| Shards / producers | **7 / 7** |
+| Repeats | **20** |
+| Rates (per producer) | `1000 2000 4000 8000 12000 16000 24000 32000 40000 48000 56000 64000 80000 112000` |
+| Toolchain | Rocky image via Docker: **g++ 15.x / rustc 1.97** (`docker/run.sh`) |
+| Isolation | `isolcpus` + `nohz_full` (+ `rcu_nocbs`) on the pin set; reboot if needed |
+| `perf` | `sudo sysctl -w kernel.perf_event_paranoid=1` |
+| Duration / warmup | `--duration 3 --warmup-s 1` |
+| Jitter + HDR | leave defaults on (do not pass `--no-jitter` / `--no-hist`) |
+
+On the bare-metal host:
+
+```bash
+# Host hygiene (governor / turbo / SMT). isolcpus/nohz_full via kernel cmdline if missing.
+bench/setup_testbed.sh --no-install
+sudo sysctl -w kernel.perf_event_paranoid=1
+
+docker/run.sh build
+docker/run.sh check
+docker/run.sh counters --software          # early
+docker/run.sh alloc-profile --check        # early
+
+# 1120 runs ≈ 2 h. Pin list must cover 7+7 threads; example assumes ≥16 cores.
+docker/run.sh campaign --cpuset 2-15 --repeats 20 --duration 3 --warmup-s 1 \
+  --shards 7 --producers 7 --active-ues 5000 \
+  --rates "1000 2000 4000 8000 12000 16000 24000 32000 40000 48000 56000 64000 80000 112000"
+
+docker/run.sh counters --cpuset 2-15 --repeats 10
+docker/run.sh alloc-profile
+
+# Before leaving the machine:
+python3 bench/pool_hist.py bench/results/campaign-<stamp>.hist.jsonl \
+  --verify bench/results/campaign-<stamp>.jsonl
+```
+
+Back on the laptop after copying results: `bench/refresh_thesis.sh`, then sync Chapter 6/7 prose so
+tables can move from the guest campaign to this matched set. Keep Aug 26 confirmation under
+`bench/results-baremetal/` as corroboration unless you deliberately merge narratives.
+
+**Lessons from Aug 26 (apply again):** set `perf_event_paranoid` before counters; in a non-login
+SSH shell source `~/.cargo/env` (or use Docker so PATH is fixed); verify HDR with `pool_hist.py`
+while a re-run is still possible.
+
+### E–G — Process
+
+1. Email supervisors: `spec/` + `Thesis_Plan_v2.pdf`. Flag that the GitHub repo is already public.
+2. Decide whether `archive/thesis-vi` is kept, rebuilt, or dropped (citations currently `[?]`).
+3. Proofread `Ha_Vien_Mastersthesis_2026.tex` end to end; run `./.aitells.py` on touched prose.
+4. When faculty assigns examiners: `\censors{}{}{}`. Official class file from UH Moodle/Overleaf if
+   required (document already builds on `HYthesisML.cls`).
+
+### Grade map (why these four)
+
+| Criterion | Now | What moves it to 5 |
+| --- | --- | --- |
+| 1 Objectives & RQs | 5 | Hold (keep RQ2 seven + seven) |
+| 2 Sources | 5 | Optional: replace remaining arXiv `Bugden` |
+| 3 Method & data | 4.5 | **D** matched bare-metal repeat |
+| 4 Results presentation | 4.5 | **B** + **C** (and abstract for camera-ready) |
+| 5 Discussion | 5 | Hold (no over-claim) |
+| 6 Academic text | 4.5 | **A** unaided abstract |
+
+Overall mean **4.75**. A alone does not raise the mean much if 3 and 4 stay at 4.5; A+B+C+D is the
+path to a clean 5 across the manuscript criteria.
 
 ---
 
