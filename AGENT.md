@@ -17,7 +17,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | Document | Source | Status | Role |
 | --- | --- | --- | --- |
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v2.tex`. |
-| **`Thesis_v2.pdf`** | `Thesis_v2.tex` | **Reviewed — supervisor-facing** | One-bullet-per-argument chapter skeleton for supervisor read-through, all eight chapters populated. Filled out on 20 Aug 2026 and cut from nine chapters to eight on 26 Aug 2026, when the standalone `Objectives` chapter was folded into the introduction to match the draft (§4). This is what goes to the supervisor alongside the plan. |
+| **`Thesis_v2.pdf`** | `Thesis_v2.tex` | **Reviewed — supervisor-facing** | Supervisor read-through of the eight-chapter argument. Chapter 1 is the full introduction from the draft (copied 27 Aug 2026, cross-refs retargeted). Chapters 2 to 8 keep five argument paragraphs each, as plain prose rather than itemize. Cut from nine chapters to eight on 26 Aug 2026, when the standalone `Objectives` chapter was folded into the introduction to match the draft (§4). This is what goes to the supervisor alongside the plan. |
 | **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 26 Aug 2026, after the bare-metal campaign and a priced length pass: abstract form declaring **101 pages + 6 appendix pages** (115 physical). It peaked at 105 when the `je` decomposition landed, and the length pass took it to 101 by the only two levers that return anything (a `\scriptsize` bibliography and §5.4.1's state-machine narration, whose two semantic commitments moved to §5.5). **Do not go looking for more: §5, *Length and layout*, now records every lever measured, and all but the bibliography return zero.** Before the campaign, the same day, it read 99 + 6 (113 physical). It read 100 and 102 on 25 Aug, 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. Six pages came back across three §6.4 passes on 25 and 26 August and none of them cost an argument: three from layout, two from cutting re-derived argument, and one from merging two single-panel figures into `fig:loadsweep`. Chapter 6 went 27 pages to 25 over the same work. See §5, *Length and layout*, for the ordering rule that made each of them pay. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v2.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. Kept for reference under their original names. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
@@ -212,11 +212,15 @@ the scope exclusions folded into the contributions bullet, mirroring §1.4. **Th
 objectives O1 to O5 are gone on purpose**, because the draft has no numbered objectives anywhere
 and keeping them would have re-opened the divergence in a different form.
 
-`Thesis_v2.tex` mirrors its own structure as **one bullet per argument move** per chapter. All
-eight of its chapters carry bullets, five each, except chapter 1 which carries seven: it had six
-and absorbed the hypotheses in the fold. Chapters 5 to 8 were filled at the author's explicit
-request on 20 August 2026, when the fold had not happened and they were numbered 6 to 9. Keep
-that shape. The skeleton has no appendix and needs none.
+`Thesis_v2.tex` still has one argument move per paragraph, but it is no longer an itemize
+skeleton. On 27 August 2026 the author asked for the draft Chapter 1 in full and for plain
+prose in every chapter. Chapter 1 is therefore the introduction from
+`Ha_Vien_Mastersthesis_2026.tex`, with appendix and later-section references retargeted to
+the chapter labels this file has. Chapters 2 to 8 keep **five argument paragraphs** each,
+the same five moves they had as bullets. Do not add a sixth paragraph to those chapters, and
+do not expand them into the full draft's chapter prose. The document has no appendix and
+needs none. Chapters 5 to 8 were first filled at the author's explicit request on 20 August
+2026, when the fold had not happened and they were numbered 6 to 9.
 
 Older notes in this file, in `docs/ASSESSMENT.md` and in `.cursor/rules/thesis-quality.mdc` that
 call the evaluation chapter 7 or the discussion chapter 8 are using the retired nine-chapter
@@ -567,7 +571,7 @@ which is criterion 1's blocker.
 - **Do not** leave an em dash or a semicolon where a reader can see it, in the thesis source or on a slide. The deck build refuses to pass one.
 - **Do not** claim testbed-grade tail latency from the virtualised host.
 - **Do not** remove boundary defect classes or sanitiser-only C++ outcomes to tidy the narrative.
-- **Do not** turn `Thesis_v2.tex` into prose or let a chapter drift off five bullets. It is a bullet-per-argument skeleton on purpose, and it is supervisor-facing.
+- **Do not** expand `Thesis_v2.tex` chapters 2--8 beyond five argument paragraphs, or replace Chapter 1 with a shorter skeleton. Chapter 1 is the draft introduction. The rest stay a five-move skeleton, now in plain prose rather than itemize, and the document is supervisor-facing.
 - **Do not** commit secrets, Nokia-internal identifiers, or confidential traces.
 - **Do not** create git commits unless the author explicitly asks.
 
@@ -599,7 +603,7 @@ When preparing material for **Keijo Heljanko** (supervisor) and Nokia instructor
 (**Christoph Luneburg**, **Petteri Kotimaa**):
 
 1. `Thesis_Plan_v2.pdf` — plan, status, timeline (dated; status table must match repo reality).
-2. `Thesis_v2.pdf` — chapter skeleton, all eight chapters populated (35 pages).
+2. `Thesis_v2.pdf` — supervisor read-through: full Chapter 1, five prose paragraphs in each of chapters 2--8 (44 physical pages, 37 declared).
 3. Optionally reference `Ha_Vien_Mastersthesis_2026.pdf` as the **working full draft** (clearly labelled not final).
 
 Port supervisor feedback into `Thesis_v2.tex` and `Ha_Vien_Mastersthesis_2026.tex` in the same
