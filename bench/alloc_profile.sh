@@ -48,6 +48,13 @@ active_ues=5000
 ops=200000
 warmup=20000
 seed=42
+# Offered rate per producer. Left unset the benchmark runs closed loop, which on
+# a fast host lands past the saturation plateau: the 26 Aug 2026 profile did that
+# and came back at 455 kops/s, a regime where its peak RSS ordering is the
+# reverse of the campaign's, so it could attribute nothing. Peak RSS is reported
+# below saturation, so the profile has to be taken there too. 8000 per producer
+# is one of the swept levels at either shard count.
+rate=8000
 # Sampling interval as a power of two bytes. jemalloc's default (lg_prof_sample:19,
 # every 512 KiB) would put only a handful of samples inside a 2.1 MiB difference;
 # 4 KiB resolves it while keeping the dump small.
@@ -71,6 +78,7 @@ while [ $# -gt 0 ]; do
     --active-ues) active_ues="$2"; shift 2;;
     --ops)        ops="$2"; shift 2;;
     --warmup)     warmup="$2"; shift 2;;
+    --rate)       rate="$2"; shift 2;;
     --seed)       seed="$2"; shift 2;;
     --lg-sample)  lg_sample="$2"; shift 2;;
     --lg-interval) lg_interval="$2"; shift 2;;
@@ -286,6 +294,7 @@ mkdir -p "$outdir"
 conf_common="prof:true,prof_active:true,prof_final:true,lg_prof_sample:$lg_sample,lg_prof_interval:$lg_interval"
 
 bench_args=(--workload mixed --shards "$shards" --producers "$producers"
+            --rate "$rate"
             --active-ues "$active_ues" --ops "$ops" --warmup "$warmup"
             --seed "$seed" --json)
 
