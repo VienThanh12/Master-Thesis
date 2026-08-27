@@ -48,6 +48,12 @@ the testbed visit.
   reported campaign, which is exactly the hole `docs/TODO.md` Phase 11 item 2 describes.
   Their names and shapes are now known, so the float, caption and prose in §7.5 can be
   written before the testbed visit instead of during it.
+  *(Four of those names were retired on 27 August 2026 and this paragraph is left as written,
+  because it records what that run produced. `JitterRange` and `JitterPNineNineRange` became
+  Lo/Hi pairs after a range macro wrapped in math mode typeset as two minus signs, `IqrRange`
+  followed for the same reason, and `JitterVsMedian` became `JitterVsMedianPct` after the prose
+  read a percentage as a multiple. The far-tail macros are now read from the pooled sidecar
+  rather than the per-run field.)*
 - The environment record carries its own provenance: image manifest, `container: docker`,
   `virtualisation: microsoft`, no cgroup quota, seccomp 0, cpuset 2 to 13.
 
