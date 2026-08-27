@@ -162,6 +162,31 @@ def resource_facts(macros, rows):
     return []
 
 
+def test_family_facts(macros, rows):
+    """What the same test family returned on this host.
+
+    Table tab:equivalence exists to separate a null worth reporting from a
+    campaign declining to answer, and on the reported host every row resolves, so
+    the table's own reason for existing is only visible in the earlier campaign.
+    These two macros supply that contrast rather than leaving the prose to
+    remember it. Computed by the same `significance_results` the main campaign
+    uses, at the same representative load and the same overload point, so the
+    counts are comparable by construction.
+    """
+    from plot_figures import pick_overload_load, significance_results
+
+    sig = significance_results(rows, REPR_LOAD_OPS, pick_overload_load(rows))
+    if not sig:
+        return ["guest campaign yielded no paired tests"]
+    macros["GuestNTests"] = str(len(sig))
+    macros["GuestNSignificant"] = str(sum(1 for r in sig if r["holm"] < 0.05))
+    macros["GuestNEqvUnresolved"] = str(sum(1 for r in sig if r["holm"] >= 0.05))
+    tail = [r["eqv"] for r in sig if r["kind"] == "tail"]
+    if tail:
+        macros["GuestEqvBoundTailMax"] = fmt(max(tail))
+    return []
+
+
 def throughput_facts(macros, rows):
     thr = {}
     for r in rows:
@@ -199,6 +224,7 @@ def main():
     notes += host_facts(macros)
     notes += instrument_facts(macros, rows)
     notes += resource_facts(macros, rows)
+    notes += test_family_facts(macros, rows)
     notes += throughput_facts(macros, rows)
 
     out = os.path.join(ROOT, "figures", "gen_guest.tex")

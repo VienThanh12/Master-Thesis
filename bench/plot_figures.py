@@ -1970,7 +1970,8 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
     # macros: `\begin{tabular}{\LatencyCols}` fails with "Illegal pream-token".
     # Expanding a macro that already contains the \begin leaves literal preamble
     # tokens for the scanner to read.
-    lat_fields, lat_labels = latency_table_fields(rows)
+    pooled = pooled_far_tail(campaign_path, load)
+    lat_fields, lat_labels = latency_table_fields(rows, pooled)
     cols = "@{}l" + " r" * len(lat_fields) + "@{}"
     macros["LatencyTabular"] = "\\begin{tabular}{" + cols + "}"
     macros["LatencyHead"] = "Variant & " + " & ".join(lat_labels)
@@ -1986,13 +1987,30 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
     # samples. Testing them would spend two more slots of the family-wise budget
     # on comparisons that cannot resolve and make Holm harsher on the ones that
     # can -- the same reasoning that removed achieved throughput from the family.
-    if has_metric(rows, ("lat_ns", "p9999")):
-        p9999_us = lambda r: r["lat_ns"]["p9999"] / NS_PER_US
-        far = [med_at(k, load, p9999_us) for k in variants]
+    # The far tail comes from the pooled distribution and never from the per-run
+    # p9999 field, which is the statistic Section 4.5 calls dominated by sampling
+    # noise. Reading it from the campaign JSONL would put a number on the page
+    # that the methodology chapter disowns, and it did until 27 August 2026.
+    if pooled:
+        far = [pooled[k]["p9999"] for k in variants if k in pooled]
+        samples = [pooled[k]["samples"] for k in variants if k in pooled]
+        fast = min(pooled.items(), key=lambda kv: kv[1]["p9999"])[0]
         macros.update({
             "FarTailSpread": f"{100.0 * (max(far) / min(far) - 1):.0f}",
             "FarTailRange": f"{max(far) - min(far):.0f}",
             "FarTailMax": f"{max(far):.0f}",
+            "FarTailMin": f"{min(far):.0f}",
+            "FarTailLower": LANG_LABEL.get(fast[0], fast[0]),
+            "FarTailSamplesMin": f"{min(samples):,}".replace(",", "\\,"),
+            "FarTailSamplesMax": f"{max(samples):,}".replace(",", "\\,"),
+            # Whether the two languages separate at this percentile with no
+            # overlap between their arms, which is what licenses an ordering from
+            # a statistic that carries no interval.
+            "FarTailByLang": (
+                "yes" if max(pooled[k]["p9999"] for k in pooled if k[0] == "rust")
+                < min(pooled[k]["p9999"] for k in pooled if k[0] == "cpp")
+                else "no"
+            ),
         })
     if has_metric(rows, ("lat_ns", "p25")) and has_metric(rows, ("lat_ns", "p75")):
         iqr_us = lambda r: (r["lat_ns"]["p75"] - r["lat_ns"]["p25"]) / NS_PER_US
@@ -2694,7 +2712,14 @@ def main():
     overload_fig = fig_overload(rows, outdir, overload)
     if overload_fig:
         produced.append(overload_fig)
-    lat_tab = write_latency_table(rows, outdir, load)[0]
+    # tab:latency's far-tail column is pooled across repeats, so the pooled
+    # sidecar is read once here and passed to both the table and the macros.
+    pooled = pooled_far_tail(campaign, load)
+    if pooled:
+        print(f"far tail: pooled p99.99 read for {len(pooled)} variants, "
+              f"{min(v['samples'] for v in pooled.values()):,} to "
+              f"{max(v['samples'] for v in pooled.values()):,} operations per group")
+    lat_tab = write_latency_table(rows, outdir, load, pooled)[0]
     res_tab = write_resource_table(rows, outdir, load)
     jitter_tab = write_jitter_table(rows, outdir, load)
     if jitter_tab:

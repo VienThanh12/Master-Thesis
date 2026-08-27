@@ -504,9 +504,9 @@ The thesis is organised around four research questions, ordered to put predictab
 migration ahead of raw average performance:
 
 \begin{description}
-  \item[RQ1] How do Rust and modern C++ compare in latency predictability (median, p99
-        and p99.9 tail latency, and the maximum) for a RAN control-plane workload under
-        increasing load and overload?
+  \item[RQ1] How do Rust and modern C++ compare in latency predictability (median, p99,
+        p99.9 and p99.99 tail latency, and the maximum) for a RAN control-plane workload
+        under increasing load and overload?
   \item[RQ2] Which classes of memory-safety and concurrency defects that occur in C++ are
         eliminated at compile time in the Rust implementation, and at what stage and cost
         are the remaining ones detected?
@@ -571,11 +571,14 @@ The second division is by regime. Below saturation the two implementations are e
 end in central behaviour, by a margin no deployment would notice. The paired test does resolve a
 median difference of $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators, with an
 interval reaching $\PFiftyDiffCIMax\,\mu$s, so the equivalence is practical and not statistical.
-The far tail in the same regime now resolves on the reported host: the pooled p99.99 of the
-Rust variants sits below that of the C++ variants at every load where the two separate, and a
-second bare-metal campaign at another shard count agrees on the direction
-(Section~\ref{sec:hostcompare}). Past saturation
-the ordering reverses. The C++ build sustains $\OverloadThrRatio\times$ the throughput of the Rust
+The far tail in the same regime resolves on the reported host and favours \FarTailLower{}. Pooled
+over \FarTailSamplesMin{} to \FarTailSamplesMax{} operations per variant, the two languages' p99.99
+values do not meet, and the widest gap between variants is $\FarTailRange\,\mu$s. A second
+bare-metal campaign at another shard count agrees on the direction
+(Section~\ref{sec:hostcompare}). Past saturation the ordering reverses, and where each
+implementation stops meeting its offered rate is itself a difference: the Rust arms track to
+$\TrackingLoadRust$~kops/s and the C++ arms to $\TrackingLoadCpp$. Deeper still, where all four have
+collapsed, the C++ build sustains $\OverloadThrRatio\times$ the throughput of the Rust
 build in \OverloadThrAgree{} interleaved repeats under both allocators, and uses more CPU for each
 completed operation. On resources the Rust process holds a few MiB more resident memory, again
 under both allocators. That effect is the same size on all three machines measured. How it compares
@@ -1302,8 +1305,8 @@ queue behind the bounded, blocking queues. The operationally decisive behaviour 
 shape of this cliff, which is why the load sweep is pushed beyond the saturation point rather
 than stopping at nominal load. The figure is a schematic of the phenomenon and not a plot of
 this study's data: whether the two languages differ in where the cliff begins or how steeply it
-rises is exactly what RQ1 asks, and Section~\ref{sec:perfresults} reports that the development
-host cannot resolve it.\label{fig:cliff}}
+rises is exactly what RQ1 asks, and Section~\ref{sec:overload} reports that they differ in
+both.\label{fig:cliff}}
 \end{figure}
 
 \chapter{Research Methodology\label{chapter:methodology}}
@@ -1606,9 +1609,13 @@ measured directly rather than inferred from the latency distribution, as the abs
 between consecutive latencies within a producer. That is the packet-delay-variation quantity of
 RFC~3393~\cite{rfc3393}, and it matches the sense in which this thesis uses the term: variation
 from one operation to the next, not spread of the distribution as a whole. The reported campaign
-carries both. Its p99.99 is pooled across repeats by exactly the procedure described above, and
-reaches Table~\ref{tab:latency} as a column of its own. Jitter is recorded and reported
-descriptively, because no research question asks for it.
+carries both. Its p99.99 is pooled across repeats by exactly the procedure described above and
+reaches Table~\ref{tab:latency} as a column of its own, marked there because it is the one column of
+that table computed at a different unit of analysis and so the one column carrying no interval. The
+analysis scripts read the pooled file and never the per-run field, so a campaign whose histogram
+sidecars have not been pooled loses the column rather than printing the per-run figure this paragraph
+has just called uninterpretable. Jitter is recorded and reported descriptively, because no research
+question asks for it.
 
 Neither p99.99 nor jitter would enter the family of paired tests described below in any case.
 That follows the same rule as the rest of the design rather than being a consequence of the
@@ -1672,8 +1679,8 @@ two-sided floor is $\MinAttainableP$, and $\CorrectedFloor$ after correction, so
 here reflects the data and not the arithmetic. Quoting both is what lets a reader tell a null
 result from an unresolvable one. Choosing the repeat count so that the corrected floor sits below
 the conventional $5\%$ is therefore part of the measurement protocol, alongside pinning the clock
-and isolating the cores (Section~\ref{sec:testbed}). Appendix~\ref{appendix:stats} derives the two
-floors.
+and running the pinned cores tickless (Section~\ref{sec:testbed}).
+Appendix~\ref{appendix:stats} derives the two floors.
 
 \section{Reproducibility and research artifacts}\label{sec:repro}
 The study is designed so that its results can be regenerated by a third party without access to
@@ -1690,9 +1697,11 @@ Section~\ref{sec:baremetal} demonstrates on a campaign of its own design. What t
 guarantees is that no figure, table, or sentence can hold a value the logs no longer support.
 
 The logs that script reads are part of the package. A performance campaign is an append-only
-newline-delimited JSON file under \texttt{bench/results/}, or under
-\texttt{bench/results-baremetal/} for the confirmation campaign, which is kept in its own directory
-so that no analysis can pool two hosts by accident. Each run's environment is recorded by
+newline-delimited JSON file under \texttt{bench/results/} for the reported sweep, with the
+virtualised host's campaign and the second bare-metal one kept in directories of their own so that
+no analysis can pool two hosts by accident. Beside each campaign sits the sidecar holding every
+run's complete histogram buckets, which is what the far-tail percentile is computed from. Each run's
+environment is recorded by
 a companion capture script (\texttt{bench/capture\_env.sh}) and stored beside the campaign data.
 The fault-injection runner writes three machine-readable outcome files under
 \texttt{faults/results/}: \texttt{taxonomy.csv} for the sanitiser and compile outcomes,
@@ -2320,10 +2329,21 @@ Chapter~\ref{chapter:design}, and this chapter. That is convenient while reading
 unhelpful to anyone trying to reproduce the campaign or to judge whether a parameter was chosen to
 suit the result. Every entry in the campaign block is either fixed by the specification or
 generated from the measurement logs, so none of it can drift out of step with the data reported
-below. Two derived values are used throughout what follows. The representative operating point is
-not chosen by eye. It is the busiest swept load at which all four build variants still hold
-their p99 below $5$~ms, which puts it at $\ReprLoad$~kops/s, against a measured throughput plateau
-of $\SatKnee$~kops/s.
+below. Two operating points are used throughout what follows, and the first of them is fixed
+rather than derived. The representative point sits at $\ReprLoad$~kops/s, against a measured
+throughput plateau of $\SatKnee$~kops/s, and saying why it is fixed is worth a short paragraph
+because the alternative was tried and failed.
+
+The rule this study began with took the busiest swept load at which all four variants still held
+their p99 below $5$~ms. That rule is retained as a diagnostic and is no longer the operating point,
+because it turns out to measure the machine rather than the service. On the virtualised host it
+returned $\GuestDeadlineLoad$~kops/s, where p99 sat just under the deadline, so it was locating where
+that host's interference reached $5$~ms. On a quiet host p99 stays near
+$\PNineNineTrackingTop\,\mu$s until capacity binds, so the same rule climbs to the tracking limit and
+collapses the representative point onto the saturation knee. One rule, two different quantities,
+decided by how noisy the machine was. Fixing the point instead costs the appearance of derivation and
+buys two things that matter more: the two hosts are compared at the same offered load, and the point
+stays below saturation on both, which every below-saturation claim in this chapter already assumes.
 
 \section{Evaluation data}
 Four campaigns produce four datasets, and they differ in kind and not only in content. What
@@ -2403,14 +2423,14 @@ Section~\ref{sec:testbed} states what that host can and cannot carry. Every figu
 below is measured on it unless stated otherwise.
 
 Resolved and unresolved outcomes are reported side by side, because saying at the outset which is
-which keeps a null result from being read as an absent one. Everything below is resolved on this
-host except the far tail \emph{below} saturation.
-Section~\ref{sec:perfresults} sets out why that one belongs to the machine and not to the
-analysis. It is then resolved on a second machine in Section~\ref{sec:baremetal}, which is
-reported last among the performance results because it is a separate campaign with a design of
-its own. One resolved outcome is resolved only as a measurement and not as a mechanism, the
-divergence past saturation, and Section~\ref{sec:contention} reports how far the mechanism could
-be narrowed.
+which keeps a null result from being read as an absent one. Every comparison below resolves on this
+host, including the far tail \emph{below} saturation, which was the one open question of this study
+for as long as it measured on a virtualised machine.
+Section~\ref{sec:hostcompare} sets that change beside the earlier host, because the difference
+between the two is a result about measurement rather than about either language, and it is reported
+last among the performance results for that reason. One resolved outcome is resolved only as a
+measurement and not as a mechanism, the divergence past saturation, and
+Section~\ref{sec:contention} reports how far the mechanism could be narrowed.
 
 \subsection{Below saturation (RQ1, RQ3)}\label{sec:perfresults}
 The hypothesis under test is H1 (Section~\ref{sec:rqs}): equivalence below saturation, with any
@@ -2419,18 +2439,18 @@ Section~\ref{sec:testbed}, each point aggregates \NRepeats{} interleaved repeats
 values and shaded bands are medians with nonparametric bootstrap $95\%$ confidence intervals.
 
 Table~\ref{tab:latency} summarises the per-operation latency distribution at the representative
-load of Section~\ref{sec:workload}, $\ReprLoad$~kops/s, the busiest point at which all four build
-variants are simultaneously healthy and so the fairest place to compare them.
+load of Section~\ref{sec:workload}, $\ReprLoad$~kops/s, a point at which all four build
+variants are simultaneously healthy and so a fair place to compare them.
 
-The table has to be read at two levels of confidence. At the \emph{median} the four variants sit
-within $\PFiftyRange\,\mu$s of one another, or $\PFiftySpread\%$, and every pair of confidence
-intervals overlaps, so the table on its own separates nothing.
-That is a statement about unpaired intervals and not about the languages. The paired test
-below does resolve a small and consistent difference at the median, and the distance between
-those two readings is why Section~\ref{sec:stats} tests the comparison instead of
-inspecting the intervals.
+The four variants sit within $\PFiftyRange\,\mu$s of one another at the median, or
+$\PFiftySpread\%$, which is the magnitude a deployment would care about and it is negligible. The
+\emph{ordering} is nonetheless legible: the two Rust intervals sit below the two C++ intervals with
+no overlap between the languages, while the two allocators of one language overlap each other. So
+the table already suggests what the paired test below confirms, and the two instruments agree here
+in a way they did not on the previous host, where every interval at this percentile overlapped every
+other.
 
-\emph{Above} the median the ordering can be read, and stating why takes one comparison. The p99
+That agreement extends up the distribution, and stating why takes one comparison. The p99
 values differ by $\PNineNineRange\,\mu$s across variants while the widest $95\%$ confidence
 interval on a single variant's own p99 spans $\PNineNineMaxCI\,\mu$s, so the uncertainty about one
 variant is smaller than the gap between them. That relation is what licenses an ordering, and it is
@@ -2439,13 +2459,25 @@ quantities were $\GuestPNineNineRange\,\mu$s and $\GuestPNineNineMaxCI\,\mu$s, t
 by a factor of five. Section~\ref{sec:hostcompare} sets the two hosts side by side, because the
 difference between them is a result about measurement rather than about either language.
 
-The tail rows of Table~\ref{tab:significance} therefore carry a finding rather than a shrug.
-\TailExclZeroRows{} resolve with a paired interval excluding zero, \NTailExclZero{} rows in all, and
-the direction is the same as at the median. Predictability is evidenced as far as p99.99, from
-pooled histogram buckets rather than per-run summaries, and Section~\ref{sec:stats} sets out why
-pooling is what makes that percentile a measurement: a single run holds too few observations past
-p99.99 for the statistic to mean anything, and the campaign persists the full buckets so the
-repeats can be combined after the fact.
+The tail rows of Table~\ref{tab:significance} therefore carry a finding rather than a shrug, and
+the instrument that carries it is the corrected $p$-value and not the interval. Both p99 rows and
+both p99.9 rows clear the Holm correction, \NTailExclZero{} rows in all, with the same direction as
+at the median. Their intervals also exclude zero, and Section~\ref{sec:stats} fixes in advance that
+an interval in this block is not read as a finding, so the intervals are reported and left to one
+side. That rule was written against a host whose hypervisor disturbed exactly these percentiles. It
+is kept here rather than relaxed, because a rule that is dropped once the machine improves was never
+a rule, and keeping it costs nothing: the correction resolves these rows on its own.
+
+Predictability is evidenced as far as p99.99, and that column is a different statistic from the rest
+of its table. It is one percentile of the four variants' repeats concatenated, between
+\FarTailSamplesMin{} and \FarTailSamplesMax{} operations per variant, which is what
+Section~\ref{sec:stats} means by pooling: a single run holds on the order of seventeen observations
+past p99.99, too few for the percentile to mean anything, and the campaign persists every run's full
+histogram buckets so the repeats can be combined after the fact. Pooling takes the operation as the
+unit of analysis, so the column has no across-repeat interval to print and none is printed. Read that
+way the far tail separates the languages outright: the widest gap between variants is
+$\FarTailRange\,\mu$s, $\FarTailSpread\%$ of the smallest, and both \FarTailLower{} variants sit
+below both of the others.
 
 \begin{table}[H]
 \centering
@@ -2455,7 +2487,13 @@ RAN-lifecycle workload, $7$ shards). Values in microseconds: the median over \NR
 repeats above its nonparametric bootstrap $95\%$ confidence interval. The interval is printed
 in full rather than as a symmetric half-width because it is strongly asymmetric at these
 percentiles, and a half-width wide enough to cover the upper bound would place the lower one
-below zero.\label{tab:latency}}
+below zero. $^{\dagger}$The p99.99 column is the exception, and deliberately so: it is one
+percentile of the \NRepeats{} repeats' histograms concatenated, \FarTailSamplesMin{} to
+\FarTailSamplesMax{} operations per row, because a per-run p99.99 rests on too few observations to
+read (Section~\ref{sec:stats}). Pooling makes the operation the unit of analysis, so that column has
+no across-repeat dispersion to quote and carries no interval. It is also the one column of this table
+that no paired test in Section~\ref{sec:stats} uses, for the same
+reason.\label{tab:latency}}
 % Tabular preamble and header are generated alongside the table body, so the table
 % gains a p99.99 column when a campaign records one instead of the preamble falling
 % one column short of the body it is wrapping. \LatencyTabular expands to the whole
@@ -2523,8 +2561,9 @@ are $\MinAttainableP$ uncorrected and $\CorrectedFloor$ after correction. The ro
 by the criterion set out in Section~\ref{sec:stats}: pairing rescues the statistics in the
 upper block, so a consistent interval there is evidence, whereas the high percentiles below are
 computed from exactly the operations interference falls on, so an interval excluding zero is
-not read as a finding. Achieved throughput is not tested, for the reason given in the same
-section, and appears in Table~\ref{tab:resource} instead. Measured on the virtualised Xeon host
+not read as a finding. On this host both blocks clear the correction, so the rule costs the lower
+block nothing and is applied anyway. Achieved throughput is not tested, for the reason given in the
+same section, and appears in Table~\ref{tab:resource} instead. Measured on the bare-metal host
 of Section~\ref{sec:testbed}.\label{tab:significance}}
 \begin{tabular}{@{}l l r r r@{}}
 \hline\hline
@@ -2541,30 +2580,34 @@ Metric & Allocator & Effect (Rust $-$ C++) & $p$ & Holm \\
 \caption[The tested family drawn as paired effects]{Every test in Tables~\ref{tab:significance} and~\ref{tab:overloadtest} as a paired
 effect with its bootstrap $95\%$ interval, normalised by the C++ median so that microseconds,
 mebibytes, percentage points and kops/s can share an axis. Filled markers are the
-\NSignificant{} of \NTests{} tests that clear the Holm correction. The two allocators of a
+\NSignificant{} of \NTests{} tests that clear the Holm correction, which on this host is all of
+them. The two allocators of a
 metric are drawn adjacent, so an effect that reversed sign between them would appear as a pair
 straddling the zero line. The shaded rows are the high percentiles, computed from exactly the
 operations interference falls on, which Section~\ref{sec:stats} fixes in advance as rows whose
-intervals are not read as findings. The metrics keep their own units in the
+\emph{intervals} are not read as findings. Their corrected $p$-values are read, and the shading
+marks the instrument that is set aside rather than the rows. The metrics keep their own units in the
 tables.\label{fig:effects}}
 \end{figure}
 
 Figure~\ref{fig:effects} draws the same family on one axis, and three things it contains are
-easier to see there than in a table of fourteen rows: which effects survive the correction,
-whether an effect keeps its sign when the allocator changes, and how much wider the tail
+easier to see there than in a table of fourteen rows: that every effect survives the correction,
+that no effect changes sign when the allocator changes, and how much wider the tail
 intervals are than the rest.
 
-\NSignificant{} of the \NTests{} tests in the family survive the Holm correction: the two
-median-latency rows, peak resident set size under the system allocator, both CPU rows, and the
-four overload comparisons of Section~\ref{sec:overload}. Peak resident set size under jemalloc is
-the one upper-block row that does not clear it, despite an interval nowhere near zero, and
-Section~\ref{sec:resources} takes up why.
+All \NSignificant{} of the \NTests{} tests in the family survive the Holm correction, and the
+smallest adjusted value sits at the family's own floor of $\CorrectedFloor$. A family in which
+nothing fails invites one obvious objection, that the threshold is doing no work, so it is worth
+naming what would have failed. Peak resident set size under \texttt{jemalloc} did not clear the
+correction on the virtualised host, despite an interval nowhere near zero, and
+Section~\ref{sec:resources} takes up why it does here. Neither did any tail row.
 
-Before any of those are interpreted, the reading rule fixed in Section~\ref{sec:stats} applies.
-\NExclZero{} paired intervals exclude zero, and in the tail block the ones that do are:
-\TailExclZeroRows. Fixing the rule in advance, and not at this point, was the whole
-precaution, because that outcome is not guaranteed. An earlier seven-repeat pass of this same
-campaign produced tail intervals excluding zero, and more repeats then removed them again.
+The reading rule fixed in Section~\ref{sec:stats} still applies, and on this host it changes no
+verdict. \NExclZero{} paired intervals exclude zero, in both blocks. Fixing the rule in advance, and
+not at this point, was the whole precaution, because that outcome was not guaranteed: an earlier
+seven-repeat pass of this same campaign produced tail intervals excluding zero, and more repeats then
+removed them again. A rule kept only while it rescues a result is not a rule, so the tail block's
+intervals are still not read as findings even though they now point the same way as its $p$-values.
 
 The allocator control supplies a second check, independent of the first. Every comparison is run
 twice under conditions that should not change a language effect, so an effect that really is the
@@ -2573,13 +2616,17 @@ do, and \NCrossAllocReversed{} reverse. That the control confirmed here and did 
 evidence it was unnecessary. Section~\ref{sec:threats} records the earlier campaign on which it
 did veto, and a control earns its place by what it would have caught.
 
-The \NEqvUnresolved{} rows the correction does not clear are not all saying the same thing, and
-Table~\ref{tab:equivalence} is what separates them. A test that fails to resolve a difference
-still bounds it, and that bound is a property of the data rather than of the verdict. At the
-median it is $\EqvBoundPFifty\,\mu$s, small enough that the two readings agree. In the tail block
-the bounds run out to $\EqvBoundTailMax\,\mu$s, wider than any difference a deployment would care
-about. The first is a null worth reporting. The second is the campaign declining to answer, and
-saying which is which is the least this table can do for the half of RQ1 the host cannot resolve.
+Resolving a difference is not the same as sizing it, and Table~\ref{tab:equivalence} is where the
+size goes. Every row is significant here, so the verdict column carries no information and the
+margins carry all of it: a resolved difference of a microsecond and a resolved difference of a
+millisecond mean quite different things to a deployment. At the median the effect could be no larger
+than $\EqvBoundPFifty\,\mu$s, and in the tail block no larger than $\EqvBoundTailMax\,\mu$s. Both are
+below anything a procedure budget of a few milliseconds would notice, which is the useful form of
+this result: the differences are real, reproducible, and operationally negligible. That table was
+built to report the opposite case, and on the virtualised host it did, with
+\GuestNEqvUnresolved{} of its \GuestNTests{} rows unresolved and a tail margin running out to
+$\GuestEqvBoundTailMax\,\mu$s, which is wider than any difference a deployment would care about and
+was the campaign declining to answer.
 
 \begin{table}[tp]
 \centering
@@ -2592,9 +2639,9 @@ asks how large it could be, and a row can matter in one and not the other. On th
 here every row resolves, so the last column reads the same throughout and the margins are what
 carry the information: a resolved difference of a microsecond and a resolved difference of a
 millisecond mean different things to a deployment. On the virtualised host of
-Section~\ref{sec:hostcompare} five of these rows did not resolve, which is what the table was
-built to report. Latency margins are in microseconds, peak resident set size in mebibytes, CPU
-utilisation in percentage points.\label{tab:equivalence}}
+Section~\ref{sec:hostcompare} \GuestNEqvUnresolved{} of these rows did not resolve, which is what the
+table was built to report. Latency margins are in microseconds, peak resident set size in mebibytes,
+CPU utilisation in percentage points.\label{tab:equivalence}}
 \begin{tabular}{@{}l l r r l@{}}
 \hline\hline
 Metric & Allocator & $|$Effect$|$ & Equivalent within & Verdict \\
@@ -2717,16 +2764,18 @@ average-case literature.
 
 \paragraph{Latency, throughput and the knee across the sweep.}
 Figure~\ref{fig:loadsweep}(a) plots p99 latency against offered load, and the shape it shows is
-the one Figure~\ref{fig:cliff} sketched. Through the tracking region the four variants climb
-together and gently, from $\PNineNineLightest\,\mu$s at the lightest load to single-digit
-milliseconds by the top of that region. The confidence bands there are wide enough that no curve can
-be separated from another anywhere in it. Then, in the single step of the rate ladder that follows,
-every variant's p99 rises by more than two orders of magnitude at once, from
-$\PNineNinePreCliff$~ms to
-several seconds. That is the overload cliff, and how abruptly it arrives is the finding. One
-increment of offered load separates a service meeting millisecond deadlines from one missing them
-by three orders of magnitude. A design with bounded, blocking queues has no graceful degradation
-to offer in between.
+the one Figure~\ref{fig:cliff} sketched, with one feature sharper than the sketch. Through the whole
+tracking region p99 is \emph{flat}: it reads $\PNineNineLightest\,\mu$s at the lightest load and
+$\PNineNineTrackingTop\,\mu$s at the top of the region, a drift of
+$\PNineNineTrackingDrift\,\mu$s across a fifty-fold increase in offered load. A queueing model would
+predict a gentle climb, and there is none to see, because until a worker saturates its shard the
+queue never holds more than a request or two and latency is service time rather than waiting time.
+Then, in the single step of the rate ladder that follows, p99 rises by four orders of magnitude at
+once, from $\PNineNineTrackingTop\,\mu$s to seconds. That is the overload cliff, and how abruptly it
+arrives is the finding. One increment of offered load separates a service meeting millisecond
+deadlines from one missing them by three orders of magnitude. A design with bounded, blocking queues
+has no graceful degradation to offer in between, and the flatness before the cliff is why: there is
+no rising-latency region to warn an operator that capacity is close.
 
 Section~\ref{sec:stats} tests no percentile past the knee, for two reasons. Latency there is
 accumulated schedule backlog and not service time, and the measured phase is cut off at a fixed
@@ -2736,20 +2785,36 @@ Section~\ref{sec:overload} takes up.
 
 Panel~(b) shows achieved throughput against the same axis, and it is the
 more informative of the two, because an average over a whole run is far less sensitive than
-a percentile to interference landing on individual operations. Every variant tracks the ideal
-offered-equals-achieved line up to an offered $\TrackingLoad$~kops/s, where it plateaus at an
-achieved $\SatKnee$~kops/s. The knee is bracketed by the rate ladder and not pinned by it: the next
-rung is where the arms stop tracking, so the true saturation point lies between the two and the
-sweep steps over it. Achieved throughput matches offered load below the knee to within
+a percentile to interference landing on individual operations. All four variants track the ideal
+offered-equals-achieved line up to an offered $\TrackingLoad$~kops/s, and the lowest plateau any of
+them reaches is $\SatKnee$~kops/s. Each knee is bracketed by the rate ladder and not pinned by it:
+the next rung is where an arm stops tracking, so its true saturation point lies between the two and
+the sweep steps over it. Achieved throughput matches offered load below the knee to within
 $\ReprLoadShortfall\%$, so the operating point of Table~\ref{tab:latency} is a genuinely
 \emph{sustained} load and not a nominal one, and the latencies reported there are not those of an
-already-queueing system. The knee also sits at the same place for all four variants, which the
-identical thread-per-shard structure predicts. Where the design stops coping is a property of the
-design.
+already-queueing system.
 
-What happens \emph{after} the knee is not shared. The four curves separate as soon as the
-offered rate stops being met, and they separate by language rather than by allocator.
-Section~\ref{sec:overload} measures that separation instead of leaving it to the eye.
+The knee does \emph{not} sit at the same place for all four variants, and that is worth stating
+plainly because the identical thread-per-shard structure predicts that it should. The two C++ arms
+stop meeting their offered rate after $\TrackingLoadCpp$~kops/s and the two Rust arms carry one rung
+further, to $\TrackingLoadRust$. The separation is by language and not by allocator, as it is
+everywhere else in this regime. At the rung between the two limits, $\KneeGapLoad$~kops/s, the
+consequence is the largest throughput gap anywhere in the sweep: \KneeGapFaster{} still serves
+$\KneeGapThrFast$~kops/s while \KneeGapSlower{} has already collapsed to $\KneeGapThrSlow$, a factor
+of $\KneeGapRatio$, in \KneeGapAgree{} paired repeats.
+
+Three things bound what that rung licenses, and the first is a rule this study set for itself. It is
+\emph{not} added to the tested family of Section~\ref{sec:stats}. The operating point was identified
+after seeing the sweep, and the family is fixed in advance precisely so that a point chosen that way
+cannot enter it, whatever its $p$-value would be. It is therefore reported descriptively, with its
+per-repeat agreement, and the pre-committed overload point of Section~\ref{sec:overload} stands as
+the tested comparison. Second, one rung of a geometric ladder is coarse: the true C++ limit lies
+somewhere between $\TrackingLoadCpp$ and $\KneeGapLoad$~kops/s, so the gap in \emph{capacity} is
+bounded by the ladder's spacing and is not measured to better than that. Third, the direction here is
+the opposite of the direction past saturation, where C++ sustains more
+(Section~\ref{sec:overload}). Both are real, they belong to different loads, and neither cancels the
+other. The useful summary is that the two languages differ in \emph{where} this design stops coping
+and in \emph{how} it behaves once both have, and they differ in opposite directions.
 
 \begin{figure}[ht]
 \centering
@@ -4931,9 +4996,9 @@ campaign. Service parameters are fixed by the frozen specification, with one exc
 shard count is set to match the cores the host offers (Section~\ref{sec:testbed}). All of them,
 that one included, are identical in both languages. Campaign figures are generated from the
 measurement logs together with the
-tables that report them. The representative load is not chosen by eye but derived, as the
-busiest swept load at which all four build variants still hold their p99 below
-$5$~ms.\label{tab:params}}
+tables that report them. The representative load is fixed rather than derived, for the reason
+Section~\ref{sec:workload} gives, and the throughput plateau is the lowest of the four variants'
+own plateaus, which differ.\label{tab:params}}
 \footnotesize
 \renewcommand{\arraystretch}{1.05}
 \begin{tabular}{@{}R{0.28\linewidth} R{0.28\linewidth} R{0.36\linewidth}@{}}
@@ -4954,8 +5019,8 @@ Intra-shard hash & FNV-1a, 64-bit & pinned on both sides and checked bit-for-bit
 Workloads & signal, mixed & mixed walks the full RAN lifecycle \\
 Active UEs & $5\,000$ & \\
 Offered-load levels & \NLoadLevels{} & up to $\MaxOfferedLoad$~kops/s \\
-Representative load & $\ReprLoad$~kops/s & derived, see caption \\
-Measured throughput plateau & $\SatKnee$~kops/s achieved & reached at an offered $\TrackingLoad$~kops/s, the last rung still tracked \\
+Representative load & $\ReprLoad$~kops/s & fixed, see caption \\
+Measured throughput plateau & $\SatKnee$~kops/s achieved & the lowest of the four, reached at an offered $\TrackingLoad$~kops/s. The Rust arms track one rung further, to $\TrackingLoadRust$ \\
 Load model & open loop, fixed intended schedule & latency measured from intended send time \\
 \hline
 \multicolumn{3}{@{}l}{\emph{Campaign}} \\
