@@ -1,0 +1,70 @@
+# Testbed environment capture (20260827-150535)
+
+## Host / OS
+Linux 9b32b7d2ce7c 6.17.0-23-generic #23~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Apr 14 16:11:48 UTC 2 x86_64 x86_64 x86_64 GNU/Linux
+distro: Rocky Linux 8.10 (Green Obsidian)
+
+## Toolchains
+g++ (GCC) 15.2.1 20260123 (Red Hat 15.2.1-7)
+rustc 1.97.1 (8bab26f4f 2026-07-14)
+cargo 1.97.1 (c980f4866 2026-06-30)
+cmake version 3.30.2
+
+## Container image
+image: uecm-bench (docker/Dockerfile)
+built: 2026-08-27T11:56:16Z
+base: Rocky Linux 8.10 (Green Obsidian)
+gcc-toolset: 15
+g++: g++ (GCC) 15.2.1 20260123 (Red Hat 15.2.1-7)
+rustc: rustc 1.97.1 (8bab26f4f 2026-07-14)
+cargo: cargo 1.97.1 (c980f4866 2026-06-30)
+cmake: cmake version 3.30.2
+ninja: 1.11.1.git.kitware.jobserver-1
+python: Python 3.11.13
+matplotlib: 3.11.1
+jemalloc: 5.2.1-3.el8
+jemalloc prof build (C++ profile arm only): 5.3.1-0-g81034ce1f1373e37dc865038e1bc8eeecf559ce8
+jeprof: jeprof (part of jemalloc 5.2.1-0-gea6b3e973b477b8061e0076bb257dbd7f3faa756)
+perf: perf version 4.18.0-553.157.1.el8_10.x86_64
+
+## CPU
+CPU(s):               48
+Thread(s) per core:   1
+Core(s) per socket:   24
+Socket(s):            1
+NUMA node(s):         1
+Model name:           AMD EPYC 7443 24-Core Processor
+CPU MHz:              2498.281
+CPU max MHz:          4035.6440
+CPU min MHz:          1500.0000
+NUMA node0 CPU(s):    0-23
+
+## Frequency governor / turbo / SMT
+governors: performance
+intel_pstate/no_turbo: (not present)
+smt/control: off
+
+## Virtualisation and core isolation
+virtualisation: none
+container: docker
+cgroup cpu quota: max 100000
+cgroup memory limit: max
+cgroup cpuset: 2-17
+seccomp mode: 0 (0 = off, 2 = filter on every syscall)
+cpus allowed here: 2-17
+kernel cmdline: BOOT_IMAGE=/boot/vmlinuz-6.17.0-23-generic root=UUID=a9c28cea-0dd7-4702-8653-ef496f5bafbb ro isolcpus=2-17 nohz_full=2-17 rcu_nocbs=2-17
+isolcpus: 2-17
+nohz_full: 2-17
+steal ticks (1 s sample): 0
+
+## Allocator
+system jemalloc: /lib64/libjemalloc.so.2
+MALLOC_CONF (C++ jemalloc): thp:never,narenas:16
+_RJEM_MALLOC_CONF (Rust jemalloc): thp:never,narenas:16
+transparent hugepages: madvise
+
+## Warnings
+  [CONTAINER] Running inside a container (docker). The toolchain is the
+              image's and is recorded above, but the kernel is the host's:
+              scheduler, clocksource, governor and hypervisor are unchanged,
+              so a container does not make a virtualised host bare metal.

@@ -1,0 +1,30 @@
+# Container run record (20260827-151924)
+
+image:        uecm-bench:el8-gcc15-rust1.97.1
+image id:     sha256:90ede4d2fdf3fc246adc236ad66ebb454ecb5402e88d3f7572e5514c20e98359
+host kernel:  Linux 6.17.0-23-generic
+host virt:    none
+host cores:   24
+cpuset:       2-17
+seccomp:      off
+network:      none
+
+## image manifest
+  image: uecm-bench (docker/Dockerfile)
+  built: 2026-08-27T11:56:16Z
+  base: Rocky Linux 8.10 (Green Obsidian)
+  gcc-toolset: 15
+  g++: g++ (GCC) 15.2.1 20260123 (Red Hat 15.2.1-7)
+  rustc: rustc 1.97.1 (8bab26f4f 2026-07-14)
+  cargo: cargo 1.97.1 (c980f4866 2026-06-30)
+  cmake: cmake version 3.30.2
+  ninja: 1.11.1.git.kitware.jobserver-1
+  python: Python 3.11.13
+  matplotlib: 3.11.1
+  jemalloc: 5.2.1-3.el8
+  jemalloc prof build (C++ profile arm only): 5.3.1-0-g81034ce1f1373e37dc865038e1bc8eeecf559ce8
+  jeprof: jeprof (part of jemalloc 5.2.1-0-gea6b3e973b477b8061e0076bb257dbd7f3faa756)
+  perf: perf version 4.18.0-553.157.1.el8_10.x86_64
+
+## docker command
+  docker run --rm --name uecm-campaign-20260827-151924 --user 0:0 --cpuset-cpus 2-17 --network none --cap-add SYS_NICE --cap-add PERFMON --ulimit rtprio=99 --ulimit nofile=8192 --tmpfs /tmp:rw\,nosuid\,nodev\,size=1g\,mode=1777 -v /root/Master-Thesis:/root/Master-Thesis -v /root/Master-Thesis/docker/.scratch/cpp-build:/root/Master-Thesis/cpp/build -v /root/Master-Thesis/docker/.scratch/cpp-build-jemalloc:/root/Master-Thesis/cpp/build-jemalloc -v /root/Master-Thesis/docker/.scratch/cpp-build-jemalloc-prof:/root/Master-Thesis/cpp/build-jemalloc-prof -v /root/Master-Thesis/docker/.scratch/rust-target:/root/Master-Thesis/rust/target -v /root/Master-Thesis/docker/.scratch/bench-bin:/root/Master-Thesis/bench/.bin -w /root/Master-Thesis -e TZ=Etc/UTC --security-opt seccomp=unconfined --security-opt apparmor=unconfined uecm-bench:el8-gcc15-rust1.97.1 bench/campaign.sh --shards 7 --producers 7 --repeats 20 --duration 3 --warmup-s 1 --active-ues 5000 --rates 1000\ 2000\ 4000\ 8000\ 12000\ 16000\ 24000\ 32000\ 40000\ 48000\ 56000\ 64000\ 80000\ 112000 --pin 2-17
