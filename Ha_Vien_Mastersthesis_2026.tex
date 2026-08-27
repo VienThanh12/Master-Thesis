@@ -3110,9 +3110,10 @@ $\GuestPNineNineRange\,\mu$s. Uncertainty about one variant exceeded the gap bet
 a factor of five, so no ordering could be read at that percentile however many repeats were run.
 Computed identically here, the interval is $\PNineNineMaxCI\,\mu$s against a between-variant range
 of $\PNineNineRange\,\mu$s. The relation inverts. That single change is what moves the far tail
-from an open question to a reported result, and it is worth being precise about its cause: the
-median barely moved, from $\GuestPFifty$ to $\PFiftyMedian\,\mu$s, while p99 fell from
-$\GuestPNineNine$ to $\PNineNineLightest\,\mu$s. A hypervisor does not slow the common path. It
+from an open question to a reported result, and it is worth being precise about its cause. At the
+same representative load the median barely moved, from $\GuestPFifty$ to $\PFiftyMedian\,\mu$s,
+while p99 fell from $\GuestPNineNine\,\mu$s to under a hundred. A hypervisor does not slow the common
+path. It
 occasionally stops it, and a percentile computed from exactly the stopped operations is the one
 that records it.
 
@@ -3145,8 +3146,8 @@ so the guest is the outlier of three rather than one reading of two.
 
 A related artefact went with it. The run-to-run spread that cost peak RSS under \texttt{jemalloc}
 its place in the significance family, a handful of runs reporting a resident set
-$\GuestRssLowRunOffset$~MiB low, is $\RssLowRunOffset$~MiB here, and all
-\RssAgree{} resource comparisons now agree across the allocator control.
+$\GuestRssLowRunOffset$~MiB low, is $\RssLowRunOffset$~MiB here, its paired repeats agree on the
+sign \RssAgree{} times, and \CrossAllocConsistent{} keep their sign across the allocator control.
 
 \paragraph{A second bare-metal host, at a different design.}
 One \BmCpu{}, \BmCores{} cores on \BmSockets{} socket and \BmNumaNodes{} NUMA node, running
@@ -3233,11 +3234,11 @@ caveat travels with that subtraction: peak RSS is a maximum over the run and the
 \texttt{jemalloc} figures are sampled once, so the outside-mappings figure is an upper bound rather
 than an exact quantity.
 
-The third reading is a negative result about the guest. The measurement defect that costs peak RSS
-under \texttt{jemalloc} its place in Table~\ref{tab:significance}, a handful of runs reporting a
-resident set $\RssLowRunOffset$~MiB low, does not appear here: no arm's peak RSS spans more than
-$\BmRssSpreadMax$~MiB across its repeats. That bimodality belonged to the host, which is what the
-reading rule of Section~\ref{sec:stats} assumed without being able to show it.
+The third reading is a negative result about the guest. The measurement defect that cost peak RSS
+under \texttt{jemalloc} its place in the virtualised campaign's significance family, a handful of
+runs reporting a resident set $\GuestRssLowRunOffset$~MiB low, does not appear here: no arm's peak
+RSS spans more than $\BmRssSpreadMax$~MiB across its repeats. That bimodality belonged to the host,
+which is what the reading rule of Section~\ref{sec:stats} assumed without being able to show it.
 
 \begin{table}[ht]
 \centering
@@ -3809,16 +3810,19 @@ and what did not.
 RQ & Headline finding & Evidence status \\
 \hline
 RQ1 & The answer divides at saturation. Below it the variants agree to $\PFiftyRange\,\mu$s
-($\PFiftySpread\%$) at the median and this host can resolve no tail ordering, while a quiet host
-puts the pooled p99.99 of the Rust variants below that of the C++ variants
-(Section~\ref{sec:baremetal}). The end-to-end number is
+($\PFiftySpread\%$) at the median, and the far tail resolves in \FarTailLower{}'s favour, with the
+pooled p99.99 of the two \FarTailLower{} variants below both of the others by up to
+$\FarTailRange\,\mu$s. The end-to-end number is
 only $\BudgetCoreShareMax\%$ operation, so it cannot bound a language effect in any case, while
 the operation measured apart is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster. Past
-saturation they diverge decisively: \OverloadSustainedFaster{} sustains
-$\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{} at
-$\OverloadLoad$~kops/s, in \OverloadThrAgree{} repeats under both allocators. & Overload,
-operation and far tail: resolved, the last on bare metal and reproduced at a second shard count.
-Mechanism: tested. Primitives alone insufficient \\
+saturation they diverge decisively, and in both directions: the Rust arms hold their offered rate
+one rung further, to $\TrackingLoadRust$~kops/s against $\TrackingLoadCpp$, while at
+$\OverloadLoad$~kops/s, where all four have collapsed,
+\OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$ the throughput of
+\OverloadSustainedSlower{} in \OverloadThrAgree{} repeats under both allocators. & Overload,
+operation and far tail: resolved, and each reproduced at a second shard count.
+Mechanism: tested. Primitives alone insufficient. The saturation-limit gap is descriptive, not
+tested \\
 RQ2 & All seven injected memory-safety and data-race classes are prevented at compile time in
 safe Rust, where in C++ each compiles and is caught, if at all, only at runtime and by no single
 sanitiser. The guarantee stops there: the seven boundary classes compile in both languages, and
@@ -3852,12 +3856,15 @@ result.
 
 Below saturation the languages are equivalent in central behaviour, by a margin no deployment
 would notice. The small paired difference at the median that does clear the correction is a
-fraction of an $80\,\mu$s operation. The far tail in this regime is a different matter, and one a
-deployment would also care about. There the result is a null this host cannot turn into an
-ordering, so the equivalence claimed here does not reach it. A quiet machine does turn it into an
-ordering, and the ordering favours Rust: Section~\ref{sec:baremetal} separates the two at p99.99
-by roughly the width of a whole median operation. That is a difference in the percentile a
-deployment sizes its margin from, measured once, on one machine, at one shard count. The central result is consistent with
+fraction of a $\PFiftyMedian\,\mu$s operation. The far tail in this regime is a different matter,
+and one a deployment would also care about. There the result is an ordering rather than a null, and
+it favours \FarTailLower{}: pooled over millions of operations per variant, the two languages'
+p99.99 values do not meet, and the gap between the extremes is $\FarTailRange\,\mu$s, roughly the
+width of a whole median operation. So the equivalence claimed at the median does not extend up the
+distribution, and the direction in which it fails is the one that favours the safer language. That
+is a difference in the percentile a deployment sizes its margin from, and it is reproduced at a
+second shard count on a second machine (Section~\ref{sec:hostcompare}), which is as much
+corroboration as this study can offer for any timing result. The central result is consistent with
 the wider evidence that
 Rust's safety checks are largely absorbed by modern out-of-order
 CPUs~\cite{balasubramanian2017rust,emmerich2019drivers}. It is also weaker than it
@@ -3866,14 +3873,23 @@ languages execute is $\BudgetCoreShareMax\%$ of what the sweep measures. An end-
 a design dominated by a cross-thread wakeup therefore says something about the design and not
 about the languages. Measured on its own, the operation differs by $\BudgetCoreRatio\times$.
 
-Beyond saturation the answer changes in kind, and this is the one result in the study that answers
-RQ1 on RQ1's own terms. The C++ build sustains $\OverloadThrRatio$ times the throughput of the
-Rust one while drawing more CPU per completed operation, reproducibly and at the corrected floor
-of the whole test family (Section~\ref{sec:overload}). So the practical form of RQ1's answer is
+Beyond saturation the answer changes in kind, and it changes twice. Where each implementation stops
+meeting its offered rate differs by one rung of the ladder, with the Rust arms holding to
+$\TrackingLoadRust$~kops/s against the C++ arms' $\TrackingLoadCpp$. Deeper still, once both have
+collapsed, the ordering reverses: the C++ build sustains $\OverloadThrRatio$ times the throughput of
+the Rust one while drawing more CPU per completed operation, reproducibly and at the corrected floor
+of the whole test family (Section~\ref{sec:overload}). Only the second of those is tested, and
+Section~\ref{sec:perfresults} says why the first is not. So the practical form of RQ1's answer is
 not that the language choice is irrelevant to predictability. It is irrelevant \emph{until the
-service stops coping}, and at that point it decides how
-much work still gets done. A comparison that stopped at nominal load, as most in this literature
-do, would have concluded the opposite with the same apparatus.
+service stops coping}, and around that point it decides both when coping stops and how
+much work still gets done afterwards. A comparison that stopped at nominal load, as most in this
+literature do, would have concluded the opposite with the same apparatus.
+
+That the two effects point in opposite directions is not a contradiction to be resolved but the
+reason a single verdict on this question would be false. A service sized to run below its knee
+should prefer the arm with the higher knee. A service that will be driven past every arm's knee by a
+signalling storm should prefer the one that degrades less steeply. Those are different deployment
+questions, and this study answers them differently.
 
 That reframes the closest prior work instead of merely agreeing with it. Arvidsson and Kaller
 measure this quantity for 5G control-plane procedures and find Rust's 99th percentile degrading
