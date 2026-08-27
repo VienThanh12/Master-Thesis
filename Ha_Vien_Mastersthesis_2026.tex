@@ -2429,26 +2429,22 @@ below does resolve a small and consistent difference at the median, and the dist
 those two readings is why Section~\ref{sec:stats} tests the comparison instead of
 inspecting the intervals.
 
-\emph{Above} the median the situation is different in kind. The point is not that the languages
-differ but that this host cannot say whether they do. The p99 values differ by
-$\PNineNineRange\,\mu$s across variants, while the widest $95\%$ confidence interval on a
-single variant's own p99 spans $\PNineNineMaxCI\,\mu$s, many times the between-variant
-difference. When the uncertainty about one variant exceeds the gap between all of them, no
-ordering can be read off. Reporting one would be reporting the scheduler. The same holds
-with greater force at p99.9 and at the maximum.
+\emph{Above} the median the ordering can be read, and stating why takes one comparison. The p99
+values differ by $\PNineNineRange\,\mu$s across variants while the widest $95\%$ confidence
+interval on a single variant's own p99 spans $\PNineNineMaxCI\,\mu$s, so the uncertainty about one
+variant is smaller than the gap between them. That relation is what licenses an ordering, and it is
+the relation this study could not obtain for most of its life: on the virtualised host the same two
+quantities were $\GuestPNineNineRange\,\mu$s and $\GuestPNineNineMaxCI\,\mu$s, the wrong way round
+by a factor of five. Section~\ref{sec:hostcompare} sets the two hosts side by side, because the
+difference between them is a result about measurement rather than about either language.
 
-This is the concrete form of the limitation stated in Section~\ref{sec:testbed}, and its cost is
-bounded. One half of RQ1 gets only a negative answer from this campaign, namely how the two
-languages behave in the high percentiles while the service is still meeting its offered load.
-Nothing else is touched. The throughput and saturation behaviour, the resource results below and
-the RQ2 and RQ4 results all stand, and Section~\ref{sec:overload} resolves the other half of RQ1
-decisively on this same host. Closing the gap needs a quieter machine, not more
-repeats, because the spread is systematic interference and not sampling noise. One was rented, and
-Section~\ref{sec:baremetal} reports the percentile this host withholds.
-
-Predictability is evidenced at p99 and p99.9 and no further in this campaign, which predates the
-jitter and p99.99 instrumentation of Section~\ref{sec:stats}. The bare-metal campaign carries
-both, and reports the far tail from pooled histogram buckets rather than from per-run summaries.
+The tail rows of Table~\ref{tab:significance} therefore carry a finding rather than a shrug.
+\TailExclZeroRows{} resolve with a paired interval excluding zero, \NTailExclZero{} rows in all, and
+the direction is the same as at the median. Predictability is evidenced as far as p99.99, from
+pooled histogram buckets rather than per-run summaries, and Section~\ref{sec:stats} sets out why
+pooling is what makes that percentile a measurement: a single run holds too few observations past
+p99.99 for the statistic to mean anything, and the campaign persists the full buckets so the
+repeats can be combined after the fact.
 
 \begin{table}[H]
 \centering
