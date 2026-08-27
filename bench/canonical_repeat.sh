@@ -105,20 +105,33 @@ cmd_plan() {
 }
 
 # --------------------------------------------------------------------------- #
-# Kernel core isolation. Needs a reboot, so it stands alone.
+# Kernel tickless configuration.
+#
+# `isolcpus` is deliberately NOT set here, and the reason cost a campaign.
+# bench/TESTBED.md used to recommend it for the cleanest tails, which it does
+# deliver, but it also removes those CPUs from every scheduling domain. The
+# benchmark pins its threads to a *set* with `taskset -c 2-17` and relies on the
+# kernel to spread them, so with no load balancing all fourteen threads inherit
+# the first allowed CPU and stay there. The 27 August 2026 campaign ran all 1120
+# runs on cpu2 alone, at a flat 100.1% of one core, and nothing in it was usable.
+# `nohz_full` and `rcu_nocbs` give the tick and callback benefits without
+# touching load balancing, so those are what this sets. Isolating properly would
+# need per-thread affinity inside the benchmark, which is a code change.
 # --------------------------------------------------------------------------- #
 cmd_isolate() {
   [ "$(id -u)" -eq 0 ] || die "run this as root"
-  local params="isolcpus=$PIN nohz_full=$PIN rcu_nocbs=$PIN"
-  if grep -q "isolcpus=" /proc/cmdline; then
-    ok "already booted with: $(sed -n 's/.*\(isolcpus=[^ ]*\).*/\1/p' /proc/cmdline)"
-    return 0
-  fi
+  local params="nohz_full=$PIN rcu_nocbs=$PIN"
   local grub=/etc/default/grub
   [ -f "$grub" ] || die "no $grub; set $params on the kernel command line by hand"
   cp "$grub" "$grub.bak-canonical-repeat"
-  if grep -q "$params" "$grub"; then
-    ok "$grub already carries the parameters"
+  # Strip any isolcpus this host already carries, including one an earlier run of
+  # this script added before the defect was understood.
+  if grep -q 'isolcpus=' "$grub"; then
+    sed -i 's/ *isolcpus=[^ "]*//g' "$grub"
+    warn "removed isolcpus from $grub: it disables load balancing on the pinned set"
+  fi
+  if grep -q "nohz_full=$PIN" "$grub"; then
+    ok "$grub already carries $params"
   else
     sed -i "s/^GRUB_CMDLINE_LINUX_DEFAULT=\"\(.*\)\"/GRUB_CMDLINE_LINUX_DEFAULT=\"\1 $params\"/" "$grub"
     ok "added to $grub: $params"
@@ -127,7 +140,56 @@ cmd_isolate() {
     || die "could not regenerate the grub config"
   ok "grub config regenerated"
   say
+  if grep -q 'isolcpus=' /proc/cmdline; then
+    say "${YEL}REBOOT REQUIRED${RST}: this kernel still has isolcpus active."
+  fi
   say "${YEL}REBOOT NOW${RST}, then run: bench/canonical_repeat.sh run"
+}
+
+# --------------------------------------------------------------------------- #
+# The guard that should have existed before the first attempt. Runs one short
+# high-rate run and checks that the work actually landed on more than one core.
+# Costs about half a minute and is the difference between losing that and losing
+# two and a half hours.
+# --------------------------------------------------------------------------- #
+cmd_check_spread() {
+  load_design
+  local top; top="$(printf '%s' "$RATES" | tr ' ' '\n' | sort -n | tail -1)"
+  say "== pre-flight: does the work spread across the pinned cores? =="
+  if grep -q 'isolcpus=' /proc/cmdline; then
+    die "isolcpus is active on this kernel ($(sed -n 's/.*\(isolcpus=[^ ]*\).*/\1/p' /proc/cmdline)).
+       Load balancing is off on those cores and every benchmark thread will pile
+       onto one of them. Run 'isolate' to strip it, reboot, and try again."
+  fi
+  # --smoke sends the probe's records to docker/.scratch/smoke-results, so this
+  # cannot leave a two-run campaign as the newest file in bench/results, which
+  # is one refresh_thesis.sh away from regenerating every quoted number from it.
+  local scratch="$root/docker/.scratch/smoke-results"
+  rm -f "$scratch"/campaign-*.jsonl 2>/dev/null
+  "$root/docker/run.sh" --cpuset "$PIN" --smoke --no-log campaign \
+      --shards "$SHARDS" --producers "$PRODUCERS" --repeats 1 \
+      --rates "$top" --duration 6 --warmup-s 1 --active-ues 5000 >/dev/null 2>&1
+  # campaign-*.jsonl also matches the campaign-*.hist.jsonl sidecar, which
+  # carries buckets and no cpu_pct, so it has to be filtered out by name.
+  local probe
+  probe="$(ls -1t "$scratch"/campaign-*.jsonl 2>/dev/null \
+           | grep -v '\.hist\.jsonl$' | head -1)"
+  if [ -z "$probe" ]; then
+    die "the probe run produced no records; fix that before spending two hours"
+  fi
+  # cpu_pct is summed over cores, so it reports how many the run really used.
+  local worst
+  worst="$(grep -oE '"cpu_pct":[0-9.]+' "$probe" | cut -d: -f2 | sort -n | tail -1)"
+  if [ -z "$worst" ]; then
+    warn "could not read cpu_pct from $probe; check it by hand"
+    return 0
+  fi
+  say "  highest cpu_pct in the probe: ${worst}% (100% = one core)"
+  if [ "${worst%%.*}" -lt 150 ]; then
+    die "the run used about one core. Threads are not spreading across $PIN, so a
+       full campaign here would measure the scheduler and not the service."
+  fi
+  ok "work spread over roughly $(( ${worst%%.*} / 100 )) cores or more"
 }
 
 # --------------------------------------------------------------------------- #
@@ -148,10 +210,14 @@ cmd_run() {
     sudo sysctl -w kernel.perf_event_paranoid=1 >/dev/null && ok "perf_event_paranoid = 1"
   fi
   if grep -q "isolcpus=" /proc/cmdline; then
-    ok "core isolation: $(sed -n 's/.*\(isolcpus=[^ ]*\).*/\1/p' /proc/cmdline)"
+    die "isolcpus is active. It disables load balancing on the pinned set, which
+       put all 1120 runs of the 27 August campaign on a single core. Run
+       'bench/canonical_repeat.sh isolate' to strip it, then reboot."
+  fi
+  if grep -q "nohz_full=" /proc/cmdline; then
+    ok "tickless: $(sed -n 's/.*\(nohz_full=[^ ]*\).*/\1/p' /proc/cmdline)"
   else
-    warn "no isolcpus on the kernel command line. Run 'isolate' and reboot, or"
-    warn "  accept that this repeat misses the protocol on the same row as the last one."
+    warn "no nohz_full on the kernel command line; tails will be slightly noisier"
   fi
 
   say
@@ -165,6 +231,9 @@ cmd_run() {
   say "== 3. tool checks, before the long run =="
   "$root/docker/run.sh" counters --software || warn "perf counters unavailable"
   "$root/docker/run.sh" alloc-profile --check || warn "allocation profiling unavailable"
+  # Blocking, and the most important check here. A campaign whose threads sit on
+  # one core produces 1120 records that all look plausible in isolation.
+  cmd_check_spread
 
   say
   say "== 4. the campaign: $TOTAL runs, roughly two hours =="
@@ -208,8 +277,9 @@ cmd_run() {
 }
 
 case "${1:-}" in
-  plan)    cmd_plan;;
-  isolate) cmd_isolate;;
-  run)     cmd_run;;
+  plan)         cmd_plan;;
+  isolate)      cmd_isolate;;
+  check-spread) cmd_check_spread;;
+  run)          cmd_run;;
   *) sed -n '2,26p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 2;;
 esac

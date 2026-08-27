@@ -47,8 +47,27 @@ echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo >/dev/null
 echo off | sudo tee /sys/devices/system/cpu/smt/control >/dev/null
 ```
 
-Isolate the cores the benchmark uses from the scheduler and IRQs for the cleanest
-tails (optional, kernel cmdline): `isolcpus=2-9 nohz_full=2-9 rcu_nocbs=2-9`.
+Reduce timer ticks and RCU callbacks on the benchmark's cores for cleaner tails
+(optional, kernel cmdline): `nohz_full=2-9 rcu_nocbs=2-9`.
+
+**Do not add `isolcpus` unless the benchmark pins each thread individually.**
+It delivers the cleanest tails of anything in this section and it also removes
+those CPUs from every scheduling domain, which switches off load balancing
+across them. §3 pins the benchmark to a *range* with `taskset -c 2-17` and
+relies on the kernel to spread `N_SHARDS + producers` threads over it. With no
+load balancing they all inherit the first allowed CPU and stay there for the
+life of the run.
+
+This is not hypothetical. The 27 August 2026 canonical repeat booted with
+`isolcpus=2-17` and ran all 1120 of its runs on `cpu2` alone: `cpu_pct` sat at a
+flat 100.1% from the fifth load level upward, `cpu3` through `cpu17` measured
+0.0% busy under sampling, and the throughput plateau came out at 84 kops/s
+against 336 on the KVM guest and 448 on the 26 August bare-metal visit. Every
+record looked individually plausible. Nothing in the dataset was usable.
+
+`bench/canonical_repeat.sh check-spread` runs one short high-rate run and refuses
+to continue when the work lands on about one core. Run it before any long
+campaign on a machine whose kernel command line you did not set yourself.
 
 ## 3. Running the benchmark pinned
 
