@@ -46,6 +46,10 @@ NS_PER_US = 1000.0
 EXACT_MAX = 20
 PERM_SAMPLES = 200000
 
+# How a language is named in prose, so a generated macro reads as the thesis
+# writes it rather than as the campaign records it.
+LANG_LABEL = {"cpp": "C++", "rust": "Rust"}
+
 # Consistent per-variant styling across every figure.
 VARIANT_STYLE = {
     ("cpp", "system"): ("C++ (system alloc)", "#1f77b4", "-", "o"),
@@ -1635,21 +1639,69 @@ def _subset(rows, key, load):
     ]
 
 
-def latency_table_fields(rows):
-    """Columns of tab:latency, widened to p99.99 when the campaign recorded it."""
+def pooled_far_tail(campaign_path, load):
+    """Read the pooled far tail of one campaign at one offered load, in \u00b5s.
+
+    A per-run p99.99 rests on about seventeen observations at the representative
+    load, so `bench/pool_hist.py` concatenates the repeats' persisted HDR buckets
+    and takes one percentile of the pooled distribution instead. That is a
+    different statistic from the rest of tab:latency, and the difference is the
+    point rather than an inconvenience: pooling takes the *operation* as the unit
+    of analysis and resolves the far tail, at the cost of having no across-repeat
+    dispersion to quote, while the median-of-repeats columns keep the *repeat* as
+    the unit and are the only basis for a paired test. Mixing the two inside one
+    claim is what `pool_hist.py` warns against, so the pooled column is printed
+    without an interval and the caption says which column it is.
+
+    Returns a dict keyed by (lang, alloc) with the pooled p99.99 and the sample
+    count behind it, or None when the campaign has no pooled sidecar. Returning
+    None rather than falling back to the per-run field is deliberate: a silent
+    fallback is how the prose came to describe a statistic the pipeline was not
+    computing.
+    """
+    if not campaign_path:
+        return None
+    base = re.sub(r"\.jsonl$", "", campaign_path)
+    path = f"{base}.hist.pooled.csv"
+    if not os.path.exists(path):
+        print(f"note: no pooled histogram at {path}; "
+              f"tab:latency will omit its p99.99 column. "
+              f"Run bench/pool_hist.py on the campaign's .hist.jsonl sidecar.")
+        return None
+    out = {}
+    with open(path, encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            if int(row["offered_ops_s"]) != int(load):
+                continue
+            out[(row["lang"], row["alloc"])] = {
+                "p9999": int(row["p9999_ns"]) / NS_PER_US,
+                "samples": int(row["samples"]),
+            }
+    return out or None
+
+
+def latency_table_fields(rows, pooled=None):
+    """Columns of tab:latency, widened to p99.99 when the far tail was pooled.
+
+    The p99.99 column appears when a *pooled* figure exists, not when the runs
+    happen to carry a per-run `p9999` field. The per-run version of that
+    percentile is the one Section 4.5 calls dominated by sampling noise, so
+    printing it would put a number in the table that the methodology chapter
+    disowns two pages earlier.
+    """
     fields = ["p50", "p99", "p999"]
     labels = ["p50", "p99", "p99.9"]
-    if has_metric(rows, ("lat_ns", "p9999")):
+    if pooled:
         fields.append("p9999")
-        labels.append("p99.99")
+        labels.append("p99.99$^{\\dagger}$")
     fields.append("max")
     labels.append("max")
     return fields, labels
 
 
-def write_latency_table(rows, outdir, load):
+def write_latency_table(rows, outdir, load, pooled=None):
     """Emit the body of tab:latency at the representative load (values in \u00b5s)."""
-    fields, _labels = latency_table_fields(rows)
+    fields, _labels = latency_table_fields(rows, pooled)
     lines = []
     for key in variants_present(rows):
         label = VARIANT_STYLE[key][0]
@@ -1658,6 +1710,12 @@ def write_latency_table(rows, outdir, load):
             continue
 
         def cell(field):
+            # The pooled far tail is one percentile of one concatenated
+            # distribution, so it has no interval to print. Everything else is a
+            # median over repeats above its bootstrap interval.
+            if field == "p9999":
+                entry = (pooled or {}).get(key)
+                return f"{entry['p9999']:.1f}" if entry else "---"
             return med_ci_cell([r["lat_ns"][field] / NS_PER_US for r in sub])
 
         lines.append(label + " & " + " & ".join(cell(f) for f in fields))
@@ -1786,13 +1844,26 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
             _, lo, hi = bootstrap_ci([p99_us(r) for r in sub])
             p99_ci.append(hi - lo)
     # Saturation knee: highest achieved throughput anywhere in the sweep, taken as
-    # the minimum across variants so the quoted knee holds for all four.
+    # the minimum across variants so the quoted knee holds for all four. That
+    # minimum is a floor and not a shared value, and on a host where the two
+    # languages saturate at different loads it conceals the difference, so the
+    # per-language figures below are emitted beside it and the prose quotes those
+    # when it describes where each arm stops coping.
     knee = min(max(med_at(k, l, thr_kops) for l in loads) for k in variants)
+
+    def tracks(keys, l):
+        return all(med_at(k, l, thr_kops) >= 0.95 * l / 1000.0 for k in keys)
+
     # Highest offered load at which every variant still tracks the ideal line to 5%.
-    tracking = [
-        l for l in loads
-        if all(med_at(k, l, thr_kops) >= 0.95 * l / 1000.0 for k in variants)
-    ]
+    tracking = [l for l in loads if tracks(variants, l)]
+    by_lang = {}
+    for lang in sorted({k[0] for k in variants}):
+        keys = [k for k in variants if k[0] == lang]
+        held = [l for l in loads if tracks(keys, l)]
+        by_lang[lang] = {
+            "tracking": max(held) if held else 0,
+            "knee": min(max(med_at(k, l, thr_kops) for l in loads) for k in keys),
+        }
 
     macros = {
         "ReprLoad": f"{load / 1000.0:.0f}",
@@ -1816,20 +1887,77 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
         # measurement: a reader comparing "1.6 against 80" should not be invited
         # to read the second figure to the same precision as the first.
         "PFiftyMedian": f"{round(statistics.median(p50) / 10.0) * 10:.0f}",
-        # The two ends of the tracking region's p99 climb. The prose describes the
-        # shape of Figure fig:loadsweep panel (a), so the numbers anchoring that
-        # description belong here rather than in the sentence. Both are the
-        # median across variants and not an extreme, because the sentence is
-        # about the four climbing together: quoting one variant's worst point
-        # would describe a curve the figure does not draw.
+        # The two ends of the tracking region, and how much p99 moves between
+        # them. The prose describes the shape of Figure fig:loadsweep panel (a),
+        # so the numbers anchoring that description belong here rather than in
+        # the sentence. All three are the median across variants and not an
+        # extreme, because the sentence is about the four behaving alike inside
+        # the region: quoting one variant's worst point would describe a curve
+        # the figure does not draw.
+        #
+        # The shape these measure is a *flat* region, not a climb. Both ends are
+        # therefore kept in microseconds. An earlier version divided the upper end
+        # by a thousand and printed it as milliseconds, which rounded to zero on a
+        # quiet host and anchored the cliff sentence at "0 ms".
         "PNineNineLightest": (
             f"{statistics.median([med_at(k, min(loads), p99_us) for k in variants]):.0f}"
         ),
-        "PNineNinePreCliff": (
-            f"{statistics.median([med_at(k, max(tracking), p99_us) for k in variants]) / 1000.0:.0f}"
+        "PNineNineTrackingTop": (
+            f"{statistics.median([med_at(k, max(tracking), p99_us) for k in variants]):.0f}"
             if tracking else "0"
         ),
+        # Signed, because the direction is the finding: on the virtualised host
+        # p99 rose across the tracking region and on a quiet one it falls
+        # slightly, so a sentence claiming a gentle climb is host-specific.
+        "PNineNineTrackingDrift": (
+            f"{statistics.median([med_at(k, max(tracking), p99_us) for k in variants]) - statistics.median([med_at(k, min(loads), p99_us) for k in variants]):+.0f}"
+            if tracking else "0"
+        ),
+        # Where each language stops meeting its offered rate, and what it peaks
+        # at. Quoted instead of SatKnee wherever the prose says where an arm
+        # stops coping, because SatKnee is a minimum across all four.
+        "TrackingLoadCpp": f"{by_lang['cpp']['tracking'] / 1000.0:.0f}" if "cpp" in by_lang else "0",
+        "TrackingLoadRust": f"{by_lang['rust']['tracking'] / 1000.0:.0f}" if "rust" in by_lang else "0",
+        "SatKneeCpp": f"{by_lang['cpp']['knee']:.0f}" if "cpp" in by_lang else "0",
+        "SatKneeRust": f"{by_lang['rust']['knee']:.0f}" if "rust" in by_lang else "0",
+        "KneeShared": (
+            "yes" if len({v["tracking"] for v in by_lang.values()}) == 1 else "no"
+        ),
     }
+
+    # The rung between the two languages' tracking limits, when they differ. One
+    # language still serves its offered rate there and the other has collapsed,
+    # which is the largest throughput gap anywhere in the sweep and runs opposite
+    # to the gap at the pre-committed overload point. Reported descriptively and
+    # deliberately not tested: the operating point was identified after seeing the
+    # data, and Section 4.5 fixes the family in advance precisely so that a point
+    # chosen this way cannot enter it.
+    limits = {lang: v["tracking"] for lang, v in by_lang.items()}
+    if len(set(limits.values())) > 1:
+        ahead = max(limits, key=lambda lang: limits[lang])
+        behind = min(limits, key=lambda lang: limits[lang])
+        rung = limits[ahead]
+        fast = [med_at(k, rung, thr_kops) for k in variants if k[0] == ahead]
+        slow = [med_at(k, rung, thr_kops) for k in variants if k[0] == behind]
+        fast_med, slow_med = statistics.median(fast), statistics.median(slow)
+        # Per-repeat sign agreement, paired by position inside the allocator, the
+        # same pairing _paired_effect documents.
+        agree = total = 0
+        for alloc in sorted({k[1] for k in variants}):
+            a = [thr_kops(r) for r in _subset(rows, (behind, alloc), rung)]
+            b = [thr_kops(r) for r in _subset(rows, (ahead, alloc), rung)]
+            for x, y in zip(a, b):
+                total += 1
+                agree += 1 if y > x else 0
+        macros.update({
+            "KneeGapLoad": f"{rung / 1000.0:.0f}",
+            "KneeGapFaster": LANG_LABEL.get(ahead, ahead),
+            "KneeGapSlower": LANG_LABEL.get(behind, behind),
+            "KneeGapThrFast": f"{fast_med:.0f}",
+            "KneeGapThrSlow": f"{slow_med:.0f}",
+            "KneeGapRatio": f"{fast_med / slow_med:.1f}",
+            "KneeGapAgree": f"{agree}/{total}",
+        })
 
     # The preamble of tab:latency travels with its generated body. The table gains
     # a p99.99 column the moment a campaign records one, and a hand-written

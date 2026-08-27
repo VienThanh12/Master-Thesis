@@ -76,21 +76,24 @@ thesis process, which no manuscript can settle. It is reproduced as issued in
 four passes on record, and the build-gate script live in the same skill. Use it for any new
 grading pass so passes stay comparable.
 
-| # | Criterion | Target | Current (post-refinement) | What still blocks a 5 |
+| # | Criterion | Target | Current (13th pass, 27 Aug 2026 night) | What still blocks a 5 |
 | --- | --- | --- | --- | --- |
-| **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (7 inside + 7 outside guarantee). One cheap alignment item: RQ1 names the median, p99, p99.9 and the maximum, and the decisive far-tail result is a pooled p99.99. The narrowing was right while the statistic was unavailable; it is in hand now, so RQ1 can name it and §7.6's explanation of the narrowing can go. |
+| **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (7 inside + 7 outside guarantee). The one alignment item stopped being cosmetic at the 13th pass: RQ1 names the median, p99, p99.9 and the maximum, the decisive result is now the p99.99 far tail, and §7.7 asserts that RQ1 names the statistic that decides it. Add the metric to §1.3 or delete that sentence. Ten minutes either way. |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
-| **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **A matched bare-metal campaign.** The far tail, the counters and the allocation profiles were all collected on bare metal on 26 Aug 2026 (§`sec:baremetal`), so the instrumentation gap is closed and the data half moved from 4 to 4.5, inside the half grade. Two things hold it. The confirmation run changed the shard count (8 against 7), the load grid (8 levels against 14) and the repeat count (15 against 20) alongside the host, so it corroborates the main sweep and cannot replace it. And it changed a **fifth** variable the thesis does not name: the toolchain, `g++ 13.3.0`/`rustc 1.98.0` against `g++ 15.1.1`/`rustc 1.97`. §`sec:baremetal` claims it "changes one thing that matters, the machine" and `tab:testbed`'s caption claims the host met the protocol column, which asks for the same toolchain, `isolcpus`, `nohz_full` and 20 repeats. Repeating it at the canonical configuration and toolchain is the remaining work. |
-| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.5** | Restored from 4.0 on the night of 26 August, and the ninth-pass defect class is now closed on **both** halves. The figure half was closed by the second remediation and re-verified by rendering. The claims-about-the-evidence half is closed by the third: the counter over-claim is gone from all four sites, and the "split inside the resident set is unresolved" under-claim is gone because the split is now **measured** from `jemalloc`'s own accounting in `tab:resident`. §`sec:baremetal` finally has a float, which was the other standing area-4 item. No measured value is wrong, four passes running. **Level 5 wants two things.** The abstract, which is the author's. And two results still unreported from data on disk: the allocation profile's call-site attribution, and the collected jitter with the p99.99 column `tab:latency`'s generated preamble already allows. Do not reintroduce a measured number as prose, and do not restate the median result as a bare null. |
-| **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Dropped to 4.5 at the twelfth pass, which audited the remediation that had raised it, and restored the same night. §7.2's RQ3 paragraph no longer attributes the footprint to a cache-miss rate and no longer calls the resident-set split unresolved: it is rebuilt around three bounds, the third being that the effect is **located outside the allocator**. Its enumeration is repaired and its antecedent named. Maintain register: “cannot tell” ≠ “equivalent”, the memory result is *located* and not *attributed to a call site*, and the counters explain the operation-level timing and nothing about the footprint. |
-| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | **Rewrite the abstract unaided**, then set `\abstractunaidedtrue`: until then the build prints “Not submittable”, and a document that declares itself unsubmittable is not camera-ready. That clause alone holds the criterion, and the abstract now carries **five** defects rather than four, the newest being that it still ends “The far tail below saturation cannot be settled on a virtualised host”. This criterion fell to 4.0 at the eleventh pass on level 4's consistency clause and was **restored the same evening**: §4.4, §6.3, §5.6 and `tab:testbed`'s caption now describe the study as it is. The finishing defects behind level 5 are also closed: `fig:effects`' axis label is whole (one shared `supxlabel`, since `bbox_inches` did not fix it), `fig:borrowuaf`'s caption matches `taxonomy.csv`, and the 15-repeat *p*-floor reads `\BudgetFloor`. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
+| **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **The half grade changed sides at the 13th pass. The data half is now 5 and the description half holds it.** The canonical repeat ran on 27 Aug 2026 at 7/7/14/20, 1120 runs, no hypervisor, SMT off, `nohz_full`, toolchain pinned in a container, zero errors, so the instrumentation ceiling that held this criterion since the third pass is closed. Two prose defects now hold it, each about half an hour. §4.5 fixes in advance that intervals in the tail block are not read as findings, and names dropping the rule for the convenient block as the failure it exists to prevent, and §6.4.1 then reads exactly those intervals as findings while `fig:effects` shades them otherwise. The Holm-cleared *p*-values carry the same claim without breaking the rule, so the fix costs nothing. And `REPR_LOAD_OPS` is pinned for a well-documented reason while §6.2 still calls the representative point derived and states the rule the code abandoned, which on this host returns 392 kops/s and not 56. This is the cheapest 5 on the sheet. |
+| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.0** | **Dropped from 4.5 at the 13th pass. No measured value in any table or figure is wrong, six passes running, and thirteen sentences around them are.** Six are wrong rather than stale, and they are a new class: claims that were true of the guest and that the new data *reverses*, so no grep for "virtualised" finds them. §6.4.1 alone says every pair of intervals overlaps (they separate every C++/Rust pair), names peak RSS under `jemalloc` as the row that fails Holm (all 14 clear), prints "The 0 rows the correction does not clear", and describes p99 climbing across the tracking region where `fig:loadsweep`(a) draws it flat and falling. It also asserts a shared knee where both Rust arms track to 448 kops/s and both C++ arms collapse there, which hides a result in Rust's favour. Worst: §4.5 and §6.4.1 say the p99.99 is pooled and `write_latency_table()` takes a median of the 20 per-run values, which the same page calls meaningless. Every item is an edit, and the pooled fix strengthens the finding (87 µs range against the 52 printed). |
+| **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **4.5** | **Back to 4.5 at the 13th pass, on the eleventh pass's failure exactly: a discussion one section behind its own results.** Four chapter-7 sites still describe a study measured on a virtual machine. §7.2 says the far tail is a null this host cannot order and that a quiet machine can, where the reported campaign *is* the quiet machine. §7.7's first conclusion-validity limitation says the measurements were taken inside a VM with non-zero steal, four pages after `tab:testbed` prints `virtualisation: none`. §7.8 disowns the study's own tail numbers on the same ground. `tab:threats` still lists a virtualised host as a live threat and still reports peak RSS under `jemalloc` as read from its interval. H1's revisit and §7.7's construct-validity paragraph *are* synced, so this is the half-a-pair pattern again. Maintain register: “cannot tell” ≠ “equivalent”, the memory result is *located* and not *attributed to a call site*, and the counters explain the operation-level timing and nothing about the footprint. |
+| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.0** | **Fell from 4.5 at the 13th pass on level 4's consistency clause, the same clause and the same mechanism as the eleventh pass, and it now fails on all four things that clause names.** Research questions: RQ1 does not name the metric that decides the study. Research setup: §6.2 states a load-selection rule the code abandoned, §4.5 says the p99.99 is pooled and lists "isolating the cores" where §6.1 explains why `isolcpus` is deliberately absent, §4.6 names the wrong results directory, and Appendix D's intro calls §6.1's host the guest above a three-column table whose first column is bare metal. Findings: the criterion-4 list. Conclusions: Chapter 8, §7.8, `tab:threats`, plus `fig:cliff`'s caption. Every mechanical gate still passes (zero errors, zero undefined refs, no overfull boxes, abstract box fits, 0 semicolons, all 14 dash hits legitimate). Separately and still blocking submission: **rewrite the abstract unaided**, then set `\abstractunaidedtrue`. Five defects, and submitted as it stands the abstract puts this criterion at 4.0 on its own. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
 
-**Overall mean (unweighted): 4.75**, the highest on record. The day of 26 August went 4.67 to 4.50
-(eleventh pass, after the bare-metal campaign landed and the document lagged it) to 4.67 (second
-remediation, three hours of sync editing) to 4.58 (twelfth pass, which audited that remediation and
-found it had over-credited itself) to **4.75** (third remediation, which closed the twelfth pass's
-list including the two-hour item that turned out to matter most). Criterion 4 left 4.0 for the first
-time since the ninth pass. Three lessons are worth more than the number.
+**Overall mean (unweighted): 4.50** at the thirteenth pass, 27 August 2026 night, down from the 4.75
+the third remediation claimed. The history: 26 August went 4.67 to 4.50 (eleventh pass, after the
+first bare-metal campaign landed and the document lagged it) to 4.67 (second remediation) to 4.58
+(twelfth pass, which audited that remediation and found it had over-credited itself) to 4.75 (third
+remediation), and then to **4.50** on 27 August, when the canonical repeat became the main dataset
+and the same lag reappeared at larger scale. **The pattern has now cost this thesis a grade point
+twice in two days, both times for the same reason.** A campaign lands, its macros regenerate cleanly,
+and the sentences around them are not re-read. A clean regeneration says the numbers are right. It
+says nothing about the prose. Four lessons are worth more than the number.
 
 1. **The bare-metal campaign removed the thesis's largest ceiling and briefly cost it two criteria,
    because the rest of the document had not caught up.** When a new results section lands, sync the
@@ -103,29 +106,46 @@ time since the ninth pass. Three lessons are worth more than the number.
 3. **Before believing a limitation, check whether the dataset already refutes it.** The largest single
    improvement of the day came from reading seven fields that had sat in 480 campaign records while
    four places in the thesis said the instrument did not exist. Cost: two hours, no measurement.
+4. **A new dataset does not only make claims stale, it can make them false in the opposite
+   direction.** The thirteenth pass's new finding. "Every pair of intervals overlaps", "the one row
+   that does not clear the correction" and "the knee sits at the same place for all four variants"
+   were all true of the guest and are all reversed by the bare-metal data. None of them contains the
+   word virtualised or unresolved, so a staleness sweep misses every one. The only check that finds
+   them is reading each numeric claim in §6.4 against the generated table beside it.
 
-Criterion 3 is held at 4.5 **deliberately** until a canonical-configuration repeat exists.
-Do not round the half-grades in prose without updating the reasoning in `docs/ASSESSMENT.md`. The
-class-file item is **done**: the document builds on the department's own `HYthesisML.cls`, and the
-reconstructed `UH_DS_MSc.cls` in the root is no longer loaded.
+Criterion 3 is held at 4.5 because §6.2 and §6.4.1 describe a method the code does not run, and
+**not** for want of data any more. Do not round the half-grades in prose without updating the
+reasoning in `docs/ASSESSMENT.md`. The class-file item is **done**: the document builds on the
+department's own `HYthesisML.cls`, and the reconstructed `UH_DS_MSc.cls` in the root is no longer
+loaded.
 
-**Four items are open and the first is the only blocker.** First, the abstract must be rewritten by
-the author unaided, because in this programme it is the maturity test and a model may not touch it.
-That rewrite is overdue on substance and not only on style: the abstract still ends "The far tail
-below saturation cannot be settled on a virtualised host", which §`sec:baremetal` contradicts, and it
-is the fifth defect in that paragraph. **It is now the only thing holding criterion 6 below 5** and
-the last far-tail site in the document. The second and third items were closed on 27 August 2026 and
-are recorded in `docs/TODO.md` § *Do now*. The allocation profile in
+**Open work after the thirteenth pass, in the order it pays.** The full ranked list with line numbers
+is in `docs/ASSESSMENT.md` under that pass. In summary: about seven hours of editing recovers
+criteria 4, 5 and 6 and takes criterion 3 to 5, and it splits into eight items, the largest being the
+fifteen far-tail and host sites that still describe a virtual machine. Two analysis items sit on data
+already on disk and are worth half a day each: point `tab:latency`'s p99.99 column and the `\FarTail*`
+macros at `campaign-20260827-151927.hist.pooled.csv` (and add `bench/results/` to
+`refresh_thesis.sh`'s pooling loop, which still globs only `bench/results-baremetal/`), and report the
+448 kops/s rung where both Rust arms serve the full offered rate and both C++ arms have collapsed. One
+measurement item remains and Chapter 8 already names it: the transparent-hugepage experiment. And the
+abstract must be rewritten by the author unaided, because in this programme it is the maturity test
+and a model may not touch it. That rewrite is overdue on substance and not only on style: it still
+ends "The far tail below saturation cannot be settled on a virtualised host", which is now the
+thesis's principal result stated backwards. It is **no longer the only thing holding criterion 6 below
+5**, since the thirteenth pass took that criterion to 4.0 on the body rather than on the abstract, but
+it is still the only item nobody else may touch. The allocation profile in
 `bench/results-baremetal/alloc_profile-20260826-110718/` was analysed and **returns a negative
 result**: it cannot attribute the footprint to a call site, because the profiling build reverses the
 sign of the peak-RSS difference it was collected to explain, it runs past the saturation plateau,
 and both flat rankings collapse onto frames that allocate nothing. Two positive results survived and
 are reported (histogram parity to the byte, and the worker path's open-addressed-versus-node-based
 shape). The collected jitter is reported descriptively in the same section. **The p99.99 column
-`tab:latency` should carry is blocked on the canonical repeat, not on analysis**: the guest campaign
-records no `p9999` field at all. Fourth, that
-canonical-configuration bare-metal repeat needs a rented machine, about two hours and one euro, and
-it is the only thing holding criterion 3's data half below 5. The deck costs no grade and was the
+`tab:latency` now carries is placed and computed the wrong way**: §4.5 and §6.4.1 both say it is
+pooled across repeats, and `write_latency_table()` takes a median of the 20 per-run values, which the
+same page of §4.5 calls dominated by sampling noise. Fixing it strengthens the finding, since pooled
+the between-variant range is 87 µs against the 52 printed. The
+canonical-configuration bare-metal repeat is **done as of 27 August 2026** and closed criterion 3's
+data half. The deck costs no grade and was the
 last stale artefact in the repository. It is **resynced as of 26 August 2026, evening**: it reads
 `gen_baremetal.tex` and `tab_resident.tex`, carries a far-tail slide and a resident-set slide, names
 both hosts on one slide, and the five passages that contradicted the thesis are corrected. The one

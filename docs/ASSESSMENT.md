@@ -2565,3 +2565,283 @@ Rollback point: `.rollback-20260827-220354`.
    held at 4.5 solely by the measurement that has now been made.
 3. **The transparent-hugepage experiment**, which is the only open question the data raised rather
    than answered.
+
+---
+
+## Thirteenth pass — 27 August 2026, night
+
+Graded from `Ha_Vien_Mastersthesis_2026.tex` against a build verified current: source, PDF and
+`build/Ha_Vien_Mastersthesis_2026.log` all written at 22:29 on 27 August. Declared length **104 pages
+with 6 appendix pages, 118 physical**. This is the fresh pass the dataset-promotion record asked for,
+and it wrote none of the work it grades. Graded as a full draft, the standard `AGENT.md` §1 sets for
+this file. No edits made.
+
+**The headline: the campaign the thesis waited five passes for is excellent, and the document lost a
+quarter of a grade point because the prose describing it did not follow.** Area 3's data half is
+closed and reads at 5 for the first time on record. Against that, the promotion's claim that "every
+chapter was synced in the same pass" does not hold: thirteen sites still describe a study measured on
+a virtual machine, and thirteen statements in the results and discussion chapters disagree with the
+artefact beside them. **This is the eleventh pass repeating, at larger scale and with one new defect
+class.**
+
+Graded against the 22:29 state of the source. Two §1.4 sites were repaired at 23:34 while this entry
+was being written, which is why the far-tail count reads thirteen and not fifteen. Line numbers below
+are taken from the later file. That repair is discussed under Finding 6, because of what it did to
+Finding 1.
+
+| Area | 12th pass | 3rd remediation claim | This pass | Why |
+| --- | --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | 5 | **5** | Gap located in a named flaw of the closest prior work. Catalogue re-verified off `taxonomy.csv` at 7 and 7. The RQ1 metric item is now a live inconsistency rather than a cosmetic one |
+| 2. Scholarly framework and sources | 5 | 5 | **5** | 109 of 109 cited, 66 per cent peer-reviewed venues, contrary results reconciled in mechanism, replication status stated per finding |
+| 3. Research data and method | 4.5 | 4.5 | **4.5** | Same number, **different reason**. The data half is now 5. The *description* of the method is what holds it, on two counts |
+| 4. Presentation of results | 4.0 | 4.5 | **4.0** | **Disagreement with the remediation.** Thirteen prose-against-artefact statements, six of them wrong rather than stale, four inside one subsection |
+| 5. Discussion and conclusions | 4.5 | 5 | **4.5** | **Disagreement with the remediation.** Four chapter-7 sites still describe a virtualised host. Same failure as the eleventh pass |
+| 6. Academic text | 4.5 | 4.5 | **4.0** | Level 4's consistency clause fails on all four things it names. Same clause and same mechanism as the eleventh pass |
+| 7. Work during the thesis process | n/a | n/a | **n/a** | No manuscript settles feedback uptake, independence or schedule |
+| **Mean of the six assessable** | 4.58 | 4.75 | **4.50** | Lowest since the eleventh pass, and for the same cause |
+
+Canvas: `thesis-grade-csm-aug27.canvas.tsx`.
+
+### What the campaign bought, stated first because it is the larger fact
+
+`bench/results/campaign-20260827-151927.jsonl` is the main dataset: 1120 runs at the canonical
+7 shards, 7 producers, 14 load levels, 20 repeats, zero errors, AMD EPYC 7443, `virtualisation:
+none`, SMT off, `performance` governor with boost off, `nohz_full` on the pinned cores, toolchain
+pinned in a container so the host comparison isolates hardware alone. `\PNineNineMaxCI` is 1 µs
+against a between-variant `\PNineNineRange` of 2, where the guest had 1480 against 293. All 14 tests
+clear Holm. `tab:latency` has its p99.99 column and `tab:jitter` is placed.
+
+Mechanically the document is clean: zero LaTeX errors, zero undefined references or citations, no
+multiply-defined labels, no float too large, no overfull boxes, no placeholders, abstract form fits
+its box, 109 of 109 bibliography entries cited. `./.aitells.py`: zero semicolons, sentence length
+21.7 ± 11.3, all 14 dash hits numeric ranges or `Herfindahl--Hirschman`. **No table or figure holds a
+wrong measured value, which is now six passes running.**
+
+### Finding 1: the p99.99 is not computed the way two sections say it is
+
+**This is the most serious item and it is the one to fix first.** §4.5 l. 1608 says "Its p99.99 is
+pooled across repeats by exactly the procedure described above, and reaches Table~\ref{tab:latency}
+as a column of its own". §6.4.1 l. 2443 says predictability is evidenced "from pooled histogram
+buckets rather than per-run summaries".
+
+`write_latency_table()` in `bench/plot_figures.py` builds the cell as
+`med_ci_cell([r["lat_ns"]["p9999"] ...])`: a **median of the twenty per-run p99.99 values** with a
+bootstrap interval. `plot_figures.py` opens no pooled file anywhere, and the `\FarTail*` macros use
+the same per-run field. §4.5 argues on the same page that a single run retires about 170 thousand
+operations so its p99.99 "rests on roughly seventeen observations" and is "dominated by sampling
+noise even on a perfectly quiet host". **By the thesis's own argument the number it prints is the one
+that means nothing.**
+
+The pooled data exists. `bench/results/campaign-20260827-151927.hist.pooled.csv` is on disk with
+3 360 051 to 3 360 084 operations per group, at the representative load:
+
+| Variant | As printed (median of 20 per-run p99.99) | Pooled |
+| --- | --- | --- |
+| C++ system | 135.0 µs | 142.0 µs |
+| C++ jemalloc | 135.6 µs | **176.4 µs** |
+| Rust system | 89.2 µs | 92.1 µs |
+| Rust jemalloc | 83.6 µs | 89.5 µs |
+| between-variant range | 52 µs (`\FarTailRange`) | **87 µs** |
+| spread | 62 % (`\FarTailSpread`) | **97 %** |
+
+**The direction survives and the effect is larger pooled, so fixing this strengthens the finding.**
+Two pieces of pipeline work close it: point the generator at the pooled CSV, and add `bench/results/`
+to `refresh_thesis.sh`'s pooling loop, which still globs only `bench/results-baremetal/`. The
+script's own comment names this exact failure as "the quiet-staleness failure mode rather than a loud
+one", so the warning was written and then not applied to the new directory.
+
+### Finding 2: six statements in §6.4 are wrong against their own tables and figures
+
+This is a **new defect class** for this thesis and it is not staleness. These are claims that were
+true of the guest and that the new data **reverses**, so a sweep grepping for "virtualised" or
+"unresolved" catches none of them.
+
+| Site | Claim | Artefact |
+| --- | --- | --- |
+| l. 2425 | "every pair of confidence intervals overlaps, so the table on its own separates nothing" | `tab:latency` separates every C++/Rust pair at the median, 73.5--73.7 against 72.3--72.5. Four of the six pairs do not overlap. The passage that follows describes a distance that no longer exists |
+| l. 2558 | "Peak resident set size under jemalloc is the one upper-block row that does not clear it" | `tab_significance` gives that row Holm $0.000027$. `\NSignificant` is 14 of 14, and the sentence before prints 14 of 14 then enumerates nine rows. §6.4.3 states the correct version four pages later |
+| l. 2575 | "The `\NEqvUnresolved` rows the correction does not clear are not all saying the same thing" | `\NEqvUnresolved` is 0, so it prints "The 0 rows ..." |
+| l. 2578 | tail bounds "run out to `\EqvBoundTailMax` µs, wider than any difference a deployment would care about ... the campaign declining to answer" | Every row of `tab_equivalence` reads *significant* and the widest tail margin is 5 µs. Written for the guest, where five rows did not resolve and the bounds ran to 1480 µs |
+| l. 2718 | the four variants "climb together and gently, from `\PNineNineLightest` µs at the lightest load to single-digit milliseconds by the top of that region ... from `\PNineNinePreCliff`~ms to several seconds" | p99 runs 78.3 µs at 7 kops/s **down** to 74.1 µs at 392. It never climbs and never reaches a millisecond. `fig:loadsweep`(a) draws a flat line. `\PNineNinePreCliff` rounds to **0**, so the cliff is anchored at "0 ms" |
+| l. 2745 | "The knee also sits at the same place for all four variants" | Both Rust arms hold their offered rate to 448 kops/s; both C++ arms collapse there to ~162. `fig:loadsweep`(b) draws it. `\SatKnee` is the *minimum* across variants, so the macro conceals a 14 per cent capacity difference the prose then asserts is absent |
+
+Three more of the same family, all captions or cells: `tab:significance`'s caption still reads
+"Measured on the virtualised Xeon host"; `tab:resource`'s caption and §6.4.3 l. 2934 say peak RSS is
+"the one metric here whose intervals separate the four variants cleanly", where C++/jemalloc
+[12.5, 12.6] and Rust/system [12.4, 12.7] overlap visibly in `fig:resources`(a) and CPU separates the
+languages cleanly; and `tab:findings`'s RQ1 headline cell contradicts its own *Evidence status* cell
+in the same row.
+
+### Finding 3: an unreported result, and it favours Rust
+
+At **448 kops/s** both Rust arms serve the full offered rate (447.9 achieved) while both C++ arms have
+already collapsed to about 162. Rust is ahead by a factor of 2.8 at the load where the C++ arms first
+stop coping, in 20 repeats under both allocators. **No page of the thesis mentions it.** The overload
+comparison is made at 784 kops/s, where C++ leads 147 to 84, and that operating point is
+pre-committed and defensible. But the document asserts a shared knee, reports the rung that favours
+C++, and is silent on the rung that favours Rust. §6.4.4 holds out an analogous metastable rung on
+the second bare-metal host and explains why, which is the pattern to copy.
+
+### Finding 4: the pre-committed reading rule is broken where it first costs something
+
+§4.5 fixes in advance that intervals in `tab:significance`'s second block "are not read as findings
+however far from zero they sit", and names the failure the pre-commitment exists to prevent:
+"Applying the rule to the block that suits the argument and quietly dropping it for the other".
+§6.4.1 l. 2441 then says the tail rows "carry a finding rather than a shrug" and grounds it in exactly
+the barred instrument, "resolve with a paired interval excluding zero". `fig:effects` still shades
+those rows *not read as findings*.
+
+**The finding itself is fine** and the fix is cheap: the tail rows clear Holm at $0.000027$ and
+$0.00016$, and a $p$-value is not what the rule bars. Justify from Holm, or argue explicitly that the
+rule's premise weakened once the hypervisor was gone. Left as written it reads as dropping the rule
+the moment it stopped paying, which is the one thing §4.5 promises not to do. **This is what holds
+area 3 rather than any property of the data.**
+
+### Finding 5: §6.2 states a load-selection rule the code abandoned
+
+`REPR_LOAD_OPS = 56000` is pinned in `plot_figures.py`, with the old rule kept as
+`deadline_limited_load()` and a docstring giving the reason: on the guest the derived rule returned
+56 kops/s because p99 there was a hair under 5 ms, so it was locating the host's noise floor, and on
+a quiet host the same rule climbs until capacity binds and returns 392, collapsing the representative
+point onto the knee. **The reasoning is good and the thesis does not carry it.** §6.2 l. 2322 still
+says "Two derived values are used throughout what follows. The representative operating point is not
+chosen by eye. It is the busiest swept load at which all four build variants still hold their p99
+below $5$~ms". On this host that rule returns 392, not 56. The dataset-promotion record flagged this
+for a grader to check; the answer is that the new wording announces nothing, because there is no new
+wording.
+
+### Finding 6: four chapter-7 sites and eleven others still describe a virtual machine
+
+Scored against area 5 from the chapter-7 sites only, so it is not Finding 2 counted twice.
+
+- §7.2 l. 3780: the far tail is "a null this host cannot turn into an ordering", and "a quiet machine
+  does turn it into an ordering". The reported campaign is the quiet machine.
+- §7.7 l. 4546: "the measurements were taken inside a virtual machine that does not expose frequency
+  or turbo control and that records non-zero CPU steal", four pages after `tab:testbed` prints
+  `virtualisation: none` and a governor verified on the machine.
+- §7.8 l. 4665: "Tail-latency numbers from a virtual machine with non-zero CPU steal are not a sound
+  basis for a production commitment", which disowns evidence the thesis now has.
+- `tab:threats` l. 4472 and l. 4478: the external row still lists "A virtualised measurement host" as
+  a live threat with "steal non-zero" as its residual, and the conclusion row still reports peak RSS
+  under `jemalloc` as read from its interval against its $p$-value, which §6.4.3 says was not needed
+  here.
+
+Nine more outside chapter 7, scored against area 6: §6.4's opening l. 2407, l. 2582,
+`tab:significance`'s caption l. 2527, `tab:findings`'s RQ1 cell l. 3737, Chapter 8 l. 4716,
+`fig:cliff`'s caption l. 1306 ("the development host cannot resolve it"), `tab:vendortheses`' caption
+l. 4340, Appendix D's intro l. 4879 ("itemises both machines ... the guest of
+Section~\ref{sec:testbed} that every table in this thesis is drawn from", above a three-column table
+whose first column is bare metal), and `ai_statement.tex` l. 67.
+
+**Two §1.4 sites were closed while this pass was being written**, at 23:34, and the line numbers above
+are from the file after that edit. §1.4 l. 574 now reads "The far tail in the same regime now resolves
+on the reported host" and l. 586 replaces "a virtualised measurement host" among the four limitations
+with "an allocator footprint whose size moved with the host", which is the better limitation to name.
+**The new sentence carries the pooled claim of Finding 1 forward**, so the sync propagated an unchecked
+claim into freshly written prose. That is pattern 2 of this file's own list, observed live, and it is
+the argument for doing Finding 1 before the rest of the sync rather than after.
+
+**H1's revisit is correctly synced**, and so is the §7.1 introduction, `tab:findings`'s *Evidence
+status* column, `tab:testbed` itself, `tab:vendortheses`' own row and §7.7's construct-validity
+paragraph. The pattern is the eleventh pass's third shape exactly: **half a pair fixed**, repeatedly,
+with the caption right and the paragraph above it wrong, or the table row right and the headline cell
+in the same row wrong.
+
+### Finding 7: four macro misuses, and two hand-typed values are back
+
+- §6.4.4 l. 3161 uses `\RssLowRunOffset` (1 MiB, this host) where `\GuestRssLowRunOffset` (31) is
+  meant, so the sentence contrasts a 1 MiB defect against a 1.7 MiB spread and defeats itself. Two
+  paragraphs earlier, l. 3072, the same contrast uses both macros correctly.
+- l. 3073 uses `\RssAgree` (the per-repeat sign agreement for one row, 20/20 repeats) as a count of
+  "resource comparisons".
+- l. 3039 compares `\GuestPNineNine` (guest p99 at the representative load) against
+  `\PNineNineLightest` (this host's p99 at the *lightest* load). The magnitudes happen to work, the
+  quantities do not.
+- §7.2 l. 3779 types "$80\,\mu$s operation", the guest's median, where `\PFiftyMedian` is 70.
+- §7.7 l. 2563 types "$18$ of $20$ repeats", the guest's agreement count. **This was closed by
+  `\RssAgree` at the third remediation and has come back as prose.**
+
+### Area-by-area reasoning, where it is not obvious from the table
+
+**Area 1 holds at 5.** The level-5 clause is about topic significance and it plainly holds. The one
+item worth naming: RQ1 names "median, p99 and p99.9 tail latency, and the maximum", the decisive
+result of the study is now the p99.99 far tail, and §7.7 l. 4504 asserts that "RQ1 names the statistic
+that decides it". While the statistic was unavailable the narrowing was honest. Now the question and
+the answer disagree and one sentence claims otherwise, so this is CALIBRATION check 8 firing. Ten
+minutes either way.
+
+**Area 3 keeps 4.5 for a new reason, and this is the substantive news of the pass.** It has been 4.5
+since the third pass because the *data* half was 4 for want of adequate hardware. That is closed. The
+half now holding it is the *description*: Finding 4 (the pre-commitment broken in its own results
+section) and Finding 5 (a selection rule the code abandoned). Level 5 asks for methods analysed in
+depth, and a document that states a rule it does not follow has not been. Both are prose fixes of
+about half an hour, which makes this **the cheapest 5 on the sheet**.
+
+**Area 4 goes to 4.0** on level 5's clause that the reporting of findings and use of pictures and
+tables be "well considered and apt". Thirteen statements disagree with the artefact they describe,
+six of them wrong rather than stale, two of them checkable by eye against `fig:loadsweep`, and one of
+them a false claim about how the headline statistic was computed. Level 4 holds: the structure, the
+per-question evidence status and the generalisability discussion are intact, and no value in a table
+or figure is wrong.
+
+**Area 6 goes to 4.0** on level 4's consistency clause, and it fails on all four of the things that
+clause names: research questions (RQ1), description of the research setup (§6.2, §4.5's pooling claim
+and its "isolating the cores" where §6.1 explains at length why `isolcpus` is deliberately absent,
+§4.6's results directory, Appendix D's intro), findings (Finding 2), conclusions (Chapter 8, §7.8,
+`tab:threats`). Graded separately from the abstract, per the tenth pass's reasoning, but **submitted
+as it stands that abstract puts this area at 4.0 on its own**: it still says five injected classes and
+five further classes where the body says seven and seven, still says median latency matches, still
+names jitter in the *Objective* and never reports it, and still ends "The far tail below saturation
+cannot be settled on a virtualised host", which is the thesis's principal new result stated
+backwards.
+
+### The lift list, by cost
+
+**Editing, about seven hours total, recovers areas 4, 5 and 6 and takes area 3 to 5.**
+
+1. 10 min — add p99.99 to RQ1's metric list, or delete §7.7's claim that it is already there.
+2. 10 min — §4.5's "isolating the cores"; §4.6's results-directory sentence.
+3. 30 min — justify the tail rows from Holm, or argue the rule's premise weakened (Finding 4).
+4. 30 min — rewrite §6.2's representative-load paragraph from the generator's own reasoning.
+5. 30 min — the four macro misuses and the two hand-typed values (Finding 7).
+6. 1 h — the four §6.4.1 statements contradicting `tab:latency`, `tab:significance`, `tab:equivalence`.
+7. 1 h — the sweep-shape paragraph: p99 is flat, `\PNineNinePreCliff` prints 0 ms, the knee is not shared.
+8. 3 h — the fifteen far-tail and host sites (Finding 6).
+
+**Analysis on data already in hand, half a day each.**
+
+9. Point `tab:latency`'s p99.99 column and the `\FarTail*` macros at the pooled CSV, and add
+   `bench/results/` to `refresh_thesis.sh`'s pooling loop. The only item that changes a printed
+   number, and it changes it in the thesis's favour.
+10. Report the 448 kops/s rung (Finding 3).
+
+**New measurement.**
+
+11. The transparent-hugepage experiment, about one machine-hour. Chapter 8 already names it as the
+    priority and the thesis correctly claims no causation without it.
+
+**Author only.**
+
+12. The abstract. Five defects, and `\abstractunaidedtrue` still unset, so every build prints
+    "Not submittable".
+
+### Two notes outside the grade
+
+**A repository rule now contradicts the evidence and will re-introduce a corrected error.**
+`.cursor/rules/thesis-quality.mdc` still reads "Peak RSS: real language + allocator effect; allocator
+effect is larger", and `CALIBRATION.md`'s *Findings a grader must not "correct"* section says the
+same. That is the claim the 27 August repeat overturned and that `AGENT.md` §3 item 5 now forbids
+restoring. The rule file is always applied, so the next agent will be instructed to restore a claim
+this record spent a pass removing. `CALIBRATION.md`'s standing blockers are also a day stale: blocker
+2, the canonical repeat, is closed.
+
+**What to add to the calibration file.** Its one-line diagnosis, that this thesis's failure mode is
+prose describing an older state of the evidence, held again and found ten of the thirteen entries.
+The other three are a distinct class: **a claim that was true of the old dataset and is now false in
+the opposite direction.** "Every pair of intervals overlaps", "the one row that does not clear the
+correction" and "the knee sits at the same place" are not stale hedges, they are assertions the new
+data reverses, and no grep for "virtualised" or "unresolved" finds them. The check that does is
+reading each numeric claim in §6.4 against the generated table beside it, which is the check already
+ranked first in the file and the one a promotion pass is most tempted to skip **because the macros all
+regenerated cleanly**. A clean regeneration says the numbers are right. It says nothing about the
+sentences around them.

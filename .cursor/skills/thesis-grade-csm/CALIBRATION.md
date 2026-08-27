@@ -25,13 +25,50 @@ is that they are fixed points.
 | 5 | 2 | No discussion chapter. Own results never compared with previous research, reliability never assessed, ethics absent, and a contribution claimed that the preface credits to the partner. |
 | 6 | 5 → 4.5 | The third pass gave 5 for the writing. The fourth took it back, because level 5 asks for presentation that is technically camera-ready with excellent finishing polish and the *finishing* failed: the printed AI declaration asserted the abstract was written unaided while a source comment recorded it as model-drafted, alongside a float overflowing its page, two overfull boxes, and sentences of 93 and 86 words. Writing quality does not carry this area on its own. |
 | 6 | 4.5 → 4.0 | The eleventh pass, on **level 4's** clause and not level 5's: the whole text logical and consistent on the description of the research setup, findings and conclusions. Four sites failed it after one integration, none of them the abstract, which is graded separately for the reason the tenth pass gives. The pattern to expect: a new results section falsifies the methodology section that said the metric was unavailable, the data section that promised a replacement, the reproducibility section that promised byte-identical reruns, and a table caption that promised the protocol was met. |
+| 3 | 4.5, data half now 5 | The thirteenth pass. The canonical repeat closed the data half, and the half grade **changed sides**: what holds it is the *description* of the method. §4.5 fixes a reading rule in advance and names dropping it for the convenient block as the failure it exists to prevent, and §6.4.1 then does exactly that. And `REPR_LOAD_OPS` is pinned in the generator for a documented reason while §6.2 still states the derived rule the code abandoned. **A 4.5 in this area no longer means "the hardware was inadequate".** Read which half before quoting the number. |
+| 4 | 4.5 → 4.0 | The thirteenth pass, on level 5's aptness clause. Thirteen prose statements disagreed with the artefact beside them, and **six were wrong rather than stale** (see the new defect class below). Level 4 held because no value in any table or figure was wrong, six passes running, and the structure, per-question evidence status and generalisability discussion were intact. |
 | 6 | 2 | Template dummies surviving on the abstract page, three different dates, duplicated and undefined labels, a stray Cyrillic word in the results, dense grammar errors, and no statement of AI use in the document. |
 | 7 | n/a | Every pass. The manuscript cannot settle it. |
+
+## The defect class the thirteenth pass added
+
+**A new dataset does not only make claims stale. It can make them false in the opposite direction.**
+Until the thirteenth pass every drop came from prose describing an *older, weaker* state of the
+evidence, which a sweep for "virtualised", "unresolved" or "not collected" finds. Three of that pass's
+findings were not that shape:
+
+- "every pair of confidence intervals overlaps, so the table on its own separates nothing". The new
+  table separates every C++/Rust pair.
+- "peak resident set size under jemalloc is the one upper-block row that does not clear it". All 14
+  now clear, and the same sentence prints 14 of 14 before naming the exception.
+- "the knee also sits at the same place for all four variants". The Rust arms track a full rung
+  further, which the figure draws and which hides a result in the author's favour.
+
+None contains a staleness keyword. Each was *true of the guest*. The only check that finds them is
+reading every numeric and comparative claim in the results section against the generated table or
+figure beside it, one at a time. **A promotion pass is most tempted to skip that check precisely when
+it is most needed, because the macros all regenerated cleanly.** A clean regeneration says the numbers
+are right and says nothing about the sentences around them.
+
+Two corollaries worth carrying:
+
+- **Check the macro's definition, not just its value.** `\SatKnee` is the *minimum* achieved
+  throughput across variants, so it reported a shared knee where the variants differ by 14 per cent,
+  and the prose then asserted the sharing. `\PNineNinePreCliff` divides by 1000 and prints `:.0f`, so
+  on a quiet host it renders as "0 ms". A macro can be correctly generated and still be the wrong
+  quantity for the sentence holding it.
+- **A method claim can go false while the result stays true.** §4.5 and §6.4.1 say the p99.99 is
+  pooled across repeats; `write_latency_table()` takes a median of the per-run values, which §4.5
+  itself calls meaningless. The pooled figures make the finding *stronger*. Verify how a headline
+  statistic is computed, not only what it says.
 
 ## Checks ranked by historical yield
 
 1. **Every number in the results prose against its table.** Found 28 contradictions in one
    manuscript and about nine hand-typed values in the other. Nothing else has this hit rate.
+   **Extended by the thirteenth pass to every comparative claim, not only every number**: "intervals
+   overlap", "separates cleanly", "the one row that fails", "the knee is shared" are all checkable
+   against a generated table and all four were wrong.
 2. **Every figure against the claim it illustrates.** Three figures here contradicted the results
    tables after the claims moved: a defect class marked not injected while the table injected it,
    a stale toolchain version, and a schematic asserting a finding the study never obtained.
@@ -124,9 +161,42 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
-State as of the **remediation pass of 26 August 2026 evening**, which followed the eleventh grading
-pass the same evening and closed its whole editing tier except the abstract. Three passes running
-have found **no wrong measured value anywhere**.
+**Updated at the thirteenth pass, 27 August 2026 night. Read this block before the numbered list
+below, which is a day out of date in one important respect.**
+
+**Blocker 2 is CLOSED.** The canonical-configuration bare-metal repeat ran on 27 August:
+`bench/results/campaign-20260827-151927.jsonl`, 1120 runs at 7 shards, 7 producers, 14 load levels,
+20 repeats, `virtualisation: none`, SMT off, `performance` governor with boost off, `nohz_full` on the
+pinned cores, toolchain pinned in a container, zero errors. It is now the thesis's **main** dataset,
+not a confirmation campaign. Area 3's data half is 5. The far tail is resolved on the main sweep in
+Rust's favour, `\NSignificant` is 14 of 14, `\NEqvUnresolved` is 0, and `tab:latency` has a p99.99
+column. **Never again report blocker 2 as open.** Two things about the new state:
+
+- **`isolcpus` must never be added.** The first attempt on 27 August booted with `isolcpus=2-17`,
+  which removes those cores from every scheduling domain, so the benchmark's 14 threads all inherited
+  `cpu2` and an entire 1120-run campaign measured one core. Every record looked individually
+  plausible. `bench/canonical_repeat.sh` now hard-fails on it.
+- **`bench/results-canonical/` holds that invalid campaign** and is kept as a worked example. Never
+  quote it. The valid one is in `bench/results/` and `bench/results-canonical2/`, byte-identical.
+
+**Blocker 1, the abstract, is still open and has gained substance.** It still says five injected and
+five further classes where the body says seven and seven, still says median latency matches, still
+names jitter in the *Objective* and never reports it, and still ends "The far tail below saturation
+cannot be settled on a virtualised host", which is now the thesis's principal result stated backwards.
+It is no longer the only thing holding area 6 below 5.
+
+**Two new standing items**, both cheap and both on data already on disk:
+
+- **`plot_figures.py` never reads a pooled histogram CSV**, so `tab:latency`'s p99.99 column and the
+  `\FarTail*` macros are medians of per-run p99.99 values while §4.5 and §6.4.1 say they are pooled.
+  `refresh_thesis.sh`'s pooling loop also still globs only `bench/results-baremetal/`, so a rerun
+  would not regenerate the main campaign's pooled CSV either.
+- **The 448 kops/s rung is unreported.** Both Rust arms serve the full offered rate there and both
+  C++ arms have collapsed to about 162, so Rust leads by 2.8 times at the load where C++ first stops
+  coping. The thesis reports the neighbouring rung, which favours C++, and asserts a shared knee.
+
+*Historical state below, as of the remediation pass of 26 August 2026 evening, which followed the
+eleventh grading pass the same evening and closed its whole editing tier except the abstract.*
 
 **Items 3b, 3d, 3f, 3g, 3h, 3i, 3j and 3k are CLOSED.** They are kept below with the fix against
 each, because the fixes are the transferable part. **The claims-about-the-evidence class is empty as
@@ -491,8 +561,14 @@ holds the full list.
   5, not against them. The intermittency *finding* is load-bearing and must not be corrected. The
   *rate printed in the thesis* was a separate matter and was stale until 22 August. It now reads
   through `\DeadlockTsanHits` and `\DeadlockTsanRuns` in all three places, so a rerun moves it.
-- Peak resident set size is a real language effect that reproduces under both allocators, but the
-  **allocator effect is the larger one**. Neither half may be dropped.
+- Peak resident set size is a real language effect that reproduces under both allocators and on all
+  three hosts measured, at 1.4 to 3.5 MiB everywhere. **The claim that the allocator effect is the
+  larger one is retired and must not be restored**: the 27 August canonical repeat measured
+  1.5--2.4 MiB for the allocator against 1.4--2.5 MiB for the language, and the second bare-metal host
+  agrees, so the guest's 32.5--34.3 MiB is the outlier of three. Neither effect may be dropped and the
+  *ratio* between them must not be quoted without naming a host. `AGENT.md` §3 item 5 is the current
+  wording. Note that `.cursor/rules/thesis-quality.mdc` still carries the retired version, so a rule
+  the agent is always shown contradicts this file until the author updates it.
 - The end-to-end sweep is dominated by the cross-thread handoff, and the operation is a fraction
   of a percent of it, so a median comparison on that path **cannot** bound a language effect.
   The thesis saying so is a strength.

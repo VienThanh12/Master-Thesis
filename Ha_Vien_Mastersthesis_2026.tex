@@ -571,9 +571,10 @@ The second division is by regime. Below saturation the two implementations are e
 end in central behaviour, by a margin no deployment would notice. The paired test does resolve a
 median difference of $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators, with an
 interval reaching $\PFiftyDiffCIMax\,\mu$s, so the equivalence is practical and not statistical.
-The far tail in the same regime cannot be resolved on the main measurement host, and a separate
-bare-metal campaign (Section~\ref{sec:baremetal}) resolves it: there the pooled p99.99 of the
-Rust variants sits below that of the C++ variants at every load where the two separate. Past saturation
+The far tail in the same regime now resolves on the reported host: the pooled p99.99 of the
+Rust variants sits below that of the C++ variants at every load where the two separate, and a
+second bare-metal campaign at another shard count agrees on the direction
+(Section~\ref{sec:hostcompare}). Past saturation
 the ordering reverses. The C++ build sustains $\OverloadThrRatio\times$ the throughput of the Rust
 build in \OverloadThrAgree{} interleaved repeats under both allocators, and uses more CPU for each
 completed operation. On resources the Rust process holds a few MiB more resident memory, again
@@ -583,7 +584,7 @@ allocator's was an order of magnitude larger on the virtualised host this study 
 comparison between them is a property of the machine rather than of the allocators.
 
 Four limitations bound all of this: a synthetic workload, one simplified subsystem,
-single-author implementation bias, and a virtualised measurement host.
+single-author implementation bias, and an allocator footprint whose size moved with the host.
 Chapter~\ref{chapter:discussion} treats each in detail.
 
 The scope is drawn deliberately to protect the internal validity of the language comparison. In
