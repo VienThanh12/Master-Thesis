@@ -42,6 +42,14 @@ done
 echo "== regenerating bare-metal confirmation macros =="
 python3 "$here/baremetal_facts.py" >/dev/null || echo "  WARN: bare-metal macros not regenerated"
 
+# The virtualised campaign the thesis reported until 27 August 2026. It is no
+# longer the primary dataset and it is still quoted, because the contrast between
+# what the two hosts could resolve is the measurement-validity argument. Same
+# reason as above for generating rather than remembering: a claim about the
+# difference between two hosts reads two datasets at once.
+echo "== regenerating virtualised-host comparison macros =="
+python3 "$here/guest_facts.py" >/dev/null || echo "  WARN: guest macros not regenerated"
+
 # Diagrams 20-29 quote campaign numbers straight out of figures/gen_macros.tex,
 # so they are rebuilt here for the same reason the prose is: a fresh campaign
 # must not leave a stale figure behind. Diagrams 01-19 are hand-authored SVG
