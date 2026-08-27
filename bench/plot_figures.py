@@ -1797,6 +1797,18 @@ def main_host_macros(campaign_path):
     macros["MainThp"] = grab(r"transparent hugepages:\s+(\S+)")
     pinned = grab(r"cpus allowed here:\s+(\S+)")
     macros["MainPinned"] = re.sub(r"(\d)-(\d)", r"\1--\2", pinned)
+    # How many cores that range actually is. The prose compares busy cores
+    # against pinned cores past saturation, and the count was typed by hand and
+    # went stale the first time the range changed.
+    count = 0
+    for part in pinned.split(","):
+        if "-" in part:
+            lo, hi = part.split("-")
+            count += int(hi) - int(lo) + 1
+        elif part.strip():
+            count += 1
+    if count:
+        macros["MainPinnedCount"] = str(count)
     for field, key in (("isolcpus", "MainIsolcpus"), ("nohz_full", "MainNohzFull")):
         val = grab(rf"{field}:\s+(.+)")
         macros[key] = "none" if val.strip() == "(none)" else val.strip()

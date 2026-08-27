@@ -2865,8 +2865,10 @@ The languages are not equivalent in this regime, and the margin is not marginal.
 sustains $\OverloadThrRust$, a factor of $\OverloadThrRatio$. The paired difference is at least
 $\OverloadThrBound$~kops/s under either allocator, it holds in \OverloadThrAgree{} repeats, and
 its Holm-adjusted $p$ sits at the corrected floor of the whole family of \NTests{} tests. This is
-the largest and most reproducible language effect anywhere in the study, and it is the only one
-that speaks directly to the question RQ1 was written to ask.
+the largest language effect in the tested family and the most reproducible effect in the study.
+One larger ratio appears in the sweep, at the rung between the two languages' saturation limits
+(Section~\ref{sec:perfresults}), and it runs the other way and is not tested, for the reason given
+there.
 
 The CPU column rules out the reading that would otherwise be natural, that a variant completing
 less work is simply doing less, whether throttled, blocked or idle. That is not what happens.
@@ -2874,7 +2876,8 @@ less work is simply doing less, whether throttled, blocked or idle. That is not 
 reproducibly and under both allocators, having flipped the sign it carried at the representative
 load in Table~\ref{tab:significance}. Divided through by the work that actually completed, its
 CPU cost per sustained operation is $\OverloadCpuPerOpRatio$ times the other's. Neither
-variant is near the capacity of the machine either, since both sit near six of the fourteen pinned
+variant is near the capacity of the machine either, since both sit near six of the
+$\MainPinnedCount$ pinned
 cores. So the gap is not a capacity limit and not idleness. It is effort spent without completing
 operations, which is the signature of a synchronisation path that spins, or parks and
 wakes repeatedly, where the other blocks once and sleeps.
@@ -2923,7 +2926,7 @@ $\OverloadLoad$~kops/s offered, well beyond the $\SatKnee$~kops/s knee: the medi
 \NRepeats{} repeats above its bootstrap $95\%$ confidence interval. Below saturation achieved
 throughput is pinned to the offered rate by construction and can express nothing about the
 languages. Here it is the only thing that can. CPU utilisation exceeds $100\%$ because it is
-summed across threads, so $600\%$ is six busy cores of the fourteen
+summed across threads, so $600\%$ is six busy cores of the $\MainPinnedCount$
 pinned.\label{tab:overload}}
 \begin{tabular}{@{}l r r@{}}
 \hline\hline
@@ -2999,10 +3002,13 @@ path and not to the safety model.
 
 \subsection{Resource use (RQ3)}\label{sec:resources}
 Table~\ref{tab:resource} reports resource use at the same
-sustained load. Peak resident set size separates the four variants cleanly, and it does so
-whichever way the family is read. Its intervals exclude zero, and its effect keeps its sign under
-both allocators. Figure~\ref{fig:resources} plots the same measurement, and its middle panel is
-where the finding of this section sits.
+sustained load. Peak resident set size separates the two \emph{languages} cleanly, and it does so
+whichever way the family is read: its paired intervals exclude zero, its effect keeps its sign under
+both allocators, and both rows clear the correction. It does not separate all four variants, because
+the C++ build with \texttt{jemalloc} and the Rust build with the system allocator land on the same
+footprint from opposite directions, which is the arithmetic of two comparable effects and is the
+subject of the next paragraph. Figure~\ref{fig:resources} plots the same measurement, and its middle
+panel is where the finding of this section sits.
 
 Two effects are present in it, not one, and they are of comparable size. Linking
 \texttt{jemalloc} costs $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB in either language. The Rust
@@ -3060,8 +3066,10 @@ allocators, comparable to what the allocator choice costs here though not on eve
 \small
 \caption[Resource use at the representative load]{Resource use at a sustained offered load of $\ReprLoad$~kops/s: achieved throughput,
 peak RSS, and total CPU utilisation. The median over \NRepeats{} repeats above its bootstrap
-$95\%$ confidence interval. Peak RSS is the one metric here whose intervals separate the four
-variants cleanly.\label{tab:resource}}
+$95\%$ confidence interval. Peak RSS and CPU both separate the two languages here. Neither
+separates all four variants, and peak RSS cannot, because the allocator effect and the language
+effect are of comparable size and one middle pair therefore
+coincides.\label{tab:resource}}
 \begin{tabular}{@{}l r r r@{}}
 \hline\hline
 Variant & throughput (kops/s) & peak RSS (MiB) & CPU (\%) \\
