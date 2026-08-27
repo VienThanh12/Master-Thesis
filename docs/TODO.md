@@ -10,178 +10,132 @@ primary control against implementation bias.
 
 ---
 
-## Do now (as of 27 Aug 2026)
+## Do now (as of 27 Aug 2026, evening)
 
-Thesis builds clean. Sync editing, deck, `je` resident-set write-up, and the Aug 26 bare-metal
-**confirmation** visit are done. Mean self-grade **4.75**. Four open items move grades; everything
-else is process or housekeeping. Detail and grade reasoning: `docs/ASSESSMENT.md`, `AGENT.md` §2.
+The measurement work is finished. The canonical bare-metal repeat ran on 27 August, it is now the
+thesis's main dataset, and every chapter has been synced to it. **Two items remain and one of them is
+the abstract.** Detail on the day's findings is below, grade reasoning in `docs/ASSESSMENT.md` and
+`AGENT.md` §2.
 
-### Already done (do not re-run)
+### The dataset the thesis now reports
 
-| What | Artefact / status |
-| --- | --- |
-| Bare-metal confirmation (far tail, RSS, overload, counters, alloc dump) | `bench/results-baremetal/campaign-20260826-*`, §`sec:baremetal` |
-| Sync editing after the visit | Far-tail sites, threats table, H1 revisit, toolchain named |
-| `je` resident-set decomposition | `figures/tab_resident.tex`, §`sec:baremetal` |
-| Slide deck resync | Reads `gen_baremetal.tex` / `tab_resident.tex` |
-| Taxonomy table generator | `figures/tab_taxonomy.tex` from `faults/results/taxonomy.csv` |
+`bench/results/campaign-20260827-151927.jsonl`, copied to `bench/results-canonical2/`. A bare-metal
+AMD EPYC 7443, SMT off, governor `performance` with boost off, `nohz_full` on the pinned cores, no
+hypervisor, toolchain pinned in the Rocky container so it matches the guest campaign's. 1120 runs at
+the canonical design: 7 shards, 7 producers, 20 repeats, 14 load levels, zero errors. All 1120
+histograms verified against the printed percentiles.
 
-The Aug 26 visit used **8 shards / 8 producers / 15 repeats / 8 load levels** and Ubuntu
-`g++ 13.3` / `rustc 1.98`. It **corroborates** the main sweep. It does **not** replace
-`campaign-20260812-154528` (7 / 7 / 20 / 14 rates, Rocky `g++ 15.1` / `rustc 1.97`).
+Three datasets now have distinct jobs and the prefixes keep them apart:
 
-### Open work (ordered)
-
-| # | Task | Effort | Lifts | Who |
-| --- | --- | --- | --- | --- |
-| **A** | **Rewrite the abstract yourself**, then set `\abstractunaidedtrue` | 1–2 h | Crit. **6 → 5** (only blocker). Also last stale far-tail sentence in the PDF | **You only** (model must not write it) |
-| ~~**B**~~ | ~~Analyse the allocation profile~~ | **DONE 27 Aug** | Reported in §`sec:baremetal`; see *What B returned* below | — |
-| ~~**C1**~~ | ~~Report collected jitter~~ | **DONE 27 Aug** | Reported in §`sec:baremetal` | — |
-| **C2** | p99.99 column in `tab:latency` | **Blocked on D** | The guest campaign records no `p9999` at all | — |
-| **D** | **Canonical bare-metal repeat** (matched to main campaign) | ~2 h + ~€1 machine | Crit. **3 data → 5**, and unblocks C2 | You on rented host |
-| **E** | Send **spec + plan** to supervisors; settle Nokia “what can be published” | Email | Unblocks Phase 1/2 sign-off | You |
-| **F** | Companion docs: decide fate of `thesis-vi` / archive companions | Short | Repo hygiene, no grade | You or agent |
-| **G** | Full proofread pass | Half day+ | Submission polish | You |
-| — | Examiners / official class file | n/a | Not yours to schedule | Faculty / Moodle |
-
-**Recommended order:** A (blocker, only you) → D when you next rent a box (also unblocks C2) → E in parallel whenever → F/G before submission.
-
-### What B returned (27 Aug 2026): a negative result, and why it is the right one
-
-The profile **cannot** attribute the peak-RSS language effect to a call site, and the reason is the
-instrument rather than either language. Four findings, all generated into `\BmProf*` macros by
-`alloc_profile_facts()` in `bench/baremetal_facts.py`:
-
-1. **The profiled run reverses the effect's sign.** Peak RSS there is 4.9 MiB higher in the **C++**
-   build, where the campaign's own jemalloc arms put **Rust** higher by 1.4–3.6 MiB at every load.
-   Nothing downstream of that can explain the campaign's effect.
-2. **It profiles the wrong regime.** Closed loop at ~455 kops/s, past the plateau bracketed at
-   448–512 kops/s, whereas peak RSS is reported below saturation.
-3. **Both flat rankings collapse onto frames that allocate nothing**: 98.4 % of the C++ total on a
-   deallocation symbol, 100 % of the Rust total on jemalloc's own backtrace routine. Only
-   cumulative call paths survive, and those name subsystems. Note `parse_jeprof.py`'s degeneracy
-   threshold is 0.99, so it flags Rust and lets C++ through at 0.984.
-4. **The symbolised dump is the first of the series**, taken while the service is still filling:
-   8.4× steady state on the Rust side, 1.3× on the C++ side.
-
-Two positive results survived and are reported: both arms allocate **2.81 MiB** for the latency
-histogram, equal to the byte (harness parity working), and at equal allocation volume the worker
-path holds **7.0 MiB** in Rust against **2.2 MiB** in C++, which is the open-addressed-table-versus-
-node-based-map difference §`sec:budget` argues from the forced-idiom log, now visible in allocation
-as well as latency.
-
-**Closing this properly needs a profile taken at a swept load on a build whose peak RSS reproduces
-the campaign ordering.** Fold it into D if the rented box allows.
-
-### What C1 returned
-
-Jitter is a clean null across languages and a sharp signal about load. Below the top load all four
-variants sit at 1.50–1.94 µs median and 6.7–10.8 µs p99, with the widest between-variant gap at any
-single load being **0.36 µs**. At 128 kops/s all four move together to 45.6–46.5 µs, at least 24×
-any value below. Reported descriptively, since no research question asks for it.
-
-**C2 is blocked, not deferred.** `campaign-20260812-154528` records `p50, p90, p99, p999, max` and
-no `p9999` and no `jitter_ns`. `\LatencyHead` is generated and would grow the column automatically,
-but the guest data cannot fill it. Only D produces a main-campaign dataset that can.
-
-**Abstract rewrite must fix five defects in one pass:** seven-and-seven catalogue, practical-not-statistical median, jitter, far tail **is** settled on bare metal (delete “cannot be settled on a virtualised host”), then flip `\abstractunaidedtrue`.
-
-### A — Abstract (you alone)
-
-Edit `Ha_Vien_Mastersthesis_2026.tex` abstract by hand. Do not ask a model to draft it. After
-rewrite, set `\abstractunaidedtrue`, rebuild, visually check page 3 (CCS overflow).
-
-### B — Allocation profile (data on disk)
-
-Input: `bench/results-baremetal/alloc_profile-20260826-110718/`.
-
-Goal: attribute which runtime / call sites carry the peak-RSS language effect that `tab:resident`
-already **located** outside jemalloc. Update prose + `tab:threats` residual. Regenerate via
-`bench/refresh_thesis.sh` if you add macros. Phase 7a below has the longer write-up.
-
-### C — Jitter and p99.99 in the main tables
-
-- Jitter was collected on the confirmation visit and left undiscussed (`tab_jitter.tex` path proven
-  since 20 Aug).
-- `\LatencyCols` / `\LatencyHead` already allow a p99.99 column; fill it from pooled HDR data.
-- Optional: one figure for §`sec:baremetal` (two non-overlapping far-tail ranges).
-
-### D — Canonical bare-metal repeat (run sheet)
-
-Match **`campaign-20260812-154528`**, change **only the host** (plus isolation the guest never had).
-
-| Knob | Must be |
-| --- | --- |
-| Shards / producers | **7 / 7** |
-| Repeats | **20** |
-| Rates (per producer) | `1000 2000 4000 8000 12000 16000 24000 32000 40000 48000 56000 64000 80000 112000` |
-| Toolchain | Rocky image via Docker: **g++ 15.x / rustc 1.97** (`docker/run.sh`) |
-| Isolation | `isolcpus` + `nohz_full` (+ `rcu_nocbs`) on the pin set; reboot if needed |
-| `perf` | `sudo sysctl -w kernel.perf_event_paranoid=1` |
-| Duration / warmup | `--duration 3 --warmup-s 1` |
-| Jitter + HDR | leave defaults on (do not pass `--no-jitter` / `--no-hist`) |
-
-On the bare-metal host:
-
-```bash
-# Host hygiene (governor / turbo / SMT). isolcpus/nohz_full via kernel cmdline if missing.
-bench/setup_testbed.sh --no-install
-sudo sysctl -w kernel.perf_event_paranoid=1
-
-docker/run.sh build
-docker/run.sh check
-docker/run.sh counters --software          # early
-docker/run.sh alloc-profile --check        # early
-
-# 1120 runs ≈ 2 h. Pin list must cover 7+7 threads; example assumes ≥16 cores.
-docker/run.sh campaign --cpuset 2-15 --repeats 20 --duration 3 --warmup-s 1 \
-  --shards 7 --producers 7 --active-ues 5000 \
-  --rates "1000 2000 4000 8000 12000 16000 24000 32000 40000 48000 56000 64000 80000 112000"
-
-docker/run.sh counters --cpuset 2-15 --repeats 10
-docker/run.sh alloc-profile
-
-# Before leaving the machine:
-python3 bench/pool_hist.py bench/results/campaign-<stamp>.hist.jsonl \
-  --verify bench/results/campaign-<stamp>.jsonl
-```
-
-Back on the laptop after copying results: `bench/refresh_thesis.sh`, then sync Chapter 6/7 prose so
-tables can move from the guest campaign to this matched set. Keep Aug 26 confirmation under
-`bench/results-baremetal/` as corroboration unless you deliberately merge narratives.
-
-**Lessons from Aug 26 (apply again):** set `perf_event_paranoid` before counters; in a non-login
-SSH shell source `~/.cargo/env` (or use Docker so PATH is fixed); verify HDR with `pool_hist.py`
-while a re-run is still possible.
-
-### E–G — Process
-
-1. Email supervisors: `spec/` + `Thesis_Plan_v2.pdf`. Flag that the GitHub repo is already public.
-2. Decide whether `archive/thesis-vi` is kept, rebuilt, or dropped (citations currently `[?]`).
-3. Proofread `Ha_Vien_Mastersthesis_2026.tex` end to end; run `./.aitells.py` on touched prose.
-4. When faculty assigns examiners: `\censors{}{}{}`. Official class file from UH Moodle/Overleaf if
-   required (document already builds on `HYthesisML.cls`).
-
-### Grade map (why these four)
-
-| Criterion | Now | What moves it to 5 |
+| Dataset | Macros | Job |
 | --- | --- | --- |
-| 1 Objectives & RQs | 5 | Hold (keep RQ2 seven + seven) |
-| 2 Sources | 5 | Optional: replace remaining arXiv `Bugden` |
-| 3 Method & data | 4.5 | **D** matched bare-metal repeat |
-| 4 Results presentation | 4.5 | B and C1 landed 27 Aug. Next grading pass should re-assess. C2 rides on D |
-| 5 Discussion | 5 | Hold (no over-claim) |
-| 6 Academic text | 4.5 | **A** unaided abstract |
+| `campaign-20260827-151927` (bare metal, canonical design) | unprefixed, `gen_macros.tex` | Every result the thesis reports |
+| `campaign-20260812-154528` (KVM guest, same design) | `\Guest*`, `gen_guest.tex` | The measurement-validity comparison in §`sec:hostcompare` |
+| `campaign-20260826-*` (bare metal, 8/8/15 design) | `\Bm*`, `gen_baremetal.tex` | Whether findings survive a change of design |
 
-Overall mean **4.75** as last graded. A alone does not raise the mean much if 3 and 4 stay at 4.5.
-Do not self-grade the 27 Aug work: the rule that a remediation pass must not grade its own output
-applies here too, so criterion 4 stays at its last graded value until a fresh pass runs.
+### Open work
 
-### Build state after the 27 Aug edits
+| # | Task | Effort | Who |
+| --- | --- | --- | --- |
+| **A** | **Rewrite the abstract yourself**, then set `\abstractunaidedtrue` | 1–2 h | **You only** (a model may not touch it) |
+| **B** | Send **spec + plan** to supervisors; settle Nokia "what can be published" | Email | You |
+| **C** | Companion docs: decide fate of `archive/thesis-vi` (citations render `[?]`) | Short | You or agent |
+| **D** | Full proofread pass | Half day+ | You |
+| **E** | Fresh grading pass, since today's work must not grade itself | Half day | You or agent |
+| — | Examiners, official class file | n/a | Faculty / Moodle |
 
-102 declared pages plus appendix, 116 physical, up one page from the two new results. Zero LaTeX
-errors, zero warnings, zero undefined references. One overfull box, pre-existing, in a running
-header. `./.aitells.py` reports zero semicolons and no new style patterns.
+The abstract is the only blocker. It still ends "The far tail below saturation cannot be settled on a
+virtualised host", which the thesis now contradicts in the same document, and it is the last stale
+far-tail sentence anywhere. Five defects to fix in one pass: the three wrong "five"s where the
+catalogue is seven and seven, "median latency matches" where the paired test resolves the median,
+jitter (now reported, so it is no longer an open dimension), the far-tail sentence, and the switch.
+
+### What 27 August returned
+
+**The far tail is resolved in the main dataset and favours Rust.** The instrument inverted. At the
+representative load the widest 95% interval on one variant's p99 is now 1 µs against a
+between-variant range of 2 µs; on the guest those were 1480 and 293 µs, the wrong way round by a
+factor of five. p99 at that load fell from 4518 µs to 78 µs while the median barely moved, 80 to
+70 µs, which is what a hypervisor does: it does not slow the common path, it occasionally stops it.
+
+**Everything now resolves.** `NSignificant` 9 → 14 of 14, `NTailExclZero` 0 → 4, `NEqvUnresolved`
+5 → 0, `RssAgree` 18/20 → 20/20. The peak-RSS bimodality that cost one row its place in the family
+fell from 31 MiB to 1 MiB, so it was the machine's.
+
+**Both C1 and C2 landed in the main tables.** `LatencyHead` grew its p99.99 column automatically and
+`tab:latency` carries five value columns. `tab:jitter` is generated and now placed in §6.4.2 with
+its own paragraph.
+
+**The overload divergence reproduces on a third machine**, 1.7× against the guest's 1.8× and the
+26 August 1.64×, always with the same arm ahead.
+
+**RQ3's headline ordering reversed, and this is the finding to remember.** The peak-RSS *language*
+effect is stable on all three hosts at 1.4–3.5 MiB. The *allocator* effect measured 32.5–34.3 MiB on
+the guest and 1.5–2.4 MiB on both bare-metal hosts, so the two are comparable on adequate hardware
+and the guest is the outlier of three. Transparent hugepages were `always` on the guest and
+`madvise` on both bare-metal hosts, and only the system-allocator arm inherits that policy, so it is
+the named candidate. **The study never varied it with everything else fixed, so the thesis does not
+claim causation.** `AGENT.md` non-negotiable #5 is rewritten accordingly. Chapter 8 now names that
+experiment as the immediate priority.
+
+### Two failures worth keeping, because both were invisible from inside
+
+**1. `isolcpus` put an entire 1120-run campaign on one core.** The first attempt on 27 August booted
+with `isolcpus=2-17`, which also removes those cores from every scheduling domain. The benchmark
+pins to a *range* and relies on the kernel to spread its 14 threads, so with no load balancing they
+all inherited `cpu2`. Evidence: `cpu2` at 85.9% busy with `cpu3`–`cpu17` at exactly 0.0%; `cpu_pct`
+flat at 100.1% in all 1120 records, never above 100.2% at any load; throughput plateau 84 kops/s
+against 336 on the guest and 448 on 26 August. **Every record looked individually plausible.** The
+dataset is kept at `bench/results-canonical/` and `/root/invalid-run-*` as a worked example.
+
+Fixed three ways: `bench/canonical_repeat.sh check-spread` runs one 6-second high-rate run and
+refuses to continue below 150% `cpu_pct` (broken config reads 100%, fixed reads 688%); `run` hard
+fails if `isolcpus` is on the command line; `bench/TESTBED.md` §2 no longer recommends it and
+documents this failure with the numbers.
+
+**2. `systemd-detect-virt --vm` prints `none` and exits non-zero on bare metal.** The `|| echo none`
+fallback in `docker/run.sh` appended a second line, so `host_virt` became `none\nnone`, never
+compared equal to `"none"`, and the script warned that the far tail stays unresolved on the one host
+where it can be resolved. The same value went into the provenance records. Fixed, and the affected
+records repaired.
+
+**The lesson both share:** a measurement that is wrong in a way the records cannot show is worth
+more defensive tooling than a measurement that fails loudly. Both guards now live in the scripts
+rather than in this file.
+
+### Methodology change: `ReprLoad` is pinned, not derived
+
+`REPR_LOAD_OPS = 56000` in `bench/plot_figures.py`, with the old rule retained as
+`deadline_limited_load()` for diagnosis. The old rule took the busiest load holding p99 under 5 ms.
+On the guest that returned 56 kops/s because p99 there was 4667 µs, a hair under the threshold, so
+it was locating the host's noise floor. On a quiet host the same rule climbs until capacity binds and
+returns the tracking limit itself, collapsing the representative point onto the saturation knee at
+392 kops/s. One rule, two different quantities, decided by how noisy the machine was. Pinning it
+keeps the two hosts comparable at the same offered load and keeps the point below saturation, which
+every below-saturation claim and the exclusion of achieved throughput from the test family already
+assume. §`sec:workload` states the change.
+
+### Build state
+
+118 physical pages. Zero LaTeX errors, zero undefined references, zero warnings. One overfull box,
+pre-existing, in a running header. `./.aitells.py`: zero semicolons, sentence-length stdev 11.3, all
+14 dash hits numeric ranges or Herfindahl--Hirschman. `bench/refresh_thesis.sh` runs end to end
+including the deck. Rollback point: `.rollback-20260827-220354`.
+
+### Grade map
+
+| Criterion | Last graded | Expectation after today | Moves it |
+| --- | --- | --- | --- |
+| 1 Objectives & RQs | 5 | 5 | Hold. RQ1 can now name p99.99, which it previously narrowed away from |
+| 2 Sources | 5 | 5 | Optional: replace the remaining arXiv `Bugden` |
+| 3 Method & data | 4.5 | **candidate for 5** | The canonical repeat was the only thing holding the data half |
+| 4 Results presentation | 4.5 | **candidate for 5** | Far tail, jitter and p99.99 all now reported from the main dataset |
+| 5 Discussion | 5 | 5 | Hold. The RQ3 reversal is stated without over-claiming a cause |
+| 6 Academic text | 4.5 | 4.5 | **A**, the unaided abstract |
+
+**Do not record new grades from this pass.** The rule that a remediation pass must not grade its own
+output applies to today's work, which is why item **E** exists. Criteria 3 and 4 stay at their last
+graded values until a fresh pass runs.
 
 ---
 
