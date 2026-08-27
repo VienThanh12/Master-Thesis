@@ -267,11 +267,12 @@ latexmk -C                   # clean build artifacts
 
 ## Phase 7 - Experiment campaigns
 ### 7a. Load sweep (RQ1 latency predictability, RQ3 overhead)
-- [~] Run load sweep nominal -> saturation -> overload: driver ready (`bench/campaign.sh`:
-      rates x 4 variants, CO-corrected, repeats + interleaving + bootstrap median/CI + plots).
-      15-repeat WSL2 campaign **done** (480 runs, `campaign-20260807-122430.jsonl`,
-      `campaign-15rep.log`), and it is what every thesis table currently reports. WSL2 is not
-      testbed-grade, so definitive RQ1/RQ3 numbers still need bare-metal execution.
+- [x] Run load sweep nominal -> saturation -> overload. **DONE on bare metal 27 Aug 2026**
+      (`campaign-20260827-151927.jsonl`, 1120 runs), which is what every thesis table now
+      reports. Earlier passes ran on WSL2 (`campaign-20260807-122430.jsonl`) and then on a KVM
+      guest (`campaign-20260812-154528.jsonl`); neither was testbed-grade for the far tail, and the
+      guest campaign is kept because the contrast between what the two hosts could resolve is now
+      a reported result rather than a caveat.
 - [x] Collect latency (mean/p50/p90/p99/p99.9/max), throughput, peak RSS + CPU% per offered load
       (getrusage; aggregated with 95% CI by `bench/aggregate.py`). **Jitter + p99.99 done**
       (Aug 2026), before the testbed run rather than after. Both benches now emit
@@ -295,8 +296,8 @@ latexmk -C                   # clean build artifacts
       on the paired median difference cannot be read: "a fifth of the median" is a weak bound
       if the median is mostly handoff, and the sweep alone cannot say whether it is.
       `ShardCore` gives the work with no queue in the path; `Service` gives work + handoff.
-- [~] Hardware counters: **`bench/counters.sh` written** (Aug 2026), to be *run* on the testbed
-      visit. Wraps `perf stat` (cycles, instructions, cache-references, cache-misses,
+- [x] Hardware counters: **`bench/counters.sh` written** (Aug 2026) and run on both bare-metal
+      visits, most recently `counters-20260827-164607.jsonl` on the reported host. Wraps `perf stat` (cycles, instructions, cache-references, cache-misses,
       LLC-load-misses) around both the sweep bench and the `latency_budget` binaries, and writes
       `counters-<stamp>.jsonl`. The `op` scope is the one that matters for the map claim: the
       end-to-end path is ~99.96% handoff, so counters over the sweep describe the queue rather
@@ -401,11 +402,17 @@ latexmk -C                   # clean build artifacts
       Kept **15+ repeats** for the reason this item always gave: the exact paired test cannot return
       p < 2/2^n, and at 7 repeats the corrected floor sat above 0.05 so no result could survive Holm
       however large the effect.
-- [ ] **Repeat it at the canonical configuration**: 7 shards, 7 producers, 14 load levels, 20
-      repeats, on `g++ 15.1.1`/`rustc 1.97`, with `isolcpus` and `nohz_full` on the benchmark cores.
-      Until then every thesis table is the KVM-guest campaign (`campaign-20260812-154528`) and the
-      bare-metal sweeps corroborate rather than replace it. This is the last thing holding criterion
-      3's data half below 5.
+- [x] **Repeat it at the canonical configuration. DONE 27 Aug 2026**,
+      `campaign-20260827-151927.jsonl`: 7 shards, 7 producers, 14 load levels, 20 repeats, 1120
+      runs, zero errors, on the container's `g++ 15.2.1`/`rustc 1.97.1`. **This is now the thesis's
+      main dataset** and every chapter is synced to it. The KVM-guest campaign
+      (`campaign-20260812-154528`) is retained for the measurement-validity comparison in
+      §`sec:hostcompare` and generates `\Guest*` macros via `bench/guest_facts.py`.
+      **`nohz_full` yes, `isolcpus` no.** The first attempt that day did boot with `isolcpus=2-17`
+      and every one of its 1120 runs executed on a single core, because isolating a core set also
+      removes it from every scheduling domain and the benchmark pins to a range and relies on the
+      kernel to spread its threads. See the "Do now" section for the evidence and the three
+      guards that now prevent it.
 - [x] Compute variance + confidence intervals across runs (`plot_figures.py`; reported as explicit
       asymmetric [lo, hi] bootstrap intervals, not symmetric half-widths, which at these
       dispersions implied negative latencies)

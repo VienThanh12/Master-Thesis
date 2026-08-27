@@ -35,9 +35,32 @@ When you change **claims, RQs, scope, methodology, or contributions**:
 When you change **measured numbers**:
 
 1. Regenerate via `bench/refresh_thesis.sh` (never hand-edit `figures/gen_macros.tex`,
-   `figures/gen_complexity.tex`, or `figures/gen_artefacts.tex`).
+   `figures/gen_complexity.tex`, `figures/gen_artefacts.tex`, `figures/gen_baremetal.tex`, or
+   `figures/gen_guest.tex`).
 2. Re-read every prose claim that cites those macros (Chapters 7–9, abstract, discussion).
 3. Check `docs/ASSESSMENT.md` and `docs/TODO.md` “after bare-metal campaign” items if tail or RSS claims move.
+
+### Which dataset is which (read before touching any measured claim)
+
+**Three campaigns exist and the macro prefix is what keeps them apart. A sentence that quotes the
+wrong prefix is wrong in a way no build gate catches.**
+
+| Dataset | Macros | Role |
+| --- | --- | --- |
+| `bench/results/campaign-20260827-151927.jsonl` — bare metal, 7 shards, 7 producers, 20 repeats, 14 loads | **unprefixed**, `gen_macros.tex` | **Canonical. Every result the thesis reports.** AMD EPYC 7443, SMT off, `performance` + boost off, `nohz_full`, no hypervisor, toolchain pinned in the Rocky container |
+| `bench/results/campaign-20260812-154528.jsonl` — KVM guest, identical design | `\Guest*`, `gen_guest.tex` | The measurement-validity comparison in §`sec:hostcompare`. Same code, same design, a host that could not resolve the far tail |
+| `bench/results-baremetal/campaign-20260826-*.jsonl` — bare metal, 8/8, 15 repeats, 8 loads | `\Bm*`, `gen_baremetal.tex` | Whether findings survive a change of shard count, load grid, repeat count and compiler |
+
+Host descriptions are generated too: `\Main*` from the reported campaign's own environment capture
+(matched by timestamp, not by taking the newest file), `\Guest*` and `\Bm*` from theirs.
+
+`bench/results-canonical/` holds an **invalid** 1120-run campaign from 27 Aug, kept on purpose as a
+worked example. Never quote it. See §3 item 8.
+
+**`ReprLoad` is pinned, not derived.** `REPR_LOAD_OPS = 56000` in `bench/plot_figures.py`. The old
+rule (`deadline_limited_load()`, retained for diagnosis) took the busiest load holding p99 under
+5 ms, which located the host's noise floor on the guest and the saturation knee on a quiet host. Do
+not restore it as the operating point.
 
 ---
 
@@ -178,6 +201,7 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
    - **The C++ `unsafe` cell is empty on purpose.** The language marks no such region, so a zero would be a category error, not a win for C++. Keep it as `---`.
    - Build time is the **one host-sensitive axis** here. Absolutes describe the machine, the paired ratio travels. Do not let a sync pass restore the blanket claim that RQ4 is environment-insensitive.
 7. **No over-claim on Rust** — eliminates data races and aliasing errors, not race conditions or lock-order deadlocks.
+8. **Never boot a measurement host with `isolcpus`.** It gives the cleanest tails and it also removes those cores from every scheduling domain, which switches off load balancing across them. `bench/campaign.sh` pins to a *range* with `taskset -c 2-17` and relies on the kernel to spread `N_SHARDS + producers` threads over it, so with no balancer they all inherit the first allowed CPU. On 27 Aug 2026 that put **all 1120 runs of a campaign on `cpu2` alone**: `cpu_pct` flat at 100.1% at every load, `cpu3`–`cpu17` at 0.0% busy under sampling, plateau 84 kops/s against 336 and 448 on the other hosts. **Every record looked individually plausible**, and it was caught only by comparing three campaigns against each other. Use `nohz_full` and `rcu_nocbs` instead, and run `bench/canonical_repeat.sh check-spread` before any long campaign: it refuses to start below 150% `cpu_pct` on a probe run (broken config reads 100%, healthy reads ~688%). The dead dataset is kept at `bench/results-canonical/`.
 
 ---
 
