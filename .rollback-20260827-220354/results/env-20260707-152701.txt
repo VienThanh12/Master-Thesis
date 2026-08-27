@@ -1,0 +1,29 @@
+# Testbed environment capture (20260707-152701)
+
+## Host / OS
+Linux C-PF5SSPR1 6.6.87.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
+distro: Ubuntu 24.04.4 LTS
+
+## Toolchains
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+rustc 1.96.0 (ac68faa20 2026-05-25)
+cargo 1.96.0 (30a34c682 2026-05-25)
+cmake version 4.3.4
+
+## CPU
+CPU(s):                               14
+Model name:                           Intel(R) Core(TM) Ultra 5 135U
+Thread(s) per core:                   2
+Core(s) per socket:                   7
+Socket(s):                            1
+NUMA node(s):                         1
+NUMA node0 CPU(s):                    0-13
+
+## Frequency governor / turbo / SMT
+governors: (not exposed)
+intel_pstate/no_turbo: (not present)
+smt/control: on
+
+## Warnings
+  [WSL] Running under WSL2: frequency/turbo/SMT hygiene unavailable and
+        tails are perturbed by the host. NOT testbed-grade for RQ1/RQ3.

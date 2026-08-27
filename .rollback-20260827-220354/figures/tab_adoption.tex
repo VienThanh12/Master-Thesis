@@ -1,0 +1,20 @@
+\multicolumn{3}{@{}l}{\emph{Clean build, core library only (first-party source on both sides)}} \\
+\quad Wall clock (s) & 1.9 & 1.2 \\
+\quad CPU time (s) & 2.6 & 3.9 \\
+\multicolumn{3}{@{}l}{\emph{Clean build, every default target}} \\
+\quad Wall clock (s) & 5.7 & 8.1 \\
+\quad CPU time (s) & 35.9 & 64.8 \\
+\quad CPU time, first-party only (s) & 35.9 & 29.6 \\
+\multicolumn{3}{@{}l}{\emph{Incremental rebuild after one edit}} \\
+\quad Source file changed (s) & 1.2 & 3.6 \\
+\quad Core header changed (s) & 5.8 & 3.6 \\
+\multicolumn{3}{@{}l}{\emph{Static footprint, \texttt{conformance\_runner} (KiB)}} \\
+\quad Shipped, each toolchain's default linkage & 106 & 723 \\
+\quad Matched: standard library linked statically & 1577 & 723 \\
+\quad Matched: standard library resolved dynamically & 106 & 269 \\
+\quad Shared standard library left on the host & 2531 & 5295 \\
+\multicolumn{3}{@{}l}{\emph{Third-party code resolved}} \\
+\quad Transitive crates, compared component & 0 & 0 \\
+\quad Transitive crates, matched-allocator arm & 0 & 8 \\
+\quad Transitive crates, benchmark harness & 0 & 17 \\
+\quad \texttt{unsafe} sites in that third-party code & --- & 1064

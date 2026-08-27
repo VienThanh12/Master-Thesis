@@ -1,0 +1,48 @@
+# Testbed environment capture (20260812-154523)
+
+## Host / OS
+Linux duha-5g-cp.novalocal 7.0.2-1.el8.elrepo.x86_64 #1 SMP PREEMPT_DYNAMIC Mon Apr 27 15:26:19 EDT 2026 x86_64 x86_64 x86_64 GNU/Linux
+distro: Rocky Linux 8.10 (Green Obsidian)
+
+## Toolchains
+g++ (GCC) 15.1.1 20250521 (Red Hat 15.1.1-2)
+rustc 1.97.1 (8bab26f4f 2026-07-14)
+cargo 1.97.1 (c980f4866 2026-06-30)
+cmake version 3.30.2
+
+## CPU
+CPU(s):              16
+Thread(s) per core:  1
+Core(s) per socket:  8
+Socket(s):           2
+NUMA node(s):        1
+Model name:          Intel(R) Xeon(R) CPU E5-2680 v4 @ 2.40GHz
+CPU MHz:             2394.454
+NUMA node0 CPU(s):   0-15
+
+## Frequency governor / turbo / SMT
+governors: (not exposed)
+intel_pstate/no_turbo: (not present)
+smt/control: notsupported
+
+## Virtualisation and core isolation
+virtualisation: kvm
+kernel cmdline: BOOT_IMAGE=(hd0,gpt2)/vmlinuz-7.0.2-1.el8.elrepo.x86_64 root=UUID=4990ceaa-f9c5-4fa5-abef-198724d21f40 ro console=ttyS0,115200n8 no_timer_check net.ifnames=0 crashkernel=auto
+isolcpus: (none)
+nohz_full: (none)
+steal ticks (1 s sample): 0
+
+## Allocator
+system jemalloc: /lib64/libjemalloc.so.2
+MALLOC_CONF (C++ jemalloc): thp:never,narenas:16
+_RJEM_MALLOC_CONF (Rust jemalloc): thp:never,narenas:16
+transparent hugepages: always
+
+## Warnings
+  [VIRT] Running under virtualisation (kvm): the frequency governor and
+         turbo state are host-controlled and not observable from here, and
+         the hypervisor may deschedule a vCPU. This is not the bare-metal
+         host TESTBED.md specifies.
+  [NOISOL] No isolcpus= on the kernel command line: benchmark threads share
+           their cores with the rest of the system, and a lost timeslice
+           lands directly in p99.

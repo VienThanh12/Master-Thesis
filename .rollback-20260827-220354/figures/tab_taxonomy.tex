@@ -1,0 +1,17 @@
+\rlap{\emph{Within the guarantee}} & & & & \\
+Use-after-free & detected & detected & not detected & compile error (E0499) \\
+Double-free & detected & not detected & not detected & compile error (E0382) \\
+Iterator invalidation & detected & detected & not detected & compile error (E0502) \\
+Data race & not detected & detected & not detected & compile error (E0373$^{\dagger}$) \\
+Unguarded shared mutation & not detected & detected & not detected & compile error (E0502$^{\dagger}$) \\
+Use-after-move & not detected & not detected & not detected & compile error (E0382) \\
+Thread-unsafe handle shared & not detected & detected & not detected & compile error (E0277)\\
+\hline
+\rlap{\emph{Boundary of the guarantee}} & & & & \\
+Lock-order deadlock$^{\ddagger}$ & not detected & intermittent$^{\S}$ & not detected & compiles, deadlocks \\
+Lost update & not detected & not detected & not detected & compiles, wrong result \\
+Reference-cycle leak & detected & not detected & not detected & compiles, leaks \\
+Integer overflow (release) & not detected & not detected & detected & compiles, wrong result \\
+Worker-failure blast radius & not detected & not detected & not detected & compiles, shard outage \\
+Double-free across the seam & detected & not detected & not detected & compiles, aborts \\
+Forgotten lock guard$^{\ddagger}$ & not detected & not detected & not detected & compiles, deadlocks
