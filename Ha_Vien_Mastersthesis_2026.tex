@@ -2820,10 +2820,12 @@ and in \emph{how} it behaves once both have, and they differ in opposite directi
 \centering
 \includegraphics[width=0.78\linewidth]{figures/fig_load_sweep.pdf}
 \caption[The load sweep: tail latency and achieved throughput]{The load sweep, both panels
-against offered load. \textbf{(a)} Tail latency (p99) for the four build variants on a log axis.
-\textbf{(b)} Achieved throughput, with the dotted line marking the ideal
-offered-equals-achieved regime. The curves leave that line after an offered
-$\TrackingLoad$~kops/s and plateau at an achieved $\SatKnee$~kops/s. Lines are medians over
+against offered load. \textbf{(a)} Tail latency (p99) for the four build variants on a log axis. It
+is flat across the whole tracking region and then rises by four orders of magnitude in one step of
+the ladder. \textbf{(b)} Achieved throughput, with the dotted line marking the ideal
+offered-equals-achieved regime. The C++ curves leave that line after an offered
+$\TrackingLoadCpp$~kops/s and the Rust curves after $\TrackingLoadRust$, which is the one place in
+the sweep where the two languages part company below the deepest overload. Lines are medians over
 \NRepeats{} repeats and shaded bands are bootstrap $95\%$ confidence intervals in both panels,
 which share the variant styling of the legend in (a). Throughput is counted over the measured
 phase only, so the warm-up iterations bias neither the numerator nor the
