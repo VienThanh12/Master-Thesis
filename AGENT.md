@@ -91,11 +91,16 @@ the author unaided, because in this programme it is the maturity test and a mode
 That rewrite is overdue on substance and not only on style: the abstract still ends "The far tail
 below saturation cannot be settled on a virtualised host", which §`sec:baremetal` contradicts, and it
 is the fifth defect in that paragraph. **It is now the only thing holding criterion 6 below 5** and
-the last far-tail site in the document. Second and third are half-days of analysis on data already on
-disk, and they are what take criterion 4 to 5: the allocation profile in
-`bench/results-baremetal/alloc_profile-20260826-110718/`, which answers the question `tab:threats`
-now names correctly (which runtime pages carry the footprint, attributed to a call site), and the
-collected jitter plus the p99.99 column `tab:latency`'s generated preamble already allows. Fourth, a
+the last far-tail site in the document. The second and third items were closed on 27 August 2026 and
+are recorded in `docs/TODO.md` § *Do now*. The allocation profile in
+`bench/results-baremetal/alloc_profile-20260826-110718/` was analysed and **returns a negative
+result**: it cannot attribute the footprint to a call site, because the profiling build reverses the
+sign of the peak-RSS difference it was collected to explain, it runs past the saturation plateau,
+and both flat rankings collapse onto frames that allocate nothing. Two positive results survived and
+are reported (histogram parity to the byte, and the worker path's open-addressed-versus-node-based
+shape). The collected jitter is reported descriptively in the same section. **The p99.99 column
+`tab:latency` should carry is blocked on the canonical repeat, not on analysis**: the guest campaign
+records no `p9999` field at all. Fourth, that
 canonical-configuration bare-metal repeat needs a rented machine, about two hours and one euro, and
 it is the only thing holding criterion 3's data half below 5. The deck costs no grade and was the
 last stale artefact in the repository. It is **resynced as of 26 August 2026, evening**: it reads

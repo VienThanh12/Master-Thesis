@@ -519,6 +519,164 @@ def write_resident_table(steady, med, out_cpp, out_rust, rss):
 
 
 # --------------------------------------------------------------------------- #
+# Inter-operation jitter (IPDV). Collected on this campaign and on no other, so
+# it is reported here or nowhere. No research question asks for it, which is why
+# it is described rather than tested: the interest is that it moves with the load
+# regime and not with the language, and a between-variant spread that stays
+# inside a fraction of a microsecond says that more plainly than a p-value would.
+# --------------------------------------------------------------------------- #
+def jitter_facts(macros, below):
+    if "jitter_ns" not in below[0]:
+        return ["campaign carries no jitter sidecar"]
+    cell = {}
+    for r in below:
+        cell.setdefault((r["lang"], r["alloc"], r["rate"]), []).append(r)
+    rates = sorted({r["rate"] for r in below})
+    variants = sorted({(r["lang"], r["alloc"]) for r in below})
+
+    def med(lang, alloc, rate, field):
+        return statistics.median(
+            x["jitter_ns"][field] for x in cell[(lang, alloc, rate)]) / NS_PER_US
+
+    # The top load stands apart: every variant's jitter jumps by more than an
+    # order of magnitude there while the four stay within a fraction of a
+    # microsecond of each other, so the regimes are reported separately rather
+    # than averaged into one range that describes neither.
+    top = max(rates)
+    lower = [r for r in rates if r != top]
+
+    def span(rate_set, field):
+        vals = [med(l, a, rate, field) for rate in rate_set for l, a in variants]
+        return min(vals), max(vals)
+
+    lo, hi = span(lower, "p50")
+    macros["BmJitterPFiftyLo"] = fmt(lo, 2)
+    macros["BmJitterPFiftyHi"] = fmt(hi, 2)
+    lo99, hi99 = span(lower, "p99")
+    macros["BmJitterPNineNineLo"] = fmt(lo99, 1)
+    macros["BmJitterPNineNineHi"] = fmt(hi99, 1)
+
+    # The language signal, such as it is: the widest gap between the four
+    # variants at any single load, which is what a reader comparing languages
+    # would want bounded.
+    spreads = [max(med(l, a, rate, "p50") for l, a in variants)
+               - min(med(l, a, rate, "p50") for l, a in variants)
+               for rate in lower]
+    macros["BmJitterSpreadMax"] = fmt(max(spreads), 2)
+
+    top_vals = [med(l, a, top, "p50") for l, a in variants]
+    macros["BmJitterTopLoad"] = fmt(top * below[0]["producers"] / 1000)
+    macros["BmJitterTopLo"] = fmt(min(top_vals), 1)
+    macros["BmJitterTopHi"] = fmt(max(top_vals), 1)
+    # Smallest value in the top regime over the largest below it, so the prose
+    # can put a floor under the jump without the reader checking which pair of
+    # cells the ratio came from.
+    macros["BmJitterTopRatio"] = fmt(min(top_vals) / hi)
+
+    counts = [x["jitter_ns"]["n"] for x in below]
+    macros["BmJitterSamplesMin"] = f"{min(counts):,}".replace(",", "\\,")
+    macros["BmJitterSamplesMax"] = f"{max(counts):,}".replace(",", "\\,")
+    return []
+
+
+# --------------------------------------------------------------------------- #
+# The allocation profile. It was collected to attribute the peak-RSS language
+# effect to a call site and it cannot, so what is generated here is the evidence
+# for that negative result rather than an attribution. The decisive quantity is
+# the first one: the profiled configuration reverses the sign of the effect it
+# was collected to explain, and nothing downstream of that can be read as an
+# explanation of it.
+# --------------------------------------------------------------------------- #
+#: jeprof names the histogram constructor differently on each side, and the two
+#: arms share no call sites, so the symbols are declared rather than matched.
+#: A missing one is reported as a skip instead of quietly leaving a stale macro.
+PROF_HIST = {"cpp": "HdrHistogram::HdrHistogram", "rust": "new_with_bounds"}
+
+
+def alloc_profile_facts(macros, below):
+    from parse_jeprof import parse_jeprof
+
+    dirs = sorted(glob.glob(os.path.join(RESULTS, "alloc_profile-*")))
+    if not dirs:
+        return ["no allocation profile in results-baremetal"]
+    outdir = dirs[-1]
+
+    run = {}
+    for lang in ("cpp", "rust"):
+        path = os.path.join(outdir, f"{lang}.bench.json")
+        if not os.path.exists(path):
+            return [f"allocation profile has no {lang} run record"]
+        run[lang] = json.loads(open(path, encoding="utf-8").read().strip())
+
+    # 1. The sign reversal. Compared against the campaign's jemalloc arms,
+    #    because the profile ran jemalloc on both sides.
+    delta = (run["rust"]["rss_peak_kb"] - run["cpp"]["rss_peak_kb"]) / KB_PER_MIB
+    macros["BmProfRssDelta"] = fmt(abs(delta), 1)
+    macros["BmProfRssHigher"] = "C++" if delta < 0 else "Rust"
+    cell = {}
+    for r in below:
+        if r["alloc"] == "jemalloc":
+            cell.setdefault((r["lang"], r["rate"]), []).append(r["rss_peak_kb"])
+    rates = sorted({r["rate"] for r in below if r["alloc"] == "jemalloc"})
+    camp = [(statistics.median(cell[("rust", rate)])
+             - statistics.median(cell[("cpp", rate)])) / KB_PER_MIB
+            for rate in rates]
+    macros["BmProfCampaignLo"] = fmt(min(camp), 1)
+    macros["BmProfCampaignHi"] = fmt(max(camp), 1)
+    macros["BmProfCampaignHigher"] = "Rust" if statistics.median(camp) > 0 else "C++"
+
+    # 2. The profiled run sits past the knee, so it profiles saturation while
+    #    the peak RSS it would explain is reported below saturation.
+    macros["BmProfThroughput"] = fmt(
+        statistics.median(run[l]["throughput_ops_s"] for l in run) / 1000)
+
+    # 3. Both flat rankings collapse onto a frame that is not an allocation
+    #    site. jemalloc's own backtrace leaf on one side, a deallocation symbol
+    #    on the other, which is what frame-pointer misattribution looks like.
+    for lang in ("cpp", "rust"):
+        prof = os.path.join(outdir, f"{lang}.jeprof.txt")
+        if not os.path.exists(prof):
+            return [f"allocation profile has no {lang} symbolisation"]
+        sites, _total = parse_jeprof(open(prof, encoding="utf-8").read())
+        flat_total = sum(s["bytes_flat"] for s in sites)
+        top = max(sites, key=lambda s: s["bytes_flat"])
+        key = "BmProfFlat" + ("Cpp" if lang == "cpp" else "Rust")
+        macros[key + "Pct"] = fmt(100 * top["bytes_flat"] / flat_total, 1)
+
+        def cum(needle):
+            hits = [s for s in sites if needle in s["symbol"]]
+            return max(h["bytes_cum"] for h in hits) if hits else None
+
+        worker = cum("worker_loop")
+        hist = cum(PROF_HIST[lang])
+        if worker is None or hist is None:
+            return [f"{lang} profile carries no worker_loop or histogram site"]
+        suffix = "Cpp" if lang == "cpp" else "Rust"
+        macros["BmProfWorker" + suffix] = fmt(worker / MB_PER_MIB, 1)
+        macros["BmProfHist" + suffix] = fmt(hist / MB_PER_MIB, 2)
+
+        # 4. The dump that got symbolised is the first of the series, taken
+        #    while the service is still filling. How far that sits above steady
+        #    state decides whether the two arms describe the same phase.
+        traj = os.path.join(outdir, f"{lang}.trajectory.tsv")
+        series = []
+        for line in open(traj, encoding="utf-8"):
+            name, byts = line.split()
+            m = re.search(r"\.(\d+)\.(i\d+|f)\.heap$", name)
+            if m and m.group(2) != "f":
+                series.append((int(m.group(1)), int(byts)))
+        series.sort()
+        live = [b for _i, b in series]
+        steady = statistics.median(live[len(live) // 2:])
+        macros["BmProfPeakRatio" + suffix] = fmt(max(live) / steady, 1)
+        macros["BmProfDumps" + suffix] = str(len(series))
+
+    macros["BmProfChurnRatio"] = fmt(
+        int(macros["BmProfDumpsRust"]) / int(macros["BmProfDumpsCpp"]), 1)
+    return []
+
+
+# --------------------------------------------------------------------------- #
 # Hardware counters. The operation scope is the one that speaks to the language,
 # because the end-to-end path is almost entirely cross-thread handoff.
 # --------------------------------------------------------------------------- #
@@ -583,6 +741,8 @@ def main():
     notes += far_tail_facts(macros)
     notes += paired_facts(macros, below)
     notes += je_facts(macros, below)
+    notes += jitter_facts(macros, below)
+    notes += alloc_profile_facts(macros, below)
     notes += overload_facts(macros)
     notes += counter_facts(macros)
 

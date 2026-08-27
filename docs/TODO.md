@@ -35,15 +35,54 @@ The Aug 26 visit used **8 shards / 8 producers / 15 repeats / 8 load levels** an
 | # | Task | Effort | Lifts | Who |
 | --- | --- | --- | --- | --- |
 | **A** | **Rewrite the abstract yourself**, then set `\abstractunaidedtrue` | 1–2 h | Crit. **6 → 5** (only blocker). Also last stale far-tail sentence in the PDF | **You only** (model must not write it) |
-| **B** | **Analyse the allocation profile** already on disk | ~½ day | Crit. **4 → 5** (call-site attribution `tab:threats` still lacks) | You or agent |
-| **C** | **Report collected jitter** + add **p99.99 column** to `tab:latency` (optional: a §`sec:baremetal` figure) | ~½ day | Crit. **4 → 5** | You or agent |
-| **D** | **Canonical bare-metal repeat** (matched to main campaign) | ~2 h + ~€1 machine | Crit. **3 data → 5** (only measurement left) | You on rented host |
+| ~~**B**~~ | ~~Analyse the allocation profile~~ | **DONE 27 Aug** | Reported in §`sec:baremetal`; see *What B returned* below | — |
+| ~~**C1**~~ | ~~Report collected jitter~~ | **DONE 27 Aug** | Reported in §`sec:baremetal` | — |
+| **C2** | p99.99 column in `tab:latency` | **Blocked on D** | The guest campaign records no `p9999` at all | — |
+| **D** | **Canonical bare-metal repeat** (matched to main campaign) | ~2 h + ~€1 machine | Crit. **3 data → 5**, and unblocks C2 | You on rented host |
 | **E** | Send **spec + plan** to supervisors; settle Nokia “what can be published” | Email | Unblocks Phase 1/2 sign-off | You |
 | **F** | Companion docs: decide fate of `thesis-vi` / archive companions | Short | Repo hygiene, no grade | You or agent |
 | **G** | Full proofread pass | Half day+ | Submission polish | You |
 | — | Examiners / official class file | n/a | Not yours to schedule | Faculty / Moodle |
 
-**Recommended order:** A (blocker, only you) → B then C (data already on disk, no machine) → D when you next rent a box → E in parallel whenever → F/G before submission.
+**Recommended order:** A (blocker, only you) → D when you next rent a box (also unblocks C2) → E in parallel whenever → F/G before submission.
+
+### What B returned (27 Aug 2026): a negative result, and why it is the right one
+
+The profile **cannot** attribute the peak-RSS language effect to a call site, and the reason is the
+instrument rather than either language. Four findings, all generated into `\BmProf*` macros by
+`alloc_profile_facts()` in `bench/baremetal_facts.py`:
+
+1. **The profiled run reverses the effect's sign.** Peak RSS there is 4.9 MiB higher in the **C++**
+   build, where the campaign's own jemalloc arms put **Rust** higher by 1.4–3.6 MiB at every load.
+   Nothing downstream of that can explain the campaign's effect.
+2. **It profiles the wrong regime.** Closed loop at ~455 kops/s, past the plateau bracketed at
+   448–512 kops/s, whereas peak RSS is reported below saturation.
+3. **Both flat rankings collapse onto frames that allocate nothing**: 98.4 % of the C++ total on a
+   deallocation symbol, 100 % of the Rust total on jemalloc's own backtrace routine. Only
+   cumulative call paths survive, and those name subsystems. Note `parse_jeprof.py`'s degeneracy
+   threshold is 0.99, so it flags Rust and lets C++ through at 0.984.
+4. **The symbolised dump is the first of the series**, taken while the service is still filling:
+   8.4× steady state on the Rust side, 1.3× on the C++ side.
+
+Two positive results survived and are reported: both arms allocate **2.81 MiB** for the latency
+histogram, equal to the byte (harness parity working), and at equal allocation volume the worker
+path holds **7.0 MiB** in Rust against **2.2 MiB** in C++, which is the open-addressed-table-versus-
+node-based-map difference §`sec:budget` argues from the forced-idiom log, now visible in allocation
+as well as latency.
+
+**Closing this properly needs a profile taken at a swept load on a build whose peak RSS reproduces
+the campaign ordering.** Fold it into D if the rented box allows.
+
+### What C1 returned
+
+Jitter is a clean null across languages and a sharp signal about load. Below the top load all four
+variants sit at 1.50–1.94 µs median and 6.7–10.8 µs p99, with the widest between-variant gap at any
+single load being **0.36 µs**. At 128 kops/s all four move together to 45.6–46.5 µs, at least 24×
+any value below. Reported descriptively, since no research question asks for it.
+
+**C2 is blocked, not deferred.** `campaign-20260812-154528` records `p50, p90, p99, p999, max` and
+no `p9999` and no `jitter_ns`. `\LatencyHead` is generated and would grow the column automatically,
+but the guest data cannot fill it. Only D produces a main-campaign dataset that can.
 
 **Abstract rewrite must fix five defects in one pass:** seven-and-seven catalogue, practical-not-statistical median, jitter, far tail **is** settled on bare metal (delete “cannot be settled on a virtualised host”), then flip `\abstractunaidedtrue`.
 
@@ -130,12 +169,19 @@ while a re-run is still possible.
 | 1 Objectives & RQs | 5 | Hold (keep RQ2 seven + seven) |
 | 2 Sources | 5 | Optional: replace remaining arXiv `Bugden` |
 | 3 Method & data | 4.5 | **D** matched bare-metal repeat |
-| 4 Results presentation | 4.5 | **B** + **C** (and abstract for camera-ready) |
+| 4 Results presentation | 4.5 | B and C1 landed 27 Aug. Next grading pass should re-assess. C2 rides on D |
 | 5 Discussion | 5 | Hold (no over-claim) |
 | 6 Academic text | 4.5 | **A** unaided abstract |
 
-Overall mean **4.75**. A alone does not raise the mean much if 3 and 4 stay at 4.5; A+B+C+D is the
-path to a clean 5 across the manuscript criteria.
+Overall mean **4.75** as last graded. A alone does not raise the mean much if 3 and 4 stay at 4.5.
+Do not self-grade the 27 Aug work: the rule that a remediation pass must not grade its own output
+applies here too, so criterion 4 stays at its last graded value until a fresh pass runs.
+
+### Build state after the 27 Aug edits
+
+102 declared pages plus appendix, 116 physical, up one page from the two new results. Zero LaTeX
+errors, zero warnings, zero undefined references. One overfull box, pre-existing, in a running
+header. `./.aitells.py` reports zero semicolons and no new style patterns.
 
 ---
 
