@@ -2904,22 +2904,33 @@ whichever way the family is read. Its intervals exclude zero, and its effect kee
 both allocators. Figure~\ref{fig:resources} plots the same measurement, and its middle panel is
 where the finding of this section sits.
 
-Two effects are present in it, not one, and they are not the same size. Linking
+Two effects are present in it, not one, and they are of comparable size. Linking
 \texttt{jemalloc} costs $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB in either language. The Rust
 build costs $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more than the C++ build under either allocator,
 with a bootstrap interval of $\RssLangCILo$ to $\RssLangCIHi$~MiB. Resource use follows both, and
-the allocator effect is the larger by an order of magnitude. That ordering comes partly from the
-fairness controls and is not a fact about \texttt{jemalloc} in general. Both builds pin the arena
-count identically, so that neither language's default could become an accidental advantage, and
-pinning it high is what makes the arena metadata a large fixed cost on both sides. A deployment
-tuning \texttt{jemalloc} for footprint instead of for comparability would not pay that cost.
+neither dominates the other. Part of the allocator figure comes from the fairness controls rather
+than from \texttt{jemalloc} in general: both builds pin the arena count identically, so that
+neither language's default could become an accidental advantage, and pinning it high makes the
+arena metadata a fixed cost on both sides. A deployment tuning \texttt{jemalloc} for footprint
+instead of for comparability would not pay it.
 
-The one row in the upper block of Table~\ref{tab:significance} that does not clear the correction
-is peak RSS under \texttt{jemalloc}, and the reason lies in the statistic and not in the software.
-The interval is tight and \RssAgree{} of the paired repeats agree, while a handful of runs reporting
-a resident set some $\RssLowRunOffset$~MiB low dominate a permutation statistic built on a mean of
-paired differences. That row is read from its interval, under the rule fixed in advance in
-Section~\ref{sec:stats}, and Section~\ref{sec:threats} takes up the measurement defect behind it.
+The relative size of these two effects is the one result in this chapter that a change of host
+overturned. On the virtualised machine this study used first, the allocator effect measured
+$\GuestRssAllocLo$--$\GuestRssAllocHi$~MiB, about $\GuestRssAllocOverLang$ times the language
+effect rather than comparable to it, and the language effect was the same size there as here.
+Section~\ref{sec:hostcompare} reports the comparison and what can and cannot be concluded from it.
+The lesson for reading this paragraph is narrow and worth stating: the \emph{language} effect on
+peak RSS is reproducible across three machines, and the \emph{allocator} effect is not a constant
+of the allocators.
+
+Every row in the upper block of Table~\ref{tab:significance} now clears the correction, including
+peak RSS under \texttt{jemalloc}, which did not on the previous host. That row failed there for a
+reason in the statistic rather than in the software: a handful of runs reported a resident set some
+$\GuestRssLowRunOffset$~MiB low, and a permutation statistic built on a mean of paired differences
+is dominated by them. The same measurement on this host spreads by $\RssLowRunOffset$~MiB, so the
+contamination was the machine's. The rule fixed in advance in Section~\ref{sec:stats} for reading
+such a row against its interval was not needed here, and it stays stated because a design that only
+declares its reading rules when they rescue a result is not applying them.
 
 CPU utilisation behaves differently again, and by regime rather than by noise.
 At this below-saturation operating point Rust draws slightly \emph{less} CPU, by
@@ -2968,10 +2979,10 @@ that the two bars in a group differ only in language and the two groups differ o
 Medians over \NRepeats{} repeats with bootstrap $95\%$ intervals. \textbf{(a)} Peak resident set
 size. \textbf{(b)} The two effects it contains, each as a paired difference over the same
 repeats: linking \texttt{jemalloc} costs $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB, while the Rust
-build costs $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more than the C++ one. Both are real, and on a
-shared axis the allocator effect is an order of magnitude the larger. \textbf{(c)} CPU
-utilisation, summed across threads, where the difference runs the other way and is
-small.\label{fig:resources}}
+build costs $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more than the C++ one. Both are real and on a
+shared axis they are of comparable size, which was not true on the host this study used first
+(Section~\ref{sec:hostcompare}). \textbf{(c)} CPU utilisation, summed across threads, where the
+difference runs the other way and is small.\label{fig:resources}}
 \end{figure}
 
 \subsection{What the machine decided, and what the code decided}\label{sec:hostcompare}
