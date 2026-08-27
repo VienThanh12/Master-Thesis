@@ -30,7 +30,7 @@ RESULTS = os.path.join(HERE, "results")
 sys.path.insert(0, HERE)
 from plot_figures import (  # noqa: E402
     REPR_LOAD_OPS, bootstrap_ci, deadline_limited_load, load_campaign,
-    balance_repeats,
+    balance_repeats, rss_low_run_offset,
 )
 
 NS_PER_US = 1000.0
@@ -142,6 +142,14 @@ def resource_facts(macros, rows):
     # campaign, and no bare-metal host has reproduced it.
     macros["GuestRssAllocOverLang"] = fmt(
         statistics.median(alloc_eff) / statistics.median(lang_eff))
+
+    # The bimodality that cost one peak-RSS row its place in the significance
+    # family. Computed by the same helper the main campaign uses, so the two
+    # figures are the same quantity and the comparison between them is a
+    # comparison and not two definitions.
+    offset = rss_low_run_offset(rows, REPR_LOAD_OPS)
+    if offset is not None:
+        macros["GuestRssLowRunOffset"] = fmt(offset)
     return []
 
 
