@@ -2214,11 +2214,19 @@ life. Table~\ref{tab:testbed} describes the machines and keeps the split clear.
 \paragraph{The environment used.}
 Every performance number in this chapter comes from one dedicated bare-metal server: a
 single-socket \MainCpu{} with \MainCores{} cores on \MainNumaNodes{} NUMA node, simultaneous
-multithreading \MainSmt{}, running \MainDistro{} with \texttt{g++~\MainGpp} and
-\texttt{rustc~\MainRustc}. The frequency governor is fixed at \MainGovernor{} with boost disabled,
-so the cores hold their base clock rather than a thermally negotiated one, and cores \MainPinned{}
-carry the benchmark. The environment capture records virtualisation as \MainVirt{}. Every run
-records the environment metadata of Section~\ref{sec:repro}.
+multithreading \MainSmt{}, kernel \MainKernel{}. The frequency governor is fixed at
+\MainGovernor{} with boost disabled, so the cores hold their base clock rather than a thermally
+negotiated one, and cores \MainPinned{} carry the benchmark. The environment capture records
+virtualisation as \MainVirt{}. Every run records the environment metadata of
+Section~\ref{sec:repro}.
+
+The toolchain is not the host's. Both implementations are built and run inside a pinned container
+image carrying \MainDistro{} with \texttt{g++~\MainGpp} and \texttt{rustc~\MainRustc}, which is the
+same userspace and compiler pair the earlier virtualised campaign used. Fixing the toolchain in an
+image is what allows a change of machine to be a change of machine only: the container shares the
+host's kernel, scheduler and clocksource, so it buys toolchain identity and nothing else, and it is
+the reason the two campaigns compared in Section~\ref{sec:hostcompare} differ in the hardware
+alone.
 
 Two properties of this host are worth stating before any tail number is read, because they are what
 the previous host lacked. There is no hypervisor between the benchmark and the cores, so no
@@ -2966,13 +2974,62 @@ utilisation, summed across threads, where the difference runs the other way and 
 small.\label{fig:resources}}
 \end{figure}
 
-\subsection{Confirmation on bare metal (RQ1, RQ3)}\label{sec:baremetal}
-Three of the results above are bounded by the machine and not by the languages, and
-Section~\ref{sec:testbed} sets out why the guest cannot settle them. A second campaign on a
-dedicated bare-metal host settles all three. It is reported as a confirmation and not as a
-replacement, for a reason the last paragraph gives.
+\subsection{What the machine decided, and what the code decided}\label{sec:hostcompare}
+\label{sec:baremetal}%
+Every number above was measured on the bare-metal host of Section~\ref{sec:testbed}. For most of
+this study they were measured on a virtualised one instead, at the same shard count, the same
+fourteen load levels, the same \GuestRepeats{} repeats and the same toolchain. Two campaigns that
+differ in the machine alone are an opportunity a single-host study does not get, and this section
+takes it. The question is not which host is faster. It is which of this chapter's findings are
+properties of the code and which were properties of the machine, because a comparative study that
+cannot tell those apart is reporting its testbed.
 
-\paragraph{The host.}
+\paragraph{The instrument, which is where the difference is largest.}
+On the virtualised host the $95\%$ interval on one variant's own p99 spanned
+$\GuestPNineNineMaxCI\,\mu$s while the four variants' p99 values differed by
+$\GuestPNineNineRange\,\mu$s. Uncertainty about one variant exceeded the gap between all of them by
+a factor of five, so no ordering could be read at that percentile however many repeats were run.
+Computed identically here, the interval is $\PNineNineMaxCI\,\mu$s against a between-variant range
+of $\PNineNineRange\,\mu$s. The relation inverts. That single change is what moves the far tail
+from an open question to a reported result, and it is worth being precise about its cause: the
+median barely moved, from $\GuestPFifty$ to $\PFiftyMedian\,\mu$s, while p99 fell from
+$\GuestPNineNine$ to $\PNineNineLightest\,\mu$s. A hypervisor does not slow the common path. It
+occasionally stops it, and a percentile computed from exactly the stopped operations is the one
+that records it.
+
+\paragraph{What survived the change of host.}
+The overload divergence did, and it is the strongest claim in the chapter for that reason. The
+ratio of sustained throughput past saturation was $\GuestOverloadThrRatio\times$ on the guest and
+is $\OverloadThrRatio\times$ here, on another vendor's silicon, with the ordering unchanged. The
+saturation knee moved as capacity should, from $\GuestSatKnee$ to $\SatKnee$~kops/s. The peak-RSS
+\emph{language} effect survived too, at $\GuestRssLangLo$--$\GuestRssLangHi$~MiB there against
+$\RssLangDiffLo$--$\RssLangDiffHi$~MiB here, which is the same effect within measurement error on
+two machines, two vendors and two memory subsystems.
+
+\paragraph{What did not survive, and this is the one to read carefully.}
+The peak-RSS \emph{allocator} effect. On the guest, linking \texttt{jemalloc} cost
+$\GuestRssAllocLo$--$\GuestRssAllocHi$~MiB, roughly $\GuestRssAllocOverLang$ times the language
+effect, and while that host was the only evidence this thesis reported the gap as an order of
+magnitude. Here the same comparison costs $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB, which is the
+same size as the language effect rather than ten times it. The claim that the allocator dominates
+the footprint was a property of that machine.
+
+The mechanism is not established, and the honest form of the finding is the comparison rather than
+an explanation of it. One host property is a candidate and is recorded in both captures: transparent
+hugepages were set to \GuestThp{} on the guest and \MainThp{} here, and the campaign pins
+\texttt{thp:never} for \texttt{jemalloc} while the system-allocator arm inherits whatever the kernel
+does, so the two arms were not treated alike by a policy neither of them chose. This study did not
+vary that policy with everything else held fixed, so it cannot attribute the difference to it. What
+it can say is that a second bare-metal host at a different shard count measured
+$\BmRssAllocLo$--$\BmRssAllocHi$~MiB, which agrees with the figure here and not with the guest's,
+so the guest is the outlier of three rather than one reading of two.
+
+A related artefact went with it. The run-to-run spread that cost peak RSS under \texttt{jemalloc}
+its place in the significance family, a handful of runs reporting a resident set
+$\GuestRssLowRunOffset$~MiB low, is $\RssLowRunOffset$~MiB here, and all
+\RssAgree{} resource comparisons now agree across the allocator control.
+
+\paragraph{A second bare-metal host, at a different design.}
 One \BmCpu{}, \BmCores{} cores on \BmSockets{} socket and \BmNumaNodes{} NUMA node, running
 \BmDistro{} with \texttt{g++~\BmGpp} and \texttt{rustc~\BmRustc}. The governor is fixed at
 \BmGovernor{}, simultaneous multithreading is \BmSmt{}, and cores \BmPinned{} carry the
