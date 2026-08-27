@@ -147,7 +147,12 @@ fi
 # easy to forget which host is underneath.
 host_virt="unknown"
 if command -v systemd-detect-virt >/dev/null 2>&1; then
-  host_virt="$(systemd-detect-virt --vm 2>/dev/null || echo none)"
+  # It prints "none" *and* exits non-zero on bare metal, so a `|| echo none`
+  # here appends a second line and the result never compares equal to "none".
+  # That inverted the check below: the one host where the far tail can be
+  # resolved was the one told it could not be. head -1 keeps it a single token.
+  host_virt="$(systemd-detect-virt --vm 2>/dev/null | head -1)"
+  [ -z "$host_virt" ] && host_virt="none"
 elif command -v lscpu >/dev/null 2>&1; then
   host_virt="$(lscpu | sed -n 's/^Hypervisor vendor: *//p')"
   [ -z "$host_virt" ] && host_virt="none"

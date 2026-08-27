@@ -168,19 +168,25 @@ cmd_run() {
 
   say
   say "== 4. the campaign: $TOTAL runs, roughly two hours =="
-  "$root/docker/run.sh" campaign --cpuset "$PIN" \
+  # docker/run.sh takes its own options *before* the subcommand and passes
+  # everything after it through untouched. Putting --cpuset on the right of
+  # `campaign` sends it to campaign.sh, which rejects it, and leaves the
+  # container on its default cpuset of every core but 0-1. Both halves of that
+  # are silent until the run has already started on the wrong cores.
+  "$root/docker/run.sh" --cpuset "$PIN" campaign \
       --shards "$SHARDS" --producers "$PRODUCERS" \
       --repeats "$REPEATS" --duration "$DURATION" --warmup-s "$WARMUP" \
       --active-ues 5000 --rates "$RATES" || die "campaign failed"
 
   say
   say "== 5. counters and allocation profile, same visit =="
-  "$root/docker/run.sh" counters --cpuset "$PIN" --repeats 10 \
+  "$root/docker/run.sh" --cpuset "$PIN" counters --repeats 10 \
     || warn "counters failed"
   # At a swept load, not closed loop. The 26 August profile ran unthrottled,
   # landed past the saturation plateau, and reversed the sign of the peak-RSS
   # difference it was collected to explain, so it could attribute nothing.
-  "$root/docker/run.sh" alloc-profile --shards "$SHARDS" --producers "$PRODUCERS" \
+  "$root/docker/run.sh" --cpuset "$PIN" alloc-profile \
+      --shards "$SHARDS" --producers "$PRODUCERS" \
       --rate "$PROFILE_RATE" || warn "allocation profile failed"
 
   say
