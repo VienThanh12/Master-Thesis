@@ -93,16 +93,17 @@
     urlcolor=cyan           % color of external links
 }
 
-% The same three generated macro files Ha_Vien_Mastersthesis_2026.tex reads: campaign
-% summary numbers from bench/plot_figures.py, the size and complexity proxies from
-% bench/complexity.py, and the artefact-level measurements from bench/artefact_facts.py.
-% The results paragraphs quote these rather than carrying their own copies of the numbers,
-% so a rerun of bench/refresh_thesis.sh updates this document with the thesis.
+% The same generated macro files Ha_Vien_Mastersthesis_2026.tex reads. The results
+% paragraphs quote these rather than carrying their own copies of the numbers, so a
+% rerun of bench/refresh_thesis.sh updates this document with the thesis. Macros
+% prefixed Bm belong to the second bare-metal host (a different design). Macros
+% prefixed Guest belong to the earlier virtualised campaign, retained for comparison.
 \input{figures/gen_macros.tex}
 \input{figures/gen_complexity.tex}
 \input{figures/gen_artefacts.tex}
 \input{figures/gen_adoption.tex}
 \input{figures/gen_baremetal.tex}
+\input{figures/gen_guest.tex}
 
 \begin{document}
 
@@ -405,18 +406,20 @@ The second division is by regime. Below saturation the two implementations are e
 end in central behaviour, by a margin no deployment would notice. The paired test does resolve a
 median difference of $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators, with an
 interval reaching $\PFiftyDiffCIMax\,\mu$s, so the equivalence is practical and not statistical.
-The far tail in the same regime cannot be resolved on the main measurement host, and a separate
-bare-metal campaign (Chapter~\ref{chapter:eval}) resolves it: there the pooled p99.99 of the
-Rust variants sits below that of the C++ variants at every load where the two separate. Past saturation
+The far tail in the same regime now resolves on the reported host: the pooled p99.99 of the
+Rust variants sits below that of the C++ variants at every load where the two separate, and a
+second bare-metal campaign at another shard count agrees on the direction
+(Chapter~\ref{chapter:eval}). Past saturation
 the ordering reverses. The C++ build sustains $\OverloadThrRatio\times$ the throughput of the Rust
 build in \OverloadThrAgree{} interleaved repeats under both allocators, and uses more CPU for each
 completed operation. On resources the Rust process holds a few MiB more resident memory, again
-under both allocators, and less than the allocator choice itself costs on either host measured. How
-much less is a property of the host: an order of magnitude on the main one and roughly a factor of
-two on the confirmation host, where both effects are smaller.
+under both allocators. That effect is the same size on all three machines measured. How it compares
+against the cost of the allocator choice is not: the two are comparable on bare metal and the
+allocator's was an order of magnitude larger on the virtualised host this study used first, so the
+comparison between them is a property of the machine rather than of the allocators.
 
 Four limitations bound all of this: a synthetic workload, one simplified subsystem,
-single-author implementation bias, and a virtualised measurement host.
+single-author implementation bias, and an allocator footprint whose size moved with the host.
 Chapter~\ref{chapter:discussion} treats each in detail.
 
 The scope is drawn deliberately to protect the internal validity of the language comparison. In
@@ -522,14 +525,15 @@ RQ1 and RQ3 are answered with an open-loop load sweep from light load into overl
 pinned cores. Open-loop means the generator keeps to its send schedule instead of
 waiting for replies. Latency is recorded in identically configured HDR
 histograms~\cite{tene_hdrhistogram}. Resource use is sampled through the operating
-system. The main sweep runs on a dedicated dual-socket Xeon host, which is a KVM guest.
-That host resolves the overload divergence and the resource comparison. It does not
-resolve the far tail below saturation, because the frequency governor is not observable
-from inside the guest and CPU steal is non-zero. A second sweep on a bare-metal
-\BmCpu{} settles it. The governor is fixed at \BmGovernor{} there and no steal appears
-in \BmStealIntervals{} sampling intervals, so the far tail can be read. That sweep also
-varies the shard count, the load grid, the repeat count and the toolchain, so it
-confirms the main one without standing in for it.
+system. The reported sweep runs on a dedicated \MainCpu{}, simultaneous multithreading
+\MainSmt{}, frequency governor fixed at \MainGovernor{}, with \texttt{nohz\_full} on the
+pinned cores and no hypervisor. That host resolves the overload divergence, the
+resource comparison, and the far tail below saturation. The same design was first
+measured on a \GuestCpu{} guest (\GuestVirt{}) that could not resolve the far tail,
+because the frequency governor is not observable from inside it and CPU steal is
+non-zero. A third sweep on a second bare-metal \BmCpu{} uses a different shard count,
+load grid, repeat count and toolchain, so it tests whether the findings survive a
+change of design rather than a change of machine.
 
 RQ2 is answered by controlled fault injection~\cite{natella2016fault}. A fixed catalogue
 of defects is written in both languages. The expected outcome of each one is recorded in
@@ -612,35 +616,31 @@ $95\%$ confidence interval~\cite{georges2007rigorous,efron1993bootstrap}. The
 representative operating point is not chosen by eye. It is the busiest swept load at
 which all four variants still hold p99 below $5$~ms, $\ReprLoad$~kops/s against a
 measured throughput plateau of $\SatKnee$~kops/s reached at an offered
-$\TrackingLoad$~kops/s. All of it runs on a dedicated dual-socket
-Xeon pinned to cores $2$--$15$. That host bounds what the campaign may claim, because it
-is a KVM guest. The frequency governor and the turbo state are unobservable from inside
-it, so frequency stability is assumed instead of enforced. CPU steal is non-zero at
-roughly the order of the latencies under study. Run-level statistics survive that. The
-overload and the resource comparisons are resolved here. The far tail below saturation
-is not, and is reported as unresolved rather than as a null. The bare-metal protocol that
-settles it is published, and it was executed on a rented \BmCpu{}.
+$\TrackingLoad$~kops/s. All of it runs on a dedicated \MainCpu{} pinned to cores
+\MainPinned{}. The frequency governor is fixed at \MainGovernor{} with boost disabled.
+The kernel runs tickless on those cores. There is no hypervisor. Isolating the cores
+with \texttt{isolcpus} is omitted on purpose, because it would collapse the pinned set
+onto one core. The same design was first measured on a \GuestCpu{} guest that could not
+resolve the far tail. A second bare-metal host at a different shard count confirms that
+the directions survive a change of design.
 
 Below saturation the four variants sit within $\PFiftyRange\,\mu$s of one another at the
 median, $\PFiftySpread\%$. The paired test resolves a difference of
 $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators. Higher up the
-distribution the instrument runs out. The widest interval on a single variant's own p99
-spans $\PNineNineMaxCI\,\mu$s against $\PNineNineRange\,\mu$s of spread between all
-four. Where the uncertainty about one variant exceeds the gap between them, an ordering
-would be reporting the scheduler. A second limit is structural. No host would fix it. An
+distribution the ordering can now be read. The widest interval on a single variant's own
+p99 spans $\PNineNineMaxCI\,\mu$s against $\PNineNineRange\,\mu$s of spread between all
+four, so the uncertainty about one is smaller than the gap between them. On the
+virtualised host the same two quantities were $\GuestPNineNineMaxCI\,\mu$s against
+$\GuestPNineNineRange\,\mu$s, the wrong way round. Pooled p99.99 on a second bare-metal
+host, at another shard count, runs $\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s for the
+C++ variants and $\BmFarTailRustLo$--$\BmFarTailRustHi\,\mu$s for the Rust ones, without
+overlap. A second limit is structural. No host would fix it. An
 end-to-end operation is $\BudgetCoreShareMax\%$ the work the language performs. The rest
 is a cross-thread handoff charged to the operating
 system~\cite{zhou2025oltp}. This sweep cannot bound a language effect in either
 direction. Measured on its own the bare operation is $\BudgetCoreRatio\times$ faster in
 \BudgetCoreFaster{}. The likely cause is the standard hash map's layout, not anything
-about safety. A confirmation campaign on a bare-metal \BmCpu{} closes the tail question
-the guest leaves open. The same widest interval is $\BmPNineNineMaxCI\,\mu$s there
-against $\BmPNineNineRange\,\mu$s of between-variant spread, so the relation inverts and
-an ordering can be read. Pooled over \BmRepeats{} repeats, p99.99 runs
-$\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s for the C++ variants and
-$\BmFarTailRustLo$--$\BmFarTailRustHi\,\mu$s for the Rust ones, without overlap. That
-campaign uses \BmShards{} shards, \BmLoadLevels{} load levels, \BmRepeats{} repeats and a
-different toolchain, so it corroborates this one and does not replace it.
+about safety.
 
 Past saturation the languages are not equivalent. The margin is not marginal. At
 $\OverloadLoad$~kops/s offered, \OverloadSustainedFaster{} sustains
@@ -673,18 +673,18 @@ that safe Rust rejects and unsafe Rust does not, but it interprets Rust and cann
 execute the C++ host the defect ships behind. That half of the boundary is caught at test
 time, and for the concurrency cases only after a rewrite.
 
-Resource use separates the variants where latency could not. It holds two effects of
-unequal size. The Rust build costs $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak
-resident set than the C++ build under either allocator. Linking \texttt{jemalloc} at all
-costs $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB in either language. Both are real. The
-allocator's effect is an order of magnitude the larger here, and only about twice the
-larger on the bare-metal host, where both effects shrink and the allocator's shrinks by far
-the more. The ordering travels and the ratio does not. The language difference is a
-fixed cost, not a per-context one, and the bare-metal host locates it. \texttt{jemalloc}'s own
-accounting there puts $\BmJeMetadataDelta$~MiB more in arena bookkeeping and
+Resource use separates the variants where latency could not. Two effects of comparable
+size sit in the resident set. The Rust build costs $\RssLangDiffLo$--$\RssLangDiffHi$~MiB
+more peak resident set than the C++ build under either allocator. Linking
+\texttt{jemalloc} at all costs $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB in either
+language. Both are real. The language effect is the same size on all three machines
+measured. The allocator's was an order of magnitude larger on the virtualised host this
+study used first, so their ratio is a property of the machine. The language difference is
+a fixed cost, not a per-context one, and the quiet host locates it. \texttt{jemalloc}'s
+own accounting there puts $\BmJeMetadataDelta$~MiB more in arena bookkeeping and
 $\BmJeAllocatedDelta$~MiB \emph{less} in live allocation, and its resident bytes are
-$\BmJeResidentDelta$~MiB lower while the process peak is $\BmJeRssDelta$~MiB higher. So the
-footprint sits outside the allocator, in the runtime a Rust process carries before it
+$\BmJeResidentDelta$~MiB lower while the process peak is $\BmJeRssDelta$~MiB higher. So
+the footprint sits outside the allocator, in the runtime a Rust process carries before it
 allocates. Counters at the operation scope explain the timing result instead: the Rust build
 retires $\BmInstrDelta\%$ \BmInstrDeltaDir{} instructions in $\BmCycleDelta\%$
 \BmCycleDeltaDir{} cycles. CPU inverts with the regime. It is marginally lower
@@ -706,8 +706,8 @@ $\CoreUnsafe$ \texttt{unsafe} sites.
 RQ1's answer divides at saturation. Reporting either half on its own would
 misrepresent it. Below the knee the two languages are equivalent in central behaviour by
 a margin no deployment would notice. That is a result about services of this shape. The
-far tail in the same regime stays unresolved on that host. That is an admission about the
-instrument, and a quiet machine settles it in Rust's favour.
+far tail in the same regime now resolves on the reported host, in Rust's favour. On the
+virtualised host that the study used first, that percentile could not be ordered at all.
 Past the knee they diverge by $\OverloadThrRatio\times$. The closest prior work measures
 this quantity for 5G control-plane procedures. It finds the same shape and traces it to
 stackless \texttt{async}/\texttt{await}~\cite{arvidsson2025async}. That attribution is
@@ -743,8 +743,9 @@ the machine and expensive in the people. The memory penalty reproduces under bot
 allocators and on a second machine with a different compiler. It is credible beyond its
 $p$-value. Peak resident set is a run-level maximum insensitive to the jitter that
 destroys a p99. It is a few MiB of fixed cost, and sized against the allocator's own
-effect it is an order of magnitude smaller on the main host and about half as large on
-the quiet one. The ordering travels and the ratio does not. The quiet host also locates
+effect the two are comparable on both bare-metal hosts. On the virtualised host the
+allocator's was an order of magnitude larger. The language effect travels and the ratio
+does not. The quiet host also locates
 the cost. \texttt{jemalloc}'s own accounting puts it \emph{outside} the allocator,
 because the Rust build holds less live data and fewer resident bytes there and still
 peaks $\BmJeRssDelta$~MiB higher. What a Rust process carries before it allocates is the
@@ -767,8 +768,9 @@ The three hypotheses were committed before any measurement. Stating their dispos
 what separates a test from a description. H1 is supported below saturation and refuted
 above it. It is not in the direction its wording anticipated. The largest difference
 appeared in overload, which H1 did not consider. The far tail H1 did name is half right:
-this host cannot resolve it at all, and the quiet one puts a difference there in Rust's
-favour, so H1 was right about where to look and wrong that it was the only place. It was
+the reported campaign now resolves it, in Rust's favour, and a second bare-metal host at
+another shard count agrees on the direction. H1 was right about where to look and wrong
+that it was the only place. It was
 also not well posed.
 ``Performance-equivalent'' reads as one quantity and names at least three. H2 holds
 without exception for the seven injected classes of its kind. It fails in the looser
@@ -822,13 +824,14 @@ either compiler. The same operation measured apart is $\BudgetCoreRatio\times$ f
 \BudgetCoreFaster{}. It divides second by whether the service is coping. Below saturation
 the two are equivalent at the median for any purpose a deployment would care about. The
 paired test does resolve $\PFiftyDiffAbsMax\,\mu$s in Rust's favour, so that equivalence is
-practical and not statistical. Their far tail is unresolvable on a virtualised
-host and resolves in Rust's favour on bare metal. Past saturation
+practical and not statistical. Their far tail resolves in Rust's favour on the reported
+host, which a virtualised host could not settle. Past saturation
 \OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$ the
 throughput of \OverloadSustainedSlower{} while drawing $\OverloadCpuPerOpRatio\times$
 the CPU per completed operation. On memory the Rust build carries a few MiB more fixed
-footprint under both allocators. That is less than the allocator choice costs on either
-host measured, by an order of magnitude on one and a factor of about two on the other.
+footprint under both allocators. That language effect is the same size on all three
+machines measured. The allocator choice costs about as much on both bare-metal hosts, and
+an order of magnitude more on the virtualised one this study used first.
 
 What follows is a narrow claim, narrower than this thesis expected to make. An unmodified
 Rust core can be driven from C++ across a thin seam. The cost on a real operation is
@@ -842,10 +845,12 @@ What the thesis adds is an instrument, not a verdict: a frozen specification, a
 parity-tested pair of implementations, a measurement framework that reaches past the
 saturation knee, and a defect catalogue that maps where the guarantee stops.
 
-Future work answers the limitations one at a time. The immediate priority is to repeat
-the bare-metal campaign at the main sweep's own shard count, load grid, repeat count and
-toolchain. The confirmation run changed four things besides the host, which is why it
-corroborates the findings and does not carry them. Beyond it, replaying
+Future work answers the limitations one at a time. The immediate priority is a third
+machine at the reported campaign's own design. Two bare-metal hosts now agree on every
+direction this thesis reports. They disagree with the virtualised host on one quantity,
+the size of the allocator effect against the language effect. The candidate this study
+can name but not test is the transparent-hugepage policy, which differed between the
+hosts and which the two allocator arms do not inherit alike. Beyond that, replaying
 anonymised production traces would validate the operation mix. A subsystem with
 genuinely shared mutable state would exercise the two languages differently than a
 shared-nothing design does. Evaluating Rust async runtimes against the thread-per-shard

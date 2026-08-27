@@ -185,9 +185,9 @@ interleaved repeats and interval estimates rather than single
 figures~\cite{georges2007rigorous}: medians with nonparametric bootstrap
 confidence intervals~\cite{efron1993bootstrap}, and exact paired permutation
 tests corrected across the family by the Holm procedure~\cite{holm1979simple}.
-Frequency locking belongs to the bare-metal protocol, because the virtualised
-host does not expose the governor from inside the guest. The bare-metal
-confirmation campaign was run with the governor fixed. Latency is
+The reported campaign now runs on a dedicated bare-metal host with the
+frequency governor fixed. The earlier virtualised host is retained for
+comparison, because it could not resolve the far tail. Latency is
 captured in high-dynamic-range histograms against an intended send schedule, so
 coordinated omission does not hide the
 tail~\cite{schroeder2006openclosed,tene_hdrhistogram}. Evaluation adds a controlled
@@ -215,10 +215,11 @@ data is used, so no personal or confidential data is processed.
 Work is well under way. The shared specification, both implementations, the conformance
 suite, the fault-injection catalogue, the FFI prototype, and the benchmark harness are in
 place. Chapter drafts and a supervisor-read-through skeleton (\texttt{Thesis\_v2.tex}) exist.
-The bare-metal measurement campaign has been run and resolves the RQ1 tail claim, though at a
-shard and repeat count of its own, so it corroborates the main sweep and does not replace it.
-What remains is a matched repeat of it, final chapter prose for Design through Conclusion, and
-submission.
+The reported campaign now runs on a dedicated bare-metal host at the main sweep's own
+shard count, load grid, repeat count and toolchain, and it resolves the RQ1 tail claim.
+A second bare-metal host at a different design agrees on every direction. The earlier
+virtualised campaign is retained for the host comparison. What remains is supervisor
+review and submission.
 
 \begin{center}
 \begin{tabular}{@{}R{0.30\linewidth} R{0.63\linewidth}@{}}
@@ -229,8 +230,9 @@ Literature review & Drafted in thesis skeleton \\
 Spec + implementations & Complete; awaiting supervisor freeze \\
 RQ2 (fault injection) & Complete \\
 RQ4 (FFI prototype) & Complete \\
-RQ1 / RQ3 (benchmarks) & Measured on a dedicated virtualised Xeon host, with a
-bare-metal confirmation run resolving the far tail \\
+RQ1 / RQ3 (benchmarks) & Measured on a dedicated bare-metal EPYC host. The
+earlier virtualised campaign is retained for comparison, and a second
+bare-metal host at a different design confirms the directions \\
 Thesis document & In progress (full draft + bullet skeleton) \\
 \hline
 \end{tabular}
@@ -243,21 +245,20 @@ Month (2026) & Goal & What happens \\
 \hline
 June & Foundations & Done: topic defined; C++/Rust/5G foundations; literature review drafted. \\
 July & Draft & Done: thesis plan approved; chapter skeleton and evaluation design outlined. \\
-August & Build & In progress: specification and both implementations built; parity suite and
-benchmark harness operational; bare-metal campaign next. \\
-September & Measure & Provision a bare-metal testbed; run the full campaign;
-generate figures and numbers. \\
-October & Resolve & Finalise RQ1/RQ3 analysis; confirm or retract the tail
-claim; revise affected chapters; draft to supervisors and Nokia instructors. \\
+August & Build & Done: specification and both implementations built, parity suite and
+benchmark harness operational, canonical bare-metal campaign run. \\
+September & Measure & Done: reported campaign on bare metal, guest retained for
+comparison, second bare-metal host at a different design. \\
+October & Resolve & Finalise remaining chapter prose, revise affected chapters,
+draft to supervisors and Nokia instructors. \\
 November & Submit & Final revisions, colloquium presentation, submission. \\
 \hline
 \end{tabular}
 \end{center}
 
-\textbf{Risks.} If the testbed is delayed, RQ1 and RQ3 may remain preliminary.
-A cloud bare-metal instance or a Nokia lab host is the fallback. If the tail
-difference proves unresolvable even on bare metal, it is reported as a bounded
-null result with the confidence interval stated, which is a legitimate finding.
+\textbf{Risks.} The far tail is now resolved on bare metal. If a third machine
+is needed to test the transparent-hugepage candidate for the allocator-effect
+discrepancy, a cloud instance or a Nokia lab host is the fallback.
 Single-author skill asymmetry is bounded by the frozen specification and parity
 suite, and acknowledged as residual for performance.
 
