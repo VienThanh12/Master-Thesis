@@ -54,9 +54,15 @@ Two corollaries worth carrying:
 
 - **Check the macro's definition, not just its value.** `\SatKnee` is the *minimum* achieved
   throughput across variants, so it reported a shared knee where the variants differ by 14 per cent,
-  and the prose then asserted the sharing. `\PNineNinePreCliff` divides by 1000 and prints `:.0f`, so
-  on a quiet host it renders as "0 ms". A macro can be correctly generated and still be the wrong
-  quantity for the sentence holding it.
+  and the prose then asserted the sharing. `\PNineNinePreCliff` divided by 1000 and printed `:.0f`, so
+  on a quiet host it rendered as "0 ms". A macro can be correctly generated and still be the wrong
+  quantity for the sentence holding it. The remediation of 27 August found two more of exactly this
+  shape, and **neither was visible in the source**: `\JitterVsMedian` was a percentage that the prose
+  printed as a multiple ("jitter at p99 is $2\times$ the median operation", where the macro was 2 per
+  cent of the median and was the *median* jitter, not the p99), and `\JitterRange` held `1--2` inside a
+  sentence that wrapped it in math mode for the `\mu`, so the built PDF read "spans 1 − −2 µs".
+  **Render the page.** A range macro should be a Lo/Hi pair and a percentage macro should say `Pct` in
+  its name, which is how both are now emitted.
 - **A method claim can go false while the result stays true.** §4.5 and §6.4.1 say the p99.99 is
   pooled across repeats; `write_latency_table()` takes a median of the per-run values, which §4.5
   itself calls meaningless. The pooled figures make the finding *stronger*. Verify how a headline
@@ -185,15 +191,25 @@ names jitter in the *Objective* and never reports it, and still ends "The far ta
 cannot be settled on a virtualised host", which is now the thesis's principal result stated backwards.
 It is no longer the only thing holding area 6 below 5.
 
-**Two new standing items**, both cheap and both on data already on disk:
+**Both of the thirteenth pass's analysis items are CLOSED by the remediation of 27 August night, and
+neither may be re-reported.** They are kept here with the fix, because the fixes are the transferable
+part:
 
-- **`plot_figures.py` never reads a pooled histogram CSV**, so `tab:latency`'s p99.99 column and the
-  `\FarTail*` macros are medians of per-run p99.99 values while §4.5 and §6.4.1 say they are pooled.
-  `refresh_thesis.sh`'s pooling loop also still globs only `bench/results-baremetal/`, so a rerun
-  would not regenerate the main campaign's pooled CSV either.
-- **The 448 kops/s rung is unreported.** Both Rust arms serve the full offered rate there and both
-  C++ arms have collapsed to about 162, so Rust leads by 2.8 times at the load where C++ first stops
-  coping. The thesis reports the neighbouring rung, which favours C++, and asserts a shared knee.
+- **The pooled far tail.** `pooled_far_tail()` in `bench/plot_figures.py` reads
+  `<campaign>.hist.pooled.csv` and returns `None` rather than falling back to the per-run `p9999`
+  field, so a missing pooling step now removes the column loudly instead of printing the statistic
+  §4.5 disowns. The cell prints without an interval and carries a dagger, because pooling makes the
+  operation the unit of analysis. `refresh_thesis.sh` pools `bench/results/` too. `\FarTailRange` went
+  52 to **87 µs**, so the fix strengthened the finding.
+- **The 448 kops/s rung is reported**, descriptively, with `\KneeGapAgree` at 40/40, plus a
+  `tab:threats` row naming the threat: an operating point chosen after seeing the data. It is
+  deliberately **not** in the Holm family. `\SatKneeCpp`, `\SatKneeRust`, `\TrackingLoadCpp`,
+  `\TrackingLoadRust` and `\KneeShared` sit beside `\SatKnee`, which is a `min` across variants and is
+  what concealed the difference.
+
+**Read the remediation entry in `docs/ASSESSMENT.md` before grading, then verify rather than believe
+it.** Two claims it wrote in one pass and a fresh pass should check: the pooled-p99.99 statement, now
+at six sites, and the knee finding, now at eight.
 
 *Historical state below, as of the remediation pass of 26 August 2026 evening, which followed the
 eleventh grading pass the same evening and closed its whole editing tier except the abstract.*

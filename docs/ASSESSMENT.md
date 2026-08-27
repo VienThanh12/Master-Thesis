@@ -2845,3 +2845,178 @@ reading each numeric claim in §6.4 against the generated table beside it, which
 ranked first in the file and the one a promotion pass is most tempted to skip **because the macros all
 regenerated cleanly**. A clean regeneration says the numbers are right. It says nothing about the
 sentences around them.
+
+---
+
+## Remediation pass — 27 August 2026, night
+
+**No criterion is scored here.** This pass wrote the fixes for the thirteenth pass's list, and the
+standing rule in this file is that a remediation must not grade its own work. The two failures a
+remediation is most likely to make are invisible from inside it, propagating a claim it did not check
+and fixing one half of a pair, so **areas 3, 4, 5 and 6 need a fresh pass before the numbers move**.
+The thirteenth pass's grades stand until then.
+
+Closed: the whole editing tier, both analysis items, and four defects the pass itself turned up while
+verifying. Open: the abstract, and the transparent-hugepage experiment.
+
+### The generator change, which is the part that matters
+
+`tab:latency`'s p99.99 column and every `\FarTail*` macro now come from
+`campaign-20260827-151927.hist.pooled.csv`, which is what §4.5 and §6.4.1 always said. Four pieces:
+
+- `pooled_far_tail()` in `bench/plot_figures.py` reads the pooled sidecar and **returns `None`
+  rather than falling back to the per-run `p9999` field**. The fallback is what let the prose
+  describe a statistic the pipeline was not computing, so the column now disappears on a campaign
+  whose sidecars were never pooled and says so on stderr.
+- `latency_table_fields()` keys the column on pooled data being present, not on the runs carrying a
+  per-run field.
+- The pooled cell prints **without an interval**, because pooling takes the operation as the unit of
+  analysis and there is no across-repeat dispersion to quote. The column carries a dagger and the
+  caption explains that it is the one column of that table computed differently and the one column no
+  paired test uses. `pool_hist.py`'s own docstring warns against mixing the two statistics inside one
+  claim, and a labelled column is how the table avoids doing that.
+- `refresh_thesis.sh` pools `bench/results/` as well as `bench/results-baremetal/`, and the loop is
+  now a `for dir in ...` so the next directory is one word. It ran only over the confirmation
+  directory before, which is the whole reason this defect existed.
+
+**The numbers moved and they moved in the thesis's favour.**
+
+| Quantity | Per-run median (as printed before) | Pooled (as printed now) |
+| --- | --- | --- |
+| C++ system p99.99 | 135.0 µs | 142.0 µs |
+| C++ jemalloc p99.99 | 135.6 µs | **176.4 µs** |
+| Rust system p99.99 | 89.2 µs | 92.1 µs |
+| Rust jemalloc p99.99 | 83.6 µs | 89.5 µs |
+| `\FarTailRange` | 52 µs | **87 µs** |
+| `\FarTailSpread` | 62 % | **97 %** |
+
+New macros beside them: `\FarTailMin`, `\FarTailLower` (Rust), `\FarTailByLang` (yes, the two
+languages' arms do not interleave), `\FarTailSamplesMin` and `\FarTailSamplesMax` (3 360 051 to
+3 360 084 operations per variant), so the prose quotes the pooling depth instead of asserting it.
+
+### The unreported result, now reported
+
+The Rust arms track their offered rate to **448 kops/s** and the C++ arms to **392**. At 448 the Rust
+arms still serve 448 while the C++ arms have collapsed to about 162, a factor of 2.8 in **40 of 40**
+paired repeats across both allocators. This is the largest throughput ratio anywhere in the sweep and
+it runs opposite to the tested overload result.
+
+Three decisions about it are worth recording, because each protects a criterion.
+
+1. **It is not added to the tested family.** The operating point was identified after seeing the
+   sweep, and §4.5 fixes the family in advance precisely so a point chosen that way cannot enter it.
+   It is reported descriptively with its per-repeat agreement, and a new `tab:threats` row names the
+   threat by name: *an operating point chosen after seeing the data*. Adding a fifteenth test would
+   have bought a $p$-value and cost the pre-commitment, which is the more valuable asset.
+2. **The capacity difference is bounded by the ladder, not measured.** The true C++ limit lies
+   between 392 and 448 kops/s, and the prose says so rather than quoting a knee to three figures.
+3. **`\SatKnee` was the mechanism that hid it.** It is `min` across variants, so it reported 392 as
+   though all four shared it. `\TrackingLoadCpp`, `\TrackingLoadRust`, `\SatKneeCpp`, `\SatKneeRust`
+   and `\KneeShared` are now emitted beside it, and the prose quotes the per-language ones wherever
+   it says where an arm stops coping. **The lesson generalises: a macro can be correctly generated
+   and still be the wrong quantity for the sentence holding it.**
+
+### Four defects this pass found while verifying its own work
+
+All four were invisible to the thirteenth pass and none would have been caught by a gate.
+
+1. **`\JitterVsMedian` was a percentage printed as a multiple.** It is
+   `100 * median(jitter p50) / median(p50)` = 2, and the prose read "jitter at p99 is $2\times$ the
+   median operation". Wrong statistic (median jitter, not p99) and wrong unit (2 per cent, not
+   200 per cent). Split into `\JitterVsMedianPct` (2) and `\JitterPNineNineVsMedianPct` (33) and
+   named for the unit they carry, because the old name invited exactly the sentence that was written.
+2. **`--` inside math mode typesets as two minus signs.** `\JitterRange` held `1--2` and the sentence
+   wrapped it in `$...\mu$s`, so Table 6.2's paragraph read "spans 1 − −2 µs" in the built PDF for as
+   long as the macro existed. Replaced by `\JitterLo`/`\JitterHi` and `\JitterPNineNineLo`/`Hi`, which
+   is the Lo/Hi pattern every other range in the file already used. `\IqrRange` had the same latent
+   defect and is split too. `\MainPinned` and `\BmPinned` keep their `2--17` form because both are
+   quoted in text mode. **Found by rendering the page, not by grepping the source.**
+3. **`\PNineNinePreCliff` divided by 1000 and printed `:.0f`**, so on a quiet host it rendered as
+   "0 ms" and anchored the cliff sentence at zero. Retired in favour of `\PNineNineTrackingTop` (74,
+   in µs) and `\PNineNineTrackingDrift` (−4, signed, because the direction is the finding).
+4. **"six of the fourteen pinned cores" was typed and wrong.** The pinned range is 2--17, so
+   sixteen. `\MainPinnedCount` is derived from the environment capture at two sites.
+
+### What else changed, by area
+
+**Area 3, method as described.** §6.4.1 no longer reads the tail block's intervals as findings. It
+grounds those rows in their Holm-adjusted $p$-values, which the pre-commitment never barred, and says
+plainly that a rule dropped once the machine improves was never a rule. `fig:effects`' caption now
+says the shading marks the instrument set aside and not the rows. §6.2 states that the representative
+load is **pinned**, gives the generator's own reasoning for it (the derived rule returned
+`\GuestDeadlineLoad` on the guest by locating that host's noise floor, and collapses onto the knee on
+a quiet host), and `tab:params` follows. §4.5's protocol list no longer claims the cores are isolated,
+which §6.1 spends a paragraph explaining they deliberately are not.
+
+**Area 4, the results prose.** All six wrong claims are gone. Table 6.1 does separate the languages
+at the median and the prose now says which pairs overlap and which do not. All 14 tests clear Holm
+and the prose says so, then names what *would* have failed (peak RSS under jemalloc on the guest,
+and every tail row) so a family with no failures does not read as a threshold doing no work. The
+equivalence paragraph reports margins rather than verdicts and carries the guest's contrast through
+four new generated macros. `tab:resource`'s caption and §6.4.3 now say peak RSS separates the two
+*languages*, and explain why one middle pair coincides: the allocator and language effects are of
+comparable size. `tab:significance`'s caption names the bare-metal host.
+
+**Area 5, the discussion.** §7.2's RQ1 paragraph reports the far tail as an ordering, notes that the
+two overload effects point in opposite directions, and says which deployment question each answers.
+§7.7's first conclusion-validity limitation is rebuilt around the real residual, which is the absent
+`isolcpus` and what bounds it, instead of a hypervisor the host does not have. §7.8 no longer disowns
+the study's own numbers. `tab:threats` loses the virtualised-host row, gains the
+chosen-operating-point row, and its contaminated-run row records that the bimodality belonged to the
+previous machine.
+
+**Area 6, consistency.** RQ1 names p99.99, in the draft, in `Thesis_v2.tex` and in
+`Thesis_Plan_v2.tex`. §4.6 names the right results directory and mentions the histogram sidecars.
+Appendix D's intro describes three machines rather than two and no longer calls §6.1's host the guest.
+`fig:cliff` and `tab:vendortheses` captions are corrected. `ai_statement.tex`'s restraint sentence
+now lists the restraints that actually bind, including the new one about a point chosen after the
+fact.
+
+### Sync and build state
+
+`Thesis_v2.tex` carries the knee finding, the pooled far tail and RQ1's widened metric list, all
+inside its existing paragraphs: chapters 2 to 8 are still **five argument paragraphs** each, verified
+by counting. `Thesis_Plan_v2.tex` has the metric list, and its two pre-existing prose semicolons and
+three table-cell semicolons are gone, so all three documents now read zero.
+
+Every gate passes: zero LaTeX errors, zero undefined references or citations, no multiply defined
+labels, **no float too large**, no overfull boxes, no placeholders, 109 of 109 bibliography entries
+cited. `./.aitells.py` on the draft reports zero semicolons, sentence length 22.1 ± 11.5, and all 14
+dash hits are numeric ranges or `Herfindahl--Hirschman`. `Thesis_v2.tex` and `Thesis_Plan_v2.tex`
+report zero semicolons. `diagrams/check_labels.py` clean over 19 diagrams. The deck passes both
+`check_layout` and `check_prose_style`.
+
+**`tab:threats` overflowed its page by 79pt** when the fifteenth row landed, which is the trap this
+file has warned about twice. Tightening four cells recovered half and `\arraystretch` 1.25 to 1.15
+recovered the rest. Measure that table after any row edit.
+
+### Length, which is the one thing that got worse
+
+**109 declared pages with 6 appendix pages, 123 physical**, against 104 and 6 before. Five pages, and
+the author should decide whether to spend them. About two are irreducible: the knee finding, the
+pooled-statistic explanation and §6.2's pinned-load reasoning are new argument, not new words. The
+other three are float reflow.
+
+Word cuts recovered **nothing**, which is this file's own finding restated: about 120 words came out
+of §6.4.5 and §7.2 across three attempts and the declared count did not move once. The chapter-6 tail
+page (physical 84, six lines and otherwise white) resisted every attempt, and its bottom gap grew
+from 627pt to 642pt as words came out, which is the "shaving words moves nothing until a whole line
+comes out" trap in its purest form. **Do not retry it from the prose side.** If a page is wanted
+there, it has to come from a float in §6.4.5 or from letting chapter 7 open on the same page, and the
+second is a class rule.
+
+### What is left
+
+1. **The abstract.** Author only, unchanged, and now the only item on the thirteenth pass's list that
+   is still open. Five defects: five injected classes where the body says seven, five further classes
+   where the body says seven, "median latency matches" where the paired test resolves 1.3 and 1.2 µs
+   under Holm, jitter named in the *Objective* and absent from the *Results*, and a closing sentence
+   that the far tail cannot be settled on a virtualised host, which is the study's principal result
+   stated backwards. `\abstractunaidedfalse` still stands, so every build prints "Not submittable".
+2. **A grading pass that did not write any of this.** Ask it specifically what this pass propagated
+   and what it half-fixed. The two places to look first: the pooled-p99.99 claim, which now appears in
+   §1.4, §4.5, §6.4.1, `tab:findings`, `tab:latency`'s caption and `Thesis_v2.tex`, and the knee
+   finding, which appears in §1.4, §6.4.1, §6.4.2, `tab:params`, `tab:findings`, §7.2, `tab:threats`
+   and `Thesis_v2.tex`. Six and eight sites respectively, written in one pass, by one session.
+3. **The transparent-hugepage experiment.** Unchanged, about one machine-hour, and Chapter 8 already
+   names it as the priority.

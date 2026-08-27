@@ -339,9 +339,9 @@ The thesis is organised around four research questions, ordered to put predictab
 migration ahead of raw average performance:
 
 \begin{description}
-  \item[RQ1] How do Rust and modern C++ compare in latency predictability (median, p99
-        and p99.9 tail latency, and the maximum) for a RAN control-plane workload under
-        increasing load and overload?
+  \item[RQ1] How do Rust and modern C++ compare in latency predictability (median, p99,
+        p99.9 and p99.99 tail latency, and the maximum) for a RAN control-plane workload
+        under increasing load and overload?
   \item[RQ2] Which classes of memory-safety and concurrency defects that occur in C++ are
         eliminated at compile time in the Rust implementation, and at what stage and cost
         are the remaining ones detected?
@@ -631,10 +631,13 @@ distribution the ordering can now be read. The widest interval on a single varia
 p99 spans $\PNineNineMaxCI\,\mu$s against $\PNineNineRange\,\mu$s of spread between all
 four, so the uncertainty about one is smaller than the gap between them. On the
 virtualised host the same two quantities were $\GuestPNineNineMaxCI\,\mu$s against
-$\GuestPNineNineRange\,\mu$s, the wrong way round. Pooled p99.99 on a second bare-metal
-host, at another shard count, runs $\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s for the
-C++ variants and $\BmFarTailRustLo$--$\BmFarTailRustHi\,\mu$s for the Rust ones, without
-overlap. A second limit is structural. No host would fix it. An
+$\GuestPNineNineRange\,\mu$s, the wrong way round. The far tail resolves here too, from the
+repeats' histograms pooled into \FarTailSamplesMin{} to \FarTailSamplesMax{} operations per
+variant, and both \FarTailLower{} variants sit below both of the others by up to
+$\FarTailRange\,\mu$s. A second bare-metal host at another shard count agrees, running
+$\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s for the C++ variants against
+$\BmFarTailRustLo$--$\BmFarTailRustHi\,\mu$s for the Rust ones, without overlap. A second
+limit is structural. No host would fix it. An
 end-to-end operation is $\BudgetCoreShareMax\%$ the work the language performs. The rest
 is a cross-thread handoff charged to the operating
 system~\cite{zhou2025oltp}. This sweep cannot bound a language effect in either
@@ -642,17 +645,22 @@ direction. Measured on its own the bare operation is $\BudgetCoreRatio\times$ fa
 \BudgetCoreFaster{}. The likely cause is the standard hash map's layout, not anything
 about safety.
 
-Past saturation the languages are not equivalent. The margin is not marginal. At
-$\OverloadLoad$~kops/s offered, \OverloadSustainedFaster{} sustains
+Past saturation the languages are not equivalent, and they part company twice. They stop
+meeting the offered rate at different loads: the Rust arms hold to
+$\TrackingLoadRust$~kops/s and the C++ arms to $\TrackingLoadCpp$, so at
+$\KneeGapLoad$~kops/s \KneeGapFaster{} still serves $\KneeGapThrFast$~kops/s where
+\KneeGapSlower{} has collapsed to $\KneeGapThrSlow$. That rung is described and not
+tested, because the operating point was found after the data was in hand. Deeper, at
+$\OverloadLoad$~kops/s offered, the ordering reverses: \OverloadSustainedFaster{} sustains
 $\OverloadThrCpp$~kops/s where \OverloadSustainedSlower{} sustains
-$\OverloadThrRust$, a factor of $\OverloadThrRatio$. That holds in \OverloadThrAgree{}
-repeats under both allocators, with the Holm-corrected $p$ at the floor of the whole
+$\OverloadThrRust$, a factor of $\OverloadThrRatio$, in \OverloadThrAgree{}
+repeats under both allocators with the Holm-corrected $p$ at the floor of the whole
 test family. The slower variant is not simply doing less work. It draws
-$\OverloadCpuPerOpRatio$ times the CPU per completed operation. That is the signature of
+$\OverloadCpuPerOpRatio$ times the CPU per completed operation, which is the signature of
 effort spent without completing anything. Isolating the bounded queue and the completion
-handle on their own does not reproduce that ordering at significance. The mechanism sits
-in the wider handoff path. This is the largest and most reproducible language effect in
-the study. A comparison that stopped at nominal load would have concluded the opposite.
+handle on their own does not reproduce that ordering at significance, so the mechanism sits
+in the wider handoff path. This is the largest language effect in the tested family. A
+comparison that stopped at nominal load would have concluded the opposite.
 
 Safety is measured by injecting $\FaultClasses$ defects. Seven come from inside the
 region Rust claims to govern. Seven were chosen because safe Rust is expected \emph{not}
@@ -708,7 +716,10 @@ misrepresent it. Below the knee the two languages are equivalent in central beha
 a margin no deployment would notice. That is a result about services of this shape. The
 far tail in the same regime now resolves on the reported host, in Rust's favour. On the
 virtualised host that the study used first, that percentile could not be ordered at all.
-Past the knee they diverge by $\OverloadThrRatio\times$. The closest prior work measures
+Past the knee they diverge in both directions: the Rust arms reach a higher knee, and once
+both have collapsed the C++ arms sustain $\OverloadThrRatio\times$ the throughput. Which of
+those matters depends on whether a deployment expects to be driven past every arm's
+knee. The closest prior work measures
 this quantity for 5G control-plane procedures. It finds the same shape and traces it to
 stackless \texttt{async}/\texttt{await}~\cite{arvidsson2025async}. That attribution is
 accepted here. The shape appeared with no asynchronous runtime on either side and the
@@ -825,9 +836,10 @@ either compiler. The same operation measured apart is $\BudgetCoreRatio\times$ f
 the two are equivalent at the median for any purpose a deployment would care about. The
 paired test does resolve $\PFiftyDiffAbsMax\,\mu$s in Rust's favour, so that equivalence is
 practical and not statistical. Their far tail resolves in Rust's favour on the reported
-host, which a virtualised host could not settle. Past saturation
-\OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$ the
-throughput of \OverloadSustainedSlower{} while drawing $\OverloadCpuPerOpRatio\times$
+host, which a virtualised host could not settle. Past saturation the Rust arms hold their
+offered rate one rung further, and beyond that \OverloadSustainedFaster{} sustains
+$\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{} while drawing
+$\OverloadCpuPerOpRatio\times$
 the CPU per completed operation. On memory the Rust build carries a few MiB more fixed
 footprint under both allocators. That language effect is the same size on all three
 machines measured. The allocator choice costs about as much on both bare-metal hosts, and

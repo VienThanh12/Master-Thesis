@@ -2335,15 +2335,15 @@ throughput plateau of $\SatKnee$~kops/s, and saying why it is fixed is worth a s
 because the alternative was tried and failed.
 
 The rule this study began with took the busiest swept load at which all four variants still held
-their p99 below $5$~ms. That rule is retained as a diagnostic and is no longer the operating point,
-because it turns out to measure the machine rather than the service. On the virtualised host it
-returned $\GuestDeadlineLoad$~kops/s, where p99 sat just under the deadline, so it was locating where
-that host's interference reached $5$~ms. On a quiet host p99 stays near
-$\PNineNineTrackingTop\,\mu$s until capacity binds, so the same rule climbs to the tracking limit and
-collapses the representative point onto the saturation knee. One rule, two different quantities,
-decided by how noisy the machine was. Fixing the point instead costs the appearance of derivation and
-buys two things that matter more: the two hosts are compared at the same offered load, and the point
-stays below saturation on both, which every below-saturation claim in this chapter already assumes.
+their p99 below $5$~ms. It is retained as a diagnostic and is no longer the operating point, because
+it turns out to measure the machine rather than the service. On the virtualised host it returned
+$\GuestDeadlineLoad$~kops/s, where p99 sat just under the deadline, so it was locating where that
+host's interference reached $5$~ms. On a quiet host p99 stays near $\PNineNineTrackingTop\,\mu$s
+until capacity binds, so the same rule climbs until it collapses the representative point onto the
+saturation knee. One rule, two quantities, decided by how noisy the machine was. Fixing the point
+costs the appearance of derivation and buys two things worth more: the hosts are compared at the same
+offered load, and the point stays below saturation on all of them, which every below-saturation claim
+in this chapter already assumes.
 
 \section{Evaluation data}
 Four campaigns produce four datasets, and they differ in kind and not only in content. What
@@ -2459,25 +2459,23 @@ quantities were $\GuestPNineNineRange\,\mu$s and $\GuestPNineNineMaxCI\,\mu$s, t
 by a factor of five. Section~\ref{sec:hostcompare} sets the two hosts side by side, because the
 difference between them is a result about measurement rather than about either language.
 
-The tail rows of Table~\ref{tab:significance} therefore carry a finding rather than a shrug, and
-the instrument that carries it is the corrected $p$-value and not the interval. Both p99 rows and
-both p99.9 rows clear the Holm correction, \NTailExclZero{} rows in all, with the same direction as
-at the median. Their intervals also exclude zero, and Section~\ref{sec:stats} fixes in advance that
-an interval in this block is not read as a finding, so the intervals are reported and left to one
-side. That rule was written against a host whose hypervisor disturbed exactly these percentiles. It
-is kept here rather than relaxed, because a rule that is dropped once the machine improves was never
-a rule, and keeping it costs nothing: the correction resolves these rows on its own.
+The tail rows of Table~\ref{tab:significance} therefore carry a finding rather than a shrug, and the
+instrument that carries it is the corrected $p$-value and not the interval. Both p99 rows and both
+p99.9 rows clear the Holm correction, \NTailExclZero{} rows in all, with the same direction as at the
+median. Their intervals also exclude zero, and Section~\ref{sec:stats} fixes in advance that an
+interval in this block is not read as a finding, so those are reported and left to one side. A rule
+dropped once the machine improves was never a rule, and keeping it costs nothing here: the correction
+resolves these rows on its own.
 
 Predictability is evidenced as far as p99.99, and that column is a different statistic from the rest
-of its table. It is one percentile of the four variants' repeats concatenated, between
+of its table. It is one percentile of the \NRepeats{} repeats' histograms concatenated, between
 \FarTailSamplesMin{} and \FarTailSamplesMax{} operations per variant, which is what
-Section~\ref{sec:stats} means by pooling: a single run holds on the order of seventeen observations
-past p99.99, too few for the percentile to mean anything, and the campaign persists every run's full
-histogram buckets so the repeats can be combined after the fact. Pooling takes the operation as the
-unit of analysis, so the column has no across-repeat interval to print and none is printed. Read that
-way the far tail separates the languages outright: the widest gap between variants is
-$\FarTailRange\,\mu$s, $\FarTailSpread\%$ of the smallest, and both \FarTailLower{} variants sit
-below both of the others.
+Section~\ref{sec:stats} means by pooling: a single run holds too few observations past p99.99 for the
+percentile to mean anything, and every run persists its full histogram buckets so the repeats can be
+combined after the fact. Pooling takes the operation as the unit of analysis, so the column has no
+across-repeat interval and none is printed. Read that way the far tail separates the languages
+outright: the widest gap between variants is $\FarTailRange\,\mu$s, $\FarTailSpread\%$ of the
+smallest, and both \FarTailLower{} variants sit below both of the others.
 
 \begin{table}[H]
 \centering
@@ -2515,11 +2513,13 @@ would feel, and RFC~3393 names it inter-operation delay variation
 (Section~\ref{sec:stats})~\cite{rfc3393}. Table~\ref{tab:jitter} reports it, descriptively, because
 no research question asks for it and adding it to the tested family would spend two slots of the
 Holm budget on a metric no claim rests on. The reading is short. Median jitter across the four
-variants spans $\JitterRange\,\mu$s and its p99 spans $\JitterPNineNineRange\,\mu$s, so the widest
-gap between variants is $\JitterSpread\%$ of the smallest, and jitter at p99 is
-$\JitterVsMedian\times$ the median operation. What separates the four is smaller than what separates
-one load level from the next, which is the same conclusion the second bare-metal campaign reaches
-independently (Section~\ref{sec:hostcompare}).
+variants runs $\JitterLo$ to $\JitterHi\,\mu$s and its p99 runs $\JitterPNineNineLo$ to
+$\JitterPNineNineHi\,\mu$s, so the widest gap between variants is $\JitterSpread\%$ of the smallest.
+Against the operation it perturbs, median jitter is $\JitterVsMedianPct\%$ of the median latency and
+its p99 is $\JitterPNineNineVsMedianPct\%$, so consecutive operations differ by a small fraction of
+one of them rather than by a whole one. What separates the four variants is smaller than what
+separates one load level from the next, which is the same conclusion the second bare-metal campaign
+reaches independently (Section~\ref{sec:hostcompare}).
 
 \begin{table}[ht]
 \centering
@@ -2602,12 +2602,10 @@ naming what would have failed. Peak resident set size under \texttt{jemalloc} di
 correction on the virtualised host, despite an interval nowhere near zero, and
 Section~\ref{sec:resources} takes up why it does here. Neither did any tail row.
 
-The reading rule fixed in Section~\ref{sec:stats} still applies, and on this host it changes no
-verdict. \NExclZero{} paired intervals exclude zero, in both blocks. Fixing the rule in advance, and
-not at this point, was the whole precaution, because that outcome was not guaranteed: an earlier
-seven-repeat pass of this same campaign produced tail intervals excluding zero, and more repeats then
-removed them again. A rule kept only while it rescues a result is not a rule, so the tail block's
-intervals are still not read as findings even though they now point the same way as its $p$-values.
+\NExclZero{} paired intervals exclude zero, in both blocks, so the reading rule of
+Section~\ref{sec:stats} changes no verdict here. Fixing it in advance was still the whole precaution,
+because that outcome was not guaranteed: an earlier seven-repeat pass of this same campaign produced
+tail intervals excluding zero, and more repeats then removed them again.
 
 The allocator control supplies a second check, independent of the first. Every comparison is run
 twice under conditions that should not change a language effect, so an effect that really is the
@@ -2803,18 +2801,16 @@ consequence is the largest throughput gap anywhere in the sweep: \KneeGapFaster{
 $\KneeGapThrFast$~kops/s while \KneeGapSlower{} has already collapsed to $\KneeGapThrSlow$, a factor
 of $\KneeGapRatio$, in \KneeGapAgree{} paired repeats.
 
-Three things bound what that rung licenses, and the first is a rule this study set for itself. It is
-\emph{not} added to the tested family of Section~\ref{sec:stats}. The operating point was identified
-after seeing the sweep, and the family is fixed in advance precisely so that a point chosen that way
-cannot enter it, whatever its $p$-value would be. It is therefore reported descriptively, with its
-per-repeat agreement, and the pre-committed overload point of Section~\ref{sec:overload} stands as
-the tested comparison. Second, one rung of a geometric ladder is coarse: the true C++ limit lies
-somewhere between $\TrackingLoadCpp$ and $\KneeGapLoad$~kops/s, so the gap in \emph{capacity} is
-bounded by the ladder's spacing and is not measured to better than that. Third, the direction here is
-the opposite of the direction past saturation, where C++ sustains more
-(Section~\ref{sec:overload}). Both are real, they belong to different loads, and neither cancels the
-other. The useful summary is that the two languages differ in \emph{where} this design stops coping
-and in \emph{how} it behaves once both have, and they differ in opposite directions.
+Three things bound what that rung licenses. It is \emph{not} added to the tested family of
+Section~\ref{sec:stats}, because the operating point was identified after seeing the sweep and the
+family is fixed in advance precisely so that a point chosen that way cannot enter it, whatever its
+$p$-value would be. It is reported descriptively instead, with its per-repeat agreement, and the
+tested comparison remains the pre-committed overload point of Section~\ref{sec:overload}. One rung
+of a geometric ladder is also coarse: the true C++ limit lies between $\TrackingLoadCpp$ and
+$\KneeGapLoad$~kops/s, so the difference in \emph{capacity} is bounded by the ladder's spacing and
+not measured to better than that. And the direction here is the opposite of the direction deeper into
+overload, where C++ sustains more (Section~\ref{sec:overload}). Both are real, they belong to
+different loads, and neither cancels the other.
 
 \begin{figure}[ht]
 \centering
@@ -3715,11 +3711,10 @@ On the matched scope, the core library alone with no third-party code on either 
 \BuildLibWallFaster{} finishes sooner and \BuildLibCpuCheaper{} spends less machine time:
 $\BuildLibCppWall$~s against $\BuildLibRustWall$~s of wall clock, and $\BuildLibCppCpu$~s against
 $\BuildLibRustCpu$~s of CPU. The orderings disagree because they measure different things, and
-the wall clock is the weaker. The C++ library is two translation units, so at
-\AdoptJobs{} available jobs only two can ever run, while \texttt{rustc} splits its one crate into
-codegen units and kept about three cores busy. Wall clock at this scope rewards the
-file layout of this codebase as much as either toolchain, and CPU time is the comparison that
-does not.
+the wall clock is the weaker: the C++ library is two translation units, so at \AdoptJobs{} available
+jobs only two can ever run, while \texttt{rustc} splits its one crate into codegen units and kept
+about three cores busy. Wall clock at this scope rewards this codebase's file layout as much as
+either toolchain. CPU time does not.
 
 The full build is where the practical objection to Rust adoption usually lands, and at first
 reading it holds. Every default target costs $\BuildAllRustCpu$~s of CPU against
@@ -3736,13 +3731,13 @@ is a real benefit of a mature ecosystem and not an artefact of the accounting.
 After one edit to an implementation file, C++ rebuilds in $\BuildIncCppTu$~s, which is
 $\BuildIncTuRatio$ times quicker than Rust's $\BuildIncRust$~s. After one edit to a core header it
 takes $\BuildIncCppHeader$~s. That is $\BuildIncHeaderRatio$ times slower than Rust and, measured
-in CPU, indistinguishable from building the tree from scratch. The Rust figure does not move.
-Touching every file in the crate costs $\BuildAllFirstPartyWall$~s against $\BuildIncRust$~s for
+in CPU, indistinguishable from building the tree from scratch. The Rust figure does not move:
+touching every file in the crate costs $\BuildAllFirstPartyWall$~s against $\BuildIncRust$~s for
 touching one, because the unit of compilation is the crate and not the file. So the edit-compile
-loop is faster in C++ where an edit stays inside a translation unit and slower where it does not,
-and which case dominates a working day depends on a codebase's header discipline rather than on
-either language. The shape will be familiar from RQ1: the C++ figure is the better
-one at the median and the worse one in the tail.
+loop is faster in C++ where an edit stays inside a translation unit and slower where it does not, and
+which case dominates a working day depends on a codebase's header discipline rather than on either
+language. The shape will be familiar from RQ1: the C++ figure is the better one at the median and the
+worse one in the tail.
 
 \paragraph{The footprint ordering reverses with the linkage policy.}
 Built as each toolchain ships by default, the Rust \texttt{\FootTarget} binary is
@@ -3755,34 +3750,33 @@ $\FootDynamicRatio$ times. With both linked statically, \FootStaticSmaller{} is 
 $\FootStaticRatioAbs$ times.
 
 The reversal has a measured cause and not an argued one. $\FootCppLocaleShare\%$ of the sized
-symbols in the statically linked C++ binary are locale and stream facets, among them the money,
-date and wide-character facets this program never instantiates, because a static
-\texttt{libstdc++} link brings the facet table in as one set. Neither dynamic configuration is
-free either, because each leaves a library on the host to be paid for once: $\FootSharedCpp$~KiB
-for \texttt{libstdc++} against $\FootSharedRust$~KiB for Rust's shared standard library. The
-conclusion worth carrying is that the question has three answers, and the $\FootShippedRatio\times$
-figure is the least informative of them. For a self-contained artefact, which is what a container
-image or an appliance wants, the ordering favours \FootStaticSmaller{}.
+symbols in the statically linked C++ binary are locale and stream facets, among them money, date and
+wide-character facets this program never instantiates, because a static \texttt{libstdc++} link
+brings the facet table in as one set. Neither dynamic configuration is free either, since each
+leaves a library on the host to be paid for once: $\FootSharedCpp$~KiB for \texttt{libstdc++}
+against $\FootSharedRust$~KiB for Rust's. So the question has three answers and the
+$\FootShippedRatio\times$ figure is the least informative of them. For a self-contained artefact,
+which is what a container image or an appliance wants, the ordering favours \FootStaticSmaller{}.
 
 \paragraph{The compared component resolves no third-party code at all.}
 The standard objection to Rust in a regulated codebase is transitive-dependency risk, and on the
 artefact this study compares it does not arise: $\DepsCore$ crates and $\CoreUnsafe$
 \texttt{unsafe} sites, which turns the dependency-free claim of Section~\ref{sec:idioms} into a
 measurement rather than an assertion. A surface appears in the configurations around that
-component. Linking the matched allocator resolves $\DepsJemalloc$ crates, of which
-$\DepsJemallocShipping$ reach the artefact and $\DepsJemallocBuildOnly$ only run while it is being
-built. That distinction matters, because a build dependency puts no instruction in the
-binary and still runs code on the build machine. The benchmark harness resolves $\DepsHarness$,
-and counted with one syntactic rule those two trees hold
-$\DepsUnsafeJemalloc$ and $\DepsUnsafeHarness$ \texttt{unsafe} sites.
+component. Linking the matched allocator resolves $\DepsJemalloc$ crates, $\DepsJemallocShipping$ of
+them reaching the artefact and $\DepsJemallocBuildOnly$ running only while it is built, which is a
+distinction worth keeping because a build dependency puts no instruction in the binary and still runs
+code on the build machine. The benchmark harness resolves $\DepsHarness$, and counted with one
+syntactic rule those two trees hold $\DepsUnsafeJemalloc$ and $\DepsUnsafeHarness$ \texttt{unsafe}
+sites.
 
-Two readings should be kept apart. The count bounds where an audit would have to look and is not
-a risk score, since a crate concentrating its \texttt{unsafe} in one large block scores below one
-that spreads the same work across many small ones. The C++ column is empty by construction and
-not by advantage: the language marks no such region, so the whole program stands where
-Rust's \texttt{unsafe} blocks stand and a zero would be a category error. The axis
-establishes that the component which would ship carries none of this project's unaudited code,
-and that the largest surface belongs to the measurement apparatus.
+Two readings should be kept apart. The count bounds where an audit would have to look and is not a
+risk score, since a crate concentrating its \texttt{unsafe} in one large block scores below one
+spreading the same work thinly. The C++ column is empty by construction and not by advantage: the
+language marks no such region, so the whole program stands where Rust's \texttt{unsafe} blocks stand
+and a zero would be a category error. What the axis establishes is that the component which would
+ship carries none of this project's unaudited code, and that the largest surface belongs to the
+measurement apparatus.
 
 \chapter{Discussion\label{chapter:discussion}}
 
@@ -3883,13 +3877,11 @@ Section~\ref{sec:perfresults} says why the first is not. So the practical form o
 not that the language choice is irrelevant to predictability. It is irrelevant \emph{until the
 service stops coping}, and around that point it decides both when coping stops and how
 much work still gets done afterwards. A comparison that stopped at nominal load, as most in this
-literature do, would have concluded the opposite with the same apparatus.
-
-That the two effects point in opposite directions is not a contradiction to be resolved but the
-reason a single verdict on this question would be false. A service sized to run below its knee
-should prefer the arm with the higher knee. A service that will be driven past every arm's knee by a
-signalling storm should prefer the one that degrades less steeply. Those are different deployment
-questions, and this study answers them differently.
+literature do, would have concluded the opposite with the same apparatus. That the two effects point
+in opposite directions is not a contradiction to be resolved but the reason a single verdict here
+would be false: a service sized to run below its knee should prefer the arm with the higher knee, and
+one that a signalling storm will drive past every knee should prefer the arm that degrades less
+steeply.
 
 That reframes the closest prior work instead of merely agreeing with it. Arvidsson and Kaller
 measure this quantity for 5G control-plane procedures and find Rust's 99th percentile degrading
@@ -4544,7 +4536,11 @@ with the host comparison of Section~\ref{sec:hostcompare}.\label{tab:threats}}
 % come before \footnotesize rather than after it.
 \singlespacing
 \footnotesize
-\renewcommand{\arraystretch}{1.25}
+% 1.15 rather than 1.25, measured 27 Aug 2026. The fifteenth row took the table
+% 79pt past its page; tightening four cells recovered half of that and this
+% recovered the rest. The table sits within a few points of a full page, so
+% measure after any row edit rather than assuming there is slack.
+\renewcommand{\arraystretch}{1.15}
 \begin{tabular}{@{}R{0.23\linewidth} R{0.35\linewidth} R{0.32\linewidth}@{}}
 \hline\hline
 Threat & Control applied & What remains \\
@@ -4560,14 +4556,14 @@ RQ3 captures resource cost, and its origin outside the allocator & The allocator
 RQ4 measures the seam, not the safety of the whole & The distinction is stated wherever the result is quoted & One address space: a compile-time property of the Rust side bounds nothing at run time \\
 \hline
 \multicolumn{3}{@{}l}{\emph{Conclusion: are the differences real or noise?}} \\
-Run-to-run non-determinism & \NRepeats{} interleaved repeats, bootstrap intervals, exact paired permutation test, Holm correction, floors quoted & Pairing cancels only what a block shared, which is why the far tail needed a quieter machine rather than more repeats (\S\ref{sec:hostcompare}) \\
-A corrected $p$-value that does not replicate & The allocator control runs every comparison twice. Replication is followed over the $p$-value & It has cost a result before and would again. Every comparison now replicates across the control \\
-A contaminated run defeating a mean-based statistic & The reading rule of \S\ref{sec:stats}, fixed in advance, plus the per-repeat agreement count & Nothing on this host: the bimodality that made the rule necessary was the previous machine's (\S\ref{sec:hostcompare}). The rule is kept anyway \\
-An operating point chosen after seeing the data & The tested family and both its operating points are fixed in \S\ref{sec:stats} before the results & The saturation-limit gap of \S\ref{sec:perfresults} is therefore descriptive. It is the one comparison in the study with no $p$-value \\
+Run-to-run non-determinism & \NRepeats{} interleaved repeats, bootstrap intervals, exact paired permutation test, Holm correction, floors quoted & Pairing cancels only what a block shared, which is why the far tail needed a quieter machine rather than more repeats \\
+A corrected $p$-value that does not replicate & The allocator control runs every comparison twice. Replication is followed over the $p$-value & It has cost a result before and would again. Every comparison now replicates \\
+A contaminated run defeating a mean-based statistic & The reading rule of \S\ref{sec:stats}, fixed in advance, plus the per-repeat agreement count & Nothing here: the bimodality behind the rule was the previous machine's. The rule is kept anyway \\
+An operating point chosen after seeing the data & Both tested operating points are fixed in \S\ref{sec:stats} before the results & The saturation-limit gap (\S\ref{sec:perfresults}) is therefore descriptive, and the one comparison with no $p$-value \\
 \hline
 \multicolumn{3}{@{}l}{\emph{External: how far do the results travel?}} \\
-One subsystem, one workload, one machine & RQ2 rests on the compilers, RQ4 on the compilers, the C ABI and the dependency graph & The performance results do not travel, and the overload result travels least of all. RQ4's build-time seconds describe one machine, its ratio does not \\
-One measurement host & A dedicated bare-metal server with no hypervisor, a fixed governor and tickless pinned cores, and the same design re-measured on two further machines (\S\ref{sec:hostcompare}) & No \texttt{isolcpus}, for the reason \S\ref{sec:testbed} gives. The two comparison campaigns each change something besides the machine, so they corroborate rather than replace. The allocator's footprint cost did not travel between hosts \\
+One subsystem, one workload & RQ2 rests on the compilers, RQ4 on the compilers, the C ABI and the dependency graph & The performance results do not travel, the overload result least of all. RQ4's build seconds describe one machine, its ratio does not \\
+One measurement host & Bare metal, no hypervisor, fixed governor, tickless pinned cores, and the same design re-measured on two further machines (\S\ref{sec:hostcompare}) & No \texttt{isolcpus} (\S\ref{sec:testbed}). Each comparison campaign changes something besides the machine, so both corroborate rather than replace \\
 \hline
 \end{tabular}
 \end{table}

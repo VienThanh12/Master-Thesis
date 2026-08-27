@@ -111,8 +111,8 @@ Stated as requirements rather than as an absence, the gap is narrow, and each
 requirement is met somewhere. Matched implementations built from one design
 exist in systems
 software~\cite{emmerich2019drivers,li2021ipc,suchert2023stamp,gonzalez2023rustudp}
-and, in telecom, in Emberg and Wadsten; percentile latency for control-plane
-procedures is reported by Arvidsson and Kaller; adoption effort is measured by
+and, in telecom, in Emberg and Wadsten. Percentile latency for control-plane
+procedures is reported by Arvidsson and Kaller, and adoption effort is measured by
 Karlb\"ack and Or\"o. No study combines them for a stateful, concurrent
 control-plane subsystem: holding the specification, algorithms, concurrency
 model, allocator, and build settings fixed, \emph{and} sweeping past the
@@ -144,7 +144,7 @@ is already known, it targets four less-explored dimensions:
 
 \begin{tightitemize}
   \item[\textbf{RQ1}] How do Rust and C++ compare in latency predictability
-  (median, p99, p99.9, maximum) under increasing load and overload, with the
+  (median, p99, p99.9, p99.99, maximum) under increasing load and overload, with the
   concurrency model held fixed?
   \item[\textbf{RQ2}] Which classes of C++ memory and concurrency defects does
   safe Rust eliminate at compile time, at what stage are the rest detected, and
@@ -227,7 +227,7 @@ review and submission.
 Item & State \\
 \hline
 Literature review & Drafted in thesis skeleton \\
-Spec + implementations & Complete; awaiting supervisor freeze \\
+Spec + implementations & Complete, awaiting supervisor freeze \\
 RQ2 (fault injection) & Complete \\
 RQ4 (FFI prototype) & Complete \\
 RQ1 / RQ3 (benchmarks) & Measured on a dedicated bare-metal EPYC host. The
@@ -243,8 +243,8 @@ Thesis document & In progress (full draft + bullet skeleton) \\
 \hline\hline
 Month (2026) & Goal & What happens \\
 \hline
-June & Foundations & Done: topic defined; C++/Rust/5G foundations; literature review drafted. \\
-July & Draft & Done: thesis plan approved; chapter skeleton and evaluation design outlined. \\
+June & Foundations & Done: topic defined, C++/Rust/5G foundations, literature review drafted. \\
+July & Draft & Done: thesis plan approved, chapter skeleton and evaluation design outlined. \\
 August & Build & Done: specification and both implementations built, parity suite and
 benchmark harness operational, canonical bare-metal campaign run. \\
 September & Measure & Done: reported campaign on bare metal, guest retained for

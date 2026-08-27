@@ -2029,20 +2029,35 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
         iqr = [med_at(k, load, iqr_us) for k in variants]
         macros.update({
             "IqrSpread": f"{100.0 * (max(iqr) / min(iqr) - 1):.0f}",
-            "IqrRange": f"{min(iqr):.0f}--{max(iqr):.0f}",
+            "IqrLo": f"{min(iqr):.0f}",
+            "IqrHi": f"{max(iqr):.0f}",
         })
     if has_metric(rows, ("jitter_ns", "p50")):
         jp50_us = lambda r: r["jitter_ns"]["p50"] / NS_PER_US
         jp99_us = lambda r: r["jitter_ns"]["p99"] / NS_PER_US
         jp50 = [med_at(k, load, jp50_us) for k in variants]
         jp99 = [med_at(k, load, jp99_us) for k in variants]
+        # Emitted as separate endpoints rather than as one "lo--hi" string. A
+        # combined range macro reads naturally in the source and typesets as two
+        # minus signs the moment the sentence wraps it in math mode for the \mu,
+        # which is how "1--2" reached the page as "1 - -2". Every other range in
+        # this file is a Lo/Hi pair for the same reason.
         macros.update({
-            "JitterRange": f"{min(jp50):.0f}--{max(jp50):.0f}",
+            "JitterLo": f"{min(jp50):.1f}",
+            "JitterHi": f"{max(jp50):.1f}",
             "JitterSpread": f"{100.0 * (max(jp50) / min(jp50) - 1):.0f}",
-            "JitterPNineNineRange": f"{min(jp99):.0f}--{max(jp99):.0f}",
-            # Jitter against the median it perturbs: the ratio is what says whether
-            # consecutive operations vary by a rounding error or by a whole median.
-            "JitterVsMedian": f"{100.0 * statistics.median(jp50) / statistics.median(p50):.0f}",
+            "JitterPNineNineLo": f"{min(jp99):.0f}",
+            "JitterPNineNineHi": f"{max(jp99):.0f}",
+            # Jitter against the median it perturbs, as a percentage, which is
+            # what says whether consecutive operations vary by a rounding error
+            # or by a whole median. Named for the unit it carries: an earlier
+            # name invited the prose to print it as a multiple, and the prose did.
+            "JitterVsMedianPct": (
+                f"{100.0 * statistics.median(jp50) / statistics.median(p50):.0f}"
+            ),
+            "JitterPNineNineVsMedianPct": (
+                f"{100.0 * statistics.median(jp99) / statistics.median(p50):.0f}"
+            ),
         })
 
     if sig_results:
