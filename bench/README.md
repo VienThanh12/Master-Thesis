@@ -409,12 +409,18 @@ at a below-saturation operating point it is pinned to the offered load by constr
 so the comparison cannot resolve a language effect, and including it would only make the
 Holm correction harsher on the comparisons that can.
 
-The representative load is auto-selected (highest offered rate with every variant still
-below 5 ms p99) unless `--load` is given. The RQ2 taxonomy and RQ4 FFI inputs come from
+The representative load is **pinned** at `REPR_LOAD_OPS` in `plot_figures.py`, currently
+56 kops/s, and `--load` overrides it. It used to be auto-selected as the highest offered rate
+with every variant still under 5 ms at p99, and that rule was retired because it named a
+different quantity on every host: on the KVM guest p99 at that load was 4667 us, a hair under the
+threshold, so the rule was locating the host's noise floor, while on a quiet bare-metal host it
+climbs until capacity binds and returns the saturation knee itself. The old rule is kept as
+`deadline_limited_load()` for diagnosis, and comparing its answer against the pinned value is what
+exposed the problem. The RQ2 taxonomy and RQ4 FFI inputs come from
 `../faults/results/taxonomy.csv` (produced by `faults/run_faults.sh`) and
 `../ffi/results/metrics.json` (produced by `ffi/build.sh`); override with `--taxonomy` /
-`--ffi`. Rerun after the bare-metal campaign to refresh the whole thesis with testbed-grade
-numbers, no manual copy-paste.
+`--ffi`. Rerun after any campaign to refresh the whole thesis from the logs, with no manual
+copy-paste. The reported dataset has been testbed-grade since 27 August 2026.
 
 ## Run one variant directly
 

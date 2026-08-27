@@ -125,18 +125,30 @@ Optional, each needed by one script only:
 
 ## Where the numbers come from
 
-Every measured figure in the thesis comes from the harnesses here, run on a dedicated
-dual-socket Xeon E5-2680 v4 (16 cores, one NUMA node) under Rocky Linux 8.10. That host is a
-**KVM guest**, and the consequence is narrow but real: frequency and turbo are host-controlled and
-unobservable, CPU steal is non-zero, and no hardware counters are exposed.
+Every measured figure in the thesis comes from the harnesses here, run on a dedicated bare-metal
+AMD EPYC 7443 (24 cores, one socket, one NUMA node) with SMT off, the `performance` governor and
+boost disabled, `nohz_full` on the pinned cores, and no hypervisor. The toolchain is pinned in the
+Rocky Linux 8.10 container image of [`docker/`](docker/README.md) rather than taken from the host,
+so a change of machine is a change of machine only.
 
-- **Resolved on this host.** Parity, the fault-injection taxonomy, the FFI seam structure and its
-  cost, the saturation knee, the overload divergence past saturation, and the peak-RSS and CPU
-  comparisons.
-- **Not resolved on this host.** The far tail below saturation. Closing it needs a bare-metal
-  campaign following [`bench/TESTBED.md`](bench/TESTBED.md), which is also the only chance to
-  collect the counters and the allocation profile that would explain the peak-RSS and
-  operation-level results.
+Three campaigns exist and they are not interchangeable:
+
+| Campaign | Role |
+| --- | --- |
+| `campaign-20260827-151927` (bare metal, 7/7, 20 repeats, 14 loads) | **Every result the thesis reports.** |
+| `campaign-20260812-154528` (KVM guest, identical design) | The measurement-validity comparison: the same code and design on a host that could not resolve the far tail. |
+| `campaign-20260826-*` (bare metal, 8/8, 15 repeats, 8 loads) | Whether the findings survive a change of shard count, load grid, repeat count and compiler. |
+
+The far tail below saturation was the study's standing open question for as long as it measured on
+a virtualised host. It is resolved on bare metal and favours Rust. What the comparison also showed
+is that the peak-RSS **allocator** effect was largely a property of that machine, while the
+**language** effect is the same size on all three.
+
+**Do not add `isolcpus` when reproducing this.** It gives the cleanest tails and it also removes
+the cores from every scheduling domain, and because the benchmark pins to a range and relies on
+the kernel to spread its threads, an isolated set puts all of them on one core. A full 1120-run
+campaign was lost to it on 27 August 2026. `bench/canonical_repeat.sh check-spread` now refuses to
+start when that happens, and [`bench/TESTBED.md`](bench/TESTBED.md) §2 documents it.
 
 WSL2 is fine for development, builds, parity runs, and fault injection. Run C++ sanitizer builds
 there under `setarch -m -R` (see [`faults/run_faults.sh`](faults/run_faults.sh)). It cannot produce
@@ -282,7 +294,7 @@ from `diagrams/png/`, which `diagrams/render.py` writes.
 | Specification + parity | Both languages pass and agree byte-for-byte on the shared conformance suite: hand-written vectors plus a generated campaign whose expectations come from an independent Python model, with mirrored per-language invariant and concurrency suites. Spec is v0.1 draft, pending supervisor freeze |
 | RQ2 (safety) | Final. Fault-injection taxonomy complete across ten defect classes, five inside the guarantee and five outside it, plus Loom and Shuttle results for the two concurrency classes on the boundary |
 | RQ4 (migration) | Final. FFI prototype, interleaved native-vs-seam measurement of one real operation, and seam size complete |
-| RQ1/RQ3 (performance) | Campaign complete on the virtualised host, so the saturation knee, the overload divergence, and the resource comparisons are resolved there. That host cannot resolve the far tail below saturation, and a bare-metal confirmation campaign does, with Rust's pooled p99.99 below C++'s at every load the two separate. What remains is a matched repeat at the main sweep's own shard count, load grid, repeat count and toolchain. The collected jitter and the p99.99 column of the latency table are still unreported |
+| RQ1/RQ3 (performance) | Complete. The matched bare-metal campaign ran on 27 August 2026 and is the reported dataset, so the saturation knee, the overload divergence, the resource comparisons and the far tail below saturation are all resolved on one host at the canonical design. Rust's pooled p99.99 sits below C++'s at every load the two separate. Jitter and the p99.99 column are reported. One question the data raised remains open: whether the peak-RSS allocator effect tracks the transparent-hugepage policy |
 | Writing | `Ha_Vien_Mastersthesis_2026.pdf` builds clean with zero LaTeX errors and no undefined references, as a full draft awaiting review. `Thesis_v2.pdf` covers all eight chapters in bullets, 35 pages, and its abstract is still the template placeholder |
 
 Open items and the post-campaign re-check list are tracked in [`docs/TODO.md`](docs/TODO.md).

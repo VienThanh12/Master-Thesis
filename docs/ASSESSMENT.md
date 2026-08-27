@@ -15,7 +15,11 @@ An interactive version of this document exists as a Cursor canvas at
 `~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grading.canvas.tsx`. This file is
 the durable copy; keep the two in step if you revise either.
 
-> **The current grade is the remediation pass, 22 August 2026 afternoon, at the end of this file.** The
+> **The last grading pass on record is the twelfth, 26 August 2026 late evening.** Two remediation
+> passes followed it (26 August night, and the dataset promotion of 27 August recorded at the end of
+> this file), and **neither has been graded**, deliberately: a remediation pass must not score its
+> own output. Treat criteria 3 and 4 as carrying their twelfth-pass values until a fresh pass runs.
+> The
 > summary table immediately below is the first pass and is kept as history, not as the standing
 > view. Eight passes are on record and they do not all agree: the second held criteria 3 and 4 at 4
 > rather than 4.5, on the grounds that three criticisms said to need new measurement were
@@ -2450,3 +2454,114 @@ the memory penalty" because the antecedent had drifted two paragraphs away.
    area 3's data half below 5.
 6. **A pass that did not write any of this.** Two remediations in a row have now been audited by a
    grading pass and both were found to have over-credited themselves. This one should be too.
+
+---
+
+## Dataset promotion — 27 August 2026, evening
+
+**This is a record, not a grading pass.** No criterion is scored here. The work described below was
+done by the same session that would be grading it, and the standing rule in this file is that a
+remediation pass must not score its own output. A fresh pass is the open item.
+
+### What happened
+
+The canonical-configuration bare-metal repeat, named as the last measurement outstanding by every
+pass since the ninth, ran on 27 August and is now the thesis's main dataset:
+`bench/results/campaign-20260827-151927.jsonl`, 1120 runs at 7 shards, 7 producers, 20 repeats, 14
+load levels, zero errors, all 1120 histograms verified against the printed percentiles. AMD EPYC
+7443, SMT off, `performance` governor with boost off, `nohz_full` on the pinned cores, no
+hypervisor, toolchain pinned in the Rocky container so it matches the guest campaign's.
+
+45 of 98 generated macros changed. Every chapter was synced in the same pass, which is the lesson the
+eleventh pass paid for: when a dataset lands, the summary tables, the threats table, the hypothesis
+revisit and the statistical-treatment section are where a grader looks and where the previous
+integration failed.
+
+### What the data settled
+
+**The far tail, which had been open since the first pass.** At the representative load the widest
+95% interval on one variant's p99 is now 1 µs against a between-variant range of 2 µs. On the guest
+those were 1480 and 293 µs, inverted by a factor of five. p99 fell from 4518 to 78 µs while the
+median barely moved, 80 to 70 µs. `NSignificant` 9 → 14 of 14, `NTailExclZero` 0 → 4,
+`NEqvUnresolved` 5 → 0, `RssAgree` 18/20 → 20/20.
+
+**Both standing analysis items landed in the main tables.** `tab:latency` gained its p99.99 column,
+which was blocked on data rather than on effort: the guest campaign records no `p9999` field at all.
+`tab:jitter` is generated and placed in §6.4.2 with its own paragraph.
+
+**The peak-RSS bimodality was the machine's.** 31 MiB on the guest, 1 MiB here, so the reading rule
+§`sec:stats` fixed in advance for that row was never needed on adequate hardware. It stays stated,
+because a design that only declares its reading rules when they rescue a result is not applying them.
+
+### The one claim the data overturned
+
+`AGENT.md` non-negotiable #5 said the allocator effect on peak RSS is the larger of the two. It is
+not, on either bare-metal host:
+
+| Host | THP | Language effect | Allocator effect |
+| --- | --- | --- | --- |
+| KVM guest, 12 Aug | `always` | 1.8–3.5 MiB | **32.5–34.3 MiB** |
+| Bare metal, 26 Aug (8/8/15) | `madvise` | 0.7–1.8 MiB | 1.9–3.2 MiB |
+| Bare metal, 27 Aug (reported) | `madvise` | 1.4–2.5 MiB | **1.5–2.4 MiB** |
+
+The language effect is stable on all three. The allocator effect is not, and the guest is the outlier
+of three rather than one reading of two. Transparent hugepages differed and only the
+system-allocator arm inherits that policy, so it is the named candidate, but the study never varied
+it with everything else fixed and **the thesis does not claim causation**. Chapter 8 now names that
+experiment as the immediate priority, replacing the canonical repeat.
+
+The rule was rewritten rather than defended. That is the right direction: this file's own standing
+instruction is to fix the prose to match the artefact and not the artefact to match the prose.
+
+### Two measurement failures, both invisible from inside the dataset
+
+**1. `isolcpus` put an entire 1120-run campaign on one core.** The first attempt on 27 August booted
+with `isolcpus=2-17`, which removes those cores from every scheduling domain. The benchmark pins to a
+*range* and relies on the kernel to spread 14 threads, so all of them inherited `cpu2`. `cpu2` at
+85.9% busy with `cpu3`–`cpu17` at exactly 0.0%. `cpu_pct` flat at 100.1% in all 1120 records. Plateau
+84 kops/s against 336 on the guest and 448 on 26 August. **Every record looked individually
+plausible**, and the defect was found only by comparing three campaigns against each other before
+touching the thesis.
+
+**2. `systemd-detect-virt --vm` prints `none` and exits non-zero on bare metal**, so a
+`|| echo none` fallback appended a second line and `host_virt` never compared equal to `"none"`.
+`docker/run.sh` therefore warned that the far tail stays unresolved on the one host where it can be
+resolved, and wrote the same value into the provenance records.
+
+Both are now guarded in the tooling rather than in a note:
+`bench/canonical_repeat.sh check-spread` refuses to start a campaign whose work lands on about one
+core (broken config reads 100% `cpu_pct`, fixed reads 688%), `run` hard-fails on `isolcpus`, and
+`bench/TESTBED.md` §2 no longer recommends it.
+
+**The durable lesson.** The ninth pass's lesson was that a hand-maintained table drifts, so generate
+it. This pass adds the measurement equivalent: a campaign can be internally consistent, pass every
+existing gate, and still measure the wrong thing, so the guard belongs in the harness at the point
+where the cost of being wrong is minutes rather than hours.
+
+### A methodology change worth grading later
+
+`ReprLoad` is now pinned (`REPR_LOAD_OPS = 56000` in `bench/plot_figures.py`) rather than derived,
+with the old rule kept as `deadline_limited_load()`. The old rule took the busiest load holding p99
+under 5 ms. On the guest that returned 56 kops/s because p99 there was 4667 µs, a hair under the
+threshold, so it was locating the host's noise floor. On a quiet host the same rule climbs until
+capacity binds and returns the tracking limit, collapsing the representative point onto the knee at
+392 kops/s. One rule, two quantities, decided by how noisy the machine was. A grader should check
+whether §`sec:workload`'s new wording earns the change or merely announces it.
+
+### Build state
+
+118 physical pages. Zero LaTeX errors, zero undefined references, zero warnings. One overfull box,
+pre-existing, in a running header. `./.aitells.py`: zero semicolons, sentence-length stdev 11.3, all
+14 dash hits numeric ranges or a compound proper name. `bench/refresh_thesis.sh` runs end to end.
+Rollback point: `.rollback-20260827-220354`.
+
+### What is left
+
+1. **The abstract.** Author only, five defects, and it is the only thing holding area 6 below 5. It
+   still ends "The far tail below saturation cannot be settled on a virtualised host", which the same
+   document now contradicts, so it is a consistency defect and not only a style one.
+2. **A grading pass that did not write any of this.** Three remediations in a row have now gone
+   ungraded or been found to over-credit themselves. Areas 3 and 4 are the ones to check: both were
+   held at 4.5 solely by the measurement that has now been made.
+3. **The transparent-hugepage experiment**, which is the only open question the data raised rather
+   than answered.
