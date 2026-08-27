@@ -2207,42 +2207,43 @@ Each bounds the claims made about its own implementation.
 
 \section{Testbed configuration\label{sec:testbed}}
 This chapter reports two kinds of result. Some follow from the compilers and the source. Others
-depend on the machine, and one of those this host cannot settle at all, which is why a second
-machine appears later in the chapter. Table~\ref{tab:testbed} describes both and keeps the split
-clear.
+depend on the machine. Both kinds are now measured on a host that meets the protocol of
+\texttt{bench/TESTBED.md}, which was not true of the campaign this study ran for most of its
+life. Table~\ref{tab:testbed} describes the machines and keeps the split clear.
 
 \paragraph{The environment used.}
-All performance numbers here come from one dedicated dual-socket server: two Xeon E5-2680~v4
-processors, $16$ vCPUs on one NUMA node with one thread per core, Rocky Linux~8.10,
-\texttt{g++~15.1.1}, and \texttt{rustc~1.97}. Cores $2$--$15$ are pinned to the benchmark.
-Table~\ref{tab:testbed} sets this host beside the second machine the confirmation campaign ran on,
-both as measured, and every run records the environment metadata of Section~\ref{sec:repro}.
+Every performance number in this chapter comes from one dedicated bare-metal server: a
+single-socket \MainCpu{} with \MainCores{} cores on \MainNumaNodes{} NUMA node, simultaneous
+multithreading \MainSmt{}, running \MainDistro{} with \texttt{g++~\MainGpp} and
+\texttt{rustc~\MainRustc}. The frequency governor is fixed at \MainGovernor{} with boost disabled,
+so the cores hold their base clock rather than a thermally negotiated one, and cores \MainPinned{}
+carry the benchmark. The environment capture records virtualisation as \MainVirt{}. Every run
+records the environment metadata of Section~\ref{sec:repro}.
 
-The host is a KVM guest, which bounds every tail claim. CPU frequency and turbo are
-host-controlled and unreadable inside the guest. The record also shows steal on the order of ten
-milliseconds per second of vCPU time, comparable to the tail latencies measured. The topology
-is synthetic: two sockets of eight single-threaded cores, not the fourteen-core SMT layout of an
-E5-2680~v4, and whether vCPUs map to distinct cores or hyperthread siblings cannot be checked
-from inside. Without \texttt{isolcpus}, benchmark threads can still be preempted.
+Two properties of this host are worth stating before any tail number is read, because they are what
+the previous host lacked. There is no hypervisor between the benchmark and the cores, so no
+timeslice is lost to a machine this study cannot observe. And the kernel runs tickless on the
+pinned cores (\texttt{nohz\_full}), which removes the periodic timer interrupt from the measured
+path. What the host does \emph{not} have is \texttt{isolcpus}, and that omission is deliberate
+rather than an oversight: isolating the cores also removes them from every scheduling domain, and
+because the benchmark pins its threads to a range and relies on the kernel to spread them, an
+isolated set collapses all of them onto one core. Section~\ref{sec:threats} records the cost.
 
-Compared with the shared laptop used in an earlier pass, this server cut p99 run-to-run spread by
-more than an order of magnitude. It is still not bare metal.
+\paragraph{The host this study measured on first, and why it appears at all.}
+Until late in the work the campaign ran on a virtualised host: a \GuestCpu{} guest,
+\GuestCores{} vCPUs, \GuestVirt{} virtualisation, no core isolation. Three of this chapter's
+results were already settled there, and one was not settleable there at all. The obstacle was not
+a shortage of repeats. On that host the $95\%$ confidence interval on a single variant's p99 spans
+$\GuestPNineNineMaxCI\,\mu$s while the four variants' p99 values differ by
+$\GuestPNineNineRange\,\mu$s, so the uncertainty about one swamped the gap between all of them.
 
-\paragraph{What this host cannot settle, and the machine that settled it.}
-Of the four things a dedicated machine was wanted for, three are already met here: the saturation
-knee, the overload cliff (Section~\ref{sec:overload}), and the resource comparisons with the
-allocator control (Section~\ref{sec:resources}). The fourth is the far tail \emph{below}
-saturation, and it is not open for want of repeats. On this host the $95\%$ confidence interval on
-one variant's p99 is several times the spread across all four variants, which is steal and
-preemption rather than either language.
-
-So the protocol of \texttt{bench/TESTBED.md} was executed on a rented \BmCpu{}, and
-Section~\ref{sec:baremetal} reports what it returned. Table~\ref{tab:testbed} gives both machines
-side by side, including the two rows where that second host fell short of the protocol it was run
-to satisfy. Everything in this chapter up to Section~\ref{sec:baremetal} was measured on the guest
-described above, which is why the two are kept apart: the confirmation campaign does not share this
-one's shard count, load grid, repeat count or toolchain, so it corroborates these findings rather
-than restating them.
+That campaign is not discarded, and Section~\ref{sec:hostcompare} reports it against the present
+one. The two share a design exactly, the same \GuestShards{} shards and \GuestProducers{}
+producers over \GuestLoadLevels{} load levels at \GuestRepeats{} repeats, so what separates them is
+the machine. A comparison of that kind is the only direct evidence this study can offer that its
+instrument is now adequate to the questions it asks, and one of its findings is that a quantity
+this thesis once reported as a language-independent property of allocators was in part a property
+of that machine.
 
 \paragraph{Measurement discipline common to both.}
 On any host, Section~\ref{sec:stats} applies: each sweep point is a median over \NRepeats{}

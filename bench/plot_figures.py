@@ -1695,8 +1695,64 @@ def write_jitter_table(rows, outdir, load):
     return out
 
 
+def main_host_macros(campaign_path):
+    """Describe the host the reported campaign ran on, from its own capture.
+
+    The testbed section used to spell the machine out in prose, which is exactly
+    the kind of literal that survives a change of host and quietly describes the
+    wrong one. Prefixed Main so a sentence cannot quote this host while appearing
+    to describe either of the other two the study has used.
+
+    The capture is matched to the campaign by timestamp rather than by taking the
+    newest file, because a later probe run on the same box writes a later capture.
+    """
+    macros = {}
+    stamp = re.search(r"campaign-(\d{8}-\d{6})", os.path.basename(campaign_path))
+    if not stamp:
+        return macros
+    envs = sorted(glob.glob(os.path.join(os.path.dirname(campaign_path), "env-*.txt")))
+    # The capture is written just before the sweep starts, so the match is the
+    # latest capture at or before the campaign's own stamp.
+    prior = [e for e in envs
+             if (m := re.search(r"env-(\d{8}-\d{6})", e)) and m.group(1) <= stamp.group(1)]
+    if not prior:
+        return macros
+    text = open(prior[-1], encoding="utf-8").read()
+
+    def grab(pattern, default="unknown"):
+        m = re.search(pattern, text, re.M)
+        return m.group(1).strip() if m else default
+
+    model = grab(r"Model name:\s+(.+)")
+    macros["MainCpu"] = re.sub(r"\s*\d+-Core Processor\s*$", "", model).strip()
+    cores = grab(r"Core\(s\) per socket:\s+(\d+)", "0")
+    sockets = grab(r"Socket\(s\):\s+(\d+)", "0")
+    if cores.isdigit() and sockets.isdigit() and int(cores) and int(sockets):
+        macros["MainCores"] = str(int(cores) * int(sockets))
+        macros["MainSockets"] = sockets
+    macros["MainNumaNodes"] = grab(r"NUMA node\(s\):\s+(\d+)")
+    macros["MainDistro"] = grab(r"distro:\s+(.+)")
+    macros["MainKernel"] = grab(r"Linux \S+ (\S+)")
+    macros["MainVirt"] = grab(r"virtualisation:\s+(\S+)")
+    macros["MainGovernor"] = grab(r"governors:\s+(\S+)")
+    macros["MainSmt"] = grab(r"smt/control:\s+(\S+)")
+    macros["MainThp"] = grab(r"transparent hugepages:\s+(\S+)")
+    pinned = grab(r"cpus allowed here:\s+(\S+)")
+    macros["MainPinned"] = re.sub(r"(\d)-(\d)", r"\1--\2", pinned)
+    for field, key in (("isolcpus", "MainIsolcpus"), ("nohz_full", "MainNohzFull")):
+        val = grab(rf"{field}:\s+(.+)")
+        macros[key] = "none" if val.strip() == "(none)" else val.strip()
+    gpp = grab(r"(g\+\+ \(.*?\) [\d.]+)")
+    if gpp:
+        macros["MainGpp"] = re.sub(r"g\+\+ \(.*?\) ", "", gpp)
+    rustc = grab(r"rustc (\d+\.\d+\.\d+|\d+\.\d+)")
+    if rustc:
+        macros["MainRustc"] = rustc
+    return macros
+
+
 def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=None,
-                           overload=None, contention=None):
+                           overload=None, contention=None, campaign_path=None):
     """Emit the campaign's summary numbers as LaTeX macros.
 
     Every quantity the prose quotes about the campaign is defined here and used by
@@ -2064,6 +2120,9 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
                 # claim: not that the cost is zero, but that it is at most this.
                 "FfiOpBoundPct": f"{100.0 * ffi['op_seam_delta_hi_ns'] / native:.2f}",
             })
+
+    if campaign_path:
+        macros.update(main_host_macros(campaign_path))
 
     out = os.path.join(outdir, "gen_macros.tex")
     with open(out, "w") as f:
