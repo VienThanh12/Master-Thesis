@@ -4562,11 +4562,12 @@ RQ4 measures the seam, not the safety of the whole & The distinction is stated w
 \multicolumn{3}{@{}l}{\emph{Conclusion: are the differences real or noise?}} \\
 Run-to-run non-determinism & \NRepeats{} interleaved repeats, bootstrap intervals, exact paired permutation test, Holm correction, floors quoted & Pairing cancels only what a block shared, which is why the far tail needed a quieter machine rather than more repeats (\S\ref{sec:hostcompare}) \\
 A corrected $p$-value that does not replicate & The allocator control runs every comparison twice. Replication is followed over the $p$-value & It has cost a result before and would again. Every comparison now replicates across the control \\
-A contaminated run defeating a mean-based statistic & The reading rule of \S\ref{sec:stats}, fixed in advance, plus the per-repeat agreement count & Peak RSS under \texttt{jemalloc} is read from its interval against its own $p$-value \\
+A contaminated run defeating a mean-based statistic & The reading rule of \S\ref{sec:stats}, fixed in advance, plus the per-repeat agreement count & Nothing on this host: the bimodality that made the rule necessary was the previous machine's (\S\ref{sec:hostcompare}). The rule is kept anyway \\
+An operating point chosen after seeing the data & The tested family and both its operating points are fixed in \S\ref{sec:stats} before the results & The saturation-limit gap of \S\ref{sec:perfresults} is therefore descriptive. It is the one comparison in the study with no $p$-value \\
 \hline
 \multicolumn{3}{@{}l}{\emph{External: how far do the results travel?}} \\
 One subsystem, one workload, one machine & RQ2 rests on the compilers, RQ4 on the compilers, the C ABI and the dependency graph & The performance results do not travel, and the overload result travels least of all. RQ4's build-time seconds describe one machine, its ratio does not \\
-A virtualised measurement host & Interleaving, pairing, \NRepeats{} repeats, the guest's limits recorded in the data (\S\ref{sec:testbed}), and re-measurement on bare metal (\S\ref{sec:baremetal}) & Frequency unobservable and steal non-zero, neither removable from inside the guest. The confirmation moves shard count, repeats and toolchain, so it corroborates rather than replaces \\
+One measurement host & A dedicated bare-metal server with no hypervisor, a fixed governor and tickless pinned cores, and the same design re-measured on two further machines (\S\ref{sec:hostcompare}) & No \texttt{isolcpus}, for the reason \S\ref{sec:testbed} gives. The two comparison campaigns each change something besides the machine, so they corroborate rather than replace. The allocator's footprint cost did not travel between hosts \\
 \hline
 \end{tabular}
 \end{table}
@@ -4590,13 +4591,13 @@ forced-idiom log is a deliverable and not an appendix.
 
 \paragraph{Construct validity: do the metrics measure what the questions ask?}
 RQ1 is answered with high percentiles and the maximum instead of the mean, which is the standard
-way of measuring predictability in this literature~\cite{dean2013tail}. Two risks remain. The
-metric list was narrowed to those four while the instrumentation for inter-operation jitter and
-p99.99 did not yet exist. Both are now collected and reported, so the narrowing has been undone
-rather than merely acknowledged, and RQ1 names the statistic that decides it. What the wording of
-the question still does not name is jitter, which is reported descriptively for that reason. And
-p99.9 on a synthetic workload is not the same quantity as a missed procedure deadline in a live
-network.
+way of measuring predictability in this literature~\cite{dean2013tail}. Two risks remain. The metric
+list was narrowed while the instrumentation for inter-operation jitter and p99.99 did not yet exist.
+Both are now collected and reported, so the narrowing has been undone rather than merely
+acknowledged, and RQ1 was widened to name the statistic that turned out to decide it. Jitter is the
+one metric the question still does not name, and it is reported descriptively for that reason rather
+than tested. And p99.9 on a synthetic workload is not the same quantity as a missed procedure
+deadline in a live network.
 
 A second and larger construct gap in RQ1 was found rather than anticipated. The end-to-end latency
 the sweep reports is $\BudgetCoreShareMax\%$ operation and the rest cross-thread handoff
@@ -4634,15 +4635,19 @@ $\CorrectedFloor$ after correcting \NTests{} comparisons, so a null here reflect
 than the arithmetic. An earlier pass at seven repeats did not have that property, and its
 corrected floor above $0.05$ made every null in the table uninterpretable.
 
-Three limitations remain. First, the measurements were taken inside a virtual machine that does
-not expose frequency or turbo control and that records non-zero CPU steal
-(Section~\ref{sec:testbed}). The far tail therefore contains a contribution from the hypervisor
-that cannot be separated from the software under test. That is why the far tail below saturation is
-reported as unresolved on that host and not as a null, and why it took a second machine
-(Section~\ref{sec:baremetal}) to read it. It interacts with the pairing in a way worth naming.
-The rule fixed in Section~\ref{sec:stats} divides the metrics exactly where this host does: peak
-RSS, CPU and sustained throughput are run-level summaries and come through cleanly, while the
-tail percentiles are computed from precisely the operations the hypervisor disturbed. That is
+Three limitations remain. First, one property of the host is short of the protocol and it is short
+on purpose. The pinned cores are not isolated from the scheduler with \texttt{isolcpus}, because
+isolating them also removes them from every scheduling domain, and the benchmark pins its threads to
+a range and relies on the kernel to spread them: an isolated set collapses all of them onto one
+core, which is not a subtle failure but it is an invisible one, since every individual record still
+looks plausible. What that costs is a residue of scheduler interference on the pinned cores that a
+fully isolated set would not carry. It is bounded rather than eliminated, by tickless operation on
+those cores, a fixed governor with boost off, and no hypervisor beneath them
+(Section~\ref{sec:testbed}). The reading rule fixed in Section~\ref{sec:stats} is aimed at exactly
+this residue: peak RSS, CPU and sustained throughput are run-level summaries and come through
+cleanly, while the tail percentiles are computed from precisely the operations any interference
+falls on, and their intervals are not read as findings for that reason. On this host the rule
+changes no verdict, which is a fact about the machine and not a reason to withdraw the rule. It is
 also why the overload comparison is made on throughput and not on latency.
 
 Second, a corrected $p$-value below $0.05$ is necessary here and visibly not enough, and the
@@ -4650,14 +4655,16 @@ converse also holds. On an earlier campaign, before the two \texttt{jemalloc} bu
 one configuration, CPU utilisation cleared the Holm correction under one allocator and reversed
 sign under the other. No threshold would have caught that. It was visible only because the
 design runs every comparison twice. In the present campaign the control withholds nothing a
-threshold would have promoted, and the tail rows clear it as well. The opposite direction had a case
-too, on the earlier host: the peak resident set size under \texttt{jemalloc} showed an interval far
-from zero and $18$ of $20$ repeats in agreement against a $p$-value near unity, which a handful of
-low outliers are enough to produce. That row is
+threshold would have promoted, and every row clears the correction. The opposite direction had a case
+too, on the earlier host: peak resident set size under \texttt{jemalloc} showed an interval far
+from zero and most of its repeats agreeing in sign against a $p$-value near unity, which a handful of
+runs reporting a resident set $\GuestRssLowRunOffset$~MiB low are enough to produce. That row was
 read from its interval, under the rule fixed in Section~\ref{sec:stats} and not chosen once the
-disagreement appeared. The bimodality behind it is a defect in the measurement and not in
-either allocator, because it affects both languages in equal numbers and appears at every load
-level. Diagnosing it is left as instrumentation work.
+disagreement appeared. The bimodality behind it was a defect in the measurement and not in
+either allocator, because it affected both languages in equal numbers and appeared at every load
+level, and Section~\ref{sec:hostcompare} shows it does not occur on either bare-metal host. So the
+rule was needed once, on a machine this study no longer uses, and it is retained rather than
+withdrawn because that is what a pre-commitment means.
 
 Third, the overload divergence is measured and replicated, and its mechanism is now tested and
 not only argued. Isolated under the same pattern of \ContentionProducers{} producers, the bounded
@@ -4752,10 +4759,12 @@ prevents either. Reporting the boundary as prominently as the guarantee is a
 professional obligation, because the audience for this work is making a decision that affects
 networks people depend on.
 
-The second concerns evidence the host cannot fully support. Tail-latency numbers from a virtual
-machine with non-zero CPU steal are not a sound basis for a production commitment, and saying so
-only works if the qualification travels with the numbers, which is
-why Table~\ref{tab:findings} carries an evidence status per research question. A migration
+The second concerns how far the evidence reaches. Tail-latency numbers from any single machine, this
+one included, are a narrower basis for a production commitment than they look, and saying so only
+works if the qualification travels with the numbers, which is
+why Table~\ref{tab:findings} carries an evidence status per research question and why the earlier
+virtualised campaign is reported rather than quietly discarded: a study that cannot show what its
+own instrument changed is asking to be taken on trust. A migration
 recommendation also carries organisational consequences that fall on people rather than systems:
 retraining, hiring, and a period of reduced velocity. The cost moved from run time to human
 effort rather than disappearing.
@@ -4804,9 +4813,11 @@ The second of those divisions is the more consequential. Below saturation the tw
 languages are equivalent at the median for any purpose a deployment would care about, and that is a
 real result about deployments of this shape. The equivalence is practical rather than statistical,
 since the paired test does resolve $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both
-allocators. Their far tail stays unresolvable on a virtualised host, which is an admission about the
-instrument rather than a finding about the languages. On a quiet machine it resolves, and it
-resolves in Rust's favour (Section~\ref{sec:baremetal}). Past saturation they are not equivalent. The C++ build sustains
+allocators. Their far tail resolves too, and it resolves in Rust's favour by
+$\FarTailRange\,\mu$s at p99.99, which is where a deployment sizes its margin. Past saturation they
+are not equivalent, and the two implementations differ both in where they stop coping and in how
+they behave once both have. The Rust arms hold their offered rate to $\TrackingLoadRust$~kops/s
+against the C++ arms' $\TrackingLoadCpp$. Beyond that, the C++ build sustains
 $\OverloadThrRatio\times$ the throughput of the Rust build, in \OverloadThrAgree{} interleaved
 repeats under both allocators, while drawing $\OverloadCpuPerOpRatio\times$ the CPU per completed
 operation, and the isolated primitives do not reproduce that ordering at significance
@@ -4967,9 +4978,10 @@ large the effect, so reporting ``not significant'' from such a campaign would sa
 repeat count than about the languages.
 
 \appendix{Host and campaign configuration\label{appendix:config}}
-Table~\ref{tab:testbed} itemises both machines the campaigns ran on: the guest of
-Section~\ref{sec:testbed} that every table in this thesis is drawn from, and the bare-metal host of
-Section~\ref{sec:baremetal} that settled the far tail. Both columns report what was measured, and
+Table~\ref{tab:testbed} itemises the three machines the campaigns ran on: the bare-metal host of
+Section~\ref{sec:testbed} that every table in this thesis is drawn from, the virtualised host it
+replaced, and the second bare-metal host at a different design that
+Section~\ref{sec:hostcompare} reads against it. Every column reports what was measured, and
 the protocol they are read against is published as \texttt{bench/TESTBED.md} rather than restated
 here. Table~\ref{tab:params} gathers the
 configuration of the service, the workload and the campaign, whose derived values
