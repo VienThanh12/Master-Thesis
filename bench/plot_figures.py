@@ -455,8 +455,35 @@ def fig_load_sweep(rows, outdir, percentile="p99"):
 # --------------------------------------------------------------------------- #
 # Figure 3: latency-by-percentile "tail curve" at a representative load.
 # --------------------------------------------------------------------------- #
-def pick_representative_load(rows):
-    """Highest offered load at which every variant stays below 5 ms at p99."""
+#: The operating point the below-saturation tables and tests report, in ops/s.
+#:
+#: This is pinned rather than derived, and the reason is a finding rather than a
+#: convenience. The original rule, kept below as deadline_limited_load(), took the
+#: busiest swept load at which every variant held p99 under 5 ms. On the
+#: virtualised guest that rule returned 56 kops/s because p99 there was 4667 us at
+#: that load, a hair under the threshold: the rule was locating where the host's
+#: noise reached 5 ms, not where the service stopped meeting a deadline. On a
+#: quiet bare-metal host p99 at the same load is 76 us, so the same rule climbs
+#: until capacity binds and returns the tracking limit itself, collapsing the
+#: representative point onto the saturation knee. One rule, two different
+#: quantities, decided by how noisy the machine was.
+#:
+#: Holding the point fixed costs the appearance of derivation and buys two things
+#: the derived version cannot give: the two hosts are compared at the same offered
+#: load, and the point stays below saturation on both, which every below-saturation
+#: claim in the thesis and the exclusion of achieved throughput from the test
+#: family already assume.
+REPR_LOAD_OPS = 56000
+
+
+def deadline_limited_load(rows, deadline_us=5000.0):
+    """Highest offered load at which every variant stays below the p99 deadline.
+
+    Retained as a diagnostic, not as the operating point. It answers "how far can
+    this host be pushed before p99 crosses the deadline", which is a property of
+    the host as much as of the code, and comparing its answer against
+    REPR_LOAD_OPS is what exposed that.
+    """
     loads = loads_present(rows)
     g = group_metric(rows, lambda r: r["lat_ns"]["p99"] / NS_PER_US)
     variants = variants_present(rows)
@@ -465,12 +492,26 @@ def pick_representative_load(rows):
         ok = True
         for key in variants:
             vals = g.get((key[0], key[1], load))
-            if not vals or statistics.median(vals) > 5000.0:
+            if not vals or statistics.median(vals) > deadline_us:
                 ok = False
                 break
         if ok:
             best = load
     return best
+
+
+def pick_representative_load(rows):
+    """The pinned operating point, snapped to the nearest swept load present."""
+    loads = loads_present(rows)
+    if REPR_LOAD_OPS in loads:
+        return REPR_LOAD_OPS
+    # A campaign that never swept the pinned point cannot report at it. Fall back
+    # to the closest level it did sweep and say so, rather than silently
+    # reporting a different operating point under the same macro name.
+    nearest = min(loads, key=lambda l: abs(l - REPR_LOAD_OPS))
+    print(f"note: campaign did not sweep {REPR_LOAD_OPS} ops/s; "
+          f"reporting at the nearest swept load, {nearest} ops/s")
+    return nearest
 
 
 def pick_overload_load(rows, tracking_ratio=0.9):
