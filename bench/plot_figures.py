@@ -2575,7 +2575,7 @@ def main():
         print("note: campaign has no inter-operation jitter data; run campaign.sh "
               "with --jitter (tab_jitter.tex not written)")
     macros = write_generated_macros(rows, outdir, load, sig, budget, ffi_metrics,
-                                    overload, contention)
+                                    overload, contention, campaign_path=campaign)
     produced.extend([lat_tab, res_tab, macros])
     over_tabs = write_overload_table(rows, sig, outdir, overload)
     if over_tabs:
