@@ -25,7 +25,7 @@ When claims, RQs, methodology, or numbers change: sync plan + v1 + `Ha_Vien_Mast
 | 1 | Objectives & RQs | 5 | Keep falsifiable RQ2 (7 in-guarantee + 7 boundary defects) |
 | 2 | Scholarly sources | 5 | Acknowledge contrary results; consistent terminology |
 | 3 | Method & data | 4.5 | Bare-metal tail campaign; counters for RSS/op gap |
-| 4 | Results presentation | 4.5 | RQ1 far tail open on the virtualised host; figures must match tables |
+| 4 | Results presentation | 4.5 | Figures must match tables. The far tail is resolved as of 27 Aug 2026 |
 | 5 | Discussion | 5 | No over-claim: “cannot tell” ≠ “equivalent” |
 | 6 | Academic text | 5 | No figure–text contradictions; check abstract page overflow |
 
@@ -72,7 +72,11 @@ a generated table cell of `---` marks a value that does not exist, which `detex(
 - RQ2's catalogue is 7 in-guarantee + 7 boundary and both tables are generated: `figures/tab_taxonomy.tex` comes from `faults/results/taxonomy.csv`, so add a class in `faults/run_faults.sh` (and in `build_deck.py`'s `DEFECTS`) rather than typing a row.
 - `seam_double_free` is `double_free` rewritten through `unsafe`, not a new class. Keep its C++ half unchanged so only the Rust column moves.
 - Never quote the TSan deadlock detection rate from memory: it is unstable across runs (4, 5, 7, 9 of 12 recorded). Read `taxonomy.csv`.
-- The measurement host is a virtualised KVM guest: the **far tail below saturation** is unresolved there. The overload divergence and the resource results are resolved.
+- The measurement host is **bare metal** as of 27 Aug 2026 (`campaign-20260827-151927`, AMD EPYC 7443, SMT off,
+ `nohz_full`, no hypervisor). The far tail below saturation is **resolved** there and favours Rust. The
+ earlier KVM guest could not resolve it and is retained only for the host comparison in
+ `sec:hostcompare`. Never add `isolcpus`: it disables load balancing on the pinned set and put an
+ entire 1120-run campaign on one core.
 - Peak RSS: real language + allocator effect; allocator effect is larger.
 - End-to-end sweep ≈ handoff cost; the operation is a fraction of a percent of it, so do not bound a language effect from that sweep.
 - Rust: data races/aliasing at compile time; **not** race conditions or deadlocks.
