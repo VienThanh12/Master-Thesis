@@ -4852,25 +4852,24 @@ Reported sweep against second bare-metal host: a different shard count, load gri
 compiler on comparable hardware, which is what tests whether the findings depend on those choices.
 Rows where all three agree describe the source or the method rather than any machine. The
 \emph{Short of protocol} marks are deliberate and are argued where they appear.\label{tab:testbed}}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}R{0.16\linewidth} R{0.27\linewidth} R{0.27\linewidth} R{0.26\linewidth}@{}}
+\renewcommand{\arraystretch}{1.1}
+\footnotesize
+\begin{tabular}{@{}R{0.13\linewidth} R{0.26\linewidth} R{0.27\linewidth} R{0.25\linewidth}@{}}
 \hline\hline
-Aspect & Reported sweep, every table here & Virtualised host, same design (\S\ref{sec:hostcompare}) & Second bare-metal host, different design \\
+Aspect & Reported sweep & Virtualised host, same design & Second bare-metal host, different design \\
 \hline
-Host & \MainCpu{}, \MainCores{} cores on \MainSockets{} socket, \MainNumaNodes{} NUMA node & \GuestCpu{} guest, \GuestCores{} vCPUs, one NUMA node & \BmCpu{}, \BmCores{} cores on \BmSockets{} socket, \BmNumaNodes{} NUMA node \\
-Virtualisation & \MainVirt{}, governor fixed at \MainGovernor{} with boost off, both verified on the machine & \GuestVirt{} guest: frequency and turbo host-controlled and unobservable from inside & \BmVirt{}, governor fixed at \BmGovernor{} and verified on the machine \\
-CPU steal & None: no hypervisor to lose a timeslice to & Non-zero, order $10$~ms of vCPU time per second, comparable to the tails measured & \BmStealWithSteal{} of \BmStealIntervals{} intervals over \BmStealWindow{}~s on \BmStealCores{} pinned cores \\
-Kernel and isolation & Kernel \MainKernel{}. \texttt{nohz\_full} \MainNohzFull{}. \texttt{isolcpus} \MainIsolcpus{}, omitted on purpose: it disables load balancing across the pinned set (\S\ref{sec:threats}) & \texttt{isolcpus} \GuestIsolcpus{}, \texttt{nohz\_full} \GuestNohzFull{}. Benchmark threads shared their cores with the system & \texttt{isolcpus} \BmIsolcpus{}, \texttt{nohz\_full} \BmNohzFull{}. \emph{Short of protocol} \\
-Transparent hugepages & \MainThp{} & \GuestThp{}: the system-allocator arm inherits a policy the \texttt{jemalloc} arms pin away, which \S\ref{sec:hostcompare} names as a candidate & \BmThp{} \\
-Toolchain & \texttt{g++~\MainGpp}, \texttt{rustc~\MainRustc}, fixed in a container image so the host cannot decide it & \texttt{g++~\GuestGpp}, \texttt{rustc~\GuestRustc} & \texttt{g++~\BmGpp}, \texttt{rustc~\BmRustc}. Not the sweep's, so the findings survived a compiler change too \\
-CPU pinning & Cores \MainPinned{} via \texttt{taskset}, $7$ shards, $7$ producers & Cores $2$--$15$ via \texttt{taskset}, \GuestShards{} shards, \GuestProducers{} producers & Cores \BmPinned{} via \texttt{taskset}, \BmShards{} shards, \BmProducers{} producers \\
-Simultaneous multithreading & \MainSmt{}, verified on the machine & Absent from the topology the guest is shown. Whether its vCPUs share thread siblings is decided on the host & \BmSmt{}, verified on the machine \\
-Warm-up & Initial fraction of each run discarded & Initial fraction of each run discarded & Initial fraction of each run discarded \\
-Repeats and interleaving & \NRepeats{} repeats over \NLoadLevels{} loads, \NRuns{} runs, four variants interleaved per repeat & \GuestRepeats{} repeats over \GuestLoadLevels{} loads, \GuestRuns{} runs, same interleaving & \BmRepeats{} repeats over \BmLoadLevels{} loads, \BmRuns{} runs, same interleaving. \emph{Short of protocol} \\
-Environment capture & Capture script (\S\ref{sec:repro}), stored with each result & Capture script (\S\ref{sec:repro}), stored with each result & Capture script (\S\ref{sec:repro}), stored with each result \\
-Instrumentation beyond the summary & \texttt{perf} counters, pooled HDR sidecars, inter-operation jitter, and the allocator's own accounting & None available in the guest & \texttt{perf} counters at two scopes, pooled HDR sidecars, and the allocator's own accounting \\
+Host & \MainCpu{}, \MainCores{} cores, \MainSockets{} socket & \GuestCpu{} guest, \GuestCores{} vCPUs & \BmCpu{}, \BmCores{} cores, \BmSockets{} socket \\
+Virtualisation & \MainVirt{}. Governor \MainGovernor{}, boost off, verified on the machine & \GuestVirt{}. Frequency and turbo host-controlled, unobservable from inside & \BmVirt{}. Governor \BmGovernor{}, verified on the machine \\
+CPU steal & None: no hypervisor to lose a timeslice to & Non-zero, order $10$~ms per second of vCPU time, comparable to the tails measured & \BmStealWithSteal{} of \BmStealIntervals{} intervals on \BmStealCores{} pinned cores \\
+Kernel isolation & \texttt{nohz\_full} \MainNohzFull{}. \texttt{isolcpus} \MainIsolcpus{}, omitted on purpose (\S\ref{sec:threats}) & \texttt{isolcpus} \GuestIsolcpus{}, \texttt{nohz\_full} \GuestNohzFull{} & \texttt{isolcpus} \BmIsolcpus{}, \texttt{nohz\_full} \BmNohzFull{}. \emph{Short of protocol} \\
+Hugepages & \MainThp{} & \GuestThp{}, and only the system-allocator arm inherits it & \BmThp{} \\
+Toolchain & \texttt{g++~\MainGpp}, \texttt{rustc~\MainRustc}, pinned in a container image & \texttt{g++~\GuestGpp}, \texttt{rustc~\GuestRustc} & \texttt{g++~\BmGpp}, \texttt{rustc~\BmRustc}, so a compiler change is tested too \\
+Pinning & Cores \MainPinned{}, $7$ shards, $7$ producers & Cores $2$--$15$, \GuestShards{} shards, \GuestProducers{} producers & Cores \BmPinned{}, \BmShards{} shards, \BmProducers{} producers \\
+Multithreading & \MainSmt{}, verified & Absent from the topology the guest is shown, and decided on the host & \BmSmt{}, verified \\
+Repeats & \NRepeats{} over \NLoadLevels{} loads, \NRuns{} runs & \GuestRepeats{} over \GuestLoadLevels{} loads, \GuestRuns{} runs & \BmRepeats{} over \BmLoadLevels{} loads, \BmRuns{} runs. \emph{Short of protocol} \\
+Instrumentation & Counters, pooled HDR sidecars, jitter, allocator accounting & None available in the guest & Counters at two scopes, HDR sidecars, allocator accounting \\
 \hline
-Adequate for & Every result this thesis reports & Parity, fault injection, FFI structure, the knee, the overload comparison, and the resource comparisons. Not the far tail below saturation & Confirming that each finding survives a change of design as well as of machine \\
+Adequate for & Every result reported here & Everything except the far tail below saturation & Confirming each finding survives a change of design \\
 \hline
 \end{tabular}
 \end{table}
