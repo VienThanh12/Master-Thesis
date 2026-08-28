@@ -1143,20 +1143,15 @@ Each class has a natural incarnation in UE Context Management, which is why the 
 good vehicle for studying them:
 
 \begin{itemize}
-  \item \textbf{Use-after-free.} A signalling message holds a raw pointer or reference to a UE
-        context that a concurrent \texttt{release} has already erased from the context map. The
-        in-flight handler then dereferences freed storage.
-  \item \textbf{Double-free.} A release path runs twice for the same UE, for example because a
-        retransmitted release is not made idempotent, freeing the context's owned resources a
-        second time.
-  \item \textbf{Iterator invalidation.} Code iterates a context's data-radio-bearer list while
-        adding or removing a bearer, so the iterator refers into storage the container has since
-        reallocated.
-  \item \textbf{Data race.} Two workers update the same context field, an activity counter or a
-        state flag, without synchronisation, so the accesses race.
+  \item \textbf{Use-after-free.} A signalling handler dereferences a context that a concurrent
+        \texttt{release} has already erased.
+  \item \textbf{Double-free.} A retransmitted release is not made idempotent, so the release
+        path frees the context's resources a second time.
+  \item \textbf{Iterator invalidation.} Code iterates a context's bearer list while adding or
+        removing a bearer.
+  \item \textbf{Data race.} Two workers update the same context field without synchronisation.
   \item \textbf{Unguarded shared mutation.} A context is shared by reference across threads and
-        mutated without a lock or other discipline, a race whose root cause is the absence of any
-        ownership rule for the shared state.
+        mutated with no ownership rule.
   \item \textbf{Use-after-move.} Admission moves a freshly built context into the store and
         then answers the request from the local variable it has just moved from, so the
         acknowledgement carries an empty identity. This class is carried for what the C++
@@ -1164,10 +1159,9 @@ good vehicle for studying them:
         because a moved-from object is in a valid but unspecified state, so the defect has no
         runtime symptom for a sanitiser to find.
   \item \textbf{Thread-unsafe handle shared across workers.} A refcounted context handle whose
-        counter is not atomic, the idiom a hot path reaches for when the atomic control block of
-        a shared pointer costs more than it is worth, is passed to two shard workers. The
-        constraint that makes the handle correct is written in a comment, because C++ has no way
-        to state thread affinity in a type.
+        counter is not atomic is passed to two shard workers. The constraint that makes the
+        handle correct is written in a comment, because C++ has no way to state thread affinity
+        in a type.
 \end{itemize}
 
 These seven classes lie squarely within the guarantees Rust claims to provide, which makes them
@@ -1701,28 +1695,18 @@ Section~\ref{sec:baremetal} demonstrates on a campaign of its own design. What t
 guarantees is that no figure, table, or sentence can hold a value the logs no longer support.
 
 The logs that script reads are part of the package. A performance campaign is an append-only
-newline-delimited JSON file, named by the timestamp at which it started, and the reported sweep and
-the virtualised campaign it replaced both sit under \texttt{bench/results/} while the second
-bare-metal campaign has a directory of its own. What keeps an analysis from pooling two hosts is
-therefore the generator and not the layout: each campaign has its own script and its own macro
-prefix, so a figure from one cannot reach a sentence about another. The two bare-metal campaigns also
-write a sidecar holding every run's complete histogram buckets, which is what the far-tail percentile
-is computed from and which the virtualised campaign predates. Each run's environment is recorded by
-a companion capture script (\texttt{bench/capture\_env.sh}) and stored beside the campaign data.
-Three runners write three machine-readable outcome files under
-\texttt{faults/results/}: \texttt{taxonomy.csv} for the sanitiser and compile outcomes,
-\texttt{model\_checking.csv} for the two boundary cases checked formally, and \texttt{miri.csv}
-for the \texttt{unsafe} interpreter run. Nothing in the evaluation chapters is transcribed from
-those files by hand.
-
-The execution environment therefore travels with its data: CPU model, kernel, compiler and
-toolchain versions, and the frequency and scheduling settings of the
-testbed. That matters for one
-distinction in particular. Separating environment-sensitive results (the performance sweep) from
-environment-insensitive ones (parity testing, fault injection, and the FFI structure) is what
-lets the thesis state, per result, which of the two a reader is looking at. Nothing on the path
-requires proprietary source, which is what makes third-party reproduction possible at all rather
-than merely permitted.
+newline-delimited JSON file, named by the timestamp at which it started. The reported sweep and
+the virtualised campaign it replaced both sit under \texttt{bench/results/}, while the second
+bare-metal campaign has a directory of its own. Each campaign has its own script and its own
+macro prefix, so a figure from one cannot reach a sentence about another. The two bare-metal
+campaigns also write a sidecar holding every run's complete histogram buckets, which is what the
+far-tail percentile is computed from and which the virtualised campaign predates. Each run's
+environment is recorded by \texttt{bench/capture\_env.sh} and stored beside the campaign data.
+Three runners write three machine-readable outcome files under \texttt{faults/results/}:
+\texttt{taxonomy.csv}, \texttt{model\_checking.csv}, and \texttt{miri.csv}. Nothing in the
+evaluation chapters is transcribed from those files by hand. The execution environment travels
+with its data, which is what lets the thesis separate environment-sensitive results from
+environment-insensitive ones. Nothing on the path requires proprietary source.
 
 \chapter{Design and Implementation\label{chapter:design}}
 
@@ -2130,21 +2114,16 @@ sequences nobody chose. The generator is seeded and deterministic, so any future
 permanently reproducible regression and not an anecdote.
 
 Three further checks bound the suite from other directions. The specification's transition
-matrix is walked exhaustively and not sampled: every operation applied to a context in
-every state it can occupy. Each case asserts the exact error, the resulting state on success, and
-the absence of any field change on failure, including the error precedences the specification
-leaves unordered. The C++ implementation is then run under AddressSanitizer, ThreadSanitizer
-and UndefinedBehaviorSanitizer across that whole suite, and reports nothing. That matters for
-fairness. Safe Rust carries data-race and memory-safety freedom by construction, so without
-the sanitiser run the C++ arm's equivalent property would rest on not having failed yet instead
-of on having been checked. Miri, run over the Rust state-machine suite, likewise reports no
-undefined behaviour. Third, the suite's reach is measured and not asserted, because a
-negative result from a sanitiser is only as broad as the code that ran. Line coverage of the
-C++ library is $\CppLineCov\%$ and of the Rust library $\RustLineCov\%$, and both implementations' core
-operation processors and service facades are fully covered. The two figures are not strictly
-comparable, because \texttt{gcov} and \texttt{llvm-cov} do not resolve an executable line alike.
-On the finer-grained regions \texttt{llvm-cov} counts, the Rust figure is $\RustRegionCov\%$.
-Each bounds the claims made about its own implementation.
+matrix is walked exhaustively: every operation applied to a context in every state it can occupy,
+asserting the exact error, the resulting state on success, and the absence of any field change on
+failure. The C++ implementation is then run under AddressSanitizer, ThreadSanitizer and
+UndefinedBehaviorSanitizer across that whole suite, and reports nothing. Miri, run over the
+Rust state-machine suite, likewise reports no undefined behaviour. Line coverage of the C++
+library is $\CppLineCov\%$ and of the Rust library $\RustLineCov\%$, and both implementations'
+core operation processors and service facades are fully covered. The two figures are not
+strictly comparable, because \texttt{gcov} and \texttt{llvm-cov} do not resolve an executable
+line alike. On the finer-grained regions \texttt{llvm-cov} counts, the Rust figure is
+$\RustRegionCov\%$.
 
 \chapter{Experimental Setup and Evaluation\label{chapter:eval}}
 
@@ -3614,10 +3593,7 @@ takes $\BuildIncCppHeader$~s. That is $\BuildIncHeaderRatio$ times slower than R
 in CPU, indistinguishable from building the tree from scratch. The Rust figure does not move:
 touching every file in the crate costs $\BuildAllFirstPartyWall$~s against $\BuildIncRust$~s for
 touching one, because the unit of compilation is the crate and not the file. So the edit-compile
-loop is faster in C++ where an edit stays inside a translation unit and slower where it does not, and
-which case dominates a working day depends on a codebase's header discipline rather than on either
-language. The shape will be familiar from RQ1: the C++ figure is the better one at the median and the
-worse one in the tail.
+loop is faster in C++ where an edit stays inside a translation unit and slower where it does not.
 
 \paragraph{The footprint ordering reverses with the linkage policy.}
 Built as each toolchain ships by default, the Rust \texttt{\FootTarget} binary is
@@ -3627,16 +3603,11 @@ because \texttt{g++} leaves \texttt{libstdc++} to the dynamic loader while \text
 standard library into the binary. Measured at a matched policy the gap narrows and then changes
 sign. With both standard libraries resolved dynamically, \FootDynamicSmaller{} is smaller by
 $\FootDynamicRatio$ times. With both linked statically, \FootStaticSmaller{} is smaller by
-$\FootStaticRatioAbs$ times.
-
-The reversal has a measured cause and not an argued one. $\FootCppLocaleShare\%$ of the sized
-symbols in the statically linked C++ binary are locale and stream facets, among them money, date and
-wide-character facets this program never instantiates, because a static \texttt{libstdc++} link
-brings the facet table in as one set. Neither dynamic configuration is free either, since each
-leaves a library on the host to be paid for once: $\FootSharedCpp$~KiB for \texttt{libstdc++}
-against $\FootSharedRust$~KiB for Rust's. So the question has three answers and the
-$\FootShippedRatio\times$ figure is the least informative of them. For a self-contained artefact,
-which is what a container image or an appliance wants, the ordering favours \FootStaticSmaller{}.
+$\FootStaticRatioAbs$ times. $\FootCppLocaleShare\%$ of the sized symbols in the statically linked
+C++ binary are locale and stream facets this program never instantiates. Each dynamic configuration
+leaves a library on the host: $\FootSharedCpp$~KiB for \texttt{libstdc++} against
+$\FootSharedRust$~KiB for Rust's. For a self-contained artefact the ordering favours
+\FootStaticSmaller{}.
 
 \paragraph{The compared component resolves no third-party code at all.}
 The standard objection to Rust in a regulated codebase is transitive-dependency risk, and on the
@@ -3651,12 +3622,9 @@ syntactic rule those two trees hold $\DepsUnsafeJemalloc$ and $\DepsUnsafeHarnes
 sites.
 
 Two readings should be kept apart. The count bounds where an audit would have to look and is not a
-risk score, since a crate concentrating its \texttt{unsafe} in one large block scores below one
-spreading the same work thinly. The C++ column is empty by construction and not by advantage: the
-language marks no such region, so the whole program stands where Rust's \texttt{unsafe} blocks stand
-and a zero would be a category error. What the axis establishes is that the component which would
-ship carries none of this project's unaudited code, and that the largest surface belongs to the
-measurement apparatus.
+risk score. The C++ column is empty by construction and not by advantage: the language marks no
+such region, so a zero would be a category error. The component which would ship carries none of
+this project's unaudited code, and the largest surface belongs to the measurement apparatus.
 
 \chapter{Discussion\label{chapter:discussion}}
 
@@ -4064,61 +4032,9 @@ guideline the study would most like to have followed from the start. The reusabl
 the benchmarking framework and not its current output.
 
 \section{Related work}\label{sec:relatedwork}
-Chapter~\ref{chapter:background} set out the ground this work stands on in four strands, and
-restating them would add nothing. Each is reduced here to the position it leaves this thesis in,
-after which the studies it has to answer to are treated at length.
-
-The performance strand is settled on the average case. Compiled systems languages sit close on
-time and energy~\cite{bugden2022rust,pereira2017energy}, Rust's safety is cheap at run
-time~\cite{balasubramanian2017rust,levy2017kernel}, and that holds where timing is tightest, in
-embedded hypervisors, production cloud infrastructure, and packet processing within a few percent
-of a C reference~\cite{mo2023rustshyper,agache2020firecracker,emmerich2019drivers,xiao2024rpkt}.
-Where a cost does appear it has been pinned down: to bounds, overflow and division checks, to that
-same check set against hardware-enforced capabilities, and to recurring
-anti-patterns~\cite{zhang2022runtime,harris2023morello,cui2025perfbugs}. One like-for-like port
-puts the bounds-check share at 34\% of a 46\% geometric-mean overhead, and cautions that code
-credited with cheap checks has sometimes declared its hot functions
-\texttt{unsafe}~\cite{naylor2026cherisimt}. That caveat does not reach the \texttt{unsafe}-free
-core compared here. None of this work reports behaviour past a saturation point, which is the
-regime this thesis targets.
-
-The safety strand is settled the same partial way, with machine-checked foundations for the safe
-fragment and the aliasing discipline \texttt{unsafe} code has to
-respect~\cite{jung2018rustbelt,jung2021safe,jung2020stacked}, confirmation that \texttt{unsafe} is
-used sparingly and that memory-safety CVEs always involve
-it~\cite{qin2020rust,astrauskas2020unsafe,xu2021rustcve}, auditing that finds defects at scale even
-so and unsafety spreading through dependency
-chains~\cite{bae2021rudra,zheng2024security,qin2024safety,evans2020rust}, and the reports
-motivating the shift set against a long record of memory corruption resisting runtime
-mitigation~\cite{msrc2019memory,google2022android,google2024securebydesign,cisa2023memorysafe,oncd2024building,szekeres2013sok}.
-
-The interoperability strand qualifies the adoption argument, and Section~\ref{sec:interop} states
-its central limit: confining \texttt{unsafe} to a seam does not protect the Rust side, because
-foreign code in the same address space can corrupt Rust-owned data
-anyway~\cite{rivera2021galeed,kirth2022pkrusafe}. What that section does not cover is reach. The
-seam carries its own defect classes and its own tooling bugs, lighter crossing models exist for
-embedded use, aliasing patterns expressible in C but not in safe Rust bound translation in
-principle, interoperation is the central open problem in embedded Rust, \texttt{unsafe}
-concentrates at exactly these boundaries, and the two largest documented adoptions into existing C
-and C++ report the resulting friction
-empirically~\cite{li2022crosslang,cai2026interop,schuermann2023encapsulated,emre2023aliasing,sharma2024embedded,mccormack2026unsafe,li2026rustlinux,fan2026android}.
-Automating the rewrite is not a solved problem either, since current translators still emit code
-whose safety the compiler cannot validate~\cite{hong2025ctorust}. That is why the migration cost
-measured here is the cost of a hand-written seam.
-
-The fourth strand is the domain and the method: the tail-latency and microsecond-scale
-literature~\cite{dean2013tail,barroso2017microseconds,li2014tales,huang2017predictability},
-thread-per-core structuring moving the tail in its own right~\cite{enberg2019threadpercore}, O-RAN
-disaggregation~\cite{polese2023oran}, control-plane latency as an active target in the core network
-too~\cite{liu2023l25gc,park2025ctrlbench}, adoption evidence pointing at the learning curve rather
-than run-time cost~\cite{fulton2021adopting,crichton2024learning,ardito2021verbosity}, and standard
-guidance on repeat-based evaluation and fault
-injection~\cite{georges2007rigorous,natella2016fault}. Rust has mobile-network precedent in the
-datapath~\cite{qazi2017pepc} and, on the control-plane side, an open-source gNB-CU with a separated
-CU-CP and CU-UP over E1. That last one bears on the gap rather than on the method. It establishes
-that the ASN.1 and SCTP protocol surface is no barrier in principle, but it is an existence proof
-and not a comparison, reporting no latency and carrying no C++ counterpart built to the same
-specification~\cite{alsoran}.
+Chapter~\ref{chapter:background} set out the ground this work stands on in four strands.
+Appendix~\ref{appendix:search} records the position each leaves this thesis in, with the
+citation clusters that settle it. The studies the thesis has to answer to are treated here.
 
 Four systems studies come closest in method, though not in domain, because they too build the
 same component twice and attribute the difference. One compares IPC mechanisms implementing a
@@ -4631,25 +4547,16 @@ question of whether a footprint claim of this kind belongs to an allocator or to
 settled either way. Beyond that:
 
 \begin{itemize}
-\item Replay captured, anonymised production traces in place of the synthetic workload, so that
-  the operation mix is validated rather than merely spec-justified.
-\item Scale the comparison to further control-plane subsystems, or to the data-heavy L2/PHY path,
-  where shared mutable state and allocation churn would exercise the two languages differently.
-\item Extend the fault catalogue along the boundary mapped here, through misuse of
-  \texttt{unsafe} and through the boundary classes under a whole-program model checker rather
-  than a hand-shrunk one. A checker that also covers a program's foreign
-  dependencies~\cite{pearce2026rustmc} would reach the seam of
-  Section~\ref{sec:migrationresults}, whose interleavings this study does not explore.
-\item Evaluate Rust async runtimes against the thread-per-shard model used here, under the same
-  controls. That would separate the tail divergence Arvidsson and Kaller
-  attribute to stackless \texttt{async}/\texttt{await}~\cite{arvidsson2025async} from the language
-  itself, and settle how much of the DPDK gap Olsson and Stenstr\"om
-  measured~\cite{olsson2023asyncpackets} belongs to the runtime.
-\item Measure what in-process isolation of the two heaps costs at the seam, since an
-  \texttt{unsafe}-free core needs protecting as well as
-  verifying~\cite{rivera2021galeed,kirth2022pkrusafe}.
-\item Track defect density and review effort as Rust is adopted incrementally in a production RAN
-  codebase.
+\item Replay captured, anonymised production traces in place of the synthetic workload.
+\item Scale the comparison to further control-plane subsystems, or to the data-heavy L2/PHY path.
+\item Extend the fault catalogue along the boundary, including a whole-program model checker that
+  covers foreign dependencies~\cite{pearce2026rustmc}.
+\item Evaluate Rust async runtimes against the thread-per-shard model, to separate the tail
+  divergence Arvidsson and Kaller attribute to \texttt{async}/\texttt{await}~\cite{arvidsson2025async}
+  from the language.
+\item Measure what in-process isolation of the two heaps costs at the
+  seam~\cite{rivera2021galeed,kirth2022pkrusafe}.
+\item Track defect density and review effort as Rust is adopted in a production RAN codebase.
 \end{itemize}
 
 % Declaration of generative-AI use, required by the University when a language model has
@@ -4735,6 +4642,58 @@ monitoring.
 One practical note belongs with the protocol, since it distorts a naive search. Free-text queries
 for \emph{Rust} in the general indexes rank plant pathology and corrosion chemistry above the
 programming language, so field-restricted or discipline-restricted queries are necessary.
+
+The four strands of Chapter~\ref{chapter:background} leave this thesis in the following
+positions, which Section~\ref{sec:relatedwork} then answers against the studies closest to it.
+
+The performance strand is settled on the average case. Compiled systems languages sit close on
+time and energy~\cite{bugden2022rust,pereira2017energy}, Rust's safety is cheap at run
+time~\cite{balasubramanian2017rust,levy2017kernel}, and that holds where timing is tightest, in
+embedded hypervisors, production cloud infrastructure, and packet processing within a few percent
+of a C reference~\cite{mo2023rustshyper,agache2020firecracker,emmerich2019drivers,xiao2024rpkt}.
+Where a cost does appear it has been pinned down: to bounds, overflow and division checks, to
+that same check set against hardware-enforced capabilities, and to recurring
+anti-patterns~\cite{zhang2022runtime,harris2023morello,cui2025perfbugs}. One like-for-like port
+puts the bounds-check share at 34\% of a 46\% geometric-mean overhead, and cautions that code
+credited with cheap checks has sometimes declared its hot functions
+\texttt{unsafe}~\cite{naylor2026cherisimt}. That caveat does not reach the \texttt{unsafe}-free
+core compared here. None of this work reports behaviour past a saturation point.
+
+The safety strand is settled the same partial way, with machine-checked foundations for the
+safe fragment and the aliasing discipline \texttt{unsafe} code has to
+respect~\cite{jung2018rustbelt,jung2021safe,jung2020stacked}, confirmation that \texttt{unsafe} is
+used sparingly and that memory-safety CVEs always involve
+it~\cite{qin2020rust,astrauskas2020unsafe,xu2021rustcve}, auditing that finds defects at scale even
+so and unsafety spreading through dependency
+chains~\cite{bae2021rudra,zheng2024security,qin2024safety,evans2020rust}, and the reports
+motivating the shift set against a long record of memory corruption resisting runtime
+mitigation~\cite{msrc2019memory,google2022android,google2024securebydesign,cisa2023memorysafe,oncd2024building,szekeres2013sok}.
+
+The interoperability strand qualifies the adoption argument, and Section~\ref{sec:interop}
+states its central limit: confining \texttt{unsafe} to a seam does not protect the Rust side,
+because foreign code in the same address space can corrupt Rust-owned data
+anyway~\cite{rivera2021galeed,kirth2022pkrusafe}. The seam carries its own defect classes and its
+own tooling bugs, lighter crossing models exist for embedded use, aliasing patterns expressible
+in C but not in safe Rust bound translation in principle, interoperation is the central open
+problem in embedded Rust, \texttt{unsafe} concentrates at exactly these boundaries, and the two
+largest documented adoptions into existing C and C++ report the resulting friction
+empirically~\cite{li2022crosslang,cai2026interop,schuermann2023encapsulated,emre2023aliasing,sharma2024embedded,mccormack2026unsafe,li2026rustlinux,fan2026android}.
+Automating the rewrite is not a solved problem either, since current translators still emit code
+whose safety the compiler cannot validate~\cite{hong2025ctorust}. That is why the migration cost
+measured here is the cost of a hand-written seam.
+
+The fourth strand is the domain and the method: the tail-latency and microsecond-scale
+literature~\cite{dean2013tail,barroso2017microseconds,li2014tales,huang2017predictability},
+thread-per-core structuring moving the tail in its own right~\cite{enberg2019threadpercore},
+O-RAN disaggregation~\cite{polese2023oran}, control-plane latency as an active target in the
+core network too~\cite{liu2023l25gc,park2025ctrlbench}, adoption evidence pointing at the
+learning curve rather than run-time
+cost~\cite{fulton2021adopting,crichton2024learning,ardito2021verbosity}, and standard guidance on
+repeat-based evaluation and fault injection~\cite{georges2007rigorous,natella2016fault}. Rust
+has mobile-network precedent in the datapath~\cite{qazi2017pepc} and, on the control-plane
+side, an open-source gNB-CU with a separated CU-CP and CU-UP over E1. That last one is an
+existence proof and not a comparison, reporting no latency and carrying no C++ counterpart built
+to the same specification~\cite{alsoran}.
 
 \appendix{Statistical design: family membership and resolving power\label{appendix:stats}}
 Section~\ref{sec:stats} fixes which comparisons enter the corrected family and how far into a
@@ -4897,6 +4856,8 @@ of its flat bytes on a frame that allocates nothing, $\BmProfFlatCppPct\%$ on a 
 symbol in the C++ arm and $\BmProfFlatRustPct\%$ on the allocator's own backtrace routine in the
 Rust one. Attributing the footprint would need a profile taken at a swept load, on a build
 whose peak RSS reproduces the campaign's ordering.
+
+\appendix{Fault-injection example\label{appendix:code}}
 As an illustration of the fault-injection study (Chapter~\ref{chapter:eval}, RQ2), the
 use-after-free defect is shown in both languages. In C++ the alias into the context map
 survives the \texttt{erase} that frees it, so the following program compiles cleanly and is
