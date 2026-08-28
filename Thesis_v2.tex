@@ -405,7 +405,7 @@ handoff, the operation is $\BudgetCoreRatio\times$ faster in Rust, which the swe
 The second division is by regime. Below saturation the two implementations are equivalent end to
 end in central behaviour, by a margin no deployment would notice. The paired test does resolve a
 median difference of $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators, on an
-operation of $\PFiftyMedian\,\mu$s, so the equivalence is practical and not statistical.
+end-to-end round-trip of $\PFiftyMedian\,\mu$s, so the equivalence is practical and not statistical.
 The far tail in the same regime now resolves on the reported host: the pooled p99.99 of the
 Rust variants sits below that of the C++ variants at every load where the two separate, and a
 second bare-metal campaign at another shard count agrees on the direction

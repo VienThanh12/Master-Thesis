@@ -1069,16 +1069,20 @@ add_figure(s, _png, crop_top=_crop)
 # =====================================================================
 # Slide 18: RQ1 below saturation (generated figure)
 # =====================================================================
-s = headline(1, "RQ1 below saturation: the host runs out of resolution",
+# The title and the third note were written for the virtualised guest, where the
+# interval did swamp the spread above the median. On the reported host it never
+# does: the figure's own panel (b) annotates ratios below one at every percentile
+# it draws. Both now read off the same macros the panel does.
+s = headline(1, "RQ1 below saturation: the comparison resolves at every percentile",
              f"Latency by percentile at {M('ReprLoad')} kops/s, median over {M('NRepeats')} interleaved repeats")
 add_figure(s, result_figure("fig_tail_percentiles"), top=Cm(3.4), height=Cm(6.9))
 add_notes(s, [
     (f"Within {M('PFiftyRange')} \u00b5s at the median",
      f"The four sit {M('PFiftySpread')}% apart at p50, and pairing resolves it."),
-    (f"p99: {M('PNineNineRange')} \u00b5s vs {M('PNineNineMaxCI')} \u00b5s",
-     "Uncertainty about one exceeds the gap between all four."),
-    ("Cannot tell \u2260 equivalent",
-     "The far tail is not open for want of repeats here. A quieter machine settles it."),
+    (f"p99: {M('PNineNineRange')} \u00b5s spread vs {M('PNineNineMaxCI')} \u00b5s interval",
+     "The gap between all four exceeds the uncertainty about one, so an ordering can be read."),
+    (f"Widest ratio {M('TailResolveRatioMax')}x, at {M('TailResolveRatioMaxAt')}",
+     "Below one everywhere drawn. On the virtualised host it passed one above the median."),
 ], top=Cm(10.55), height=Cm(2.4))
 
 # =====================================================================

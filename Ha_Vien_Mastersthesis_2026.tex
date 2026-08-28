@@ -570,7 +570,7 @@ handoff, the operation is $\BudgetCoreRatio\times$ faster in Rust, which the swe
 The second division is by regime. Below saturation the two implementations are equivalent end to
 end in central behaviour, by a margin no deployment would notice. The paired test does resolve a
 median difference of $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators, on an
-operation of $\PFiftyMedian\,\mu$s, so the equivalence is practical and not statistical.
+end-to-end round-trip of $\PFiftyMedian\,\mu$s, so the equivalence is practical and not statistical.
 The far tail in the same regime resolves on the reported host and favours \FarTailLower{}. Pooled
 over \FarTailSamplesMin{} to \FarTailSamplesMax{} operations per variant, the two languages' p99.99
 values do not meet, and the widest gap between variants is $\FarTailRange\,\mu$s. A second
@@ -2381,7 +2381,8 @@ recomputed from the raw records. A record carries the run's configuration (langu
 workload, shard and producer counts, target rate), its outcome (operations completed, errors,
 wall-clock duration, achieved throughput), the latency distribution read out of the HDR
 histogram (mean, standard deviation, the quartiles, p50, p90, p99, p99.9, p99.99 and the maximum,
-in nanoseconds), a narrower block of the same shape for inter-operation delay variation, the resource
+in nanoseconds), a shorter block for inter-operation delay variation carrying the mean, the standard
+deviation, p50, p99, p99.9, the maximum and a sample count, the resource
 counters
 taken through \texttt{getrusage} (peak resident set size, user and system CPU seconds, CPU
 utilisation), and the per-operation-kind counts. Runs on a \texttt{jemalloc} arm add that
@@ -2405,7 +2406,17 @@ service. A third dataset, of the same paired shape over \ContentionRepeats{} rep
 sustained throughput through the bounded queue and completion primitives alone
 (Section~\ref{sec:contention}). The FFI comparison of Section~\ref{sec:migrationresults} has the
 same structure over \FfiOpRepeats{} repeats. All three are paired by construction, which is what
-the exact paired test of Section~\ref{sec:stats} requires.
+the exact paired test of Section~\ref{sec:stats} requires, and all three predate the environment
+record described below, which is why each is read as a ratio between its two arms.
+
+\paragraph{The adoption-cost measurement.}
+The RQ4 axes beyond the seam form a dataset of a third kind, because only one of them is a timing
+measurement. Build time is recorded over \AdoptRepeats{} interleaved repeats at \AdoptJobs{} parallel
+jobs on the development machine, alternating the two toolchains so the ratio between them survives
+the choice of machine even though the seconds do not. The static footprint and the resolved
+dependency graph are not timed at all: they are read from the linked binaries and the dependency
+manifests, so the same inputs give the same figures anywhere. Section~\ref{sec:migrationresults}
+keeps the two apart for that reason.
 
 \paragraph{The fault-injection catalogue.}
 This dataset is categorical and not numeric. Each of the $\FaultClasses$ defect cases yields four
@@ -2421,11 +2432,13 @@ in either direction. The table and figure in Section~\ref{sec:safetyresults} are
 those logs (Section~\ref{sec:repro}), not transcribed from them.
 
 \paragraph{What travels with the data.}
-Every campaign writes the environment record of Section~\ref{sec:repro} beside its results,
+Every load sweep writes the environment record of Section~\ref{sec:repro} beside its results,
 \emph{including} the fields a given host does not expose. That last detail matters more than it
 sounds. The governor and turbo state are stored as unavailable rather than left out, so the
 limitation documented in Section~\ref{sec:testbed} is a property of the dataset itself and not
-only of the prose describing it, and a reader can check it without taking it on trust.
+only of the prose describing it, and a reader can check it without taking it on trust. The three
+small paired experiments predate that discipline and do not carry one, which is why each is read as
+a ratio between two arms measured alternately and never as an absolute.
 
 \paragraph{The two comparison campaigns.}
 Two further datasets exist and neither is merged with the sweep. The virtualised campaign shares the
@@ -2514,9 +2527,10 @@ percentile of the \NRepeats{} repeats' histograms concatenated, \FarTailSamplesM
 \FarTailSamplesMax{} operations per row, because a per-run p99.99 rests on too few observations to
 read (Section~\ref{sec:stats}). Pooling makes the operation the unit of analysis, so that column has
 no across-repeat dispersion to quote and carries no interval. Together with the maximum, it is one of
-the two columns here that the paired family of Section~\ref{sec:stats} does not test. The maximum is
-a single observation per run and carries no distribution to test at
-all.\label{tab:latency}}
+the two columns here that the paired family of Section~\ref{sec:stats} does not test, and for the
+same reason: the maximum is the limiting case of a statistic read off exactly the operations
+interference lands on, which is the class pairing cannot
+rescue.\label{tab:latency}}
 % Tabular preamble and header are generated alongside the table body, so the table
 % gains a p99.99 column when a campaign records one instead of the preamble falling
 % one column short of the body it is wrapping. \LatencyTabular expands to the whole
@@ -2704,10 +2718,9 @@ $5\,000$ active UEs with a single uncontended caller. Each row is the median ove
 unit its own magnitude calls for: the two terms differ by more than two orders of magnitude,
 which is the point of the table. $p$ is the exact two-sided paired permutation test of C++
 against Rust on the repeat-wise differences. The handoff is obtained as the difference between
-the two measured rows, so it carries the uncertainty of both. Measured on the virtualised host of
-Section~\ref{sec:hostcompare}, before the move to bare metal, with both arms run alternately there,
-so the share and the ratio travel and the absolute nanoseconds describe that
-machine.\label{tab:budget}}
+the two measured rows, so it carries the uncertainty of both. It predates the move to bare metal and
+carries no environment record, so the absolute nanoseconds name no host. Both arms ran alternately in
+one session, which is what the share and the ratio rest on.\label{tab:budget}}
 \begin{tabular}{@{}l r r r@{}}
 \hline\hline
 Component & C++ & Rust & $p$ \\
@@ -2887,12 +2900,13 @@ show instead is two languages separated at every percentile with the gap widenin
 against the widest confidence interval on any one of them, with the ratio annotated above each pair
 of bars. Once that ratio passes one, the uncertainty about a single variant is larger than the gap
 between all four and no ordering can be read off. It does not pass one anywhere here, peaking at
-$\TailResolveRatioMax$ at \TailResolveRatioMaxAt{}, which is the condition that licenses the tail
-ordering. On the virtualised host of Section~\ref{sec:hostcompare} it passed one above the median.
-Both panels stop at p99.9, because both are built from per-run percentiles aggregated across repeats
-and the reported p99.99 is pooled instead, for the reason Section~\ref{sec:stats} gives. A pooled
-figure has no across-repeat interval, so it has no place in panel~(b)'s
-comparison.\label{fig:tailpct}}
+$\TailResolveRatioMax$ at \TailResolveRatioMaxAt{}, which is what licenses reading an ordering at the
+percentiles drawn here. On the virtualised host of Section~\ref{sec:hostcompare} it passed one above
+the median. Both panels stop at p99.9, because both are built from per-run percentiles aggregated
+across repeats and the reported p99.99 is pooled instead, for the reason Section~\ref{sec:stats}
+gives. A pooled figure has no across-repeat interval, so it has no place in panel~(b)'s comparison,
+and the far-tail ordering of Table~\ref{tab:latency} is licensed by the millions of operations behind
+it and not by this diagnostic.\label{fig:tailpct}}
 \end{figure}
 
 \subsection{Past saturation (RQ1)}\label{sec:overload}
@@ -3023,9 +3037,9 @@ Table~\ref{tab:contention} reports the result.
 the bounded queue and completion primitives alone, with \ContentionProducers{} contending producers
 and queue capacity $1\,024$. Values are medians over \ContentionRepeats{} interleaved repeats above
 bootstrap $95\%$ confidence intervals. The paired test compares C++ against Rust on sustained
-throughput (kops/s). Measured on the virtualised host of Section~\ref{sec:hostcompare}, before the
-move to bare metal. Both arms ran alternately on that one machine, so the ratio between them is a
-comparison and the absolute figures describe that host.\label{tab:contention}}
+throughput (kops/s). Like Table~\ref{tab:budget} it predates the move to bare metal and carries no
+environment record, so the comparison between the two alternately measured arms is what this section
+uses.\label{tab:contention}}
 \begin{tabular}{@{}l r r r@{}}
 \hline\hline
 Language & Throughput (kops/s) & Mean ns/op & Paired $p$ \\
@@ -3670,7 +3684,9 @@ unmodified and \texttt{unsafe}-free. All interop is confined to the seam crate. 
 three rows are the direct comparison: one signalling operation on the same service
 configuration and the same loop, invoked natively and then through the seam, so the
 difference isolates what the boundary adds rather than what the operation
-costs.\label{tab:ffi}}
+costs. Like the other paired experiments it predates the move to bare metal and carries no
+environment record, so the bound is a ratio between two alternately measured arms and not a claim
+about a host.\label{tab:ffi}}
 \begin{tabular}{l r}
 \hline\hline
 Metric & Value \\
@@ -5040,14 +5056,15 @@ repeat count than about the languages.
 Table~\ref{tab:testbed} itemises the three machines the campaigns ran on: the bare-metal host of
 Section~\ref{sec:testbed} that every performance and resource table of the main sweep is drawn from,
 the virtualised host it replaced, and the second bare-metal host at a different design that
-Section~\ref{sec:hostcompare} reads against it. Five result tables come from elsewhere and name
-their own source: the resident-set decomposition belongs to the second bare-metal host, the
-interoperability and adoption-cost measurements were taken on the development machine, which is why
-the latter are reported as paired ratios, and the two small paired experiments of
-Section~\ref{sec:budget} and Section~\ref{sec:contention} predate this campaign and were run on the
-virtualised host. All four of the latter are paired comparisons measured alternately on one machine,
-so the ratio each reports travels even though its absolute figures describe the machine that produced
-them. Every column reports what was measured, and
+Section~\ref{sec:hostcompare} reads against it. It is the host every performance and resource table
+of the main sweep is drawn from, and no other table depends on it. The resident-set decomposition
+belongs to the second bare-metal host. The fault catalogue was compiled and run on the development
+machine, whose toolchain its own caption records, and its outcomes are categorical and do not move
+with load. Of the adoption-cost axes only build time is host-sensitive, which is why that one is
+reported as a paired ratio while the footprint and dependency figures are deterministic. And the
+three small paired experiments predate the move to bare metal and carry no environment record, so
+each supports a ratio between two arms measured alternately in one session and is quoted that way.
+Every column reports what was measured, and
 the protocol they are read against is published as \texttt{bench/TESTBED.md} rather than restated
 here. Table~\ref{tab:params} gathers the
 configuration of the service, the workload and the campaign, whose derived values
