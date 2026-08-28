@@ -76,41 +76,47 @@ thesis process, which no manuscript can settle. It is reproduced as issued in
 four passes on record, and the build-gate script live in the same skill. Use it for any new
 grading pass so passes stay comparable.
 
-**The grades below are the thirteenth pass's and they do not move yet.** A remediation on the night
-of 27 August closed its whole list except the abstract, and the fourteenth pass on 28 August audited
-that work and found four defects in it, three of them newly introduced. Both were written by the same
-session, so the numbers are held: this repository has three times now recorded a remediation
-over-crediting itself. **The fourteenth pass's self-assessment is 4.83 against the recorded 4.50**,
-with areas 3 and 5 supported at 5 and areas 4 and 6 capped at 4.5 by the abstract alone. Do not bank
-that until an independent pass confirms it. See `docs/ASSESSMENT.md`, fourteenth pass, for what to
-check first.
+**Current grades are the fifteenth pass's, 28 August 2026: mean 4.83.** Areas 1, 2, 3 and 5 at 5,
+areas 4 and 6 at 4.5, capped by the abstract and by nothing else. Area 7 is not assessable. The
+thirteenth pass's 4.50 is superseded, and the difference is not new work on the thesis so much as
+**seven reviews in two days that found and closed 69 prose defects**, 49 of them by readers given
+only the artefacts.
 
-**An independent audit run in parallel with that pass found five more defects it had missed**, the
-worst being a results paragraph and figure caption in §6.4.1 claiming the confidence interval swamps
-the between-variant spread from p90 upward, where the figure beside it annotates ratios of 0.2 to 0.7
-and the interval never wins. All five are fixed and recorded in the addendum to the fourteenth pass.
-**The transferable rule: two sessions editing and grading in sequence do not substitute for one
-reader who was not told what to expect.** Run a second reader against the artefacts alone before
-believing any remediation, including this note.
+**Every one of the 69 was prose disagreeing with an artefact that was itself correct.** The generated
+layer re-derived byte for byte at all four checks. About 25 were introduced by the editing passes
+themselves, including one fix that created a fresh instance of the class it was fixing. **So the
+operating rule for this repository is now: run a reader who was not told what changed, and do it
+after every editing round, not once at the end.** Two sessions editing and grading in sequence do not
+substitute for one. The last such audit examined thirty changed passages and found eight defects, and
+the roughly fifteen edits that closed those eight have not themselves been read.
 
-| # | Criterion | Target | Current (13th pass, unaudited remediation since) | What still blocks a 5 |
+Three defect shapes defeated every gate and every macro recomputation, and they are now first-rank
+checks in `.cursor/skills/thesis-grade-csm/CALIBRATION.md`: **a correct statement attached to the
+wrong scope**, a claim right where it is derived and wrong at every site that summarises it (the
+overload CPU ratio was inverted at five sites in two documents while the owning section had it
+right), and a figure title asserting a conclusion its own bars refute.
+
+| # | Criterion | Target | Current (15th pass, 28 Aug 2026) | What still blocks a 5 |
 | --- | --- | --- | --- | --- |
 | **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (7 inside + 7 outside guarantee). The RQ1 alignment item is **closed**: RQ1 now names p99.99 in the draft, in `Thesis_v2.tex` and in `Thesis_Plan_v2.tex`, and §7.7 says the question was widened rather than claiming it always named the metric. |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
-| **3** | **Research data and method** | Sound method + decision-grade data | **4.5**, and the two items behind it are closed | **The data half reached 5 at the 13th pass** when the canonical repeat landed (7/7/14/20, 1120 runs, no hypervisor, SMT off, `nohz_full`, toolchain pinned in a container, zero errors), and the description half that held the number is now repaired: §6.4.1 grounds the tail rows in their Holm-adjusted *p*-values instead of the intervals the pre-commitment bars, and §6.2 says the representative load is pinned and gives the generator's own reasoning. A fresh pass should confirm both and check that the pre-commitment reads as *kept* rather than as quietly relaxed, since that is the sub-factor this criterion scores directly. Do not add `isolcpus`. Do not restore the derived load rule. |
-| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.0**, all thirteen items closed | **Dropped from 4.5 at the 13th pass on thirteen sentences that disagreed with the artefact beside them, six of them wrong rather than stale, and the remediation closed all thirteen.** The load-bearing one: `tab:latency`'s p99.99 and every `\FarTail*` macro now come from the pooled sidecar, as §4.5 always said, printed without an interval and marked with a dagger because pooling changes the unit of analysis. `\FarTailRange` went 52 to **87 µs**, so the fix strengthened the finding. `\SatKnee` gained per-language companions, because taking `min` across variants is what hid a 14 % capacity difference the prose then denied. Four further defects were found while verifying: a percentage printed as a multiple, `--` typesetting as two minus signs inside math mode, a macro rounding to "0 ms", and a hand-typed core count. **Two things not to undo.** The pooled column carries no interval on purpose. The 448 kops/s rung is descriptive on purpose. |
-| **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **4.5**, all four sites closed | **Back to 4.5 at the 13th pass on the eleventh pass's failure exactly, a discussion one section behind its own results, and the remediation synced all four chapter-7 sites.** §7.2 reports the far tail as an ordering and says the two overload effects answer different deployment questions. §7.7's first limitation is rebuilt around the real residual, the absent `isolcpus` and what bounds it. §7.8 no longer disowns the study's own numbers. `tab:threats` drops the virtualised-host row and gains one naming the operating point chosen after the fact. Maintain register: “cannot tell” ≠ “equivalent”, the memory result is *located* and not *attributed to a call site*, the counters explain the operation-level timing and nothing about the footprint, and the 448 kops/s rung is described and not tested. |
-| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.0**, body consistency repaired, abstract open | **Fell from 4.5 at the 13th pass on level 4's consistency clause, and the remediation repaired all four things that clause names.** RQ1 names p99.99 in all three documents. §6.2 says the load is pinned, §4.5 drops the false "isolating the cores", §4.6 names the right directory, Appendix D's intro describes three machines, `fig:cliff` and `tab:vendortheses` captions are corrected. Every mechanical gate passes (zero errors, zero undefined refs, no float too large, no overfull boxes, abstract box fits, 0 semicolons in all three documents, all 14 dash hits legitimate). **What now holds this criterion alone is the abstract**: rewrite it unaided, then set `\abstractunaidedtrue`. Five defects, and until the flag is set every build prints “Not submittable”. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
+| **3** | **Research data and method** | Sound method + decision-grade data | **5** | Nothing. The canonical repeat closed the data half (7/7/14/20, 1120 runs, no hypervisor, SMT off, `nohz_full`, zero errors) and the description half is repaired and independently re-checked. What earns the level is a pattern of refusals: the pre-committed reading rule is kept on a host where it costs nothing and said to be kept for that reason, the 448 kops/s rung is described and not tested because its operating point was found after the data, and the pooled and per-repeat statistics are held apart hard enough that the generator returns `None` rather than falling back and `fig:tailpct` was narrowed so the figure could not quote the disowned statistic either. **Do not add `isolcpus`. Do not restore the derived load rule. Do not let a fallback to the per-run `p9999` back in.** |
+| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.5** | **The abstract, and nothing else.** It is where results are reported first and it carries ten factual defects, five recorded only on 28 Aug. Every other item is closed and independently re-checked: the p99.99 is genuinely pooled and printed without an interval, the per-language saturation limits are reported where `\SatKnee`'s minimum had hidden them, and five result tables now name the machine that produced them. The generated layer re-derived byte for byte at four separate checks. |
+| **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Nothing. All four chapter-7 sites that described a virtual machine are synced, and §7.2 now refuses a verdict on RQ1's overload half: it reports that the two effects run in opposite directions and names which deployment question each answers. Maintain register: “cannot tell” ≠ “equivalent”, the memory result is *located* and not *attributed to a call site*, the counters explain the operation-level timing and nothing about the footprint, and the 448 kops/s rung is described and not tested. |
+| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | **The abstract, and nothing else.** Level 4's consistency clause now holds on all four things it names, checked independently across all three documents. Every mechanical gate passes, and all three documents read zero semicolons. Level 5 asks for presentation that is technically camera-ready, and the build prints “Not submittable” until `\abstractunaidedtrue` is set. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
 
-**Overall mean (unweighted): 4.50** at the thirteenth pass, 27 August 2026 night, down from the 4.75
-the third remediation claimed. The history: 26 August went 4.67 to 4.50 (eleventh pass, after the
+**Overall mean (unweighted): 4.83** at the fifteenth pass, 28 August 2026, and it is the first figure
+on record confirmed by readers who wrote none of the work behind it. The thirteenth pass, on the
+night of 27 August, put it at 4.50. The history before that: 26 August went 4.67 to 4.50 (eleventh pass, after the
 first bare-metal campaign landed and the document lagged it) to 4.67 (second remediation) to 4.58
 (twelfth pass, which audited that remediation and found it had over-credited itself) to 4.75 (third
-remediation), and then to **4.50** on 27 August, when the canonical repeat became the main dataset
-and the same lag reappeared at larger scale. **The pattern has now cost this thesis a grade point
-twice in two days, both times for the same reason.** A campaign lands, its macros regenerate cleanly,
-and the sentences around them are not re-read. A clean regeneration says the numbers are right. It
-says nothing about the prose. Four lessons are worth more than the number.
+remediation), and then to 4.50 on 27 August, when the canonical repeat became the main dataset
+and the same lag reappeared at larger scale. **That pattern cost this thesis a grade point twice in
+two days, both times for the same reason.** A campaign lands, its macros regenerate cleanly, and the
+sentences around them are not re-read. A clean regeneration says the numbers are right. It says
+nothing about the prose. What closed the gap on 28 August was not more editing but **69 defects found
+across seven reviews, 49 of them by readers given only the artefacts**. Five lessons are worth more
+than the number.
 
 1. **The bare-metal campaign removed the thesis's largest ceiling and briefly cost it two criteria,
    because the rest of the document had not caught up.** When a new results section lands, sync the
@@ -129,22 +135,33 @@ says nothing about the prose. Four lessons are worth more than the number.
    were all true of the guest and are all reversed by the bare-metal data. None of them contains the
    word virtualised or unresolved, so a staleness sweep misses every one. The only check that finds
    them is reading each numeric claim in §6.4 against the generated table beside it.
+5. **Run a reader who was not told what changed, after every editing round.** The single most
+   productive thing done on 28 August. Four such readers found 49 of the day's 69 defects, including
+   a results paragraph stating the opposite of the figure beside it, a headline claim inverted at
+   five sites while the section that owns it was correct, and an unsupported number in a table whose
+   own capture recorded zero. The self-audits were careful and caught 20. A session that knows which
+   claims it changed reads for those claims. **Budget one audit per editing round, not one at the
+   end**: the last round's audit found eight defects in thirty changed passages, a rate near one in
+   four, and the edits that closed those eight have not themselves been read.
 
-Criterion 3 is held at 4.5 because §6.2 and §6.4.1 describe a method the code does not run, and
-**not** for want of data any more. Do not round the half-grades in prose without updating the
+Criteria 4 and 6 are held at 4.5 by the abstract alone, and criterion 3 reached 5 once the method's
+*description* caught up with the method. Do not round the half-grades in prose without updating the
 reasoning in `docs/ASSESSMENT.md`. The class-file item is **done**: the document builds on the
 department's own `HYthesisML.cls`, and the reconstructed `UH_DS_MSc.cls` in the root is no longer
 loaded.
 
-**Three items are open and the first is the only blocker.** The thirteenth pass's editing tier and
-both of its analysis items were closed by the remediation of 27 August night, recorded in
+**Three items are open and the first is the only blocker.** Every criterion-capping item other than
+the abstract is closed and independently re-checked, across seven reviews recorded in
 `docs/ASSESSMENT.md`. What remains: **the abstract**, which must be rewritten by the author unaided
-because in this programme it is the maturity test and a model may not touch it, and which still ends
-"The far tail below saturation cannot be settled on a virtualised host", the thesis's principal result
-stated backwards. It is again **the only thing holding criterion 6 below 5**. Second, **a grading pass
-that wrote none of the remediation**, which should ask specifically what that pass propagated and what
-it half-fixed: the two claims to check are the pooled-p99.99 statement, now at six sites, and the knee
-finding, now at eight. Third, **the transparent-hugepage experiment**, about one machine-hour, already
+because in this programme it is the maturity test and a model may not touch it. It carries **ten**
+factual defects, five of them recorded for the first time on 28 August, and the full list with the
+correct fact for each is in `docs/TODO.md` § *Do now*. **It is the only thing holding criteria 4 and
+6 below 5**, so one rewrite would put all six assessable areas there. Second, **one more independent
+read of the fifteen edits made after 11:15 on 28 August**, which closed the last audit's eight
+findings and have not themselves been read: §5.3 and `tab:params` on the shard rationale, Appendix
+D's provenance sentence with the `tab:budget` and `tab:contention` captions, the narrowed
+`fig:tailpct` and its caption, and `ai_statement.tex`'s coverage sentence. Third, **the
+transparent-hugepage experiment**, about one machine-hour, already
 named in Chapter 8 as the priority. The allocation profile in
 `bench/results-baremetal/alloc_profile-20260826-110718/` was analysed and **returns a negative
 result**: it cannot attribute the footprint to a call site, because the profiling build reverses the

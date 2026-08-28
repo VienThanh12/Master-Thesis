@@ -572,20 +572,25 @@ def fig_tail_percentiles(rows, outdir, load):
     claim of equivalence, which is the one reading the performance results refuse: a
     measurement that cannot separate two things has not shown them to be the same.
 
-    Panel (b) says why it cannot. At each percentile it draws the spread between
-    the four variants against the widest confidence interval any single variant
-    carries there. At the median the spread is the larger of the two and an
-    ordering means something. Above it the interval overtakes the spread, and once
-    the uncertainty about one variant exceeds the gap between all of them, whatever
-    order the curves happen to fall in is the scheduler's and not the language's.
-    The crossover is the point where this host stops resolving the comparison, and
-    it is the concrete form of the limitation the testbed section states.
+    Panel (b) says how far the comparison can be trusted. At each percentile it
+    draws the spread between the four variants against the widest confidence
+    interval any single variant carries there. Below one, the spread is the larger
+    quantity and an ordering means something. Above one, the uncertainty about a
+    single variant exceeds the gap between all of them, and whatever order the
+    curves fall in is the scheduler's and not the language's. Which side of one
+    the ratio lands on is a property of the host, so the panel's title is chosen
+    from the data: on the virtualised guest the crossover happened above the
+    median, and on a quiet host it does not happen at all.
     """
+    # Stops at p99.9 on purpose. Both panels are built from per-run percentiles
+    # aggregated across repeats, and the per-run p99.99 is the statistic Section
+    # 4.5 calls dominated by sampling noise: tab:latency reports that percentile
+    # pooled instead, precisely so the thesis never quotes the per-run version.
+    # Drawing it here would put the disowned statistic on a figure, and panel (b)
+    # would compare a spread against an interval that the reported far tail does
+    # not have.
     pcts = ["p50", "p90", "p99", "p999"]
     pct_labels = ["p50", "p90", "p99", "p99.9"]
-    if has_metric(rows, ("lat_ns", "p9999")):
-        pcts.append("p9999")
-        pct_labels.append("p99.99")
     variants = variants_present(rows)
 
     stats = {}
@@ -1658,8 +1663,10 @@ def _tail_resolution(rows, variants, load):
     two states the campaign is in instead of asserting the one the previous host
     was in.
     """
-    fields = [("p50", "p50"), ("p90", "p90"), ("p99", "p99"),
-              ("p99.9", "p999"), ("p99.99", "p9999")]
+    # Same range as fig:tailpct and for the same reason: the ratio needs an
+    # across-repeat interval, the reported p99.99 is pooled and has none, and the
+    # per-run p99.99 is the statistic Section 4.5 disowns.
+    fields = [("p50", "p50"), ("p90", "p90"), ("p99", "p99"), ("p99.9", "p999")]
     worst, worst_at, crossed = 0.0, None, []
     for label, field in fields:
         if not has_metric(rows, ("lat_ns", field)):

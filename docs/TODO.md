@@ -70,7 +70,8 @@ Three datasets now have distinct jobs and the prefixes keep them apart:
 | **C** | Companion docs: decide fate of `archive/thesis-vi` (citations render `[?]`) | Short | You or agent |
 | **D** | Full proofread pass | Half day+ | You |
 | **E** | Transparent-hugepage experiment, the one open question the data raised | 1 machine-hour | You or agent |
-| **F** | A grading pass by a reader who wrote none of the last two days' edits | Half day | Agent, fresh context |
+| **F** | ~~A grading pass by a reader who wrote none of the last two days' edits~~ **Done**, plus three independent audits | — | Recorded as the 15th pass |
+| **G** | One independent read of the fifteen edits made after 11:15 on 28 Aug, which closed the last audit's findings and have not themselves been read | 1 h | Agent, fresh context |
 | — | Examiners, official class file | n/a | Faculty / Moodle |
 
 **A is the only blocker and it now caps two criteria on its own**, 4 and 6, because the abstract is
@@ -212,21 +213,25 @@ sits within a few points of a full page, so measure after any row edit.
 
 ### Grade map
 
-| Criterion | On record (13th pass) | Evidence now supports | What decides it |
+| Criterion | 13th pass | **15th pass, current** | What decides it |
 | --- | --- | --- | --- |
-| 1 Objectives & RQs | 5 | 5 | RQ1 names p99.99 in all three documents now, so the standing item is closed |
-| 2 Sources | 5 | 5 | Untouched and verified intact. Optional: replace the remaining arXiv `Bugden` |
-| 3 Method & data | 4.5 | **5** | Both description defects closed, and the study now refuses to test a favourable post-hoc result |
-| 4 Results presentation | 4.0 | **4.5** | All defects closed. Capped at 4.5 by **A** |
-| 5 Discussion | 4.5 | **5** | All four chapter-7 sites synced, and §7.2 gives a decision rule instead of a verdict |
-| 6 Academic text | 4.0 | **4.5** | Level 4's consistency clause holds on all four things it names. Capped by **A** |
-| **Mean** | **4.50** | **4.83** | The whole gap is the last two days' own work |
+| 1 Objectives & RQs | 5 | **5** | RQ1 names p99.99 in all three documents. Audited, no findings |
+| 2 Sources | 5 | **5** | Audited. The declaration now states the source audit's real coverage instead of over-claiming it |
+| 3 Method & data | 4.5 | **5** | The description caught up with the method, and the study refuses a favourable post-hoc test and says why |
+| 4 Results presentation | 4.0 | **4.5** | Everything closed and re-checked. Capped by **A** alone |
+| 5 Discussion | 4.5 | **5** | §7.2 refuses a verdict and gives a decision rule instead |
+| 6 Academic text | 4.0 | **4.5** | Consistency clause holds across all three documents. Capped by **A** alone |
+| **Mean** | 4.50 | **4.83** | |
 
-**Do not record the right-hand column as the grade.** It is self-assessed by the sessions that wrote
-the edits, and this repository has now recorded a remediation over-crediting itself three times.
-Item **F** exists to settle it. What a fresh reader should check first: the pooled far-tail claim,
-which now appears at six sites, and the saturation-knee finding, which appears at nine including
-`Thesis_v2.tex`, both written in one night by one session.
+**This one is recorded**, unlike the fourteenth pass's identical self-assessment, because three
+independent readers have since audited the whole document and 41 further defects were found and
+closed. The fourteenth pass was right to hesitate: at the moment it graded, the thesis still said the
+**C++** build drew 1.8 times the CPU per completed operation, at five sites in two documents, where
+the data has **Rust** drawing it.
+
+**Residual risk, stated plainly.** The last audit found eight defects in thirty changed passages.
+Closing them took about fifteen further edits, and those fifteen have not been independently read.
+Item **G** is the cheapest remaining improvement.
 
 ---
 

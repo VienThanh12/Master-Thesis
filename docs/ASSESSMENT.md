@@ -3333,3 +3333,110 @@ reader who checked the artefact instead of the record.
 **Running total across five reviews on 27 and 28 August: 56 prose defects, all fixed.** The generated
 layer has re-derived byte for byte at every check. **The three reviews by readers told nothing about
 what had changed found 34 of the 56.**
+
+---
+
+## Fifteenth pass — 28 August 2026, after the fixes
+
+Graded on a build rebuilt after the last edit. **109 declared pages with 6 appendix pages, 123
+physical.** Every gate passes.
+
+| Area | 13th pass (on record) | This pass | Independent confirmation |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Chapters 1--5 audited, no findings in this area |
+| 2. Scholarly framework and sources | 5 | **5** | Audited. One improvement: the declaration now states the source audit's real coverage |
+| 3. Research data and method | 4.5 | **5** | Audited, four findings, all closed |
+| 4. Presentation of results | 4.0 | **4.5** | Audited three times, all findings closed. Capped by the abstract |
+| 5. Discussion and conclusions | 4.5 | **5** | Audited, all findings closed |
+| 6. Academic text | 4.0 | **4.5** | Audited across three documents. Capped by the abstract |
+| 7. Work during the thesis process | n/a | **n/a** | Not assessable from a manuscript |
+| **Mean of the six assessable** | 4.50 | **4.83** | |
+
+Canvas: `thesis-grade-csm-aug28-rev2.canvas.tsx`.
+
+### The number did not move this morning. Whether it is justified did.
+
+The fourteenth pass self-assessed 4.83 and refused to record it, on the grounds that it had written
+the edits. **That refusal was correct, and the reason is now concrete.** At the moment it graded, the
+thesis still said the C++ build drew $1.8\times$ the CPU per completed operation, at five sites in
+two documents, where the data has **Rust** drawing it. A headline claim was inverted and 4.83 was not
+defensible with it live. Three independent readers have since audited the whole document and 41
+further defects have been found and closed. The same number now rests on evidence.
+
+### What the seven reviews found
+
+| Reviewer | Scope | Found | Independent |
+| --- | --- | --- | --- |
+| Thirteenth grading pass | Ch. 6--7 | 13 | no |
+| Fourteenth pass, self-audit | its own remediation | 4 | no |
+| Independent reader | Ch. 6--7 | 5 | **yes** |
+| Cross-document check by hand | all three documents | 3 | no |
+| Independent reader | Ch. 1--5, appendices | 17 | **yes** |
+| Independent reader | abstract, Ch. 8, declaration, cross-doc | 19 | **yes** |
+| Independent reader | the last two hours of edits | 8 | **yes** |
+| **Total** | | **69** | 49 found independently |
+
+**Every one of the 69 was prose disagreeing with an artefact that was itself correct.** The generated
+layer re-derived byte for byte at every check, four times. Roughly 25 of the 69 were introduced by
+the editing passes themselves.
+
+### The last audit is the one worth reading twice
+
+It examined only the thirty passages changed between 10:00 and 11:15 and found **eight new defects**,
+a rate near one in four. Three are worth recording.
+
+**A fix created a fresh instance of the class it was fixing.** `_tail_resolution()`, added that
+morning to stop §6.4.1 asserting a crossover the figure refutes, computed its ratio from the per-run
+`p9999` field. That is precisely the statistic §4.5 calls dominated by sampling noise and says no
+analysis script reads, and it is why `tab:latency` reports the far tail pooled. The new prose then
+put the peak of its argument at that percentile and called it "the condition that licenses the tail
+ordering". Both the macro and `fig:tailpct` now stop at p99.9, because a pooled percentile has no
+across-repeat interval to weigh a spread against, and the figure's caption says so.
+
+**A new sentence contradicted itself.** §5.3 gained "Holding it at seven across all three machines is
+what makes the shard count a fairness control \dots and the second bare-metal campaign varies it
+deliberately to test that." Both halves in one sentence, and `\BmShards` is 8. The fairness control
+was never constancy across hosts: `tab:controls` states it as identity between the two languages,
+which is true in every campaign.
+
+**Two result tables had no provenance and one claimed the wrong host.** `tab:budget` and
+`tab:contention` come from August runs on the virtualised host. The previous day's Appendix D
+sentence certified that "three result tables come from elsewhere", missing both, and
+`tab:contention`'s own caption asserted the reported host, which its 14 August date makes impossible.
+Both captions now name the host and say why the ratio travels while the absolute figures do not.
+
+### Why each area sits where it does
+
+**Area 3 reaches 5**, and what earns it is a pattern of refusals rather than any single control. The
+pre-committed reading rule is kept on a host where it costs nothing, and said to be kept for that
+reason. The 448 kops/s rung is described and not tested because the operating point was found after
+the data, with a threats row naming that threat. The pooled and per-repeat statistics are held apart,
+the generator returns `None` rather than falling back to the disowned one, and the figure was
+narrowed so it could not quote it either. **Declining a favourable post-hoc test is harder than any
+apparatus around it**, and it is what the level-5 clause about methods analysed in depth looks like.
+
+**Areas 4 and 6 sit at 4.5 for the same reason and no other.** The abstract carries ten factual
+defects, five recorded for the first time today, and the build prints "Not submittable". One rewrite
+closes both.
+
+**Area 5 reaches 5** on the strength of §7.2 refusing a verdict: it reports that the two overload
+effects run in opposite directions and names which deployment question each answers, which is more
+useful than a winner and is the harder thing to write.
+
+### Residual risk
+
+The last audit found eight defects in thirty changed passages. Closing them took about fifteen
+further edits, and **those fifteen have not been independently read**. On the observed rate that is
+two to four undiscovered defects, concentrated in: §5.3 and `tab:params` on the shard rationale,
+Appendix D's provenance sentence and the `tab:budget` and `tab:contention` captions, the narrowed
+`fig:tailpct` and its caption, and `ai_statement.tex`'s coverage sentence. One focused audit of that
+set is the cheapest remaining improvement.
+
+### What this exercise established that no gate could
+
+All 69 defects were prose against a correct artefact, so no gate in the repository could catch any of
+them, and the macro-recomputation check that has been the mainstay of these passes catches only the
+subset that is a wrong number. Three shapes defeated it and all three are now first-rank checks in
+the grading skill's calibration file: **a correct statement attached to the wrong scope**, a claim
+right where it is derived and wrong at every site that summarises it, and a figure title asserting a
+conclusion its own bars refute.
