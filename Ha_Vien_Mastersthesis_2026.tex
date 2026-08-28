@@ -324,7 +324,7 @@ whole network. An outage or a tail-latency spike here is not a local defect. Eve
 the site serves is affected~\cite{dean2013tail,barroso2017microseconds}.
 
 This control-plane software is, today, written mostly in C++. The choice is a
-rational one: C++ offers the low-level control, mature tooling, and performance that
+practical one: C++ offers the low-level control, mature tooling, and performance that
 latency-critical systems demand. But that performance comes with a well-known cost. C++
 places the burden of memory and concurrency management on the programmer, and decades of
 experience show that this burden is routinely mishandled, producing use-after-free errors,
@@ -4521,7 +4521,7 @@ Adequate for & Every result reported here & Everything except the far tail below
 \end{tabular}
 \end{table}
 
-\begin{table}[H]
+\begin{table}[ht]
 \centering
 \small
 \caption[Configuration of the service, the workload, and the campaign]{Configuration of the service under test, the workload driving it, and the measurement
