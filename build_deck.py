@@ -1079,10 +1079,10 @@ add_figure(s, result_figure("fig_tail_percentiles"), top=Cm(3.4), height=Cm(6.9)
 add_notes(s, [
     (f"Within {M('PFiftyRange')} \u00b5s at the median",
      f"The four sit {M('PFiftySpread')}% apart at p50, and pairing resolves it."),
-    (f"p99: {M('PNineNineRange')} \u00b5s spread vs {M('PNineNineMaxCI')} \u00b5s interval",
-     "The gap between all four exceeds the uncertainty about one, so an ordering can be read."),
-    (f"Widest ratio {M('TailResolveRatioMax')}x, at {M('TailResolveRatioMaxAt')}",
-     "Below one everywhere drawn. On the virtualised host it passed one above the median."),
+    (f"p99: {M('PNineNineRange')} \u00b5s vs {M('PNineNineMaxCI')} \u00b5s",
+     "The gap between all four exceeds the uncertainty about one, so an ordering reads."),
+    (f"Widest ratio {M('TailResolveRatioMax')}x at {M('TailResolveRatioMaxAt')}",
+     "Below one everywhere drawn. On the guest it passed one above the median."),
 ], top=Cm(10.55), height=Cm(2.4))
 
 # =====================================================================

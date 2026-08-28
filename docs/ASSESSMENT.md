@@ -3440,3 +3440,61 @@ subset that is a wrong number. Three shapes defeated it and all three are now fi
 the grading skill's calibration file: **a correct statement attached to the wrong scope**, a claim
 right where it is derived and wrong at every site that summarises it, and a figure title asserting a
 conclusion its own bars refute.
+
+### Fourth independent audit, 28 August noon: the fifteen edits nobody had read
+
+The fifteenth pass named these fifteen edits as its own residual risk and estimated two to four
+undiscovered defects in them. **The real number was eight**, three found by re-checking by hand
+before the audit reported and five by the audit. The estimate was low by a factor of two, which is
+itself worth recording: the rate at which this project's editing introduces defects has been
+consistently under-estimated by the sessions doing the editing.
+
+**The audit re-derived the generated layer again and it is clean**, five checks running:
+`gen_macros.tex` and every `tab_*.tex` byte-identical, and the narrowed `fig:tailpct` rendering
+exactly as its new macros claim.
+
+**Found by hand, before the audit.** Yesterday's caption fix had replaced a wrong host attribution
+with a differently wrong one. `tab:budget` and `tab:contention` were given "Measured on the
+virtualised host", where neither `latency_budget.json` nor `queue_contention.json` records an
+environment and neither runner calls `capture_env.sh`. For the contention file the nearest evidence
+points the other way: it was written on 14 August and the only capture from that day is the WSL
+development laptop, `virtualisation: wsl`, not the KVM guest. Both captions now state what is
+checkable, that the experiment predates the environment-record discipline and supports a ratio
+between two alternately measured arms. `tab:ffi` had no provenance at all while Appendix D asserted
+that every such table names its own, so it gained one, and §6.3's "Every campaign writes the
+environment record" was scoped to the load sweeps, since three paired experiments do not.
+
+**Found by the audit, and the first is the sharpest defect of the day.** The `tab:latency` caption's
+new reason for not testing the maximum, "a single observation per run and carries no distribution to
+test at all", is refuted by the table it captions: the max column is
+`\mci{243.1}{239.2}{275.8}`, a median of twenty per-run maxima above a bootstrap interval, printed
+four columns away. **The wording it replaced was correct** and the replacement swapped a right reason
+for a wrong one. The maximum is untested because it is the limiting case of a statistic read off
+exactly the operations interference lands on, which is what §4.5 already says, and the caption now
+says that.
+
+Three more. Appendix D's replacement sentence swept `tab:adoption` and `tab:ffi` into a
+paired-and-alternating claim their own sections refuse, since only build time is host-sensitive and
+the footprint and dependency figures are deterministic, which is the mirror image of the error
+`AGENT.md` §3 item 6a exists to prevent. Its count of five omitted `tab:taxonomy`, which runs on the
+development machine under `g++ 13.3` against the reported host's 15.2.1. And §6.3's corrected
+enumeration promised a build and footprint dataset that no following paragraph described, so it now
+has one, at the cost of a page.
+
+**A defect outside every gate the thesis has.** The audit looked past its own brief and found that
+`build_deck.py`'s tail-percentile slide is titled "the host runs out of resolution" and annotated
+"Uncertainty about one exceeds the gap between all four", where the macros beside it are
+`\PNineNineRange` 2 against `\PNineNineMaxCI` 1 and say the opposite. The slide had just been given a
+regenerated figure whose own panel title reads "The comparison stays resolvable at every percentile",
+so the deck contradicted the picture on it. Title and note now read off the same macros as the panel.
+**A deck defect is invisible to `texaudit.py`, to `.aitells.py` and to every check in this file**, and
+the deck's own two gates gate layout and punctuation, not agreement with the data.
+
+**Length.** 110 declared pages with 6 appendix, 124 physical, up one. The page is the new
+adoption-cost dataset paragraph, which explains why build time is a ratio and the footprint is not,
+a distinction `AGENT.md` §3 item 6a protects. Worth the page.
+
+**Running total: 77 defects across eight reviews.** Five independent readers found 54 of them. The
+grade is unchanged at 4.83, because every one of these was closed and none touched a level
+descriptor, but the residual-risk estimate in the fifteenth pass should be read as what it was: an
+under-estimate by half.

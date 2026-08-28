@@ -70,9 +70,16 @@ Three datasets now have distinct jobs and the prefixes keep them apart:
 | **C** | Companion docs: decide fate of `archive/thesis-vi` (citations render `[?]`) | Short | You or agent |
 | **D** | Full proofread pass | Half day+ | You |
 | **E** | Transparent-hugepage experiment, the one open question the data raised | 1 machine-hour | You or agent |
-| **F** | ~~A grading pass by a reader who wrote none of the last two days' edits~~ **Done**, plus three independent audits | — | Recorded as the 15th pass |
-| **G** | One independent read of the fifteen edits made after 11:15 on 28 Aug, which closed the last audit's findings and have not themselves been read | 1 h | Agent, fresh context |
+| **F** | ~~A grading pass by a reader who wrote none of the last two days' edits~~ **Done**, plus four independent audits | — | Recorded as the 15th pass |
+| **G** | ~~One independent read of the fifteen edits after 11:15~~ **Done.** Found eight defects, not the two to four estimated | — | Recorded in `docs/ASSESSMENT.md` |
+| **H** | One independent read of the ten edits that closed **G**, on the same reasoning that made **G** worth doing | 1 h | Agent, fresh context |
 | — | Examiners, official class file | n/a | Faculty / Moodle |
+
+**On item H, and on when to stop.** Each round of fixes has itself needed auditing, and the defect
+count per round is falling (13, then 8, then 8, and the last round's were smaller in kind: a wrong
+reason in a caption rather than an inverted headline claim). H is worth one hour. Beyond it, the
+returns are clearly diminishing and the remaining risk is better spent on the author's own proofread,
+item **D**, which no agent can substitute for.
 
 **A is the only blocker and it now caps two criteria on its own**, 4 and 6, because the abstract is
 where results are reported first and because the build prints "Not submittable" until the switch is

@@ -262,6 +262,20 @@ Three shapes, in the order they were discovered:
 3. **Half a pair fixed.** A caption is corrected and the paragraph introducing it is not (3j). After
    any caption edit, read the sentence above the float.
 
+**Two numbers from 28 August that calibrate every future estimate of remaining risk.** Editing rounds
+on this project introduce defects at roughly **one per two to four changed passages**, and the
+session doing the editing **under-estimates that rate by about half**: the fifteenth pass predicted
+two to four undiscovered defects in its own last fifteen edits and an audit found eight. Budget one
+independent read per editing round, and when a pass tells you what its residual risk is, double it.
+
+**A defect class no gate in this repository can see: the slide deck.** `build_deck.py`'s
+tail-percentile slide carried the title "the host runs out of resolution" and an annotation saying
+the uncertainty exceeds the gap, beside the two macros that say the opposite, and it displayed a
+regenerated figure whose own panel title contradicted it. `texaudit.py` does not read the deck,
+`.aitells.py` does not read the deck, and the deck's own two gates check layout and punctuation, not
+agreement with the data. **Check the deck against the thesis whenever a campaign moves**, and
+remember `AGENT.md`'s older warning that a diagram only the deck uses is outside every gate too.
+
 **A rule this thesis has now demonstrated three times: a remediation pass must not grade its own
 work.** The two failures above are invisible from inside the pass that made them. Grade the
 remediation separately, and ask specifically what it propagated and what it half-fixed.

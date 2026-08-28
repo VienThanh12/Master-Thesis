@@ -2410,13 +2410,12 @@ the exact paired test of Section~\ref{sec:stats} requires, and all three predate
 record described below, which is why each is read as a ratio between its two arms.
 
 \paragraph{The adoption-cost measurement.}
-The RQ4 axes beyond the seam form a dataset of a third kind, because only one of them is a timing
-measurement. Build time is recorded over \AdoptRepeats{} interleaved repeats at \AdoptJobs{} parallel
-jobs on the development machine, alternating the two toolchains so the ratio between them survives
-the choice of machine even though the seconds do not. The static footprint and the resolved
-dependency graph are not timed at all: they are read from the linked binaries and the dependency
-manifests, so the same inputs give the same figures anywhere. Section~\ref{sec:migrationresults}
-keeps the two apart for that reason.
+Only one of the RQ4 axes beyond the seam is a timing measurement, which is what makes this a dataset
+of its own kind. Build time is recorded over \AdoptRepeats{} interleaved repeats at \AdoptJobs{}
+parallel jobs on the development machine, alternating the toolchains so the ratio survives a change
+of machine even though the seconds do not. The static footprint and the resolved dependency graph are
+read from the linked binaries and the manifests, so the same inputs give the same figures anywhere.
+Section~\ref{sec:migrationresults} keeps the two apart for that reason.
 
 \paragraph{The fault-injection catalogue.}
 This dataset is categorical and not numeric. Each of the $\FaultClasses$ defect cases yields four
