@@ -38,7 +38,7 @@
 
 \noindent\textbf{Tool.} Anthropic's Claude Opus~5, used through the Cursor development
 environment, is the only generative AI system used in preparing this thesis, and it was used
-throughout, from June to November~2026. It is named neither as an author, which University of
+throughout, from June~2026 until submission. It is named neither as an author, which University of
 Helsinki policy forbids, nor as a source, which is the author's own choice.
 
 \noindent\textbf{What the assistance covered.} It was extensive. The model drafted and revised
@@ -61,7 +61,7 @@ questions, the three hypotheses, and the control on which the study's value rest
 author's. That control is one frozen language-neutral specification and one concurrency model, so
 language remains the only systematic difference between the two implementations. The author also
 chose to carry defect classes from outside Rust's compile-time guarantee, which is what keeps RQ2
-falsifiable. Every measurement was run by the author on the hosts documented here, and the
+falsifiable. Every measurement was run by the author, on the machines each result names, and the
 quantities the thesis quotes reach the page as macros regenerated from the raw logs rather than as
 figures typed into a paragraph.
 The readings are the author's too, including the restraints the evidence imposes: a sweep dominated
@@ -70,9 +70,12 @@ demonstration of equivalence, and an operating point noticed after the data was 
 rather than tested.
 
 \noindent\textbf{How the output was checked.} Model output was treated as a draft to be
-falsified. Every bibliography entry was resolved against Crossref, DataCite, or the issuing body
-and traced to the page or clause carrying the claim made of it. That audit found four passages
-that overstated or misplaced their source, one a quotation absent from the work it was attributed
+falsified. Every bibliography entry was resolved against Crossref, DataCite, or the issuing body,
+and each was then graded by how far the claim made of it could be traced: to the page or clause
+itself, to a publisher-deposited record carrying it, or no further than confirmed metadata behind a
+paywall. The audit records that grade per entry, so the entries whose supporting passage was never
+opened are listed rather than absorbed. It found four passages that overstated or misplaced their
+source, one a quotation absent from the work it was attributed
 to. All four were corrected, and the audit is kept beside the artefacts. Code was checked by
 running it, against a conformance suite whose transcripts are diffed line by line and a fault
 catalogue that fixes each expected outcome before the defect is injected.

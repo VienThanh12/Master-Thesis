@@ -76,12 +76,22 @@ thesis process, which no manuscript can settle. It is reproduced as issued in
 four passes on record, and the build-gate script live in the same skill. Use it for any new
 grading pass so passes stay comparable.
 
-**The grades below are the thirteenth pass's, and a remediation pass on the night of 27 August closed
-its whole list except the abstract. Those grades are therefore stale in the author's favour and must
-not be raised without a fresh pass**, because this repository has twice recorded a remediation
-over-crediting its own work. The *What still blocks a 5* column has been rewritten to describe the
-state after the remediation. See `docs/ASSESSMENT.md`, remediation pass of 27 August 2026 night, for
-the full list and for the two claims a fresh pass should check first.
+**The grades below are the thirteenth pass's and they do not move yet.** A remediation on the night
+of 27 August closed its whole list except the abstract, and the fourteenth pass on 28 August audited
+that work and found four defects in it, three of them newly introduced. Both were written by the same
+session, so the numbers are held: this repository has three times now recorded a remediation
+over-crediting itself. **The fourteenth pass's self-assessment is 4.83 against the recorded 4.50**,
+with areas 3 and 5 supported at 5 and areas 4 and 6 capped at 4.5 by the abstract alone. Do not bank
+that until an independent pass confirms it. See `docs/ASSESSMENT.md`, fourteenth pass, for what to
+check first.
+
+**An independent audit run in parallel with that pass found five more defects it had missed**, the
+worst being a results paragraph and figure caption in §6.4.1 claiming the confidence interval swamps
+the between-variant spread from p90 upward, where the figure beside it annotates ratios of 0.2 to 0.7
+and the interval never wins. All five are fixed and recorded in the addendum to the fourteenth pass.
+**The transferable rule: two sessions editing and grading in sequence do not substitute for one
+reader who was not told what to expect.** Run a second reader against the artefacts alone before
+believing any remediation, including this note.
 
 | # | Criterion | Target | Current (13th pass, unaudited remediation since) | What still blocks a 5 |
 | --- | --- | --- | --- | --- |

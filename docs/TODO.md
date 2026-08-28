@@ -10,12 +10,40 @@ primary control against implementation bias.
 
 ---
 
-## Do now (as of 27 Aug 2026, evening)
+## Do now (as of 28 Aug 2026, morning)
 
-The measurement work is finished. The canonical bare-metal repeat ran on 27 August, it is now the
-thesis's main dataset, and every chapter has been synced to it. **Two items remain and one of them is
-the abstract.** Detail on the day's findings is below, grade reasoning in `docs/ASSESSMENT.md` and
-`AGENT.md` §2.
+The measurement work is finished and the canonical bare-metal repeat is the thesis's main dataset.
+**The abstract is the only blocker.** Grade reasoning is in `docs/ASSESSMENT.md` and `AGENT.md` §2.
+
+**The claim this section made yesterday, that every chapter had been synced to the new dataset, was
+wrong, and how wrong is the most useful thing on this page.** Three reviews since have found
+**twenty-two** prose defects against artefacts that were themselves correct throughout:
+
+| Reviewer | Scope | Found | Character |
+| --- | --- | --- | --- |
+| Thirteenth grading pass, 27 Aug night | Ch. 6–7 | 13 | Six wrong rather than stale, including `tab:latency`'s p99.99 computed as a median of per-run values while two sections called it pooled |
+| Fourteenth pass auditing its own remediation | Ch. 6–7 | 4 | Three introduced by the remediation itself, one it had missed |
+| **Independent reader, artefacts only** | Ch. 6–7 | **5** | A §6.4.1 paragraph and figure caption stating the exact opposite of the figure beside them, missed by both self-audits |
+| Cross-document check by hand | 3 docs | 3 | The plan dated a fortnight before the work it reports, September marked Done in August, and Chapter 8 naming the wrong next experiment |
+| **Independent reader, artefacts only** | Ch. 1–5, appendices | **12 + 5** | A hand-typed guest CPU-steal figure whose own capture records zero, and two claims the remediation had introduced |
+| **Independent reader, artefacts only** | Abstract, Ch. 8, declaration, cross-doc | **10 + 9** | The overload CPU-per-operation ratio attributed to the wrong language at five sites in two documents, and five abstract defects nobody had recorded |
+
+**Fifty-six defects, all fixed and verified**, against a generated layer that has re-derived byte
+for byte every time anyone has checked it. Nine were introduced by the two editing passes themselves.
+**The three reviews by readers who were told nothing about what had changed found 34 of the 56.**
+
+The worst single find is worth remembering because no gate and no macro check could catch it. The
+sentence "the C++ build sustains 1.7× the throughput of the Rust build while drawing 1.8× the CPU per
+completed operation" attaches the participle to C++, where **Rust** draws 1.8×. §6.4.2 wrote that
+clause specifically to rule out the reading that the slower variant is simply doing less, so inverted
+it says the opposite and makes the overload finding incoherent. §6.4.2, `fig:overload` and
+`tab:findings` were all correct. §1.4, §7.2 and Chapter 8 were all wrong, in both documents. **A claim
+can be wrong at every summary site while the section that owns it is right**, which is invisible to a
+reviewer who checks each number against the table nearest to it. **The transferable lesson, now recorded in `AGENT.md` and the
+grading skill's calibration file: two sessions editing and grading in sequence do not substitute for
+one reader who was not told what to expect.** A self-audit reads for the claims it knows it changed.
+Every generated artefact has meanwhile re-derived byte for byte from the raw logs, so the generated
+layer has never been the problem and is not where review time should go.
 
 ### The dataset the thesis now reports
 
@@ -41,14 +69,52 @@ Three datasets now have distinct jobs and the prefixes keep them apart:
 | **B** | Send **spec + plan** to supervisors; settle Nokia "what can be published" | Email | You |
 | **C** | Companion docs: decide fate of `archive/thesis-vi` (citations render `[?]`) | Short | You or agent |
 | **D** | Full proofread pass | Half day+ | You |
-| **E** | Fresh grading pass, since today's work must not grade itself | Half day | You or agent |
+| **E** | Transparent-hugepage experiment, the one open question the data raised | 1 machine-hour | You or agent |
+| **F** | A grading pass by a reader who wrote none of the last two days' edits | Half day | Agent, fresh context |
 | — | Examiners, official class file | n/a | Faculty / Moodle |
 
-The abstract is the only blocker. It still ends "The far tail below saturation cannot be settled on a
-virtualised host", which the thesis now contradicts in the same document, and it is the last stale
-far-tail sentence anywhere. Five defects to fix in one pass: the three wrong "five"s where the
-catalogue is seven and seven, "median latency matches" where the paired test resolves the median,
-jitter (now reported, so it is no longer an open dimension), the far-tail sentence, and the switch.
+**A is the only blocker and it now caps two criteria on its own**, 4 and 6, because the abstract is
+where results are reported first and because the build prints "Not submittable" until the switch is
+set. Every other criterion-capping item is closed.
+
+**The list grew from five items to ten on 28 August**, when an independent reader audited the
+abstract against the body for the first time. Items 6 to 10 were not previously on record, and three
+of them are substantive rather than stale. Every item below is verified against the artefacts. **No
+replacement wording is offered anywhere in this repository, deliberately**: the abstract is the
+programme's maturity test, so what follows is the fact to state, not the sentence to write.
+
+| # | What the abstract says | What is true |
+| --- | --- | --- |
+| 1 | "all **five** injected memory-safety and data-race defect classes" | **Seven.** `\FaultClassesPrevented` = 7, seven `rust_expected = prevented` rows in `taxonomy.csv` |
+| 2 | "In C++ the same **five** build cleanly" | **Seven**, same source |
+| 3 | "**Five** further classes fail in both languages" | **Seven.** `\FaultClassesBoundary` = 7, `\FaultClasses` = 14 |
+| 4 | "median latency **matches**" | The paired test resolves $-1.3$ and $-1.2\,\mu$s, both clearing Holm. §1.4's register: practical equivalence, not statistical |
+| 5 | jitter listed in the *Objective* as an open dimension | Measured and reported descriptively on both bare-metal hosts. No research question asks for it, which §4.5, §6.4.1 and `tab:jitter`'s caption all say |
+| 6 | "The far tail below saturation **cannot be settled on a virtualised host**" | It is settled, on the reported bare-metal host, and favours Rust by $\FarTailLangSep$ µs at p99.99. This is also the **only** place the abstract describes a measurement environment, so the one machine a reader of the abstract meets is the retired one |
+| 7 | "**Above saturation** the order flips: C++ holds 1.7×" | Half the finding. The first thing that happens above saturation favours **Rust**: it holds its offered rate to 448 kops/s where C++ collapses at 392, a 2.8× lead in 40 of 40 repeats. C++ leads only once both have collapsed. §7.2 says a single verdict here would be false |
+| 8 | overload "depends on the **standard library's synchronisation primitives**" | §6.4.2's microbenchmark isolates exactly those two primitives and does **not** reproduce the ordering ($p = 0.226$, Rust marginally ahead). The defensible claim is the handoff path, with the primitives ruled out as the whole explanation |
+| 9 | "tail latency and jitter **under overload**" as a dimension | RQ1 asks about increasing load **and** overload, and the far-tail finding that now carries RQ1 is a below-saturation result |
+| 10 | "**Timed alone**, Rust's operation is 1.6× faster **and the process is a few MiB larger**" | Two instruments under one adverbial. The 1.6× is the 15-repeat operation microbenchmark; the footprint is the campaign's own 20-repeat peak-RSS column. Both figures are right, the attribution is not |
+
+A lower-severity eleventh, noted and left to you: "implemented twice with **identical** algorithms,
+concurrency model, allocator, and build settings". `tab:controls` records the optimisation control as
+"`-O2` against `opt-level = 2`" with the residual "Nominal parity is not identical code generation",
+and §4.4 says "as closely as the toolchains allow". Only the last noun is at issue.
+
+Then **set `\abstractunaidedtrue`** in `ai_statement.tex`. The printed declaration switches from "has
+not yet been rewritten unaided" to the finished wording, and the build stops printing "Not
+submittable".
+
+Two things the abstract does **not** mention and that the body now supports, in case you want them:
+the far tail resolves in Rust's favour, and the two implementations stop meeting their offered rate
+at different loads. Whether either belongs in 250 words is your call.
+
+E is worth an hour because it is the only question this study raised and did not answer: transparent
+hugepages differed between the hosts (`always` on the guest, `madvise` on both bare-metal ones) and
+only the system-allocator arm inherits the policy, which makes it the named candidate for the
+allocator effect collapsing from 32.5–34.3 MiB to 1.5–2.4 MiB. **The thesis correctly claims no
+causation without it**, so this would convert a named candidate into a finding rather than repair a
+defect. Chapter 8 already lists it as the immediate priority.
 
 ### What 27 August returned
 
@@ -65,6 +131,15 @@ fell from 31 MiB to 1 MiB, so it was the machine's.
 **Both C1 and C2 landed in the main tables.** `LatencyHead` grew its p99.99 column automatically and
 `tab:latency` carries five value columns. `tab:jitter` is generated and now placed in §6.4.2 with
 its own paragraph.
+
+> **Corrected 28 Aug.** That p99.99 column was a **median of the twenty per-run p99.99 values**,
+> which §4.5 calls dominated by sampling noise, while §4.5 and §6.4.1 both described it as pooled
+> across repeats. The column growing "automatically" is what hid it: the preamble widened, the cell
+> filled, and nothing checked which statistic filled it. `pooled_far_tail()` now reads the pooled
+> sidecar and **returns `None` rather than falling back** to the per-run field, so the column
+> disappears loudly on an unpooled campaign instead of quietly printing the wrong statistic, and
+> `refresh_thesis.sh` pools `bench/results/` as well as `bench/results-baremetal/`. The change moved
+> the numbers **in the thesis's favour**: the between-variant range went from 52 to 87 µs.
 
 **The overload divergence reproduces on a third machine**, 1.7× against the guest's 1.8× and the
 26 August 1.64×, always with the same arm ahead.
@@ -115,27 +190,43 @@ keeps the two hosts comparable at the same offered load and keeps the point belo
 every below-saturation claim and the exclusion of achieved throughput from the test family already
 assume. §`sec:workload` states the change.
 
-### Build state
+### Build state (28 Aug 2026, morning)
 
-118 physical pages. Zero LaTeX errors, zero undefined references, zero warnings. One overfull box,
-pre-existing, in a running header. `./.aitells.py`: zero semicolons, sentence-length stdev 11.3, all
-14 dash hits numeric ranges or Herfindahl--Hirschman. `bench/refresh_thesis.sh` runs end to end
-including the deck. Rollback point: `.rollback-20260827-220354`.
+**109 declared pages with 6 appendix pages, 123 physical**, up from 104 and 6. About two of the five
+added pages are new argument (the saturation-knee finding, the pooled-statistic explanation, §6.2's
+pinned-load reasoning) and three are float reflow. Zero LaTeX errors, zero undefined references or
+citations, no multiply defined labels, **no float too large**, no overfull boxes, no placeholders,
+109 of 109 bibliography entries cited. `./.aitells.py`: zero semicolons in all three documents,
+sentence length 22.1 ± 11.4, "rather than" back to 90 after the editing pushed it to 95, all 14 dash
+hits numeric ranges or Herfindahl--Hirschman. Diagram labels clean over 19 diagrams. The deck passes
+both `check_layout` and `check_prose_style`. `bench/refresh_thesis.sh` runs end to end.
+
+**Length note.** Three rounds of word cuts recovered nothing, and the chapter-6 tail page at physical
+84 *grew* its bottom gap from 627pt to 642pt as words came out of the paragraphs feeding it. Do not
+attack that page from the prose side. If pages are wanted there they have to come from a float in
+§6.4.5. Under 100 remains a preference and substance won here.
+
+**One trap worth carrying:** `tab:threats` overflowed its page by 79pt when a fifteenth row landed.
+Tightening four cells recovered half and `\arraystretch` 1.25 to 1.15 recovered the rest. That table
+sits within a few points of a full page, so measure after any row edit.
 
 ### Grade map
 
-| Criterion | Last graded | Expectation after today | Moves it |
+| Criterion | On record (13th pass) | Evidence now supports | What decides it |
 | --- | --- | --- | --- |
-| 1 Objectives & RQs | 5 | 5 | Hold. RQ1 can now name p99.99, which it previously narrowed away from |
-| 2 Sources | 5 | 5 | Optional: replace the remaining arXiv `Bugden` |
-| 3 Method & data | 4.5 | **candidate for 5** | The canonical repeat was the only thing holding the data half |
-| 4 Results presentation | 4.5 | **candidate for 5** | Far tail, jitter and p99.99 all now reported from the main dataset |
-| 5 Discussion | 5 | 5 | Hold. The RQ3 reversal is stated without over-claiming a cause |
-| 6 Academic text | 4.5 | 4.5 | **A**, the unaided abstract |
+| 1 Objectives & RQs | 5 | 5 | RQ1 names p99.99 in all three documents now, so the standing item is closed |
+| 2 Sources | 5 | 5 | Untouched and verified intact. Optional: replace the remaining arXiv `Bugden` |
+| 3 Method & data | 4.5 | **5** | Both description defects closed, and the study now refuses to test a favourable post-hoc result |
+| 4 Results presentation | 4.0 | **4.5** | All defects closed. Capped at 4.5 by **A** |
+| 5 Discussion | 4.5 | **5** | All four chapter-7 sites synced, and §7.2 gives a decision rule instead of a verdict |
+| 6 Academic text | 4.0 | **4.5** | Level 4's consistency clause holds on all four things it names. Capped by **A** |
+| **Mean** | **4.50** | **4.83** | The whole gap is the last two days' own work |
 
-**Do not record new grades from this pass.** The rule that a remediation pass must not grade its own
-output applies to today's work, which is why item **E** exists. Criteria 3 and 4 stay at their last
-graded values until a fresh pass runs.
+**Do not record the right-hand column as the grade.** It is self-assessed by the sessions that wrote
+the edits, and this repository has now recorded a remediation over-crediting itself three times.
+Item **F** exists to settle it. What a fresh reader should check first: the pooled far-tail claim,
+which now appears at six sites, and the saturation-knee finding, which appears at nine including
+`Thesis_v2.tex`, both written in one night by one session.
 
 ---
 
@@ -723,20 +814,30 @@ to "localised", closing the residual `tab:threats` names as its most exposed.
       linear probing where `hashbrown` probes sixteen slots at a time with SIMD. That
       bounds how much of the remaining gap is container quality rather than language.
 
-### 2. Re-run the campaign with jitter and HDR sidecars on the host already in hand
+### 2. Re-run the campaign with jitter and HDR sidecars on the host already in hand — DONE (27 Aug 2026)
 
-**Why.** The instrumentation landed in Aug 2026 (`--jitter`, `--hist-out`,
-`bench/pool_hist.py`) but the reported campaign predates it, and `bench/results/` confirms only
-the Aug 14 WSL smoke carries `.hist.jsonl`. So jitter and p99.99 are measurable and unmeasured.
+**Delivered by the canonical bare-metal repeat.** `campaign-20260827-151927` carries `--jitter` and
+`--hist-out`, so both statistics are measured and both reach the page. p99.99 is a column of
+`tab:latency`, pooled from the histogram sidecars over 3 360 051 to 3 360 084 operations per variant.
+Jitter is `tab:jitter` in §6.4.1 and a paragraph in §6.4.4, reported descriptively.
 
-Note what this item is **not**, because an earlier version of this note had it wrong. RQ1 no
-longer names jitter: as worded in the plan, `Thesis_v2.tex` and `Ha_Vien_Mastersthesis_2026.tex` it asks about the
-median, p99, p99.9 and the maximum, which is exactly what the reported campaign delivers, and
-§8.6 says so deliberately rather than confessing a hole. The question and the answer therefore
-already match; this re-run is an *upgrade to predictability evidence*, not the discharge of an
-unkept promise. Do not re-argue it as one, and do not widen RQ1 to name jitter again unless the
-statistic is in hand — narrowing the question to what the campaign delivers was the right call and
-should not be undone by a TODO item.
+**Two decisions from that landing which a future pass must not reverse.**
+
+**RQ1 now names p99.99 and still does not name jitter, and both halves of that are deliberate.** The
+old note here said "do not widen RQ1 to name jitter again unless the statistic is in hand", and the
+condition it set has been met for one statistic and not the other. p99.99 turned out to be the
+statistic that *decides* RQ1, since it is where the two languages separate below saturation, so
+leaving it unnamed while reporting it as the headline result was a question-and-answer mismatch and
+§1.3 was widened on 28 August to close it. Jitter decides nothing, no claim rests on it, and adding
+it to the tested family would spend two slots of the Holm budget on a metric that cannot resolve, so
+it stays out of the question and is reported descriptively. §7.7's construct-validity paragraph says
+exactly this. **Do not widen RQ1 to name jitter, and do not narrow it back off p99.99.**
+
+**The far tail is pooled and never a median of per-run values.** A per-run p99.99 rests on about
+seventeen observations, which §4.5 calls uninterpretable, so `pooled_far_tail()` reads the sidecar
+and returns `None` rather than falling back to the per-run field when no pooled CSV exists. The
+column vanishes loudly instead of quietly printing the statistic the thesis disowns. Keep it that
+way, and keep `bench/results/` in `refresh_thesis.sh`'s pooling loop.
 
 This is filed under "after the bare-metal campaign" at the end of Phase 10, and it does not
 belong there. Jitter is an IPDV dispersion statistic, not a far-tail percentile: the reading rule

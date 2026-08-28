@@ -181,6 +181,13 @@ def test_family_facts(macros, rows):
     macros["GuestNTests"] = str(len(sig))
     macros["GuestNSignificant"] = str(sum(1 for r in sig if r["holm"] < 0.05))
     macros["GuestNEqvUnresolved"] = str(sum(1 for r in sig if r["holm"] >= 0.05))
+    # How many rows tab:equivalence actually shows. write_equivalence_table keeps
+    # only the representative-load comparisons, so the family size and the table's
+    # row count are different numbers and a sentence saying "N of the M rows" has
+    # to use this one. Quoting GuestNTests there would name a denominator the
+    # reader cannot count in the table in front of them.
+    macros["GuestNEqvRows"] = str(
+        sum(1 for r in sig if r.get("point", "repr") == "repr"))
     tail = [r["eqv"] for r in sig if r["kind"] == "tail"]
     if tail:
         macros["GuestEqvBoundTailMax"] = fmt(max(tail))

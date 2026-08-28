@@ -50,6 +50,17 @@ figure beside it, one at a time. **A promotion pass is most tempted to skip that
 it is most needed, because the macros all regenerated cleanly.** A clean regeneration says the numbers
 are right and says nothing about the sentences around them.
 
+**A third shape, added by the fourteenth pass, and it is the subtlest of the three.** Auditing its own
+overnight remediation, that pass found four defects and three shared a form: **a correct statement
+attached to the wrong scope.** A caption said peak RSS "separates the two languages" where that holds
+for the paired comparison and fails for the unpaired envelopes, which overlap. A sentence said "5 of
+its 14 rows" where the family has 14 tests and the table it named shows 10. A caption called one load
+"the one place the two languages part company" where it is the one place the ordering favours *Rust*,
+the languages also parting company at two deeper loads. **None is a wrong number**, so a macro
+recompute passes every one of them, and a reader checking the value finds nothing. The check that
+catches this class is to ask of every comparative claim exactly **which set it quantifies over**:
+paired or unpaired, family or table, all loads or one direction.
+
 Two corollaries worth carrying:
 
 - **Check the macro's definition, not just its value.** `\SatKnee` is the *minimum* achieved
@@ -75,9 +86,23 @@ Two corollaries worth carrying:
    **Extended by the thirteenth pass to every comparative claim, not only every number**: "intervals
    overlap", "separates cleanly", "the one row that fails", "the knee is shared" are all checkable
    against a generated table and all four were wrong.
+   **Extended again on 28 August: check the claim at its summary sites, not only where it is
+   derived.** The clause "the C++ build sustains 1.7 times the throughput of the Rust build while
+   drawing 1.8 times the CPU per completed operation" attaches the participle to C++, where the data
+   has Rust drawing 1.8 times. It was **right in the section that owns the result** and wrong at
+   every one of the five summary sites, across two documents. A reviewer working table by table sees
+   the correct version each time and never reaches the wrong one. Read the introduction, the
+   discussion and the conclusion *against each other* on each headline claim, and check which noun a
+   participle attaches to when two subjects are in play.
 2. **Every figure against the claim it illustrates.** Three figures here contradicted the results
    tables after the claims moved: a defect class marked not injected while the table injected it,
    a stale toolchain version, and a schematic asserting a finding the study never obtained.
+   **Extended on 28 August to the figure's own generated titles and annotations.** `fig:tailpct`
+   panel (b) printed the ratios 0.2, 0.2, 0.5, 0.6 and 0.7 above its bars while its hard-coded title
+   read "Where the host stops resolving the comparison" and the paragraph beside it said "from p90
+   upward the interval wins". The bars, the annotations, the title and the prose were four surfaces
+   and two of them were wrong. A title that states a conclusion must be generated from the data like
+   any other claim, and this one now is.
 3. **Metrics promised and never reported.** The methodology promised p99.99 and jitter while the
    harness emitted neither; the external manuscript promised a baseline model and a few-shot
    condition and reported neither. This costs areas 4 and 6 at once, because the question and the
@@ -237,9 +262,20 @@ Three shapes, in the order they were discovered:
 3. **Half a pair fixed.** A caption is corrected and the paragraph introducing it is not (3j). After
    any caption edit, read the sentence above the float.
 
-**A rule this thesis has now demonstrated twice: a remediation pass must not grade its own work.**
-The two failures above are invisible from inside the pass that made them. Grade the remediation
-separately, and ask specifically what it propagated and what it half-fixed.
+**A rule this thesis has now demonstrated three times: a remediation pass must not grade its own
+work.** The two failures above are invisible from inside the pass that made them. Grade the
+remediation separately, and ask specifically what it propagated and what it half-fixed.
+
+**And the strongest version of that rule, from 28 August: run a second reader with no context.** The
+fourteenth pass audited its own overnight remediation and found four defects, which was worth doing.
+An independent audit of the *same* claims, run in parallel from the artefacts alone, found **five
+more**, including a results paragraph stating the exact opposite of the figure beside it. Both
+self-audits missed it for the same reason: they were reading for the claims they knew had changed,
+and this one had not changed since the guest campaign. The independent reader also re-derived every
+artefact into a scratch directory and confirmed `gen_macros.tex` and all eleven `tab_*.tex` reproduce
+byte for byte, which is the cheapest possible proof that the generated layer is not the problem. Two
+sessions editing and grading in sequence are not a substitute for one reader who was not told what to
+expect.
 
 **The one thing to internalise before grading this thesis again.** Its failure mode is not wrong
 numbers and never has been. It is **prose that describes an older state of the evidence than the

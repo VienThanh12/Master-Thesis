@@ -635,14 +635,23 @@ def fig_tail_percentiles(rows, outdir, load):
     ax_b.set_xticklabels(pct_labels)
     ax_b.set_xlabel("Latency percentile")
     ax_b.set_ylabel("Latency (\u00b5s, log scale)")
-    ax_b.set_title("(b) Where the host stops resolving the comparison", fontsize=9.5)
+    # The title states what this host did, not what a host is expected to do. On
+    # the virtualised guest the widest interval overtook the between-variant
+    # spread above the median, and the panel was headed "Where the host stops
+    # resolving the comparison". On a quiet host the crossover never happens, and
+    # a fixed title would have the figure announce a limit its own bars refute.
+    crossed = any(w > s for s, w in zip(spread, widest))
+    ax_b.set_title(
+        "(b) Where the host stops resolving the comparison" if crossed
+        else "(b) The comparison stays resolvable at every percentile",
+        fontsize=9.5)
     ax_b.grid(True, axis="y", which="both", ls=":", alpha=0.4)
     ax_b.set_axisbelow(True)
     ax_b.legend(fontsize=8, framealpha=0.95, loc="upper left")
     # The ratio between the two bars, annotated at every percentile rather than
-    # only where it exceeds one. Printed throughout, it locates the crossover: at
-    # the median the spread is the larger quantity and an ordering means
-    # something, and above it reporting an ordering would be reporting the
+    # only where it exceeds one. Printed throughout, it says how much resolving
+    # power is left: below one the spread is the larger quantity and an ordering
+    # means something, above one reporting an ordering would be reporting the
     # interference.
     top = max(max(spread), max(widest))
     for x, s, w in zip(xs, spread, widest):
@@ -1639,6 +1648,49 @@ def _subset(rows, key, load):
     ]
 
 
+def _tail_resolution(rows, variants, load):
+    """Whether the measurement resolves the comparison at each percentile.
+
+    Panel (b) of fig:tailpct sets the spread between the four variants against
+    the widest bootstrap interval on any one of them. When the ratio passes one
+    the uncertainty about a single variant exceeds the gap between all four and
+    no ordering can be read. These macros let the prose report which of those
+    two states the campaign is in instead of asserting the one the previous host
+    was in.
+    """
+    fields = [("p50", "p50"), ("p90", "p90"), ("p99", "p99"),
+              ("p99.9", "p999"), ("p99.99", "p9999")]
+    worst, worst_at, crossed = 0.0, None, []
+    for label, field in fields:
+        if not has_metric(rows, ("lat_ns", field)):
+            continue
+        meds, widths = [], []
+        for key in variants:
+            vals = [r["lat_ns"][field] / NS_PER_US for r in _subset(rows, key, load)]
+            if not vals:
+                continue
+            med, lo, hi = bootstrap_ci(vals)
+            meds.append(med)
+            widths.append(hi - lo)
+        if len(meds) < 2:
+            continue
+        spread = max(meds) - min(meds)
+        if spread <= 0:
+            continue
+        ratio = max(widths) / spread
+        if ratio > worst:
+            worst, worst_at = ratio, label
+        if ratio > 1.0:
+            crossed.append(label)
+    if worst_at is None:
+        return {}
+    return {
+        "TailResolveRatioMax": f"{worst:.1f}",
+        "TailResolveRatioMaxAt": worst_at,
+        "TailResolveCrossed": "yes" if crossed else "no",
+    }
+
+
 def pooled_far_tail(campaign_path, load):
     """Read the pooled far tail of one campaign at one offered load, in \u00b5s.
 
@@ -1892,6 +1944,14 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
         "PFiftyRange": f"{max(p50) - min(p50):.0f}",
         "PNineNineRange": f"{max(p99) - min(p99):.0f}",
         "PNineNineMaxCI": f"{max(p99_ci):.0f}" if p99_ci else "0",
+        # The same comparison fig:tailpct panel (b) draws, as one number: the
+        # largest ratio of within-variant uncertainty to between-variant spread
+        # across the percentile range. Below one at every percentile means the
+        # measurement resolves the comparison everywhere it is read. The prose
+        # quoted a crossover here for as long as the guest campaign was reported,
+        # and a crossover is exactly what this macro exists to stop asserting
+        # when the data does not show one.
+        **_tail_resolution(rows, variants, load),
         "MaxOfferedLoad": f"{max(loads) / 1000.0:.0f}",
         # The median's own magnitude, so prose can say what a resolved difference
         # of a microsecond or two is a difference *in* without typing the scale.
@@ -2023,6 +2083,15 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
                 < min(pooled[k]["p9999"] for k in pooled if k[0] == "cpp")
                 else "no"
             ),
+            # The gap *between the languages*, which is the worst-case pair and
+            # not the range across all four. FarTailRange spans the extremes, so
+            # it is the right number for "the widest gap between variants" and
+            # the wrong one for "Rust is ahead by", which is this. Quoting the
+            # range for the separation overstates the effect by about three
+            # quarters.
+            "FarTailLangSep": (
+                f"{min(pooled[k]['p9999'] for k in pooled if k[0] == 'cpp') - max(pooled[k]['p9999'] for k in pooled if k[0] == 'rust'):.0f}"
+            ),
         })
     if has_metric(rows, ("lat_ns", "p25")) and has_metric(rows, ("lat_ns", "p75")):
         iqr_us = lambda r: (r["lat_ns"]["p75"] - r["lat_ns"]["p25"]) / NS_PER_US
@@ -2043,8 +2112,12 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
         # which is how "1--2" reached the page as "1 - -2". Every other range in
         # this file is a Lo/Hi pair for the same reason.
         macros.update({
-            "JitterLo": f"{min(jp50):.1f}",
-            "JitterHi": f"{max(jp50):.1f}",
+            # Two decimals, because JitterSpread is computed from the unrounded
+            # medians and the prose prints both in the same sentence. At one
+            # decimal the bounds read 1.4 and 1.7, which divide to 21 per cent
+            # against a printed spread of 26.
+            "JitterLo": f"{min(jp50):.2f}",
+            "JitterHi": f"{max(jp50):.2f}",
             "JitterSpread": f"{100.0 * (max(jp50) / min(jp50) - 1):.0f}",
             "JitterPNineNineLo": f"{min(jp99):.0f}",
             "JitterPNineNineHi": f"{max(jp99):.0f}",
@@ -2089,13 +2162,27 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
             "NTailExclZero": str(
                 sum(1 for r in sig_results if r["excl_zero"] and r["kind"] == "tail")
             ),
+            # How many tail rows clear the correction, which is a different
+            # question from how many have an interval excluding zero and is the
+            # one the results prose asks. The two are equal today and there is no
+            # reason they must stay equal, so a sentence about the correction
+            # quotes this and not NTailExclZero.
+            "NTailSignificant": str(
+                sum(1 for r in sig_results if r["holm"] < 0.05 and r["kind"] == "tail")
+            ),
             "TailExclZeroRows": describe_rows(sig_results, "tail"),
             "RobustExclZeroRows": describe_rows(sig_results, "robust"),
             "PFiftyDiffAbsMax": (
                 f"{max(abs(r['diff']) for r in p50_rows):.1f}" if p50_rows else "0"
             ),
+            # One decimal, not zero. BudgetBoundVsCore divides this same bound by
+            # the operation's own cost and rounds only the ratio, so printing the
+            # bound as a whole number put "an interval of 1 us ... is 38 times the
+            # operation's cost" in one sentence, where 1 / 0.0345 is 29. It is also
+            # the same quantity as EqvBoundPFifty, which has always carried a
+            # decimal, so the two disagreed with each other on the same page.
             "PFiftyDiffCIMax": (
-                f"{max(max(abs(r['lo']), abs(r['hi'])) for r in p50_rows):.0f}"
+                f"{max(max(abs(r['lo']), abs(r['hi'])) for r in p50_rows):.1f}"
                 if p50_rows else "0"
             ),
             # Equivalence bounds: the tightest margin each unresolved comparison

@@ -3020,3 +3020,316 @@ second is a class rule.
    and `Thesis_v2.tex`. Six and eight sites respectively, written in one pass, by one session.
 3. **The transparent-hugepage experiment.** Unchanged, about one machine-hour, and Chapter 8 already
    names it as the priority.
+
+---
+
+## Fourteenth pass — 28 August 2026
+
+Graded from `Ha_Vien_Mastersthesis_2026.tex` against a build kept current throughout. **109 declared
+pages with 6 appendix pages, 123 physical.** Graded as a full draft.
+
+**This pass has a conflict of interest and reports two columns because of it.** The remediation of
+27 August night was written by the same session. The standing rule here is that a remediation must
+not grade its own work, so the *on record* column below does not move and the *supported* column is
+self-assessed and must not be banked until an independent reader confirms it.
+
+| Area | On record (13th pass) | Evidence now supports | What decides it |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Already 5. The RQ1 metric item is closed, so the reasoning changed and the number did not |
+| 2. Scholarly framework and sources | 5 | **5** | Untouched by two editing passes and verified intact |
+| 3. Research data and method | 4.5 | **5** | Both description defects closed, and the study now refuses to test a favourable post-hoc result |
+| 4. Presentation of results | 4.0 | **4.5** | All thirteen defects closed and verified. Capped at 4.5 by the abstract, which is where results are reported first |
+| 5. Discussion and conclusions | 4.5 | **5** | All four chapter-7 sites synced, and §7.2 now gives a decision rule instead of a verdict |
+| 6. Academic text | 4.0 | **4.5** | Level 4's consistency clause holds on all four things it names. Capped by the abstract |
+| 7. Work during the thesis process | n/a | **n/a** | No manuscript settles it |
+| **Mean of the six assessable** | 4.50 | **4.83** | The whole gap is this session's own work |
+
+Canvas: `thesis-grade-csm-aug28.canvas.tsx`.
+
+### The part of this pass worth keeping: four defects in its own overnight work
+
+Three were introduced by the remediation and one was pre-existing and missed by the pass that should
+have caught it. **None would have been caught by any gate in the repository.** All four are fixed,
+regenerated and rebuilt.
+
+| Site | What was written | What the data says |
+| --- | --- | --- |
+| `tab:resource` caption | "Peak RSS and CPU both separate the two languages here." | True of CPU unconditionally. True of peak RSS only **at a fixed allocator**: the unpaired envelopes overlap, C++ reaching $12.63$ MiB and Rust starting at $12.42$. The §6.4.3 prose beside it was precise and the caption was not, which is the half-a-pair pattern with the halves reversed |
+| §6.4.1, equivalence paragraph | "`\GuestNEqvUnresolved` of its `\GuestNTests` rows unresolved", printing 5 of 14 | `tab:equivalence` shows **10** rows: `write_equivalence_table` filters to the representative load and the other four are overload tests. All five unresolved rows were among the ten shown, so the count was right and the denominator named something the reader cannot count. New macro `\GuestNEqvRows` supplies 10 |
+| `fig:loadsweep` caption | 448 kops/s is "the one place in the sweep where the two languages part company below the deepest overload" | False. They also part company at **560** kops/s, where C++ sustains $143.6$ against Rust's $84.6$. What is true is that 448 is the only load at which the ordering favours **Rust** |
+| §6.4.1 and §6.4.2 | "An interval of `\PFiftyDiffCIMax` µs is `\BudgetBoundVsCore` times the operation's own cost", printing 1 µs and 38 | `\BudgetBoundVsCore` divides the unrounded $1.3$ µs by $34.5$ ns and rounds only the ratio, so the printed figures divide to 29. The same quantity printed as $1.3$ through `\EqvBoundPFifty` two paragraphs earlier. **Pre-existing, missed by the thirteenth pass.** `\PFiftyDiffCIMax` now carries one decimal |
+
+**Three of the four share a shape and it is worth naming as a class.** A sentence true of the paired
+comparison and false of the unpaired one. A count right against the family and wrong against the
+table it names. A uniqueness claim true in one respect and false as written. **None is a wrong
+number. Each is a correct statement attached to the wrong scope.** A reader checking the value finds
+nothing and a reader checking the sentence finds it at once. The check that catches this class is to
+ask of every comparative claim exactly which set it quantifies over.
+
+### What was checked and did hold
+
+- **The generated layer.** 18 macros recomputed from the raw campaign JSONL, all 18 matching. Four
+  looked like mismatches on the first attempt and were the false positive `CALIBRATION.md` warns
+  about: `RssLangDiff*`, `RssAllocDiff*` and `CpuDiffAbsMax` are **medians of paired differences**,
+  not differences of medians, so a naive recompute disagrees. Re-derived through `_paired_effect`
+  they match exactly. **Seven passes now with no wrong measured value.**
+- **The interval claims of §6.4.1**, re-derived on both hosts. On the reported host the two Rust
+  median intervals overlap each other ($[72.063, 72.319]$ against $[72.287, 72.479]$), the two C++
+  intervals overlap each other, and all four cross-language pairs separate. On the guest all six
+  pairs overlap. Both halves of that sentence are true.
+- **The knee finding**, recomputed: C++ arms track to 392 kops/s, Rust arms to 448, and at 448 Rust
+  serves $447.9$ against C++'s $163.3$ in 40 of 40 paired repeats. The gap of $286$ kops/s is indeed
+  the largest in the sweep, against $63$ at the tested overload point.
+- **Every gate.** Zero LaTeX errors, zero undefined references or citations, no multiply defined
+  labels, no float too large, no overfull boxes, no placeholders, 109 of 109 entries cited.
+  `./.aitells.py`: zero semicolons in all three documents, sentence length $22.1 \pm 11.4$, all 14
+  dash hits numeric ranges or `Herfindahl--Hirschman`. Diagram labels clean over 19 diagrams. Deck
+  passes `check_layout` and `check_prose_style`.
+- **Style drift corrected.** "rather than" reached 95 instances after the remediation, against 89
+  before it. Six of this session's own were rewritten and it now reads 90, which is baseline.
+
+### Why each area sits where it does
+
+**Area 3 has the strongest case of the four to move.** What closed it is not only the two fixes. The
+document now declines to test the 448 kops/s rung, an overwhelming result in its own favour, on the
+grounds that the operating point was identified after the data was in hand, and it adds a
+`tab:threats` row naming that threat. Refusing a favourable post-hoc test is a harder thing to do
+than any of the apparatus around it, and it is what the level-5 clause about methods analysed in
+depth actually looks like. An independent reader should test whether the pre-commitment reads as
+**kept** rather than as quietly relaxed, since §6.4.1 now reports the tail rows as findings on their
+$p$-values while still setting their intervals aside.
+
+**Areas 4 and 6 are capped at 4.5 by the abstract and by nothing else.** Level 5 in area 6 asks for
+presentation that is technically camera-ready, and the build prints "Not submittable". Area 4 follows
+because the abstract is where results are reported first. One rewrite closes both caps.
+
+**Area 5 is where the writing improved most.** §7.2 no longer states a verdict on RQ1's overload
+half. It states that the two effects run in opposite directions, and then says which deployment
+question each answers: a service sized to run below its knee should prefer the arm with the higher
+knee, and one a signalling storm will drive past every knee should prefer the arm that degrades less
+steeply. That is a more useful thing to give a vendor than a winner.
+
+### Length
+
+**109 declared, up from 104 before the remediation and 99 at the start of the week.** About two pages
+are new argument: the knee finding, the pooled-statistic explanation, and §6.2's pinned-load
+reasoning. The other three are float reflow. Three rounds of word cuts recovered **nothing**, and the
+chapter-6 tail page at physical 84 grew its bottom gap from 627pt to 642pt as words came out of the
+paragraphs feeding it, which is this file's own trap in its purest form. **Do not attack that page
+from the prose side.** If pages are wanted there they have to come from a float in §6.4.5. Under 100
+remains a preference and substance won here, so the number is reported and the decision is the
+author's.
+
+### What is left
+
+1. **The abstract.** Author only. It now caps two areas and nothing else caps anything.
+2. **An independent grading pass.** The only thing that can move areas 3, 4, 5 and 6. Ask it what the
+   remediation propagated and what it half-fixed: the pooled far-tail claim now appears at six sites
+   and the knee finding at nine including `Thesis_v2.tex`, all written in one night by one session.
+   This morning's audit found the shared claims sound and three sentences around them wrong, which is
+   roughly the ratio the twelfth pass found when it audited its predecessor.
+3. **The transparent-hugepage experiment**, about one machine-hour, already named in Chapter 8.
+
+### Addendum to the fourteenth pass: an independent audit, run in parallel
+
+The pass above was written by the session that wrote the remediation, so a second reader audited the
+same claims from scratch, without that context, working only from the artefacts. **It found five
+defects the fourteenth pass missed, and one of them is worse than anything either pass had found so
+far.** All five are verified and fixed. This is the clearest evidence yet for the rule this file
+already states: a session cannot audit its own editing, and running a second reader is cheap.
+
+The audit also re-derived every artefact from the raw campaign into a scratch directory and confirmed
+that `gen_macros.tex` and all eleven `tab_*.tex` reproduce **byte for byte**. So no macro or table
+disagrees with the data, and every finding below is prose against a correct artefact.
+
+| # | Site | The claim | The data |
+| --- | --- | --- | --- |
+| A1 | §6.4.1, the `fig:tailpct` paragraph, and the figure caption | "from p90 upward the interval wins, so the fan marks where the measurement loses resolution and not where the languages differ", and the caption's "Why they cannot be separated above the median" | **The interval never wins.** The ratio of widest interval to between-variant spread is 0.17, 0.18, 0.49, 0.64 and 0.70 at p50 to p99.99. The figure's own annotations print those numbers, so the prose said the opposite of the panel above it. **The panel's generated title was wrong too**, reading "Where the host stops resolving the comparison" |
+| A2 | §6.4.1, budget paragraph l. 2724, and `fig:budget`'s caption | "the only place in the whole performance campaign where a language difference in *time* is resolved at all" | False. Six rows measured in microseconds clear Holm: p50, p99 and p99.9 under both allocators. The caption conceded "the sweep's one resolved language difference in time", so the two also contradicted each other |
+| A3 | `tab:latency` caption | the p99.99 is "the one column of this table that no paired test uses" | The **maximum** is untested too, so it is one of two |
+| A4 | `Thesis_v2.tex` l. 616 | the representative load "is the busiest swept load at which all four variants still hold p99 below 5 ms" | The rule the draft's §6.2 was rewritten to disown, surviving in the skeleton. On this host it returns 392 kops/s. **A half-fixed pair across documents**, which is the sync rule's own failure mode |
+| A5 | Chapter 8 l. 4813 | the far tail "resolves in Rust's favour by `\FarTailRange` µs" | `\FarTailRange` (87) spans the extremes across all four variants. The language separation is the worst-case pair, $50$ µs. Five other sites qualify the macro correctly ("the widest gap between variants", "by up to"); this one dropped the qualifier and overstated by three quarters |
+
+**A1 is the most serious defect found in this thesis since the ninth pass**, and it is worth saying
+why. It is not staleness in a summary: it is a results paragraph telling the reader the opposite of
+what the figure beside it draws, in a passage whose whole job is to say whether the tail ordering can
+be trusted. It also contradicted §6.4.1's own p99 paragraph four pages earlier, which correctly says
+the uncertainty is smaller than the gap. Both passes before this one read that subsection and neither
+caught it, because both were reading for the claims they knew had changed.
+
+Fixes, all generated rather than typed. `_tail_resolution()` in `plot_figures.py` emits
+`\TailResolveRatioMax` (0.7), `\TailResolveRatioMaxAt` (p99.99) and `\TailResolveCrossed` (no), and
+panel (b)'s title is now chosen from the data, so a host where the crossover does happen gets the old
+heading back. `\FarTailLangSep` (50) is the language separation, distinct from `\FarTailRange`.
+`\NTailSignificant` counts tail rows clearing Holm, where the sentence had been quoting
+`\NTailExclZero`, a different question that happens to give 4 today.
+
+Three further imprecisions the audit raised were checked and corrected: `\JitterSpread` is computed
+from the median jitter and the sentence attached it to the p99 range as well, "two orders of magnitude
+below the conventional threshold" understated a factor of 820, and §6.4.4 called the second
+bare-metal host's two peak-RSS effects "of comparable size" where `\BmRssLargerEffect` is
+`allocator` and the ranges there do not overlap. That last one now says what both bare-metal hosts
+actually agree on, which is the order of magnitude, and states that the ordering within it is not
+established.
+
+**What the audit checked and found sound**, which matters as much as what it found wrong: the pooled
+far-tail implementation and all eight of its macros; every one of the twelve sites describing it; the
+knee finding recomputed end to end, including 40 of 40 paired repeats; the p50 interval-overlap claim
+on both hosts; the significance family, equivalence bounds, budget decomposition, flat-p99 paragraph,
+overload block, contention microbenchmark, resident-set decomposition, fault taxonomy, FFI seam and
+every adoption figure recomputed from `adoption-20260821-134156.json`.
+
+**The grade is unchanged.** The recorded 4.50 stands and the self-assessed 4.83 stands, because
+areas 4 and 6 were already capped at 4.5 by the abstract and A1 through A5 are all now closed. What
+this addendum changes is confidence, not the number: two consecutive editing passes each left defects
+that only a third reader found, so **the "supported" column needs an independent grader more than it
+needed one this morning**, not less.
+
+### Cross-document check, 28 August, done by hand while the chapter audits ran
+
+Three defects, all in material no grading pass had looked at, and all visible to a supervisor.
+
+1. **`Thesis_Plan_v2.tex` was dated 13 August while describing work done on 27 August.** A
+   supervisor-facing plan reporting the canonical bare-metal campaign as complete, over a date two
+   weeks before it ran. Now 28 August.
+2. **The plan's timeline marked September "Done" on 28 August.** It also duplicated the measurement
+   work across the August and September rows. August now carries build and measurement, September
+   the abstract and proofread, October review, November submission, and nothing in the future claims
+   to be finished.
+3. **Chapter 8's future-work opening named the wrong priority and miscounted the hosts.** It read
+   "the immediate priority is a third machine at the reported campaign's own design", then described
+   the transparent-hugepage experiment, which needs **no new machine** and is a two-setting
+   comparison on one host. It also said "two hosts now agree on every direction ... and on one
+   quantity they disagree", where the disagreement is with the *third* host, the virtualised one.
+   Rewritten in the draft and in `Thesis_v2.tex` to name the hugepage experiment first and to state
+   the three-host position correctly: all three agree the Rust build carries the larger footprint,
+   and they disagree about how that compares against the allocator's cost.
+
+Item 3 matters beyond its wording, because `AGENT.md`, `docs/TODO.md` and the plan all name the
+hugepage experiment as the immediate priority and Chapter 8 named something else. **The thesis was
+the only one of the four documents that did not say what the next experiment is.**
+
+Verified correct in the same check: RQ1 through RQ4 are byte-identical between the draft and
+`Thesis_v2.tex` and the plan's list now carries p99.99 too; H1 to H3 are identical between draft and
+skeleton; the limitations list matches; the plan's host and status descriptions are accurate; and
+`Thesis_v2.tex` chapters 2 to 8 still hold exactly five body paragraphs each, with Chapter 1 the full
+introduction.
+
+### Second independent audit, 28 August: Chapters 1 to 5 and the appendices
+
+Nobody had audited this material. Every grading pass on record concentrated on Chapters 6 and 7.
+An independent reader with no account of what had changed found **twelve defects and five minor
+items**, all fixed. Two of the twelve were introduced by the remediation of 27 August night and the
+rest had been there longer, some since the guest campaign.
+
+**The three that mattered most.**
+
+**The CPU-steal figure in `tab:testbed` had no artefact behind it and its own capture said zero.**
+The guest column read "Non-zero, order $10$~ms per second of vCPU time, comparable to the tails
+measured", hand-typed, while `bench/results/env-20260812-154523.txt` records `steal ticks (1 s
+sample): 0` and `\GuestSteal` is generated as `0` from exactly that field. No steal probe was ever
+run on the guest: the only `steal_probe.sh` output in the repository is from the bare-metal visit.
+The caption sixteen lines above claimed every cell was generated from the campaign's own capture.
+`Thesis_v2.tex` carried the same unsupported claim as the *reason* the guest could not resolve the
+far tail. **The fix matters for the argument and not only for the number**: the guest's failure is
+established by the measured interval-versus-spread relation, which §6.1 and §6.4.4 already give, so
+removing the steal claim costs nothing and removing it was necessary, because the study cannot
+support it. The cell now says the quantity was not characterised and quotes the one recorded sample.
+
+**§4.6's description of where the campaigns live was wrong, and it was wrong because of the
+remediation.** Yesterday's edit wrote that the virtualised campaign and the second bare-metal one are
+"kept in directories of their own so that no analysis can pool two hosts by accident". The guest
+campaign sits in `bench/results/` beside the reported sweep, and `plot_figures.py` selects its default
+with `sorted(glob(...))[-1]`, so both hosts match one glob and filename order is what separates them.
+The same sentence promised a histogram sidecar beside every campaign, where the guest has none. The
+paragraph now says what actually keeps the hosts apart, which is that each campaign has its own
+generator and macro prefix.
+
+**Appendix D claimed every table in the thesis comes from the reported host.** Also written yesterday.
+`tab:resident` is the second bare-metal host and says so in its own caption, `tab:ffi` and
+`tab:adoption` were measured on the development machine, and `tab:taxonomy`, `tab:complexity` and
+`tab:loc` come from no campaign at all.
+
+**The rest.** §4.2.2 sent "the boundary classes" to Loom and Shuttle where `model_checking.csv`
+covers two of the seven, contradicting §4.6 and §6.3 in the same document. Table 4.1's RQ1 metric row
+and §3.3's metric list both stopped at p99.9 after RQ1 was widened, which is the half-fixed-pair
+pattern again. §5.2 and `tab:params` justified seven shards as "one thread owns one shard, one of
+each per pinned core", arithmetic that is exactly right for the retired 14-core guest and wrong on
+sixteen pinned cores; the rationale is now that seven is held across all three hosts as a fairness
+control, which is the true reason. `fig:cliff`'s caption, rewritten yesterday, pointed at the wrong
+section and promised a per-language comparison of the cliff's steepness that §4.5 pre-commits to
+never making. §4.5 still described pooling and jitter in the conditional and referred to "the missing
+data" two sentences after saying the campaign carries both. And §4.2.3 pointed at a dependency-free
+claim that §5.4.4 did not make, which is now made there and checked.
+
+**One finding outside the auditor's scope proved the stipulation wrong.** Chapter 6 was declared
+correct to that reader, and it flagged §6.3 anyway: the performance-sweep paragraph listed the
+record's latency block as "mean, p50, p90, p99, p99.9, maximum" and the paragraph after it presented
+the quartiles, p99.99, the sidecar, the counters and the allocator accounting as things the *second*
+campaign adds. The reported campaign carries all of them. Both paragraphs are rewritten, and the
+section's opening no longer asserts a dataset count, which had been wrong before this pass and wrong
+again after it.
+
+**Cumulative across the four reviews of 27 and 28 August: 34 prose defects**, against a generated
+layer that has re-derived byte for byte every time it was checked. Nine of the thirty-four were
+introduced by the two editing passes themselves. **The reviews that found the most were the two run
+by readers who were told nothing about what had changed.**
+
+### Third independent audit, 28 August: the abstract, Chapter 8, the declaration, and cross-document
+
+**This audit found a direction error in a headline claim, repeated at five sites in two documents,
+that three grading passes and two other audits had all read past.**
+
+**The overload CPU-per-operation ratio was attributed to the wrong language.** The sentence read "the
+C++ build sustains $\OverloadThrRatio\times$ the throughput of the Rust build \dots while drawing
+$\OverloadCpuPerOpRatio\times$ the CPU per completed operation", and the participle attaches to C++.
+Recomputed from `campaign-20260827-151927.jsonl` at 784 kops/s: C++ 4.52 and 4.54 per cent CPU per
+kop/s, Rust 8.07 and 8.07, so **Rust** draws 1.8 times as much. Rust also draws more *total* CPU
+($+19.5$ and $+16.8$ percentage points, 20/20 repeats), so no reading of the sentence was right.
+
+Why it matters more than its size: §6.4.2 wrote that clause specifically to rule out the reading that
+the slower variant is simply doing less work. Inverted, it says the faster variant is burning the CPU,
+which is the opposite claim and would make the overload finding incoherent. §6.4.2, `fig:overload`'s
+caption and `tab:findings`'s RQ3 row all had it right; §1.4, §7.2 and Chapter 8 had it wrong, and
+`Thesis_v2.tex` contradicted itself between its Chapter 6 and its Chapter 8. **A sentence can be wrong
+at every summary site while the section that owns the result is correct**, and a reviewer checking
+"does this match the table" at the owning section will never see it.
+
+Four more in Chapter 8, all fixed. The binary-size gap "reverses when the policy is matched", where
+the ordering reverses *between* the two matched policies (Rust smaller static, C++ smaller dynamic)
+and quoting one alone is what `AGENT.md` §3 item 6a forbids. The seven boundary classes "misbehave in
+safe Rust exactly as they do in C++", where §6.4.4 spends a paragraph on two that do not, the
+forgotten guard having no unlock to skip and the overflow being defined-but-wrong against
+undefined-and-wrong. The peak-RSS effect "the same size on all three machines measured", where the
+three ranges are 1.4--2.5, 1.8--3.5 and 0.7--1.8 MiB, so what travels is the direction and the order
+of magnitude. And Chapter 8 delivered the single overload verdict "one that currently favours C++"
+three paragraphs after reporting both halves, which is exactly the verdict §7.2 argues would be false.
+
+**The declaration over-claimed the author's own verification.** `ai_statement.tex` said every
+bibliography entry was "traced to the page or clause carrying the claim made of it".
+`docs/Sources_evidence.md` grades entries A, B or C, where B is a publisher-deposited record and C is
+metadata behind a paywall with the passage never opened, and it lists 22 entries at those levels. The
+sentence now describes the graded scheme and says the unopened entries are listed rather than
+absorbed. This is the second false method sentence found in that file, after the eighth pass, and it
+is a statement in the author's name.
+
+**Four cross-document disagreements**, all resolved in favour of the draft and now synced:
+`Thesis_v2.tex` had dropped the attribution bound from Chapter 8's contributions list while its own
+Chapter 1 introduces it, had cut the saturation-limit finding from §1.4 so that three of the four
+RQ1 summary sites reported only the half favouring C++, and still carried the "comparable on both
+bare-metal hosts" wording that §6.4.5 was moved off. The plan's contributions list had five items
+where both theses have six.
+
+**One rounding item of the class this record has now seen three times.** `\JitterLo` and `\JitterHi`
+printed at one decimal as 1.4 and 1.7, which divide to 21 per cent, beside a `\JitterSpread` of 26
+computed from the unrounded 1.3655 and 1.7205. Two decimals now.
+
+**The audit also caught the record lying about itself.** `docs/ASSESSMENT.md` recorded the Chapter 8
+future-work fix as "Rewritten in the draft and in `Thesis_v2.tex`" while only the skeleton carried it;
+the draft was rewritten minutes later. The interval between an assessment claiming a paired fix and
+the second half landing is precisely the failure mode this file names, and it was visible only to a
+reader who checked the artefact instead of the record.
+
+**Running total across five reviews on 27 and 28 August: 56 prose defects, all fixed.** The generated
+layer has re-derived byte for byte at every check. **The three reviews by readers told nothing about
+what had changed found 34 of the 56.**

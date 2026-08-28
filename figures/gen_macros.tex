@@ -13,6 +13,9 @@
 \newcommand{\PFiftyRange}{2}
 \newcommand{\PNineNineRange}{2}
 \newcommand{\PNineNineMaxCI}{1}
+\newcommand{\TailResolveRatioMax}{0.7}
+\newcommand{\TailResolveRatioMaxAt}{p99.99}
+\newcommand{\TailResolveCrossed}{no}
 \newcommand{\MaxOfferedLoad}{784}
 \newcommand{\PFiftyMedian}{70}
 \newcommand{\PNineNineLightest}{78}
@@ -40,11 +43,12 @@
 \newcommand{\FarTailSamplesMin}{3\,360\,051}
 \newcommand{\FarTailSamplesMax}{3\,360\,084}
 \newcommand{\FarTailByLang}{yes}
+\newcommand{\FarTailLangSep}{50}
 \newcommand{\IqrSpread}{17}
 \newcommand{\IqrLo}{3}
 \newcommand{\IqrHi}{4}
-\newcommand{\JitterLo}{1.4}
-\newcommand{\JitterHi}{1.7}
+\newcommand{\JitterLo}{1.37}
+\newcommand{\JitterHi}{1.72}
 \newcommand{\JitterSpread}{26}
 \newcommand{\JitterPNineNineLo}{19}
 \newcommand{\JitterPNineNineHi}{25}
@@ -57,10 +61,11 @@
 \newcommand{\SmallestHolm}{0.000027}
 \newcommand{\NExclZero}{14}
 \newcommand{\NTailExclZero}{4}
+\newcommand{\NTailSignificant}{4}
 \newcommand{\TailExclZeroRows}{p99 and p99.9 latency under both allocators}
 \newcommand{\RobustExclZeroRows}{p50 latency, Peak RSS and CPU utilisation under both allocators}
 \newcommand{\PFiftyDiffAbsMax}{1.3}
-\newcommand{\PFiftyDiffCIMax}{1}
+\newcommand{\PFiftyDiffCIMax}{1.3}
 \newcommand{\NEqvUnresolved}{0}
 \newcommand{\EqvBoundPFifty}{1.3}
 \newcommand{\EqvBoundTailMax}{5}

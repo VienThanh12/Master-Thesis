@@ -391,8 +391,8 @@ free of \texttt{unsafe}. Measured against the same operation called natively it 
 $\FfiOpBoundPct\%$ of one operation, so the real adoption cost is API design and not run-time
 overhead. Three costs beyond the seam are measured for the same reason, and two of them come back
 against the received wisdom: most of the Rust build's extra cost is compiling third-party code and
-not the compiler's own work, and the binary-size ordering reverses once the two toolchains are held
-to one linkage policy. Both of these results are final.
+not the compiler's own work, and the binary-size ordering depends on which linkage policy the two
+toolchains are held to rather than on the languages. Both of these results are final.
 
 On \emph{performance} (RQ1, RQ3) the answer divides twice, and drawing both divisions correctly is
 where most of the analysis went. The first division separates what the sweep measures from what it
@@ -409,11 +409,16 @@ interval reaching $\PFiftyDiffCIMax\,\mu$s, so the equivalence is practical and 
 The far tail in the same regime now resolves on the reported host: the pooled p99.99 of the
 Rust variants sits below that of the C++ variants at every load where the two separate, and a
 second bare-metal campaign at another shard count agrees on the direction
-(Chapter~\ref{chapter:eval}). Past saturation
-the ordering reverses. The C++ build sustains $\OverloadThrRatio\times$ the throughput of the Rust
-build in \OverloadThrAgree{} interleaved repeats under both allocators, and uses more CPU for each
-completed operation. On resources the Rust process holds a few MiB more resident memory, again
-under both allocators. That effect is the same size on all three machines measured. How it compares
+(Chapter~\ref{chapter:eval}). Past saturation the ordering reverses, and where each implementation
+stops meeting its offered rate is itself a difference: the Rust arms track to
+$\TrackingLoadRust$~kops/s and the C++ arms to $\TrackingLoadCpp$. Deeper still, where all four have
+collapsed, the C++ build sustains $\OverloadThrRatio\times$ the throughput of the Rust
+build in \OverloadThrAgree{} interleaved repeats under both allocators, and the Rust build spends
+$\OverloadCpuPerOpRatio\times$ the CPU on each operation it does complete, which is what rules out
+the reading that it is simply doing less. On resources the Rust process holds a few MiB more
+resident memory, again
+under both allocators, in the same direction and order of magnitude on all three machines
+measured. How it compares
 against the cost of the allocator choice is not: the two are comparable on bare metal and the
 allocator's was an order of magnitude larger on the virtualised host this study used first, so the
 comparison between them is a property of the machine rather than of the allocators.
@@ -529,9 +534,10 @@ system. The reported sweep runs on a dedicated \MainCpu{}, simultaneous multithr
 \MainSmt{}, frequency governor fixed at \MainGovernor{}, with \texttt{nohz\_full} on the
 pinned cores and no hypervisor. That host resolves the overload divergence, the
 resource comparison, and the far tail below saturation. The same design was first
-measured on a \GuestCpu{} guest (\GuestVirt{}) that could not resolve the far tail,
-because the frequency governor is not observable from inside it and CPU steal is
-non-zero. A third sweep on a second bare-metal \BmCpu{} uses a different shard count,
+measured on a \GuestCpu{} guest (\GuestVirt{}) that could not resolve the far tail:
+there the widest interval on one variant's p99 exceeded the spread between all four by
+a factor of five, so no ordering could be read however many repeats were run. A third
+sweep on a second bare-metal \BmCpu{} uses a different shard count,
 load grid, repeat count and toolchain, so it tests whether the findings survive a
 change of design rather than a change of machine.
 
@@ -613,9 +619,11 @@ That doubles as a parity signal. Each sweep point is repeated \NRepeats{} times.
 four language and allocator variants are interleaved inside every repeat, so thermal or
 background drift falls on all of them alike. Every point is a median with a bootstrap
 $95\%$ confidence interval~\cite{georges2007rigorous,efron1993bootstrap}. The
-representative operating point is not chosen by eye. It is the busiest swept load at
-which all four variants still hold p99 below $5$~ms, $\ReprLoad$~kops/s against a
-measured throughput plateau of $\SatKnee$~kops/s reached at an offered
+representative operating point is fixed at $\ReprLoad$~kops/s and not derived. The rule
+this study began with, the busiest swept load holding p99 under $5$~ms, located the
+virtualised host's noise floor and on a quiet host climbs until it collapses onto the
+saturation knee, so it is kept as a diagnostic only. The measured throughput plateau is
+$\SatKnee$~kops/s, the lowest of the four, reached at an offered
 $\TrackingLoad$~kops/s. All of it runs on a dedicated \MainCpu{} pinned to cores
 \MainPinned{}. The frequency governor is fixed at \MainGovernor{} with boost disabled.
 The kernel runs tickless on those cores. There is no hypervisor. Isolating the cores
@@ -685,8 +693,8 @@ Resource use separates the variants where latency could not. Two effects of comp
 size sit in the resident set. The Rust build costs $\RssLangDiffLo$--$\RssLangDiffHi$~MiB
 more peak resident set than the C++ build under either allocator. Linking
 \texttt{jemalloc} at all costs $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB in either
-language. Both are real. The language effect is the same size on all three machines
-measured. The allocator's was an order of magnitude larger on the virtualised host this
+language. Both are real. The language effect keeps its direction and order of magnitude on
+all three machines measured. The allocator's was an order of magnitude larger on the virtualised host this
 study used first, so their ratio is a property of the machine. The language difference is
 a fixed cost, not a per-context one, and the quiet host locates it. \texttt{jemalloc}'s
 own accounting there puts $\BmJeMetadataDelta$~MiB more in arena bookkeeping and
@@ -754,8 +762,9 @@ the machine and expensive in the people. The memory penalty reproduces under bot
 allocators and on a second machine with a different compiler. It is credible beyond its
 $p$-value. Peak resident set is a run-level maximum insensitive to the jitter that
 destroys a p99. It is a few MiB of fixed cost, and sized against the allocator's own
-effect the two are comparable on both bare-metal hosts. On the virtualised host the
-allocator's was an order of magnitude larger. The language effect travels and the ratio
+effect the two are of the same order on both bare-metal hosts, interleaved on the reported
+one and with the allocator ahead on the other. On the virtualised host the allocator's was
+an order of magnitude larger. The language effect travels and the ratio
 does not. The quiet host also locates
 the cost. \texttt{jemalloc}'s own accounting puts it \emph{outside} the allocator,
 because the Rust build holds less live data and fewer resident bytes there and still
@@ -838,10 +847,10 @@ paired test does resolve $\PFiftyDiffAbsMax\,\mu$s in Rust's favour, so that equ
 practical and not statistical. Their far tail resolves in Rust's favour on the reported
 host, which a virtualised host could not settle. Past saturation the Rust arms hold their
 offered rate one rung further, and beyond that \OverloadSustainedFaster{} sustains
-$\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{} while drawing
+$\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{}, which spends
 $\OverloadCpuPerOpRatio\times$
-the CPU per completed operation. On memory the Rust build carries a few MiB more fixed
-footprint under both allocators. That language effect is the same size on all three
+the CPU on each operation it completes. On memory the Rust build carries a few MiB more fixed
+footprint under both allocators, in the same direction and order of magnitude on all three
 machines measured. The allocator choice costs about as much on both bare-metal hosts, and
 an order of magnitude more on the virtualised one this study used first.
 
@@ -852,17 +861,21 @@ verified free of it. For stateful, concurrent, partitionable control-plane servi
 this kind, and at nominal load, the choice between the two languages is not a performance
 decision. It is a decision about which classes of defect an organisation wants to make
 unwriteable, and about whether it will pay the engineering and learning cost of getting
-them. Under overload it becomes a performance decision again. It currently favours C++.
+them. Around and past saturation it becomes a performance decision again, and which way it
+goes depends on where the service is expected to sit: the Rust build meets its offered rate
+a rung further up, and deeper into overload the C++ build sustains more of what it is given.
 What the thesis adds is an instrument, not a verdict: a frozen specification, a
 parity-tested pair of implementations, a measurement framework that reaches past the
-saturation knee, and a defect catalogue that maps where the guarantee stops.
+saturation knee, a decomposition that says how much of what it measures the language is
+answerable for, and a defect catalogue that maps where the guarantee stops.
 
-Future work answers the limitations one at a time. The immediate priority is a third
-machine at the reported campaign's own design. Two bare-metal hosts now agree on every
-direction this thesis reports. They disagree with the virtualised host on one quantity,
-the size of the allocator effect against the language effect. The candidate this study
-can name but not test is the transparent-hugepage policy, which differed between the
-hosts and which the two allocator arms do not inherit alike. Beyond that, replaying
+Future work answers the limitations one at a time. The immediate priority needs no new
+machine: vary the transparent-hugepage policy on one host with everything else held
+fixed. All three hosts agree that the Rust build carries the larger footprint. They
+disagree about how that compares against the cost of the allocator, which the virtualised
+host put an order of magnitude higher and neither bare-metal host does. The hugepage
+policy is the candidate this study can name but not test, because it differed between the
+hosts and only the system-allocator arm inherits it. Beyond that, replaying
 anonymised production traces would validate the operation mix. A subsystem with
 genuinely shared mutable state would exercise the two languages differently than a
 shared-nothing design does. Evaluating Rust async runtimes against the thread-per-shard

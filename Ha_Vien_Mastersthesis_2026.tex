@@ -556,8 +556,8 @@ free of \texttt{unsafe}. Measured against the same operation called natively it 
 $\FfiOpBoundPct\%$ of one operation, so the real adoption cost is API design and not run-time
 overhead. Three costs beyond the seam are measured for the same reason, and two of them come back
 against the received wisdom: most of the Rust build's extra cost is compiling third-party code and
-not the compiler's own work, and the binary-size ordering reverses once the two toolchains are held
-to one linkage policy. Both of these results are final.
+not the compiler's own work, and the binary-size ordering depends on which linkage policy the two
+toolchains are held to rather than on the languages. Both of these results are final.
 
 On \emph{performance} (RQ1, RQ3) the answer divides twice, and drawing both divisions correctly is
 where most of the analysis went. The first division separates what the sweep measures from what it
@@ -579,9 +579,11 @@ bare-metal campaign at another shard count agrees on the direction
 implementation stops meeting its offered rate is itself a difference: the Rust arms track to
 $\TrackingLoadRust$~kops/s and the C++ arms to $\TrackingLoadCpp$. Deeper still, where all four have
 collapsed, the C++ build sustains $\OverloadThrRatio\times$ the throughput of the Rust
-build in \OverloadThrAgree{} interleaved repeats under both allocators, and uses more CPU for each
-completed operation. On resources the Rust process holds a few MiB more resident memory, again
-under both allocators. That effect is the same size on all three machines measured. How it compares
+build in \OverloadThrAgree{} interleaved repeats under both allocators, and the Rust build spends
+$\OverloadCpuPerOpRatio\times$ the CPU on each operation it does complete, which is what rules out
+the reading that it is simply doing less. On resources the Rust process holds a few MiB more resident memory, again
+under both allocators, in the same direction and the same order of magnitude on all three machines
+measured. How it compares
 against the cost of the allocator choice is not: the two are comparable on bare metal and the
 allocator's was an order of magnitude larger on the virtualised host this study used first, so the
 comparison between them is a property of the machine rather than of the allocators.
@@ -1290,7 +1292,7 @@ precisely the procedure family this thesis reimplements, which places these oper
 regime where tens of microseconds are an engineering quantity rather than noise.
 
 The study therefore characterises the full latency distribution, focusing on the high
-percentiles (p99 and p99.9) and the maximum, and on how these degrade as offered
+percentiles (p99, p99.9 and p99.99) and the maximum, and on how these degrade as offered
 load approaches and then exceeds saturation (Chapter~\ref{chapter:eval}). Stopping at nominal
 load would miss the regime that decides service quality, since queueing delay grows
 super-linearly near capacity. It is also the regime in which a difference between two
@@ -1304,9 +1306,11 @@ service capacity, then climbs steeply once the system is driven past saturation 
 queue behind the bounded, blocking queues. The operationally decisive behaviour is the onset and
 shape of this cliff, which is why the load sweep is pushed beyond the saturation point rather
 than stopping at nominal load. The figure is a schematic of the phenomenon and not a plot of
-this study's data: whether the two languages differ in where the cliff begins or how steeply it
-rises is exactly what RQ1 asks, and Section~\ref{sec:overload} reports that they differ in
-both.\label{fig:cliff}}
+this study's data: whether the two languages differ in where the cliff begins or in what they
+sustain beyond it is exactly what RQ1 asks, and Sections~\ref{sec:perfresults}
+and~\ref{sec:overload} report that they differ in both. How steeply the cliff rises is not compared
+between them, for the reason Section~\ref{sec:stats} fixes in
+advance.\label{fig:cliff}}
 \end{figure}
 
 \chapter{Research Methodology\label{chapter:methodology}}
@@ -1384,7 +1388,7 @@ H3.\label{tab:design}}
 RQ & Method & Artifact / data & Primary metric \\
 \hline
 RQ1 & Load sweep to overload, interleaved repeats & Benchmark harness, latency histograms &
-median, p99/p99.9 tail latency, and maximum vs.\ offered load \\
+median, p99/p99.9/p99.99 tail latency, and maximum vs.\ offered load \\
 RQ3 & Same sweep, resource capture & \texttt{getrusage} samples per run &
 peak RSS, CPU utilisation, throughput \\
 RQ1, RQ3 & Component decomposition: the core called directly, then through the service &
@@ -1460,12 +1464,12 @@ it, if any, and at what stage.
 
 The same construct is then written in safe Rust and compiled. The compiler's outcome is
 recorded, and where it compiles, so is the program's behaviour. The boundary classes give the
-compiler nothing
-to say, so the Rust side also goes to two model checkers, Loom and Shuttle, and for the class
-that lives inside an \texttt{unsafe} block to the Miri interpreter. These answer the
-``at what stage and at what cost'' half of RQ2 for them, and each is paired with a control in
-which the defect is fixed, so that finding the defect and reporting everything are not the same
-observation.
+compiler nothing to say, so where another tool can reach one, the Rust side goes to that tool as
+well: the two concurrency classes to the model checkers Loom and Shuttle, and the class that lives
+inside an \texttt{unsafe} block to the Miri interpreter. Those three are the boundary cases a Rust
+tool can express, and answering ``at what stage and at what cost'' for them is what the extra runs
+buy. Each is paired with a control in which the defect is fixed, so that finding the defect and
+reporting everything are not the same observation.
 
 Whether ThreadSanitizer reports the lock-order inversion depends on the schedule, so a single run
 would record whichever outcome the machine happened to give. The runner executes that case twelve
@@ -1600,11 +1604,11 @@ retires on the order of $170$~thousand measured operations, so its p99.99 rests 
 seventeen observations: a per-run p99.99 is dominated by sampling noise even on a perfectly
 quiet host. Reading the far tail at all therefore requires persisting each run's complete HDR
 bucket contents alongside the summary percentiles, so that the repeats can be \emph{pooled} into
-one distribution of several million operations first. The harness does that now, and the design
-keeps pooling and averaging apart, because they are different statistics. A pooled figure would
-take the operation as the unit of analysis and resolve the far tail, at the cost of carrying no
+one distribution of several million operations first. The harness does that, and the design keeps
+pooling and averaging apart, because they are different statistics. The pooled figure takes the
+operation as the unit of analysis and resolves the far tail, at the cost of carrying no
 across-repeat interval, while the median-of-repeats figures reported with intervals keep the
-repeat as the unit and remain the only basis for a paired comparison. Jitter would likewise be
+repeat as the unit and remain the only basis for a paired comparison. Jitter is likewise
 measured directly rather than inferred from the latency distribution, as the absolute difference
 between consecutive latencies within a producer. That is the packet-delay-variation quantity of
 RFC~3393~\cite{rfc3393}, and it matches the sense in which this thesis uses the term: variation
@@ -1617,12 +1621,11 @@ sidecars have not been pooled loses the column rather than printing the per-run 
 has just called uninterpretable. Jitter is recorded and reported descriptively, because no research
 question asks for it.
 
-Neither p99.99 nor jitter would enter the family of paired tests described below in any case.
-That follows the same rule as the rest of the design rather than being a consequence of the
-missing data: both are computed from precisely the operations that interference lands on, which
-is the class of statistic pairing does not rescue, so a paired interval on them could not be
-read as a language effect. They belong in a descriptive column, and the family stays the size
-the design committed to.
+Neither p99.99 nor jitter enters the family of paired tests described below, and that follows the
+same rule as the rest of the design rather than any shortage of data. Both are computed from
+precisely the operations that interference lands on, which is the class of statistic pairing does
+not rescue, so a paired interval on them could not be read as a language effect. They belong in a
+descriptive column, and the family stays the size the design committed to.
 
 Interval estimates alone, however, are a weak basis for a comparison. Two intervals can overlap
 while one variant is ahead in every single repeat, and they can separate on a difference that
@@ -1697,13 +1700,15 @@ Section~\ref{sec:baremetal} demonstrates on a campaign of its own design. What t
 guarantees is that no figure, table, or sentence can hold a value the logs no longer support.
 
 The logs that script reads are part of the package. A performance campaign is an append-only
-newline-delimited JSON file under \texttt{bench/results/} for the reported sweep, with the
-virtualised host's campaign and the second bare-metal one kept in directories of their own so that
-no analysis can pool two hosts by accident. Beside each campaign sits the sidecar holding every
-run's complete histogram buckets, which is what the far-tail percentile is computed from. Each run's
-environment is recorded by
+newline-delimited JSON file, named by the timestamp at which it started, and the reported sweep and
+the virtualised campaign it replaced both sit under \texttt{bench/results/} while the second
+bare-metal campaign has a directory of its own. What keeps an analysis from pooling two hosts is
+therefore the generator and not the layout: each campaign has its own script and its own macro
+prefix, so a figure from one cannot reach a sentence about another. The two bare-metal campaigns also
+write a sidecar holding every run's complete histogram buckets, which is what the far-tail percentile
+is computed from and which the virtualised campaign predates. Each run's environment is recorded by
 a companion capture script (\texttt{bench/capture\_env.sh}) and stored beside the campaign data.
-The fault-injection runner writes three machine-readable outcome files under
+Three runners write three machine-readable outcome files under
 \texttt{faults/results/}: \texttt{taxonomy.csv} for the sanitiser and compile outcomes,
 \texttt{model\_checking.csv} for the two boundary cases checked formally, and \texttt{miri.csv}
 for the \texttt{unsafe} interpreter run. Nothing in the evaluation chapters is transcribed from
@@ -1738,9 +1743,13 @@ ownership-based memory model, safe concurrency). Both use one concurrency model,
 thread-based models are never mixed, and that is deliberate.
 
 The UE-identifier space is split into $N_{\text{shards}}$ shards, and each shard belongs to
-exactly one worker thread. Eight is the default. The measurement campaign pins seven instead, so
-that every worker and every producer owns one of the pinned cores, as
-Section~\ref{sec:testbed} records. Only the owning worker reads or changes its shard's contexts.
+exactly one worker thread. Eight is the specification's default. The measurement campaign runs seven
+workers against seven producers, which fits inside the $\MainPinnedCount$ pinned cores of the host
+in Section~\ref{sec:testbed} with room to spare and was chosen on the earlier host, where fourteen
+threads and fourteen pinned cores met exactly. Holding it at seven across all three machines is what
+makes the shard count a fairness control (Section~\ref{sec:controls}) rather than a per-host tuning
+choice, and the second bare-metal campaign varies it deliberately to test that
+(Section~\ref{sec:hostcompare}). Only the owning worker reads or changes its shard's contexts.
 Workers therefore share no mutable state, and context data needs no locks. Callers (the
 load-generator threads) never touch context state directly. They submit request messages to a
 shard's bounded multi-producer, single-consumer (MPSC) queue, then wait on a single-use
@@ -2121,9 +2130,12 @@ Total                             & $\CppRawLines$ & $\RustRawLines$ & $+\LocGap
 \end{tabular}
 \end{table}
 
-One property of the Rust core is not a cost at all, and it closes this section because it is what
-the costs above bought. The Rust library contains \emph{no} \texttt{unsafe} code, and that is
-checked mechanically over the crate. Safe Rust therefore guarantees data-race freedom for this core at
+Two properties of the Rust core are not costs at all, and they close this section because they are
+what the costs above bought. The Rust library contains \emph{no} \texttt{unsafe} code, and it
+resolves no third-party crate: the core depends on the standard library alone, so nothing outside it
+is compiled into the artefact this study measures. Both are checked mechanically over the crate
+rather than asserted, and Section~\ref{sec:migrationresults} reports the counts.
+Safe Rust therefore guarantees data-race freedom for this core at
 compile time, through the \texttt{Send} and \texttt{Sync} traits. The shard store is owned by a
 single worker and never shared, the request type is moved across the thread boundary, and the
 one piece of genuinely shared state, the activity counter, is an atomic. None of this needs a
@@ -2336,7 +2348,7 @@ because the alternative was tried and failed.
 
 The rule this study began with took the busiest swept load at which all four variants still held
 their p99 below $5$~ms. It is retained as a diagnostic and is no longer the operating point, because
-it turns out to measure the machine rather than the service. On the virtualised host it returned
+it turns out to measure the machine and not the service. On the virtualised host it returned
 $\GuestDeadlineLoad$~kops/s, where p99 sat just under the deadline, so it was locating where that
 host's interference reached $5$~ms. On a quiet host p99 stays near $\PNineNineTrackingTop\,\mu$s
 until capacity binds, so the same rule climbs until it collapses the representative point onto the
@@ -2346,8 +2358,10 @@ offered load, and the point stays below saturation on all of them, which every b
 in this chapter already assumes.
 
 \section{Evaluation data}
-Four campaigns produce four datasets, and they differ in kind and not only in content. What
-follows describes each one as captured, because judging whether the analysis is sound takes
+The campaigns behind this chapter produce datasets that differ in kind and not only in content: one
+load sweep, three small paired experiments, a categorical fault catalogue, and two further sweeps
+kept for comparison. What
+follows describes each as captured, because judging whether the analysis is sound takes
 knowing what was recorded and at what level of detail. Every measured
 quantity this chapter quotes reaches the page as a generated macro. That script
 (Section~\ref{sec:repro}) rebuilds all of them, along with every figure and table body, from the
@@ -2364,11 +2378,20 @@ summary table. Nothing is aggregated at capture time, and every statistic in thi
 recomputed from the raw records. A record carries the run's configuration (language, allocator,
 workload, shard and producer counts, target rate), its outcome (operations completed, errors,
 wall-clock duration, achieved throughput), the latency distribution read out of the HDR
-histogram (mean, p50, p90, p99, p99.9, maximum, in nanoseconds), the resource counters taken
-through \texttt{getrusage} (peak resident set size, user and system CPU seconds, CPU
-utilisation), and the per-operation-kind counts. Keeping the kind counts in every record is
+histogram (mean, standard deviation, the quartiles, p50, p90, p99, p99.9, p99.99 and the maximum,
+in nanoseconds), the same block again for inter-operation delay variation, the resource counters
+taken through \texttt{getrusage} (peak resident set size, user and system CPU seconds, CPU
+utilisation), and the per-operation-kind counts. Runs on a \texttt{jemalloc} arm add that
+allocator's own accounting of the process, seven fields that decompose the resident set, and the
+system-allocator arms store those as unavailable rather than as zero, on the same principle as the
+governor and turbo state. Keeping the kind counts in every record is
 what makes a divergence between the two languages show up as a parity failure
 (Section~\ref{sec:parity}) instead of being mistaken for a performance difference.
+
+Two files travel beside the campaign. Each run persists its complete HDR bucket contents to a
+sidecar, so the repeats can be pooled into one distribution before a far-tail percentile is read off
+(Section~\ref{sec:stats}), and a separate file records \texttt{perf} counters at two scopes, the
+end-to-end path and the operation on its own.
 
 \paragraph{The component decomposition and contended primitives.}
 The second measurement level of Section~\ref{sec:methodperf} yields a much smaller dataset of a
@@ -2401,20 +2424,17 @@ sounds. The governor and turbo state are stored as unavailable rather than left 
 limitation documented in Section~\ref{sec:testbed} is a property of the dataset itself and not
 only of the prose describing it, and a reader can check it without taking it on trust.
 
-\paragraph{The second bare-metal campaign.}
-A further dataset carries the sweep's record and adds to it in three ways, two of them things the
-virtualised host could not produce at all. Its latency block is wider, with the quartiles, the standard
-deviation and p99.99 beside the percentiles listed above. Each run also persists its complete HDR
-bucket contents to a sidecar, so the repeats can be pooled into one distribution before a far-tail
-percentile is read off, and a separate file records \texttt{perf} counters at two scopes, the
-end-to-end path and the operation on its own. Last, every run on a \texttt{jemalloc} arm records
-that allocator's own accounting of the process, which is what lets
-Section~\ref{sec:baremetal} decompose the resident set instead of bounding it by elimination. The
-system-allocator arms store those fields as unavailable rather than as zero, on the same principle as
-the governor and turbo state. The same scripts read all of it, so nothing
-in the analysis changes between the two hosts. What does change is the answer, which is why the two
-are reported apart rather than merged: this dataset confirms the sweep's findings on a quiet machine
-and does not replace its numbers, for the design reasons Section~\ref{sec:baremetal} closes with.
+\paragraph{The two comparison campaigns.}
+Two further datasets exist and neither is merged with the sweep. The virtualised campaign shares the
+sweep's design exactly and predates all of the instrumentation above: its records carry the
+percentiles and the resource counters and nothing else, no quartiles, no p99.99, no jitter, no
+allocator accounting, and no sidecar or counters file beside them. That absence is itself the
+measurement-validity argument of Section~\ref{sec:hostcompare}, which is why the campaign is kept
+rather than deleted. The second bare-metal campaign carries the same record shape as the reported
+sweep, including the allocator accounting that lets Section~\ref{sec:baremetal} decompose the
+resident set, but runs a different shard count, load grid, repeat count and toolchain. The same
+scripts read all three, so nothing in the analysis changes between them, and each has its own
+generator and macro prefix so that no figure from one can reach a sentence about another.
 
 \section{Evaluation results}
 The safety results do not depend on the measurement host at all, and the migration results depend
@@ -2442,13 +2462,14 @@ Table~\ref{tab:latency} summarises the per-operation latency distribution at the
 load of Section~\ref{sec:workload}, $\ReprLoad$~kops/s, a point at which all four build
 variants are simultaneously healthy and so a fair place to compare them.
 
-The four variants sit within $\PFiftyRange\,\mu$s of one another at the median, or
-$\PFiftySpread\%$, which is the magnitude a deployment would care about and it is negligible. The
-\emph{ordering} is nonetheless legible: the two Rust intervals sit below the two C++ intervals with
-no overlap between the languages, while the two allocators of one language overlap each other. So
-the table already suggests what the paired test below confirms, and the two instruments agree here
-in a way they did not on the previous host, where every interval at this percentile overlapped every
-other.
+Two readings of that table are worth keeping apart, because they answer different questions. The
+first is magnitude, and it is negligible: the four variants sit within $\PFiftyRange\,\mu$s of one
+another at the median, $\PFiftySpread\%$, which no deployment would notice. The second is
+\emph{ordering}, and it is legible: the two Rust intervals sit below the two C++ intervals with no
+overlap between the languages, while the two allocators of one language overlap each other. So the
+table already suggests what the paired test below confirms. On the previous host it could not, since
+every interval at this percentile overlapped every other, and the ordering had to come from the test
+alone.
 
 That agreement extends up the distribution, and stating why takes one comparison. The p99
 values differ by $\PNineNineRange\,\mu$s across variants while the widest $95\%$ confidence
@@ -2461,8 +2482,8 @@ difference between them is a result about measurement rather than about either l
 
 The tail rows of Table~\ref{tab:significance} therefore carry a finding rather than a shrug, and the
 instrument that carries it is the corrected $p$-value and not the interval. Both p99 rows and both
-p99.9 rows clear the Holm correction, \NTailExclZero{} rows in all, with the same direction as at the
-median. Their intervals also exclude zero, and Section~\ref{sec:stats} fixes in advance that an
+p99.9 rows clear the Holm correction, \NTailSignificant{} rows in all, with the same direction as at
+the median. Their intervals also exclude zero, and Section~\ref{sec:stats} fixes in advance that an
 interval in this block is not read as a finding, so those are reported and left to one side. A rule
 dropped once the machine improves was never a rule, and keeping it costs nothing here: the correction
 resolves these rows on its own.
@@ -2489,9 +2510,9 @@ below zero. $^{\dagger}$The p99.99 column is the exception, and deliberately so:
 percentile of the \NRepeats{} repeats' histograms concatenated, \FarTailSamplesMin{} to
 \FarTailSamplesMax{} operations per row, because a per-run p99.99 rests on too few observations to
 read (Section~\ref{sec:stats}). Pooling makes the operation the unit of analysis, so that column has
-no across-repeat dispersion to quote and carries no interval. It is also the one column of this table
-that no paired test in Section~\ref{sec:stats} uses, for the same
-reason.\label{tab:latency}}
+no across-repeat dispersion to quote and carries no interval. Together with the maximum, it is one of
+the two columns here that the paired family of Section~\ref{sec:stats} does not test, and for the
+same reason in both cases.\label{tab:latency}}
 % Tabular preamble and header are generated alongside the table body, so the table
 % gains a p99.99 column when a campaign records one instead of the preamble falling
 % one column short of the body it is wrapping. \LatencyTabular expands to the whole
@@ -2514,10 +2535,11 @@ would feel, and RFC~3393 names it inter-operation delay variation
 no research question asks for it and adding it to the tested family would spend two slots of the
 Holm budget on a metric no claim rests on. The reading is short. Median jitter across the four
 variants runs $\JitterLo$ to $\JitterHi\,\mu$s and its p99 runs $\JitterPNineNineLo$ to
-$\JitterPNineNineHi\,\mu$s, so the widest gap between variants is $\JitterSpread\%$ of the smallest.
+$\JitterPNineNineHi\,\mu$s, so at the median the widest gap between variants is $\JitterSpread\%$ of
+the smallest.
 Against the operation it perturbs, median jitter is $\JitterVsMedianPct\%$ of the median latency and
 its p99 is $\JitterPNineNineVsMedianPct\%$, so consecutive operations differ by a small fraction of
-one of them rather than by a whole one. What separates the four variants is smaller than what
+one of them and not by a whole one. What separates the four variants is smaller than what
 separates one load level from the next, which is the same conclusion the second bare-metal campaign
 reaches independently (Section~\ref{sec:hostcompare}).
 
@@ -2586,7 +2608,7 @@ metric are drawn adjacent, so an effect that reversed sign between them would ap
 straddling the zero line. The shaded rows are the high percentiles, computed from exactly the
 operations interference falls on, which Section~\ref{sec:stats} fixes in advance as rows whose
 \emph{intervals} are not read as findings. Their corrected $p$-values are read, and the shading
-marks the instrument that is set aside rather than the rows. The metrics keep their own units in the
+marks the instrument that is set aside, not the rows. The metrics keep their own units in the
 tables.\label{fig:effects}}
 \end{figure}
 
@@ -2622,7 +2644,7 @@ than $\EqvBoundPFifty\,\mu$s, and in the tail block no larger than $\EqvBoundTai
 below anything a procedure budget of a few milliseconds would notice, which is the useful form of
 this result: the differences are real, reproducible, and operationally negligible. That table was
 built to report the opposite case, and on the virtualised host it did, with
-\GuestNEqvUnresolved{} of its \GuestNTests{} rows unresolved and a tail margin running out to
+\GuestNEqvUnresolved{} of its \GuestNEqvRows{} rows unresolved and a tail margin running out to
 $\GuestEqvBoundTailMax\,\mu$s, which is wider than any difference a deployment would care about and
 was the campaign declining to answer.
 
@@ -2714,15 +2736,16 @@ component on its own, which is what this decomposition does.
 
 The second is that once the component \emph{is} measured on its own, the languages are not
 equivalent. \BudgetCoreFaster{} runs the bare operation about $\BudgetCoreRatio\times$ faster,
-the difference shows up in the great majority of repeats, and the paired test puts it two
-orders of magnitude below the conventional threshold. This decomposition is a separate
+the difference shows up in the great majority of repeats, and the paired test puts its $p$ nearly
+three orders of magnitude below the conventional threshold. This decomposition is a separate
 experiment from the sweep and no part of its Holm family. It runs \BudgetRepeats{} repeats
 instead of \NRepeats{}, so its own attainable floor is $\BudgetFloor$ and not the
 $\CorrectedFloor$ quoted in Section~\ref{sec:stats}, and no correction is applied to it. The
-same holds for the interoperability comparison of Section~\ref{sec:migrationresults}. This is
-the only place in the whole performance campaign where a
-language difference in \emph{time} is resolved at all, and the sweep is blind to it by more
-than two orders of magnitude.
+same holds for the interoperability comparison of Section~\ref{sec:migrationresults}. The sweep
+does resolve language differences in \emph{time} of its own, at the median and at both tested tail
+percentiles, but every one of them is a difference in a quantity that is
+$\BudgetCoreShareRest\%$ handoff. This decomposition is the only place where the language's own
+work is timed, and the sweep is blind to it by more than two orders of magnitude.
 
 Figure~\ref{fig:budget} draws both conclusions on one page, and its second panel is the argument
 in one image: the instrument sits entirely above the quantity it would have to constrain.
@@ -2735,8 +2758,9 @@ effect. \textbf{(a)} The round-trip at true proportion: the operation the langua
 $\BudgetCoreShareMax\%$ of the bar, the remainder the cross-thread handoff. \textbf{(b)} The
 same quantities on a log axis against the smallest paired difference the sweep can resolve,
 shown as a blind zone. Both operation measurements fall inside it by a factor of
-$\BudgetBoundVsCore$, and (b) is also where the sweep's one resolved language difference in time
-lives.\label{fig:budget}}
+$\BudgetBoundVsCore$, which is why the differences the sweep does resolve in time are differences
+in the round-trip and not in the work the language
+performs.\label{fig:budget}}
 \end{figure}
 
 The attribution needs care, because the obvious reading is the wrong one. Nothing here
@@ -2767,7 +2791,7 @@ tracking region p99 is \emph{flat}: it reads $\PNineNineLightest\,\mu$s at the l
 $\PNineNineTrackingTop\,\mu$s at the top of the region, a drift of
 $\PNineNineTrackingDrift\,\mu$s across a fifty-fold increase in offered load. A queueing model would
 predict a gentle climb, and there is none to see, because until a worker saturates its shard the
-queue never holds more than a request or two and latency is service time rather than waiting time.
+queue never holds more than a request or two and latency is service time, not waiting time.
 Then, in the single step of the rate ladder that follows, p99 rises by four orders of magnitude at
 once, from $\PNineNineTrackingTop\,\mu$s to seconds. That is the overload cliff, and how abruptly it
 arrives is the finding. One increment of offered load separates a service meeting millisecond
@@ -2820,32 +2844,43 @@ against offered load. \textbf{(a)} Tail latency (p99) for the four build variant
 is flat across the whole tracking region and then rises by four orders of magnitude in one step of
 the ladder. \textbf{(b)} Achieved throughput, with the dotted line marking the ideal
 offered-equals-achieved regime. The C++ curves leave that line after an offered
-$\TrackingLoadCpp$~kops/s and the Rust curves after $\TrackingLoadRust$, which is the one place in
-the sweep where the two languages part company below the deepest overload. Lines are medians over
+$\TrackingLoadCpp$~kops/s and the Rust curves after $\TrackingLoadRust$, so $\KneeGapLoad$~kops/s is
+the only load in the sweep at which the ordering favours Rust. Lines are medians over
 \NRepeats{} repeats and shaded bands are bootstrap $95\%$ confidence intervals in both panels,
 which share the variant styling of the legend in (a). Throughput is counted over the measured
 phase only, so the warm-up iterations bias neither the numerator nor the
 denominator.\label{fig:loadsweep}}
 \end{figure}
 
-Figure~\ref{fig:tailpct} holds the load fixed instead and sweeps the percentile. The four
-variants coincide at the median and fan out as the percentile rises. That is the expected shape
-for a heavy-tailed distribution, and it is why a percentile-aware methodology is used throughout.
-The fanning is not a language effect. Its right-hand panel sets the spread between the four
-variants against the widest interval on any one of them, and from p90 upward the interval wins,
-so the fan marks where the measurement loses resolution and not where the languages differ.
+Figure~\ref{fig:tailpct} holds the load fixed instead and sweeps the percentile. The four variants
+are close at the median and fan out as the percentile rises, which is the expected shape for a
+heavy-tailed distribution and is why a percentile-aware methodology is used throughout. Here the fan
+opens by language: the two Rust curves stay below the two C++ curves across the whole range, and the
+gap widens with the percentile.
+
+Whether that is a language effect or a measurement artefact is a question the right-hand panel is
+built to answer, and on this host the answer is the first. It sets the spread between the four
+variants against the widest interval on any one of them, and the interval stays the smaller quantity
+at every percentile, reaching at most $\TailResolveRatioMax$ times the spread at
+\TailResolveRatioMaxAt{}. So the fan marks where the languages differ and not where the measurement
+runs out. That panel was added when the answer went the other way, and it is retained now that it
+does not, because a reader has no way to tell a resolved comparison from an unresolved one unless the
+study shows the same diagnostic in both cases.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.78\linewidth]{figures/fig_tail_percentiles.pdf}
-\caption[Latency across the percentile range, and the limit of the host]{Per-operation latency across the percentile range at $\ReprLoad$~kops/s. \textbf{(a)} The
-four variants as medians over \NRepeats{} repeats, each with a bootstrap $95\%$ band. The bands
-are the point: drawn as bare lines the curves lie on top of one another and read as a claim of
-equivalence, which is not what a measurement that cannot separate them has shown. \textbf{(b)}
-Why they cannot be separated above the median. The spread between the four variants is set
-against the widest confidence interval on any one of them, with the ratio annotated above each
-pair of bars. Once that ratio passes one, the uncertainty about a single variant is larger than
-the gap between all four and no ordering can be read off.\label{fig:tailpct}}
+\caption[Latency across the percentile range, and how far it resolves]{Per-operation latency across the percentile range at $\ReprLoad$~kops/s. \textbf{(a)} The
+four variants as medians over \NRepeats{} repeats, each with a bootstrap $95\%$ band. The bands are
+the point: drawn as bare lines the curves would read as a claim of equivalence, and what the bands
+show instead is two languages separated at every percentile with the gap widening.
+\textbf{(b)} How far that separation can be trusted. The spread between the four variants is set
+against the widest confidence interval on any one of them, with the ratio annotated above each pair
+of bars. Once that ratio passes one, the uncertainty about a single variant is larger than the gap
+between all four and no ordering can be read off. It does not pass one anywhere here, peaking at
+$\TailResolveRatioMax$ at \TailResolveRatioMaxAt{}, which is the condition that licenses the tail
+ordering. On the virtualised host of Section~\ref{sec:hostcompare} it passed one above the
+median.\label{fig:tailpct}}
 \end{figure}
 
 \subsection{Past saturation (RQ1)}\label{sec:overload}
@@ -3062,10 +3097,10 @@ allocators, comparable to what the allocator choice costs here though not on eve
 \small
 \caption[Resource use at the representative load]{Resource use at a sustained offered load of $\ReprLoad$~kops/s: achieved throughput,
 peak RSS, and total CPU utilisation. The median over \NRepeats{} repeats above its bootstrap
-$95\%$ confidence interval. Peak RSS and CPU both separate the two languages here. Neither
-separates all four variants, and peak RSS cannot, because the allocator effect and the language
-effect are of comparable size and one middle pair therefore
-coincides.\label{tab:resource}}
+$95\%$ confidence interval. CPU separates the two languages outright. Peak RSS separates them at a
+fixed allocator, which is the comparison the paired test makes, and not across all four variants,
+because the allocator effect and the language effect are of comparable size and one middle pair
+therefore coincides.\label{tab:resource}}
 \begin{tabular}{@{}l r r r@{}}
 \hline\hline
 Variant & throughput (kops/s) & peak RSS (MiB) & CPU (\%) \\
@@ -3175,9 +3210,13 @@ $\BmPFiftyDiffLo$--$\BmPFiftyDiffHi\,\mu$s on an operation of $\BmPFiftyMedian\,
 significant at \BmRssSig{} of \BmRssTested{} points, with the Rust build costing
 $\BmRssLangLo$--$\BmRssLangHi$~MiB more than the C++ one and \texttt{jemalloc} costing
 $\BmRssAllocLo$--$\BmRssAllocHi$~MiB more than the system allocator. Those two figures matter beyond
-this section: they are of comparable size, they agree with the main campaign's, and they disagree
-with the virtualised host's, which is the third of the three measurements
-Section~\ref{sec:hostcompare} weighs against each other.
+this section, and the comparison between them needs stating carefully. Here the \BmRssLargerEffect{}
+effect is the larger of the two and the ranges do not overlap, where on the main campaign the two
+interleave. What both bare-metal hosts agree on is the order of magnitude, and what they jointly
+contradict is the virtualised host, where the allocator cost some ten times the language. So the two
+effects are of the same size class on adequate hardware and their ordering within that class is not
+established, which is the third of the three measurements Section~\ref{sec:hostcompare} weighs
+against each other.
 The CPU comparison below saturation is significant at \BmCpuSig{} of \BmCpuTested{} points with
 \BmCpuLower{} lower at every one of them, by $\BmCpuDiffLo$--$\BmCpuDiffHi$ percentage points, the
 gap widening with offered load.
@@ -3823,7 +3862,8 @@ sanitiser. The guarantee stops there: the seven boundary classes compile in both
 on the leak and the release-build overflow the C++ tooling reports what Rust's does not. &
 Final \\
 RQ3 & A memory penalty that reproduces: $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak RSS in
-the Rust build under \emph{both} allocators, and the same size on all three machines measured. The
+the Rust build under \emph{both} allocators, in the same direction and order of magnitude on all
+three machines measured. The
 allocator's own $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB is comparable here and was an order of
 magnitude larger on the virtualised host, so their ratio does not travel
 (Section~\ref{sec:hostcompare}). CPU inverts across the regimes: Rust draws up to
@@ -3871,8 +3911,8 @@ Beyond saturation the answer changes in kind, and it changes twice. Where each i
 meeting its offered rate differs by one rung of the ladder, with the Rust arms holding to
 $\TrackingLoadRust$~kops/s against the C++ arms' $\TrackingLoadCpp$. Deeper still, once both have
 collapsed, the ordering reverses: the C++ build sustains $\OverloadThrRatio$ times the throughput of
-the Rust one while drawing more CPU per completed operation, reproducibly and at the corrected floor
-of the whole test family (Section~\ref{sec:overload}). Only the second of those is tested, and
+the Rust one, reproducibly and at the corrected floor of the whole test family, while the Rust build
+draws more CPU for each operation it completes (Section~\ref{sec:overload}). Only the second of those is tested, and
 Section~\ref{sec:perfresults} says why the first is not. So the practical form of RQ1's answer is
 not that the language choice is irrelevant to predictability. It is irrelevant \emph{until the
 service stops coping}, and around that point it decides both when coping stops and how
@@ -4637,7 +4677,7 @@ isolating them also removes them from every scheduling domain, and the benchmark
 a range and relies on the kernel to spread them: an isolated set collapses all of them onto one
 core, which is not a subtle failure but it is an invisible one, since every individual record still
 looks plausible. What that costs is a residue of scheduler interference on the pinned cores that a
-fully isolated set would not carry. It is bounded rather than eliminated, by tickless operation on
+fully isolated set would not carry. It is bounded and not eliminated, by tickless operation on
 those cores, a fixed governor with boost off, and no hypervisor beneath them
 (Section~\ref{sec:testbed}). The reading rule fixed in Section~\ref{sec:stats} is aimed at exactly
 this residue: peak RSS, CPU and sustained throughput are run-level summaries and come through
@@ -4659,8 +4699,8 @@ read from its interval, under the rule fixed in Section~\ref{sec:stats} and not 
 disagreement appeared. The bimodality behind it was a defect in the measurement and not in
 either allocator, because it affected both languages in equal numbers and appeared at every load
 level, and Section~\ref{sec:hostcompare} shows it does not occur on either bare-metal host. So the
-rule was needed once, on a machine this study no longer uses, and it is retained rather than
-withdrawn because that is what a pre-commitment means.
+rule was needed once, on a machine this study no longer uses, and it is retained and not
+withdrawn, because that is what a pre-commitment means.
 
 Third, the overload divergence is measured and replicated, and its mechanism is now tested and
 not only argued. Isolated under the same pattern of \ContentionProducers{} producers, the bounded
@@ -4779,7 +4819,8 @@ data-race classes at compile time, and one of those seven is a class no C++ sani
 all. Hazards C++ can only hope to catch under an instrumented test become unwriteable. The edge
 stops there.
 All seven boundary
-classes compile and misbehave in safe Rust exactly as they do in C++, and on two of them the C++
+classes compile in safe Rust and all seven misbehave, though not always in the same way as in C++,
+and on two of them the C++
 tooling is the one that reports. The guarantee is therefore best described precisely. Rust
 eliminates data races, not race conditions, and aliasing errors, not lock-ordering errors,
 leaks, wrapping arithmetic or fault containment, and it eliminates none of them in a region
@@ -4793,7 +4834,9 @@ unmodified Rust core can be driven from C++ across a thin, \texttt{unsafe}-isola
 cost on a real operation, measured against the same operation called natively, is bounded at
 $\FfiOpBoundPct\%$. The objections a build engineer raises first do not change that ordering.
 Most of the Rust build's extra expense is compiling dependencies and not the compiler's own work,
-the binary-size gap is a linkage policy and reverses when the policy is matched, and the compared
+the binary-size gap is a linkage policy and the ordering depends on which matched policy is chosen,
+Rust smaller when both standard libraries are linked statically and C++ smaller when both are
+resolved dynamically. The compared
 component resolves no third-party code at all. Where C++ leads is the edit-compile loop, and it
 leads only for edits that stay inside a translation unit.
 
@@ -4809,24 +4852,28 @@ The second of those divisions is the more consequential. Below saturation the tw
 languages are equivalent at the median for any purpose a deployment would care about, and that is a
 real result about deployments of this shape. The equivalence is practical rather than statistical,
 since the paired test does resolve $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both
-allocators. Their far tail resolves too, and it resolves in Rust's favour by
-$\FarTailRange\,\mu$s at p99.99, which is where a deployment sizes its margin. Past saturation they
+allocators. Their far tail resolves too, and it resolves in Rust's favour: at p99.99, which is where
+a deployment sizes its margin, the slowest Rust variant sits $\FarTailLangSep\,\mu$s below the
+fastest C++ one. Past saturation they
 are not equivalent, and the two implementations differ both in where they stop coping and in how
 they behave once both have. The Rust arms hold their offered rate to $\TrackingLoadRust$~kops/s
 against the C++ arms' $\TrackingLoadCpp$. Beyond that, the C++ build sustains
 $\OverloadThrRatio\times$ the throughput of the Rust build, in \OverloadThrAgree{} interleaved
-repeats under both allocators, while drawing $\OverloadCpuPerOpRatio\times$ the CPU per completed
-operation, and the isolated primitives do not reproduce that ordering at significance
+repeats under both allocators, while the Rust build spends $\OverloadCpuPerOpRatio\times$ the CPU on
+each operation it completes, so what it loses is not idleness but effort that finishes nothing. The
+isolated primitives do not reproduce that ordering at significance
 (Section~\ref{sec:contention}). On memory the Rust build carries a few MiB more fixed footprint
-under both allocators, at a size that held on every machine measured, while the cost of the
-allocator choice moved by more than tenfold between them.
+under both allocators, in the same direction and the same order of magnitude on every machine
+measured, while the cost of the allocator choice moved by more than tenfold between them.
 
 Taken together these support a narrow claim, narrower than the one this thesis expected
 to make. For stateful, concurrent, partitionable control-plane services of this kind, and
 \emph{at nominal load}, the choice between modern C++ and Rust is not a performance decision. It
 is a decision about which classes of defect an organisation wants to make unwriteable, and about
-whether it will pay the engineering and learning cost of getting them. Under overload it becomes
-a performance decision again, and one that currently favours C++. The reasons lie in the
+whether it will pay the engineering and learning cost of getting them. Around and past saturation it
+becomes a performance decision again, and which way it goes depends on where the service is expected
+to sit: the Rust build meets its offered rate a rung further up, and deeper into overload the C++
+build sustains more of what it is given. The reasons lie in the
 concurrency plumbing and not in either language's guarantees, which a service required to degrade
 gracefully cannot treat as incidental. What this thesis adds is therefore an instrument and
 not a verdict: the frozen specification, the parity-tested pair, a measurement framework that
@@ -4834,13 +4881,15 @@ reaches past the saturation knee, a decomposition that says how much of what it 
 language is answerable for, and a defect catalogue that maps where the guarantee stops.
 
 Several directions extend the work, each the direct remedy to a limitation named above. The
-immediate priority is a third machine at the reported campaign's own design. Two hosts now agree
-on every direction this thesis reports, and on one quantity, the size of the allocator effect
-against the language effect, they disagree (Section~\ref{sec:hostcompare}). The candidate this
-study can name but not test is the transparent-hugepage policy, which differed between the hosts
-and which the two allocator arms do not inherit alike. Varying that policy with everything else
-held fixed is a short experiment and it would settle whether a footprint claim of this kind
-belongs to an allocator or to a kernel setting. Beyond that:
+immediate priority needs no new machine, which is why it is first: vary the transparent-hugepage
+policy on one host with everything else held fixed. Three hosts measured the peak-RSS comparison and
+all three agree that the Rust build carries the larger footprint, while they disagree about how that
+compares against the cost of the allocator, which the virtualised host put an order of magnitude
+higher and neither bare-metal host does (Section~\ref{sec:hostcompare}). The hugepage policy is the
+candidate this study can name but not test, because it differed between those hosts and only the
+system-allocator arm inherits it. A single machine, two settings, everything else pinned, and the
+question of whether a footprint claim of this kind belongs to an allocator or to a kernel setting is
+settled either way. Beyond that:
 
 \begin{itemize}
 \item Replay captured, anonymised production traces in place of the synthetic workload, so that
@@ -4906,7 +4955,7 @@ UECM & UE Context Management: the per-UE state-management subsystem reimplemente
 RRC & Radio Resource Control: the control-plane signalling protocol between UE and gNB \\
 DRB & Data Radio Bearer: a per-UE user-plane data channel set up during a session \\
 Control plane & The signalling and management path, as opposed to the user-plane data path \\
-Tail latency & High-percentile latency (p99, p99.9), the worst-case-oriented timing metric \\
+Tail latency & High-percentile latency (p99, p99.9, p99.99), the worst-case-oriented timing metric \\
 Jitter & How much latency varies from one operation to the next, as opposed to its typical value \\
 Saturation & The offered load beyond which the service can no longer keep up and requests start queueing \\
 Shard & One of several independent slices of the UE state, each owned by exactly one worker thread \\
@@ -4975,9 +5024,12 @@ repeat count than about the languages.
 
 \appendix{Host and campaign configuration\label{appendix:config}}
 Table~\ref{tab:testbed} itemises the three machines the campaigns ran on: the bare-metal host of
-Section~\ref{sec:testbed} that every table in this thesis is drawn from, the virtualised host it
-replaced, and the second bare-metal host at a different design that
-Section~\ref{sec:hostcompare} reads against it. Every column reports what was measured, and
+Section~\ref{sec:testbed} that every performance and resource table of the main sweep is drawn from,
+the virtualised host it replaced, and the second bare-metal host at a different design that
+Section~\ref{sec:hostcompare} reads against it. Three result tables come from elsewhere and say so
+in their own captions, since the resident-set decomposition belongs to the second bare-metal host and
+the interoperability and adoption-cost measurements were taken on the development machine, which is
+why the latter are reported as paired ratios. Every column reports what was measured, and
 the protocol they are read against is published as \texttt{bench/TESTBED.md} rather than restated
 here. Table~\ref{tab:params} gathers the
 configuration of the service, the workload and the campaign, whose derived values
@@ -4992,8 +5044,10 @@ Section~\ref{sec:workload} quotes.
 \centering
 \small
 \caption[The three measurement hosts]{The three machines the campaigns ran on, each reported as
-measured, with every cell generated from that campaign's own environment capture rather than
-restated from the protocol of \texttt{bench/TESTBED.md}. The columns are arranged so that each
+measured. Every hardware, kernel and toolchain cell is generated from that campaign's own
+environment capture rather than restated from the protocol of \texttt{bench/TESTBED.md}. The last
+two rows are prose, because what an instrument set is adequate for is a judgement and not a captured
+field. The columns are arranged so that each
 adjacent pair isolates one change. Reported sweep against virtualised host: the same design on a
 different machine, which is what Section~\ref{sec:hostcompare} reads a hardware effect from.
 Reported sweep against second bare-metal host: a different shard count, load grid, repeat count and
@@ -5008,7 +5062,7 @@ Aspect & Reported sweep & Virtualised host, same design & Second bare-metal host
 \hline
 Host & \MainCpu{}, \MainCores{} cores, \MainSockets{} socket & \GuestCpu{} guest, \GuestCores{} vCPUs & \BmCpu{}, \BmCores{} cores, \BmSockets{} socket \\
 Hypervisor & \MainVirt{}. Governor \MainGovernor{}, boost off, verified on the machine & \GuestVirt{}. Frequency and turbo host-controlled, unobservable from inside & \BmVirt{}. Governor \BmGovernor{}, verified on the machine \\
-CPU steal & None: no hypervisor to lose a timeslice to & Non-zero, order $10$~ms per second of vCPU time, comparable to the tails measured & \BmStealWithSteal{} of \BmStealIntervals{} intervals on \BmStealCores{} pinned cores \\
+CPU steal & None: no hypervisor to lose a timeslice to & Not characterised. The capture's single one-second sample read \GuestSteal{}, and no steal probe was run on this host & \BmStealWithSteal{} of \BmStealIntervals{} intervals on \BmStealCores{} pinned cores \\
 Isolation & \texttt{nohz\_full} \MainNohzFull{}. \texttt{isolcpus} \MainIsolcpus{}, omitted on purpose (\S\ref{sec:threats}) & \texttt{isolcpus} \GuestIsolcpus{}, \texttt{nohz\_full} \GuestNohzFull{} & \texttt{isolcpus} \BmIsolcpus{}, \texttt{nohz\_full} \BmNohzFull{}. \emph{Short of protocol} \\
 Hugepages & \MainThp{} & \GuestThp{}, and only the system-allocator arm inherits it & \BmThp{} \\
 Toolchain & \texttt{g++~\MainGpp}, \texttt{rustc~\MainRustc}, pinned in a container image & \texttt{g++~\GuestGpp}, \texttt{rustc~\GuestRustc} & \texttt{g++~\BmGpp}, \texttt{rustc~\BmRustc}, so a compiler change is tested too \\
@@ -5040,7 +5094,7 @@ own plateaus, which differ.\label{tab:params}}
 Parameter & Value & Note \\
 \hline
 \multicolumn{3}{@{}l}{\emph{Service under test, identical in both languages}} \\
-Shards, and worker threads & $7$ & one thread owns one shard, one of each per pinned core \\
+Shards, and worker threads & $7$ & one thread owns one shard. Held at seven on all three hosts as a fairness control (\S\ref{sec:controls}) \\
 Queue bound per shard & $1\,024$ requests & bounded and blocking, so overload is observable \\
 Initial map capacity & $4\,096$ entries & reserved so steady state does not rehash \\
 Bearers per context & at most $8$ & \\
@@ -5051,7 +5105,7 @@ Intra-shard hash & FNV-1a, 64-bit & pinned on both sides and checked bit-for-bit
 \hline
 \multicolumn{3}{@{}l}{\emph{Workload}} \\
 Workloads & signal, mixed & mixed walks the full RAN lifecycle \\
-Active UEs & $5\,000$ & \\
+Active UEs & \SweepUes{} & \\
 Offered-load levels & \NLoadLevels{} & up to $\MaxOfferedLoad$~kops/s \\
 Representative load & $\ReprLoad$~kops/s & fixed, see caption \\
 Measured throughput plateau & $\SatKnee$~kops/s achieved & the lowest of the four, reached at an offered $\TrackingLoad$~kops/s. The Rust arms track one rung further, to $\TrackingLoadRust$ \\
@@ -5073,7 +5127,7 @@ Attainable $p$ floors & $\MinAttainableP$ / $\CorrectedFloor$ & uncorrected / af
 As an illustration of the fault-injection study (Chapter~\ref{chapter:eval}, RQ2), the
 use-after-free defect is shown in both languages. In C++ the alias into the context map
 survives the \texttt{erase} that frees it, so the following program compiles cleanly and is
-flagged only at runtime by AddressSanitizer:
+flagged only at runtime, by AddressSanitizer and ThreadSanitizer:
 
 \begin{lstlisting}[language=C++]
 std::unordered_map<unsigned long, UeContext> ctxs;

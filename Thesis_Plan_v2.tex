@@ -46,7 +46,7 @@ in Nokia RAN Control-Plane Systems}}
 \normalsize Thesis supervisor: Keijo Heljanko\\
 \normalsize Nokia instructors: Christoph Luneburg, Petteri Kotimaa}
 
-\date{\normalsize 13 August 2026\\[0.5em]
+\date{\normalsize 28 August 2026\\[0.5em]
 \normalsize Estimated completion: 11 November 2026 \quad Planned thesis presentation: November 2026}
 
 \begin{document}
@@ -203,6 +203,10 @@ data is used, so no personal or confidential data is processed.
   \item A reproducible, telecom-relevant benchmarking framework.
   \item A frozen shared specification and two parity-tested implementations.
   \item A quantitative comparison emphasising tail latency under overload.
+  \item A bound on what a comparison of this shape can attribute to a language
+  at all, obtained by decomposing an end-to-end operation into the work the
+  language performs and the cross-thread handoff around it. This one was not
+  anticipated and emerged from the measurements.
   \item A defect-class taxonomy mapping both what the compile-time guarantee
   covers and where it stops.
   \item Evidence-based guidelines for incremental Rust adoption, where the
@@ -245,20 +249,20 @@ Month (2026) & Goal & What happens \\
 \hline
 June & Foundations & Done: topic defined, C++/Rust/5G foundations, literature review drafted. \\
 July & Draft & Done: thesis plan approved, chapter skeleton and evaluation design outlined. \\
-August & Build & Done: specification and both implementations built, parity suite and
-benchmark harness operational, canonical bare-metal campaign run. \\
-September & Measure & Done: reported campaign on bare metal, guest retained for
-comparison, second bare-metal host at a different design. \\
-October & Resolve & Finalise remaining chapter prose, revise affected chapters,
-draft to supervisors and Nokia instructors. \\
+August & Build and measure & Done: specification and both implementations built, parity suite
+and benchmark harness operational, canonical bare-metal campaign run and reported, earlier
+virtualised campaign retained for the host comparison, second bare-metal host at a different
+design confirming the directions. \\
+September & Resolve & Abstract, full proofread, draft to supervisors and Nokia instructors. \\
+October & Review & Revise on supervisor and instructor feedback, prepare the colloquium. \\
 November & Submit & Final revisions, colloquium presentation, submission. \\
 \hline
 \end{tabular}
 \end{center}
 
-\textbf{Risks.} The far tail is now resolved on bare metal. If a third machine
-is needed to test the transparent-hugepage candidate for the allocator-effect
-discrepancy, a cloud instance or a Nokia lab host is the fallback.
+\textbf{Risks.} The far tail is now resolved on bare metal. The one open question,
+the transparent-hugepage candidate for the allocator-effect discrepancy, needs no new
+machine: it is a two-setting comparison on one host with everything else pinned.
 Single-author skill asymmetry is bounded by the frozen specification and parity
 suite, and acknowledged as residual for performance.
 
