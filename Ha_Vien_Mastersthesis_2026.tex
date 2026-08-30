@@ -243,7 +243,7 @@ FFI prototype.
 \noindent\textbf{Results.}
 Safe Rust rejects all seven injected memory-safety and data-race defect classes at compile
 time. In C++ the same seven build cleanly and show up only at runtime, if a sanitiser catches
-them. Five further classes fail in both languages. On two of them C++ tooling reports what
+them. Seven further classes fail in both languages. On two of them C++ tooling reports what
 Rust does not. The seam to C++ leaves the core \texttt{unsafe}-free and costs at most
 $\FfiOpBoundPct\%$ of one operation. Performance changes at saturation. Below it median
 latency matches, yet an end-to-end call spends only $\BudgetCoreShareMax\%$ on language
@@ -252,7 +252,7 @@ language. Timed alone, Rust's operation is $\BudgetCoreRatio\times$ faster and t
 is a few MiB larger. Above saturation the order flips: \OverloadSustainedFaster{} holds
 $\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{} in \OverloadThrAgree{}
 interleaved repeats with both allocators. The far tail below saturation cannot be settled
-on a virtualised host.
+on a bare-metal host.
 
 \noindent\textbf{Conclusions.}
 The main cost of adopting Rust is engineering effort and the learning curve, not run-time
