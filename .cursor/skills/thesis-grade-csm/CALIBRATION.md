@@ -196,15 +196,15 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
-**Updated at the seventeenth pass, 30 August 2026 evening.** Blocker 2 remains closed. Blocker 1's
+**Updated at the eighteenth pass, 31 August 2026.** Blocker 2 remains closed. Blocker 1's
 *facts* are closed: the printed abstract now matches the tables, and area 4 is 5. What remains of
 blocker 1 is the unaided switch (`\abstractunaidedfalse`, Not submittable). Area 6 is still 4.5 on
-finishing. The second finishing item is unchanged in the log (23 pt on §2.2), but the sixteenth
-pass's recommended `\sectionmark` is now in the source and **does not take effect**. titlesec
-ships the full title from the `\section` argument. The lift that works is
-`\section[Latency and predictability]{Latency, throughput, and predictability in real-time software}`.
-Do not report "add a sectionmark" as an open fix: that fix was applied and the header still reads
-`SOFTWARE9`.
+finishing, now on that switch alone. The §2.2 running-header overflow is **CLOSED**: the source has
+`\section[Latency and predictability]{Latency, throughput, and predictability in real-time software}`,
+the TOC and the header on body page 9 ship the short title, and the log has zero `Overfull`,
+including `while \output is active`. Extraction still concatenates title and page number on one
+baseline (`PREDICTABILITY9`). That is not an overflow. Do not re-report `SOFTWARE9`. Do not
+recommend another `\sectionmark`.
 
 **Updated at the thirteenth pass, 27 August 2026 night. Read this block before the numbered list
 below, which is a day out of date in one important respect.**
@@ -231,11 +231,9 @@ tracking, and "timed alone" covering only the operation. What remains of blocker
 declaration: `\abstractunaidedfalse`, so the build still prints Not submittable. That is area 6,
 not area 4. The author must look at page 3 and set the switch. A model must not.
 
-**The running header of §2.2 (23 pt, `while \output is active`) is still open, and the attempted
-fix failed.** A `\sectionmark{Latency and predictability}` sits immediately after the `\section`. The
-shipped header is still the full title jammed into the page number. titlesec sets the mark from
-the section title. Use the optional argument. After the unaided switch is set, this is what
-still blocks camera-ready.
+**The running header of §2.2 is CLOSED as of the eighteenth pass, 31 August 2026. Do not
+re-report.** The optional short title is in the source, the TOC, and the shipped header. The log
+has zero `Overfull`. After the unaided switch is set, nothing on the finishing list remains.
 
 **Both of the thirteenth pass's analysis items are CLOSED by the remediation of 27 August night, and
 neither may be re-reported.** They are kept here with the fix, because the fixes are the transferable
