@@ -2650,7 +2650,6 @@ stopped meeting the offered rate, and the metrics are the two that remain interp
 (Section~\ref{sec:stats}). Table~\ref{tab:overload} gives what each variant still sustains and
 Table~\ref{tab:overloadtest} tests the comparison.
 
-The languages are not equivalent in this regime, and the margin is not marginal.
 \OverloadSustainedFaster{} sustains $\OverloadThrCpp$~kops/s where \OverloadSustainedSlower{}
 sustains $\OverloadThrRust$, a factor of $\OverloadThrRatio$. The paired difference is at least
 $\OverloadThrBound$~kops/s under either allocator, it holds in \OverloadThrAgree{} repeats, and
@@ -2699,9 +2698,8 @@ is implicated.
 
 The setting bounds what the finding licenses, and Section~\ref{sec:threats} says how far it
 travels. The depth of the collapse depends on one design, one request outstanding per producer and
-a queue bound of $1\,024$, measured with a harness whose producers block per request. What travels
-is the ordering and its cause: below saturation the language choice did not matter, and above it
-the standard library's synchronisation primitives did.
+a queue bound of $1\,024$, measured with a harness whose producers block per request. What travels is the ordering under collapse, and that the isolated primitives do not produce
+it on their own.
 
 The closest prior work reports a comparable degradation past a threshold request rate and
 attributes it to the asynchronous runtime~\cite{arvidsson2025async}.
@@ -3498,46 +3496,31 @@ ordering reverses with the linkage policy, and the compared component resolves $
 \end{table}
 
 \section{Discussion on the research questions}\label{sec:rqdiscussion}
-\paragraph{RQ1 (predictability).} RQ1 has two halves, below saturation and beyond it, and the
-campaign answers them differently enough that reporting either alone would misrepresent the
-result.
+\paragraph{RQ1 (predictability).} The two load-dependent effects point at opposite languages,
+and that is why a single verdict here would be false. A service sized to run below its knee
+should prefer the arm that holds its offered rate further, to $\TrackingLoadRust$~kops/s
+against $\TrackingLoadCpp$. One that a signalling storm will drive past every knee should
+prefer the arm that still completes more work afterwards, by $\OverloadThrRatio$ at
+$\OverloadLoad$~kops/s, at the corrected floor of the whole test family, while the slower
+arm spends more CPU on each operation it does complete (Section~\ref{sec:overload}). Only
+the second of those is tested. The first is descriptive, for the reason
+Section~\ref{sec:perfresults} gives. A comparison that stopped at nominal load, as most in
+this literature do, would have concluded the opposite with the same apparatus.
 
-Below saturation the languages are equivalent in central behaviour, by a margin no deployment
-would notice. The small paired difference at the median that does clear the correction is a
-fraction of a $\PFiftyMedian\,\mu$s operation. The far tail in this regime is a different matter,
-and one a deployment would also care about. There the result is an ordering rather than a null, and
-it favours \FarTailLower{}: pooled over millions of operations per variant, the two languages'
-p99.99 values do not meet, and the gap between the extremes is $\FarTailRange\,\mu$s, roughly the
-width of a whole median operation. So the equivalence claimed at the median does not extend up the
-distribution, and the direction in which it fails is the one that favours the safer language. That
-is a difference in the percentile a deployment sizes its margin from, and it is reproduced at a
-second shard count on a second machine (Section~\ref{sec:hostcompare}), which is as much
-corroboration as this study can offer for any timing result. The central result is consistent with
-the wider evidence that
-Rust's safety checks are largely absorbed by modern out-of-order
-CPUs~\cite{balasubramanian2017rust,emmerich2019drivers}. It is also weaker than it
-looks, for the reason Section~\ref{sec:budget} gives. The operation the
-languages execute is $\BudgetCoreShareMax\%$ of what the sweep measures. An end-to-end null in
-a design dominated by a cross-thread wakeup therefore says something about the design and not
-about the languages. Measured on its own, the operation differs by $\BudgetCoreRatio\times$.
+What a deployment sizes its margin from is the far tail, not the median. At the
+representative load the median gap is a fraction of a $\PFiftyMedian\,\mu$s operation. The
+pooled p99.99 is an ordering, in \FarTailLower{}'s favour, and the gap between the extremes
+is $\FarTailRange\,\mu$s, roughly the width of a whole median operation. That percentile
+result is reproduced at a second shard count on a second machine
+(Section~\ref{sec:hostcompare}). The median result is consistent with the wider evidence
+that Rust's safety checks are largely absorbed by modern out-of-order
+CPUs~\cite{balasubramanian2017rust,emmerich2019drivers}. It is also weaker than it looks,
+for the reason Section~\ref{sec:budget} gives. The operation the languages execute is
+$\BudgetCoreShareMax\%$ of what the sweep measures. An end-to-end comparison in a design
+dominated by a cross-thread wakeup therefore says something about the design and not about
+the languages. Measured on its own, the operation differs by $\BudgetCoreRatio\times$.
 
-Beyond saturation the answer changes in kind, and it changes twice. Where each implementation stops
-meeting its offered rate differs by one rung of the ladder, with the Rust arms holding to
-$\TrackingLoadRust$~kops/s against the C++ arms' $\TrackingLoadCpp$. Deeper still, once both have
-collapsed, the ordering reverses: the C++ build sustains $\OverloadThrRatio$ times the throughput of
-the Rust one, reproducibly and at the corrected floor of the whole test family, while the Rust build
-draws more CPU for each operation it completes (Section~\ref{sec:overload}). Only the second of those is tested, and
-Section~\ref{sec:perfresults} says why the first is not. So the practical form of RQ1's answer is
-not that the language choice is irrelevant to predictability. It is irrelevant \emph{until the
-service stops coping}, and around that point it decides both when coping stops and how
-much work still gets done afterwards. A comparison that stopped at nominal load, as most in this
-literature do, would have concluded the opposite with the same apparatus. That the two effects point
-in opposite directions is not a contradiction to be resolved but the reason a single verdict here
-would be false: a service sized to run below its knee should prefer the arm with the higher knee, and
-one that a signalling storm will drive past every knee should prefer the arm that degrades less
-steeply.
-
-That reframes the closest prior work instead of merely agreeing with it. Arvidsson and Kaller
+The overload shape reframes the closest prior work instead of merely agreeing with it. Arvidsson and Kaller
 measure this quantity for 5G control-plane procedures and find Rust's 99th percentile degrading
 faster beyond a threshold request rate. They trace it to stackless
 \texttt{async}/\texttt{await}, which permits a context switch immediately before an I/O operation
@@ -3775,9 +3758,8 @@ themselves, is what distinguishes a test from a description.
         A second disposition is that the hypothesis is not well posed.
         ``Performance-equivalent'' was written as though it named one quantity.
         Section~\ref{sec:budget} shows it names at least three: the delivered operation below
-        saturation, where the languages are equivalent, the code the compilers emit, where they
-        are not, and sustained work under overload, where they are not equivalent either and the
-        difference runs the other way. A hypothesis that cannot tell them apart is one this study
+        saturation, the code the compilers emit, and sustained work under overload. Those three
+        do not move together. A hypothesis that cannot tell them apart is one this study
         should have stated more carefully before measuring.
   \item[H2: supported in its precise form, refuted in its loose one.] The hypothesis was
         that safe Rust prevents at compile time ``the memory-safety and concurrency defect
@@ -4252,43 +4234,35 @@ resolved dynamically. The compared
 component resolves no third-party code at all. Where C++ leads is the edit-compile loop, and it
 leads only for edits that stay inside a translation unit.
 
-Third, on performance the evidence divides twice before it divides by resource: first by
-\emph{what is being measured}, and then by \emph{whether the service is coping}. An end-to-end
-operation in this design is $\BudgetCoreShareMax\%$ the work the
-language performs, and the rest is a cross-thread handoff the operating system performs, so an
-end-to-end null cannot bound a language effect at all. Measured on the operation alone the
-languages are not equivalent. Rust is the faster of the two, by $\BudgetCoreRatio\times$, for
-reasons that trace to the standard library's hash-map layout and not to anything about safety.
-
-The second of those divisions is the more consequential. Below saturation the two
-languages are equivalent at the median for any purpose a deployment would care about, and that is a
-real result about deployments of this shape. The equivalence is practical rather than statistical,
-since the paired test does resolve $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both
-allocators. Their far tail resolves too, and it resolves in Rust's favour: at p99.99, which is where
-a deployment sizes its margin, the slowest Rust variant sits $\FarTailLangSep\,\mu$s below the
-fastest C++ one. Past saturation they
-are not equivalent, and the two implementations differ both in where they stop coping and in how
-they behave once both have. The Rust arms hold their offered rate to $\TrackingLoadRust$~kops/s
-against the C++ arms' $\TrackingLoadCpp$. Beyond that, the C++ build sustains
-$\OverloadThrRatio\times$ the throughput of the Rust build, in \OverloadThrAgree{} interleaved
-repeats under both allocators, while the Rust build spends $\OverloadCpuPerOpRatio\times$ the CPU on
-each operation it completes, so what it loses is not idleness but effort that finishes nothing. The
-isolated primitives do not reproduce that ordering at significance
-(Section~\ref{sec:contention}). On memory the Rust build carries a few MiB more fixed footprint
-under both allocators, in the same direction and the same order of magnitude on every machine
-measured, while the cost of the allocator choice moved by more than tenfold between them.
+Third, on performance the evidence first divides by what is being measured. An end-to-end
+operation in this design is $\BudgetCoreShareMax\%$ the work the language performs, and the
+rest is a cross-thread handoff the operating system performs, so an end-to-end null cannot
+bound a language effect at all. Measured on the operation alone, Rust is the faster of the
+two, by $\BudgetCoreRatio\times$, for reasons that trace to the standard library's hash-map
+layout and not to anything about safety. At the representative load the paired test
+resolves $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators, too small for a
+deployment to care about at the median, while at p99.99 the slowest Rust variant sits
+$\FarTailLangSep\,\mu$s below the fastest C++ one. The Rust arms then hold their offered
+rate to $\TrackingLoadRust$~kops/s against $\TrackingLoadCpp$. Beyond that, the C++ build
+sustains $\OverloadThrRatio\times$ the throughput of the Rust build, in \OverloadThrAgree{}
+interleaved repeats under both allocators, while the Rust build spends
+$\OverloadCpuPerOpRatio\times$ the CPU on each operation it completes, so what it loses is
+not idleness but effort that finishes nothing. The isolated primitives do not reproduce
+that ordering at significance (Section~\ref{sec:contention}). On memory the Rust build
+carries a few MiB more fixed footprint under both allocators, in the same direction and
+the same order of magnitude on every machine measured, while the cost of the allocator
+choice moved by more than tenfold between them.
 
 Taken together these support a narrow claim. For stateful, concurrent, partitionable
-control-plane services of this kind, and \emph{at nominal load}, the choice between modern C++
-and Rust is not a performance decision. It is a decision about which classes of defect an
-organisation wants to make unwriteable, and about whether it will pay the engineering and
-learning cost of getting them. Around and past saturation it becomes a performance decision
-again: the Rust build meets its offered rate a rung further up, and deeper into overload the C++
-build sustains more of what it is given. The reasons lie in the concurrency plumbing and not in
-either language's guarantees. What this thesis adds is an instrument and not a verdict: the
-frozen specification, the parity-tested pair, a measurement framework that reaches past the
-saturation knee, a decomposition that says how much of what it measures the language is
-answerable for, and a defect catalogue that maps where the guarantee stops.
+control-plane services of this kind, at the loads where the service still meets its offered
+rate, the choice is which classes of defect an organisation wants to make unwriteable, and
+whether it will pay the engineering and learning cost of getting them. Past that point it
+is a performance decision as well. The reasons for the latter lie in the concurrency
+plumbing and not in either language's guarantees. What this thesis adds is an instrument
+and not a verdict: the frozen specification, the parity-tested pair, a measurement
+framework that reaches past the saturation knee, a decomposition that says how much of what
+it measures the language is answerable for, and a defect catalogue that maps where the
+guarantee stops.
 
 Several directions extend the work. The immediate priority needs no new machine: vary the
 transparent-hugepage policy on one host with everything else held fixed. Three hosts agree that

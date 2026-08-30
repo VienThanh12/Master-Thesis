@@ -642,7 +642,7 @@ direction. Measured on its own the bare operation is $\BudgetCoreRatio\times$ fa
 \BudgetCoreFaster{}. The likely cause is the standard hash map's layout, not anything
 about safety.
 
-Past saturation the languages are not equivalent, and they part company twice. They stop
+Once the offered rate outruns the service, two differences appear. They stop
 meeting the offered rate at different loads: the Rust arms hold to
 $\TrackingLoadRust$~kops/s and the C++ arms to $\TrackingLoadCpp$, so at
 $\KneeGapLoad$~kops/s \KneeGapFaster{} still serves $\KneeGapThrFast$~kops/s where
@@ -708,22 +708,19 @@ $\CoreUnsafe$ \texttt{unsafe} sites.
 
 \chapter{Discussion\label{chapter:discussion}}
 
-RQ1's answer divides at saturation. Reporting either half on its own would
-misrepresent it. Below the knee the two languages are equivalent in central behaviour by
-a margin no deployment would notice. That is a result about services of this shape. The
-far tail in the same regime now resolves on the reported host, in Rust's favour. On the
-virtualised host that the study used first, that percentile could not be ordered at all.
-Past the knee they diverge in both directions: the Rust arms reach a higher knee, and once
-both have collapsed the C++ arms sustain $\OverloadThrRatio\times$ the throughput. Which of
-those matters depends on whether a deployment expects to be driven past every arm's
-knee. The closest prior work measures
-this quantity for 5G control-plane procedures. It finds the same shape and traces it to
-stackless \texttt{async}/\texttt{await}~\cite{arvidsson2025async}. That attribution is
-accepted here. The shape appeared with no asynchronous runtime on either side and the
-concurrency model held fixed. A runtime cannot be the only place such an effect
-originates. The prediction registered in advance also named where to look first, bounds
-and overflow checking. That part of it was wrong. Recording the miss is worth more to
-the next study than quietly substituting the explanation that survived.
+What a deployment should do with RQ1 depends on where it expects to sit, not on a single
+ranking. A service sized to run below every arm's knee should prefer the arm that holds
+its offered rate further. One that a signalling storm will drive past every knee should
+prefer the arm that still completes more work afterwards. Those two preferences point at
+opposite languages, which is why Chapter~\ref{chapter:eval} reports both halves rather
+than a winner. The closest prior work measures this quantity for 5G control-plane
+procedures. It finds the same shape and traces it to stackless
+\texttt{async}/\texttt{await}~\cite{arvidsson2025async}. That attribution is accepted
+here. The shape appeared with no asynchronous runtime on either side and the concurrency
+model held fixed. A runtime cannot be the only place such an effect originates. The
+prediction registered in advance also named where to look first, bounds and overflow
+checking. That part of it was wrong. Recording the miss is worth more to the next study
+than quietly substituting the explanation that survived.
 
 On safety the difference is one of kind. The boundary is reported as a first-class
 result, not as a caveat. A compiler that refuses to build a program rules the defect out
@@ -774,13 +771,11 @@ dependency budget before blaming the compiler. The one axis where C++ leads outr
 the edit-compile loop for changes that stay inside a translation unit.
 
 The three hypotheses were committed before any measurement. Stating their disposition is
-what separates a test from a description. H1 is supported below saturation and refuted
-above it. It is not in the direction its wording anticipated. The largest difference
-appeared in overload, which H1 did not consider. The far tail H1 did name is half right:
-the reported campaign now resolves it, in Rust's favour, and a second bare-metal host at
-another shard count agrees on the direction. H1 was right about where to look and wrong
-that it was the only place. It was
-also not well posed.
+what separates a test from a description. H1's median clause holds at the representative load. Its far-tail clause does not, and
+overload, which the wording never named, is where the languages actually part. The
+reported campaign now resolves that tail, in Rust's favour, and a second bare-metal host at
+another shard count agrees on the direction. H1 was right about where a below-saturation
+difference would show up and wrong that it was the only place. It was also not well posed.
 ``Performance-equivalent'' reads as one quantity and names at least three. H2 holds
 without exception for the seven injected classes of its kind. It fails in the looser
 reading its wording invites. It is accepted for memory safety and data-race freedom,
@@ -825,38 +820,34 @@ errors. It does not eliminate race conditions, lock-ordering errors, leaks, wrap
 arithmetic or the blast radius of a failed worker, and it eliminates nothing inside an
 \texttt{unsafe} block.
 
-On performance the evidence divides twice before it divides by resource. Getting both
-divisions right was this study's most consequential correction to itself. It divides first
-by what is being measured. An end-to-end operation here is $\BudgetCoreShareMax\%$
-language. The rest is an operating-system handoff. An end-to-end null bounds nothing about
-either compiler. The same operation measured apart is $\BudgetCoreRatio\times$ faster in
-\BudgetCoreFaster{}. It divides second by whether the service is coping. Below saturation
-the two are equivalent at the median for any purpose a deployment would care about. The
-paired test does resolve $\PFiftyDiffAbsMax\,\mu$s in Rust's favour, so that equivalence is
-practical and not statistical. Their far tail resolves in Rust's favour on the reported
-host, which a virtualised host could not settle. Past saturation the Rust arms hold their
-offered rate one rung further, and beyond that \OverloadSustainedFaster{} sustains
+On performance the evidence first divides by what is being measured. An end-to-end
+operation here is $\BudgetCoreShareMax\%$ language. The rest is an operating-system
+handoff. An end-to-end null bounds nothing about either compiler. The same operation
+measured apart is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster{}. At the
+representative load the paired test resolves $\PFiftyDiffAbsMax\,\mu$s in Rust's favour,
+too small for a deployment to care about at the median. The far tail on the reported host
+orders the languages in the same direction. A virtualised host could not settle that
+percentile. The Rust arms then hold their offered rate to $\TrackingLoadRust$~kops/s against
+$\TrackingLoadCpp$, and once all four have collapsed \OverloadSustainedFaster{} sustains
 $\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{}, which spends
-$\OverloadCpuPerOpRatio\times$
-the CPU on each operation it completes. On memory the Rust build carries a few MiB more fixed
-footprint under both allocators, in the same direction and order of magnitude on all three
-machines measured. The allocator choice costs about as much on both bare-metal hosts, and
-an order of magnitude more on the virtualised one this study used first.
+$\OverloadCpuPerOpRatio\times$ the CPU on each operation it completes. On memory the Rust
+build carries a few MiB more fixed footprint under both allocators, in the same direction
+and order of magnitude on all three machines measured. The allocator choice costs about as
+much on both bare-metal hosts, and an order of magnitude more on the virtualised one this
+study used first.
 
 What follows is a narrow claim, narrower than this thesis expected to make. An unmodified
 Rust core can be driven from C++ across a thin seam. The cost on a real operation is
 bounded at $\FfiOpBoundPct\%$. All \texttt{unsafe} is confined to the seam. The core is
 verified free of it. For stateful, concurrent, partitionable control-plane services of
-this kind, and at nominal load, the choice between the two languages is not a performance
-decision. It is a decision about which classes of defect an organisation wants to make
-unwriteable, and about whether it will pay the engineering and learning cost of getting
-them. Around and past saturation it becomes a performance decision again, and which way it
-goes depends on where the service is expected to sit: the Rust build meets its offered rate
-a rung further up, and deeper into overload the C++ build sustains more of what it is given.
-What the thesis adds is an instrument, not a verdict: a frozen specification, a
-parity-tested pair of implementations, a measurement framework that reaches past the
-saturation knee, a decomposition that says how much of what it measures the language is
-answerable for, and a defect catalogue that maps where the guarantee stops.
+this kind, at the loads where the service still meets its offered rate, the choice is
+which classes of defect an organisation wants to make unwriteable, and whether it will
+pay the engineering and learning cost of getting them. Past that point it is a
+performance decision as well. What the thesis adds is an instrument, not a verdict: a
+frozen specification, a parity-tested pair of implementations, a measurement framework
+that reaches past the saturation knee, a decomposition that says how much of what it
+measures the language is answerable for, and a defect catalogue that maps where the
+guarantee stops.
 
 Future work answers the limitations one at a time. The immediate priority needs no new
 machine: vary the transparent-hugepage policy on one host with everything else held
