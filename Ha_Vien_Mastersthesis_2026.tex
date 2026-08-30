@@ -248,7 +248,7 @@ Rust does not. The seam to C++ leaves the core \texttt{unsafe}-free and costs at
 $\FfiOpBoundPct\%$ of one operation. Performance changes at saturation. Below it the test resolves a few microseconds in Rust's favour, yet an end-to-end call spends only $\BudgetCoreShareMax\%$ on language
 work. Cross-thread handoff takes the rest, so the sweep reflects the design more than the
 language. Timed alone, Rust's operation is $\BudgetCoreRatio\times$ faster and the process
-is a few MiB larger. Above saturation the order flips: \OverloadSustainedFaster{} holds
+is a few MiB larger. Above saturation the order flips:  the Rust arms still meet their offered rate to \TrackingLoadRust~kops/s, the C++ arms only to \TrackingLoadCpp. \OverloadSustainedFaster{} holds
 $\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{} in \OverloadThrAgree{}
 interleaved repeats with both allocators. 
 
@@ -256,7 +256,7 @@ interleaved repeats with both allocators.
 The main cost of adopting Rust is engineering effort and the learning curve, not run-time
 performance at nominal load. The gain is freedom from data races, not from concurrency
 defects in general. Overload narrows that claim: a service that must degrade gracefully
-depends on the standard library's synchronisation primitives, not on the safety model, and
+, not on the safety model, and
 a nominal-load test would not expose the gap.
 \end{abstract}
 \end{otherlanguage}
