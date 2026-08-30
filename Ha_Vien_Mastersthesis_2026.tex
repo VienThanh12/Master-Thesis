@@ -231,7 +231,7 @@ compile-time safety, but its fit for this latency-critical setting is unproven.
 \noindent\textbf{Objective.}
 The thesis compares modern C++ and Rust on a UE Context Management service modelled on a real
 Nokia gNB-CU-CP component. Average-throughput comparisons leave four dimensions open: tail latency
-and jitter under overload, the C++ defect classes Rust prevents at compile time, the overhead of
+, the C++ defect classes Rust prevents at compile time, the overhead of
 its safety model, and the cost of incremental adoption.
 
 \noindent\textbf{Methods.}
@@ -245,8 +245,7 @@ Safe Rust rejects all seven injected memory-safety and data-race defect classes 
 time. In C++ the same seven build cleanly and show up only at runtime, if a sanitiser catches
 them. Seven further classes fail in both languages. On two of them C++ tooling reports what
 Rust does not. The seam to C++ leaves the core \texttt{unsafe}-free and costs at most
-$\FfiOpBoundPct\%$ of one operation. Performance changes at saturation. Below it median
-latency matches, yet an end-to-end call spends only $\BudgetCoreShareMax\%$ on language
+$\FfiOpBoundPct\%$ of one operation. Performance changes at saturation. Below it the test resolves a few microseconds in Rust's favour, yet an end-to-end call spends only $\BudgetCoreShareMax\%$ on language
 work. Cross-thread handoff takes the rest, so the sweep reflects the design more than the
 language. Timed alone, Rust's operation is $\BudgetCoreRatio\times$ faster and the process
 is a few MiB larger. Above saturation the order flips: \OverloadSustainedFaster{} holds
