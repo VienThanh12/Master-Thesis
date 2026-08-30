@@ -241,8 +241,8 @@ overload, both versions pass the same parity tests, and the evaluation adds faul
 FFI prototype.
 
 \noindent\textbf{Results.}
-Safe Rust rejects all five injected memory-safety and data-race defect classes at compile
-time. In C++ the same five build cleanly and show up only at runtime, if a sanitiser catches
+Safe Rust rejects all seven injected memory-safety and data-race defect classes at compile
+time. In C++ the same seven build cleanly and show up only at runtime, if a sanitiser catches
 them. Five further classes fail in both languages. On two of them C++ tooling reports what
 Rust does not. The seam to C++ leaves the core \texttt{unsafe}-free and costs at most
 $\FfiOpBoundPct\%$ of one operation. Performance changes at saturation. Below it median
