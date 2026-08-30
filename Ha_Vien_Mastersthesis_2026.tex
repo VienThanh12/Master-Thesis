@@ -250,8 +250,7 @@ work. Cross-thread handoff takes the rest, so the sweep reflects the design more
 language. Timed alone, Rust's operation is $\BudgetCoreRatio\times$ faster and the process
 is a few MiB larger. Above saturation the order flips: \OverloadSustainedFaster{} holds
 $\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{} in \OverloadThrAgree{}
-interleaved repeats with both allocators. The far tail below saturation be settled
-on a bare-metal host.
+interleaved repeats with both allocators. 
 
 \noindent\textbf{Conclusions.}
 The main cost of adopting Rust is engineering effort and the learning curve, not run-time
