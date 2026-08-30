@@ -69,7 +69,7 @@ Three datasets now have distinct jobs and the prefixes keep them apart:
 | # | Task | Effort | Who |
 | --- | --- | --- | --- |
 | **A** | ~~Rewrite the abstract yourself~~ **Facts closed** (17th pass). Look at page 3, then set `\abstractunaidedtrue` | Minutes | **You only** (a model may not flip the switch) |
-| **A2** | Short optional title on §2.2 (`\section[Latency and predictability]{...}`). The following `\sectionmark` does not ship | Minutes | You or agent |
+| **A2** | ~~Short optional title on §2.2~~ **Done** (17th-pass follow-up). Header now reads `2.2. LATENCY AND PREDICTABILITY`. Zero `Overfull` during `\output` | — | Closed |
 | **B** | Send **spec + plan** to supervisors; settle Nokia "what can be published" | Email | You |
 | **C** | Companion docs: decide fate of `archive/thesis-vi` (citations render `[?]`) | Short | You or agent |
 | **D** | Full proofread pass | Half day+ | You |
@@ -83,9 +83,9 @@ Three datasets now have distinct jobs and the prefixes keep them apart:
 author's own proofread, item **D**, which no agent can substitute for, plus looking at page 3
 before flipping the unaided switch.
 
-**A is closed on facts and open on the switch.** Area 4 is 5. Area 6 stays 4.5 until the switch is
-set *and* the §2.2 header is shortened with the optional argument. Every other criterion-capping
-item is closed.
+**A is closed on facts and open on the switch.** Area 4 is 5. The §2.2 header overflow is
+closed. Area 6 stays 4.5 until you look at page 3 and set `\abstractunaidedtrue`. Every other
+criterion-capping item is closed.
 
 **The list of ten abstract defects below is historical.** It was true of the PDF the sixteenth pass
 graded. The seventeenth pass extracted page 3 and found every item closed. Do not rewrite the
