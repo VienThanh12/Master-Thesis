@@ -196,9 +196,15 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
-**Updated at the sixteenth pass, 30 August 2026.** Blocker 2 remains closed. Blocker 1, the
-abstract, remains open. A second finishing item now sits beside it for area 6: §2.2's running
-header overflows 23 pt, and `texaudit.py` does not see it.
+**Updated at the seventeenth pass, 30 August 2026 evening.** Blocker 2 remains closed. Blocker 1's
+*facts* are closed: the printed abstract now matches the tables, and area 4 is 5. What remains of
+blocker 1 is the unaided switch (`\abstractunaidedfalse`, Not submittable). Area 6 is still 4.5 on
+finishing. The second finishing item is unchanged in the log (23 pt on §2.2), but the sixteenth
+pass's recommended `\sectionmark` is now in the source and **does not take effect**. titlesec
+ships the full title from the `\section` argument. The lift that works is
+`\section[Latency and predictability]{Latency, throughput, and predictability in real-time software}`.
+Do not report "add a sectionmark" as an open fix: that fix was applied and the header still reads
+`SOFTWARE9`.
 
 **Updated at the thirteenth pass, 27 August 2026 night. Read this block before the numbered list
 below, which is a day out of date in one important respect.**
@@ -218,13 +224,18 @@ column. **Never again report blocker 2 as open.** Two things about the new state
 - **`bench/results-canonical/` holds that invalid campaign** and is kept as a worked example. Never
   quote it. The valid one is in `bench/results/` and `bench/results-canonical2/`, byte-identical.
 
-**Blocker 1, the abstract, is still open and has gained substance.** It still says five injected and
-five further classes where the body says seven and seven, still says median latency matches, still
-names jitter in the *Objective* while the Results paragraph is silent (the body now reports it in Appendix D), and still ends "The far tail below saturation
-cannot be settled on a virtualised host", which is now the thesis's principal result stated backwards.
-It is no longer the only thing holding area 6 below 5. The sixteenth pass added the running
-header of §2.2 (23 pt, `while \output is active`). After the unaided rewrite, that header still
-blocks camera-ready. Fix: a short `\sectionmark`.
+**Blocker 1's factual list is CLOSED as of the seventeenth pass, 30 August 2026 evening. Do not
+re-report the ten defects against the current PDF.** Page 3 now prints seven and seven, a few
+microseconds in Rust's favour, no host, Rust 448 / C++ 392, then C++ 1.7× after both have stopped
+tracking, and "timed alone" covering only the operation. What remains of blocker 1 is the
+declaration: `\abstractunaidedfalse`, so the build still prints Not submittable. That is area 6,
+not area 4. The author must look at page 3 and set the switch. A model must not.
+
+**The running header of §2.2 (23 pt, `while \output is active`) is still open, and the attempted
+fix failed.** A `\sectionmark{Latency and predictability}` sits immediately after the `\section`. The
+shipped header is still the full title jammed into the page number. titlesec sets the mark from
+the section title. Use the optional argument. After the unaided switch is set, this is what
+still blocks camera-ready.
 
 **Both of the thirteenth pass's analysis items are CLOSED by the remediation of 27 August night, and
 neither may be re-reported.** They are kept here with the fix, because the fixes are the transferable
@@ -309,14 +320,10 @@ layer still holds, then spend the time on the four places a new result has to re
 not, namely the summary-of-findings table, the threats table, the hypothesis revisit, and the
 methodology section that said the metric was unavailable.
 
-1. **Rewrite the abstract unaided, then set `\abstractunaidedtrue`.** Blocking for submission and
-   for area 6, and it cannot be delegated. Open since the fourth pass. Until it is set, every
-   build prints `ai_statement: ... Not submittable` and the printed declaration says the summary
-   has not yet been rewritten unaided. **Five items now.** Seven and seven rather than five and
-   five (3e). "Median latency matches" (3c): the paired test resolves −1.1 and −1.6 µs under the
-   two allocators, both clearing Holm. The Objective's jitter dimension, still unreported. And new
-   at the eleventh pass: the paragraph still ends "The far tail below saturation cannot be settled
-   on a virtualised host", which §`sec:baremetal` settles.
+1. **Set `\abstractunaidedtrue` after looking at page 3.** The factual rewrite is done as of the
+   seventeenth pass (printed page 3 matches the tables). What remains is the switch, and it cannot
+   be delegated. Until it is set, every build prints `ai_statement: ... Not submittable`. Do not
+   re-report the ten defects: they are closed. Optional: the far-tail gap is not in the abstract.
 2. **Bare-metal tail campaign. RUN on 26 August 2026, and the item has changed shape.** Two 480-run
    sweeps on a rented AMD EPYC 7443P, `virtualisation: none`, 0 of 60 sampling intervals with any
    steal. It delivered everything this item promised: pooled p99.99 separating the languages over 32

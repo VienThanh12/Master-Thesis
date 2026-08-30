@@ -3611,3 +3611,110 @@ and false of the log.
 
 Housekeeping, not capping: `\ref{tab:abbrev}`; replace `bugden2022rust`. Examiners still
 `\censors` when faculty assigns them.
+
+## Seventeenth pass — 30 August 2026 (evening)
+
+Graded independently against the CSM matrix of 9 April 2024, on
+`Ha_Vien_Mastersthesis_2026.tex` as a **full draft**, not as a submitted copy. The PDF matches the
+source (tex 23:44, PDF 23:45). Declared length is unchanged at **95 pages plus 12 appendix pages**
+(115 physical). Standard applied: a draft that prints "Not submittable" is not scored as if an
+examiner had received it. The difference from this morning is that the first reporting of the
+results is now factually aligned with the tables, so the draft standard no longer has a results
+defect to hold area 4 on.
+
+View formed from the manuscript and the artefacts before this file was re-read. Canvas:
+`thesis-grade-csm-aug30-rev2.canvas.tsx`.
+
+| Area | 16th pass (30 Aug morning) | This pass | Clause that sets it |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Level 5 holds: topic publication-worthy, gap in named prior work, four RQs traced, RQ2 two-sided |
+| 2. Scholarly framework and sources | 5 | **5** | Level 5 holds: 109/109 cited, 66% peer-reviewed, search protocol, contrary results engaged |
+| 3. Research data and method | 5 | **5** | Level 5 holds: method analysed in depth, data is the canonical bare-metal campaign, description matches |
+| 4. Presentation of results | 4.5 | **5** | Level 5's aptness clause now holds. The ten abstract defects are gone from the printed page 3 |
+| 5. Discussion and conclusions | 5 | **5** | Level 5 holds: H1--H3 revisited including a refutation, four-way validity, register held |
+| 6. Academic text | 4.5 | **4.5** | Level 5's camera-ready clause fails on the unaided switch *and* on a running-header overflow that a following `\sectionmark` did not fix. Level 4 now holds on the whole text, including the abstract |
+| 7. Work during the thesis process | n/a | **n/a** | Not assessable from a manuscript |
+| **Mean of the six assessable** | 4.83 | **4.92** | |
+
+### Agreement and disagreement with the sixteenth pass
+
+**Agree on areas 1, 2, 3, 5 and 7.** Those were 5 / n/a this morning and they stay there. The body
+sample of twelve claims still matches the generated tables. No wrong measured value.
+
+**Disagree on area 4.** The sixteenth pass's failing clause was level 5's aptness of the first
+reporting of the results. The printed abstract then said five and five, median matches, and the
+far tail cannot be settled on a virtualised host. Page 3 now prints seven and seven, a few
+microseconds in Rust's favour, Rust 448 / C++ 392, then C++ 1.7× after both have stopped tracking,
+a 10.91% seam bound, 0.250% language share, and 1.6× on the operation alone. Those are the
+generated macros. The CCS block and keywords are visible, so the 12 cm box holds. The far-tail
+gap is compressed out. That is a writing choice, not a wrong claim, and it does not fail a
+descriptor clause.
+
+**Agree that area 6 stays 4.5, disagree on why a `\sectionmark` would finish it.** The source now
+has `\sectionmark{Latency and predictability}` immediately after `\section{...}`. The shipped
+header on body page 9 is still `2.2. LATENCY, THROUGHPUT, AND PREDICTABILITY IN REAL-TIME SOFTWARE9`.
+The log line is unchanged: 23.0782 pt too wide while `\output` is active. titlesec sets the mark
+from the section title, so a following `\sectionmark` never reaches the page that contains the
+heading. The lift that ships is `\section[Latency and predictability]{...}`. `texaudit.py` still
+reports `PASS no overfull boxes`.
+
+**The "submitted as-is both 4.5s would be 4.0" reading is withdrawn for area 4.** Level 4 in area
+6 required the whole text to be logical and consistent on questions, setup, findings and
+conclusions. That clause now holds, because the abstract no longer contradicts the body. An
+examiner who received this PDF would still see "Not submittable" and a jammed running header,
+which is why area 6 stays 4.5 rather than 5, not why it would drop to 4.
+
+### Mechanical evidence
+
+Hard gates pass: no LaTeX errors, no undefined references or citations, no multiply defined labels,
+no float too large, no placeholders. 109 bibliography entries, all 109 cited, 72 peer-reviewed
+(66%). `bugden2022rust` is the remaining arXiv load-bearing cite (beside Pereira).
+`zhang2026deadlock` is the journal version; the preprint flag is its `note` field. One unreferenced
+float: `tab:abbrev`. Not capping. Sentence length 21.4 ± 11.6, zero semicolons.
+`\abstractunaidedfalse`. Build prints "Not submittable".
+
+Generated layer: not re-derived this pass. The printed abstract was extracted with PyMuPDF and
+checked against `gen_macros.tex`, `tab_latency.tex`, `tab_significance.tex`, `tab_overload.tex` and
+`taxonomy.csv`. Twelve body claims in Chapters 1, 6, 7 and 8 were read against the same artefacts.
+No wrong measured value. Sample: pooled p99.99 89.5 / 92.1 vs 142.0 / 176.4 (widest gap 86.9
+against `\FarTailRange` 87, language separation 49.9 against `\FarTailLangSep` 50); paired median
+$-1.3$ and $-1.2\,\mu$s; overload 146.7 / 84.5 = 1.74 against `\OverloadThrRatio` 1.7, CPU per op
+1.78 against 1.8, attached to Rust; knees `\TrackingLoadCpp` 392 and `\TrackingLoadRust` 448; RSS
+paired $+1.4$ and $+2.5$ MiB; deadlock 5/12 matching `taxonomy.csv`.
+
+Nothing was edited in the thesis source during this pass.
+
+### Per-area notes
+
+**1, carries 5.** Unchanged. Gap located in Karlback, Arvidsson, Emberg. Four RQs, three
+hypotheses, RQ2 built to fail.
+
+**2, carries 5.** Unchanged. Written protocol including the DiVA/Finna step. Gonzalez 0.19% used
+to keep statistical and operational significance apart.
+
+**3, carries 5.** Unchanged. The method half is still the pattern of refusals: reading rule kept,
+448 kops/s descriptive, pooled statistic with no fallback. Ethics section present.
+
+**4, now 5.** The body was already at this level this morning. What moved is the first page an
+examiner reads. Every numeric claim on that page is a generated macro, and the two-sided catalogue,
+the tracking split, and the overload 1.7× after collapse are all present and in the right order.
+The optional compression of the far tail is recorded in the lift list and is not a cap.
+
+**5, carries 5.** Unchanged. H1 supported below saturation, refuted above it, then declared
+ill-posed. §7.2 still refuses a single overload verdict.
+
+**6, 4.5.** Level 4 now holds on the whole text, not only the body. Level 5 fails on finishing: the
+unaided switch, and the 23 pt running header after a `\sectionmark` that does not take effect. The
+split is named: writing is 5, finishing is 4.
+
+### Outstanding
+
+1. **Look at page 3, then set `\abstractunaidedtrue`.** Author only. Facts are closed. Caps area 6.
+2. **Short optional title on §2.2**, not another `\sectionmark`. Minutes. Caps area 6's
+   camera-ready clause after (1).
+3. **Transparent-hugepage experiment.** Named in Chapter 8. Converts a candidate into a finding.
+   Not required for the current grades.
+
+Housekeeping, not capping: `\ref{tab:abbrev}`; replace `bugden2022rust`. Examiners still
+`\censors` when faculty assigns them. Optional: name `\FarTailLangSep` in the abstract.
+

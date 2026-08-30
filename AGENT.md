@@ -76,12 +76,13 @@ thesis process, which no manuscript can settle. It is reproduced as issued in
 four passes on record, and the build-gate script live in the same skill. Use it for any new
 grading pass so passes stay comparable.
 
-**Current grades are the sixteenth pass's, 30 August 2026: mean 4.83.** Areas 1, 2, 3 and 5 at 5,
-areas 4 and 6 at 4.5. Area 4 is capped by the abstract alone. Area 6 is capped by the abstract
-*and* by a 23 pt running-header overflow on §2.2 that `texaudit.py` does not see. Area 7 is not
-assessable. The mean has not moved since the fifteenth pass. What moved is the claim that one
-unaided rewrite would put all six assessable areas at 5: after that rewrite, area 6 would still
-need a short `\sectionmark` before it is camera-ready.
+**Current grades are the seventeenth pass's, 30 August 2026 evening: mean 4.92.** Areas 1, 2, 3, 4
+and 5 at 5. Area 6 at 4.5. Area 4 moved because the printed abstract now matches the tables (seven
+and seven, resolved microseconds, 448 then 392 then C++ 1.7× after collapse). Area 6 is still
+capped by finishing: `\abstractunaidedfalse` (the build prints Not submittable) *and* a 23 pt
+running-header overflow on §2.2 that a following `\sectionmark` did not fix. Area 7 is not
+assessable. The sixteenth pass's claim that a short `\sectionmark` would finish area 6 is
+withdrawn: titlesec ships the full title unless the optional short form is used.
 
 **Every one of the 69 was prose disagreeing with an artefact that was itself correct.** The generated
 layer re-derived byte for byte at all four checks. About 25 were introduced by the editing passes
@@ -98,19 +99,19 @@ wrong scope**, a claim right where it is derived and wrong at every site that su
 overload CPU ratio was inverted at five sites in two documents while the owning section had it
 right), and a figure title asserting a conclusion its own bars refute.
 
-| # | Criterion | Target | Current (16th pass, 30 Aug 2026) | What still blocks a 5 |
+| # | Criterion | Target | Current (17th pass, 30 Aug 2026) | What still blocks a 5 |
 | --- | --- | --- | --- | --- |
 | **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (7 inside + 7 outside guarantee). The RQ1 alignment item is **closed**: RQ1 now names p99.99 in the draft, in `Thesis_v2.tex` and in `Thesis_Plan_v2.tex`, and §7.7 says the question was widened rather than claiming it always named the metric. |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
 | **3** | **Research data and method** | Sound method + decision-grade data | **5** | Nothing. The canonical repeat closed the data half (7/7/14/20, 1120 runs, no hypervisor, SMT off, `nohz_full`, zero errors) and the description half is repaired and independently re-checked. What earns the level is a pattern of refusals: the pre-committed reading rule is kept on a host where it costs nothing and said to be kept for that reason, the 448 kops/s rung is described and not tested because its operating point was found after the data, and the pooled and per-repeat statistics are held apart hard enough that the generator returns `None` rather than falling back and `fig:tailpct` was narrowed so the figure could not quote the disowned statistic either. **Do not add `isolcpus`. Do not restore the derived load rule. Do not let a fallback to the per-run `p9999` back in.** |
-| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.5** | **The abstract.** It is where results are reported first and it still carries the ten factual defects listed in `docs/TODO.md` § *Do now*, all present in the 30 Aug PDF. The body is consistent with the generated tables on a twelve-claim sample (far tail, overload CPU attached to Rust, per-language knees, RSS with host). Jitter is now in Appendix D, so abstract item 5 is "Objective names a metric the Results paragraph omits" rather than "unreported anywhere". |
+| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **5** | Nothing on the descriptor. The printed abstract now matches the tables (seven and seven, a few microseconds in Rust's favour, 448 then 392 then C++ 1.7× after both have collapsed). The far-tail gap is compressed out of the abstract, which is a writing choice and not a wrong claim. |
 | **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Nothing. All four chapter-7 sites that described a virtual machine are synced, and §7.2 now refuses a verdict on RQ1's overload half: it reports that the two effects run in opposite directions and names which deployment question each answers. Maintain register: “cannot tell” ≠ “equivalent”, the memory result is *located* and not *attributed to a call site*, the counters explain the operation-level timing and nothing about the footprint, and the 448 kops/s rung is described and not tested. |
-| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | **The abstract, and a running header.** Level 4 holds on the body (zero semicolons, 21.4 ± 11.6 words, 109/109 cited). Level 5 fails twice: the build prints “Not submittable” until `\abstractunaidedtrue` is set, and §2.2's header overflows 23 pt (`SOFTWARE9` jammed against the page number). `texaudit.py` reports PASS because it ignores `Overfull` during `\output`. After the abstract rewrite, the header still blocks camera-ready. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
+| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | **Finishing, not facts.** Level 4 now holds on the whole text, including the abstract. Level 5 fails twice: the build prints “Not submittable” until `\abstractunaidedtrue` is set, and §2.2's header still overflows 23 pt (`SOFTWARE9` jammed against the page number) after a following `\sectionmark` that titlesec does not ship. The fix that works is `\section[Latency and predictability]{...}`. `texaudit.py` reports PASS because it ignores `Overfull` during `\output`. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
 
-**Overall mean (unweighted): 4.83** at the sixteenth pass, 30 August 2026, unchanged from the
-fifteenth. The fifteenth was the first figure on record confirmed by readers who wrote none of the
-work behind it. This pass held the number and withdrew the claim that the abstract is the only
-finishing item. The thirteenth pass, on the
+**Overall mean (unweighted): 4.92** at the seventeenth pass, 30 August 2026 evening, up from 4.83 at
+the sixteenth the same morning. Area 4 is the only area that moved. The fifteenth was the first
+figure on record confirmed by readers who wrote none of the work behind it. The sixteenth held
+4.83 and withdrew the claim that the abstract is the only finishing item. The thirteenth pass, on the
 night of 27 August, put it at 4.50. The history before that: 26 August went 4.67 to 4.50 (eleventh pass, after the
 first bare-metal campaign landed and the document lagged it) to 4.67 (second remediation) to 4.58
 (twelfth pass, which audited that remediation and found it had over-credited itself) to 4.75 (third
@@ -148,18 +149,19 @@ than the number.
    end**: the last round's audit found eight defects in thirty changed passages, a rate near one in
    four. Those closing edits were themselves read the same day.
 
-Criteria 4 and 6 are held at 4.5 by the abstract, and criterion 6 has a second finishing item the
-audit script cannot see. Criterion 3 reached 5 once the method's *description* caught up with the
-method. Do not round the half-grades in prose without updating the reasoning in
-`docs/ASSESSMENT.md`. The class-file item is **done**: the document builds on the department's own
-`HYthesisML.cls`, and the reconstructed `UH_DS_MSc.cls` in the root is no longer loaded.
+Criterion 6 is the only assessable area still below 5, and what holds it is finishing, not a
+wrong claim. Criterion 4 reached 5 once the printed abstract caught up with the body. Criterion 3
+reached 5 once the method's *description* caught up with the method. Do not round the half-grade
+in prose without updating the reasoning in `docs/ASSESSMENT.md`. The class-file item is **done**:
+the document builds on the department's own `HYthesisML.cls`, and the reconstructed `UH_DS_MSc.cls`
+in the root is no longer loaded.
 
-**Two items cap a grade, and only the first needs the author.** The abstract must be rewritten
-unaided because in this programme it is the maturity test and a model may not touch it. It carries
-**ten** factual defects, list in `docs/TODO.md` § *Do now*, all still in the 30 August PDF. That
-holds criterion 4 at 4.5, and it is the first of two things holding criterion 6 there. The second
-is a 23 pt overflow of §2.2's running header, a minutes-long `\sectionmark`. The fifteenth pass's
-"one rewrite puts all six at 5" is withdrawn. The independent read of the fifteen edits after 11:15
+**Two items still cap a grade, and only the first needs the author.** The abstract's ten factual
+defects are **closed** in the 30 August evening PDF. What remains is the switch: look at page 3,
+then set `\abstractunaidedtrue` in `ai_statement.tex`. A model may not flip it. That, and a 23 pt
+overflow of §2.2's running header, hold criterion 6 at 4.5. The sixteenth pass's recommended
+`\sectionmark` is already in the source and does not ship: use the optional short title. The
+fifteenth pass's "one rewrite puts all six at 5" remains withdrawn. The independent read of the fifteen edits after 11:15
 on 28 August was done the same day (eight further defects, all closed; residual-risk sites re-checked
 on 30 August and still closed). The remaining measurement is **the transparent-hugepage experiment**,
 about one machine-hour, already named in Chapter 8 as the priority. The allocation profile in

@@ -10,12 +10,13 @@ primary control against implementation bias.
 
 ---
 
-## Do now (as of 28 Aug 2026, morning)
+## Do now (as of 30 Aug 2026, evening)
 
 The measurement work is finished and the canonical bare-metal repeat is the thesis's main dataset.
-**The abstract is the only author-only blocker.** Grade reasoning is in `docs/ASSESSMENT.md` and `AGENT.md` §2.
-A second finishing item, a 23 pt overflow of §2.2's running header, is a minutes-long `\sectionmark`
-and can be delegated. One rewrite does not by itself put area 6 at 5.
+**The abstract's ten factual defects are closed.** What remains for a 5 in area 6 is finishing:
+look at page 3, set `\abstractunaidedtrue` yourself, then give §2.2 a short optional title. A
+following `\sectionmark` is already in the source and does not ship. Grade reasoning is in
+`docs/ASSESSMENT.md` (seventeenth pass) and `AGENT.md` §2. Mean 4.92. Area 4 is 5. Area 6 is 4.5.
 
 **The claim this section made yesterday, that every chapter had been synced to the new dataset, was
 wrong, and how wrong is the most useful thing on this page.** Three reviews since have found
@@ -67,31 +68,30 @@ Three datasets now have distinct jobs and the prefixes keep them apart:
 
 | # | Task | Effort | Who |
 | --- | --- | --- | --- |
-| **A** | **Rewrite the abstract yourself**, then set `\abstractunaidedtrue` | 1–2 h | **You only** (a model may not touch it) |
+| **A** | ~~Rewrite the abstract yourself~~ **Facts closed** (17th pass). Look at page 3, then set `\abstractunaidedtrue` | Minutes | **You only** (a model may not flip the switch) |
+| **A2** | Short optional title on §2.2 (`\section[Latency and predictability]{...}`). The following `\sectionmark` does not ship | Minutes | You or agent |
 | **B** | Send **spec + plan** to supervisors; settle Nokia "what can be published" | Email | You |
 | **C** | Companion docs: decide fate of `archive/thesis-vi` (citations render `[?]`) | Short | You or agent |
 | **D** | Full proofread pass | Half day+ | You |
 | **E** | Transparent-hugepage experiment, the one open question the data raised | 1 machine-hour | You or agent |
 | **F** | ~~A grading pass by a reader who wrote none of the last two days' edits~~ **Done**, plus four independent audits | — | Recorded as the 15th pass |
 | **G** | ~~One independent read of the fifteen edits after 11:15~~ **Done.** Found eight defects, not the two to four estimated | — | Recorded in `docs/ASSESSMENT.md` |
-| **H** | One independent read of the ten edits that closed **G**, on the same reasoning that made **G** worth doing | 1 h | Agent, fresh context |
+| **H** | ~~One independent read of the ten edits that closed **G**~~ **Done** (16th pass residual-risk re-check, still closed) | — | Recorded in `docs/ASSESSMENT.md` |
 | — | Examiners, official class file | n/a | Faculty / Moodle |
 
-**On item H, and on when to stop.** Each round of fixes has itself needed auditing, and the defect
-count per round is falling (13, then 8, then 8, and the last round's were smaller in kind: a wrong
-reason in a caption rather than an inverted headline claim). H is worth one hour. Beyond it, the
-returns are clearly diminishing and the remaining risk is better spent on the author's own proofread,
-item **D**, which no agent can substitute for.
+**On when to stop.** Each round of fixes has itself needed auditing. The remaining risk is the
+author's own proofread, item **D**, which no agent can substitute for, plus looking at page 3
+before flipping the unaided switch.
 
-**A is the only blocker and it now caps two criteria on its own**, 4 and 6, because the abstract is
-where results are reported first and because the build prints "Not submittable" until the switch is
-set. Every other criterion-capping item is closed.
+**A is closed on facts and open on the switch.** Area 4 is 5. Area 6 stays 4.5 until the switch is
+set *and* the §2.2 header is shortened with the optional argument. Every other criterion-capping
+item is closed.
 
-**The list grew from five items to ten on 28 August**, when an independent reader audited the
-abstract against the body for the first time. Items 6 to 10 were not previously on record, and three
-of them are substantive rather than stale. Every item below is verified against the artefacts. **No
-replacement wording is offered anywhere in this repository, deliberately**: the abstract is the
-programme's maturity test, so what follows is the fact to state, not the sentence to write.
+**The list of ten abstract defects below is historical.** It was true of the PDF the sixteenth pass
+graded. The seventeenth pass extracted page 3 and found every item closed. Do not rewrite the
+abstract against this list. Keep it as the record of what the unaided rewrite had to settle.
+
+**Closed 30 Aug evening (17th pass). Do not re-report against the current PDF.**
 
 | # | What the abstract says | What is true |
 | --- | --- | --- |
@@ -111,13 +111,13 @@ concurrency model, allocator, and build settings". `tab:controls` records the op
 "`-O2` against `opt-level = 2`" with the residual "Nominal parity is not identical code generation",
 and §4.4 says "as closely as the toolchains allow". Only the last noun is at issue.
 
-Then **set `\abstractunaidedtrue`** in `ai_statement.tex`. The printed declaration switches from "has
-not yet been rewritten unaided" to the finished wording, and the build stops printing "Not
-submittable".
+Then **set `\abstractunaidedtrue`** in `ai_statement.tex` after you have looked at page 3. The printed
+declaration switches from "has not yet been rewritten unaided" to the finished wording, and the
+build stops printing "Not submittable".
 
-Two things the abstract does **not** mention and that the body now supports, in case you want them:
-the far tail resolves in Rust's favour, and the two implementations stop meeting their offered rate
-at different loads. Whether either belongs in 250 words is your call.
+One thing the abstract still does not mention, and that the body supports: the far tail resolves
+in Rust's favour (`\FarTailLangSep` µs). The tracking-load split is already in Results. Whether
+the far tail belongs in 250 words is your call.
 
 E is worth an hour because it is the only question this study raised and did not answer: transparent
 hugepages differed between the hosts (`always` on the guest, `madvise` on both bare-metal ones) and
