@@ -14,9 +14,9 @@ docker/run.sh campaign --repeats 20 --duration 3
 **A container is not a testbed.** It shares the host kernel. The scheduler, the
 clocksource, the frequency governor, the hugepage policy and the hypervisor are
 whatever the host's are, and none of them change when the campaign moves inside.
-Running this on the KVM guest leaves the far tail below saturation exactly as
-unresolved as `bench/TESTBED.md` says it is. Running it under WSL2 is still WSL2,
-and `docker/run.sh` says so before every measurement subcommand.
+Running this on a KVM guest leaves the far tail below saturation unresolved.
+Running it under WSL2 is still WSL2, and `docker/run.sh` says so before every
+measurement subcommand.
 
 What the container does buy is worth having, and it is three things.
 
@@ -38,10 +38,13 @@ What the container does buy is worth having, and it is three things.
 
 ## Toolchain parity with the host of record
 
-The campaign the thesis reports ran on the KVM Xeon guest recorded in
-`bench/results/env-20260812-154523.txt`. The image reproduces it:
+The image was pinned against the 12 August 2026 KVM guest
+(`bench/results/env-20260812-154523.txt`) and then reused for the 27 August
+bare-metal campaign the thesis reports (`campaign-20260827-151927`), so a
+change of machine is a change of machine only. GCC on the image is one patch
+level newer than that guest record:
 
-| | Host of record | Image |
+| | Guest campaign (12 Aug) | Image (and 27 Aug campaign) |
 | --- | --- | --- |
 | Distribution | Rocky Linux 8.10 | Rocky Linux 8.10 |
 | C++ | g++ (GCC) 15.1.1 | g++ (GCC) 15.2.1, `gcc-toolset-15` |
@@ -50,7 +53,8 @@ The campaign the thesis reports ran on the KVM Xeon guest recorded in
 | jemalloc (C++ arm) | 5.2.1, distribution build | 5.2.1-3.el8, same EPEL build |
 
 The GCC patch level is the one difference, and it is recorded on both sides
-rather than smoothed over. The Rust arm builds its own jemalloc 5.3.1 from source
+rather than smoothed over. The 27 August campaign's own capture records the
+image's 15.2.1, not the guest's 15.1.1. The Rust arm builds its own jemalloc 5.3.1 from source
 through `tikv-jemallocator` in both cases, which is the version confound
 `docs/TODO.md` §3 already names.
 

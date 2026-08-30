@@ -1,4 +1,3 @@
-## Need to update
 # Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia RAN Control-Plane Systems
 
 Master's thesis (University of Helsinki, Software study track) by **Ha Vien**.
@@ -18,21 +17,34 @@ four research questions:
 
 | RQ      | Question                                                                                          | Evidence in          |
 | ------- | ------------------------------------------------------------------------------------------------- | -------------------- |
-| **RQ1** | Latency predictability (median, p99, p99.9, maximum) under increasing load and overload            | [`bench/`](bench/)   |
+| **RQ1** | Latency predictability (median, p99, p99.9, p99.99, and the maximum) under increasing load and overload | [`bench/`](bench/)   |
 | **RQ2** | Which C++ defect classes safe Rust eliminates at compile time, and at what stage and cost the rest are detected | [`faults/`](faults/) |
 | **RQ3** | What overhead Rust's safety model imposes on throughput, CPU utilisation, and memory                | [`bench/`](bench/)   |
-| **RQ4** | What incremental adoption of Rust inside an existing C++ codebase costs                             | [`ffi/`](ffi/)       |
+| **RQ4** | What incremental adoption of Rust inside an existing C++ codebase costs                             | [`ffi/`](ffi/), [`bench/adoption_cost.py`](bench/adoption_cost.py) |
 
-The RQ2 catalogue deliberately spans both sides of the guarantee. Safe Rust rejects five of the ten
-defect classes at compile time (use-after-free, double free, iterator invalidation, data race,
-unguarded shared mutation) and compiles the other five without complaint (lock-order deadlock,
-lost update, reference-cycle leak, release-build integer overflow, worker-failure blast radius),
-so the study measures where the guarantee *stops* rather than only confirming that it holds. Two
-of those boundary classes came back with the C++ tooling ahead: the reference-cycle leak, caught
-by ASan and silent in Rust, and the release-build overflow, caught by UBSan and wrapped in Rust.
-Both stay in the catalogue. For the two concurrency classes on the boundary, lock-order deadlock
-and lost update, [`faults/run_model_checking.sh`](faults/run_model_checking.sh) asks the follow-up
-question of what Loom and Shuttle catch at test time, and at what cost.
+The RQ2 catalogue deliberately spans both sides of the guarantee. Safe Rust rejects seven of
+the fourteen defect classes at compile time (use-after-free, double free, iterator
+invalidation, data race, unguarded shared mutation, use-after-move, thread-unsafe sharing)
+and compiles the other seven without complaint (lock-order deadlock, lost update,
+reference-cycle leak, release-build integer overflow, worker-failure blast radius, double-free
+across an `unsafe` FFI seam, forgotten lock guard), so the study measures where the guarantee
+*stops* rather than only confirming that it holds.
+
+Two of those in-guarantee classes carry information the rest do not. `use_after_move` is the
+only one no C++ sanitiser reports (a moved-from object is valid but unspecified, so nothing
+is undefined). `thread_unsafe_sharing` is rejected by a `Send`/`Sync` bound (`E0277`), not by
+the borrow checker. Two of the boundary classes came back with the C++ tooling ahead: the
+reference-cycle leak, caught by ASan and silent in Rust, and the release-build overflow,
+caught by UBSan and wrapped in Rust. Both stay in the catalogue. `seam_double_free` is
+`double_free` rewritten through `unsafe`, not a new class: the C++ half is unchanged so only
+the Rust column moves.
+
+For the two concurrency classes on the boundary, lock-order deadlock and lost update,
+[`faults/run_model_checking.sh`](faults/run_model_checking.sh) asks what Loom and Shuttle
+catch at test time, and at what cost. For the `unsafe` class,
+[`faults/run_miri.sh`](faults/run_miri.sh) asks the same of Miri. Rust eliminates data races
+and aliasing errors at compile time. It does not eliminate race conditions or lock-order
+deadlocks.
 
 The methodological control against implementation bias is a **frozen, language-neutral
 specification**: both implementations must conform to it exactly, and any forced idiomatic
@@ -45,7 +57,7 @@ The PDFs in this repository do not share a status and are not interchangeable.
 | Document | Status | Role |
 | -------- | ------ | ---- |
 | `Thesis_Plan_v2.pdf` | Reviewed, supervisor-facing | Approved plan: gap, RQs, methodology, timeline, contributions |
-| `Thesis_v2.pdf` | Reviewed, supervisor-facing | Supervisor read-through: Chapter 1 is the full draft introduction, chapters 2--8 keep five argument paragraphs each in plain prose. All eight chapters populated, matching the full draft's chapter list since 26 August 2026, and the results paragraphs quote the generated macros rather than carrying their own numbers |
+| `Thesis_v2.pdf` | Reviewed, supervisor-facing | Supervisor read-through: Chapter 1 is the full draft introduction, chapters 2--8 keep five argument paragraphs each in plain prose. All eight chapters match the full draft's chapter list since 26 August 2026, and the results paragraphs quote the generated macros rather than carrying their own numbers |
 | `Ha_Vien_Mastersthesis_2026.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, full argument, and everything in it still needs review. The name is the UH submission format (`Lastname_Firstname_Mastersthesis_Year`, ASCII) and says nothing about review status. It was `Thesis_POC` until 19 August 2026 |
 | `ai_statement.tex` | Declaration in the author's name | Statement on generative-AI use, shared by both thesis documents |
 | [`archive/`](archive/) | Superseded, not maintained | Earlier variants kept for reference only: `plain_thesis.tex`, `thesis-vi.tex` (renders its citations as `[?]`), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, and the v1 plan PDF. They read relative paths from the repository root, so they no longer build where they sit |
@@ -65,16 +77,20 @@ verification workflow. Read it before touching thesis text, figures, or artefact
 │   └── conformance/       Independent Python reference model, vector generator, 3-phase parity harness
 ├── cpp/               C++23 implementation of the UECM service (also sanitise.sh, coverage.sh)
 ├── rust/              Rust implementation, byte-for-byte parity with cpp/ (also miri.sh, coverage.sh)
-├── bench/             Latency/throughput/resource benchmark harness + plotting (RQ1, RQ3)
+├── bench/             Latency/throughput/resource benchmark harness + plotting (RQ1, RQ3, RQ4 axes)
 │   ├── campaign.sh        Full measurement campaign (repeats, interleaving, bootstrap CI)
+│   ├── canonical_repeat.sh Pre-campaign hygiene: refuses a broken CPU-spread config
 │   ├── latency_budget.sh  Split the end-to-end op into work vs. cross-thread handoff
+│   ├── queue_contention.sh Isolate the handoff primitives from the service
 │   ├── pool_hist.py       Pool per-run HDR buckets across repeats for the far tail
 │   ├── counters.sh        Hardware counters (testbed only, needs a PMU)
 │   ├── alloc_profile.sh   Attribute the peak-RSS gap to allocation sites (testbed only)
+│   ├── adoption_cost.py   RQ4 axes beyond the seam (build time replayed unless --measure)
 │   ├── TESTBED.md         Bare-metal protocol: the only route to testbed-grade tail figures
 │   └── refresh_thesis.sh  Regenerate figures/tables/macros, rebuild Ha_Vien_Mastersthesis_2026.pdf
-├── faults/            Fault-injection taxonomy (RQ2) + Loom/Shuttle model checking of the boundary classes
+├── faults/            Fault-injection taxonomy (RQ2) + Loom/Shuttle/Miri on the boundary classes
 ├── ffi/               Incremental-adoption prototype: C++ host over a Rust component via a C ABI (RQ4)
+├── docker/            Rocky 8.10 image with the campaign toolchain pinned (not itself a testbed)
 ├── figures/           Generated figures, LaTeX tables, and generated macros consumed by the thesis
 ├── diagrams/          Source diagrams (SVG, drawio) and their rendered PDF/PNG
 ├── docs/              Reference notes that are not part of any document
@@ -99,8 +115,8 @@ The PDFs stay beside their sources, so `Ha_Vien_Mastersthesis_2026.pdf` and the 
 at the root where the editor expects them. Only the intermediates go to `build/`, which
 `.latexmkrc` sets.
 
-Each component directory (`spec/conformance/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/`) has
-its own `README.md` with build and run instructions.
+Each component directory (`spec/conformance/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/`,
+`docker/`) has its own `README.md` with build and run instructions.
 
 ## Prerequisites
 
@@ -113,15 +129,21 @@ its own `README.md` with build and run instructions.
 | Python 3 + `matplotlib` | [`bench/`](bench/) plotting (`pip install -r bench/requirements.txt`) |
 | AddressSanitizer / ThreadSanitizer / UBSan (`g++`) | [`faults/`](faults/), `cpp/sanitise.sh` |
 
+The reported campaign was built with GCC 15 and rustc 1.97.1 inside the Rocky Linux 8.10
+image of [`docker/`](docker/README.md). A host compiler that meets the table above is enough
+for development, parity, and fault injection. It is not enough to reproduce the quoted
+numbers, because those also depend on the machine.
+
 Optional, each needed by one script only:
 
 | Tool | Used for |
 | ---- | -------- |
-| Rust nightly + `miri` component | `rust/miri.sh` |
+| Rust nightly + `miri` component | `rust/miri.sh`, `faults/run_miri.sh` |
 | `cargo-llvm-cov`, `gcov` | `rust/coverage.sh`, `cpp/coverage.sh` |
 | `lizard` | complexity proxies in `bench/refresh_thesis.sh` |
 | `cairosvg` | re-rendering `diagrams/` |
 | `python-pptx`, `pymupdf` | `build_deck.py` |
+| Docker | [`docker/run.sh`](docker/README.md), the pinned-toolchain campaign path |
 | `perf` with a hardware PMU, `jeprof` | `bench/counters.sh`, `bench/alloc_profile.sh` (testbed only) |
 
 ## Where the numbers come from
@@ -132,18 +154,29 @@ boost disabled, `nohz_full` on the pinned cores, and no hypervisor. The toolchai
 Rocky Linux 8.10 container image of [`docker/`](docker/README.md) rather than taken from the host,
 so a change of machine is a change of machine only.
 
-Three campaigns exist and they are not interchangeable:
+Three campaigns exist and they are not interchangeable. The LaTeX macro prefix is what keeps
+them apart, and a sentence that quotes the wrong prefix is wrong in a way no build gate catches.
 
-| Campaign | Role |
-| --- | --- |
-| `campaign-20260827-151927` (bare metal, 7/7, 20 repeats, 14 loads) | **Every result the thesis reports.** |
-| `campaign-20260812-154528` (KVM guest, identical design) | The measurement-validity comparison: the same code and design on a host that could not resolve the far tail. |
-| `campaign-20260826-*` (bare metal, 8/8, 15 repeats, 8 loads) | Whether the findings survive a change of shard count, load grid, repeat count and compiler. |
+| Campaign | Macros | Role |
+| --- | --- | --- |
+| `campaign-20260827-151927` (bare metal, 7 shards, 7 producers, 20 repeats, 14 loads) | unprefixed, `figures/gen_macros.tex` | **Every result the thesis reports.** |
+| `campaign-20260812-154528` (KVM guest, identical design) | `\Guest*`, `figures/gen_guest.tex` | The measurement-validity comparison: the same code and design on a host that could not resolve the far tail. |
+| `campaign-20260826-*` (bare metal, 8 shards, 8 producers, 15 repeats, 8 loads) | `\Bm*`, `figures/gen_baremetal.tex` | Whether the findings survive a change of shard count, load grid, repeat count and compiler. |
 
-The far tail below saturation was the study's standing open question for as long as it measured on
-a virtualised host. It is resolved on bare metal and favours Rust. What the comparison also showed
-is that the peak-RSS **allocator** effect was largely a property of that machine, while the
-**language** effect is the same size on all three.
+`bench/results-canonical/` holds an invalid 1120-run campaign from 27 August 2026. It was
+collected with `isolcpus` set, which pinned every thread to a single core. Do not quote it.
+
+The far tail below saturation was the study's standing open question for as long as it measured
+on a virtualised host. It is resolved on bare metal, as a **pooled** statistic over operations
+rather than a median of per-run p99.99 values, and favours Rust at every load the two
+languages separate. Past saturation the languages diverge, and they stop meeting the offered
+rate at different loads: quote the per-language tracking limits, not a single shared knee.
+What the host comparison also showed is that the peak-RSS **allocator** effect of an
+order of magnitude belonged to the guest, while the **language** effect is the same size on
+all three hosts. On both bare-metal machines the two effects are comparable. The
+transparent-hugepage policy differed between the hosts and is the named candidate for the
+allocator collapse. The study never varied it with everything else fixed, and does not claim
+causation.
 
 **Do not add `isolcpus` when reproducing this.** It gives the cleanest tails and it also removes
 the cores from every scheduling domain, and because the benchmark pins to a range and relies on
@@ -195,6 +228,9 @@ faults/run_faults.sh
 # time, with controls that must stay quiet on the fixed versions (RQ2)
 faults/run_model_checking.sh
 
+# The unsafe boundary class under Miri, with a control that must stay quiet (RQ2)
+faults/run_miri.sh
+
 # FFI migration prototype (RQ4). Also runs the same signaling op natively, so the
 # reported seam cost is a direct A/B rather than an empty crossing against a full op.
 ffi/build.sh
@@ -217,6 +253,10 @@ passes, restore the evidence afterwards:
 git checkout -- ffi/results/metrics.json ffi/results/op_cost.jsonl
 ```
 
+`bench/adoption_cost.py --measure` has the same shape of hazard for build time. The refresh
+script calls it *without* `--measure` on purpose, so the recorded timing is replayed and only
+the deterministic axes (footprint, third-party surface) are recomputed.
+
 `faults/run_faults.sh` carries no such hazard. Its outcomes are categorical (compile-time
 prevented, sanitiser-detected, undetected) and do not move with host load.
 
@@ -229,13 +269,22 @@ number, then rebuild the PDF:
 bench/refresh_thesis.sh
 ```
 
-This runs `bench/plot_figures.py`, re-renders the diagrams that quote campaign numbers,
-regenerates the complexity proxies (`bench/complexity.py`, when `lizard` is available) and the
-artefact-level measurements (`bench/artefact_facts.py`), writes all of it into
-[`figures/`](figures/), rebuilds the colloquium deck via `build_deck.py`, and calls
-`latexmk -pdf Ha_Vien_Mastersthesis_2026.tex`. Campaign summary numbers land in
-`figures/gen_macros.tex`, and both the prose and the slides refer to them by macro name, so text,
-slides, and data stay in step. The generated `figures/gen_*.tex` files are never hand-edited.
+This pools the histogram sidecars (so the p99.99 column is the pooled statistic, not a median
+of per-run values), runs `bench/plot_figures.py`, re-renders the diagrams that quote campaign
+numbers, regenerates the complexity proxies (`bench/complexity.py`, when `lizard` is available)
+and the artefact-level measurements (`bench/artefact_facts.py`), replays the RQ4 adoption-cost
+axes, writes all of it into [`figures/`](figures/), rebuilds the colloquium deck via
+`build_deck.py`, and calls `latexmk -pdf Ha_Vien_Mastersthesis_2026.tex`. Campaign summary
+numbers land in `figures/gen_macros.tex`, and both the prose and the slides refer to them by
+macro name, so text, slides, and data stay in step. The generated `figures/gen_*.tex` files
+are never hand-edited.
+
+Without `--campaign`, the refresh takes the newest log in `bench/results/`. Pass the reported
+campaign explicitly if that directory holds anything else:
+
+```bash
+bench/refresh_thesis.sh --campaign bench/results/campaign-20260827-151927.jsonl
+```
 
 To build a document alone:
 
@@ -247,11 +296,15 @@ latexmk -pdf Thesis_Plan_v2.tex               # thesis plan
 
 For thesis-grade performance numbers, provision a clean testbed and run the full measurement
 campaign. See [`bench/README.md`](bench/README.md) and [`bench/TESTBED.md`](bench/TESTBED.md).
+The pinned-toolchain path is [`docker/run.sh`](docker/README.md). A container is not a
+testbed: it shares the host kernel, so the scheduler, the governor, and any hypervisor stay
+whatever the host's are.
 
 ```bash
-bench/setup_testbed.sh          # install toolchain + apply CPU hygiene + verify
-bench/campaign.sh --repeats 20  # full load sweep with bootstrap CI (see bench/README.md)
-bench/refresh_thesis.sh         # refresh figures/tables/PDF from the newest campaign
+bench/canonical_repeat.sh check-spread   # refuses to start on a one-core pin
+bench/setup_testbed.sh                   # install toolchain + apply CPU hygiene + verify
+bench/campaign.sh --repeats 20           # full load sweep with bootstrap CI (see bench/README.md)
+bench/refresh_thesis.sh                  # refresh figures/tables/PDF from the newest campaign
 ```
 
 ## The subsystem under study
@@ -293,10 +346,10 @@ from `diagrams/png/`, which `diagrams/render.py` writes.
 | Area | State |
 | ---- | ----- |
 | Specification + parity | Both languages pass and agree byte-for-byte on the shared conformance suite: hand-written vectors plus a generated campaign whose expectations come from an independent Python model, with mirrored per-language invariant and concurrency suites. Spec is v0.1 draft, pending supervisor freeze |
-| RQ2 (safety) | Final. Fault-injection taxonomy complete across ten defect classes, five inside the guarantee and five outside it, plus Loom and Shuttle results for the two concurrency classes on the boundary |
-| RQ4 (migration) | Final. FFI prototype, interleaved native-vs-seam measurement of one real operation, and seam size complete |
-| RQ1/RQ3 (performance) | Complete. The matched bare-metal campaign ran on 27 August 2026 and is the reported dataset, so the saturation knee, the overload divergence, the resource comparisons and the far tail below saturation are all resolved on one host at the canonical design. Rust's pooled p99.99 sits below C++'s at every load the two separate. Jitter and the p99.99 column are reported. One question the data raised remains open: whether the peak-RSS allocator effect tracks the transparent-hugepage policy |
-| Writing | `Ha_Vien_Mastersthesis_2026.pdf` builds clean with zero LaTeX errors and no undefined references, as a full draft awaiting review. `Thesis_v2.pdf` covers all eight chapters in bullets, 35 pages, and its abstract is still the template placeholder |
+| RQ2 (safety) | Final. Fault-injection taxonomy complete across fourteen defect classes, seven inside the guarantee and seven outside it, plus Loom and Shuttle on the two concurrency boundary classes and Miri on the unsafe one |
+| RQ4 (migration) | Final. FFI prototype, interleaved native-vs-seam measurement of one real operation, seam size, and the three adoption-cost axes beyond the seam (build time, static footprint, third-party surface) |
+| RQ1/RQ3 (performance) | Complete. The matched bare-metal campaign ran on 27 August 2026 and is the reported dataset, so the per-language saturation limits, the overload divergence, the resource comparisons and the far tail below saturation are all resolved on one host at the canonical design. Rust's pooled p99.99 sits below C++'s at every load the two separate. Jitter and the p99.99 column are reported. One question the data raised remains open: whether the peak-RSS allocator effect tracks the transparent-hugepage policy |
+| Writing | `Ha_Vien_Mastersthesis_2026.pdf` builds clean with zero LaTeX errors and no undefined references, as a full draft awaiting review. The abstract is the remaining author-only rewrite. `Thesis_v2.pdf` is the eight-chapter supervisor read-through (full Chapter 1, five prose paragraphs in each of chapters 2--8), and its abstract is still the template placeholder |
 
 Open items and the post-campaign re-check list are tracked in [`docs/TODO.md`](docs/TODO.md).
 

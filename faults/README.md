@@ -275,7 +275,7 @@ would describe a 30%-of-the-time detector as a clean catch.
 ## Model checking the boundary classes (RQ2's second half)
 
 RQ2 asks not only which defects are prevented but **at what stage and cost** the
-rest are detected. For the five in-guarantee classes both halves are answered:
+rest are detected. For the seven in-guarantee classes both halves are answered:
 rejected at build time, for nothing. For the boundary classes the sanitizer
 columns leave the detection half largely blank, which is unsatisfying for exactly
 the cases that carry the falsifiability of the design.
