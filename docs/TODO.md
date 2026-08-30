@@ -13,7 +13,9 @@ primary control against implementation bias.
 ## Do now (as of 28 Aug 2026, morning)
 
 The measurement work is finished and the canonical bare-metal repeat is the thesis's main dataset.
-**The abstract is the only blocker.** Grade reasoning is in `docs/ASSESSMENT.md` and `AGENT.md` §2.
+**The abstract is the only author-only blocker.** Grade reasoning is in `docs/ASSESSMENT.md` and `AGENT.md` §2.
+A second finishing item, a 23 pt overflow of §2.2's running header, is a minutes-long `\sectionmark`
+and can be delegated. One rewrite does not by itself put area 6 at 5.
 
 **The claim this section made yesterday, that every chapter had been synced to the new dataset, was
 wrong, and how wrong is the most useful thing on this page.** Three reviews since have found

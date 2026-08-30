@@ -131,7 +131,11 @@ These have each consumed part of a pass and were wrong.
 - **"Significant" in its ordinary sense.** Flag it only where a statistical claim is implied
   without a test.
 - **Underfull box warnings.** Cosmetic. They do not gate area 6; overfull boxes and floats too
-  large do.
+  large do. The converse is a false *negative*: `texaudit.py` reports `PASS no overfull boxes`
+  while ignoring `Overfull \hbox ... while \output is active`. Those are running headers. The
+  sixteenth pass found a 23 pt overflow on body page 9 (`SOFTWARE9` jammed against the page
+  number) that every earlier pass recorded as clean. Grep the log for `while \\output is active`
+  before calling the finishing camera-ready.
 - **A worked example repeated across introduction, background, and appendix.** Defensible
   layering for a reader without the domain background. Note it, leave the call to the author.
 - **`pdftotext` on `diagrams/pdf/*.pdf` extracts nothing.** The included diagrams render their
@@ -192,6 +196,10 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
+**Updated at the sixteenth pass, 30 August 2026.** Blocker 2 remains closed. Blocker 1, the
+abstract, remains open. A second finishing item now sits beside it for area 6: §2.2's running
+header overflows 23 pt, and `texaudit.py` does not see it.
+
 **Updated at the thirteenth pass, 27 August 2026 night. Read this block before the numbered list
 below, which is a day out of date in one important respect.**
 
@@ -212,9 +220,11 @@ column. **Never again report blocker 2 as open.** Two things about the new state
 
 **Blocker 1, the abstract, is still open and has gained substance.** It still says five injected and
 five further classes where the body says seven and seven, still says median latency matches, still
-names jitter in the *Objective* and never reports it, and still ends "The far tail below saturation
+names jitter in the *Objective* while the Results paragraph is silent (the body now reports it in Appendix D), and still ends "The far tail below saturation
 cannot be settled on a virtualised host", which is now the thesis's principal result stated backwards.
-It is no longer the only thing holding area 6 below 5.
+It is no longer the only thing holding area 6 below 5. The sixteenth pass added the running
+header of §2.2 (23 pt, `while \output is active`). After the unaided rewrite, that header still
+blocks camera-ready. Fix: a short `\sectionmark`.
 
 **Both of the thirteenth pass's analysis items are CLOSED by the remediation of 27 August night, and
 neither may be re-reported.** They are kept here with the fix, because the fixes are the transferable
