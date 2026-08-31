@@ -1,0 +1,1334 @@
+#!/usr/bin/env python3
+"""Generate source_audit.tex: every cited work, the sentence citing it, and the source's words.
+
+The document exists so a reader can check a citation without opening the paper: block [17]
+carries reference [17] of the full draft, the sentence that cites it, and the passage in the
+source that was read to support that sentence.
+
+Nothing here is transcribed. References are printed by biblatex from bibliography.bib through
+\\fullcite, printed citation numbers come from each document's .bbl, the citing sentences come
+from the .tex sources, and the per-entry evidence comes from docs/Sources_evidence.md with
+docs/LITERATURE_NOTES.md as the fallback. A key with no record is reported as having none.
+
+    .bibaudit/build_audit.py                  # write source_audit.tex
+    .bibaudit/build_audit.py --dump records   # inspect the parsed evidence records
+    .bibaudit/build_audit.py --dump sites     # inspect cite sites and printed numbers
+
+Exit status is 1 when a .bbl disagrees with its source's cite keys, because the printed
+numbers would then be stale and the whole point of the document is that its numbers match.
+"""
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+import unicodedata
+from collections import Counter, defaultdict
+from datetime import date
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+BIB = ROOT / "bibliography.bib"
+EVIDENCE = ROOT / "docs" / "Sources_evidence.md"
+SWEEPS = ROOT / "docs" / "LITERATURE_NOTES.md"
+OUT = ROOT / "source_audit.tex"
+
+# The three documents that cite this bibliography, with the short label used in the audit and
+# the .bbl that fixes their printed numbering. Order matters: the first is the audit's spine.
+DOCUMENTS = [
+    ("Ha_Vien_Mastersthesis_2026.tex", "draft", "Full draft"),
+    ("Thesis_v2.tex", "v2", "Thesis_v2"),
+    ("Thesis_Plan_v2.tex", "plan", "Plan"),
+]
+
+CITE = re.compile(r"\\(?:cite|citep|citet|textcite|parencite|autocite|footcite)\*?"
+                  r"(?:\[[^\]]*\])*\{([^}]*)\}")
+
+# Sections of docs/LITERATURE_NOTES.md that carry the verified record for a key whose name the
+# section never mentions, so no search can find it. A pointer table, not transcribed evidence:
+# the generator still reads the section body out of the file.
+SWEEP_SECTIONS = {
+    "bensalem2005deadlock": "B.5 Bensalem and Havelund",
+    "bornholt2021shardstore": "B.1 Bornholt et al., SOSP 2021",
+    "pearce2026rustmc": "The anchor: Pearce, Lange and O'Keeffe, FORTE 2026",
+    "tsandeadlock": "B.6 The two tool records, as tool records",
+    "clangtidyuseaftermove": "C.9 clang-tidy",
+    "lu2008mistakes": "C.1 Lu, Park, Seo and Zhou, ASPLOS 2008",
+    "dietz2015overflow": "C.2 Dietz, Li, Regehr and Adve, TOSEM 2015",
+    "cui2024rcanary": "C.3 Cui, Xu, Tian and Zhou, TSE 2024",
+    "naylor2026cherisimt": "F.0b Naylor et al., ASPLOS 2026",
+}
+
+
+# --------------------------------------------------------------------------- helpers
+
+def read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def strip_tex(s: str) -> str:
+    # Accents come in two shapes and both have to go, or a surname keeps the mark as a
+    # literal character: \v S and \'a are letter commands, \"a and \^o are not.
+    s = re.sub(r"\\[a-zA-Z]+\s*", "", s)
+    s = re.sub(r"""\\['"`^~=.]""", "", s)
+    for ch in "{}\\~":
+        s = s.replace(ch, "")
+    s = unicodedata.normalize("NFKD", s)
+    return re.sub(r"\s+", " ", "".join(c for c in s if not unicodedata.combining(c))).strip()
+
+
+# --------------------------------------------------------------------------- bibliography
+
+def parse_bib(text: str) -> dict:
+    """key -> {type, fields} with brace-balanced field values."""
+    entries = {}
+    for m in re.finditer(r"(?m)^@(\w+)\s*\{\s*([^,\s]+)\s*,", text):
+        kind, key = m.group(1).lower(), m.group(2)
+        start = text.index("{", m.start())
+        depth, end = 0, len(text)
+        for i in range(start, len(text)):
+            if text[i] == "{":
+                depth += 1
+            elif text[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    end = i
+                    break
+        body = text[start + 1:end]
+        fields = {}
+        for fm in re.finditer(r"(\w+)\s*=\s*[{\"]", body):
+            name = fm.group(1).lower()
+            open_at = fm.end() - 1
+            if body[open_at] == "{":
+                d = 0
+                for i in range(open_at, len(body)):
+                    if body[i] == "{":
+                        d += 1
+                    elif body[i] == "}":
+                        d -= 1
+                        if d == 0:
+                            fields[name] = re.sub(r"\s+", " ", body[open_at + 1:i]).strip()
+                            break
+            else:
+                close = body.find('"', open_at + 1)
+                if close > 0:
+                    fields[name] = re.sub(r"\s+", " ", body[open_at + 1:close]).strip()
+        entries[key] = {"type": kind, "fields": fields}
+    return entries
+
+
+def source_kind(entry: dict) -> str:
+    """What sort of thing the reader is being asked to trust.
+
+    Read from the fields rather than from the URL host alone: a conference talk archived in a
+    GitHub repository is a talk, not a tool record, so the repository check applies only when
+    the entry declares no venue of its own.
+    """
+    kind, f = entry["type"], entry["fields"]
+    if kind in ("article", "inproceedings", "incollection"):
+        return "peer reviewed"
+    if kind == "techreport":
+        return "standard"
+    if kind == "mastersthesis":
+        return "thesis"
+    if kind == "book":
+        return "book"
+    how, note, url = (f.get("howpublished", "").lower(), f.get("note", "").lower(),
+                      f.get("url", "").lower())
+    if "wg21" in how or "open-std" in url or "isocpp" in url:
+        return "committee draft"
+    if "official journal" in how:
+        return "regulation"
+    if any(w in how or w in note for w in ("documentation", "repository", "software")):
+        return "tool record"
+    if not how and any(h in url for h in ("github.com", "pypi.org")):
+        return "tool record"
+    return "grey"
+
+
+def is_corporate(entry: dict) -> bool:
+    """True when the author field is one institutional name that must not be split on 'and'.
+
+    The test is that the whole value sits inside one brace group, which is how such names are
+    written. A leading brace alone is not enough: an accented surname like {\\v S}koudlil opens
+    with one too, and reading that as institutional prints the entire author list as a name.
+    """
+    au = entry["fields"].get("author", "")
+    if not au.startswith("{") or not au.endswith("}"):
+        return False
+    depth = 0
+    for i, ch in enumerate(au):
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return i == len(au) - 1
+    return False
+
+
+def first_author(entry: dict) -> str:
+    au = entry["fields"].get("author", "")
+    if not au:
+        return ""
+    if is_corporate(entry):
+        return strip_tex(au)
+    first = strip_tex(au.split(" and ")[0])
+    if "," in first:
+        return first.split(",")[0].strip()
+    return first.split()[-1] if first.split() else ""
+
+
+def short_label(key: str, entry: dict) -> str:
+    who = first_author(entry) or key
+    year = entry["fields"].get("year", "")
+    if not is_corporate(entry):
+        au = entry["fields"].get("author", "")
+        if au and len(re.split(r"\s+and\s+", au)) > 2:
+            who += " et al."
+    return f"{who} {year}".strip()
+
+
+# --------------------------------------------------------------------------- printed numbers
+
+def printed_numbers(stem: str) -> list:
+    """Keys in printed order, read from the .bbl that biber wrote."""
+    for candidate in (ROOT / "build" / f"{stem}.bbl", ROOT / f"{stem}.bbl"):
+        if candidate.is_file():
+            return re.findall(r"\\entry\{([^}]+)\}", read(candidate))
+    return []
+
+
+# --------------------------------------------------------------------------- cite sites
+
+def structure_at(lines: list) -> list:
+    """For each source line, the division label in force there.
+
+    Handles both of the document classes in this repository: the thesis class, where
+    \\chapter is the top level and \\appendix switches the counter to letters, and the
+    article class the plan uses, where \\section is the top level.
+    """
+    body = "\n".join(lines)
+    chaptered = bool(re.search(r"(?m)^\s*\\chapter\{", body))
+    letters = "ABCDEFGHIJKLMNOP"
+    labels, chap, sec, sub, in_appendix = [], 0, 0, 0, False
+
+    for raw in lines:
+        s = raw.lstrip()
+        if s.startswith("\\begin{appendices}"):
+            in_appendix, chap, sec, sub = True, 0, 0, 0
+        elif re.match(r"\\appendix\{", s):
+            # The full draft redefines \appendix to take the title where \chapter would, so
+            # here it is a heading and not merely the switch into appendix numbering.
+            in_appendix, sec, sub = True, 0, 0
+            chap += 1
+        elif s.startswith("\\appendix"):
+            in_appendix, chap, sec, sub = True, 0, 0, 0
+        elif re.match(r"\\chapter(\*)?\{", s):
+            if "\\chapter*" not in s:
+                chap += 1
+            sec = sub = 0
+        elif re.match(r"\\section(\*)?[\[{]", s):
+            if "\\section*" not in s:
+                sec += 1
+            sub = 0
+        elif re.match(r"\\subsection(\*)?[\[{]", s):
+            if "\\subsection*" not in s:
+                sub += 1
+
+        if chaptered:
+            if not chap:
+                label = "front matter"
+            else:
+                stem = letters[chap - 1] if in_appendix else str(chap)
+                if sub:
+                    label = f"Section {stem}.{sec}.{sub}"
+                elif sec:
+                    label = f"Section {stem}.{sec}"
+                else:
+                    label = ("Appendix " if in_appendix else "Chapter ") + stem
+        else:
+            if not sec:
+                label = "front matter"
+            elif sub:
+                label = f"Section {sec}.{sub}"
+            else:
+                label = f"Section {sec}"
+        labels.append(label)
+    return labels
+
+
+FLOAT_JUNK = re.compile(
+    r"\\(?:begin|end)\{[^}]*\}(?:\[[^\]]*\])?"
+    r"|\\(?:centering|small|footnotesize|scriptsize|tiny|normalsize|raggedright|raggedleft"
+    r"|toprule|midrule|bottomrule|hline|arraybackslash|noindent)\b"
+    r"|\\(?:renewcommand|setlength)\{[^}]*\}\{[^}]*\}"
+    r"|\\label\{[^}]*\}"
+    r"|\\multicolumn\{\d+\}\{[^}]*\}"
+)
+
+
+def brace_arg(text: str, start: int):
+    """Span of the {...} argument beginning at or after start, skipping an optional [...]."""
+    i = start
+    while i < len(text) and text[i] in " \t":
+        i += 1
+    if i < len(text) and text[i] == "[":
+        depth = 0
+        while i < len(text):
+            if text[i] == "[":
+                depth += 1
+            elif text[i] == "]":
+                depth -= 1
+                if depth == 0:
+                    i += 1
+                    break
+            i += 1
+    while i < len(text) and text[i] in " \t":
+        i += 1
+    if i >= len(text) or text[i] != "{":
+        return None
+    depth = 0
+    for j in range(i, len(text)):
+        if text[j] == "{":
+            depth += 1
+        elif text[j] == "}":
+            depth -= 1
+            if depth == 0:
+                return i + 1, j
+    return None
+
+
+def sentence_of(paragraph: str, cite_span: tuple) -> tuple:
+    """The smallest readable unit of a joined paragraph that holds the citation.
+
+    Most citations sit in running prose and the unit is a sentence. A citation inside a float
+    needs narrowing first, or the extracted text drags in column specifications and rule
+    commands: a caption narrows to its own argument, and a table entry narrows to its cell.
+    Returns (text, kind) so the audit can say which of the three it is showing.
+    """
+    kind, lo, hi = "prose", 0, len(paragraph)
+
+    for m in re.finditer(r"\\caption(?:of\{[^}]*\})?", paragraph):
+        arg = brace_arg(paragraph, m.end())
+        if arg and arg[0] <= cite_span[0] < arg[1]:
+            lo, hi, kind = arg[0], arg[1], "caption"
+            break
+    text, off = paragraph[lo:hi], cite_span[0] - lo
+
+    if re.search(r"\\\\|&", text):
+        seps = list(re.finditer(r"\\\\|&", text))
+        starts = [0] + [m.end() for m in seps]
+        ends = [m.start() for m in seps] + [len(text)]
+        for s, e in zip(starts, ends):
+            if s <= off < e:
+                if kind == "prose":
+                    kind = "table cell"
+                text, off = text[s:e], off - s
+                break
+
+    bounds = [0] + [m.end() for m in re.finditer(r"(?<=[.!?])\s+(?=[A-Z\\`(])", text)] + [len(text)]
+    for i in range(len(bounds) - 1):
+        if bounds[i] <= off < bounds[i + 1]:
+            text = text[bounds[i]:bounds[i + 1]]
+            break
+
+    text = FLOAT_JUNK.sub(" ", text)
+    return re.sub(r"\s{2,}", " ", text).strip(" &\\"), kind
+
+
+def cite_sites(path: Path) -> list:
+    """Every citation in a document: keys, the carrying sentence, line and section."""
+    raw_lines = read(path).splitlines()
+    labels = structure_at(raw_lines)
+    sites = []
+    para, para_lines = [], []
+    def flush():
+        if not para:
+            return
+        joined = " ".join(para)
+        offsets = []  # (char offset in joined, source line number)
+        pos = 0
+        for text, lineno in zip(para, para_lines):
+            offsets.append((pos, lineno))
+            pos += len(text) + 1
+        for m in CITE.finditer(joined):
+            lineno = para_lines[0]
+            for off, ln in offsets:
+                if off <= m.start():
+                    lineno = ln
+            sentence, kind = sentence_of(joined, m.span())
+            sites.append({
+                "keys": [k.strip() for k in m.group(1).split(",") if k.strip()],
+                "sentence": sentence,
+                "kind": kind,
+                "line": lineno,
+                "section": labels[lineno - 1] if lineno - 1 < len(labels) else "",
+            })
+        para.clear()
+        para_lines.clear()
+
+    # A heading is not part of the paragraph that follows it, and the thesis does not always
+    # leave a blank line between the two. Without this break the heading text is pulled into
+    # the first extracted sentence of the section.
+    heading = re.compile(r"\\(?:chapter|section|subsection|subsubsection|paragraph|appendix)"
+                         r"\*?[\[{]|\\(?:chapter|section|subsection)mark\{")
+
+    for i, raw in enumerate(raw_lines, 1):
+        stripped = raw.strip()
+        if stripped.startswith("%"):
+            continue
+        if not stripped or heading.match(stripped):
+            flush()
+            continue
+        para.append(stripped)
+        para_lines.append(i)
+    flush()
+    return sites
+
+
+# --------------------------------------------------------------------------- evidence records
+
+FIELD = re.compile(r"(?m)^\*\*([^*\n]+?)\*\*\s*")
+
+
+def split_fields(body: str) -> list:
+    """[(label, text)] for a run of **Label** paragraphs."""
+    marks = list(FIELD.finditer(body))
+    out = []
+    for i, m in enumerate(marks):
+        end = marks[i + 1].start() if i + 1 < len(marks) else len(body)
+        out.append((m.group(1).strip(), body[m.end():end].strip()))
+    return out
+
+
+def parse_evidence(text: str) -> dict:
+    """key -> record, from the '### `key` — Title' sections of Sources_evidence.md."""
+    records = {}
+    chunks = re.split(r"(?m)^### ", text)
+    for chunk in chunks[1:]:
+        head, _, body = chunk.partition("\n")
+        km = re.match(r"`([^`]+)`\s*(?:[-—]{1,2}\s*(.*))?", head.strip())
+        if not km:
+            continue
+        key = km.group(1)
+        # A section ends at the next heading of any level.
+        body = re.split(r"(?m)^#{2,4}\s", body)[0]
+        body = re.split(r"(?m)^---\s*$", body)[0]
+        rec = {"key": key, "title": (km.group(2) or "").strip(),
+               "origin": "Sources_evidence.md, entry record",
+               "level": None, "claim": "", "metadata": "", "evidence": "",
+               "verdict": "", "extra": []}
+        for label, value in split_fields(body):
+            lm = re.match(r"Evidence\s*(?:[-—]{1,2}\s*)?level\s*([ABC])", label, re.I)
+            if lm:
+                rec["level"] = lm.group(1).upper()
+                rec["evidence"] = value
+            elif label.lower().startswith("evidence"):
+                rec["evidence"] = value
+            elif label.lower() == "metadata":
+                rec["metadata"] = value
+            elif label.lower() == "cited":
+                rec["claim"] = strip_site_refs(value)
+            elif label.lower() == "verdict":
+                rec["verdict"] = value
+            else:
+                rec["extra"].append((label, value))
+        records[key] = rec
+    return records
+
+
+def strip_site_refs(value: str) -> str:
+    """Keep the claim description from a **Cited** field, drop the reference list.
+
+    The field is written as a list of file and line references, then a dash, then the claim.
+    Splitting on the dash is what keeps the claim intact: scrubbing the references out instead
+    leaves the separators and any count phrase behind them stranded.
+
+    The line numbers are dropped rather than reported because they go stale, and this document
+    recomputes every citation site from the sources anyway.
+    """
+    parts = re.split(r"\s+[—–]\s+|\s+--\s+", value.strip(), maxsplit=1)
+    claim = parts[1] if len(parts) > 1 else parts[0]
+    claim = re.sub(r"`[^`]*\.tex:[^`]*`", "", claim)
+    claim = re.sub(r"^\s*(?:cited\s+)?(?:\w+\s+times,?\s*)?(?:incl\.?|including)?[\s;,.]*", "",
+                   claim, flags=re.I)
+    return claim.strip(" ;,.")
+
+
+def parse_reverified(text: str) -> dict:
+    """The 24 August bullet pass: '- `key` — **level A.** ...' entries."""
+    records = {}
+    for m in re.finditer(r"(?m)^- `([^`]+)` [-—]{1,2} \*\*level ([ABC])[.,]?\*\*"
+                         r"(.*?)(?=(?:\n- `)|(?:\n\n?###)|(?:\n\n?##)|\Z)",
+                         text, re.S):
+        key, level, body = m.group(1), m.group(2), m.group(3)
+        records[key] = {
+            "key": key, "title": "", "origin": "Sources_evidence.md, 24 August verification pass",
+            "level": level, "claim": "", "metadata": "",
+            "evidence": re.sub(r"\s+", " ", body).strip(" .,"),
+            "verdict": "", "extra": [],
+        }
+    return records
+
+
+def sweep_sections(text: str) -> dict:
+    """heading -> body, for every '###'/'####' section of LITERATURE_NOTES.md."""
+    out = {}
+    marks = list(re.finditer(r"(?m)^#{3,4}\s+(.*)$", text))
+    for i, m in enumerate(marks):
+        end = marks[i + 1].start() if i + 1 < len(marks) else len(text)
+        out[m.group(1).strip()] = text[m.end():end].strip()
+    return out
+
+
+def section_label(heading: str) -> str:
+    """A pointer to a sweep section: its number and name, without the VERIFIED verdict."""
+    return re.split(r"\s+[—–]\s+|\s+--\s+", heading)[0].strip()
+
+
+def sweep_list_items(text: str) -> list:
+    """[(lead_in, whole_item)] for numbered list items opening with a bold author and venue.
+
+    The third literature sweep records its eight peer-reviewed additions this way, one numbered
+    item each, and no item names the cite key. Matching on the author and year in the bold
+    lead-in reaches them without a hand-written table.
+    """
+    items = []
+    for m in re.finditer(r"(?m)^\d+\.\s+\*\*([^*]+)\*\*(.*?)(?=(?:\n\d+\.\s+\*\*)|(?:\n\n)|\Z)",
+                         text, re.S):
+        items.append((m.group(1), (m.group(1) + m.group(2))))
+    return items
+
+
+def match_list_item(items: list, surname: str, year: str) -> str | None:
+    """The one list item that names this author, disambiguated by year when the name repeats."""
+    if not surname:
+        return None
+    hits = [whole for lead, whole in items if re.search(r"\b" + re.escape(surname) + r"\b", lead)]
+    if len(hits) > 1 and year:
+        hits = [h for h in hits if year in h]
+    return re.sub(r"\s*\n\s*", " ", hits[0]).strip() if len(hits) == 1 else None
+
+
+def sweep_mentions(text: str, key: str) -> list:
+    """Table rows and prose lines of LITERATURE_NOTES.md that name the key, outside code fences."""
+    hits, fenced = [], False
+    for raw in text.splitlines():
+        if raw.lstrip().startswith("```"):
+            fenced = not fenced
+            continue
+        if fenced or f"`{key}`" not in raw:
+            continue
+        line = raw.strip()
+        if line.startswith("|"):
+            cells = [c.strip() for c in line.strip("|").split("|")]
+            line = ". ".join(c for c in cells if c and not set(c) <= set("-: "))
+        line = re.sub(r"^[>\-\d.*\s]+", "", line).strip()
+        if len(line) > 40:
+            hits.append(line)
+    return hits
+
+
+def build_records(bib: dict) -> dict:
+    ev_text, sw_text = read(EVIDENCE), read(SWEEPS)
+    records = parse_evidence(ev_text)
+    for key, rec in parse_reverified(ev_text).items():
+        records.setdefault(key, rec)
+
+    sections = sweep_sections(sw_text)
+    items = sweep_list_items(sw_text)
+    for key in bib:
+        if key in records:
+            continue
+        wanted = SWEEP_SECTIONS.get(key)
+        heading = body = None
+        if wanted:
+            for head, text in sections.items():
+                if wanted in head:
+                    heading, body = head, text
+                    break
+        if body:
+            records[key] = {
+                "key": key, "title": "", "claim": "", "metadata": "", "verdict": "", "extra": [],
+                "level": "A" if "VERIFIED" in heading else None,
+                "origin": f"LITERATURE_NOTES.md, section {section_label(heading)}",
+                "evidence": trim_sweep_body(body),
+            }
+            continue
+        item = match_list_item(items, first_author(bib[key]), bib[key]["fields"].get("year", ""))
+        if item:
+            records[key] = {
+                "key": key, "title": "", "claim": "", "metadata": "", "verdict": "", "extra": [],
+                "level": "B", "evidence": item,
+                "origin": "LITERATURE_NOTES.md, peer-reviewed additions of the third sweep",
+            }
+            continue
+        mentions = sweep_mentions(sw_text, key)
+        if mentions:
+            records[key] = {
+                "key": key, "title": "", "claim": "", "metadata": "", "verdict": "", "extra": [],
+                "level": None, "evidence": " ".join(mentions[:3]),
+                "origin": "LITERATURE_NOTES.md, sweep notes",
+            }
+
+    # A record whose key is not in the bibliography describes a renamed or dropped entry. It can
+    # never be printed, so report it rather than carrying it silently.
+    orphans = sorted(set(records) - set(bib))
+    for key in orphans:
+        print(f"NOTE: evidence record for {key!r}, which is not a bibliography key. "
+              f"Renamed or dropped entry.", file=sys.stderr)
+        del records[key]
+    return records
+
+
+def trim_sweep_body(body: str, limit: int = 1800) -> str:
+    """The opening of a sweep section, cut at a paragraph boundary.
+
+    A sweep section can run for pages. Truncation drops a trailing lead-in, since a paragraph
+    ending in a colon promises a list that the cut has just removed.
+    """
+    body = re.split(r"(?m)^#{2,4}\s", body)[0].strip()
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", body) if p.strip()]
+    kept, total = [], 0
+    for p in paragraphs:
+        if total + len(p) > limit and kept:
+            break
+        kept.append(p)
+        total += len(p)
+    while kept and kept[-1].rstrip().endswith(":"):
+        kept.pop()
+    return "\n\n".join(kept)
+
+
+# --------------------------------------------------------------------------- markdown to LaTeX
+
+DASH_KEPT = 0
+SEMI_KEPT = 0
+
+
+def protect(text: str) -> tuple:
+    """Pull `code` and $math$ out of reach of the escaper."""
+    store = []
+
+    def stash(m, wrap):
+        store.append((wrap, m.group(1)))
+        return f"\x00{len(store) - 1}\x00"
+
+    text = re.sub(r"`([^`]+)`", lambda m: stash(m, "code"), text)
+    text = re.sub(r"\$([^$]+)\$", lambda m: stash(m, "math"), text)
+    return text, store
+
+
+VERBATIM_ESCAPES = {"\\": r"\textbackslash{}", "{": r"\{", "}": r"\}", "$": r"\$",
+                    "&": r"\&", "%": r"\%", "#": r"\#", "_": r"\_",
+                    "^": r"\textasciicircum{}", "~": r"\textasciitilde{}"}
+
+
+def restore(text: str, store: list) -> str:
+    """Put the protected spans back, escaping code spans so \\texttt can set them literally."""
+    def put(m):
+        wrap, body = store[int(m.group(1))]
+        if wrap == "math":
+            return f"${body}$"
+        body = re.sub(r"[\\{}$&%#_^~]", lambda c: VERBATIM_ESCAPES[c.group(0)], body)
+        return "\\texttt{" + body + "}"
+    return re.sub(r"\x00(\d+)\x00", put, text)
+
+
+def rewrite_asides(text: str) -> str:
+    """Replace em-dash asides and prose semicolons outside quotations.
+
+    The repository forbids both wherever a reader sees them. Quoted source text is exempt,
+    because changing a quotation's punctuation misquotes it, so quotations are split out
+    first and passed through untouched.
+    """
+    global DASH_KEPT, SEMI_KEPT
+    parts = re.split(r'("[^"]*")', text)
+    for i, part in enumerate(parts):
+        if part.startswith('"') and part.endswith('"') and len(part) > 1:
+            DASH_KEPT += len(re.findall(r"[—–]|--", part))
+            SEMI_KEPT += part.count(";")
+            continue
+        part = re.sub(r"\s*[—]\s*(?=[a-z0-9`(])", ", ", part)
+        part = re.sub(r"\s*[—]\s*", ". ", part)
+        part = re.sub(r";\s+(?=[a-z`(])", ", ", part)
+        part = re.sub(r";\s+", ". ", part)
+        parts[i] = part
+    return "".join(parts)
+
+
+ESCAPES = {"\\": r"\textbackslash{}", "&": r"\&", "%": r"\%", "#": r"\#",
+           "_": r"\_", "{": r"\{", "}": r"\}", "^": r"\textasciicircum{}"}
+
+# Characters the notes use freely and pdflatex will not set without help.
+UNICODE = {"✔": "[verified]", "⚠": "[nit]", "✖": "[wrong]", "→": "$\\rightarrow$",
+           "←": "$\\leftarrow$", "§": "\\S{}", "≈": "$\\approx$", "×": "$\\times$",
+           "≤": "$\\leq$", "≥": "$\\geq$", "±": "$\\pm$", "∼": "$\\sim$", "−": "$-$",
+           "µ": "$\\mu$", "…": "\\ldots{}", "’": "'", "‘": "'", "“": "``", "”": "''",
+           "–": "--", "―": "--", "•": "\\textbullet{}", "\u00a0": " ", "\u2009": "\\,",
+           "\u200b": ""}
+
+
+def md_to_tex(text: str) -> str:
+    if not text:
+        return ""
+    text = re.sub(r"\s*\n\s*", " ", text.strip())
+    # The notes quote thesis source, so an ellipsis reaches this point as LaTeX. Fold it back
+    # to the character, which the escaper then re-emits as \ldots rather than printing it.
+    text = re.sub(r"\\ldots\{\}|\\ldots\b|\\dots\b", "…", text)
+    text = rewrite_asides(text)
+    text, store = protect(text)
+
+    # One pass, so that the braces of \textbackslash{} are not themselves escaped.
+    text = re.sub(r"[\\&%#_{}^]", lambda m: ESCAPES[m.group(0)], text)
+    text = re.sub("|".join(re.escape(c) for c in UNICODE),
+                  lambda m: UNICODE[m.group(0)], text)
+    text = re.sub(r"\*\*([^*]+)\*\*", r"\\textbf{\1}", text)
+    text = re.sub(r"(?<![\w*])\*([^*]+)\*(?![\w*])", r"\\emph{\1}", text)
+    text = re.sub(r'"([^"]*)"', r"\\enquote{\1}", text)
+    text = re.sub(r"<(https?://[^>]+)>", r"\\url{\1}", text)
+    text = re.sub(r"\[([^\]]+)\]\((https?://[^)]+)\)", r"\\href{\2}{\1}", text)
+    return restore(text, store).strip()
+
+
+# --------------------------------------------------------------------------- thesis sentences
+
+def sentence_to_tex(sentence: str, numbering: dict) -> str:
+    """A citing sentence, verbatim, with \\cite replaced by the printed number it prints as."""
+    def swap(m):
+        keys = [k.strip() for k in m.group(1).split(",") if k.strip()]
+        nums = [str(numbering[k]) for k in keys if k in numbering]
+        return "\\citemark{" + ", ".join(nums) + "}" if nums else "\\citemark{?}"
+
+    text = CITE.sub(swap, sentence)
+    text = re.sub(r"\\(?:auto|c|C|page|name|full|Full)?ref\{([^}]+)\}", r"\\refmark{\1}", text)
+    text = re.sub(r"\\label\{[^}]*\}", "", text)
+    text = re.sub(r"\\(?:chapter|section|subsection|paragraph)mark\{[^}]*\}", "", text)
+    text = re.sub(r"~", "\\\\,", text) if False else text
+    return text.strip()
+
+
+# --------------------------------------------------------------------------- LaTeX emission
+
+PREAMBLE = r"""%% GENERATED FILE. Do not edit.
+%% Written by .bibaudit/build_audit.py. Regenerate instead of correcting by hand:
+%%     .bibaudit/build_audit.py && latexmk -pdf source_audit.tex
+%%
+%% Every reference below is printed by biblatex from bibliography.bib. Every printed
+%% citation number is read from the corresponding .bbl. Every citing sentence is copied
+%% from the thesis source. None of it is retyped here, so this document cannot disagree
+%% with the thesis about what a reference says or which number it carries.
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=22mm,bottom=24mm]{geometry}
+\usepackage{microtype}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{csquotes}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+
+%% The thesis's own biblatex configuration, so \fullcite formats a reference with the same
+%% code that formats the thesis bibliography.
+\usepackage[style=numeric,bibstyle=numeric,backend=biber,natbib=true,
+            sorting=none,sortcites=true,maxbibnames=99,giveninits=true,uniquename=init]{biblatex}
+\addbibresource{bibliography.bib}
+\DeclareNameAlias{sortname}{family-given}
+
+\usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue!55!black]{hyperref}
+
+%% The generated macro files the thesis reads. A citing sentence that quotes a measured
+%% value therefore prints the value, not the macro name.
+\input{figures/gen_macros.tex}
+\input{figures/gen_complexity.tex}
+\input{figures/gen_artefacts.tex}
+\input{figures/gen_adoption.tex}
+\input{figures/gen_baremetal.tex}
+\input{figures/gen_guest.tex}
+
+%% A citation inside a quoted sentence prints as the number the thesis prints, and a
+%% cross-reference prints as its label, since this document has no such target of its own.
+\newcommand{\citemark}[1]{\textbf{[#1]}}
+\newcommand{\refmark}[1]{\textsl{#1}}
+
+\newcommand{\entryrule}{\par\medskip\noindent\textcolor{black!35}{\rule{\linewidth}{0.6pt}}\par\nobreak\smallskip}
+\newcommand{\auditentry}[3]{%
+  \entryrule
+  \phantomsection\addcontentsline{toc}{subsection}{[#1] #2}%
+  \noindent{\large\textbf{[#1]}}\quad\texttt{\textbf{#2}}\hfill{\small #3}\par\nobreak\smallskip}
+\newcommand{\afield}[2]{\par\noindent\textbf{#1.}\enspace #2\par}
+\newenvironment{saidquote}%
+  {\begin{quote}\small\itshape}%
+  {\end{quote}}
+\newenvironment{citedsentence}%
+  {\begin{quote}\small}%
+  {\end{quote}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
+
+%% Quoted passages carry long identifiers and URLs that cannot be hyphenated, so give the
+%% line breaker room rather than leaving overfull boxes in a document meant to be read.
+\sloppy
+\emergencystretch=3em
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Citation audit}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\title{Citation audit\\[2pt]\large Every cited work, the sentence citing it, and where the
+claim sits in the source}
+\author{Ha Vien}
+"""
+
+
+def tex_escape_plain(s: str) -> str:
+    for ch in ("\\", "&", "%", "#", "_", "{", "}"):
+        s = s.replace(ch, {"\\": "\\textbackslash{}"}.get(ch, "\\" + ch))
+    return s
+
+
+def build_document(bib, records, sites_by_doc, numbering, spine) -> str:
+    out = [PREAMBLE, f"\\date{{Generated {date.today().isoformat()}}}",
+           "", "\\begin{document}", "\\maketitle", ""]
+
+    total_sites = Counter()
+    per_key_sites = defaultdict(list)
+    for tex_name, tag, label in DOCUMENTS:
+        for site in sites_by_doc[tag]:
+            for key in site["keys"]:
+                per_key_sites[key].append((tag, label, site))
+                total_sites[key] += 1
+
+    levels = Counter((records[k]["level"] or "none") if k in records else "absent" for k in spine)
+    unlocated = [k for k in spine if k not in records or not records[k]["level"]]
+    level_c = [k for k in spine if k in records and records[k]["level"] == "C"]
+
+    out.append(part0(bib, spine, numbering, levels, unlocated))
+    out.append(part1(bib, records, spine, numbering, total_sites))
+    out.append(part2(bib, records, spine, numbering, per_key_sites))
+    out.append(part3(bib, records, spine, numbering, unlocated, level_c))
+    n_commands = sum(len(v) for v in sites_by_doc.values())
+    out.append(part4(bib, records, spine, numbering, levels, total_sites, n_commands))
+
+    out.append("\\end{document}")
+    return "\n".join(out)
+
+
+def status_of(rec) -> str:
+    if rec is None:
+        return "no record"
+    verdict = rec.get("verdict", "")
+    if verdict.upper().startswith("OK"):
+        return "ok"
+    if verdict:
+        return "note"
+    return "ok" if rec.get("level") else "sweep"
+
+
+def part0(bib, spine, numbering, levels, unlocated) -> str:
+    n_v2 = len(numbering["v2"])
+    n_plan = len(numbering["plan"])
+    return r"""
+\section*{How to read this document}
+\addcontentsline{toc}{section}{How to read this document}
+
+This document lists every work in \texttt{bibliography.bib}. It is ordered by the number the
+work carries in the full draft's reference list, so entry \textbf{[17]} here is reference
+\textbf{[17]} there and the two can be read side by side. Where a work is also cited by
+\texttt{Thesis\_v2} or by the plan, the number it carries in those documents is given as well,
+because their lists are shorter and number the same work differently.
+
+Each entry answers three questions in order. What is the source. Which sentences cite it, printed
+as they stand in the thesis with the citation shown as \citemark{n}. And what the source itself
+says, quoted with the page or clause it was read from. When the three agree, the citation is
+sound. When the quoted passage does not carry the sentence above it, that is the defect this
+document is built to expose.
+
+\textbf{Checking one entry.} Read the citing sentence, then read the quotation under
+\emph{Source says}. Ask only whether the second supports the first. The evidence level tells you
+how far to trust the quotation without opening the paper yourself.
+
+\begin{description}[leftmargin=2.4em,style=nextline,itemsep=1pt,topsep=2pt]
+  \item[Level A] The source was opened and the supporting passage located. A page, clause or
+        section is given. Nothing further is needed.
+  \item[Level B] A publisher-deposited record, such as a Crossref abstract or an official
+        landing page, carries the claim. The full text was not opened.
+  \item[Level C] Bibliographic metadata is confirmed and the passage sits behind a paywall.
+        Worth opening through the university proxy if the claim is load-bearing.
+  \item[No level] The record is a literature-sweep note rather than a located passage, so it
+        gives no page or clause. Part~3 lists these together and they are the ones to close
+        first.
+\end{description}
+
+\textbf{Provenance.} Nothing in this document is typed by hand. References are printed by
+biblatex from \texttt{bibliography.bib}. Printed citation numbers are read from each document's
+\texttt{.bbl}, which is what biber wrote, and the generator refuses to run when a
+\texttt{.bbl} disagrees with its source. Citing sentences are copied from the \texttt{.tex}
+sources with the generated measurement macros resolved, so a sentence quoting a measured value
+shows the value. Evidence comes from \texttt{docs/Sources\_evidence.md}, with
+\texttt{docs/LITERATURE\_NOTES.md} as the fallback, and the origin is named under each entry.
+Regenerate with:
+
+\begin{quote}\ttfamily\small
+.bibaudit/build\_audit.py \&\& latexmk -pdf source\_audit.tex
+\end{quote}
+
+\textbf{One note on punctuation.} The thesis style forbids em dashes and prose semicolons
+anywhere a reader sees them, and this document follows that rule in its own prose. Quotations
+from cited sources keep their original punctuation, because altering a quotation misquotes it.
+Any dash or semicolon below therefore sits inside quoted source material and is deliberate.
+
+\vspace{0.6em}
+\textbf{Coverage.} """ + f"""{len(spine)} entries, all of them cited. {len(numbering['draft'])} in
+the full draft, {n_v2} in \\texttt{{Thesis\\_v2}}, {n_plan} in the plan.
+{levels['A']} at level~A, {levels['B']} at level~B, {levels['C']} at level~C, and
+{len(unlocated)} with no located passage.
+"""
+
+
+COLSPEC = ("@{}"
+           ">{\\raggedleft\\arraybackslash}p{7mm}"   # draft number
+           ">{\\raggedleft\\arraybackslash}p{6mm}"   # v2
+           ">{\\raggedleft\\arraybackslash}p{6mm}"   # plan
+           "p{44mm}"                                  # key, sized to the longest one
+           "p{25mm}"                                  # short label, sized to the longest name
+           "p{20mm}"                                  # kind
+           ">{\\raggedleft\\arraybackslash}p{7mm}"   # sites
+           ">{\\centering\\arraybackslash}p{6mm}"    # level
+           "p{14mm}"                                  # status
+           ">{\\centering\\arraybackslash}p{5mm}@{}") # tick
+
+
+def part1(bib, records, spine, numbering, total_sites) -> str:
+    head = (r"\textbf{\#} & \textbf{v2} & \textbf{pl} & \textbf{key} & \textbf{source} & "
+            r"\textbf{kind} & \textbf{cit} & \textbf{ev} & \textbf{status} & \\")
+    rows = []
+    for key in spine:
+        rec = records.get(key)
+        entry = bib[key]
+        v2 = numbering["v2"].get(key)
+        plan = numbering["plan"].get(key)
+        # A blank cell says "not cited by that document" and "no level assigned". A dash would
+        # read as punctuation, and this repository reserves that mark for ranges and names.
+        level = rec["level"] if rec and rec["level"] else ""
+        rows.append(" & ".join([
+            str(numbering["draft"][key]),
+            str(v2) if v2 else "",
+            str(plan) if plan else "",
+            "\\texttt{\\small " + tex_escape_plain(key) + "}",
+            "{\\small " + tex_escape_plain(short_label(key, entry)) + "}",
+            "{\\small " + source_kind(entry) + "}",
+            str(total_sites[key]),
+            level,
+            "{\\small " + status_of(rec) + "}",
+            "$\\square$",
+        ]) + r" \\")
+    return (r"""
+\clearpage
+\section*{Part 1. Master checklist}
+\addcontentsline{toc}{section}{Part 1. Master checklist}
+
+One row per entry, ordered by the full draft's reference number. \textbf{v2} and \textbf{pl} give
+the number the same work carries in \texttt{Thesis\_v2} and in the plan, and a blank means that
+document does not cite it. \textbf{cit} counts the places the work is cited across all three
+documents. \textbf{ev} is the evidence level, blank where no passage was located, and
+\textbf{status} reads \emph{ok} where the verdict is clean, \emph{note} where the record raises
+something, and \emph{sweep} where the only record is a literature-sweep note. Tick the last
+column as you check.
+
+\begin{small}
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{""" + COLSPEC + r"""}
+\toprule
+""" + head + r"""
+\midrule
+\endfirsthead
+\toprule
+""" + head + r"""
+\midrule
+\endhead
+\bottomrule
+\endfoot
+""" + "\n".join(rows) + r"""
+\end{longtable}
+\end{small}
+""")
+
+
+def part2(bib, records, spine, numbering, per_key_sites) -> str:
+    out = [r"""
+\clearpage
+\section*{Part 2. Entry records}
+\addcontentsline{toc}{section}{Part 2. Entry records}
+
+Entry \textbf{[n]} is reference \textbf{[n]} of the full draft. Citing sentences are printed as
+they stand, with the citation shown as \citemark{n} and a cross-reference as \refmark{label}.
+"""]
+    for key in spine:
+        entry = bib[key]
+        rec = records.get(key)
+        num = numbering["draft"][key]
+        also = []
+        for tag, label in (("v2", "Thesis\\_v2"), ("plan", "Plan")):
+            if key in numbering[tag]:
+                also.append(f"{label} [{numbering[tag][key]}]")
+        badge = tex_escape_plain(source_kind(entry))
+        if rec and rec["level"]:
+            badge += f", level~{rec['level']}"
+        elif not rec:
+            badge += ", no evidence record"
+        if also:
+            badge += " \\textperiodcentered\\ " + ", ".join(also)
+
+        out.append(f"\\auditentry{{{num}}}{{{tex_escape_plain(key)}}}{{{badge}}}")
+        out.append(f"\\afield{{Reference}}{{\\fullcite{{{key}}}}}")
+
+        ident = []
+        fields = entry["fields"]
+        if fields.get("doi"):
+            doi = fields["doi"]
+            ident.append(f"DOI \\href{{https://doi.org/{doi}}}{{\\texttt{{{tex_escape_plain(doi)}}}}}")
+        elif fields.get("url"):
+            ident.append(f"\\href{{{fields['url']}}}{{source page}}")
+        if fields.get("note"):
+            # A note field is already LaTeX, since biblatex prints it into the thesis
+            # bibliography. Escaping it here would print its own markup.
+            ident.append(fields["note"].rstrip("."))
+        if ident:
+            out.append(f"\\afield{{Entry}}{{{'. '.join(ident)}.}}")
+
+        sites = per_key_sites.get(key, [])
+        if sites:
+            out.append(f"\\afield{{Cited in}}{{{len(sites)} "
+                       f"{'place' if len(sites) == 1 else 'places'}.}}")
+            for tag, label, site in sites:
+                where = f"{tex_escape_plain(label)}, {tex_escape_plain(site['section'])}"
+                if site["kind"] != "prose":
+                    where += f", {site['kind']}"
+                out.append(f"\\begin{{citedsentence}}\\textbf{{\\small {where}.}}\\enspace "
+                           f"{sentence_to_tex(site['sentence'], numbering[tag])}"
+                           f"\\end{{citedsentence}}")
+
+        if rec:
+            if rec["claim"]:
+                out.append(f"\\afield{{Claim it carries}}{{{md_to_tex(rec['claim'])}}}")
+            if rec["evidence"]:
+                out.append("\\afield{Source says}{}")
+                out.extend(render_evidence(rec["evidence"]))
+            if rec["metadata"]:
+                out.append(f"\\afield{{Metadata}}{{{md_to_tex(rec['metadata'])}}}")
+            for label, value in rec["extra"]:
+                out.append(f"\\afield{{{md_to_tex(label)}}}{{{md_to_tex(value)}}}")
+            if rec["verdict"]:
+                out.append(f"\\afield{{Verdict}}{{{md_to_tex(rec['verdict'])}}}")
+            out.append(f"\\afield{{Record}}{{{tex_escape_plain(rec['origin'])}.}}")
+        else:
+            out.append(r"\afield{Source says}{No entry-by-entry evidence record exists for this "
+                       r"entry. Metadata is verified in \texttt{docs/LITERATURE\_NOTES.md}. The "
+                       r"supporting passage has not been located and quoted. Part~3 lists these "
+                       r"together.}")
+    return "\n".join(out)
+
+
+def render_evidence(text: str) -> list:
+    """Evidence as quote blocks, keeping any markdown bullet list as a list.
+
+    Several records locate a claim per bullet, one page reference each. Flattening those into
+    a paragraph runs the page numbers together and loses which quotation supports which claim.
+    """
+    out = []
+    for block in (b for b in re.split(r"\n\s*\n", text) if b.strip()):
+        lines = block.split("\n")
+        lead, bullets, current = [], [], None
+        for line in lines:
+            m = re.match(r"\s*[-*]\s+(.*)", line)
+            if m:
+                if current is not None:
+                    bullets.append(current)
+                current = m.group(1)
+            elif current is not None:
+                current += " " + line.strip()
+            else:
+                lead.append(line.strip())
+        if current is not None:
+            bullets.append(current)
+
+        if lead and any(lead):
+            out.append(f"\\begin{{saidquote}}{md_to_tex(' '.join(lead))}\\end{{saidquote}}")
+        if bullets:
+            items = "\n".join(f"\\item {md_to_tex(b)}" for b in bullets)
+            out.append("\\begin{saidquote}\\begin{itemize}"
+                       "[leftmargin=1.2em,itemsep=1pt,topsep=1pt]\n"
+                       + items + "\n\\end{itemize}\\end{saidquote}")
+    return out
+
+
+ATTACHMENT_DEFECTS = [
+    ("klabnik2023rust, jung2018rustbelt",
+     "Chapter 1, on Rust promising performance competitive with C++",
+     "RustBelt is a machine-checked safety proof and makes no performance claim. The type-system "
+     "half of the sentence is carried by the book. Nothing in the pair supports the performance "
+     "half. The same sentence is in the full draft, because this chapter was copied from it."),
+    ("3gpp38913",
+     "Chapter 1, on thousands of procedures per second at a budget of a few milliseconds",
+     "TR 38.913 clause 7.4 sets a 10 ms control-plane latency target. It states no procedure "
+     "rate, so the citation covers the second half of a compound sentence only. The sentence "
+     "that follows, on millions of active devices, carries no citation at all."),
+    ("natella2016fault",
+     "Chapter 6, second use, on the seven boundary classes being chosen because safe Rust is "
+     "expected not to prevent them",
+     "Natella's survey of software fault injection is the right source for the method sentence "
+     "in Chapter 4. It says nothing about the boundary of Rust's guarantee. Chapter 3 already "
+     "states the catalogue is this study's own."),
+    ("bornholt2021shardstore",
+     "Chapter 6, on the boundary defects being re-imported against the checker's own primitives "
+     "and shrunk to model size",
+     "ShardStore is the peer-reviewed account of Loom and Shuttle and supports the division of "
+     "labour between them, which is how the full draft uses it. The rewrite and the shrink are "
+     "this study's own measured cost."),
+    ("evans2020rust",
+     "Chapter 7, on confining unsafe to a seam crate making the reviewable surface a countable "
+     "thing",
+     "Evans et al. report that fewer than 30 per cent of crates use unsafe directly and that "
+     "more than half cannot be fully checked because of unsafe in the call chain. The full draft "
+     "cites that for dependency propagation. The countability of the surface is this thesis's "
+     "own guideline."),
+    ("emberg2023asn1",
+     "Chapter 7, on the parity suite bounding behaviour and not performance",
+     "That limitation is this study's own and the full draft's threats table states it with no "
+     "citation. Emberg and Wadsten compared matched C++ and Rust ASN.1 decompilers on "
+     "performance. The first use of this entry, on no earlier study isolating the language for a "
+     "stateful concurrent subsystem, is sound."),
+]
+
+BENIGN = [
+    ("Crossref year against issue year", "Crossref dates the POPL 2018 and POPL 2020 issues a "
+     "year early because the deposit precedes the issue. The entries follow what ACM prints."),
+    ("Article-number page ranges", "\\texttt{66:1--66:34} against Crossref's \\texttt{1-34}, and "
+     "eight more like it. ACM prints the article number and the entries follow ACM."),
+    ("Author names that differ from the publisher record",
+     "D'Oro, O'Keeffe, Tao Wei, Garc\\'ia S\\'anchez-Torija and di Luzio all differ between the "
+     "publisher record and the paper's own title page. The entries follow the papers."),
+    ("Semicolons in 3GPP titles", "\\texttt{NG-RAN; Architecture description} and four like it "
+     "keep their semicolons, because the punctuation is part of the official title. Changing "
+     "them would misquote the standard."),
+    ("HTTP 403 and 202 on publisher links", "Bot blocking rather than dead links. Every one of "
+     "those DOIs resolves through the Crossref API."),
+]
+
+
+def part3(bib, records, spine, numbering, unlocated, level_c) -> str:
+    def keylist(keys):
+        if not keys:
+            return "None."
+        items = []
+        for k in sorted(keys, key=lambda k: numbering["draft"][k]):
+            marks = f"[{numbering['draft'][k]}]"
+            if k in numbering["v2"]:
+                marks += f", v2 [{numbering['v2'][k]}]"
+            items.append(f"\\item \\texttt{{{tex_escape_plain(k)}}}\\hfill {marks}")
+        return ("\\begin{itemize}[leftmargin=1.4em,itemsep=0pt,topsep=2pt]\n"
+                + "\n".join(items) + "\n\\end{itemize}")
+
+    defects = []
+    for keys, where, why in ATTACHMENT_DEFECTS:
+        nums = []
+        for k in [x.strip() for x in keys.split(",")]:
+            if k in numbering["v2"]:
+                nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, \\texttt{{Thesis\\_v2}} "
+                            f"[{numbering['v2'][k]}], draft [{numbering['draft'][k]}]")
+            else:
+                nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, draft [{numbering['draft'][k]}]")
+        defects.append(f"\\item \\textbf{{{where}.}}\\par {'. '.join(nums)}.\\par {why}")
+
+    benign = "\n".join(f"\\item \\textbf{{{name}.}} {text}" for name, text in BENIGN)
+
+    v2_unlocated = [k for k in unlocated if k in numbering["v2"]]
+    return (r"""
+\clearpage
+\section*{Part 3. Open items}
+\addcontentsline{toc}{section}{Part 3. Open items}
+
+\subsection*{Citations attached to a claim the source does not make}
+
+""" + f"""These {len(ATTACHMENT_DEFECTS)} sentences cite a work that does not carry the claim the
+sentence makes.""" + r"""
+In every case the work is sound and cited correctly elsewhere, so the fix is to move or drop the
+citation rather than to replace the source. Each is listed with the numbers it prints as.
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=4pt]
+""" + "\n".join(defects) + r"""
+\end{enumerate}
+
+\subsection*{Entries whose supporting passage was never located}
+
+""" + f"""Every entry has some record, but for these {len(unlocated)} the record is a sweep note
+rather than a located passage, so no page or clause is given and no evidence level is assigned.
+{len(v2_unlocated)} of them are cited by \\texttt{{Thesis\\_v2}}, and three of the defects listed
+above sit on exactly those keys. That correlation is the argument for closing this list first:
+where nobody wrote down what the source says, the prose drifted.
+
+""" + keylist(unlocated) + r"""
+
+\subsection*{Level C, metadata confirmed and passage not opened}
+
+""" + f"""These {len(level_c)} entries sit behind a paywall and were not opened. None carries a
+quotation or a number in the thesis, so the risk is low, but a load-bearing claim on one of them
+is worth a spot check through the university proxy.
+
+""" + keylist(level_c) + r"""
+
+\subsection*{The one preprint still load-bearing}
+
+\texttt{bugden2022rust} is the last arXiv-only entry carrying weight. It is cited twice and both
+times beside a peer-reviewed source. Replacing it with a peer-reviewed equivalent is optional.
+
+\subsection*{Differences that look like defects and are not}
+
+Recorded so no later pass \enquote{corrects} them.
+
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+""" + benign + r"""
+\end{itemize}
+""")
+
+
+def part4(bib, records, spine, numbering, levels, total_sites, n_commands) -> str:
+    kinds = Counter(source_kind(bib[k]) for k in spine)
+    kind_rows = "\n".join(
+        f"{name} & {n} & {100 * n / len(spine):.0f}\\,\\% \\\\" for name, n in kinds.most_common())
+    peer = kinds["peer reviewed"]
+    # A citation command can name several works, so the two counts differ and the difference
+    # is the number of grouped citations.
+    key_occurrences = sum(total_sites.values())
+    return (r"""
+\clearpage
+\section*{Part 4. Coverage}
+\addcontentsline{toc}{section}{Part 4. Coverage}
+
+\begin{tabular}{@{}lrr@{}}
+\toprule
+\textbf{Source kind} & \textbf{n} & \textbf{share} \\
+\midrule
+""" + kind_rows + r"""
+\midrule
+""" + f"""\\textbf{{total}} & \\textbf{{{len(spine)}}} & \\\\
+\\bottomrule
+\\end{{tabular}}
+
+\\vspace{{1em}}
+
+\\begin{{tabular}}{{@{{}}lr@{{}}}}
+\\toprule
+\\textbf{{Evidence}} & \\textbf{{n}} \\\\
+\\midrule
+Level A, passage located & {levels['A']} \\\\
+Level B, deposited record carries it & {levels['B']} \\\\
+Level C, metadata only & {levels['C']} \\\\
+No located passage & {levels['none'] + levels['absent']} \\\\
+\\midrule
+\\textbf{{total}} & \\textbf{{{len(spine)}}} \\\\
+\\bottomrule
+\\end{{tabular}}
+
+\\vspace{{1em}}
+
+Every entry in the bibliography is cited somewhere, so there is no orphan and no citation
+without an entry. Across the three documents there are {n_commands} citation commands naming
+{key_occurrences} works between them, since one command often cites several.
+{peer} entries ({100 * peer / len(spine):.0f}\\,\\%) are in peer-reviewed venues. The full draft
+cites all {len(numbering['draft'])}, \\texttt{{Thesis\\_v2}} cites {len(numbering['v2'])} and the
+plan cites {len(numbering['plan'])}.
+""")
+
+
+# --------------------------------------------------------------------------- main
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--dump", choices=["records", "sites"], help="inspect parsed input")
+    ap.add_argument("--allow-stale", action="store_true",
+                    help="emit even when a .bbl disagrees with its source (numbers may be wrong)")
+    args = ap.parse_args()
+
+    bib = parse_bib(read(BIB))
+    bib_keys = list(bib)
+
+    sites_by_doc, numbering, stale = {}, {}, []
+    for tex_name, tag, label in DOCUMENTS:
+        path = ROOT / tex_name
+        sites = cite_sites(path)
+        sites_by_doc[tag] = sites
+        cited = {k for s in sites for k in s["keys"]}
+        order = printed_numbers(Path(tex_name).stem)
+        if not order:
+            stale.append(f"{tex_name}: no .bbl found, build the document first")
+            order = [k for s in sites for k in s["keys"]]
+            order = list(dict.fromkeys(order))
+        elif set(order) != cited:
+            only_bbl = sorted(set(order) - cited)
+            only_src = sorted(cited - set(order))
+            stale.append(f"{tex_name}: .bbl disagrees with the source. "
+                         f"in .bbl only {only_bbl}, in source only {only_src}")
+        numbering[tag] = {k: i + 1 for i, k in enumerate(order)}
+        missing = sorted(cited - set(bib_keys))
+        if missing:
+            stale.append(f"{tex_name}: cited keys absent from bibliography.bib: {missing}")
+
+    if stale and not args.allow_stale:
+        print("REFUSING to generate: printed numbers would be stale.", file=sys.stderr)
+        for line in stale:
+            print("  " + line, file=sys.stderr)
+        print("\n  Rebuild the affected document, or pass --allow-stale to override.",
+              file=sys.stderr)
+        return 1
+    for line in stale:
+        print("WARNING: " + line, file=sys.stderr)
+
+    records = build_records(bib)
+    spine = sorted(bib_keys, key=lambda k: numbering["draft"].get(k, 10**6))
+
+    if args.dump == "records":
+        origins = Counter(r["origin"] for r in records.values())
+        for origin, n in origins.most_common():
+            print(f"{n:4d}  {origin}")
+        print(f"\n{len(records)} of {len(bib_keys)} keys have a record")
+        for k in bib_keys:
+            if k not in records:
+                print(f"  no record: {k}")
+        for k in bib_keys:
+            r = records.get(k)
+            if r and not r["evidence"]:
+                print(f"  record without evidence text: {k}")
+        return 0
+
+    if args.dump == "sites":
+        for tex_name, tag, label in DOCUMENTS:
+            print(f"\n=== {tex_name}: {len(sites_by_doc[tag])} citation sites")
+            for s in sites_by_doc[tag][:6]:
+                print(f"  L{s['line']} {s['section']}: {s['sentence'][:150]}")
+        return 0
+
+    OUT.write_text(build_document(bib, records, sites_by_doc, numbering, spine), encoding="utf-8")
+    n_rec = sum(1 for k in spine if k in records)
+    print(f"wrote {OUT.relative_to(ROOT)}: {len(spine)} entries, {n_rec} with an evidence record, "
+          f"{sum(len(v) for v in sites_by_doc.values())} citation sites")
+    print(f"prose style: {DASH_KEPT} dashes and {SEMI_KEPT} semicolons left standing inside "
+          f"quoted source material, where rewriting them would misquote the source")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
