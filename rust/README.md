@@ -38,7 +38,7 @@ rust/
 stated properties and any divergence is a real one rather than a coverage difference.
 
 ## Build & test
-Requires a stable Rust toolchain (1.75+; developed on 1.96).
+Requires a stable Rust toolchain (1.75+; developed on 1.97).
 
 ```bash
 cd rust
