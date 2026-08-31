@@ -41,6 +41,15 @@ DOCUMENTS = [
     ("Thesis_Plan_v2.tex", "plan", "Plan"),
 ]
 
+# The audit covers the canonical draft by default. It cites all 109 entries, so scoping to it
+# loses no entry, and the numbers a reader checks against are the submission document's own.
+# --all-documents widens to the skeleton and the plan, which number the same works differently.
+ACTIVE = DOCUMENTS[:1]
+
+
+def multi() -> bool:
+    return len(ACTIVE) > 1
+
 CITE = re.compile(r"\\(?:cite|citep|citet|textcite|parencite|autocite|footcite)\*?"
                   r"(?:\[[^\]]*\])*\{([^}]*)\}")
 
@@ -177,6 +186,21 @@ def first_author(entry: dict) -> str:
     if "," in first:
         return first.split(",")[0].strip()
     return first.split()[-1] if first.split() else ""
+
+
+def checklist_label(key: str, entry: dict, cap: int = 30) -> str:
+    """The source label for the checklist column, truncated to one line.
+
+    Institutional names run to fifty characters and wrap to three or four rows, which makes the
+    table hard to scan. Nothing is lost: the cite key beside it already identifies the issuer,
+    and Part 2 prints the reference in full.
+    """
+    label = short_label(key, entry)
+    if len(label) <= cap:
+        return label
+    year = re.search(r"\b(\d{4})$", label)
+    head = label[:cap].rsplit(" ", 1)[0].rstrip(",")
+    return f"{head}\\ldots{{}} {year.group(1)}" if year else head + "\\ldots{}"
 
 
 def short_label(key: str, entry: dict) -> str:
@@ -693,6 +717,10 @@ def md_to_tex(text: str) -> str:
     if not text:
         return ""
     text = re.sub(r"\s*\n\s*", " ", text.strip())
+    # Line numbers written into the records go stale as the sources are edited, and this
+    # document recomputes every citation site anyway. Keep the filename, drop the numbers.
+    # Has to happen before protect(), since these sit inside backticks.
+    text = re.sub(r"(\.tex):[\d,\s]*\d", r"\1", text)
     # The notes quote thesis source, so an ellipsis reaches this point as LaTeX. Fold it back
     # to the character, which the escaper then re-emits as \ldots rather than printing it.
     text = re.sub(r"\\ldots\{\}|\\ldots\b|\\dots\b", "…", text)
@@ -823,7 +851,7 @@ def build_document(bib, records, sites_by_doc, numbering, spine) -> str:
 
     total_sites = Counter()
     per_key_sites = defaultdict(list)
-    for tex_name, tag, label in DOCUMENTS:
+    for tex_name, tag, label in ACTIVE:
         for site in sites_by_doc[tag]:
             for key in site["keys"]:
                 per_key_sites[key].append((tag, label, site))
@@ -856,17 +884,21 @@ def status_of(rec) -> str:
 
 
 def part0(bib, spine, numbering, levels, unlocated) -> str:
-    n_v2 = len(numbering["v2"])
-    n_plan = len(numbering["plan"])
+    scope = (r"""Where a work is also cited by
+\texttt{Thesis\_v2} or by the plan, the number it carries in those documents is given as well,
+because their lists are shorter and number the same work differently."""
+             if multi() else
+             r"""It covers
+\texttt{Ha\_Vien\_Mastersthesis\_2026} alone, which is the submission document and the only one
+that cites every entry, so a number here is always that document's number and never needs
+translating.""")
     return r"""
 \section*{How to read this document}
 \addcontentsline{toc}{section}{How to read this document}
 
 This document lists every work in \texttt{bibliography.bib}. It is ordered by the number the
-work carries in the full draft's reference list, so entry \textbf{[17]} here is reference
-\textbf{[17]} there and the two can be read side by side. Where a work is also cited by
-\texttt{Thesis\_v2} or by the plan, the number it carries in those documents is given as well,
-because their lists are shorter and number the same work differently.
+work carries in the thesis's reference list, so entry \textbf{[17]} here is reference
+\textbf{[17]} there and the two can be read side by side. """ + scope + r"""
 
 Each entry answers three questions in order. What is the source. Which sentences cite it, printed
 as they stand in the thesis with the citation shown as \citemark{n}. And what the source itself
@@ -891,7 +923,7 @@ how far to trust the quotation without opening the paper yourself.
 \end{description}
 
 \textbf{Provenance.} Nothing in this document is typed by hand. References are printed by
-biblatex from \texttt{bibliography.bib}. Printed citation numbers are read from each document's
+biblatex from \texttt{bibliography.bib}. Printed citation numbers are read from the thesis's own
 \texttt{.bbl}, which is what biber wrote, and the generator refuses to run when a
 \texttt{.bbl} disagrees with its source. Citing sentences are copied from the \texttt{.tex}
 sources with the generated measurement macros resolved, so a sentence quoting a measured value
@@ -909,66 +941,77 @@ from cited sources keep their original punctuation, because altering a quotation
 Any dash or semicolon below therefore sits inside quoted source material and is deliberate.
 
 \vspace{0.6em}
-\textbf{Coverage.} """ + f"""{len(spine)} entries, all of them cited. {len(numbering['draft'])} in
-the full draft, {n_v2} in \\texttt{{Thesis\\_v2}}, {n_plan} in the plan.
+\textbf{Coverage.} """ + f"""{len(spine)} entries, every one of them cited in the thesis.
 {levels['A']} at level~A, {levels['B']} at level~B, {levels['C']} at level~C, and
 {len(unlocated)} with no located passage.
-"""
+""" + ("" if not multi() else f"""\\texttt{{Thesis\\_v2}} cites
+{len(numbering.get('v2', {}))} of them and the plan {len(numbering.get('plan', {}))}.
+""")
 
 
-COLSPEC = ("@{}"
-           ">{\\raggedleft\\arraybackslash}p{7mm}"   # draft number
-           ">{\\raggedleft\\arraybackslash}p{6mm}"   # v2
-           ">{\\raggedleft\\arraybackslash}p{6mm}"   # plan
-           "p{44mm}"                                  # key, sized to the longest one
-           "p{25mm}"                                  # short label, sized to the longest name
-           "p{20mm}"                                  # kind
-           ">{\\raggedleft\\arraybackslash}p{7mm}"   # sites
-           ">{\\centering\\arraybackslash}p{6mm}"    # level
-           "p{14mm}"                                  # status
-           ">{\\centering\\arraybackslash}p{5mm}@{}") # tick
+RIGHT = ">{\\raggedleft\\arraybackslash}"
+CENTRE = ">{\\centering\\arraybackslash}"
 
 
 def part1(bib, records, spine, numbering, total_sites) -> str:
-    head = (r"\textbf{\#} & \textbf{v2} & \textbf{pl} & \textbf{key} & \textbf{source} & "
-            r"\textbf{kind} & \textbf{cit} & \textbf{ev} & \textbf{status} & \\")
+    # Columns are built rather than fixed, because the cross-document number columns only
+    # exist when more than one document is in scope. The freed width goes to the key.
+    cols = [(RIGHT + "p{7mm}", r"\textbf{\#}")]
+    if multi():
+        cols += [(RIGHT + "p{6mm}", r"\textbf{v2}"), (RIGHT + "p{6mm}", r"\textbf{pl}")]
+    cols += [("p{%dmm}" % (44 if multi() else 50), r"\textbf{key}"),
+             ("p{%dmm}" % (25 if multi() else 31), r"\textbf{source}"),
+             ("p{20mm}", r"\textbf{kind}"),
+             (RIGHT + "p{7mm}", r"\textbf{cit}"),
+             (CENTRE + "p{6mm}", r"\textbf{ev}"),
+             ("p{14mm}", r"\textbf{status}"),
+             (CENTRE + "p{5mm}", "")]
+    colspec = "@{}" + "".join(c for c, _ in cols) + "@{}"
+    head = " & ".join(h for _, h in cols) + r" \\"
+
     rows = []
     for key in spine:
         rec = records.get(key)
         entry = bib[key]
-        v2 = numbering["v2"].get(key)
-        plan = numbering["plan"].get(key)
         # A blank cell says "not cited by that document" and "no level assigned". A dash would
         # read as punctuation, and this repository reserves that mark for ranges and names.
         level = rec["level"] if rec and rec["level"] else ""
-        rows.append(" & ".join([
-            str(numbering["draft"][key]),
-            str(v2) if v2 else "",
-            str(plan) if plan else "",
+        cells = [str(numbering["draft"][key])]
+        if multi():
+            for tag in ("v2", "plan"):
+                n = numbering.get(tag, {}).get(key)
+                cells.append(str(n) if n else "")
+        cells += [
             "\\texttt{\\small " + tex_escape_plain(key) + "}",
-            "{\\small " + tex_escape_plain(short_label(key, entry)) + "}",
+            "{\\small " + checklist_label(key, entry) + "}",
             "{\\small " + source_kind(entry) + "}",
             str(total_sites[key]),
             level,
             "{\\small " + status_of(rec) + "}",
             "$\\square$",
-        ]) + r" \\")
+        ]
+        rows.append(" & ".join(cells) + r" \\")
+
+    scope = (r"""\textbf{v2} and \textbf{pl} give
+the number the same work carries in \texttt{Thesis\_v2} and in the plan, and a blank means that
+document does not cite it. \textbf{cit} counts the places the work is cited across all three
+documents."""
+             if multi() else
+             r"""\textbf{cit} counts the places the thesis cites it.""")
     return (r"""
 \clearpage
 \section*{Part 1. Master checklist}
 \addcontentsline{toc}{section}{Part 1. Master checklist}
 
-One row per entry, ordered by the full draft's reference number. \textbf{v2} and \textbf{pl} give
-the number the same work carries in \texttt{Thesis\_v2} and in the plan, and a blank means that
-document does not cite it. \textbf{cit} counts the places the work is cited across all three
-documents. \textbf{ev} is the evidence level, blank where no passage was located, and
+One row per entry, ordered by the thesis's reference number. """ + scope + r"""
+\textbf{ev} is the evidence level, blank where no passage was located, and
 \textbf{status} reads \emph{ok} where the verdict is clean, \emph{note} where the record raises
 something, and \emph{sweep} where the only record is a literature-sweep note. Tick the last
 column as you check.
 
 \begin{small}
 \setlength{\tabcolsep}{3pt}
-\begin{longtable}{""" + COLSPEC + r"""}
+\begin{longtable}{""" + colspec + r"""}
 \toprule
 """ + head + r"""
 \midrule
@@ -991,8 +1034,9 @@ def part2(bib, records, spine, numbering, per_key_sites) -> str:
 \section*{Part 2. Entry records}
 \addcontentsline{toc}{section}{Part 2. Entry records}
 
-Entry \textbf{[n]} is reference \textbf{[n]} of the full draft. Citing sentences are printed as
-they stand, with the citation shown as \citemark{n} and a cross-reference as \refmark{label}.
+Entry \textbf{[n]} is reference \textbf{[n]} of the thesis. Citing sentences are printed as
+they stand, with the citation shown as \citemark{n} and a cross-reference as \refmark{label},
+each located by the chapter or section it sits in.
 """]
     for key in spine:
         entry = bib[key]
@@ -1000,7 +1044,7 @@ they stand, with the citation shown as \citemark{n} and a cross-reference as \re
         num = numbering["draft"][key]
         also = []
         for tag, label in (("v2", "Thesis\\_v2"), ("plan", "Plan")):
-            if key in numbering[tag]:
+            if key in numbering.get(tag, {}):
                 also.append(f"{label} [{numbering[tag][key]}]")
         badge = tex_escape_plain(source_kind(entry))
         if rec and rec["level"]:
@@ -1032,7 +1076,10 @@ they stand, with the citation shown as \citemark{n} and a cross-reference as \re
             out.append(f"\\afield{{Cited in}}{{{len(sites)} "
                        f"{'place' if len(sites) == 1 else 'places'}.}}")
             for tag, label, site in sites:
-                where = f"{tex_escape_plain(label)}, {tex_escape_plain(site['section'])}"
+                # With one document in scope its name on every line is noise, so the section
+                # alone locates the sentence.
+                where = (f"{tex_escape_plain(label)}, " if multi() else "") + \
+                    tex_escape_plain(site["section"])
                 if site["kind"] != "prose":
                     where += f", {site['kind']}"
                 out.append(f"\\begin{{citedsentence}}\\textbf{{\\small {where}.}}\\enspace "
@@ -1176,7 +1223,7 @@ def part3(bib, records, spine, numbering, unlocated, level_c) -> str:
         items = []
         for k in sorted(keys, key=lambda k: numbering["draft"][k]):
             marks = f"[{numbering['draft'][k]}]"
-            if k in numbering["v2"]:
+            if k in numbering.get("v2", {}):
                 marks += f", v2 [{numbering['v2'][k]}]"
             items.append(f"\\item \\texttt{{{tex_escape_plain(k)}}}\\hfill {marks}")
         return ("\\begin{itemize}[leftmargin=1.4em,itemsep=0pt,topsep=2pt]\n"
@@ -1186,17 +1233,17 @@ def part3(bib, records, spine, numbering, unlocated, level_c) -> str:
     for keys, where, why, fix in ATTACHMENT_DEFECTS:
         nums = []
         for k in [x.strip() for x in keys.split(",")]:
-            if k in numbering["v2"]:
+            if k in numbering.get("v2", {}):
                 nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, \\texttt{{Thesis\\_v2}} "
-                            f"[{numbering['v2'][k]}], draft [{numbering['draft'][k]}]")
+                            f"[{numbering['v2'][k]}], thesis [{numbering['draft'][k]}]")
             else:
-                nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, draft [{numbering['draft'][k]}]")
+                nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, thesis [{numbering['draft'][k]}]")
         defects.append(f"\\item \\textbf{{{where}.}}\\par {'. '.join(nums)}.\\par {why}"
                        f"\\par\\textit{{Closed.}} {fix}")
 
     benign = "\n".join(f"\\item \\textbf{{{name}.}} {text}" for name, text in BENIGN)
 
-    v2_unlocated = [k for k in unlocated if k in numbering["v2"]]
+    v2_unlocated = [k for k in unlocated if k in numbering.get("v2", {})]
     return (r"""
 \clearpage
 \section*{Part 3. Findings and open items}
@@ -1299,13 +1346,13 @@ No located passage & {levels['none'] + levels['absent']} \\\\
 
 \\vspace{{1em}}
 
-Every entry in the bibliography is cited somewhere, so there is no orphan and no citation
-without an entry. Across the three documents there are {n_commands} citation commands naming
-{key_occurrences} works between them, since one command often cites several.
-{peer} entries ({100 * peer / len(spine):.0f}\\,\\%) are in peer-reviewed venues. The full draft
-cites all {len(numbering['draft'])}, \\texttt{{Thesis\\_v2}} cites {len(numbering['v2'])} and the
-plan cites {len(numbering['plan'])}.
-""")
+Every entry in the bibliography is cited, so there is no orphan and no citation without an
+entry. The thesis carries {n_commands} citation commands naming {key_occurrences} works between
+them, since one command often cites several.
+{peer} entries ({100 * peer / len(spine):.0f}\\,\\%) are in peer-reviewed venues.
+""" + ("" if not multi() else f"""\\texttt{{Thesis\\_v2}} cites
+{len(numbering.get('v2', {}))} of the {len(spine)} and the plan {len(numbering.get('plan', {}))}.
+"""))
 
 
 # --------------------------------------------------------------------------- main
@@ -1316,13 +1363,18 @@ def main() -> int:
     ap.add_argument("--dump", choices=["records", "sites"], help="inspect parsed input")
     ap.add_argument("--allow-stale", action="store_true",
                     help="emit even when a .bbl disagrees with its source (numbers may be wrong)")
+    ap.add_argument("--all-documents", action="store_true",
+                    help="also cover Thesis_v2 and the plan, with their own printed numbers")
     args = ap.parse_args()
+
+    global ACTIVE
+    ACTIVE = DOCUMENTS if args.all_documents else DOCUMENTS[:1]
 
     bib = parse_bib(read(BIB))
     bib_keys = list(bib)
 
     sites_by_doc, numbering, stale = {}, {}, []
-    for tex_name, tag, label in DOCUMENTS:
+    for tex_name, tag, label in ACTIVE:
         path = ROOT / tex_name
         sites = cite_sites(path)
         sites_by_doc[tag] = sites
@@ -1370,7 +1422,7 @@ def main() -> int:
         return 0
 
     if args.dump == "sites":
-        for tex_name, tag, label in DOCUMENTS:
+        for tex_name, tag, label in ACTIVE:
             print(f"\n=== {tex_name}: {len(sites_by_doc[tag])} citation sites")
             for s in sites_by_doc[tag][:6]:
                 print(f"  L{s['line']} {s['section']}: {s['sentence'][:150]}")
@@ -1378,8 +1430,11 @@ def main() -> int:
 
     OUT.write_text(build_document(bib, records, sites_by_doc, numbering, spine), encoding="utf-8")
     n_rec = sum(1 for k in spine if k in records)
+    scope = ", ".join(label for _, _, label in ACTIVE)
     print(f"wrote {OUT.relative_to(ROOT)}: {len(spine)} entries, {n_rec} with an evidence record, "
           f"{sum(len(v) for v in sites_by_doc.values())} citation sites")
+    print(f"scope: {scope}"
+          + ("" if multi() else "  (pass --all-documents to add Thesis_v2 and the plan)"))
     print(f"prose style: {DASH_KEPT} dashes and {SEMI_KEPT} semicolons left standing inside "
           f"quoted source material, where rewriting them would misquote the source")
     return 0
