@@ -245,7 +245,10 @@ All seven carry a load-bearing `note`, and every claim in those notes was read o
   authors as listed. P3390R0 sits in the September 2024 mailing, matching `sep 2024`, and its
   `safecpp.org` copy was edited later without a revision bump.
 - **`klabnik2023rust`.** ISBN 9781718503106 resolves to No Starch Press, 28 February 2023, both
-  authors, second edition. The entry carries no URL by design.
+  authors, second edition. The `url` is the Open Library ISBN record
+  (`https://openlibrary.org/isbn/9781718503106`), not the living text at
+  `doc.rust-lang.org/book/` and not the No Starch product page, which returns 403
+  now that the 3rd edition is the current listing (checked 31 August 2026).
 - **`bugden2022rust` is still a preprint.** DBLP holds only the CoRR record, so the criterion 2
   note in `AGENT.md` stands: this remains the one load-bearing arXiv cite, and replacing it is
   still optional rather than done.
@@ -607,7 +610,8 @@ kernel panics."
 
 ### `klabnik2023rust` — The Rust Programming Language, 2nd edition
 **Metadata** ✔ OpenLibrary record for ISBN 9781718503106: *Rust Programming Language, 2nd
-Edition*, Steve Klabnik and Carol Nichols, No Starch Press, 2023.
+Edition*, Steve Klabnik and Carol Nichols, No Starch Press, 2023. Catalogue URL
+`https://openlibrary.org/isbn/9781718503106`.
 **Cited** `Ha_Vien_Mastersthesis_2026.tex:278, 791`; `Thesis_v2.tex:135, 182` — ownership and borrowing; safety at
 compile time.
 **Evidence — level C** Book not opened. The relevant chapters are 4 (ownership) and 16 (fearless
