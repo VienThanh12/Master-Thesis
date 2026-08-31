@@ -1074,42 +1074,64 @@ def render_evidence(text: str) -> list:
     return out
 
 
+NUMBER_WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven",
+                8: "eight", 9: "nine", 10: "ten"}
+
+# Citations found sitting on a claim their source does not make, and what closed each one.
+# Kept after the fix rather than deleted: the pattern is the reusable finding, and four of the
+# six existed only in the compressed skeleton while the full draft had them right.
+DEFECTS_CLOSED_ON = "31 August 2026"
 ATTACHMENT_DEFECTS = [
     ("klabnik2023rust, jung2018rustbelt",
      "Chapter 1, on Rust promising performance competitive with C++",
      "RustBelt is a machine-checked safety proof and makes no performance claim. The type-system "
-     "half of the sentence is carried by the book. Nothing in the pair supports the performance "
-     "half. The same sentence is in the full draft, because this chapter was copied from it."),
+     "half of the sentence was carried by the book. Nothing in the pair supported the performance "
+     "half. The same sentence was in the full draft, because this chapter was copied from it, and "
+     "in the plan in a different wording.",
+     "The pair now carries only the compile-time guarantee, phrased as enforced \\enquote{on "
+     "machine-checked foundations}, and the performance clause carries "
+     "\\texttt{balasubramanian2017rust}, which is the source the full draft already uses for that "
+     "framing. The plan's sentence drops the performance claim, which its next paragraph states "
+     "and cites on its own."),
     ("3gpp38913",
      "Chapter 1, on thousands of procedures per second at a budget of a few milliseconds",
-     "TR 38.913 clause 7.4 sets a 10 ms control-plane latency target. It states no procedure "
-     "rate, so the citation covers the second half of a compound sentence only. The sentence "
-     "that follows, on millions of active devices, carries no citation at all."),
+     "TR 38.913 clause 7.4 sets a control-plane latency target. It states no procedure rate, so "
+     "the citation covered the second half of a compound sentence only.",
+     "The sentence now reads that each procedure has to complete inside the millisecond-scale "
+     "budget the 5G system sets for control-plane signalling, which is what clause 7.4 gives. The "
+     "rate stands as this study's own workload assumption, in the wording already used later in "
+     "the same chapter."),
     ("natella2016fault",
      "Chapter 6, second use, on the seven boundary classes being chosen because safe Rust is "
      "expected not to prevent them",
-     "Natella's survey of software fault injection is the right source for the method sentence "
-     "in Chapter 4. It says nothing about the boundary of Rust's guarantee. Chapter 3 already "
-     "states the catalogue is this study's own."),
+     "Natella's survey of software fault injection is the right source for the method sentence in "
+     "Chapter 4. It says nothing about the boundary of Rust's guarantee, and Chapter 3 already "
+     "states the catalogue is this study's own. The full draft never had this one.",
+     "The citation is dropped. The method sentence in Chapter 4 keeps it."),
     ("bornholt2021shardstore",
      "Chapter 6, on the boundary defects being re-imported against the checker's own primitives "
      "and shrunk to model size",
      "ShardStore is the peer-reviewed account of Loom and Shuttle and supports the division of "
      "labour between them, which is how the full draft uses it. The rewrite and the shrink are "
-     "this study's own measured cost."),
+     "this study's own measured cost.",
+     "The citation moves onto the division of labour, naming Loom and Shuttle as the full draft "
+     "does, and the rewrite cost is left as the study's own finding."),
     ("evans2020rust",
      "Chapter 7, on confining unsafe to a seam crate making the reviewable surface a countable "
      "thing",
-     "Evans et al. report that fewer than 30 per cent of crates use unsafe directly and that "
-     "more than half cannot be fully checked because of unsafe in the call chain. The full draft "
-     "cites that for dependency propagation. The countability of the surface is this thesis's "
-     "own guideline."),
+     "Evans et al.\\ report that fewer than 30 per cent of crates use unsafe directly and that "
+     "more than half cannot be fully checked because of unsafe in the call chain. All five sites "
+     "in the full draft cite that for dependency propagation. The countability of the surface is "
+     "this thesis's own guideline.",
+     "The citation moves onto the dependency-propagation clause, matching the full draft, and the "
+     "countable surface follows as the guideline it is."),
     ("emberg2023asn1",
      "Chapter 7, on the parity suite bounding behaviour and not performance",
-     "That limitation is this study's own and the full draft's threats table states it with no "
+     "That limitation is this study's own, and both places the full draft states it carry no "
      "citation. Emberg and Wadsten compared matched C++ and Rust ASN.1 decompilers on "
-     "performance. The first use of this entry, on no earlier study isolating the language for a "
-     "stateful concurrent subsystem, is sound."),
+     "performance.",
+     "The citation is dropped. The entry's other use, on no earlier study isolating the language "
+     "for a stateful concurrent subsystem, was sound and stands."),
 ]
 
 BENIGN = [
@@ -1142,7 +1164,7 @@ def part3(bib, records, spine, numbering, unlocated, level_c) -> str:
                 + "\n".join(items) + "\n\\end{itemize}")
 
     defects = []
-    for keys, where, why in ATTACHMENT_DEFECTS:
+    for keys, where, why, fix in ATTACHMENT_DEFECTS:
         nums = []
         for k in [x.strip() for x in keys.split(",")]:
             if k in numbering["v2"]:
@@ -1150,22 +1172,30 @@ def part3(bib, records, spine, numbering, unlocated, level_c) -> str:
                             f"[{numbering['v2'][k]}], draft [{numbering['draft'][k]}]")
             else:
                 nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, draft [{numbering['draft'][k]}]")
-        defects.append(f"\\item \\textbf{{{where}.}}\\par {'. '.join(nums)}.\\par {why}")
+        defects.append(f"\\item \\textbf{{{where}.}}\\par {'. '.join(nums)}.\\par {why}"
+                       f"\\par\\textit{{Closed.}} {fix}")
 
     benign = "\n".join(f"\\item \\textbf{{{name}.}} {text}" for name, text in BENIGN)
 
     v2_unlocated = [k for k in unlocated if k in numbering["v2"]]
     return (r"""
 \clearpage
-\section*{Part 3. Open items}
-\addcontentsline{toc}{section}{Part 3. Open items}
+\section*{Part 3. Findings and open items}
+\addcontentsline{toc}{section}{Part 3. Findings and open items}
 
-\subsection*{Citations attached to a claim the source does not make}
+\subsection*{Citations that were attached to a claim the source does not make}
 
-""" + f"""These {len(ATTACHMENT_DEFECTS)} sentences cite a work that does not carry the claim the
-sentence makes.""" + r"""
-In every case the work is sound and cited correctly elsewhere, so the fix is to move or drop the
-citation rather than to replace the source. Each is listed with the numbers it prints as.
+""" + f"""All {NUMBER_WORDS.get(len(ATTACHMENT_DEFECTS), len(ATTACHMENT_DEFECTS))} are closed as of
+{DEFECTS_CLOSED_ON}, and they are kept
+here because the pattern recurs. In every case the work itself was sound and cited correctly
+elsewhere, so each was closed by moving or dropping the citation rather than by replacing the
+source. No source was added that the bibliography did not already hold.
+
+Four of the six existed only in \\texttt{{Thesis\\_v2}} and the full draft had them right, which
+locates the cause: compressing a chapter into five paragraphs detaches a citation from the clause
+it was attached to. The two that reached the full draft are both in Chapter~1, which
+\\texttt{{Thesis\\_v2}} carries as a copy. So the rule for the next compression pass is to re-read
+what each surviving citation now sits next to.""" + r"""
 
 \begin{enumerate}[leftmargin=1.6em,itemsep=4pt]
 """ + "\n".join(defects) + r"""

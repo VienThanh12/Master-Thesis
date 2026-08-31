@@ -151,8 +151,8 @@ signalling~\cite{3gpp38331}, and coordinates mobility and handovers, all within 
 latency limits.
 
 Load at a busy site is high. A single site can run thousands of connection-management and
-mobility procedures per second, each with a budget of a few
-milliseconds~\cite{3gpp38913}. A deployed control plane may track millions of active
+mobility procedures per second, each of which has to complete inside the millisecond-scale
+budget the 5G system sets for control-plane signalling~\cite{3gpp38913}. A deployed control plane may track millions of active
 devices at once. As the RAN moves to cloud-native, disaggregated deployments, the
 correctness, reliability, and timing of this software increasingly set the quality of the
 whole network. An outage or a tail-latency spike here is not a local defect. Every device
@@ -167,8 +167,9 @@ double-frees, data races, and related defects that are expensive to find, danger
 production, and responsible for a large share of security vulnerabilities in industry
 practice~\cite{msrc2019memory,google2022android}. Rust has emerged as the first mainstream
 systems language to promise an escape from this trade-off: memory safety and data-race
-freedom enforced at compile time, with performance intended to be competitive with
-C++~\cite{klabnik2023rust,jung2018rustbelt}. Whether that promise holds for a
+freedom enforced at compile time on machine-checked
+foundations~\cite{klabnik2023rust,jung2018rustbelt}, with performance intended to be
+competitive with C++~\cite{balasubramanian2017rust}. Whether that promise holds for a
 telecom-grade, latency-critical control plane, where predictability under overload matters
 as much as raw speed, is not well understood. This thesis, carried out at Nokia, addresses
 the question directly: it develops two functionally equivalent implementations of a
@@ -661,7 +662,7 @@ comparison that stopped at nominal load would have concluded the opposite.
 
 Safety is measured by injecting $\FaultClasses$ defects. Seven come from inside the
 region Rust claims to govern. Seven were chosen because safe Rust is expected \emph{not}
-to prevent them~\cite{natella2016fault}. Every one of the first seven is a compile error
+to prevent them. Every one of the first seven is a compile error
 in Rust. It cannot be written at all. In C++ each is valid code. The defect appears only
 if a test drives it, and no single sanitiser covers them. The use-after-move is the case
 where no sanitiser reports anything: a moved-from object is valid but unspecified, so
@@ -671,9 +672,10 @@ reports. LeakSanitizer flags the reference cycle that Rust leaks in silence.
 UndefinedBehaviorSanitizer flags the overflow that Rust defines to wrap. ThreadSanitizer
 catches the lock-order inversion on some runs and not others, at a rate that is itself
 unstable. It builds its lock-order graph from acquisitions that succeed. A run whose first
-inversion blocks never closes the cycle. Two Rust model checkers do report both original boundary defects, but only after
-each was re-imported against the checker's own primitives and shrunk to model
-size~\cite{bornholt2021shardstore}. Miri reports the seam double release, the one class
+inversion blocks never closes the cycle. Two Rust model checkers do report both original
+boundary defects, Loom exploring interleavings soundly and Shuttle sampling the ones Loom
+cannot reach~\cite{bornholt2021shardstore}, but only after each was re-imported against
+the checker's own primitives and shrunk to model size. Miri reports the seam double release, the one class
 that safe Rust rejects and unsafe Rust does not, but it interprets Rust and cannot
 execute the C++ host the defect ships behind. That half of the boundary is caught at test
 time, and for the concurrency cases only after a rewrite.
@@ -783,7 +785,7 @@ rejected for concurrency correctness at large, and it is a claim about \emph{saf
 only: the seam case shows the same class returning inside \texttt{unsafe}. H3 is supported by the bound on a cost the
 measurement could have missed, not by the failure to detect one. Three threats stay
 load-bearing behind all of it. One author wrote both implementations. The parity suite
-bounds behaviour and not performance~\cite{emberg2023asn1}. The end-to-end instrument
+bounds behaviour and not performance. The end-to-end instrument
 measures the design faithfully and the language barely at all. The overload divergence
 is replicated here with its mechanism narrowed and not closed, and no peer-reviewed study
 reports the same reversal.
@@ -792,8 +794,9 @@ The guidelines are the practical form of all this. Each carries the limit of the
 finding behind it. Choose a first component for the narrowness and the scalarity of its
 interface, not for its size. The redesign of a rich interface is the schedule risk. The
 boundary itself is not. Keep the C ABI in its own crate and the core free of
-\texttt{unsafe}. That makes the reviewable surface a countable
-thing~\cite{evans2020rust}. Leave the concurrency review budget where it is. Prefer a
+\texttt{unsafe}. That keeps unsafety out of the dependency chains it otherwise propagates
+through~\cite{evans2020rust}, and makes the reviewable surface a countable thing. Leave
+the concurrency review budget where it is. Prefer a
 shared-nothing structure in either language. The strongest concurrency result here
 belongs to the design and to neither compiler. Plan the learning curve as a training
 cost and instrument it. The second component can then be scheduled on measured effort.

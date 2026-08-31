@@ -18,7 +18,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | --- | --- | --- | --- |
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v2.tex`. |
 | **`Thesis_v2.pdf`** | `Thesis_v2.tex` | **Reviewed — supervisor-facing** | Supervisor read-through of the eight-chapter argument. Chapter 1 is the full introduction from the draft (copied 27 Aug 2026, cross-refs retargeted). Chapters 2 to 8 keep five argument paragraphs each, as plain prose rather than itemize. Cut from nine chapters to eight on 26 Aug 2026, when the standalone `Objectives` chapter was folded into the introduction to match the draft (§4). This is what goes to the supervisor alongside the plan. |
-| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 26 Aug 2026, after the bare-metal campaign and a priced length pass: abstract form declaring **101 pages + 6 appendix pages** (115 physical). It peaked at 105 when the `je` decomposition landed, and the length pass took it to 101 by the only two levers that return anything (a `\scriptsize` bibliography and §5.4.1's state-machine narration, whose two semantic commitments moved to §5.5). **Do not go looking for more: §5, *Length and layout*, now records every lever measured, and all but the bibliography return zero.** Before the campaign, the same day, it read 99 + 6 (113 physical). It read 100 and 102 on 25 Aug, 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. Six pages came back across three §6.4 passes on 25 and 26 August and none of them cost an argument: three from layout, two from cutting re-derived argument, and one from merging two single-panel figures into `fig:loadsweep`. Chapter 6 went 27 pages to 25 over the same work. See §5, *Length and layout*, for the ordering rule that made each of them pay. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
+| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 26 Aug 2026, after the bare-metal campaign and a priced length pass: abstract form declaring **101 pages + 6 appendix pages** (115 physical). **Re-measured 31 Aug 2026 it declares 95 + 12 at the same 115 physical**, because the appendix list of §4 has grown to seven: the total is unchanged and six pages sit on the other side of the `\appendix` boundary. Read the split from the `.aux` and never from this line. It peaked at 105 when the `je` decomposition landed, and the length pass took it to 101 by the only two levers that return anything (a `\scriptsize` bibliography and §5.4.1's state-machine narration, whose two semantic commitments moved to §5.5). **Do not go looking for more: §5, *Length and layout*, now records every lever measured, and all but the bibliography return zero.** Before the campaign, the same day, it read 99 + 6 (113 physical). It read 100 and 102 on 25 Aug, 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. Six pages came back across three §6.4 passes on 25 and 26 August and none of them cost an argument: three from layout, two from cutting re-derived argument, and one from merging two single-panel figures into `fig:loadsweep`. Chapter 6 went 27 pages to 25 over the same work. See §5, *Length and layout*, for the ordering rule that made each of them pay. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v2.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. Kept for reference under their original names. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
 | Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Ha_Vien_Mastersthesis_2026.tex`. |
@@ -96,6 +96,15 @@ checks in `.cursor/skills/thesis-grade-csm/CALIBRATION.md`: **a correct statemen
 wrong scope**, a claim right where it is derived and wrong at every site that summarises it (the
 overload CPU ratio was inverted at five sites in two documents while the owning section had it
 right), and a figure title asserting a conclusion its own bars refute.
+
+**A fourth shape joined them on 31 August 2026: a citation detached from the clause it supports.**
+Six sentences cited a work that does not carry the claim they make, and **four existed only in
+`Thesis_v2.tex` where the full draft had them right**, which names the cause. Compressing a chapter
+into five paragraphs moves clauses together and leaves each citation where the sentence boundary
+fell. No gate sees it, because the key still resolves and the number still prints. All six are
+closed, and the reader-facing record is `source_audit.pdf` with the durable one in
+`docs/Sources_evidence.md`. **After any compression pass, re-read what each surviving citation now
+sits next to.**
 
 | # | Criterion | Target | Current (18th pass, 31 Aug 2026) | What still blocks a 5 |
 | --- | --- | --- | --- | --- |
@@ -268,7 +277,7 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 | 6 | Experimental setup and evaluation | 3, 4 |
 | 7 | Discussion | 5 |
 | 8 | Conclusion and future work | 5 |
-| App. A–E | Abbreviations and key terms, literature search protocol, statistical design, host and campaign configuration, fault-injection example | 2, 3, 4 |
+| App. A–G | Abbreviations and key terms, literature search protocol, statistical design, host and campaign configuration, fault-injection example, implementation of the two cores, engineering guidelines for incremental adoption | 2, 3, 4 |
 
 **The skeleton and the full draft carry the same chapter list again, resolved 26 August 2026 on
 the author's decision.** `Thesis_v2.tex` had nine chapters, because it kept a standalone
@@ -409,7 +418,8 @@ rg 'gdef.(pagesCount|appendixCount)' build/Ha_Vien_Mastersthesis_2026.aux
 ```
 
 `\pagesCount` counts the body **plus** the AI statement and the bibliography, so a reference-list
-change moves the declared figure. It currently reads 99 with 6 appendix pages (113 physical).
+change moves the declared figure. It reads **95 with 12 appendix pages** (115 physical), measured
+31 August 2026. The appendices span physical pages 104 to 115, which is where the 12 comes from.
 
 **Under 100 is a preference, not a rule.** The author set it as the target on 19 August 2026 and
 may revise it. No University of Helsinki or CSM requirement is behind it, and nothing in the

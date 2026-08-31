@@ -310,8 +310,8 @@ signalling~\cite{3gpp38331}, and coordinates mobility and handovers, all within 
 latency limits.
 
 Load at a busy site is high. A single site can run thousands of connection-management and
-mobility procedures per second, each with a budget of a few
-milliseconds~\cite{3gpp38913}. A deployed control plane may track millions of active
+mobility procedures per second, each of which has to complete inside the millisecond-scale
+budget the 5G system sets for control-plane signalling~\cite{3gpp38913}. A deployed control plane may track millions of active
 devices at once. As the RAN moves to cloud-native, disaggregated deployments, the
 correctness, reliability, and timing of this software increasingly set the quality of the
 whole network. An outage or a tail-latency spike here is not a local defect. Every device
@@ -326,8 +326,9 @@ double-frees, data races, and related defects that are expensive to find, danger
 production, and responsible for a large share of security vulnerabilities in industry
 practice~\cite{msrc2019memory,google2022android}. Rust has emerged as the first mainstream
 systems language to promise an escape from this trade-off: memory safety and data-race
-freedom enforced at compile time, with performance intended to be competitive with
-C++~\cite{klabnik2023rust,jung2018rustbelt}. Whether that promise holds for a
+freedom enforced at compile time on machine-checked
+foundations~\cite{klabnik2023rust,jung2018rustbelt}, with performance intended to be
+competitive with C++~\cite{balasubramanian2017rust}. Whether that promise holds for a
 telecom-grade, latency-critical control plane, where predictability under overload matters
 as much as raw speed, is not well understood. This thesis, carried out at Nokia, addresses
 the question directly: it develops two functionally equivalent implementations of a

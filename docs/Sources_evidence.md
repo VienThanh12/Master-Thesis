@@ -112,6 +112,76 @@ Recorded so nobody "corrects" them later:
 
 ---
 
+# Citation-attachment pass, 31 August 2026
+
+Scope: **every citation site in all three documents**, 256 citation commands naming 370 works
+between them, read against what the cited source actually says. This pass asked a different
+question from the two before it. Those checked whether each *entry* is correct. This one checked
+whether each *citation* sits on a claim its source carries.
+
+The mechanical checks came back clean, which is why the question had to be asked by reading.
+`Thesis_v2` resolves 52 keys and the full draft all 109, every key exists, no entry is an orphan,
+biber logs no warning, and the printed lists run 1 to 52 and 1 to 109 with no gap.
+
+## What it found: six citations attached to a claim the source does not make
+
+Six sentences cited a work that does not carry the claim the sentence makes. In every case the
+work itself was sound and cited correctly elsewhere, so all six were closed by moving or dropping
+the citation rather than by replacing the source. No source was added that the bibliography did
+not already hold. All six are closed and rebuilt.
+
+| # | Site | Entry | Why it was wrong | What closed it |
+| --- | --- | --- | --- | --- |
+| 1 | Chapter 1, Rust promising performance competitive with C++ (all three documents) | `klabnik2023rust`, `jung2018rustbelt` | RustBelt is a machine-checked safety proof and makes no performance claim | The pair now carries only the compile-time guarantee, phrased "on machine-checked foundations". The performance clause carries `balasubramanian2017rust`, which is what the full draft already uses for that framing at `:830`. The plan's version drops the performance claim, since its next paragraph states and cites it |
+| 2 | Chapter 1, thousands of procedures per second at a budget of a few milliseconds (draft and `Thesis_v2`) | `3gpp38913` | Clause 7.4 sets a control-plane latency target and states no procedure rate, so the citation covered half a compound sentence | The sentence now reads that each procedure completes inside the millisecond-scale budget the 5G system sets for control-plane signalling, which is clause 7.4's own content and the wording already used later in the chapter. The rate stands as this study's workload assumption |
+| 3 | Chapter 6, the seven boundary classes chosen because safe Rust is expected not to prevent them (`Thesis_v2` only) | `natella2016fault` | A survey of software fault injection says nothing about the boundary of Rust's guarantee | Citation dropped. The method sentence in Chapter 4 keeps it |
+| 4 | Chapter 6, boundary defects re-imported against the checker's primitives and shrunk to model size (`Thesis_v2` only) | `bornholt2021shardstore` | ShardStore documents the division of labour between Loom and Shuttle, not this study's rewrite cost | Citation moved onto the division of labour, naming Loom and Shuttle as the draft does at `:3121`. The rewrite cost is left as the study's own |
+| 5 | Chapter 7, confining `unsafe` making the reviewable surface countable (`Thesis_v2` only) | `evans2020rust` | Evans et al. report `unsafe` propagating through dependency call chains. All five draft sites cite it for exactly that | Citation moved onto the dependency-propagation clause, matching the draft at `:4735`. The countable surface follows as the guideline it is |
+| 6 | Chapter 7, the parity suite bounding behaviour and not performance (`Thesis_v2` only) | `emberg2023asn1` | The limitation is this study's own, and both draft sites that state it carry no citation | Citation dropped. The entry's other use, on no earlier study isolating the language for a stateful concurrent subsystem, was sound and stands |
+
+## The transferable finding: compression detaches citations
+
+**Four of the six existed only in `Thesis_v2` and the full draft had them right.** The two that
+reached the draft are both in Chapter 1, which `Thesis_v2` carries as a verbatim copy, so they are
+one defect counted twice rather than two independent ones.
+
+That pattern names the cause. Compressing a chapter into five argument paragraphs moves clauses
+together and leaves each citation wherever the sentence boundary fell, and no gate can see it: the
+key still resolves, the number still prints, the bibliography is still complete. **So the rule for
+any future compression pass is to re-read what each surviving citation now sits next to.** It is
+the same shape as the defect class already on record in `AGENT.md`, a correct statement attached to
+the wrong scope, and it belongs beside it.
+
+## What is now generated rather than remembered
+
+`.bibaudit/build_audit.py` writes **`source_audit.tex`**, and `source_audit.pdf` is the
+reader-facing form of this file: all 109 entries ordered by the number each carries in the full
+draft's reference list, every citing sentence printed as it stands beside the source's own words
+and page. Three properties make it trustworthy rather than merely convenient.
+
+- References print through `\fullcite` from `bibliography.bib`, so the document cannot disagree
+  with the thesis bibliography about what a work is.
+- Printed numbers come from `\entry{}` order in each `.bbl`, and the generator **refuses to run**
+  when a `.bbl` disagrees with its source's cite keys, because a stale number would defeat the
+  document's only purpose. Verified by mutating a key and confirming it exits non-zero.
+- Its own prose is dash-free and semicolon-free, while quoted source text passes through
+  untouched, since altering a quotation misquotes it. The two semicolons in the output both sit
+  inside official 3GPP titles.
+
+## What this pass did not close
+
+- **Six entries have no located passage**, only a literature-sweep note: `olsson2023ranmgmt`,
+  `olsson2023asyncpackets`, `emberg2023asn1`, `gjomemo2016mesc`, `sundvisson2026drivers`,
+  `andersson2026stdmemsafety`. **Three of the six defects above sat on three of these keys.** Where
+  nobody wrote down what the source says, the prose drifted. This is the list to close first.
+- The 22 level-C entries, metadata confirmed and passage behind a paywall, are unchanged.
+- `bugden2022rust` is still the one load-bearing arXiv-only entry.
+
+Current evidence split across the 109: **62 level A, 19 level B, 22 level C, 6 with no located
+passage.**
+
+---
+
 # Re-verification pass, 24 August 2026
 
 Scope: **all 109 entries**, which is 29 more than the 15 August audit covered. Three checks were
