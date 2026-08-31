@@ -76,10 +76,10 @@ thesis process, which no manuscript can settle. It is reproduced as issued in
 four passes on record, and the build-gate script live in the same skill. Use it for any new
 grading pass so passes stay comparable.
 
-**Current grades are the eighteenth pass's, 31 August 2026: mean 4.92.** Areas 1, 2, 3, 4
-and 5 at 5. Area 6 at 4.5. No area moved from the seventeenth pass. Area 6 is still capped by
-finishing, now on one item: `\abstractunaidedfalse` (the build prints Not submittable). The 23 pt
-running-header overflow on §2.2 is **closed**: `\section[Latency and predictability]{...}` ships,
+**Current grades are the nineteenth pass's, 31 August 2026 afternoon: mean 5.00.** Areas 1, 2, 3, 4,
+5 and 6 at 5. Area 6 moved from 4.5: `\abstractunaidedtrue` now ships, page 96 prints that the
+abstract was written by the author unaided, and the PDF contains no Not submittable. The 23 pt
+running-header overflow on §2.2 remains **closed**: `\section[Latency and predictability]{...}` ships,
 the log has zero `Overfull`, including during `\output`. Area 7 is not assessable.
 
 **Every one of the 69 was prose disagreeing with an artefact that was itself correct.** The generated
@@ -106,17 +106,17 @@ closed, and the reader-facing record is `source_audit.pdf` with the durable one 
 `docs/Sources_evidence.md`. **After any compression pass, re-read what each surviving citation now
 sits next to.**
 
-| # | Criterion | Target | Current (18th pass, 31 Aug 2026) | What still blocks a 5 |
+| # | Criterion | Target | Current (19th pass, 31 Aug 2026 afternoon) | What still blocks a 5 |
 | --- | --- | --- | --- | --- |
 | **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (7 inside + 7 outside guarantee). The RQ1 alignment item is **closed**: RQ1 now names p99.99 in the draft, in `Thesis_v2.tex` and in `Thesis_Plan_v2.tex`, and §7.7 says the question was widened rather than claiming it always named the metric. |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
 | **3** | **Research data and method** | Sound method + decision-grade data | **5** | Nothing. The canonical repeat closed the data half (7/7/14/20, 1120 runs, no hypervisor, SMT off, `nohz_full`, zero errors) and the description half is repaired and independently re-checked. What earns the level is a pattern of refusals: the pre-committed reading rule is kept on a host where it costs nothing and said to be kept for that reason, the 448 kops/s rung is described and not tested because its operating point was found after the data, and the pooled and per-repeat statistics are held apart hard enough that the generator returns `None` rather than falling back and `fig:tailpct` was narrowed so the figure could not quote the disowned statistic either. **Do not add `isolcpus`. Do not restore the derived load rule. Do not let a fallback to the per-run `p9999` back in.** |
 | **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **5** | Nothing on the descriptor. The printed abstract now matches the tables (seven and seven, a few microseconds in Rust's favour, 448 then 392 then C++ 1.7× after both have collapsed). The far-tail gap is compressed out of the abstract, which is a writing choice and not a wrong claim. |
 | **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Nothing. All four chapter-7 sites that described a virtual machine are synced, and §7.2 now refuses a verdict on RQ1's overload half: it reports that the two effects run in opposite directions and names which deployment question each answers. Maintain register: “cannot tell” ≠ “equivalent”, the memory result is *located* and not *attributed to a call site*, the counters explain the operation-level timing and nothing about the footprint, and the 448 kops/s rung is described and not tested. |
-| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | **Finishing, not facts.** Level 4 holds on the whole text, including the abstract. Level 5 fails once: the build prints “Not submittable” until `\abstractunaidedtrue` is set. The §2.2 header overflow is **closed** (optional short title ships; zero `Overfull` in the log). Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
+| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **5** | Nothing on the descriptor. `\abstractunaidedtrue` ships and the printed statement matches. The §2.2 header overflow is **closed** (optional short title ships; zero `Overfull` in the log). Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
 
-**Overall mean (unweighted): 4.92** at the eighteenth pass, 31 August 2026, unchanged from the
-seventeenth the evening before. The header overflow that shared the area-6 cap is closed. Area 4
+**Overall mean (unweighted): 5.00** at the nineteenth pass, 31 August 2026 afternoon. Area 6 moved
+from 4.5 to 5 when the unaided switch was set. The eighteenth that morning had held 4.92. The header overflow that shared the area-6 cap is closed. Area 4
 had been the only area that moved on the 30 August evening pass, from 4.5 to 5. The fifteenth was the first
 figure on record confirmed by readers who wrote none of the work behind it. The sixteenth held
 4.83 and withdrew the claim that the abstract is the only finishing item. The thirteenth pass, on the
@@ -157,18 +157,18 @@ than the number.
    end**: the last round's audit found eight defects in thirty changed passages, a rate near one in
    four. Those closing edits were themselves read the same day.
 
-Criterion 6 is the only assessable area still below 5, and what holds it is finishing, not a
-wrong claim. Criterion 4 reached 5 once the printed abstract caught up with the body. Criterion 3
-reached 5 once the method's *description* caught up with the method. Do not round the half-grade
-in prose without updating the reasoning in `docs/ASSESSMENT.md`. The class-file item is **done**:
+No assessable area is below 5. Criterion 6 reached 5 once the unaided switch was set and the printed
+declaration matched it. Criterion 4 reached 5 once the printed abstract caught up with the body.
+Criterion 3 reached 5 once the method's *description* caught up with the method. The class-file item is **done**:
 the document builds on the department's own `HYthesisML.cls`, and the reconstructed `UH_DS_MSc.cls`
 in the root is no longer loaded.
 
-**One item still caps a grade, and it needs the author.** The abstract's ten factual
-defects are **closed** in the 30 August evening PDF. The §2.2 header overflow is **closed** in the
-31 August PDF (optional short title ships). What remains is the switch: look at page 3,
-then set `\abstractunaidedtrue` in `ai_statement.tex`. A model may not flip it. That alone holds
-criterion 6 at 4.5. The fifteenth pass's "one rewrite puts all six at 5" remains withdrawn. The independent read of the fifteen edits after 11:15
+**The unaided switch is set.** The abstract's ten factual defects are **closed** in the 30 August
+evening PDF. The §2.2 header overflow is **closed** in the 31 August PDF (optional short title
+ships). `\abstractunaidedtrue` ships as of the nineteenth pass: page 96 prints that the abstract
+was written by the author unaided, and the PDF contains no Not submittable. A model may not flip
+it. The fifteenth pass's "one rewrite puts all six at 5" is now the recorded mean of the six
+assessable areas; area 7 remains n/a. The independent read of the fifteen edits after 11:15
 on 28 August was done the same day (eight further defects, all closed; residual-risk sites re-checked
 on 30 August and still closed). The remaining measurement is **the transparent-hugepage experiment**,
 about one machine-hour, already named in Chapter 8 as the priority. The allocation profile in

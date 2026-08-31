@@ -196,15 +196,15 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
-**Updated at the eighteenth pass, 31 August 2026.** Blocker 2 remains closed. Blocker 1's
-*facts* are closed: the printed abstract now matches the tables, and area 4 is 5. What remains of
-blocker 1 is the unaided switch (`\abstractunaidedfalse`, Not submittable). Area 6 is still 4.5 on
-finishing, now on that switch alone. The §2.2 running-header overflow is **CLOSED**: the source has
+**Updated at the nineteenth pass, 31 August 2026 afternoon.** Blocker 2 remains closed. Blocker 1
+is **CLOSED**, facts and declaration: the printed abstract matches the tables, `\abstractunaidedtrue`
+ships, page 96 prints that the abstract was written by the author unaided, and the PDF contains no
+Not submittable. Area 6 is 5. The §2.2 running-header overflow remains **CLOSED**: the source has
 `\section[Latency and predictability]{Latency, throughput, and predictability in real-time software}`,
 the TOC and the header on body page 9 ship the short title, and the log has zero `Overfull`,
 including `while \output is active`. Extraction still concatenates title and page number on one
 baseline (`PREDICTABILITY9`). That is not an overflow. Do not re-report `SOFTWARE9`. Do not
-recommend another `\sectionmark`.
+recommend another `\sectionmark`. Do not re-open the unaided switch as a grade cap.
 
 **Updated at the thirteenth pass, 27 August 2026 night. Read this block before the numbered list
 below, which is a day out of date in one important respect.**
@@ -224,16 +224,16 @@ column. **Never again report blocker 2 as open.** Two things about the new state
 - **`bench/results-canonical/` holds that invalid campaign** and is kept as a worked example. Never
   quote it. The valid one is in `bench/results/` and `bench/results-canonical2/`, byte-identical.
 
-**Blocker 1's factual list is CLOSED as of the seventeenth pass, 30 August 2026 evening. Do not
-re-report the ten defects against the current PDF.** Page 3 now prints seven and seven, a few
-microseconds in Rust's favour, no host, Rust 448 / C++ 392, then C++ 1.7× after both have stopped
-tracking, and "timed alone" covering only the operation. What remains of blocker 1 is the
-declaration: `\abstractunaidedfalse`, so the build still prints Not submittable. That is area 6,
-not area 4. The author must look at page 3 and set the switch. A model must not.
+**Blocker 1 is CLOSED as of the nineteenth pass, 31 August 2026 afternoon. Do not
+re-report the ten defects, and do not re-open the unaided switch as a grade cap.** Page 3 prints
+seven and seven, a few microseconds in Rust's favour, no host, Rust 448 / C++ 392, then C++ 1.7×
+after both have stopped tracking, and "timed alone" covering only the operation.
+`\abstractunaidedtrue` ships. Page 96 prints that the abstract was written by the author unaided.
+The PDF contains no Not submittable.
 
 **The running header of §2.2 is CLOSED as of the eighteenth pass, 31 August 2026. Do not
 re-report.** The optional short title is in the source, the TOC, and the shipped header. The log
-has zero `Overfull`. After the unaided switch is set, nothing on the finishing list remains.
+has zero `Overfull`. Nothing on the finishing list remains as a grade cap.
 
 **Both of the thirteenth pass's analysis items are CLOSED by the remediation of 27 August night, and
 neither may be re-reported.** They are kept here with the fix, because the fixes are the transferable
@@ -318,10 +318,9 @@ layer still holds, then spend the time on the four places a new result has to re
 not, namely the summary-of-findings table, the threats table, the hypothesis revisit, and the
 methodology section that said the metric was unavailable.
 
-1. **Set `\abstractunaidedtrue` after looking at page 3.** The factual rewrite is done as of the
-   seventeenth pass (printed page 3 matches the tables). What remains is the switch, and it cannot
-   be delegated. Until it is set, every build prints `ai_statement: ... Not submittable`. Do not
-   re-report the ten defects: they are closed. Optional: the far-tail gap is not in the abstract.
+1. **CLOSED 31 August 2026 afternoon.** `\abstractunaidedtrue` ships. Do not re-report the ten
+   defects, and do not re-open the switch as a grade cap. Optional: the far-tail gap is not in the
+   abstract.
 2. **Bare-metal tail campaign. RUN on 26 August 2026, and the item has changed shape.** Two 480-run
    sweeps on a rented AMD EPYC 7443P, `virtualisation: none`, 0 of 60 sampling intervals with any
    steal. It delivered everything this item promised: pooled p99.99 separating the languages over 32

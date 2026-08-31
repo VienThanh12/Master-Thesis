@@ -3816,3 +3816,102 @@ Housekeeping, not capping: replace `bugden2022rust`. Examiners still `\censors` 
 assigns them. Optional: name `\FarTailLangSep` in the abstract. The §2.2 short title and the
 `tab:abbrev` reference are **done**. Do not re-report them.
 
+## Nineteenth pass — 31 August 2026 (afternoon)
+
+Graded independently against the CSM matrix of 9 April 2024, on
+`Ha_Vien_Mastersthesis_2026.tex` as a **full draft**, scored as the manuscript an examiner would
+receive if submitted today. The PDF matches the source (tex 11:43, PDF 15:39). Declared length is
+unchanged at **95 pages plus 12 appendix pages** (115 physical). Title page dated 31 August 2026.
+Standard applied: the document no longer prints "Not submittable", so it is no longer scored down
+for that finishing failure. It is still not supervisor-approved.
+
+View formed from the manuscript, the PDF, and the artefacts before this file was re-read. Canvas:
+[`thesis-grade-csm-aug31-rev2.canvas.tsx`](/home/vienha/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-aug31-rev2.canvas.tsx).
+
+| Area | 18th pass (31 Aug morning) | This pass | Clause that sets it |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Level 5 holds: topic publication-worthy, gap in named prior work, four RQs traced, RQ2 two-sided |
+| 2. Scholarly framework and sources | 5 | **5** | Level 5 holds: 109/109 cited, 66% peer-reviewed, search protocol, contrary results engaged |
+| 3. Research data and method | 5 | **5** | Level 5 holds: method analysed in depth, data is the canonical bare-metal campaign, description matches |
+| 4. Presentation of results | 5 | **5** | Level 5 holds: reporting is well considered and apt, printed abstract matches the tables |
+| 5. Discussion and conclusions | 5 | **5** | Level 5 holds: H1--H3 revisited including a refutation, four-way validity, register held |
+| 6. Academic text | 4.5 | **5** | Level 5's camera-ready clause now holds: `\abstractunaidedtrue`, printed unaided, no Not submittable, zero Overfull |
+| 7. Work during the thesis process | n/a | **n/a** | Not assessable from a manuscript |
+| **Mean of the six assessable** | 4.92 | **5.00** | |
+
+### Agreement and disagreement with the eighteenth pass
+
+**Agree on areas 1, 2, 3, 4, 5 and 7.** Five areas stay at 5. Twelve claims sampled from the printed
+abstract and Chapters 1, 6, 7 and 8 still match the generated tables. No wrong measured value. The
+printed abstract still matches: seven and seven, a few microseconds in Rust's favour, 10.91% seam,
+0.250% language share, 1.6× on the operation, Rust 448 / C++ 392, then C++ 1.7× after both have
+stopped tracking, 20/20. Header geometry on body page 9: title ends at x=293.7, page number starts
+at x=518.6 (225 pt gap). CCS still ends 9 pt above the keyword row.
+
+**Disagree on area 6.** The eighteenth pass held 4.5 because level 5's camera-ready clause failed on
+`\abstractunaidedfalse` (every build printed Not submittable). The switch is now true. Page 96
+prints "The abstract was accordingly written by the author unaided." The PDF contains no Not
+submittable. The eighteenth pass itself said that after the switch, nothing on the finishing list
+would remain. This pass verified that claim rather than taking it: zero `Overfull` of any kind,
+including `while \output is active`; AI declaration internally consistent; abstract facts still
+match. A manuscript grader can check consistency, not authorship. Authenticity of the unaided
+rewrite is the author's attestation, which is what the gate was built to record. A model did not
+flip the switch in this pass.
+
+### Mechanical evidence
+
+Hard gates pass: no LaTeX errors, no undefined references or citations, no multiply defined labels,
+no float too large, no placeholders, no overfull boxes. 109 bibliography entries, all 109 cited, 72
+peer-reviewed (66%). `bugden2022rust` is the remaining arXiv load-bearing cite (beside Pereira).
+`zhang2026deadlock` is the journal version; the preprint flag is its `note` field. Sentence length
+21.4 ± 11.6, zero semicolons. `\abstractunaidedtrue`. CCS block ends 9 pt above the keyword row on
+page 3, so the 12 cm box holds.
+
+Generated layer: macros and tables were read, not re-derived. Sample: pooled p99.99 89.5 / 92.1 vs
+142.0 / 176.4 (widest gap 86.9 against `\FarTailRange` 87, language separation 49.9 against
+`\FarTailLangSep` 50); paired median $-1.3$ and $-1.2\,\mu$s; overload 146.7 / 84.5 = 1.74 against
+`\OverloadThrRatio` 1.7, CPU per op 1.78 against 1.8, attached to Rust at four summary sites;
+knees `\TrackingLoadCpp` 392 and `\TrackingLoadRust` 448; RSS paired $+1.4$ and $+2.5$ MiB against
+allocator 1.5--2.4; deadlock 5/12 matching `taxonomy.csv`; `tab:adoption` first-party CPU 35.9 vs
+29.6 s against `\BuildAllFirstPartyCpuRatio` 0.8, dependency share 54%, shipped 106 vs 723 with
+ordering reversed under matched static (1577 vs 723) and matched dynamic (106 vs 269);
+`tab:budget` 34.5 vs 21.3 ns against `\BudgetCoreRatio` 1.6, share 0.250%. `fig:tailpct` panel (b)
+title is generated from whether the interval/spread ratio crosses one.
+
+Nothing was edited in the thesis source during this pass.
+
+### Per-area notes
+
+**1, carries 5.** Unchanged. Gap located in Karlback, Arvidsson, Emberg. Four RQs, three
+hypotheses, RQ2 built to fail.
+
+**2, carries 5.** Unchanged. Written protocol including the DiVA/Finna step. Gonzalez 0.19% used
+to keep statistical and operational significance apart. Karlback's opposite RSS sign is reconciled
+as a concurrency-runtime comparison, not a language one.
+
+**3, carries 5.** Unchanged. The method half is still the pattern of refusals: reading rule kept,
+448 kops/s descriptive, pooled statistic with no fallback. Ethics section present.
+
+**4, carries 5.** Unchanged. The printed abstract still matches the tables. The optional
+compression of the far tail is recorded in the lift list and is not a cap.
+
+**5, carries 5.** Unchanged. H1 supported below saturation, refuted above it, then declared
+ill-posed. §7.2 still refuses a single overload verdict.
+
+**6, 5.** The split that held this at 4.5 is closed. Writing was already 5. Finishing failed on
+the camera-ready clause; that clause now holds. Longest sentences still run to about 83 words,
+which is not a failing clause once the declaration, the overflow, and the overfull boxes are gone.
+Examiners remain unfilled and the class prints that field nowhere.
+
+### Outstanding
+
+No item holds an assessable area off 5.
+
+1. **Transparent-hugepage experiment.** Named in Chapter 8. Converts a candidate into a finding.
+   Not required for the current grades.
+2. Optional: replace `bugden2022rust`. Optional: name `\FarTailLangSep` in the abstract.
+   Housekeeping: `\censors` when faculty assigns examiners.
+
+The unaided switch, the §2.2 short title, and the `tab:abbrev` reference are **done**. Do not
+re-report them as grade caps.
+
