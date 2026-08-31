@@ -392,9 +392,28 @@ def cite_sites(path: Path) -> list:
 FIELD = re.compile(r"(?m)^\*\*([^*\n]+?)\*\*\s*")
 
 
+def is_field_label(text: str) -> bool:
+    """Whether a bold run at the start of a line is a field label or emphasis inside a value.
+
+    The records mark their fields as **Metadata**, **Cited**, **Evidence -- level A** and so on,
+    and they also bold phrases inside a quotation. When a bolded phrase happens to fall at the
+    start of a wrapped line it looks exactly like a label, and reading it as one silently moves
+    the rest of the quotation into a field of its own. Seven entries were affected.
+
+    Real labels are short, capitalised, carry no digits, and do not end in sentence
+    punctuation. The capitalisation rule is what separates a label from a bolded phrase
+    lifted out of a quotation, which reads as running prose.
+    """
+    text = text.strip()
+    return (len(text) <= 40
+            and text[:1].isupper()
+            and not re.search(r"\d", text)
+            and not text.endswith((".", ",", ":", ";")))
+
+
 def split_fields(body: str) -> list:
     """[(label, text)] for a run of **Label** paragraphs."""
-    marks = list(FIELD.finditer(body))
+    marks = [m for m in FIELD.finditer(body) if is_field_label(m.group(1))]
     out = []
     for i, m in enumerate(marks):
         end = marks[i + 1].start() if i + 1 < len(marks) else len(body)
@@ -1203,19 +1222,25 @@ what each surviving citation now sits next to.""" + r"""
 
 \subsection*{Entries whose supporting passage was never located}
 
-""" + f"""Every entry has some record, but for these {len(unlocated)} the record is a sweep note
-rather than a located passage, so no page or clause is given and no evidence level is assigned.
-{len(v2_unlocated)} of them are cited by \\texttt{{Thesis\\_v2}}, and three of the defects listed
-above sit on exactly those keys. That correlation is the argument for closing this list first:
-where nobody wrote down what the source says, the prose drifted.
+""" + f"""{'None. This list is closed.' if not unlocated else
+f'''These {len(unlocated)} entries carry a sweep note rather than a located passage, so no page or
+clause is given and no evidence level is assigned. {len(v2_unlocated)} of them are cited by
+\\\\texttt{{{{Thesis\\\\_v2}}}}.'''}
 
-""" + keylist(unlocated) + r"""
+The list was six entries until 31 August 2026, all of them student theses or a paywalled paper, and
+three of the defects above sat on three of those keys. Where nobody had written down what the
+source says, the prose drifted. Closing it took one afternoon, because five of the six were openly
+deposited with full PDFs. The correlation is the reason to keep this list at zero.
+
+""" + ("" if not unlocated else keylist(unlocated)) + r"""
 
 \subsection*{Level C, metadata confirmed and passage not opened}
 
-""" + f"""These {len(level_c)} entries sit behind a paywall and were not opened. None carries a
-quotation or a number in the thesis, so the risk is low, but a load-bearing claim on one of them
-is worth a spot check through the university proxy.
+""" + f"""These {len(level_c)} entries could not be closed without university access, and each is
+used for a title-level claim or inside a list. Three have no abstract deposited anywhere, so there
+is nothing short of the full text to read. Three have no DOI because the claim is a specification
+clause or a book chapter rather than a finding, and in each of those the citation sits beside a
+verified one that carries the same point.
 
 """ + keylist(level_c) + r"""
 

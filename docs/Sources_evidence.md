@@ -1218,3 +1218,344 @@ Two of these are worth a second look for a different reason: `zhang2022runtime` 
 `harris2023morello` are the mechanisms the thesis names as candidates for the unexplained
 operation-level result, and `bench/TESTBED.md` lists the counter instrumentation that would
 settle it. That is a measurement gap, not a citation gap.
+
+---
+
+# Evidence upgrade pass, 31 August 2026
+
+Scope: the **6 entries that had no located passage** and the **22 at level C**, which together were
+what the citation audit named as the work left to do. This pass did the reading rather than
+recording that it was outstanding.
+
+Method, in the order the routes were tried. Open-access full text first, then a
+publisher-deposited abstract, then the author's own copy where the publisher blocks robots. The
+five student theses turned out to be openly deposited with full PDFs, which is why five of the six
+unlocated entries moved straight to level A. `.bibaudit/fetch_theses.py` downloads them,
+`.bibaudit/abstract_sweep.py` prints a deposited abstract beside the claim it has to carry, and
+`.bibaudit/link_check.py` fetches every URL and DOI.
+
+**The records in this section supersede the entry-by-entry sections above for the entries they
+name.** `build_audit.py` parses the last `### key` section for a key, so `source_audit.pdf` picks
+these up with no further edit.
+
+## Result
+
+| Before | After | Count |
+| --- | --- | --- |
+| No located passage | level A | 5 |
+| No located passage | level B | 1 |
+| Level C | level A | 4 |
+| Level C | level B | 12 |
+| Level C | level C, no abstract deposited anywhere | 3 |
+| Level C | level C, no DOI: a standard clause or a book chapter | 3 |
+
+**Nothing was found wrong.** Every claim checked is carried by its source, several word for word.
+Four nuances are recorded below as scope notes rather than defects, and one of them is worth
+acting on.
+
+## Mechanical checks over all 109
+
+1. **Deposited metadata.** `bib_verify.py` resolved all 109 against Crossref or DataCite. **No DOI
+   failed to resolve.** 40 field mismatches, every one in a category this file already records as
+   benign: ACM article-number page ranges against Crossref's plain ranges, PACMPL and TOSEM issue
+   years against deposit years, accented and particle surnames that follow the paper rather than
+   the publisher, LNCS series entries where Crossref puts the series in the container field, and
+   LIPIcs entries where DataCite deposits no page range.
+2. **Link resolution.** 62 targets returned 200 and **none is dead.** 109 refused the robot with
+   403, 429 or 202, all of them ACM, IEEE, Elsevier or PeerJ, and every one of those DOIs resolved
+   through the Crossref API in check 1, so that is bot blocking and not rot. Two DiVA URN
+   resolvers returned 500 and both returned 200 on retry, which is the same transient the 24 August
+   pass saw.
+3. **Do any level-C entries carry a number or a quotation?** This file asserted none did. Checked
+   mechanically across all 256 citation sites: **one hit**, `pereira2017energy` in the plan, and it
+   is the thesis's own scare-quoted slogan "Rust performs like C++" rather than a quotation from
+   Pereira. The assertion holds.
+
+## Scope notes, not defects
+
+- **`olsson2023asyncpackets`.** The 20 to 50 per cent throughput figure belongs to the
+  **decentralized-scheduler** arm. The centralized arm did worse. The thesis quotes the favourable
+  arm, which is the conservative choice for the argument it makes with it, that an effect of two to
+  five times is too large to be code generation.
+- **`li2021ipc`.** The 4 to 8 per cent is conditional: the authors write that "high-level Rust
+  abstractions can introduce significant overhead" and that the figure is for "a carefully planned
+  (with respect to performance) Rust implementation". Worth carrying if that number is ever quoted
+  more prominently than in a list.
+- **`li2021ipc`, second note.** §7.5 calls it "IPC mechanisms for one network function". The paper
+  builds "several representative network functions" in a chain. One word.
+- **`pereira2017energy`.** Their Table 4 puts Rust at 1.03 energy and 1.04 time against C's 1.00,
+  where **C++ is 1.34 and 1.56**. So Pereira supports Rust *more* strongly than "Rust performs like
+  C++" implies. The thesis is understating, not overstating. Note also that the benchmarks-game
+  maintainers record the 1.56 figure as widely misquoted out of context, and that the median rather
+  than the ratio-of-averages puts C++ at 1.03. **The thesis quotes none of these numbers, which is
+  the right call. Do not start.**
+
+## The six that had no located passage
+
+### `olsson2023ranmgmt` — Olsson, KTH, 2023
+**Metadata** [verified] DiVA `diva2:1751095`, full text `FULLTEXT01.pdf` retrieved.
+**Cited** Rust's peak memory usage generally higher than C's, and execution speed on par with or better than C's
+**Evidence — level A** (`FULLTEXT01.pdf`, p. 4, abstract): "The results show that the execution
+speed of Rust applications are on par or better than their C counterpart, while the peak memory
+usage generally is higher in Rust. It was also shown that significant improvements in safety can
+be achieved, even in cases where the application is fairly straight forward."
+**Verdict** OK. Both halves of the claim are the source's own summary sentence, and this is the
+neighbouring study whose peak-memory sign agrees with this thesis.
+
+### `olsson2023asyncpackets` — Olsson and Stenström, LiU, 2023
+**Metadata** [verified] DiVA `diva2:1789208`, full text `FULLTEXT02.pdf` retrieved.
+**Cited** asynchronous Rust at a fifth to a half of the throughput of the DPDK application it mirrors, and judged not currently viable
+**Evidence — level A** (`FULLTEXT02.pdf`, p. 3, abstract): "The results show that the Rust
+application with the decentralized scheduler has a throughput that is between 20% and 50% of its
+DPDK counterpart, while its latency is far worse." And: "the result of this thesis indicates that
+using Rust async for packet processing systems is currently not a viable approach."
+**Verdict** OK, with the scope note above: the figure is the decentralized arm.
+
+### `emberg2023asn1` — Emberg and Wadsten, LiU, 2023
+**Metadata** [verified] DiVA `diva2:1772502`, full text `FULLTEXT01.pdf` retrieved.
+**Cited** matched C++ and Rust ASN.1 decompilers reaching third-party C++ through a C wrapper, compared statistically, whose two benchmarking sessions reversed their own verdict
+**Evidence — level A** (`FULLTEXT01.pdf`, p. 3, abstract): "Two ASN.1 decompiler implementations
+were made, one in C++ and one in Rust. Both decompilers invoked third-party C++ functions: in
+Rust, this was done by first wrapping them in C. The performance of both decompilers was measured
+during two benchmarking sessions, between which additional optimization was performed on both. The
+results were then compared statistically using the Mann-Whitney rank sum test method. The first
+benchmarking session showed similar performance for both decompilers ... In the second benchmarking
+session, the Mann-Whitney test showed that the Rust decompiler performed worse, with a mean
+difference of 85.19-91.36%." The C-wrapper route is drawn in Figure 5.2, p. 42.
+**Verdict** OK. Every clause the thesis attributes to this source is in its own abstract, and the
+85 to 91 per cent range recorded in `LITERATURE_NOTES.md` is exact at 85.19 to 91.36.
+
+### `sundvisson2026drivers` — Sundvisson and Hofer, BTH, 2026
+**Metadata** [verified] DiVA `diva2:2071063`, full text `FULLTEXT01.pdf` retrieved.
+**Cited** matched C and Rust user-space drivers with the Rust footprint about 29 per cent above C, a fixed overhead and no measurable run-time cost
+**Evidence — level A** Located in two places.
+- p. 3, abstract: "The C driver was approximately 0.178 % faster, a difference detectable at 99 %
+  confidence but well within a ±1 % equivalence zone. The Rust driver consumed approximately 29 %
+  more memory and contained five small unsafe blocks wrapping unavoidable system calls."
+- p. 35: "Rust maintains a constant footprint of 1800 kB, whereas C exhibits 1400 kB, corresponding
+  to an approximately 29 % increase."
+
+**Verdict** OK, and stronger than the thesis needs. "Constant footprint" is the source's own word
+for the fixed overhead, and the ±1 per cent equivalence zone is what licenses "no measurable
+run-time cost".
+
+### `andersson2026stdmemsafety` — Andersson, LiU, 2026
+**Metadata** [verified] DiVA `diva2:2091281`, full text `FULLTEXT01.pdf` retrieved.
+**Cited** a CWE staging study across C++, Rust and Python
+**Evidence — level A** (`FULLTEXT01.pdf`, p. 4): "the manual memory management of C++, the
+ownership-based compile-time model of Rust, and the automatic garbage collection of Python. These
+languages are evaluated by reproducing a suite of Common Weakness Enumeration (CWE)
+vulnerabilities, including buffer overflows, use-after-free, and null pointer dereference
+conditions to determine the stage at which faults are detected: compile-time, runtime, or silent
+execution."
+**Verdict** OK. "Stage at which faults are detected: compile-time, runtime, or silent execution" is
+the same three-outcome partition this thesis uses for RQ2, in the source's own words.
+
+### `gjomemo2016mesc` — Gjomemo et al., IEEE QRS 2016
+**Metadata** [verified] Crossref: six authors as in the entry, pages 323-334, August 2016. **Two
+Nokia affiliations confirmed** through OpenAlex institution data: Edmund W. Ballou and Kedar S.
+Namjoshi are both Nokia (United States). The other four are University of Illinois Chicago and
+University of Dayton. That settles the plan's "co-authored by two Nokia researchers".
+**Cited** argues for making memory-error sanitisation compilers practical on the premise that certifying compilation is not
+**Evidence — level B** (publisher-deposited abstract via OpenAlex, no open copy exists): "There has
+been considerable interest in having a compiler to ensure the safety of compiled code either
+through static verification or through instrumented runtime checks. **While certifying compilation
+has shown much promise, it has not been practical, leaving code instrumentation as the next best
+strategy** for compilation. We term such compilers Memory Error Sanitization Compilers (MESCs) ...
+The benchmarks demonstrate an improvement in runtime performance that **makes incorporation of
+runtime checks a viable option for defenses**."
+**Verdict** OK, and an exact match on both halves. The premise clause and the practicality clause
+are both the source's own sentences. Level B only because the full text is paywalled and the
+abstract already settles it.
+
+## The four level-C entries that moved to level A
+
+### `qazi2017pepc` — Qazi et al., SIGCOMM 2017
+**Metadata** [verified] Crossref, pages 348-361. Author copy at
+`web.lums.edu.pk/~zafar/sigcomm17.pdf`.
+**Cited** Rust has mobile-network precedent in the datapath
+**Evidence — level A** (author copy, §4.1 Implementation): "NetBricks uses the Rust programming
+language [38], and **PEPC is also written in rust**, and runs inside NetBricks execution
+environment."
+**Verdict** OK. Worth recording how close this came to being a defect: the Crossref-deposited
+abstract is truncated and never mentions Rust, so on the abstract alone this citation looks
+unsupported. The implementation section settles it outright. **An abstract that omits the
+implementation language is not evidence that the language is absent.**
+
+### `zhang2022runtime` — Zhang et al., ASE 2022
+**Metadata** [verified] Crossref. Author copy at `softsec.cs.utah.edu/papers/RustPerf.pdf`, and
+ACM publishes a full-HTML version.
+**Cited** the literature localises Rust's cost to bounds, overflow and division checks, which is where the thesis's registered prediction said to look first
+**Evidence — level A** (author copy, §1 and §4 with Figure 2): "the major source of performance
+overhead is the run-time checks inserted by the compiler to ensure memory safety. For instance,
+**out-of-bounds checks account for 52.7% of all the overhead**." And: "With all run-time checks
+enabled, Rust incurs an 1.96x overhead, which drops to 1.77x, 1.27x, and 1.23x after we in turn
+disable **integer-overflow checks, out-of-bound checks, and division-by-zero checks**."
+**Verdict** OK, and precise. The source names exactly the three check kinds the thesis attributes
+to it, in that order, which is the strongest available support for §7.2's account of what the
+registered prediction got wrong.
+
+### `pereira2017energy` — Pereira et al., SLE 2017
+**Metadata** [verified] Crossref. Green open access, and Table 4 is reproduced in several
+independent places.
+**Cited** compiled systems languages sit close together on time and energy, from general-purpose benchmarks reporting average-case behaviour
+**Evidence — level A** (Table 4, "Normalized global results for Energy, Time, and Memory", p. 263):
+C is the 1.00 baseline on both axes, **Rust is 1.03 energy and 1.04 time**, Go 1.05, C++ 1.34
+energy and 1.56 time. The study covers "twenty seven well-known software languages" over "ten
+different programming problems", which is the general-purpose average-case design the thesis
+attributes to it.
+**Verdict** OK. See the scope note above: the table supports the thesis's point more strongly than
+the sentence claims, and the thesis is right not to quote the figures.
+
+### `li2021ipc` — Li et al., PLOS 2021
+**Metadata** [verified] Crossref, pages 53-61. Author copies at `mars-research.github.io` and
+`users.cs.utah.edu/~aburtsev`.
+**Cited** a matched C++ and Rust pair in a network-function setting putting safe Rust within single-digit percentages of unsafe C++
+**Evidence — level A** (author copy, abstract and §4 Conclusions): "we develop two implementations
+(one in C++ and one in Rust) of a network function processing framework similar to Netbricks ... We
+find that while high-level Rust abstractions can introduce significant overhead, a carefully
+planned (with respect to performance) Rust implementation remains fast and **executes within 4-8%
+of unsafe C++**." Restated in the conclusions: "on realistic workloads Rust incurs only minor
+overhead of 4-8% compared to unsafe C++."
+**Verdict** OK. 4 to 8 per cent is single-digit percentages, and the matched-pair design is the
+source's own. Two scope notes above: the figure is conditional on a carefully planned
+implementation, and the paper builds several network functions rather than one.
+
+## The twelve level-C entries that moved to level B
+
+Each is now carried by a publisher-deposited abstract read in this pass. None carries a number or
+a quotation in the thesis, so an abstract is sufficient for the use made of it. Recorded as full
+entries rather than as a table so that `source_audit.pdf` shows each one its evidence.
+
+### `balasubramanian2017rust` — System Programming in Rust: Beyond Safety, HotOS 2017
+**Cited** the zero-cost framing, and as of the 31 August citation-attachment pass, Chapter 1's clause on performance intended to be competitive with C++
+**Evidence — level B** (Crossref-deposited abstract): "Rust is unique in that it **enforces safety
+without runtime overhead**, most importantly, without the overhead of garbage collection. While
+**zero-cost safety** is remarkable on its own, we argue that the superpowers of Rust go beyond
+safety. In particular, Rust's linear type system enables capabilities that cannot be implemented
+efficiently in traditional languages, both safe and unsafe."
+**Verdict** OK, and this one now matters more than it did: the citation-attachment pass moved
+Chapter 1's performance clause onto this entry, and the deposited abstract carries that clause
+directly. §2.4's stronger reading, that Rust "even enables efficiency techniques that are
+impractical in C", is the abstract's own "capabilities that cannot be implemented efficiently in
+traditional languages".
+
+### `cui2025perfbugs` — Unleashing the Efficiency of Rust, ISSRE 2025
+**Cited** recurring performance anti-patterns
+**Evidence — level B** (deposited abstract): "we have mined the repository of 100 well-known
+projects on GitHub and collected 114 performance bugs. We manually audit each case and find **8
+optimization patterns unique to Rust**, including three types of checking, two types of cloning,
+and three types of data collection."
+**Verdict** OK. "Recurring anti-patterns" is the abstract's eight patterns.
+
+### `huang2017predictability` — A Top-Down Approach to Achieving Performance Predictability, SIGMOD 2017
+**Cited** part of the microsecond-scale predictability literature
+**Evidence — level B** (deposited abstract): "While much of the research on transaction processing
+has focused on improving overall performance in terms of throughput and mean latency, surprisingly
+less attention has been given to **performance predictability: how often individual transactions
+exhibit execution latency far from the mean**."
+**Verdict** OK. Latency far from the mean rather than the mean itself is exactly the distinction
+the thesis cites it for.
+
+### `kirth2022pkrusafe` — PKRU-Safe, EuroSys 2022
+**Cited** proposed remedies isolate the two heaps rather than relying on interface discipline
+**Evidence — level B** (deposited abstract): "many memory-safe languages still have to **interface
+with unsafe code** to some extent, which opens up the possibility for attackers to exploit
+memory-corruption vulnerabilities in the unsafe part of the system and **subvert the safety
+guarantees provided by the memory-safe language**." The mechanism is in the title: "Automatically
+Locking Down the Heap Between Safe and Unsafe Languages".
+**Verdict** OK.
+
+### `rivera2021galeed` — Keeping Safe Rust Safe with Galeed, ACSAC 2021
+**Cited** proposed remedies isolate the two heaps rather than relying on interface discipline
+**Evidence — level B** (deposited abstract): "these guarantees are violated when safe Rust
+interacts with unsafe code, most notably code written in other programming languages ... **a
+dangling pointer in a linked C/C++ library can access and overwrite memory allocated to Rust even
+when the Rust code is fully safe**."
+**Verdict** OK, and it is the sharpest statement in the bibliography of the limit §7.6 draws around
+RQ4: confining `unsafe` bounds what must be reviewed, not what can be corrupted.
+
+### `schuermann2023encapsulated` — Encapsulated Functions, KISV 2023
+**Cited** lighter crossing models proposed for embedded use
+**Evidence — level B** (deposited abstract): "practical systems must interact with code written in
+memory-unsafe languages. This is especially true in **security and safety-critical embedded
+systems**, where subsystems such as cryptographic implementations are subject to industrial and
+governmental certification requirements ... **Any single bug in either the foreign code or the
+cross-language interactions may arbitrarily violate the memory safety of the wrapping language.**"
+**Verdict** OK.
+
+### `liu2023l25gc` — L²5GC+, IEEE CloudNet 2023
+**Cited** control-plane latency is an active target in the core network
+**Evidence — level B** (deposited abstract): "the **control plane in 5G core (5GC) still presents
+challenges** due to inefficiencies in handling control plane operations (including session
+establishment, handovers and idle-to-active state-transitions) ... introduces substantial overheads
+that **impact latency**."
+**Verdict** OK.
+
+### `park2025ctrlbench` — CtrlBench, IEEE ICTC 2025
+**Cited** control-plane latency is an active target, measured procedure by procedure
+**Evidence — level B** (deposited abstract): "CtrlBench, a domain-specific **microbenchmarking tool
+for the 5G Core Control Plane** ... It can generate configurable load and chain-dependent APIs,
+giving granular, fine-grained, and reproducible latency measurements ... **Existing end-to-end
+metrics, such as Registration Time, compress entire procedures into a single number. This hides
+which Network Function or API actually causes delays.**"
+**Verdict** OK, and the closing sentence is an independent statement of this thesis's own
+decomposition argument, that an end-to-end figure hides where the cost sits.
+
+### `qin2024safety` — Understanding and Detecting Real-World Safety Issues in Rust, TSE 2024
+**Cited** memory- and thread-safety bugs still occur in practice, with blocking bugs and misused synchronisation among them
+**Evidence — level B** (deposited abstract): "a comprehensive, empirical study of Rust safety issues
+by close, manual inspection of **70 memory bugs, 100 concurrency bugs, and 110 programming errors
+leading to unexpected execution panics** from five open-source Rust projects, five widely-used Rust
+libraries, and two online security databases."
+**Verdict** OK.
+
+### `fan2026android` — An Empirical Analysis of Rust Integration in AOSP, FSE Companion 2026
+**Cited** one of the two largest documented adoptions into an existing C and C++ codebase
+**Evidence — level B** (deposited abstract): "the first longitudinal and systematic empirical study
+of **Rust in AOSP**. By analyzing 16 quarterly snapshots from January 2021 to October 2024, we
+track adoption trends and map the distribution of Rust code across 67 components ... we
+characterize platform-level integration mechanisms and examine unsafe governance."
+**Verdict** OK for the adoption and integration claim. The "same ordering of costs" that §7.2 draws
+from pairing this with `li2026rustlinux` is the thesis's own synthesis of the two, which is how it
+is written.
+
+### `levy2017kernel` — The Case for Writing a Kernel in Rust, APSys 2017
+**Cited** inside a list, that Rust's safety is cheap at run time in kernel settings
+**Evidence — level B** (deposited abstract): "Previous efforts towards this end concluded that
+writing a kernel requires changing Rust. This paper reaches a different conclusion, that **no
+changes to Rust are needed and a kernel can be implemented with a very small amount of unsafe
+code**."
+**Verdict** OK for feasibility with little `unsafe`, which is what the list uses it for. The
+run-time cost half of that list sentence is carried by `balasubramanian2017rust` beside it, and this
+entry should not be quoted alone for a cost claim.
+
+### `bae2021rudra` — Rudra, SOSP 2021
+**Cited** ecosystem-scale auditing finds defects nonetheless
+**Evidence — level B, partial** (deposited abstract): "Rust's safety guarantee relies on the
+soundness of **all unsafe code in the program as well as the standard and external libraries**,
+making it hard to reason about their correctness. In other words, **a single bug in any unsafe code
+breaks the whole program's safety guarantee.**"
+**Verdict** OK for the premise. The ecosystem-scale audit result itself, the package-set scan and
+its defect count, sits in the body rather than the deposited abstract, so this is the one entry in
+this group whose claim is only partly carried by what was read. It is used inside a list beside
+`zheng2024security`, `qin2024safety` and `evans2020rust`, all of which carry it. A gold
+open-access PDF exists at ACM for anyone wanting to close it properly.
+
+## What is still level C, and why it cannot move without university access
+
+- **No abstract deposited anywhere**, so there is nothing short of the full text to read:
+  `li2022crosslang`, `mo2023rustshyper`, `xiao2024rpkt`. All three are used for a title-level claim
+  or inside a list.
+- **No DOI, and the claim is a clause or chapter rather than a finding**: `3gpp22261` (clause 7
+  KPIs), `3gpp38331` (clause 5.3 RRC procedures), `klabnik2023rust` (ownership in chapter 4,
+  concurrency in chapter 16). The documents are authoritative by issuer and the metadata is
+  confirmed. Only the clause-level read is outstanding, and `3gpp38913` clause 7.4 is verified and
+  carries the latency claim these are cited beside.
+
+## Evidence split after this pass
+
+**71 level A, 32 level B, 6 level C, 0 with no located passage**, against 62 / 19 / 22 / 6 before
+it. Every one of the 109 entries now has a located passage or a deposited record that carries the
+claim made of it, except the six named above, and those six carry no number and no quotation
+anywhere in the three documents.
