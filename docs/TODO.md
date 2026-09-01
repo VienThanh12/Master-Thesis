@@ -10,17 +10,21 @@ primary control against implementation bias.
 
 ---
 
-## Do now (as of 30 Aug 2026, evening)
+## Do now (as of 1 Sep 2026)
 
 The measurement work is finished and the canonical bare-metal repeat is the thesis's main dataset.
-**The abstract's ten factual defects are closed.** What remains for a 5 in area 6 is finishing:
-look at page 3, set `\abstractunaidedtrue` yourself, then give §2.2 a short optional title. A
-following `\sectionmark` is already in the source and does not ship. Grade reasoning is in
-`docs/ASSESSMENT.md` (seventeenth pass) and `AGENT.md` §2. Mean 4.92. Area 4 is 5. Area 6 is 4.5.
+The nineteenth grading pass (31 August afternoon) put all six assessable areas at **5**, mean
+**5.00**. `\abstractunaidedtrue` ships, page 96 prints that the abstract was written by the author
+unaided, the PDF contains no Not submittable, and the §2.2 header overflow is closed. Grade
+reasoning is in `docs/ASSESSMENT.md` (nineteenth pass) and `AGENT.md` §2.
 
-**The claim this section made yesterday, that every chapter had been synced to the new dataset, was
-wrong, and how wrong is the most useful thing on this page.** Three reviews since have found
-**twenty-two** prose defects against artefacts that were themselves correct throughout:
+**No item holds an assessable area off 5.** What remains is process: send the bundle, proofread,
+and (optional) the hugepage experiment that would turn a named candidate into a finding.
+
+**The claim an earlier version of this section made, that every chapter had been synced to the new
+dataset, was wrong, and how wrong is the most useful thing on this page.** Three reviews after the
+27 August promotion found **twenty-two** prose defects against artefacts that were themselves
+correct throughout:
 
 | Reviewer | Scope | Found | Character |
 | --- | --- | --- | --- |
@@ -31,9 +35,11 @@ wrong, and how wrong is the most useful thing on this page.** Three reviews sinc
 | **Independent reader, artefacts only** | Ch. 1–5, appendices | **12 + 5** | A hand-typed guest CPU-steal figure whose own capture records zero, and two claims the remediation had introduced |
 | **Independent reader, artefacts only** | Abstract, Ch. 8, declaration, cross-doc | **10 + 9** | The overload CPU-per-operation ratio attributed to the wrong language at five sites in two documents, and five abstract defects nobody had recorded |
 
-**Fifty-six defects, all fixed and verified**, against a generated layer that has re-derived byte
-for byte every time anyone has checked it. Nine were introduced by the two editing passes themselves.
-**The three reviews by readers who were told nothing about what had changed found 34 of the 56.**
+**Fifty-six defects in that window, all fixed and verified**, against a generated layer that has
+re-derived byte for byte every time anyone has checked it. Nine were introduced by the two editing
+passes themselves. **The three reviews by readers who were told nothing about what had changed
+found 34 of the 56.** Later independent reads brought the running total to **69**, all of them
+prose disagreeing with an artefact that was itself correct. All 69 are closed.
 
 The worst single find is worth remembering because no gate and no macro check could catch it. The
 sentence "the C++ build sustains 1.7× the throughput of the Rust build while drawing 1.8× the CPU per
@@ -68,28 +74,30 @@ Three datasets now have distinct jobs and the prefixes keep them apart:
 
 | # | Task | Effort | Who |
 | --- | --- | --- | --- |
-| **A** | ~~Rewrite the abstract yourself~~ **Facts closed** (17th pass). Look at page 3, then set `\abstractunaidedtrue` | Minutes | **You only** (a model may not flip the switch) |
-| **A2** | ~~Short optional title on §2.2~~ **Done** (17th-pass follow-up). Header now reads `2.2. LATENCY AND PREDICTABILITY`. Zero `Overfull` during `\output` | — | Closed |
+| **A** | ~~Rewrite the abstract yourself, then set `\abstractunaidedtrue`~~ **Done** (19th pass, 31 Aug afternoon). Printed statement matches. A model may not flip the switch; it was not flipped by one | — | Closed |
+| **A2** | ~~Short optional title on §2.2~~ **Done.** Header now reads `2.2. LATENCY AND PREDICTABILITY`. Zero `Overfull` during `\output` | — | Closed |
 | **B** | Send **spec + plan** to supervisors; settle Nokia "what can be published" | Email | You |
-| **C** | Companion docs: decide fate of `archive/thesis-vi` (citations render `[?]`) | Short | You or agent |
+| **C** | ~~Companion docs: fate of `archive/thesis-vi`~~ **Done** (18 Aug). Decided against as a deliverable; citations-as-`[?]` is why | — | Closed |
 | **D** | Full proofread pass | Half day+ | You |
 | **E** | Transparent-hugepage experiment, the one open question the data raised | 1 machine-hour | You or agent |
-| **F** | ~~A grading pass by a reader who wrote none of the last two days' edits~~ **Done**, plus four independent audits | — | Recorded as the 15th pass |
-| **G** | ~~One independent read of the fifteen edits after 11:15~~ **Done.** Found eight defects, not the two to four estimated | — | Recorded in `docs/ASSESSMENT.md` |
-| **H** | ~~One independent read of the ten edits that closed **G**~~ **Done** (16th pass residual-risk re-check, still closed) | — | Recorded in `docs/ASSESSMENT.md` |
-| — | Examiners, official class file | n/a | Faculty / Moodle |
+| **F** | ~~A grading pass by a reader who wrote none of the last two days' edits~~ **Done**, plus the later independent audits through the 19th pass | — | Closed |
+| **G** | ~~One independent read of the fifteen edits after 11:15~~ **Done.** Found eight defects, all closed | — | Recorded in `docs/ASSESSMENT.md` |
+| **H** | ~~One independent read of the ten edits that closed **G**~~ **Done** (16th pass residual-risk re-check, still closed) | — | Closed |
+| **I** | `Thesis_v2.tex` abstract is still the template placeholder, "Abstract to be written last." The body is the supervisor read-through | Minutes | You |
+| **J** | Plan September row still says "Abstract". The full-draft abstract is done; the row should name proofread and the supervisor send | Minutes | You or agent |
+| **K** | Optional: replace `bugden2022rust` (remaining arXiv load-bearing cite). Optional: name `\FarTailLangSep` in the abstract | — | You |
+| — | Second examiner once faculty assigns. `\examiners{Prof. Keijo Heljanko}` carries the name that is settled; the class prints the field nowhere | n/a | Faculty |
 
 **On when to stop.** Each round of fixes has itself needed auditing. The remaining risk is the
-author's own proofread, item **D**, which no agent can substitute for, plus looking at page 3
-before flipping the unaided switch.
+author's own proofread, item **D**, which no agent can substitute for. Item **E** converts a named
+candidate into a finding and is not required for the current grades.
 
-**A is closed on facts and open on the switch.** Area 4 is 5. The §2.2 header overflow is
-closed. Area 6 stays 4.5 until you look at page 3 and set `\abstractunaidedtrue`. Every other
-criterion-capping item is closed.
+**A is closed.** Area 6 is 5. Every criterion-capping item is closed.
 
 **The list of ten abstract defects below is historical.** It was true of the PDF the sixteenth pass
-graded. The seventeenth pass extracted page 3 and found every item closed. Do not rewrite the
-abstract against this list. Keep it as the record of what the unaided rewrite had to settle.
+graded. The seventeenth pass extracted page 3 and found every item closed. The nineteenth confirmed
+the unaided declaration. Do not rewrite the abstract against this list. Keep it as the record of
+what the unaided rewrite had to settle.
 
 **Closed 30 Aug evening (17th pass). Do not re-report against the current PDF.**
 
@@ -111,13 +119,12 @@ concurrency model, allocator, and build settings". `tab:controls` records the op
 "`-O2` against `opt-level = 2`" with the residual "Nominal parity is not identical code generation",
 and §4.4 says "as closely as the toolchains allow". Only the last noun is at issue.
 
-Then **set `\abstractunaidedtrue`** in `ai_statement.tex` after you have looked at page 3. The printed
-declaration switches from "has not yet been rewritten unaided" to the finished wording, and the
-build stops printing "Not submittable".
+**Closed 31 Aug afternoon (19th pass).** `\abstractunaidedtrue` ships. Page 96 prints that the
+abstract was written by the author unaided. Do not flip the switch back.
 
 One thing the abstract still does not mention, and that the body supports: the far tail resolves
 in Rust's favour (`\FarTailLangSep` µs). The tracking-load split is already in Results. Whether
-the far tail belongs in 250 words is your call.
+the far tail belongs in 250 words is your call (open-work item **K**).
 
 E is worth an hour because it is the only question this study raised and did not answer: transparent
 hugepages differed between the hosts (`always` on the guest, `madvise` on both bare-metal ones) and
@@ -200,21 +207,23 @@ keeps the two hosts comparable at the same offered load and keeps the point belo
 every below-saturation claim and the exclusion of achieved throughput from the test family already
 assume. §`sec:workload` states the change.
 
-### Build state (28 Aug 2026, morning)
+### Build state (31 Aug 2026, afternoon)
 
-**109 declared pages with 6 appendix pages, 123 physical**, up from 104 and 6. About two of the five
-added pages are new argument (the saturation-knee finding, the pooled-statistic explanation, §6.2's
-pinned-load reasoning) and three are float reflow. Zero LaTeX errors, zero undefined references or
+**95 declared pages with 12 appendix pages, 115 physical.** The total is unchanged from the 101 + 6
+figure of 26 August: six pages sat on the other side of the `\appendix` boundary once the appendix
+list of §4 grew to seven. Read the split from `build/Ha_Vien_Mastersthesis_2026.aux`, never from
+this line. Title page dated 31 August 2026. Zero LaTeX errors, zero undefined references or
 citations, no multiply defined labels, **no float too large**, no overfull boxes, no placeholders,
-109 of 109 bibliography entries cited. `./.aitells.py`: zero semicolons in all three documents,
-sentence length 22.1 ± 11.4, "rather than" back to 90 after the editing pushed it to 95, all 14 dash
-hits numeric ranges or Herfindahl--Hirschman. Diagram labels clean over 19 diagrams. The deck passes
-both `check_layout` and `check_prose_style`. `bench/refresh_thesis.sh` runs end to end.
+109 of 109 bibliography entries cited, 72 peer-reviewed (66%). `./.aitells.py`: zero semicolons,
+sentence length 21.4 ± 11.6. Diagram labels clean. The deck passes both `check_layout` and
+`check_prose_style`. `\abstractunaidedtrue`. CCS block ends 9 pt above the keyword row on page 3.
+`bench/refresh_thesis.sh` runs end to end.
 
 **Length note.** Three rounds of word cuts recovered nothing, and the chapter-6 tail page at physical
 84 *grew* its bottom gap from 627pt to 642pt as words came out of the paragraphs feeding it. Do not
 attack that page from the prose side. If pages are wanted there they have to come from a float in
-§6.4.5. Under 100 remains a preference and substance won here.
+§6.4.5. Under 100 remains a preference and substance won here. The 95 figure is the class counting
+main matter; the document is not shorter.
 
 **One trap worth carrying:** `tab:threats` overflowed its page by 79pt when a fifteenth row landed.
 Tightening four cells recovered half and `\arraystretch` 1.25 to 1.15 recovered the rest. That table
@@ -222,36 +231,39 @@ sits within a few points of a full page, so measure after any row edit.
 
 ### Grade map
 
-| Criterion | 13th pass | **15th pass, current** | What decides it |
+| Criterion | 15th pass (28 Aug) | **19th pass, 31 Aug afternoon, current** | What decides it |
 | --- | --- | --- | --- |
-| 1 Objectives & RQs | 5 | **5** | RQ1 names p99.99 in all three documents. Audited, no findings |
-| 2 Sources | 5 | **5** | Audited. The declaration now states the source audit's real coverage instead of over-claiming it |
-| 3 Method & data | 4.5 | **5** | The description caught up with the method, and the study refuses a favourable post-hoc test and says why |
-| 4 Results presentation | 4.0 | **4.5** | Everything closed and re-checked. Capped by **A** alone |
-| 5 Discussion | 4.5 | **5** | §7.2 refuses a verdict and gives a decision rule instead |
-| 6 Academic text | 4.0 | **4.5** | Consistency clause holds across all three documents. Capped by **A** alone |
-| **Mean** | 4.50 | **4.83** | |
+| 1 Objectives & RQs | 5 | **5** | RQ1 names p99.99 in all three documents. RQ2 two-sided |
+| 2 Sources | 5 | **5** | 109/109 cited. Optional: replace `bugden2022rust`. `zhang2026deadlock` is the journal version |
+| 3 Method & data | 5 | **5** | Canonical bare-metal campaign. Description matches. Do not add `isolcpus` |
+| 4 Results presentation | 4.5 | **5** | Printed abstract matches the tables. Far tail pooled, no fallback |
+| 5 Discussion | 5 | **5** | §7.2 refuses a verdict and gives a decision rule instead |
+| 6 Academic text | 4.5 | **5** | `\abstractunaidedtrue`, printed unaided, zero Overfull, no Not submittable |
+| **Mean** | 4.83 | **5.00** | |
 
-**This one is recorded**, unlike the fourteenth pass's identical self-assessment, because three
-independent readers have since audited the whole document and 41 further defects were found and
-closed. The fourteenth pass was right to hesitate: at the moment it graded, the thesis still said the
-**C++** build drew 1.8 times the CPU per completed operation, at five sites in two documents, where
-the data has **Rust** drawing it.
+The fifteenth was the first figure confirmed by readers who wrote none of the work behind it. The
+eighteenth still held area 6 at 4.5 on the unaided switch alone. The nineteenth verified the switch
+and the printed declaration rather than taking them. A manuscript grader can check consistency, not
+authorship.
 
-**Residual risk, stated plainly.** The last audit found eight defects in thirty changed passages.
-Closing them took about fifteen further edits, and those fifteen have not been independently read.
-Item **G** is the cheapest remaining improvement.
+**Residual risk, stated plainly.** No assessable area is off 5. The remaining work is the author's
+proofread (**D**), sending the bundle (**B**), and the hugepage experiment (**E**) if a named
+candidate should become a finding. After any further editing round, run a reader who was not told
+what changed: that is the operating rule in `AGENT.md` §2, and it is how 49 of the day's 69 defects
+were found.
 
 ---
 
 ## Phase 0 - Environment & repository setup
 - [x] Install LaTeX toolchain (TinyTeX in ~/.TinyTeX; `pdflatex`, `bibtex`, `latexmk` on PATH)
-- [x] Obtain the `UH_DS_MSc.cls` class file (local reconstruction from UH_*_MSc family; see note)
-- [x] Create `bibliography.bib` with all cited references (97 active entries as of 17 Aug 2026,
-      all cited, no orphans; one superseded entry is commented out)
-- [x] Verify `Ha_Vien_Mastersthesis_2026.tex` compiles to PDF end-to-end (103 declared pages plus 6
-      appendix, 117 physical, as of 26 Aug 2026; all refs/citations resolve; bibliography style is
-      now `IEEEtran`, numbered in citation order). Read the declared figure from
+- [x] Obtain the department class file. The document builds on `HYthesisML.cls`. The reconstructed
+      `UH_DS_MSc.cls` in the root is no longer loaded.
+- [x] Create `bibliography.bib` with all cited references (109 active entries as of 31 Aug 2026,
+      all cited, no orphans; 72 peer-reviewed, 66%)
+- [x] Verify `Ha_Vien_Mastersthesis_2026.tex` compiles to PDF end-to-end (95 declared pages plus 12
+      appendix, 115 physical, as of 31 Aug 2026; all refs/citations resolve; bibliography is
+      biblatex numeric / Vancouver, numbered in citation order). Class is the department's
+      `HYthesisML.cls`. Read the declared figure from
       `build/Ha_Vien_Mastersthesis_2026.aux`, not from the PDF's physical total, which includes
       front matter
 - [x] Initialize git repository; add `.gitignore` (build artifacts, LaTeX aux files)
@@ -269,7 +281,7 @@ latexmk -C                   # clean build artifacts
 ```
 
 ## Phase 1 - Literature & background solidification
-- [ ] Collect and read the core references (3GPP 38.401/38.300, RustBelt, MSRC, Google Android, Pereira energy study, HdrHistogram/coordinated omission)
+- [x] Collect and read the core references (3GPP 38.401/38.300, RustBelt, MSRC, Google Android, Pereira energy study, HdrHistogram/coordinated omission). Search protocol in Appendix B. Durable citation record in `docs/Sources_evidence.md` and `source_audit.pdf`
 - [ ] Confirm gNB-CU-CP / UE Context Management framing with Nokia supervisors
 - [ ] Note any Nokia-internal constraints (what can/cannot be published)
 
@@ -365,8 +377,9 @@ latexmk -C                   # clean build artifacts
 - [x] Parameterize by number of active UEs (`--active-ues`) and target event rate (`--rate`, open-loop w/ CO correction), 3GPP-anchored rate calibration still TODO
 - [x] Ensure histogram-based capture avoids coordinated-omission bias (HDR histograms both sides; `--rate` fixed schedule + HDR correction from intended send time)
 - [x] Define testbed config (CPU pinning, disable turbo/freq scaling, warm-up discard), protocol
-      in `bench/TESTBED.md` (taskset pinning, performance governor, no-turbo, SMT off, repeats,
-      interleaving) + `bench/capture_env.sh` (env capture, flags WSL2); execution on bare-metal TBD
+      in `bench/TESTBED.md` (taskset pinning, performance governor, no-turbo, SMT off, `nohz_full`,
+      repeats, interleaving) + `bench/capture_env.sh`. Executed on bare metal 26 and 27 Aug 2026.
+      **Do not add `isolcpus`.**
 - [~] Make runs scriptable + reproducible (`bench/run_bench.sh` + `bench/campaign.sh` +
       `bench/refresh_thesis.sh` work end-to-end; 3GPP-anchored rate calibration still TODO)
 
@@ -440,19 +453,16 @@ latexmk -C                   # clean build artifacts
       40 interval heap dumps per arm, both stderr transcripts, the C++ allocation trajectory as a
       TSV, and the Rust binary kept for later symbolisation. The instrument the thesis has said it
       lacked since the first grading pass now exists as data.
-- [ ] **ANALYSE IT. This is the highest-value half day left in the project.** Nothing in the
-      document mentions the profile, so under the grading rule that a grade describes the
-      manuscript and not the repository it currently earns nothing. What it buys: `tab:findings`'s
-      RQ3 status goes from "resolved, unexplained" to a mechanism, and `tab:threats` loses its one
-      row whose control column is empty. §6.4.3 already establishes the difference is fixed rather
-      than per-context (the `UeContext` layout accounts for ~40 kB at 5000 active UEs, orders of
-      magnitude short of the gap), so the profile is what turns "unexplained" into a cause. Note the
-      confound recorded in Phase 11 item 3: the C++ arm links the distribution jemalloc while the
-      Rust arm builds 5.3.1 from source, so part of any metadata difference is two builds of the
-      allocator. Symbolise from the kept binary rather than assuming `jeprof` is on this host.
-- [x] **Fixed 26 Aug 2026, evening.** The places that said allocation profiles were never collected
-      now say they were captured and are unanalysed, which is the truth and keeps the lift visible.
-      Rewrite them again when the analysis lands.
+- [x] **ANALYSED 26 Aug 2026 night, negative result, written into §`sec:hostcompare`.** The
+      profiling build reverses the sign of the peak-RSS difference it was collected to explain,
+      it runs past the saturation plateau, and both flat rankings collapse onto frames that
+      allocate nothing, so it cannot attribute the footprint to a call site. Two positive
+      results survived and are reported: histogram parity to the byte, and the worker path's
+      open-addressed-versus-node-based shape. `tab:threats` now names the reversal rather than
+      an empty control column. Do not re-analyse expecting a call-site attribution.
+- [x] **Fixed 26 Aug 2026, evening, then rewritten when the analysis landed.** The places that
+      said allocation profiles were never collected first said they were captured and unanalysed,
+      then §`sec:hostcompare` reported the negative result.
 - [x] **The profile would have come back empty, and that is now fixed** (20 Aug 2026, found by
       running it in the container rather than on the testbed). Three defects, all in the
       instrument and none of them visible without running it end to end: the distribution
@@ -580,31 +590,35 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       decomposition, and the corrected RQ3 reading. Moved to `archive/` on 18 Aug 2026, where it
       reads as a superseded variant rather than unfinished work. Reviving it means porting the
       generated macros across, not just running bibtex.
-- [ ] `Thesis_v2.tex` - 35-page bullet digest of all eight chapters, useful for a supervisor
-      read-through. The last four were filled on 20 Aug 2026 at the author's request, five
-      bullets each, and the results bullets read `figures/gen_macros.tex` and its two companions
-      instead of holding their own copies of the numbers, so the file has to be rebuilt after
-      `bench/refresh_thesis.sh`. Its abstract is still the template placeholder, "Abstract to be
-      written last."
-- [ ] `Thesis_Plan_v2.tex` - the 5-page plan, reset to a pre-work baseline ("Work has not started
-      yet") and dated 9 Aug 2026. If it is handed in later than that date, the date and the status
-      table have to move together.
-- [ ] Make the title-page fields agree across variants: `Thesis_v2.tex` has
-      `\censors{Keijo Heljanko}{}{}` while `Ha_Vien_Mastersthesis_2026.tex` still has `\censors{}{}{}`. One of the two
-      is wrong, and the same programme/study-track labels are duplicated in four files.
+- [ ] `Thesis_v2.tex` - supervisor read-through of the eight-chapter argument (44 physical pages,
+      37 declared). **Reviewed — supervisor-facing.** Chapter 1 is the full introduction from the
+      draft (copied 27 Aug 2026, cross-refs retargeted). Chapters 2 to 8 keep five argument
+      paragraphs each, as plain prose rather than itemize. Cut from nine chapters to eight on
+      26 Aug 2026 when the standalone Objectives chapter was folded into the introduction.
+      Results paragraphs `\input` the same generated macro files as the full draft, so rebuild
+      after `bench/refresh_thesis.sh`. **Its abstract is still the template placeholder,
+      "Abstract to be written last."** That is open-work item **I**.
+- [ ] `Thesis_Plan_v2.tex` - the plan, dated **28 August 2026**, estimated completion 11 November
+      2026. Status table matches the repo on the campaigns. The September timeline row still
+      says "Abstract, full proofread, draft to supervisors", which is open-work item **J** now
+      that the full-draft abstract is done. Rebuild when the row moves.
+- [x] Title-page fields agree across the two live documents: both use `HYthesisML.cls` with
+      `\supervisors{Prof. Keijo Heljanko, Christoph Luneburg, Petteri Kotimaa}` and
+      `\examiners{Prof. Keijo Heljanko}`. The class prints examiners nowhere. Fill the second
+      examiner when faculty assigns them. The old `\censors{}{}{}` command is retired.
 - [x] Housekeeping: `thesis_wbm_full_backup.tex` was a tracked 208 kB leftover still on
       `\bibliographystyle{abbrv}`, one word different from `Thesis_v2.tex` and easy to edit by
       mistake. Moved to `archive/` on 18 Aug 2026 together with `plain_thesis.tex`, `thesis-vi.tex`,
       the pre-cuts `Ha_Vien_Mastersthesis_2026.tex` backup, and the v1 plan PDF.
 
 ## Phase 10 - Finalization
-- [ ] **BLOCKER — rewrite the abstract unaided.** The abstract of `Ha_Vien_Mastersthesis_2026.tex` was drafted
-      with model assistance. The UH thesis guide states that a language model may not be used
-      when preparing the thesis summary, and in this programme the summary doubles as the
-      maturity test, where AI use is never permitted. `ai_statement.tex` already declares the
-      abstract as written unaided, so that sentence is false until this is done. Rewrite it in
-      your own words from the results, then re-read `ai_statement.tex` end to end and correct
-      anything that does not describe what actually happened — it is a statement in your name.
+- [x] **Rewrite the abstract unaided, then set `\abstractunaidedtrue`.** Done 31 August 2026
+      afternoon. The UH thesis guide states that a language model may not be used when preparing
+      the thesis summary, and in this programme the summary doubles as the maturity test.
+      `ai_statement.tex` now declares the abstract as written unaided, page 96 prints that
+      wording, and the build no longer prints "Not submittable". A model may not flip the switch
+      back. The ten factual defects the unaided rewrite had to settle are the historical list in
+      *Do now*.
 - [x] Declaration of AI use (`ai_statement.tex`), `\input` by both `Ha_Vien_Mastersthesis_2026.tex` and
       `Thesis_v2.tex` before the bibliography, listed in the ToC. Follows the UH basic
       reporting instruction: scope, purpose, tool and version, how the output was verified,
@@ -622,8 +636,10 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
 - [x] Verify all cross-references, citations, tables, figures resolve (0 errors, 0 undefined)
 - [x] Reproducibility check: `bench/refresh_thesis.sh` regenerates every figure, table, and
       quoted number from the raw logs and rebuilds the PDF in one command
-- [ ] Fill `\censors{}{}{}` on the title page once the faculty assigns examiners
-- [ ] Swap the reconstructed `UH_DS_MSc.cls` for the official one (see Notes)
+- [ ] Fill the second `\examiners{}` name once the faculty assigns examiners. The first is
+      already `Prof. Keijo Heljanko`. The class prints the field nowhere.
+- [x] Swap onto the official department class. **Done.** Both live documents load `HYthesisML.cls`.
+      The reconstructed `UH_DS_MSc.cls` in the root is no longer loaded.
 - [x] Rebuild the colloquium deck (`build_deck.py` -> `Rust_vs_Cpp_Nokia_RAN_thesis.pptx`).
       Done Aug 2026, 28 slides. Every measured number is now read at build time from
       `figures/gen_macros.tex`, `figures/gen_complexity.tex`, the `figures/tab_*.tex` bodies the
@@ -658,10 +674,9 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
 Section numbers below use the full draft's current eight-chapter numbering, not the skeleton's.
 
 - [x] **The far tail (§6.4.1's "not measurable on this host") became a real finding.** Pooled
-      p99.99 separates the languages over 32 to 96 kops/s and does not below it, with Rust lower.
-      Reported in §`sec:baremetal`. **But five sites still say it is unresolved**, and one of them
-      is `tab:findings`'s RQ1 row, which is where an examiner reads the verdict. See "Next up"
-      item 4.
+      p99.99 separates the languages with Rust lower. Reported in the main tables, not only in
+      §`sec:baremetal`. The five sites that still said it was unresolved after the first
+      campaign (including `tab:findings`'s RQ1 row) were synced in the 27–30 August passes.
 - [x] **Peak RSS reproduces.** 16 of 16 points significant, same sign, language effect 0.7 to
       1.8 MiB. The prose leaning on it is safe.
 - [x] **FIXED 26 Aug 2026, evening: the peak-RSS *ratio* did not reproduce, and now the thesis says so.** The allocator effect fell
@@ -675,6 +690,10 @@ Section numbers below use the full draft's current eight-chapter numbering, not 
       still larger. Note the confound worth naming while writing it: the C++ arm links the
       distribution jemalloc, which is 5.2.x on Rocky and 5.3.x on Ubuntu, and the Rust arm builds
       5.3.1 from source on both.
+      **Overturned 27 Aug 2026 by the canonical repeat.** The two effects are comparable on both
+      bare-metal hosts (language 1.4--3.5 MiB, allocator 1.5--2.4 MiB). The guest's
+      order-of-magnitude gap belonged to that machine. Never restore "the allocator effect is
+      the larger one". Never quote the ratio between them without naming a host.
 - [x] **FIXED 26 Aug 2026, evening, and this note was wrong about the guest.** The claim above that
       the CPU comparison "clears Holm under the system allocator and reverses under jemalloc" came
       from an earlier campaign. §6.4.3 has for some time reported the below-saturation CPU result as
@@ -706,15 +725,14 @@ Section numbers below use the full draft's current eight-chapter numbering, not 
 - [x] **Fixed 26 Aug 2026, evening.** §`sec:stats` now says the main campaign reports neither and
       the confirmation campaign carries both, with jitter recorded and left undiscussed because no
       research question asks for it. §`sec:threats` splits the two the same way.
-- [ ] **`tab:latency` has not gained its p99.99 column.** `\LatencyCols` and `\LatencyHead` are
-      generated precisely so this needs no preamble edit. The bare-metal campaign records the
-      column. Check the table still fits the text width at six columns.
-- [ ] **Jitter is measured and unreported.** All 32 pooled groups carry `jitter_p50_ns`,
-      `jitter_p99_ns`, `jitter_p999_ns` and `jitter_max_ns`. RQ1 does not name jitter, so nothing
-      is promised and this is an upgrade rather than a hole, but `tab_jitter.tex`'s machinery was
-      proven on 20 Aug and is idle. If it is adopted it needs a float and a caption, plus the
-      `\Jitter*` / `\FarTail*` / `\Iqr*` prose. Keep it descriptive and out of the tested family,
-      for the reason §`sec:stats` already gives.
+- [x] **FIXED 27 Aug 2026 night: `tab:latency` gained its p99.99 column.** The cells are pooled
+      from `<campaign>.hist.pooled.csv` by `pooled_far_tail()`, printed without an interval,
+      and marked with a dagger whose caption says so. A median of per-run p99.99 values was what
+      first filled the column; that is the statistic §4.5 disowns. The generator now returns
+      `None` rather than falling back to the per-run `p9999` field. Do not restore the fallback.
+- [x] **Jitter is measured and reported descriptively.** The table lives in the host-and-campaign
+      appendix and is cited from §6.4.1. RQ1 does not name jitter, so it stays out of the Holm
+      family, for the reason §`sec:stats` already gives. Do not widen RQ1 to name it.
 - [x] **Fixed 26 Aug 2026, evening.** `refresh_thesis.sh` now pools every
       `results-baremetal/campaign-*.hist.jsonl` before calling `baremetal_facts.py`, so the far-tail
       macros can no longer keep stale values silently. It does not pass `--verify`, which is a
@@ -730,19 +748,20 @@ Section numbers below use the full draft's current eight-chapter numbering, not 
 
 ## Phase 11 - Value-adding additions (candidate backlog, 14 Aug 2026)
 
-Everything above treats the bare-metal visit as the gate on the remaining open questions. Three
-of those questions are not actually gated on it. They are gated on **changing a variable rather
-than measuring the same variable better**, and that can be done on the existing KVM guest.
+The bare-metal visit was the gate on the remaining open questions, and it ran on 26 and 27 August.
+Three of those questions were not actually gated on it. They are gated on **changing a variable
+rather than measuring the same variable better**, and that can be done on the existing KVM guest.
 
-The distinction matters for scheduling: the testbed is one visit in September, while these are
-afternoons. Items 1-4 are the ones that change what the thesis can claim; 5-9 are enrichment;
-10-12 are credibility and housekeeping. Nothing here is committed - this is a menu with costs
-attached, not a plan.
+Items 1-4 are the ones that change what the thesis can claim; 5-9 are enrichment; 10-12 are
+credibility and housekeeping. Nothing here was committed as a plan. Several items have since
+landed and are marked DONE in their sections.
 
-> **Status, 14 Aug 2026.** Items 1, 3, 4 and 8 were started in this pass and the
-> harness work for all four is done and verified. Three of them returned results
-> already, and two of those change what the thesis can say. The per-item notes below
-> record what landed and what is still open. Items 2, 5-7 and 9-12 are untouched.
+> **Status, 1 Sep 2026.** The visit happened. Item 2 (jitter + HDR) is done on the reported host.
+> Items 5, 5b and 7 are done. Item 3's jemalloc accounting is in `tab:resident`. Item 4's
+> Loom/Shuttle half is done. Item 8's equivalence table is placed. Still open as optional
+> enrichment: item 1's paired re-run of the three probes on the measurement host, item 6's
+> clang++ arm, item 9's knob sweep, item 11's DOI archive, and the hugepage experiment in *Do now*.
+> The 14 Aug note below is kept as the record of what had started that day.
 
 ### 1. Decompose "language" into language and standard library
 
@@ -878,8 +897,8 @@ Holm family, for the reason §5.5 already gives.
       `--hist-out` and its pooled p99.99 is now reported in §`sec:baremetal`, which is what this
       item existed to make possible. `NTests` still reads 14. Running the same campaign on the KVM
       guest would now buy only a jitter comparison between two hosts, which no research question
-      asks for, so this is closed rather than done. What is still open is *reporting* the jitter
-      that was collected, which is tracked in the post-campaign re-check list above.
+      asks for, so this is closed rather than done. Jitter that was collected is reported in
+      `tab:jitter` (see the post-campaign re-check list above).
 - [ ] **One thing this item warned about now applies to the reported RSS numbers.** `--jitter` costs
       about 264 KiB per producer of peak RSS. The bare-metal campaign ran with it and the guest
       campaign did not, so the two hosts' **absolute** peak RSS figures are not comparable, only
@@ -1343,39 +1362,36 @@ by "the artefacts" once the repository keeps moving after submission.
   and the prose said 11 and 9. `build_deck.py` needed the matching row labels and full-width
   boxes for the two figures that grew wider.
 - Several `diagrams/pdf/*` are likewise unused where TikZ or a table took over the role.
-- `AGENT.md` and `ASSESSMENT.md` both still list `\censors{}{}{}` as the title-page item, but
-  `thesis.tex` now uses `\supervisors` with an unset `\examiners`. Same task, wrong command name
-  in two places.
+- Title-page examiners: both live documents use `\examiners{Prof. Keijo Heljanko}`. The class
+  prints the field nowhere. Fill the second name when faculty assigns examiners. The old
+  `\censors{}{}{}` command is retired.
 
 ---
 
 ### Notes / open questions
-- Timeline: writing and implementation complete, and the bare-metal campaign ran on 26 August,
-  ahead of the plan's September slot. Remaining work is spec freeze, the sync editing the campaign
-  created, supervisor review, and submission. `Thesis_Plan_v2.pdf` still schedules measurement for
-  September in its timeline table while its status paragraph records the campaign as run; those two
-  have to move together before the plan goes out again.
-- Current artefact status (verified 26 Aug 2026): spec + C++/Rust implementations + conformance
-  suite + bench/fault/ffi harnesses + generated figures/tables + a **103-page** thesis PDF (117
-  physical). All green on `spec/conformance/run.sh`, `ctest`, `cargo test`,
-  `faults/run_faults.sh`, `ffi/build.sh`.
-- **Remaining critical path:** (1) supervisor review → spec v1.0 freeze, (2) the fourteen sync
-  edits the campaign created, about three hours, (3) analyse the allocation profile and add the CPU
-  macros, about a day, (4) repeat the bare-metal campaign at the canonical configuration and
-  toolchain, about two hours, (5) rewrite the abstract unaided, (6) final proofread + submission.
-  Only (4) needs anything the author does not already have.
-- Overfull boxes are **zero** as of 26 Aug 2026, so the abstract-page overflow this note used to
-  record is fixed. The abstract box is still full to the line, so check page 3 visually after
-  editing it.
-- Two load-bearing citations are still arXiv preprints rather than peer-reviewed work (Bugden and
-  Alahmar for "Rust matches C/C++ on performance", Zhang et al. for deadlock detection). Optional,
-  but replacing either removes the last soft spot in the bibliography. See `ASSESSMENT.md`
-  criterion 2.
-- `UH_DS_MSc.cls` is a LOCAL RECONSTRUCTION adapted from `UH_TCM_MSc.cls` (which states it
-  is "based heavily on the UH_DS_MSc.cls"). It defines every command Ha_Vien_Mastersthesis_2026.tex uses
-  (`\prof`, `\censors`, `\mytableofcontents`, `\mynomenclature`, `\myappendixtitle`,
-  `\depositeplace`, `\additionalinformation`, `\quoting`, `\keywords`, `\classification`).
-  The genuine class lives behind the UH Overleaf/Moodle login; swap it in for final submission.
+- Timeline: writing, implementation, and both bare-metal campaigns are complete (26 and 27 August),
+  ahead of the plan's September slot. Remaining work is spec freeze on supervisor review, the
+  author's proofread, sending the bundle, and submission. `Thesis_Plan_v2.tex` is dated 28 August.
+  Its September row still says "Abstract"; that is open-work item **J**.
+- Current artefact status (verified 31 Aug 2026): spec + C++/Rust implementations + conformance
+  suite + bench/fault/ffi harnesses + generated figures/tables + a **95-page** thesis PDF plus 12
+  appendix pages (115 physical). Class is `HYthesisML.cls`. All green on `spec/conformance/run.sh`,
+  `ctest`, `cargo test`, `faults/run_faults.sh`. `ffi/build.sh` is a measurement: do not re-run it
+  on a loaded machine without restoring `ffi/results/` afterwards (AGENT.md §5).
+- **Remaining critical path:** (1) send spec + plan to supervisors and settle Nokia publishability
+  (**B**), (2) full proofread (**D**), (3) optional transparent-hugepage experiment (**E**),
+  (4) `Thesis_v2.tex` abstract (**I**) and plan September row (**J**), (5) final PDF + submission.
+  Spec v1.0 freeze still waits on supervisor review. The abstract rewrite, the canonical repeat,
+  the allocation-profile analysis, and the class-file swap are **done**.
+- Overfull boxes are **zero** as of 31 Aug 2026, including during `\output`. The abstract box is
+  still full to the line, so check page 3 visually after editing it. CCS ends 9 pt above the
+  keyword row.
+- One load-bearing citation is still an arXiv preprint rather than peer-reviewed work (Bugden and
+  Alahmar for "Rust matches C/C++ on performance"). Zhang et al. for deadlock detection is now
+  the journal version (`zhang2026deadlock`). Optional: replace Bugden. See `ASSESSMENT.md`
+  criterion 2 and open-work item **K**.
+- The document builds on the department's `HYthesisML.cls`. The reconstructed `UH_DS_MSc.cls` in
+  the root is no longer loaded. Keep the reconstruction only as a historical artefact.
 - `\mynomenclature` is a no-op here (the `nomencl` package clashes with hyperref/report in
   this class family and is disabled upstream too); it just switches page numbering to arabic.
 - Cover/abstract programme is set to "Master's Programme in Computer Science" (English),
