@@ -4364,8 +4364,8 @@ positions, which Section~\ref{sec:relatedwork} then answers against the studies 
 The performance strand is settled on the average case. Compiled systems languages sit close on
 time and energy~\cite{bugden2022rust,pereira2017energy}, Rust's safety is cheap at run
 time~\cite{balasubramanian2017rust,levy2017kernel}, and that holds where timing is tightest, in
-embedded hypervisors, production cloud infrastructure, and packet processing within a few percent
-of a C reference~\cite{mo2023rustshyper,agache2020firecracker,emmerich2019drivers,xiao2024rpkt}.
+embedded hypervisors and in packet processing within a few percent of a C
+reference~\cite{mo2023rustshyper,emmerich2019drivers,xiao2024rpkt}.
 Where a cost does appear it has been pinned down: to bounds, overflow and division checks, to
 that same check set against hardware-enforced capabilities, and to recurring
 anti-patterns~\cite{zhang2022runtime,harris2023morello,cui2025perfbugs}. One like-for-like port
