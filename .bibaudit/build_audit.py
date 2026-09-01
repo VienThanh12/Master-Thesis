@@ -33,6 +33,17 @@ EVIDENCE = ROOT / "docs" / "Sources_evidence.md"
 SWEEPS = ROOT / "docs" / "LITERATURE_NOTES.md"
 OUT = ROOT / "source_audit.tex"
 
+# Part 1's tick column is the one thing in the generated document a human writes, so it is the
+# one thing a regeneration must not destroy. The ticks are read back out of the previous
+# source_audit.tex and mirrored here, so an accidental delete or a checkout does not lose them.
+REVIEWED = Path(__file__).resolve().parent / "reviewed.txt"
+
+REVIEWED_KEYS: set[str] = set()
+
+# Matches a Part 1 row far enough to recover its key and its tick, and nothing else.
+TICK_ROW = re.compile(r"(?m)^\d+ [^\n]*?\\texttt\{\\small ([^}]+)\}[^\n]*?"
+                      r"\$\\(square|blacksquare)\$ \\\\$")
+
 # The three documents that cite this bibliography, with the short label used in the audit and
 # the .bbl that fixes their printed numbering. Order matters: the first is the audit's spine.
 DOCUMENTS = [
@@ -49,6 +60,36 @@ ACTIVE = DOCUMENTS[:1]
 
 def multi() -> bool:
     return len(ACTIVE) > 1
+
+
+def read_review_marks() -> set[str]:
+    """Recover the author's review ticks from the document about to be overwritten.
+
+    The previous source_audit.tex wins when it exists, because that is where the ticks are
+    made and it is the only copy that can record one being taken back. The sidecar is the
+    fallback, for when the document has been deleted rather than edited.
+    """
+    held: set[str] = set()
+    if REVIEWED.exists():
+        held = {line.strip() for line in REVIEWED.read_text(encoding="utf-8").splitlines()
+                if line.strip() and not line.startswith("#")}
+    if OUT.exists():
+        rows = TICK_ROW.findall(OUT.read_text(encoding="utf-8"))
+        if rows:
+            printed = {key for key, _ in rows}
+            ticked = {key for key, tick in rows if tick == "blacksquare"}
+            # A key that had a row and lost its tick was unticked deliberately, so it does not
+            # come back from the sidecar. A key with no row at all was out of scope last run,
+            # and its tick is held so that recovering the citation recovers the review too.
+            return ticked | (held - printed)
+    return held
+
+
+def write_review_marks(keys: set[str]) -> None:
+    header = ("# Entries ticked as reviewed in Part 1 of source_audit.tex.\n"
+              "# Mirrored by .bibaudit/build_audit.py so the ticks survive the document being\n"
+              "# regenerated or deleted. Edit the tick in source_audit.tex, not here.\n")
+    REVIEWED.write_text(header + "".join(k + "\n" for k in sorted(keys)), encoding="utf-8")
 
 CITE = re.compile(r"\\(?:cite|citep|citet|textcite|parencite|autocite|footcite)\*?"
                   r"(?:\[[^\]]*\])*\{([^}]*)\}")
@@ -758,9 +799,15 @@ def sentence_to_tex(sentence: str, numbering: dict) -> str:
 
 # --------------------------------------------------------------------------- LaTeX emission
 
-PREAMBLE = r"""%% GENERATED FILE. Do not edit.
+PREAMBLE = r"""%% GENERATED FILE. Do not edit, with one exception.
 %% Written by .bibaudit/build_audit.py. Regenerate instead of correcting by hand:
 %%     .bibaudit/build_audit.py && latexmk -pdf source_audit.tex
+%%
+%% The exception is Part 1's last column, which is the author's review tick. Change a
+%% $\square$ to a $\blacksquare$ to record that an entry has been checked. The generator
+%% reads those ticks back before it overwrites this file and reprints them, and mirrors
+%% them to .bibaudit/reviewed.txt so they survive the file being deleted. Everything else
+%% here is derived, so a hand edit to it is lost on the next run.
 %%
 %% Every reference below is printed by biblatex from bibliography.bib. Every printed
 %% citation number is read from the corresponding .bbl. Every citing sentence is copied
@@ -988,7 +1035,7 @@ def part1(bib, records, spine, numbering, total_sites) -> str:
             str(total_sites[key]),
             level,
             "{\\small " + status_of(rec) + "}",
-            "$\\square$",
+            "$\\blacksquare$" if key in REVIEWED_KEYS else "$\\square$",
         ]
         rows.append(" & ".join(cells) + r" \\")
 
@@ -1428,11 +1475,19 @@ def main() -> int:
                 print(f"  L{s['line']} {s['section']}: {s['sentence'][:150]}")
         return 0
 
+    global REVIEWED_KEYS
+    REVIEWED_KEYS = read_review_marks()
+
     OUT.write_text(build_document(bib, records, sites_by_doc, numbering, spine), encoding="utf-8")
+    write_review_marks(REVIEWED_KEYS)
     n_rec = sum(1 for k in spine if k in records)
     scope = ", ".join(label for _, _, label in ACTIVE)
     print(f"wrote {OUT.relative_to(ROOT)}: {len(spine)} entries, {n_rec} with an evidence record, "
           f"{sum(len(v) for v in sites_by_doc.values())} citation sites")
+    carried = len(REVIEWED_KEYS & set(spine))
+    held = len(REVIEWED_KEYS) - carried
+    print(f"review ticks: {carried} of {len(spine)} entries marked reviewed, carried over"
+          + (f" ({held} held for keys not currently cited)" if held else ""))
     print(f"scope: {scope}"
           + ("" if multi() else "  (pass --all-documents to add Thesis_v2 and the plan)"))
     print(f"prose style: {DASH_KEPT} dashes and {SEMI_KEPT} semicolons left standing inside "
