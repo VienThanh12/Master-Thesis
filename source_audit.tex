@@ -1,6 +1,12 @@
-%% GENERATED FILE. Do not edit.
+%% GENERATED FILE. Do not edit, with one exception.
 %% Written by .bibaudit/build_audit.py. Regenerate instead of correcting by hand:
 %%     .bibaudit/build_audit.py && latexmk -pdf source_audit.tex
+%%
+%% The exception is Part 1's last column, which is the author's review tick. Change a
+%% $\square$ to a $\blacksquare$ to record that an entry has been checked. The generator
+%% reads those ticks back before it overwrites this file and reprints them, and mirrors
+%% them to .bibaudit/reviewed.txt so they survive the file being deleted. Everything else
+%% here is derived, so a hand edit to it is lost on the next run.
 %%
 %% Every reference below is printed by biblatex from bibliography.bib. Every printed
 %% citation number is read from the corresponding .bbl. Every citing sentence is copied
@@ -77,7 +83,7 @@
 claim sits in the source}
 \author{Ha Vien}
 
-\date{Generated 2026-08-31}
+\date{Generated 2026-09-01}
 
 \begin{document}
 \maketitle
@@ -183,7 +189,7 @@ column as you check.
 19 & \texttt{\small cisa2023memorysafe} & {\small Cybersecurity and\ldots{} 2023} & {\small standard} & 3 & A & {\small note} & $\blacksquare$ \\
 20 & \texttt{\small oncd2024building} & {\small Office of the National Cyber\ldots{} 2024} & {\small standard} & 3 & A & {\small ok} & $\blacksquare$ \\
 21 & \texttt{\small eu2024cra} & {\small European Parliament and\ldots{} 2024} & {\small regulation} & 1 & A & {\small note} & $\blacksquare$ \\
-22 & \texttt{\small agache2020firecracker} & {\small Agache et al. 2020} & {\small peer reviewed} & 2 & A & {\small note} & $\square$ \\
+22 & \texttt{\small agache2020firecracker} & {\small Agache et al. 2020} & {\small peer reviewed} & 1 & A & {\small note} & $\square$ \\
 23 & \texttt{\small delloro2025ran3q} & {\small Dell'Oro Group 2025} & {\small grey} & 1 & A & {\small ok} & $\blacksquare$ \\
 24 & \texttt{\small delloro2026ran} & {\small Dell'Oro Group 2026} & {\small grey} & 1 & A & {\small ok} & $\square$ \\
 25 & \texttt{\small 3gpp2024road6g} & {\small Almodovar 2024} & {\small grey} & 1 & A & {\small ok} & $\square$ \\
@@ -455,7 +461,7 @@ each located by the chapter or section it sits in.
 \begin{citedsentence}\textbf{\small Section 2.4.}\enspace Rust is the first widely supported language to combine compile-time memory and thread safety with the absence of a garbage collector and throughput and memory use alongside C and C++~\citemark{12, 39, 44}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 7.2.}\enspace The median result is consistent with the wider evidence that Rust's safety checks are largely absorbed by modern out-of-order CPUs~\citemark{12, 71}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 7.5.}\enspace The ``zero-cost'' framing~\citemark{12} is therefore best read as neither established nor refuted in general, but as a property of a particular program on a particular workload.\end{citedsentence}
-\begin{citedsentence}\textbf{\small Appendix B.}\enspace Compiled systems languages sit close on time and energy~\citemark{44, 91}, Rust's safety is cheap at run time~\citemark{12, 92}, and that holds where timing is tightest, in embedded hypervisors, production cloud infrastructure, and packet processing within a few percent of a C reference~\citemark{93, 22, 71, 94}.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Appendix B.}\enspace Compiled systems languages sit close on time and energy~\citemark{44, 91}, Rust's safety is cheap at run time~\citemark{12, 92}, and that holds where timing is tightest, in embedded hypervisors and in packet processing within a few percent of a C reference~\citemark{93, 71, 94}.\end{citedsentence}
 \afield{Claim it carries}{the zero-cost framing, and as of the 31 August citation-attachment pass, Chapter 1's clause on performance intended to be competitive with C++}
 \afield{Source says}{}
 \begin{saidquote}(Crossref-deposited abstract): \enquote{Rust is unique in that it \textbf{enforces safety without runtime overhead}, most importantly, without the overhead of garbage collection. While \textbf{zero-cost safety} is remarkable on its own, we argue that the superpowers of Rust go beyond safety. In particular, Rust's linear type system enables capabilities that cannot be implemented efficiently in traditional languages, both safe and unsafe.}\end{saidquote}
@@ -560,14 +566,13 @@ each located by the chapter or section it sits in.
 \auditentry{22}{agache2020firecracker}{peer reviewed, level~A}
 \afield{Reference}{\fullcite{agache2020firecracker}}
 \afield{Entry}{\href{https://www.usenix.org/conference/nsdi20/presentation/agache}{source page}.}
-\afield{Cited in}{2 places.}
+\afield{Cited in}{1 place.}
 \begin{citedsentence}\textbf{\small Section 1.1.}\enspace Production hypervisors such as AWS Firecracker, which underpins its serverless platform, are already written in Rust~\citemark{22}.\end{citedsentence}
-\begin{citedsentence}\textbf{\small Appendix B.}\enspace Compiled systems languages sit close on time and energy~\citemark{44, 91}, Rust's safety is cheap at run time~\citemark{12, 92}, and that holds where timing is tightest, in embedded hypervisors, production cloud infrastructure, and packet processing within a few percent of a C reference~\citemark{93, 22, 71, 94}.\end{citedsentence}
 \afield{Claim it carries}{production hypervisors such as AWS Firecracker, which underpins its serverless platform, are already written in Rust}
 \afield{Source says}{}
 \begin{saidquote}(\texttt{nsdi20-paper-agache.pdf}): p. 5. \enquote{Firecracker contains \textbf{approximately 50k lines of Rust code} (96\% fewer lines than QEMU)}, p. 13. \enquote{The use of virtualization, along with side-channel hardening, \textbf{implementation in Rust}, extensive testing and validation\ldots{}} and \enquote{We have been \textbf{running Lambda workloads in production on Firecracker since 2018}.}\end{saidquote}
 \afield{Metadata}{[wrong] \textbf{missing author}. The USENIX proceedings page and the paper's title page both read: \enquote{Alexandru Agache, Marc Brooker, \textbf{Andreea Florescu}, Alexandra Iordache, Anthony Liguori, Rolf Neugebauer, Phil Piwonka, and Diana-Maria Popa, Amazon Web Services.} The entry has seven of those eight. Pages 419--434 confirmed by DBLP. (DBLP also omits Florescu, the proceedings page is the better authority.)}
-\afield{Verdict}{Claim verified. \textbf{add Andreea Florescu} (fix \#2).}
+\afield{Verdict}{Claim verified. \textbf{add Andreea Florescu} (fix \#2, applied). Appendix B's performance-strand cluster carried a second citation until 1 September 2026. It was the only member of that cluster with no language-controlled baseline (Rust-Shyper, Emmerich and rpkt each report against a C reference, Firecracker reports against QEMU), and the claim verified above is adoption rather than performance, so it was removed there on the author's call. The list item \enquote{production cloud infrastructure} went with it, since this was its only source. \textbf{Do not restore it to a performance cluster.}}
 \afield{Record}{Sources\_evidence.md, entry record.}
 \auditentry{23}{delloro2025ran3q}{grey, level~A}
 \afield{Reference}{\fullcite{delloro2025ran3q}}
@@ -818,7 +823,7 @@ each located by the chapter or section it sits in.
 \afield{Entry}{DOI \href{https://doi.org/10.48550/arXiv.2206.05503}{\texttt{10.48550/arXiv.2206.05503}}.}
 \afield{Cited in}{2 places.}
 \begin{citedsentence}\textbf{\small Section 2.4.}\enspace Rust is the first widely supported language to combine compile-time memory and thread safety with the absence of a garbage collector and throughput and memory use alongside C and C++~\citemark{12, 39, 44}.\end{citedsentence}
-\begin{citedsentence}\textbf{\small Appendix B.}\enspace Compiled systems languages sit close on time and energy~\citemark{44, 91}, Rust's safety is cheap at run time~\citemark{12, 92}, and that holds where timing is tightest, in embedded hypervisors, production cloud infrastructure, and packet processing within a few percent of a C reference~\citemark{93, 22, 71, 94}.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Appendix B.}\enspace Compiled systems languages sit close on time and energy~\citemark{44, 91}, Rust's safety is cheap at run time~\citemark{12, 92}, and that holds where timing is tightest, in embedded hypervisors and in packet processing within a few percent of a C reference~\citemark{93, 71, 94}.\end{citedsentence}
 \afield{Claim it carries}{cross-language benchmark surveys place Rust alongside C and C++}
 \afield{Source says}{}
 \begin{saidquote}(arXiv PDF, p. 1, abstract): \enquote{we \textbf{surveyed and analyzed recent research on Rust and research that benchmarks Rust with other available prominent programming languages} \ldots{} recent experimental results in benchmarking research show Rust's overall superiority\ldots{}}\end{saidquote}
@@ -1175,7 +1180,7 @@ each located by the chapter or section it sits in.
 \begin{citedsentence}\textbf{\small Section 7.5.}\enspace Its safety checks are absorbed by out-of-order execution, not literally free~\citemark{71}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 7.5.}\enspace None is unoccupied on its own, as the matched implementations~\citemark{71, 82, 83, 84, 85, 89, 56}, the percentile sweep stopping at a latency requirement~\citemark{55} and the effort measurements~\citemark{52, 78} all show.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 7.6.}\enspace Three findings have published company: median equivalence below saturation, with matched pairs in three settings putting safe Rust within single-digit percentages of its C or C++ counterpart~\citemark{71, 82, 85}, a cross-thread handoff dominating the end-to-end cost~\citemark{65}, and most of RQ2's boundary classes, which the literature already documents.\end{citedsentence}
-\begin{citedsentence}\textbf{\small Appendix B.}\enspace Compiled systems languages sit close on time and energy~\citemark{44, 91}, Rust's safety is cheap at run time~\citemark{12, 92}, and that holds where timing is tightest, in embedded hypervisors, production cloud infrastructure, and packet processing within a few percent of a C reference~\citemark{93, 22, 71, 94}.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Appendix B.}\enspace Compiled systems languages sit close on time and energy~\citemark{44, 91}, Rust's safety is cheap at run time~\citemark{12, 92}, and that holds where timing is tightest, in embedded hypervisors and in packet processing within a few percent of a C reference~\citemark{93, 71, 94}.\end{citedsentence}
 \afield{Claim it carries}{most sharply at : \enquote{running 4 \% slower than its C reference while executing 63 \% more instructions per packet}}
 \afield{Source says}{}
 \begin{saidquote}(arXiv 1909.06344, p. 1, abstract): \enquote{Out-of-order CPUs mitigate the cost of safety checks: \textbf{Our Rust driver executes 63\% more instructions per packet but is only 4\% slower than a reference C implementation.}} Table 9 (p. 11) gives the normalised results (Rust 98 \% of C).\end{saidquote}
@@ -1403,7 +1408,7 @@ each located by the chapter or section it sits in.
 \afield{Reference}{\fullcite{pereira2017energy}}
 \afield{Entry}{DOI \href{https://doi.org/10.1145/3136014.3136031}{\texttt{10.1145/3136014.3136031}}.}
 \afield{Cited in}{1 place.}
-\begin{citedsentence}\textbf{\small Appendix B.}\enspace Compiled systems languages sit close on time and energy~\citemark{44, 91}, Rust's safety is cheap at run time~\citemark{12, 92}, and that holds where timing is tightest, in embedded hypervisors, production cloud infrastructure, and packet processing within a few percent of a C reference~\citemark{93, 22, 71, 94}.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Appendix B.}\enspace Compiled systems languages sit close on time and energy~\citemark{44, 91}, Rust's safety is cheap at run time~\citemark{12, 92}, and that holds where timing is tightest, in embedded hypervisors and in packet processing within a few percent of a C reference~\citemark{93, 71, 94}.\end{citedsentence}
 \afield{Claim it carries}{compiled systems languages sit close together on time and energy, from general-purpose benchmarks reporting average-case behaviour}
 \afield{Source says}{}
 \begin{saidquote}(Table 4, \enquote{Normalized global results for Energy, Time, and Memory}, p. 263): C is the 1.00 baseline on both axes, \textbf{Rust is 1.03 energy and 1.04 time}, Go 1.05, C++ 1.34 energy and 1.56 time. The study covers \enquote{twenty seven well-known software languages} over \enquote{ten different programming problems}, which is the general-purpose average-case design the thesis attributes to it.\end{saidquote}
@@ -1414,7 +1419,7 @@ each located by the chapter or section it sits in.
 \afield{Reference}{\fullcite{levy2017kernel}}
 \afield{Entry}{DOI \href{https://doi.org/10.1145/3124680.3124717}{\texttt{10.1145/3124680.3124717}}.}
 \afield{Cited in}{1 place.}
-\begin{citedsentence}\textbf{\small Appendix B.}\enspace Compiled systems languages sit close on time and energy~\citemark{44, 91}, Rust's safety is cheap at run time~\citemark{12, 92}, and that holds where timing is tightest, in embedded hypervisors, production cloud infrastructure, and packet processing within a few percent of a C reference~\citemark{93, 22, 71, 94}.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Appendix B.}\enspace Compiled systems languages sit close on time and energy~\citemark{44, 91}, Rust's safety is cheap at run time~\citemark{12, 92}, and that holds where timing is tightest, in embedded hypervisors and in packet processing within a few percent of a C reference~\citemark{93, 71, 94}.\end{citedsentence}
 \afield{Claim it carries}{inside a list, that Rust's safety is cheap at run time in kernel settings}
 \afield{Source says}{}
 \begin{saidquote}(deposited abstract): \enquote{Previous efforts towards this end concluded that writing a kernel requires changing Rust. This paper reaches a different conclusion, that \textbf{no changes to Rust are needed and a kernel can be implemented with a very small amount of unsafe code}.}\end{saidquote}
@@ -1424,7 +1429,7 @@ each located by the chapter or section it sits in.
 \afield{Reference}{\fullcite{mo2023rustshyper}}
 \afield{Entry}{DOI \href{https://doi.org/10.1016/j.sysarc.2023.102948}{\texttt{10.1016/j.sysarc.2023.102948}}.}
 \afield{Cited in}{1 place.}
-\begin{citedsentence}\textbf{\small Appendix B.}\enspace Compiled systems languages sit close on time and energy~\citemark{44, 91}, Rust's safety is cheap at run time~\citemark{12, 92}, and that holds where timing is tightest, in embedded hypervisors, production cloud infrastructure, and packet processing within a few percent of a C reference~\citemark{93, 22, 71, 94}.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Appendix B.}\enspace Compiled systems languages sit close on time and energy~\citemark{44, 91}, Rust's safety is cheap at run time~\citemark{12, 92}, and that holds where timing is tightest, in embedded hypervisors and in packet processing within a few percent of a C reference~\citemark{93, 71, 94}.\end{citedsentence}
 \afield{Source says}{}
 \begin{saidquote}Elsevier paywall, title-level support for \enquote{embedded hypervisor in Rust}.\end{saidquote}
 \afield{Metadata}{[verified] Crossref matches, including the article number as page.}
@@ -1434,7 +1439,7 @@ each located by the chapter or section it sits in.
 \afield{Reference}{\fullcite{xiao2024rpkt}}
 \afield{Entry}{DOI \href{https://doi.org/10.1007/978-981-96-2864-3_36}{\texttt{10.1007/978-981-96-2864-3\_36}}.}
 \afield{Cited in}{1 place.}
-\begin{citedsentence}\textbf{\small Appendix B.}\enspace Compiled systems languages sit close on time and energy~\citemark{44, 91}, Rust's safety is cheap at run time~\citemark{12, 92}, and that holds where timing is tightest, in embedded hypervisors, production cloud infrastructure, and packet processing within a few percent of a C reference~\citemark{93, 22, 71, 94}.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Appendix B.}\enspace Compiled systems languages sit close on time and energy~\citemark{44, 91}, Rust's safety is cheap at run time~\citemark{12, 92}, and that holds where timing is tightest, in embedded hypervisors and in packet processing within a few percent of a C reference~\citemark{93, 71, 94}.\end{citedsentence}
 \afield{Claim it carries}{packet processing within a few percent of a C reference}
 \afield{Source says}{}
 \begin{saidquote}Springer paywall, title-level support (\enquote{Generic, Safe, and Efficient Userspace Packet Processing Library in Rust}). The \enquote{few percent} half of the sentence is carried by \texttt{emmerich2019drivers}, which is verified above and cited alongside.\end{saidquote}
@@ -1708,7 +1713,7 @@ No located passage & 0 \\
 \vspace{1em}
 
 Every entry in the bibliography is cited, so there is no orphan and no citation without an
-entry. The thesis carries 172 citation commands naming 259 works between
+entry. The thesis carries 172 citation commands naming 258 works between
 them, since one command often cites several.
 72 entries (66\,\%) are in peer-reviewed venues.
 
