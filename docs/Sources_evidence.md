@@ -787,13 +787,19 @@ read: "Alexandru Agache, Marc Brooker, **Andreea Florescu**, Alexandra Iordache,
 Rolf Neugebauer, Phil Piwonka, and Diana-Maria Popa, Amazon Web Services." The entry has seven of
 those eight. Pages 419–434 confirmed by DBLP. (DBLP also omits Florescu — the proceedings page is
 the better authority.)
-**Cited** `Ha_Vien_Mastersthesis_2026.tex:355, 3632` — production hypervisors such as AWS Firecracker, which
-underpins its serverless platform, are already written in Rust.
+**Cited** `Ha_Vien_Mastersthesis_2026.tex` §1.1 and `Thesis_v2.tex` §1.1 — production hypervisors such as
+AWS Firecracker, which underpins its serverless platform, are already written in Rust.
 **Evidence — level A** (`nsdi20-paper-agache.pdf`): p. 5 — "Firecracker contains **approximately
 50k lines of Rust code** (96% fewer lines than QEMU)"; p. 13 — "The use of virtualization, along
 with side-channel hardening, **implementation in Rust**, extensive testing and validation…" and
 "We have been **running Lambda workloads in production on Firecracker since 2018**."
-**Verdict** Claim verified; **add Andreea Florescu** (fix #2).
+**Verdict** Claim verified; **add Andreea Florescu** (fix #2, applied). Appendix B's
+performance-strand cluster carried a second citation until 1 September 2026. It was the only member
+of that cluster with no language-controlled baseline (Rust-Shyper, Emmerich and rpkt each report
+against a C reference, Firecracker reports against QEMU), and the claim verified above is adoption
+rather than performance, so it was removed there on the author's call. The list item "production
+cloud infrastructure" went with it, since this was its only source. **Do not restore it to a
+performance cluster.**
 
 ### `narayanan2020redleaf` — RedLeaf, OSDI 2020, 21–39
 **Metadata** ✔ DBLP confirms pages **21–39** and the seven-author list as entered.
