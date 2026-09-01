@@ -2511,19 +2511,21 @@ performs.\label{fig:budget}}
 \end{figure}
 
 The attribution needs care, because the obvious reading is the wrong one. Nothing here
-implicates the borrow checker, bounds checking, or ownership. The most likely source is
+implicates the borrow checker, bounds checking, or ownership. The candidate is
 already recorded in the forced-idiom log of Table~\ref{tab:idioms}. The per-shard container is
 each language's standard hash map, and those are different data structures. C++'s
 \texttt{std::unordered\_map} has to be node-based to keep its iterator- and reference-stability
 guarantees, so a lookup chases a pointer out of the bucket array into a separately allocated
 node. Rust's \texttt{HashMap} is an open-addressed table that keeps entries inline and
 usually resolves a lookup within one cache line. The hash function is pinned to FNV-1a on both
-sides (Section~\ref{sec:impldetails}) precisely so that hashing could not be the explanation,
-which leaves the container layout. That is a real and reportable difference between the two
+sides (Section~\ref{sec:impldetails}) precisely so that hashing could not be the explanation.
+That is a real and reportable difference between the two
 languages as they are actually used, because a developer reaching for the standard hash map gets
 whichever one their language ships. It is not evidence about Rust's safety model and should
-not be quoted as such. Confirming the mechanism would need the cache-miss counters
-Section~\ref{sec:threats} lists as the clearest instrumentation gap.
+not be quoted as such. Section~\ref{sec:baremetal} replaces this structural argument with a
+measurement, and the counters qualify it: the Rust build retires fewer instructions in fewer
+cycles while missing cache more often per thousand instructions, so what they support is less
+work per operation rather than the better locality the paragraph above would predict.
 
 Two limits keep the finding the size it is. It is a single-threaded, uncontended
 microbenchmark, so it says what the operation costs and not what a loaded system does with it, and
