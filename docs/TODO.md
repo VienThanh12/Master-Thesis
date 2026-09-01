@@ -106,11 +106,15 @@ you have already decided to spend that sync pass.
 colloquium is a date, not a build (**N**). Your proofread is the only remaining risk no agent
 can take (**D**).
 
-**Leave in Phase 11 as a menu, do not promote.** Paired re-run of the three attribution probes,
-the dispatch/request-size probe, a clang++/libc++ arm, a DOI archive, a power calculation, the
-3GPP-anchored rate calibration, raising `DEADLOCK_REPEATS`, and re-measuring
-`latency_budget.json` on bare metal (the file in `results-baremetal/` is still a guest copy;
-the op-scope counters already do that job). Each is a real question. None of them holds a grade.
+**Scoped separately, in *Going deeper* below.** The attribution probes, the dispatch and
+request-size probe, the clang++ arm, the second workload and the independent implementation review
+are ranked there against what each buys and what each costs. None of them holds a grade, and one
+of them is the deepest work left in the project.
+
+**Leave in Phase 11 as a menu.** A DOI archive, a power calculation, the 3GPP-anchored rate
+calibration, raising `DEADLOCK_REPEATS`, and re-measuring `latency_budget.json` on bare metal. That
+last file in `results-baremetal/` is still a guest copy, and the op-scope counters already do its
+job, so removing it would be as honest as re-measuring it.
 
 **Do not add.** `isolcpus`, a derived representative load, a fallback from pooled p99.99 to the
 per-run field, a sixth paragraph in `Thesis_v2.tex` chapters 2--8, a model-written abstract, or
@@ -255,7 +259,7 @@ sentence length 21.4 ± 11.6. Diagram labels clean. The deck passes both `check_
 84 *grew* its bottom gap from 627pt to 642pt as words came out of the paragraphs feeding it. Do not
 attack that page from the prose side. If pages are wanted there they have to come from a float in
 §6.4.5. Under 100 remains a preference and substance won here. The 95 figure is the class counting
-main matter; the document is not shorter.
+main matter, so the document is not shorter than it was.
 
 **One trap worth carrying:** `tab:threats` overflowed its page by 79pt when a fifteenth row landed.
 Tightening four cells recovered half and `\arraystretch` 1.25 to 1.15 recovered the rest. That table
@@ -283,6 +287,143 @@ proofread (**D**), sending the bundle (**B**), and the hugepage experiment (**E*
 candidate should become a finding. After any further editing round, run a reader who was not told
 what changed: that is the operating rule in `AGENT.md` §2, and it is how 49 of the day's 69 defects
 were found.
+
+---
+
+## Going deeper (scoped 1 Sep 2026)
+
+The grade is closed, so everything below is a research choice and not a repair. Two rules govern
+what belongs here. **Depth that lands new numbers costs a sync pass**, because the repository's own
+history says a campaign regenerates its macros cleanly and the sentences around them are not
+re-read, which cost a grade point twice in two days. **Depth that lands no numbers is nearly free**,
+and there is more of it available than the backlog suggests.
+
+### D0. The attribution correction — DONE 1 Sep 2026
+
+§7.5.2 ended its core-operation attribution with "Confirming the mechanism would need the
+cache-miss counters Section~\ref{sec:threats} lists as the clearest instrumentation gap", while
+§6.4.4 opens "Counters turn that argument into a measurement". The counters were collected on 26
+and 27 August. `sec:threats` no longer lists them as a gap. **This was the fifth site of the class
+the 26 August remediation closed four instances of**, and it survived because the owning section was
+correct and only the earlier derivation site was stale, which is the shape no gate and no macro
+recomputation catches.
+
+Fixed by pointing forward to §6.4.4 and by stating what the counters support, which is less work
+per operation, rather than the better locality the structural paragraph predicts. Two further
+changes went with it. "The most likely source" became "The candidate", and the elimination step
+"which leaves the container layout" is gone, because `spec/SPECIFICATION.md` §12 records that the
+open-addressed substitution probe closes only about 15 per cent of the gap and says in as many words
+that the thesis should not lean on the node-based account. `Thesis_v2.tex` does not carry the claim,
+so no sync was needed. Build after the edit: 95 declared pages plus 12 appendix, zero errors, zero
+undefined references, zero `Overfull`, zero semicolons.
+
+**Still open in the same family.** The revised paragraph no longer concludes by elimination, but it
+still presents the container as the candidate. If D1 runs, revisit it then.
+
+### D1. The fourth substitution probe, the last untested candidate
+
+**Why.** The overload divergence is the largest language effect in the tested family and the most
+reproducible effect in the study, and `tab:threats` still concedes it is attributed but not
+localised. Three probes have come back negative. The open-addressed map closes a minority of the
+core-operation gap, the Rust mutex-and-condvar queue closes none of the overload divergence, and the
+C++ preallocated ring closes none either, which exonerates the queue on design and on allocation
+both. `spec/SPECIFICATION.md` §12 names what is left: **the tagged-struct dispatch and the 160-byte
+C++ `Request` against Rust's 96.**
+
+**What to build.** A C++ `Request` carrying only the arguments of the operation in flight, either a
+`std::variant` of per-operation argument structs or a discriminated union, keeping the tagged
+dispatch so that only size moves. It must stay behind a build flag, pass every test binary, and keep
+byte-for-byte transcript parity on all seven vectors, so the compared pair does not move.
+
+**How to run it.** Through `bench/campaign.sh` at the overload point, interleaved and paired, on the
+measurement host. The three existing probes are unpaired WSL2 runs marked indicative only, and they
+carry a conclusion the thesis leans on, so re-run all four the same way.
+
+**Both outcomes are worth having.** If the divergence closes, the forced-idiom log explains the
+study's strongest result end to end. If it does not, that is a fourth negative and the defensible
+claim becomes the handoff path as a whole and no single idiom within it.
+
+**Cost, including the half people forget.** The probe is about a day and the campaign is hours.
+Then `bench/refresh_thesis.sh`, then re-reading every sentence citing a macro that moved, then one
+reader who was not told what changed. Sites that would move: §`sec:overload`, §`sec:contention`,
+`tab:threats`'s construct row, `tab:findings`, Chapter 8, and spec §12.
+
+### D2. Independent implementation review, the threat no statistic touches
+
+**Why.** `tab:controls` and `tab:threats` both name single-author skill asymmetry as the residual,
+and parity testing cannot reach it because parity bounds behaviour and not performance. This is a
+demonstrated failure mode in the same industry rather than a hypothetical one: the thesis already
+cites Emberg and Wadsten reversing their own results between two benchmarking sessions.
+
+**The protocol has to be fixed before anyone looks, or it is not evidence.**
+
+1. Two reviewers, one strong in each language, neither of them the author.
+2. Each reads the implementation in their own strong language, looking for idiom left on the table
+   that would change performance, not for style.
+3. Equal time box on both sides, recorded.
+4. Output is a written list of proposed changes with expected direction, produced before any
+   measurement.
+5. The adoption rule is decided in advance. A proposal inside the frozen specification can be
+   adopted. One that changes the design goes into the forced-idiom log instead.
+6. Re-measure only if something is adopted, and report the delta whichever way it goes.
+
+**Why it is the strongest item per hour.** It is the only entry here that improves *internal*
+validity, it lands no new numbers unless a proposal is adopted, and the negative result is
+publishable: two experts found nothing that moves the result closes the threat rather than leaving
+it conceded. At Nokia both experts are in the building.
+
+### D3. Does the ordering travel
+
+Three arms, cheapest first. Each carries the same sync cost as D1.
+
+- **A second workload.** `signal` exists in both benches and has never been run as a campaign, so it
+  costs one flag. It preloads and then hammers `handle_signaling`, against the mixed lifecycle the
+  sweep uses, so it drives a different operation mix through the same handoff.
+- **A queue-capacity sweep.** `tab:params` pins it at 1024. It is the knob that interacts directly
+  with the overload hypothesis, because a bounded blocking queue is what makes overload observable.
+- **A clang++ and libc++ arm.** `tab:threats` has no row separating the language from its toolchain.
+  Part of this arrived by accident and is worth claiming: the campaigns spanned g++ 13.3 to 15.1 and
+  rustc 1.97 to 1.98, and every finding survived.
+
+**What it buys.** It turns "the performance results do not travel" from a concession into a bounded
+statement.
+
+### D4. Beyond this thesis
+
+Four directions the current design cannot answer, strongest first. All of these are after
+submission, where new numbers cost nothing.
+
+1. **Routes to safety, not languages.** RQ4's residual is that a compile-time property of the Rust
+   side bounds nothing at run time while host and component share one address space. The comparison
+   that answers it sets a safe language against a sandboxed runtime against process isolation on one
+   workload. Current O-RAN work measures exactly this axis for dApps, reporting control-loop latency
+   in a container and in Wasm against bare metal (arXiv 2603.17880, found by search on 1 Sep 2026
+   and **not yet verified to the standard in `docs/citation.md`**). The harness already measures the
+   axis, `ffi/` already builds the seam, and Galeed and PKRUsafe are already cited.
+2. **Long-run steady state.** Every campaign here runs for seconds. Peak RSS as a `getrusage`
+   maximum over a short run says nothing about fragmentation or drift in a process that runs for
+   weeks, which is the real RAN operating condition and the one place the allocator story could
+   reverse a third time.
+3. **Defect density in real code.** RQ2's residual is that fourteen programs remain fourteen
+   programs. The published counterpart is Vander Stoep's Android data. A Nokia-side version would be
+   the strongest form and the most likely to be unpublishable, so settle it in the same conversation
+   as open-work item **B**.
+4. **Async runtimes against thread-per-shard**, already named in Chapter 8. It separates the tail
+   divergence Arvidsson and Kaller attribute to `async`/`await` from the language itself, which is
+   the closest neighbouring result to this one.
+
+### Ranking
+
+| Item | What it buys | New numbers | When |
+| --- | --- | --- | --- |
+| **D0** | Removes a live contradiction in an attribution | No | **Done 1 Sep 2026** |
+| **D2** | Closes the one threat no statistic reaches | Only if a proposal is adopted | Before submission. Cheapest real gain |
+| **D1** | Explains the strongest result end to end, or bounds it honestly | Yes | Before submission only with the sync budget |
+| **D3** | Bounds external validity instead of conceding it | Yes | After D1, or after submission |
+| **D4** | New research questions | Yes | After submission. Paper or doctoral |
+
+**The one thing not to do** is start D1 or D3 without booking the sync pass and the independent
+reader in the same breath. That is the failure this repository has already paid for twice.
 
 ---
 
