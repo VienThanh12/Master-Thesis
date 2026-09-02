@@ -475,7 +475,10 @@ The comparison is C++ against Rust. Garbage-collected languages are left out bec
 their pauses are incompatible with the latency targets. The concurrency model is held
 fixed in both implementations. The C ABI is treated as the realistic adoption path. No
 earlier study isolates the language this way for a stateful, concurrent
-subsystem~\cite{karlback2021ran,emberg2023asn1}.
+subsystem~\cite{karlback2021ran,emberg2023asn1}. The five closest studies by domain were
+all carried out at Ericsson, and none is peer-reviewed or
+indexed~\cite{karlback2021ran,olsson2023ranmgmt,olsson2023asyncpackets,arvidsson2025async,emberg2023asn1}.
+Repetition inside one organisation is not generality.
 
 \chapter{Problem Context: UE Context Management and Predictability\label{chapter:context}}
 \chaptermark{Problem Context}
@@ -786,7 +789,10 @@ only: the seam case shows the same class returning inside \texttt{unsafe}. H3 is
 measurement could have missed, not by the failure to detect one. Three threats stay
 load-bearing behind all of it. One author wrote both implementations. The parity suite
 bounds behaviour and not performance. The end-to-end instrument
-measures the design faithfully and the language barely at all. The overload divergence
+measures the design faithfully and the language barely at all. Single-author bias is
+documented and not hypothetical: the closest matched pair in this industry reversed
+its own verdict across two benchmarking sessions, comparable after a code review and then
+Rust worse by $85$--$91\%$ after further optimisation~\cite{emberg2023asn1}. The overload divergence
 is replicated here with its mechanism narrowed and not closed, and no peer-reviewed study
 reports the same reversal.
 
