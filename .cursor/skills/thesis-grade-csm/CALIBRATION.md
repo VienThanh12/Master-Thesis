@@ -196,10 +196,11 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
-**Updated at the nineteenth pass, 31 August 2026 afternoon.** Blocker 2 remains closed. Blocker 1
-is **CLOSED**, facts and declaration: the printed abstract matches the tables, `\abstractunaidedtrue`
-ships, page 96 prints that the abstract was written by the author unaided, and the PDF contains no
-Not submittable. Area 6 is 5. The §2.2 running-header overflow remains **CLOSED**: the source has
+**Updated at the twentieth pass, 3 September 2026.** A hold: all six assessable areas stay at 5 on
+the 1 September PDF. Blocker 2 remains closed. Blocker 1 is **CLOSED**, facts and declaration: the
+printed abstract matches the tables, `\abstractunaidedtrue` ships, page 96 prints that the abstract
+was written by the author unaided, and the PDF contains no Not submittable. Area 6 is 5. The §2.2
+running-header overflow remains **CLOSED**: the source has
 `\section[Latency and predictability]{Latency, throughput, and predictability in real-time software}`,
 the TOC and the header on body page 9 ship the short title, and the log has zero `Overfull`,
 including `while \output is active`. Extraction still concatenates title and page number on one

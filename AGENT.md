@@ -76,11 +76,11 @@ thesis process, which no manuscript can settle. It is reproduced as issued in
 four passes on record, and the build-gate script live in the same skill. Use it for any new
 grading pass so passes stay comparable.
 
-**Current grades are the nineteenth pass's, 31 August 2026 afternoon: mean 5.00.** Areas 1, 2, 3, 4,
-5 and 6 at 5. Area 6 moved from 4.5: `\abstractunaidedtrue` now ships, page 96 prints that the
-abstract was written by the author unaided, and the PDF contains no Not submittable. The 23 pt
-running-header overflow on §2.2 remains **closed**: `\section[Latency and predictability]{...}` ships,
-the log has zero `Overfull`, including during `\output`. Area 7 is not assessable.
+**Current grades are the twentieth pass's, 3 September 2026: mean 5.00.** Areas 1, 2, 3, 4,
+5 and 6 at 5. A hold after the 1 September source, not a move. Area 6 reached 5 at the nineteenth
+when `\abstractunaidedtrue` shipped. The 23 pt running-header overflow on §2.2 remains **closed**:
+`\section[Latency and predictability]{...}` ships, the log has zero `Overfull`, including during
+`\output`. Area 7 is not assessable.
 
 **Every one of the 69 was prose disagreeing with an artefact that was itself correct.** The generated
 layer re-derived byte for byte at all four checks. About 25 were introduced by the editing passes
@@ -106,7 +106,7 @@ closed, and the reader-facing record is `source_audit.pdf` with the durable one 
 `docs/Sources_evidence.md`. **After any compression pass, re-read what each surviving citation now
 sits next to.**
 
-| # | Criterion | Target | Current (19th pass, 31 Aug 2026 afternoon) | What still blocks a 5 |
+| # | Criterion | Target | Current (20th pass, 3 Sep 2026) | What still blocks a 5 |
 | --- | --- | --- | --- | --- |
 | **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (7 inside + 7 outside guarantee). The RQ1 alignment item is **closed**: RQ1 now names p99.99 in the draft, in `Thesis_v2.tex` and in `Thesis_Plan_v2.tex`, and §7.7 says the question was widened rather than claiming it always named the metric. |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
@@ -115,8 +115,9 @@ sits next to.**
 | **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Nothing. All four chapter-7 sites that described a virtual machine are synced, and §7.2 now refuses a verdict on RQ1's overload half: it reports that the two effects run in opposite directions and names which deployment question each answers. Maintain register: “cannot tell” ≠ “equivalent”, the memory result is *located* and not *attributed to a call site*, the counters explain the operation-level timing and nothing about the footprint, and the 448 kops/s rung is described and not tested. |
 | **6** | **Academic text** | Precise prose, no contradictions, clean structure | **5** | Nothing on the descriptor. `\abstractunaidedtrue` ships and the printed statement matches. The §2.2 header overflow is **closed** (optional short title ships; zero `Overfull` in the log). Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
 
-**Overall mean (unweighted): 5.00** at the nineteenth pass, 31 August 2026 afternoon. Area 6 moved
-from 4.5 to 5 when the unaided switch was set. The eighteenth that morning had held 4.92. The header overflow that shared the area-6 cap is closed. Area 4
+**Overall mean (unweighted): 5.00** at the twentieth pass, 3 September 2026. The nineteenth, 31
+August afternoon, was the first 5.00, when area 6 moved from 4.5. The eighteenth that morning had
+held 4.92. This pass held every area where the nineteenth left it, on a PDF rebuilt 1 September. The header overflow that shared the area-6 cap is closed. Area 4
 had been the only area that moved on the 30 August evening pass, from 4.5 to 5. The fifteenth was the first
 figure on record confirmed by readers who wrote none of the work behind it. The sixteenth held
 4.83 and withdrew the claim that the abstract is the only finishing item. The thirteenth pass, on the

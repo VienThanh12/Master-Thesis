@@ -14,9 +14,10 @@ primary control against implementation bias.
 
 The measurement work is finished and the canonical bare-metal repeat is the thesis's main dataset.
 The nineteenth grading pass (31 August afternoon) put all six assessable areas at **5**, mean
-**5.00**. `\abstractunaidedtrue` ships, page 96 prints that the abstract was written by the author
-unaided, the PDF contains no Not submittable, and the §2.2 header overflow is closed. Grade
-reasoning is in `docs/ASSESSMENT.md` (nineteenth pass) and `AGENT.md` §2.
+**5.00**. The twentieth (3 September) held that figure on the 1 September PDF. `\abstractunaidedtrue`
+ships, page 96 prints that the abstract was written by the author unaided, the PDF contains no
+Not submittable, and the §2.2 header overflow is closed. Grade reasoning is in `docs/ASSESSMENT.md`
+(twentieth pass) and `AGENT.md` §2.
 
 **No item holds an assessable area off 5.** What remains is process: send the bundle, freeze the
 spec, write the skeleton abstract, proofread, and (optional) the hugepage experiment that would
