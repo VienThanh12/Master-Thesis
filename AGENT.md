@@ -278,7 +278,21 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 | 6 | Experimental setup and evaluation | 3, 4 |
 | 7 | Discussion | 5 |
 | 8 | Conclusion and future work | 5 |
-| App. A–G | Abbreviations and key terms, literature search protocol, statistical design, host and campaign configuration, fault-injection example, implementation of the two cores, engineering guidelines for incremental adoption | 2, 3, 4 |
+| App. A–G | Key terms, literature search protocol, statistical design, host and campaign configuration, fault-injection example, implementation of the two cores, engineering guidelines for incremental adoption | 2, 3, 4 |
+
+**Acronyms live in the front matter, not in Appendix A, as of 4 September 2026.** A `List of
+acronyms` follows the list of tables in `Ha_Vien_Mastersthesis_2026.tex` and the contents in
+`Thesis_v2.tex`, titled from the class's own `\nomname` and set as a `longtable` so it can run
+past a page without floating away from its heading. It carries no `\caption`, or a front-matter
+table would be announced in a list of tables printed before it. Appendix A keeps only the terms
+that are not acronyms and is retitled to match. Three things follow for any edit. Every acronym
+is written out at its first use in the body, so adding one means adding both the expansion and
+the row. The scoped list in `Thesis_v2.tex` is a subset, so an acronym added there needs its own
+row. And `consistency.py --acronyms` from the `academic-writing` skill now reads the list itself
+as prose and reports each row as an unexpanded first use, so scope it past the `longtable` before
+believing its output. **The abstract is out of scope for this work and stays as the author wrote
+it**, which is why it still uses `UE`, `gNB-CU-CP` and `FFI` cold: `\abstractunaidedtrue` ships
+and a model may not touch that text.
 
 **The skeleton and the full draft carry the same chapter list again, resolved 26 August 2026 on
 the author's decision.** `Thesis_v2.tex` had nine chapters, because it kept a standalone
@@ -439,8 +453,10 @@ rg 'gdef.(pagesCount|appendixCount)' build/Ha_Vien_Mastersthesis_2026.aux
 ```
 
 `\pagesCount` counts the body **plus** the AI statement and the bibliography, so a reference-list
-change moves the declared figure. It reads **95 with 12 appendix pages** (115 physical), measured
-31 August 2026. The appendices span physical pages 104 to 115, which is where the 12 comes from.
+change moves the declared figure. It reads **96 with 12 appendix pages** (118 physical), measured
+4 September 2026, after the acronym pass. One declared page came from writing acronyms out at
+first use, and two physical ones from the front-matter list, which sits outside `\pagesCount`. It
+read 95 with 12 (115 physical) on 31 August 2026. The appendices span physical pages 104 to 115, which is where the 12 comes from.
 
 **Under 100 is a preference, not a rule.** The author set it as the target on 19 August 2026 and
 may revise it. No University of Helsinki or CSM requirement is behind it, and nothing in the
