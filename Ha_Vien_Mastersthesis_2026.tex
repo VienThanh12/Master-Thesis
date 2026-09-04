@@ -453,7 +453,7 @@ What this thesis contributes to that decision is bounded, and the boundary is wo
 plainly. The measurements here are taken on a subsystem modelled on a current-generation
 component and evaluated against requirements that are already published. No claim is made about
 requirements that have not yet been written. What crosses the generational boundary is not a
-latency figure but the language-level comparison itself: which defect classes a compiler can rule
+latency figure but the language-level comparison itself: Which defect classes a compiler can rule
 out, what the safety model costs, and what incremental adoption inside a large C++ codebase
 involves. Those questions have the same answers whichever generation the specification above them
 names, and they are cheapest to answer before the next codebase is started rather than after.
@@ -513,11 +513,11 @@ migration ahead of raw average performance:
 \end{description}
 
 The questions are approached with three prior expectations, stated here so that the evaluation
-can confirm or refute them instead of merely describing results after the fact. \textbf{H1:} for
+can confirm or refute them instead of merely describing results after the fact. \textbf{H1:} For
 this workload the two languages are performance-equivalent in the operationally relevant region
-below saturation, with any difference confined to the far tail. \textbf{H2:} safe Rust prevents
+below saturation, with any difference confined to the far tail. \textbf{H2:} Safe Rust prevents
 at compile time the memory-safety and concurrency defect classes that C++ leaves to
-best-effort, after-the-fact detection. \textbf{H3:} the run-time cost of C++-to-Rust
+best-effort, after-the-fact detection. \textbf{H3:} The run-time cost of C++-to-Rust
 interoperability is negligible relative to the cost of the operations invoked, so that the true
 cost of incremental adoption is engineering effort rather than performance. H2 is stated so that
 it can fail. The defect catalogue behind RQ2 spans classes safe Rust is expected to prevent and
@@ -1035,7 +1035,7 @@ measurement technique.\label{fig:gapmap}}
 \end{figure}
 
 What is therefore missing from the literature
-is \emph{direct, controlled} evidence for a representative control-plane subsystem: whether
+is \emph{direct, controlled} evidence for a representative control-plane subsystem: Whether
 Rust actually holds its tail latency and predictability under overload against modern C++
 \emph{when the concurrency model, algorithms, and data structures are held fixed},
 exactly which defect classes it eliminates and at what stage the remainder are caught, what
@@ -1283,7 +1283,7 @@ service capacity, then climbs steeply once the system is driven past saturation 
 queue behind the bounded, blocking queues. The operationally decisive behaviour is the onset and
 shape of this cliff, which is why the load sweep is pushed beyond the saturation point rather
 than stopping at nominal load. The figure is a schematic of the phenomenon and not a plot of
-this study's data: whether the two languages differ in where the cliff begins or in what they
+this study's data: Whether the two languages differ in where the cliff begins or in what they
 sustain beyond it is exactly what RQ1 asks, and Sections~\ref{sec:perfresults}
 and~\ref{sec:overload} report that they differ in both. How steeply the cliff rises is not compared
 between them, for the reason Section~\ref{sec:stats} fixes in
@@ -1411,7 +1411,7 @@ same exact paired test as the sweep, so the levels differ in what they measure a
 they are analysed.
 
 Reporting both separates two questions the research questions did not distinguish as originally
-worded: what a deployment of this shape would experience, and what the language is doing.
+worded: What a deployment of this shape would experience, and what the language is doing.
 Section~\ref{sec:budget} finds the two more than two orders of magnitude apart. The distinction
 therefore decides whether the result can be interpreted at all. The second level was added after
 a first pass of the campaign, and Section~\ref{sec:threats} records that revision.
@@ -3335,7 +3335,7 @@ RQ4 asks what incremental adoption costs in effort, interoperability and risk. T
 the middle term with a measurement, and it leaves the other two to its own line counts, which
 describe one component and say nothing about the work of building it. Three further axes are
 measured here, chosen because a team asks each of them before any of the questions answered so
-far: how long the toolchain takes, how large the artefact is, and how much code of unknown origin
+far: How long the toolchain takes, how large the artefact is, and how much code of unknown origin
 a configuration pulls in. Table~\ref{tab:adoption} collects them.
 
 \begin{table}[tp]
@@ -3961,7 +3961,7 @@ subsystem instead of importing general-purpose, average-case conclusions. The se
 the safety-critical core \texttt{unsafe}-free, so that the dependency-propagation caveat does not
 apply to it.
 
-Three axes separate this thesis from all of it: whether the comparison controls for design by
+Three axes separate this thesis from all of it: Whether the comparison controls for design by
 building both systems from one specification, whether it reports tail behaviour under overload
 instead of average-case performance, and whether it measures the cost of adoption instead of
 describing it. None is unoccupied on its own, as the matched
