@@ -5,12 +5,6 @@
 %% bullet list. Written on the CSM thesis template (HYthesisML.cls).
 %% Kept in step with Ha_Vien_Mastersthesis_2026.tex, which uses the same class and options.
 
-% STEP 1: language, pagination, programme, and study track.
-% openright is passed through to report so chapters start on a right-hand page;
-% the template's own default is openany.
-% a4paper has to be given here: the template sets it with a \PassOptionsToClass
-% placed after \documentclass, by which time report is already loaded, so the
-% stock template silently produces US Letter pages.
 \documentclass[english,twoside,openright,a4paper,censored,csm,software-track-2020]{HYthesisML}
 
 \usepackage{csquotes}
@@ -32,6 +26,7 @@
 % caption, titlesec and appendix are all loaded by the class itself.
 \usepackage[pdftex, plainpages=false]{hyperref} % For hyperlinks and pdf metadata
 \usepackage{fancyhdr} % For nicer page headers
+\usepackage{longtable} % The front-matter list of acronyms
 %\usepackage{wrapfig} % For nice text-wrapping figures (use at own discretion)
 
 \onehalfspacing %line spacing
@@ -125,9 +120,71 @@
 \end{otherlanguage}
 }
 
-% Place ToC
-\mytableofcontents
+% Place ToC. \mytableofcontents is not used here because it switches to arabic
+% numbering as its last act, which would number the acronym list 1 and 2 and then
+% let \mainmatter restart the body at 1. Front matter is numbered in roman instead,
+% as in Ha_Vien_Mastersthesis_2026.tex, and \mainmatter starts the body at arabic 1.
+\cleardoublepage
+\pagenumbering{roman}
+\setcounter{page}{1}
+\tableofcontents
 
+% The class already names this list: \nomname is set to "List of acronyms" in
+% \captionsenglish. Scoped to the acronyms this document uses, which is a subset of
+% the full draft's. No \caption, or the table would be announced in a list of tables
+% this document does not have.
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{\nomname}
+\chapter*{\nomname}
+\markboth{\nomname}{\nomname}
+
+\noindent Each acronym below is also written out where the text first uses it.
+
+\begingroup
+\singlespacing
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{@{}p{0.15\linewidth} p{0.79\linewidth}@{}}
+\hline\hline
+Acronym & Expansion \\
+\hline
+\endfirsthead
+\hline\hline
+Acronym & Expansion \\
+\hline
+\endhead
+3GPP & 3rd Generation Partnership Project, the body that specifies the 5G standards \\
+ABI & application binary interface \\
+AI & artificial intelligence \\
+AI-RAN & an architecture in which AI and radio access network workloads share one accelerated infrastructure \\
+API & application programming interface \\
+AWS & Amazon Web Services \\
+CISA & Cybersecurity and Infrastructure Security Agency \\
+CPU & central processing unit \\
+EU & European Union \\
+FBI & Federal Bureau of Investigation \\
+FFI & foreign function interface \\
+FNV-1a & Fowler--Noll--Vo hash function, variant 1a \\
+gNB & next-generation NodeB, the 5G base station \\
+gNB-CU & gNB central unit \\
+gNB-CU-CP & gNB central unit control plane: the system class studied here \\
+HDR & high dynamic range, of the latency histogram \\
+IMT-2030 & International Mobile Telecommunications-2030, the ITU framework for 6G \\
+ITU & International Telecommunication Union \\
+NG-RAN & next-generation radio access network \\
+PHY & physical layer \\
+RAII & Resource Acquisition Is Initialization \\
+RAN & radio access network \\
+RQ & research question \\
+RRC & Radio Resource Control \\
+UE & user equipment, an end device such as a phone or a modem \\
+UECM & UE context management, the subsystem reimplemented and measured here \\
+\hline
+\end{longtable}
+\endgroup
+
+\cleardoublepage
 \mainmatter
 
 % -----------------------------------------------------------------------------------
@@ -140,15 +197,17 @@ Mobile networks are moving from specialised hardware to software on ordinary ser
 Functions that once ran on fixed-purpose, vertically integrated equipment are now
 re-implemented as programs on general-purpose machines. The Radio Access Network (RAN),
 long the most hardware-bound part of the stack, is part of that shift.
+% Checked (make sure everything is understandable)
 
-In 5G, the base station (gNB) is split into a central unit and one or more distributed
-units. The central unit is split again into control-plane and user-plane
-functions~\cite{3gpp38401,3gpp38300}. Open-RAN pushes the same idea further: the RAN
-becomes virtualised, multi-vendor software linked by open
-interfaces~\cite{polese2023oran}. The control plane that results, the gNB-CU-CP, is a
-large, stateful, highly concurrent program. It tracks every connected device, runs RRC
-signalling~\cite{3gpp38331}, and coordinates mobility and handovers, all within strict
-latency limits.
+In 5G, the base station, formally the next-generation NodeB (gNB), is split into a central
+unit and one or more distributed units. The central unit is split again into control-plane
+and user-plane functions~\cite{3gpp38401,3gpp38300}. Open-RAN pushes the same idea further:
+the RAN becomes virtualised, multi-vendor software linked by open
+interfaces~\cite{polese2023oran}. The control plane that results, the gNB central unit
+control plane (gNB-CU-CP), is a large, stateful, highly concurrent program. It tracks every
+connected device, each of which the standards call a user equipment (UE), runs Radio Resource
+Control (RRC) signalling~\cite{3gpp38331}, and coordinates mobility and handovers, all within
+strict latency limits.
 
 Load at a busy site is high. A single site can run thousands of connection-management and
 mobility procedures per second, each of which has to complete inside the millisecond-scale
@@ -198,9 +257,11 @@ this setting a latency regression or a memory-corruption defect is not a localis
 network-wide reliability and security risk, and a language-selection question stops being
 academic and becomes a concrete engineering decision.
 
-The second trend is that AI is moving from a tool used to tune the network into a workload the
-network is built to carry, and the next generation is being specified that way from the start.
-IMT-2030, the ITU framework for 6G, lists artificial intelligence and communication among its
+The second trend is that artificial intelligence (AI) is moving from a tool used to tune the
+network into a workload the network is built to carry, and the next generation is being
+specified that way from the start. International Mobile Telecommunications-2030 (IMT-2030),
+the International Telecommunication Union (ITU) framework for 6G, lists artificial
+intelligence and communication among its
 six usage scenarios and ubiquitous intelligence among its four design
 principles~\cite{itu2023imt2030}. The architecture forming around that is AI-RAN, in which
 telecommunications and AI workloads are orchestrated together on shared, accelerated
@@ -209,7 +270,8 @@ platforms~\cite{polese2026airan}. The AI-RAN Alliance states the operational req
 directly: one common infrastructure has to run both kinds of workload concurrently, and their
 service-level agreements may differ~\cite{airan2026orchestrator}. That changes what a language
 choice has to buy for a control plane. Its software no longer has the host to itself. It
-contends for CPU, memory, and cache with inference work whose arrival pattern it does not
+contends for central processing unit (CPU), memory, and cache with inference work whose
+arrival pattern it does not
 control, and a co-tenant that takes capacity away lowers the load at which the control plane
 saturates. Saturation is where the two languages separate most sharply in the measurements of
 Chapter~\ref{chapter:eval}. Memory footprint and behaviour past that point are becoming
@@ -226,14 +288,14 @@ specified and procured at all~\cite{watson2025memorysafety}. This concern has ri
 policy: cybersecurity agencies now urge software manufacturers to publish ``memory-safe
 roadmaps'' and to migrate away from memory-unsafe languages such as C and
 C++~\cite{cisa2023memorysafe,oncd2024building}. In the market this subsystem is sold into it has
-also become a regulatory matter. The EU Cyber Resilience Act places secure-by-design and
+also become a regulatory matter. The European Union (EU) Cyber Resilience Act places secure-by-design and
 lifecycle vulnerability-handling obligations on manufacturers of products with digital elements,
 with the vulnerability-reporting obligations applying from September 2026 and most of the
 remainder from December 2027~\cite{eu2024cra}. It names no programming language, and it would be wrong to read it as
 requiring one. What it changes is that the recurring defect classes of a memory-unsafe language
 become a compliance exposure as well as an engineering one. Rust in particular has moved from a niche
 language into operating-system kernels, cloud infrastructure, and increasingly into
-telecommunications. Production hypervisors such as AWS Firecracker, which underpins its
+telecommunications. Production hypervisors such as Amazon Web Services (AWS) Firecracker, which underpins its
 serverless platform, are already written in Rust~\cite{agache2020firecracker}. Yet the evidence base for Rust's suitability rests largely on
 general-purpose software and on average-case performance benchmarks. The specific question a
 telecom vendor must answer, whether Rust can meet the tail-latency and predictability
@@ -251,7 +313,8 @@ high~\cite{delloro2025ran3q,delloro2026ran}. The subsystem it studies, UE Contex
 Management (UECM), is modelled on a real gNB-CU-CP control-plane component rather than a
 textbook example.
 
-The gNB-CU-CP is not a minor component. In the 3GPP disaggregated architecture it is the
+The gNB-CU-CP is not a minor component. In the disaggregated architecture of the 3rd
+Generation Partnership Project (3GPP) it is the
 control-plane half of the central unit, hosting RRC and managing the UE context
 lifecycle~\cite{3gpp38401,3gpp38331}, under the millisecond-scale procedure budgets the 5G system
 places on control signalling~\cite{3gpp38913} and at the event rates and connected-device counts
@@ -282,7 +345,8 @@ forward in strengthened form~\cite{itu2023imt2030}. Freedom from whole classes o
 predictable behaviour under disturbance are being written into the objectives of the next
 generation rather than left to implementers.
 
-The policy dates named above fall inside the same window. CISA and the FBI classify the
+The policy dates named above fall inside the same window. The Cybersecurity and Infrastructure
+Security Agency (CISA) and the Federal Bureau of Investigation (FBI) classify the
 development of new product lines in a memory-unsafe language as a bad practice where the product
 serves critical infrastructure, a scope mobile-network infrastructure sits squarely inside, and
 they exempt an existing product from the memory-safe roadmap expectation only when its announced
@@ -350,8 +414,9 @@ migration ahead of raw average performance:
   \item[RQ3] What is the overhead, if any, of Rust's safety model (bounds checks,
         ownership-driven copies, abstraction cost) on throughput, CPU utilisation, and
         memory behaviour?
-  \item[RQ4] What are the practical implications (effort, FFI interoperability, and risk)
-        of adopting Rust incrementally within an existing C++ RAN software ecosystem?
+  \item[RQ4] What are the practical implications (effort, foreign function interface (FFI)
+        interoperability, and risk) of adopting Rust incrementally within an existing C++ RAN
+        software ecosystem?
 \end{description}
 
 The questions are approached with three prior expectations, stated here so that the evaluation
@@ -390,7 +455,8 @@ boundary classes were chosen deliberately, and neither language prevents them. O
 the C++ tooling is ahead, and on one the defect that safe Rust rules out returns as soon as the
 program writes \texttt{unsafe}. On \emph{migration} (RQ4), the FFI seam is small and keeps the core
 free of \texttt{unsafe}. Measured against the same operation called natively it costs at most
-$\FfiOpBoundPct\%$ of one operation, so the real adoption cost is API design and not run-time
+$\FfiOpBoundPct\%$ of one operation, so the real adoption cost is application programming
+interface (API) design and not run-time
 overhead. Three costs beyond the seam are measured for the same reason, and two of them come back
 against the received wisdom: most of the Rust build's extra cost is compiling third-party code and
 not the compiler's own work, and the binary-size ordering depends on which linkage policy the two
@@ -436,7 +502,8 @@ The scope is drawn deliberately to protect the internal validity of the language
 scope are the UE Context Management functionality of Chapter~\ref{chapter:context}, the
 shared-nothing concurrency design, the load sweep to overload, the fault-injection catalogue,
 and the FFI prototype. Explicitly out of scope are the full gNB system and its remaining
-control-plane domains, PHY/L2 processing and the data-heavy user plane, real captured traffic
+control-plane domains, physical layer (PHY) and layer-2 processing and the data-heavy user
+plane, real captured traffic
 traces (as opposed to a spec-justified synthetic workload), managed-language alternatives
 (excluded on the tail-latency grounds argued in Chapter~\ref{chapter:background}), and
 production deployment and operational concerns such as upgrade, observability, and
@@ -449,8 +516,8 @@ Chapter~\ref{chapter:discussion}.
 % full title of this chapter runs into the margin.
 \chaptermark{Background}
 
-In the NG-RAN architecture the base station (gNB) is split into a central unit and a
-distributed unit. The central unit is split again into a control plane and a user plane.
+In the next-generation radio access network (NG-RAN) architecture the base station (gNB) is
+split into a central unit and a distributed unit. The central unit is split again into a control plane and a user plane.
 UE Context Management sits in the control plane, the gNB-CU-CP, and talks to its
 neighbours over the standardised F1, E1, and NG interfaces~\cite{3gpp38401}.
 
@@ -461,8 +528,8 @@ be recorded without coordinated omission, that is, without letting a load genera
 has fallen behind hide its own slowest
 requests~\cite{schroeder2006openclosed,tene_hdrhistogram}.
 
-C++ offers abstractions that cost nothing at run time, deterministic cleanup through
-RAII, and no garbage collector. Safety remains the programmer's
+C++ offers abstractions that cost nothing at run time, deterministic cleanup through the
+Resource Acquisition Is Initialization (RAII) idiom, and no garbage collector. Safety remains the programmer's
 responsibility~\cite{szekeres2013sok}. Sanitisers report only the errors that a given
 test run happens to reach.
 
@@ -474,7 +541,8 @@ easy to find.
 
 The comparison is C++ against Rust. Garbage-collected languages are left out because
 their pauses are incompatible with the latency targets. The concurrency model is held
-fixed in both implementations. The C ABI is treated as the realistic adoption path. No
+fixed in both implementations. The C application binary interface (ABI) is treated as the
+realistic adoption path. No
 earlier study isolates the language this way for a stateful, concurrent
 subsystem~\cite{karlback2021ran,emberg2023asn1}. The five closest studies by domain were
 all carried out at Ericsson, and none is peer-reviewed or
@@ -522,7 +590,7 @@ structuring itself changes tail latency~\cite{enberg2019threadpercore}.
 
 RQ1 and RQ3 are answered with an open-loop load sweep from light load into overload on
 pinned cores. Open-loop means the generator keeps to its send schedule instead of
-waiting for replies. Latency is recorded in identically configured HDR
+waiting for replies. Latency is recorded in identically configured high-dynamic-range (HDR)
 histograms~\cite{tene_hdrhistogram}. Resource use is sampled through the operating
 system. The reported sweep runs on a dedicated \MainCpu{}, simultaneous multithreading
 \MainSmt{}, frequency governor fixed at \MainGovernor{}, with \texttt{nohz\_full} on the
@@ -577,7 +645,7 @@ Fairness is enforced below the design as well as in it. Both builds link the sam
 \texttt{jemalloc} and keep a system-allocator build as a control. Both compile at
 matched optimisation. Both record latency through one HDR histogram algorithm configured
 identically~\cite{tene_hdrhistogram}. Hashing is pinned on both sides, SplitMix64 for
-shard assignment and FNV-1a inside the map. C++'s default hash of an integer is typically
+shard assignment and FNV-1a, the Fowler--Noll--Vo hash, inside the map. C++'s default hash of an integer is typically
 the identity function. Rust's is cryptographically strong. Left as they came, the two
 standard libraries would have been the measurement.
 

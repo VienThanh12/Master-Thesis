@@ -38,6 +38,7 @@
 \usepackage{fancyhdr}
 \usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
 \usepackage{array} % Ragged-right p-columns in the Chapter 6 tables
+\usepackage{longtable} % The front-matter list of acronyms runs past one page
 \usepackage{float} % [H] pins tables at the point of citation in the source
 \usepackage[section]{placeins} % flush pending floats before each \section
 \usepackage{listings} % For the side-by-side C++/Rust excerpts in Chapter 6
@@ -280,6 +281,97 @@ defects in general. A nominal-load test would not expose the gap.
 \addcontentsline{toc}{chapter}{\listtablename}
 \listoftables
 
+% The class already names this list: \nomname is set to "List of acronyms" in
+% \captionsenglish. Front matter, so its pages fall outside \pagesCount, and a
+% longtable rather than a table because the list runs past one page and must not
+% float away from its own heading. No \caption, or a front-matter table would be
+% announced in the list of tables three pages earlier. Terms that are not
+% acronyms stay in Appendix~\ref{appendix:terms}.
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{\nomname}
+\chapter*{\nomname}
+\markboth{\nomname}{\nomname}
+\label{page:acronyms}
+
+\noindent Each acronym below is also written out where the text first uses it. Terms that are
+not acronyms, such as \emph{tail latency} and \emph{shard}, are collected in
+Appendix~\ref{appendix:terms}.
+
+\begingroup
+\singlespacing
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{@{}p{0.15\linewidth} p{0.79\linewidth}@{}}
+\hline\hline
+Acronym & Expansion \\
+\hline
+\endfirsthead
+\hline\hline
+Acronym & Expansion \\
+\hline
+\endhead
+3GPP & 3rd Generation Partnership Project, the body that specifies the 5G standards \\
+ABI & application binary interface \\
+ACM & Association for Computing Machinery \\
+AI & artificial intelligence \\
+AI-RAN & an architecture in which AI and radio access network workloads share one accelerated infrastructure \\
+API & application programming interface \\
+ASan & AddressSanitizer \\
+ASN.1 & Abstract Syntax Notation One \\
+AWS & Amazon Web Services \\
+CISA & Cybersecurity and Infrastructure Security Agency \\
+CPU & central processing unit \\
+CVE & Common Vulnerabilities and Exposures \\
+CWE & Common Weakness Enumeration \\
+DBLP & the computer science bibliography of that name \\
+DiVA & Digitala Vetenskapliga Arkivet, the Nordic research repository \\
+DPDK & Data Plane Development Kit \\
+DTLS & Datagram Transport Layer Security \\
+EU & European Union \\
+FBI & Federal Bureau of Investigation \\
+FFI & foreign function interface \\
+FIFO & first in, first out \\
+FNV-1a & Fowler--Noll--Vo hash function, variant 1a \\
+gNB & next-generation NodeB, the 5G base station \\
+gNB-CU & gNB central unit \\
+gNB-CU-CP & gNB central unit control plane: the system class studied here \\
+gNB-CU-UP & gNB central unit user plane \\
+gNB-DU & gNB distributed unit \\
+HDR & high dynamic range, of the latency histogram \\
+IEEE & Institute of Electrical and Electronics Engineers \\
+IMT-2030 & International Mobile Telecommunications-2030, the ITU framework for 6G \\
+IPC & inter-process communication \\
+IPsec & Internet Protocol Security \\
+ITU & International Telecommunication Union \\
+JSON & JavaScript Object Notation \\
+KPI & key performance indicator \\
+MPSC & multi-producer, single-consumer \\
+NG-RAN & next-generation radio access network \\
+NLOC & non-commenting lines of code \\
+NUMA & non-uniform memory access \\
+PHY & physical layer \\
+POSIX & Portable Operating System Interface \\
+RAII & Resource Acquisition Is Initialization \\
+RAN & radio access network \\
+RFC & Request for Comments \\
+RQ & research question \\
+RRC & Radio Resource Control \\
+RSS & resident set size \\
+SMT & simultaneous multithreading \\
+STAMP & Stanford Transactional Applications for Multi-Processing \\
+STL & Standard Template Library \\
+TEID & tunnel endpoint identifier \\
+TSan & ThreadSanitizer \\
+UBSan & UndefinedBehaviorSanitizer \\
+UDP & User Datagram Protocol \\
+UE & user equipment, an end device such as a phone or a modem \\
+UECM & UE context management, the subsystem reimplemented and measured here \\
+USENIX & the USENIX Association \\
+\hline
+\end{longtable}
+\endgroup
+
 % Flush the last roman-numbered page before \mainmatter switches to arabic, or the
 % reset lands on the still-open List of Tables page and the body starts at 3 instead of 1.
 \cleardoublepage
@@ -300,14 +392,15 @@ Functions that once ran on fixed-purpose, vertically integrated equipment are no
 re-implemented as programs on general-purpose machines. The Radio Access Network (RAN),
 long the most hardware-bound part of the stack, is part of that shift.
 
-In 5G, the base station (gNB) is split into a central unit and one or more distributed
-units. The central unit is split again into control-plane and user-plane
-functions~\cite{3gpp38401,3gpp38300}. Open-RAN pushes the same idea further: the RAN
-becomes virtualised, multi-vendor software linked by open
-interfaces~\cite{polese2023oran}. The control plane that results, the gNB-CU-CP, is a
-large, stateful, highly concurrent program. It tracks every connected device, runs RRC
-signalling~\cite{3gpp38331}, and coordinates mobility and handovers, all within strict
-latency limits.
+In 5G, the base station, formally the next-generation NodeB (gNB), is split into a central
+unit and one or more distributed units. The central unit is split again into control-plane
+and user-plane functions~\cite{3gpp38401,3gpp38300}. Open-RAN pushes the same idea further:
+the RAN becomes virtualised, multi-vendor software linked by open
+interfaces~\cite{polese2023oran}. The control plane that results, the gNB central unit
+control plane (gNB-CU-CP), is a large, stateful, highly concurrent program. It tracks every
+connected device, each of which the standards call a user equipment (UE), runs Radio Resource
+Control (RRC) signalling~\cite{3gpp38331}, and coordinates mobility and handovers, all within
+strict latency limits.
 
 Load at a busy site is high. A single site can run thousands of connection-management and
 mobility procedures per second, each of which has to complete inside the millisecond-scale
@@ -340,8 +433,9 @@ Three terms recur throughout. The \emph{gNB-CU-CP} is the control-plane software
 about. \emph{UE Context Management (UECM)} is the specific subsystem reimplemented and measured.
 \emph{Tail latency}, the p99 and p99.9 percentiles rather than the mean, is the property that,
 more than average speed, decides whether such a system meets its
-deadlines~\cite{dean2013tail,barroso2017microseconds}. Appendix~\ref{appendix:terms} fixes these
-and the rest of the domain vocabulary for readers outside telecom.
+deadlines~\cite{dean2013tail,barroso2017microseconds}. Every acronym is written out where the
+text first uses it, and the \nomname{} in the front matter collects them. The terms that are not
+acronyms are fixed in Appendix~\ref{appendix:terms} for readers outside telecom.
 
 \section{Motivation and industrial context}\label{sec:motivation}
 Three trends make this comparison timely. The first is the cloud-native evolution of the RAN
@@ -357,9 +451,11 @@ this setting a latency regression or a memory-corruption defect is not a localis
 network-wide reliability and security risk, and a language-selection question stops being
 academic and becomes a concrete engineering decision.
 
-The second trend is that AI is moving from a tool used to tune the network into a workload the
-network is built to carry, and the next generation is being specified that way from the start.
-IMT-2030, the ITU framework for 6G, lists artificial intelligence and communication among its
+The second trend is that artificial intelligence (AI) is moving from a tool used to tune the
+network into a workload the network is built to carry, and the next generation is being
+specified that way from the start. International Mobile Telecommunications-2030 (IMT-2030),
+the International Telecommunication Union (ITU) framework for 6G, lists artificial
+intelligence and communication among its
 six usage scenarios and ubiquitous intelligence among its four design
 principles~\cite{itu2023imt2030}. The architecture forming around that is AI-RAN, in which
 telecommunications and AI workloads are orchestrated together on shared, accelerated
@@ -368,7 +464,8 @@ platforms~\cite{polese2026airan}. The AI-RAN Alliance states the operational req
 directly: one common infrastructure has to run both kinds of workload concurrently, and their
 service-level agreements may differ~\cite{airan2026orchestrator}. That changes what a language
 choice has to buy for a control plane. Its software no longer has the host to itself. It
-contends for CPU, memory, and cache with inference work whose arrival pattern it does not
+contends for central processing unit (CPU), memory, and cache with inference work whose
+arrival pattern it does not
 control, and a co-tenant that takes capacity away lowers the load at which the control plane
 saturates. Saturation is where the two languages separate most sharply in the measurements of
 Chapter~\ref{chapter:eval}. Memory footprint and behaviour past that point are becoming
@@ -385,14 +482,14 @@ specified and procured at all~\cite{watson2025memorysafety}. This concern has ri
 policy: cybersecurity agencies now urge software manufacturers to publish ``memory-safe
 roadmaps'' and to migrate away from memory-unsafe languages such as C and
 C++~\cite{cisa2023memorysafe,oncd2024building}. In the market this subsystem is sold into it has
-also become a regulatory matter. The EU Cyber Resilience Act places secure-by-design and
+also become a regulatory matter. The European Union (EU) Cyber Resilience Act places secure-by-design and
 lifecycle vulnerability-handling obligations on manufacturers of products with digital elements,
 with the vulnerability-reporting obligations applying from September 2026 and most of the
 remainder from December 2027~\cite{eu2024cra}. It names no programming language, and it would be wrong to read it as
 requiring one. What it changes is that the recurring defect classes of a memory-unsafe language
 become a compliance exposure as well as an engineering one. Rust in particular has moved from a niche
 language into operating-system kernels, cloud infrastructure, and increasingly into
-telecommunications. Production hypervisors such as AWS Firecracker, which underpins its
+telecommunications. Production hypervisors such as Amazon Web Services (AWS) Firecracker, which underpins its
 serverless platform, are already written in Rust~\cite{agache2020firecracker}. Yet the evidence base for Rust's suitability rests largely on
 general-purpose software and on average-case performance benchmarks. The specific question a
 telecom vendor must answer, whether Rust can meet the tail-latency and predictability
@@ -410,7 +507,8 @@ high~\cite{delloro2025ran3q,delloro2026ran}. The subsystem it studies, UE Contex
 Management (UECM), is modelled on a real gNB-CU-CP control-plane component rather than a
 textbook example.
 
-The gNB-CU-CP is not a minor component. In the 3GPP disaggregated architecture it is the
+The gNB-CU-CP is not a minor component. In the disaggregated architecture of the 3rd
+Generation Partnership Project (3GPP) it is the
 control-plane half of the central unit, hosting RRC and managing the UE context
 lifecycle~\cite{3gpp38401,3gpp38331}, under the millisecond-scale procedure budgets the 5G system
 places on control signalling~\cite{3gpp38913} and at the event rates and connected-device counts
@@ -441,7 +539,8 @@ forward in strengthened form~\cite{itu2023imt2030}. Freedom from whole classes o
 predictable behaviour under disturbance are being written into the objectives of the next
 generation rather than left to implementers.
 
-The policy dates named above fall inside the same window. CISA and the FBI classify the
+The policy dates named above fall inside the same window. The Cybersecurity and Infrastructure
+Security Agency (CISA) and the Federal Bureau of Investigation (FBI) classify the
 development of new product lines in a memory-unsafe language as a bad practice where the product
 serves critical infrastructure, a scope mobile-network infrastructure sits squarely inside, and
 they exempt an existing product from the memory-safe roadmap expectation only when its announced
@@ -508,8 +607,9 @@ migration ahead of raw average performance:
   \item[RQ3] What is the overhead, if any, of Rust's safety model (bounds checks,
         ownership-driven copies, abstraction cost) on throughput, CPU utilisation, and
         memory behaviour?
-  \item[RQ4] What are the practical implications (effort, FFI interoperability, and risk)
-        of adopting Rust incrementally within an existing C++ RAN software ecosystem?
+  \item[RQ4] What are the practical implications (effort, foreign function interface (FFI)
+        interoperability, and risk) of adopting Rust incrementally within an existing C++ RAN
+        software ecosystem?
 \end{description}
 
 The questions are approached with three prior expectations, stated here so that the evaluation
@@ -548,7 +648,8 @@ boundary classes were chosen deliberately, and neither language prevents them. O
 the C++ tooling is ahead, and on one the defect that safe Rust rules out returns as soon as the
 program writes \texttt{unsafe}. On \emph{migration} (RQ4), the FFI seam is small and keeps the core
 free of \texttt{unsafe}. Measured against the same operation called natively it costs at most
-$\FfiOpBoundPct\%$ of one operation, so the real adoption cost is API design and not run-time
+$\FfiOpBoundPct\%$ of one operation, so the real adoption cost is application programming
+interface (API) design and not run-time
 overhead. Three costs beyond the seam are measured for the same reason, and two of them come back
 against the received wisdom: most of the Rust build's extra cost is compiling third-party code and
 not the compiler's own work, and the binary-size ordering depends on which linkage policy the two
@@ -594,7 +695,8 @@ The scope is drawn deliberately to protect the internal validity of the language
 scope are the UE Context Management functionality of Chapter~\ref{chapter:context}, the
 shared-nothing concurrency design, the load sweep to overload, the fault-injection catalogue,
 and the FFI prototype. Explicitly out of scope are the full gNB system and its remaining
-control-plane domains, PHY/L2 processing and the data-heavy user plane, real captured traffic
+control-plane domains, physical layer (PHY) and layer-2 processing and the data-heavy user
+plane, real captured traffic
 traces (as opposed to a spec-justified synthetic workload), managed-language alternatives
 (excluded on the tail-latency grounds argued in Chapter~\ref{chapter:background}), and
 production deployment and operational concerns such as upgrade, observability, and
@@ -608,12 +710,13 @@ Chapter~\ref{chapter:discussion}.
 \chaptermark{Background}
 
 \section{RAN control-plane systems and the gNB-CU-CP}\label{sec:ranarch}
-The NG-RAN architecture splits the gNB into a central unit (gNB-CU) and distributed units,
-with the control plane (gNB-CU-CP) handling RRC and connection management for each
-UE~\cite{3gpp38401,3gpp38300,3gpp38331}. Such control-plane systems must satisfy demanding
-non-functional requirements: very high event rates (UE mobility, signalling storms), strict
-and predictable latency bounds that the 5G service and RAN specifications quantify as
-KPIs~\cite{3gpp38913,3gpp22261}, long-lived software with continuously evolving complexity,
+The next-generation radio access network (NG-RAN) architecture splits the gNB into a central
+unit (gNB-CU) and distributed units, with the control plane (gNB-CU-CP) handling RRC and
+connection management for each UE~\cite{3gpp38401,3gpp38300,3gpp38331}. Such control-plane
+systems must satisfy demanding non-functional requirements: very high event rates (UE
+mobility, signalling storms), strict and predictable latency bounds that the 5G service and
+RAN specifications quantify as key performance indicators
+(KPIs)~\cite{3gpp38913,3gpp22261}, long-lived software with continuously evolving complexity,
 and heavily concurrent workloads. In these systems the worst-case and tail behaviour,
 rather than the average, determines whether deadlines are met, which motivates the
 predictability focus of this thesis.
@@ -729,8 +832,8 @@ previous one, whereas in an open system arrivals are independent of completions,
 produce systematically different response-time behaviour on the same service process, with the
 closed model reporting the lower figures~\cite{schroeder2006openclosed}. Sound measurement
 therefore requires an open-loop model with an
-intended schedule, correction for coordinated omission, high-dynamic-range latency histograms
-that retain resolution across many orders of magnitude, and statistically rigorous reporting
+intended schedule, correction for coordinated omission, high-dynamic-range (HDR) latency
+histograms that retain resolution across many orders of magnitude, and statistically rigorous reporting
 with repeated runs and confidence intervals rather than single point
 estimates~\cite{georges2007rigorous}. These techniques are applied in
 Chapter~\ref{chapter:eval}.
@@ -783,7 +886,8 @@ those data races that happen to occur during a run, so a race that manifests onl
 interleaving can pass unnoticed. Its deadlock detector inherits that limitation from the technique
 it implements, which infers deadlock potentials from the lock-acquisition graph of a single
 trace~\cite{bensalem2005deadlock}, and it ships as an experimental component covering only the
-POSIX mutex families~\cite{tsandeadlock}. Static analysers help but suffer false negatives and cannot
+Portable Operating System Interface (POSIX) mutex families~\cite{tsandeadlock}. Static
+analysers help but suffer false negatives and cannot
 reason about the whole program. Detection is therefore best-effort and after the fact, which
 is precisely the situation a language with compile-time guarantees is meant to change.
 
@@ -816,7 +920,8 @@ been established formally by the RustBelt project~\cite{jung2018rustbelt}, and t
 discipline that even \texttt{unsafe} code must respect has been given a precise operational
 semantics~\cite{jung2020stacked}. Empirical evidence supports the model in practice: in real
 codebases \texttt{unsafe} is used sparingly and in localised
-ways~\cite{qin2020rust,astrauskas2020unsafe}, and a study of all Rust memory-safety CVEs found
+ways~\cite{qin2020rust,astrauskas2020unsafe}, and a study of all Rust memory-safety entries in
+the Common Vulnerabilities and Exposures (CVE) list found
 that every one of them but a single compiler bug involved \texttt{unsafe}
 code~\cite{xu2021rustcve}. The caveat is that unsafety propagates through dependencies. Fewer
 than a third of libraries use \texttt{unsafe} directly, but a much larger fraction cannot be
@@ -991,11 +1096,12 @@ almost none of it is indexed. At least five vendor-hosted master's theses, all c
 Ericsson, have compared candidate languages for RAN and telecom software. One weighs runtime
 cost against development efficiency across C++, Rust, and Go~\cite{karlback2021ran}. One asks
 whether Rust could replace C in RAN node management~\cite{olsson2023ranmgmt}. One builds a
-thread-per-core packet processor on asynchronous Rust and measures it against the DPDK
-application it mirrors~\cite{olsson2023asyncpackets}. One measures median and 99th-percentile
+thread-per-core packet processor on asynchronous Rust and measures it against the Data Plane
+Development Kit (DPDK) application it mirrors~\cite{olsson2023asyncpackets}. One measures median and 99th-percentile
 latency for control-plane procedures across five asynchronous programming
 frameworks~\cite{arvidsson2025async}. The last builds matched C++ and Rust implementations of an
-ASN.1 decompiler and compares them statistically~\cite{emberg2023asn1}. All five are directly
+Abstract Syntax Notation One (ASN.1) decompiler and compares them
+statistically~\cite{emberg2023asn1}. All five are directly
 relevant, and two report differences unfavourable to Rust.
 
 Three of them vary the language together with the runtime and the concurrency model, so a
@@ -1169,7 +1275,8 @@ study for the opposite reason, because there is good reason to expect that safe 
         and neither is ever destroyed. Reference counting cannot collect a cycle in either
         language, and leaking is safe in Rust by explicit design. This is the cleanest
         statement of a boundary in the catalogue, because both languages fail identically.
-  \item \textbf{Integer overflow in a release build.} A bearer's TEID stride computation
+  \item \textbf{Integer overflow in a release build.} The tunnel endpoint identifier (TEID)
+        stride computation for a bearer
         exceeds the width of its type. In C++ signed overflow is \emph{undefined}, so the
         program has no meaning. In Rust it is \emph{defined} to wrap, because the
         \texttt{opt-level~=~2} profile this study compares leaves \texttt{overflow-checks}
@@ -1262,9 +1369,9 @@ procedures the network sustains continuously.
 The scale at which those percentiles matter is not hypothetical. A measurement study of a
 disaggregated 5G RAN times the CU-CP-to-DU UE Context Setup procedure over F1-C, and the
 CU-CP-to-CU-UP bearer context setup over E1, under different interface-protection schemes, and
-finds the choice worth hundreds of microseconds: on F1-C, IPsec adds on the order of
-$120\,\mu$s on average to UE context setup, against roughly $430\,\mu$s for
-DTLS~\cite{michaelides2026ranlatency}. Overheads of that size are treated as consequential for
+finds the choice worth hundreds of microseconds: on F1-C, Internet Protocol Security (IPsec)
+adds on the order of $120\,\mu$s on average to UE context setup, against roughly $430\,\mu$s
+for Datagram Transport Layer Security (DTLS)~\cite{michaelides2026ranlatency}. Overheads of that size are treated as consequential for
 precisely the procedure family this thesis reimplements, which places these operations in a
 regime where tens of microseconds are an engineering quantity rather than noise.
 
@@ -1367,7 +1474,7 @@ RQ & Method & Artifact / data & Primary metric \\
 RQ1 & Load sweep to overload, interleaved repeats & Benchmark harness, latency histograms &
 median, p99/p99.9/p99.99 tail latency, and maximum vs.\ offered load \\
 RQ3 & Same sweep, resource capture & \texttt{getrusage} samples per run &
-peak RSS, CPU utilisation, throughput \\
+peak resident set size (RSS), CPU utilisation, throughput \\
 RQ1, RQ3 & Component decomposition: the core called directly, then through the service &
 Matched microbenchmark pair, interleaved repeats &
 per-operation cost split into the operation and the cross-thread handoff \\
@@ -1545,8 +1652,8 @@ which there is no control at all.\label{tab:controls}}
 Variable & How it is held fixed & What the control does not reach \\
 \hline
 Design & One specification, frozen before any code is written, fixing the public API, the state machine, the data structures and their algorithmic strategy, and how state is divided into shards (\S\ref{sec:fairness}) & Where the two languages cannot express the same construct, the divergence is logged, not removed (Table~\ref{tab:idioms}) \\
-Concurrency model & Thread-per-shard over bounded blocking MPSC queues on both sides, with no asynchronous runtime on either & Nothing outstanding \\
-Hashing & SplitMix64 for shard selection and FNV-1a inside the shard, pinned identically, so neither standard library's default hasher becomes an accidental advantage & The container itself is still each language's own hash map, and the two differ in layout (\S\ref{sec:budget}) \\
+Concurrency model & Thread-per-shard over bounded blocking multi-producer, single-consumer queues on both sides, with no asynchronous runtime on either & Nothing outstanding \\
+Hashing & SplitMix64 for shard selection and FNV-1a, the Fowler--Noll--Vo hash, inside the shard, pinned identically, so neither standard library's default hasher becomes an accidental advantage & The container itself is still each language's own hash map, and the two differ in layout (\S\ref{sec:budget}) \\
 Allocator & The same \texttt{jemalloc} linked on both sides, with a system-allocator build kept on each as a control & Nothing outstanding \\
 Optimisation & \texttt{-O2} against \texttt{opt-level~=~2} & Nominal parity is not identical code generation \\
 Workload & One deterministic driver. For a given seed and active-UE population both implementations execute the same operation sequence, checked by per-kind counts & Synthetic and spec-justified rather than replayed from production traffic \\
@@ -1589,7 +1696,8 @@ across-repeat interval, while the median-of-repeats figures reported with interv
 repeat as the unit and remain the only basis for a paired comparison. Jitter is likewise
 measured directly rather than inferred from the latency distribution, as the absolute difference
 between consecutive latencies within a producer. That is the packet-delay-variation quantity of
-RFC~3393~\cite{rfc3393}, and it matches the sense in which this thesis uses the term: variation
+Request for Comments (RFC)~3393~\cite{rfc3393}, and it matches the sense in which this thesis
+uses the term: variation
 from one operation to the next, not spread of the distribution as a whole. The reported campaign
 carries both. Its p99.99 is pooled across repeats by exactly the procedure described above and
 reaches Table~\ref{tab:latency} as a column of its own, marked there because it is the one column of
@@ -1678,7 +1786,8 @@ Section~\ref{sec:baremetal} demonstrates on a campaign of its own design. What t
 guarantees is that no figure, table, or sentence can hold a value the logs no longer support.
 
 The logs that script reads are part of the package. A performance campaign is an append-only
-newline-delimited JSON file, named by the timestamp at which it started. The reported sweep and
+newline-delimited JavaScript Object Notation (JSON) file, named by the timestamp at which it
+started. The reported sweep and
 the virtualised campaign it replaced both sit under \texttt{bench/results/}, while the second
 bare-metal campaign has a directory of its own. Each campaign has its own script and its own
 macro prefix, so a figure from one cannot reach a sentence about another. The two bare-metal
@@ -1705,9 +1814,10 @@ implementation bias.
 
 \section{Conceptual model and concurrency design}\label{sec:concurrency}
 Two implementations are built against the shared specification, and they do the same job: a
-modern C++ version (C++23, STL, RAII, standard threading) and a Rust version (stable toolchain,
+modern C++ version (C++23, the Standard Template Library (STL), RAII, standard threading) and a
+Rust version (stable toolchain,
 ownership-based memory model, safe concurrency). Both use one concurrency model, described as
-\emph{shared-nothing, thread-per-shard}, which is how real RAN L3 divides UE state. Async and
+\emph{shared-nothing, thread-per-shard}, which is how real RAN layer 3 divides UE state. Async and
 thread-based models are never mixed, and that is deliberate.
 
 The UE-identifier space is split into $N_{\text{shards}}$ shards, and each shard belongs to
@@ -1726,7 +1836,7 @@ completion handle that the worker writes the result into. The queue is \emph{bou
 blocking}. When a shard's queue is full, submission blocks until space frees up. That is what
 produces realistic queueing latency under overload, and it is also what makes tail latency
 observable at all, because a policy that dropped requests instead of blocking would hide the
-overload. Requests to the same shard run strictly first-in-first-out.
+overload. Requests to the same shard run strictly first in, first out (FIFO).
 
 This structure is what gives the safe-concurrency comparison something to measure. The machinery
 under test is the queue, the completion handoff, and the ownership transfer of each request, not
@@ -1811,7 +1921,7 @@ side uses Cargo and the stable toolchain. Both link the same memory allocator, w
 comparison about the two languages and not about two allocators: C++ links the system
 \texttt{jemalloc}, and Rust installs a \texttt{jemalloc} global allocator (from
 \texttt{tikv-jemallocator}). Each side also keeps a system-allocator build as a control.
-Latency passes through the same high-dynamic-range (HDR) histogram
+Latency passes through the same HDR histogram
 algorithm~\cite{tene_hdrhistogram} on both sides, configured the same way (range
 $[1\,\text{ns}, 3.6\,\text{s}]$, three significant figures). Rust uses the standard
 \texttt{hdrhistogram} crate. C++ uses a header-only port of the same bucketing algorithm,
@@ -1970,7 +2080,8 @@ by reading two files lives inside exactly the function this measurement flags.
 conformance runners, the FFI seam, and the probe-conditional blocks of
 Section~\ref{sec:idioms} are excluded. Only the compared code the parity contract constrains is
 counted. Complexity is one plus the number of decision points in a function. The line count is
-NLOC as \texttt{lizard} defines it, which also discounts brace-only and preprocessor lines. It
+non-commenting lines of code (NLOC) as \texttt{lizard} defines it, which also discounts
+brace-only and preprocessor lines. It
 is the same measurement quoted at the head of
 Section~\ref{sec:impldetails}.\label{tab:complexity}}
 \begin{tabular}{@{}l r r@{}}
@@ -2088,8 +2199,8 @@ life. Table~\ref{tab:testbed} describes the machines and keeps the split clear.
 
 \paragraph{The environment used.}
 Every performance number in this chapter comes from one dedicated bare-metal server: a
-single-socket \MainCpu{} with \MainCores{} cores on \MainNumaNodes{} NUMA node, simultaneous
-multithreading \MainSmt{}, kernel \MainKernel{}. The frequency governor is fixed at
+single-socket \MainCpu{} with \MainCores{} cores on \MainNumaNodes{} non-uniform memory access
+(NUMA) node, simultaneous multithreading (SMT) \MainSmt{}, kernel \MainKernel{}. The frequency governor is fixed at
 \MainGovernor{} with boost disabled, so the cores hold their base clock rather than a thermally
 negotiated one, and cores \MainPinned{} carry the benchmark. The environment capture records
 virtualisation as \MainVirt{}. Every run records the environment metadata of
@@ -3810,10 +3921,12 @@ Appendix~\ref{appendix:search} records the position each leaves this thesis in, 
 citation clusters that settle it. The studies the thesis has to answer to are treated here.
 
 Four systems studies come closest in method, though not in domain, because they too build the
-same component twice and attribute the difference: IPC mechanisms for one network
-function~\cite{li2021ipc}, RedLeaf against purpose-built C baselines~\cite{narayanan2020redleaf},
-a concurrent STAMP translation that is the closest published match to this design~\cite{suchert2023stamp},
-and a kernel UDP tunnelling driver~\cite{gonzalez2023rustudp}. That last one reports Rust slower
+same component twice and attribute the difference: inter-process communication (IPC) mechanisms
+for one network function~\cite{li2021ipc}, RedLeaf against purpose-built C
+baselines~\cite{narayanan2020redleaf}, a concurrent translation of the Stanford Transactional
+Applications for Multi-Processing (STAMP) benchmarks that is the closest published match to this
+design~\cite{suchert2023stamp}, and a kernel User Datagram Protocol (UDP) tunnelling
+driver~\cite{gonzalez2023rustudp}. That last one reports Rust slower
 by 0.19\% at $p = 1.5 \times 10^{-15}$, a difference overwhelming in statistical terms and negligible
 in operational ones. Keeping those two apart is what the pre-committed interval-versus-$p$
 rule of Section~\ref{sec:stats} exists to do. None of the four measures past saturation.
@@ -3858,7 +3971,8 @@ Section~\ref{sec:threats} treats that as the principal threat to construct valid
 
 Two 2026 bachelor's theses from outside the vendor set apply parts of the method to smaller
 objects: matched C and Rust user-space drivers, with a fixed memory overhead and no measurable
-run-time cost~\cite{sundvisson2026drivers}, and a CWE staging study across C++, Rust and
+run-time cost~\cite{sundvisson2026drivers}, and a Common Weakness Enumeration (CWE) staging
+study across C++, Rust and
 Python~\cite{andersson2026stdmemsafety}. Neither involves concurrency, a telecom workload, or a
 load sweep.
 
@@ -3888,7 +4002,7 @@ literature.\label{tab:vendortheses}}
 Study & Object measured & Regime reported & Reported verdict on Rust \\
 \hline
 Karlb\"ack \& Or\"o, 2021~\cite{karlback2021ran} &
-RAN applications on x86 and ARM, one idiomatic implementation per language &
+RAN applications on x86 and Arm, one idiomatic implementation per language &
 Runtime and resource use at the loads exercised &
 C++ preferred where performance is critical. Rust's peak memory the lowest of the three
 languages \\
@@ -4288,15 +4402,17 @@ and review effort as Rust is adopted in a production RAN codebase.
 \begin{appendices}
 
 % Inside the appendices, \appendix takes the title where \chapter would.
-\appendix{Abbreviations and key terms\label{appendix:terms}}
-Table~\ref{tab:abbrev} collects the abbreviations and terms used throughout the thesis, for readers outside the telecom domain.
+\appendix{Key terms\label{appendix:terms}}
+Table~\ref{tab:abbrev} collects the terms used throughout the thesis that are not acronyms, for
+readers outside the telecom domain. The acronyms are written out at first use and listed together
+in the \nomname{} on page~\pageref{page:acronyms}.
 
 \begin{table}[H]
 \centering
-\caption[Abbreviations and key terms]{Abbreviations and key terms used throughout the thesis.\label{tab:abbrev}}
-% One size down so that a glossary of this length shares a page with the appendix
-% heading inside the class's 23cm text block. The \singlespacing is redundant while
-% the body is single-spaced, and is kept so the table survives a change back.
+\caption[Key terms]{Key terms used throughout the thesis.\label{tab:abbrev}}
+% One size down so that the glossary shares a page with the appendix heading inside
+% the class's 23cm text block. The \singlespacing is redundant while the body is
+% single-spaced, and is kept so the table survives a change back.
 \singlespacing
 \footnotesize
 \renewcommand{\arraystretch}{1.2}
@@ -4304,24 +4420,13 @@ Table~\ref{tab:abbrev} collects the abbreviations and terms used throughout the 
 \hline\hline
 Term & Meaning \\
 \hline
-RAN & Radio Access Network: the part of the mobile network connecting devices to the core \\
-NG-RAN & Next-Generation RAN, the 5G radio-access-network architecture \\
-IMT-2030 & The ITU framework for the generation after 5G, commonly called 6G \\
-AI-RAN & An architecture in which AI and RAN workloads share one accelerated infrastructure \\
-gNB & 5G base station (``next-generation NodeB'') \\
-gNB-CU / DU & Central Unit / Distributed Unit: the disaggregated halves of a gNB \\
-gNB-CU-CP & Control-plane part of the central unit: the system class studied here \\
-UE & User Equipment: an end device (phone, modem) attached to the network \\
-UECM & UE Context Management: the per-UE state-management subsystem reimplemented here \\
-RRC & Radio Resource Control: the control-plane signalling protocol between UE and gNB \\
-DRB & Data Radio Bearer: a per-UE user-plane data channel set up during a session \\
 Control plane & The signalling and management path, as opposed to the user-plane data path \\
 Tail latency & High-percentile latency (p99, p99.9, p99.99), the worst-case-oriented timing metric \\
 Jitter & How much latency varies from one operation to the next, as opposed to its typical value \\
 Saturation & The offered load beyond which the service can no longer keep up and requests start queueing \\
 Shard & One of several independent slices of the UE state, each owned by exactly one worker thread \\
-FFI & Foreign Function Interface: calling Rust from C++ across a C ABI \\
-HDR histogram & High-Dynamic-Range histogram, used for accurate latency capture \\
+Open-loop & A load schedule whose send times are fixed in advance, so a slow response delays no later request \\
+Coordinated omission & The bias an open-loop schedule avoids, in which a stalled client stops issuing requests and so never records the latency of the stall \\
 \hline
 \end{tabular}
 \end{table}
@@ -4330,8 +4435,9 @@ HDR histogram & High-Dynamic-Range histogram, used for accurate latency capture 
 Section~\ref{sec:approach} reports the two findings this search produced. The protocol is recorded
 here so that the gap the study claims can be checked rather than taken on trust.
 
-Candidate literature was gathered from the ACM Digital Library, IEEE Xplore, USENIX, and Google
-Scholar, using combinations of the terms \emph{Rust}, \emph{C++}, \emph{memory safety}, \emph{tail
+Candidate literature was gathered from the Association for Computing Machinery (ACM) Digital
+Library, the Institute of Electrical and Electronics Engineers (IEEE) Xplore, the USENIX
+Association, and Google Scholar, using combinations of the terms \emph{Rust}, \emph{C++}, \emph{memory safety}, \emph{tail
 latency}, \emph{systems programming}, \emph{performance comparison}, and \emph{RAN} / \emph{5G
 control plane}. The search was restricted to peer-reviewed venues, except where an industry or
 government report is itself the object of study, as the memory-safety mandates and vendor
@@ -4343,10 +4449,12 @@ the O-RAN survey) was added separately to fix the architectural context.
 
 Those sources alone would have missed the closest prior work, which is why two more were added.
 The vendor-hosted theses that come nearest to this study (Section~\ref{sec:relatedwork}) appear in
-none of the citation databases: not in Crossref, OpenAlex, DBLP, or Semantic Scholar. Neither
+none of the citation databases: not in Crossref, OpenAlex, the computer science bibliography
+DBLP, or Semantic Scholar. Neither
 forward nor backward chaining can reach them, because nothing indexed cites them and their own
 reference lists are not deposited. They were found instead by searching the institutional
-repositories directly, DiVA for the Nordic universities and Finna for the Finnish ones. The same
+repositories directly, Digitala Vetenskapliga Arkivet (DiVA) for the Nordic universities and
+Finna for the Finnish ones. The same
 two searches establish the absence on the other side. Finna, which federates the Finnish
 university repositories, returns no thesis on Rust in a radio-access or telecom context. An
 author-affiliation search of Nokia's indexed publications in OpenAlex returns none either. Its
@@ -4531,7 +4639,7 @@ Build variants & $\NVariants$ & two languages $\times$ two allocators \\
 Repeats per sweep point & \NRepeats{} & variants interleaved within each repeat \\
 Measured runs & $\NRuns$ & \\
 Latency capture & HDR histogram, $[1\,\text{ns}, 3.6\,\text{s}]$, 3 s.f. & same algorithm and configuration on both sides \\
-Summary statistic & median with bootstrap $95\%$ CI & intervals reported in full, not as half-widths \\
+Summary statistic & median with bootstrap $95\%$ confidence interval & intervals reported in full, not as half-widths \\
 Language comparison & exact paired permutation test & \NTests{} tests, Holm-corrected \\
 Attainable $p$ floors & $\MinAttainableP$ / $\CorrectedFloor$ & uncorrected / after correction \\
 \hline
