@@ -295,7 +295,8 @@ plainly. The measurements here are taken on a subsystem modelled on a current-ge
 component and evaluated against requirements that are already published. No claim is made about
 requirements that have not yet been written. What crosses the generational boundary is not a
 latency figure but the language-level comparison itself: Which defect classes a compiler can rule
-out, what the safety model costs, and what incremental adoption inside a large C++ codebase
+out, what the safe
+ty model costs, and what incremental adoption inside a large C++ codebase
 involves. Those questions have the same answers whichever generation the specification above them
 names, and they are cheapest to answer before the next codebase is started rather than after.
 
@@ -354,11 +355,11 @@ migration ahead of raw average performance:
 \end{description}
 
 The questions are approached with three prior expectations, stated here so that the evaluation
-can confirm or refute them instead of merely describing results after the fact. \textbf{H1:} for
+can confirm or refute them instead of merely describing results after the fact. \textbf{H1:} For
 this workload the two languages are performance-equivalent in the operationally relevant region
-below saturation, with any difference confined to the far tail. \textbf{H2:} safe Rust prevents
+below saturation, with any difference confined to the far tail. \textbf{H2:} Safe Rust prevents
 at compile time the memory-safety and concurrency defect classes that C++ leaves to
-best-effort, after-the-fact detection. \textbf{H3:} the run-time cost of C++-to-Rust
+best-effort, after-the-fact detection. \textbf{H3:} The run-time cost of C++-to-Rust
 interoperability is negligible relative to the cost of the operations invoked, so that the true
 cost of incremental adoption is engineering effort rather than performance. H2 is stated so that
 it can fail. The defect catalogue behind RQ2 spans classes safe Rust is expected to prevent and
@@ -541,7 +542,7 @@ afterwards.
 
 RQ4 is answered by a working prototype in which C++ drives the Rust core through a
 foreign-function interface. Cross-language memory-management defects concentrate at that
-seam~\cite{li2022crosslang}. It yields three measurements: how large the seam is, how
+seam~\cite{li2022crosslang}. It yields three measurements: How large the seam is, how
 much \texttt{unsafe} code it needs, and what one call across it costs.
 
 Fairness is the central experimental control. The specification is frozen. Allocator and
