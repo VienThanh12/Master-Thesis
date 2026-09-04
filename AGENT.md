@@ -381,6 +381,26 @@ one argument.
    name, three numeric ranges). If that number rises, the new ones are yours.
 2. **No semicolons.** Use a full stop, a comma, a colon, or two sentences instead. Semicolons in
    thesis prose read as stiff and are easy to spot on review.
+3. **Capitalise after a colon when what follows begins a unit of its own.** The supervisor asked for
+   this on 4 September 2026 and it is the APA convention. Two shapes qualify and both were fixed
+   the same day, 14 sites across the two documents. A **run-in label** such as `\textbf{H1:}` stands
+   outside the sentence's grammar, so the sentence begins after the colon and takes a capital:
+   `\textbf{H1:} For this workload the two languages are performance-equivalent`. The argument that
+   settles it is internal, not a style guide: `\item[RQ1] How do Rust and modern C++ compare` sits
+   four lines above and has always been capitalised, and the hypotheses are the same construct. All
+   six bold label colons in the repository were the H1 to H3 statements and all six were lowercase,
+   so there was no counter-example to preserve. A colon introducing a **question or a series of
+   them** also takes a capital: `comparison itself: Which defect classes a compiler can rule out`,
+   three items that restate RQ2 to RQ4 against an RQ list that capitalises them. Five more colons
+   of that shape were found and moved with it, so the two documents agree.
+   **Everything else stays lowercase**, which is the large majority: a colon amplifying a clause
+   that already began, a list, or a phrase. The single-clause case is where the guides split, APA
+   capitalising and Chicago not, and the thesis keeps its 17 such sites in `Thesis_v2.tex`
+   lowercase. Do not sweep them without being asked. Display type (titles, captions, `\paragraph`
+   headings) takes the capital as the chapter titles do, and the draft has **13 that do not**,
+   deferred deliberately on 4 September. `.aitells.py` reports `lowercase after a label colon` and
+   `lowercase question after a colon`, both at **0** after the fix, and both skip display type
+   because `is_prose()` drops any line starting with a backslash.
 
 The full style constraint is in the prose-style section of `.cursor/rules/thesis-quality.mdc`.
 
@@ -633,8 +653,8 @@ which is criterion 1's blocker.
 
 - `build/Ha_Vien_Mastersthesis_2026.log`: **zero errors**, zero undefined references/citations. `.latexmkrc` keeps
   every LaTeX intermediate in `build/`; the PDF and its SyncTeX index still land at the root.
-- `./.aitells.py` on every file whose prose changed: no em-dash asides introduced; no semicolons
-  introduced.
+- `./.aitells.py` on every file whose prose changed: no em-dash asides introduced, no semicolons
+  introduced, and both colon checks still at zero.
 - Figure/table macros in prose match `figures/gen_macros.tex`.
 - No figure contradicts its table (see `docs/ASSESSMENT.md` refinement pass for past failures).
 - `diagrams/check_labels.py` reports “Diagram labels: no em dash, dash aside, or semicolon”. Run by

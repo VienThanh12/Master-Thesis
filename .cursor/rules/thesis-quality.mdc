@@ -44,6 +44,23 @@ not errors: frequency is the signal, so aim low rather than at zero.
 - **No semicolons in thesis prose or on a slide.** Use a full stop, a comma, a colon, or two
   sentences instead. Source code shown verbatim would be the one exception, and no slide in the
   deck shows any.
+- **Capitalise after a colon when the words after it begin a unit of their own, and only then.**
+  The supervisor asked for this on 4 September 2026, and it is the APA convention that scientific
+  writing follows. Two shapes qualify. A run-in label such as `\textbf{H1:}` is not part of the
+  sentence's grammar, so the sentence starts after the colon: `\textbf{H1:} For this workload the
+  two languages are performance-equivalent`. That matches the `\item[RQ1] How do Rust and modern
+  C++ compare` list four lines above it, which the thesis has always capitalised, and the
+  hypotheses are its twin. A colon introducing a question or a series of them also takes a
+  capital: `comparison itself: Which defect classes a compiler can rule out`, whose three items
+  restate RQ2 to RQ4. Everything else stays lowercase, which is most colons in the thesis: one
+  amplifying a clause that already began (`does not compile: ownership and borrowing reject the
+  dangling reference`), a list (`Two are artifacts: a reproducible benchmarking framework`), or a
+  bare phrase. That single-clause case is the one where the guides disagree, APA capitalising and
+  Chicago not, and this thesis leaves its 17 such sites lowercase, so do not sweep them without
+  being asked. Titles, captions and `\paragraph` headings are display type and take the capital,
+  as the chapter titles do (`Background: Systems Languages for Latency-Critical Software`). The
+  draft has 13 that do not, which is known and deferred rather than missed. `.aitells.py` gates
+  the two shapes that qualify, and because it reads `.tex` only, slide prose is not covered.
 - `--` is legitimate only for numeric ranges (`$2$--$15$`) and compound proper names
   (Herfindahl--Hirschman). TikZ `--` is path syntax: never touch it. The slide equivalent is an
   unspaced en dash between numbers (`1.9–3.4 MiB`). A spaced en dash is an aside, so the deck
