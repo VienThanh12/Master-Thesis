@@ -2,10 +2,10 @@
 
 Master's thesis (University of Helsinki, Software study track) by **Ha Vien**.
 
-This repository holds both the written thesis (LaTeX) and the complete artefact it is
+This repository holds both the written thesis (LaTeX) and the complete artefact
 built on: a language-agnostic specification, two functionally equivalent implementations
 of a Radio Access Network (RAN) control-plane subsystem in **modern C++** and **Rust**, and
-the measurement harnesses that produce every figure and table in the thesis.
+The measurement harnesses that produce every figure and table in the thesis.
 
 ## What the thesis studies
 
@@ -27,7 +27,7 @@ the fourteen defect classes at compile time (use-after-free, double free, iterat
 invalidation, data race, unguarded shared mutation, use-after-move, thread-unsafe sharing)
 and compiles the other seven without complaint (lock-order deadlock, lost update,
 reference-cycle leak, release-build integer overflow, worker-failure blast radius, double-free
-across an `unsafe` FFI seam, forgotten lock guard), so the study measures where the guarantee
+across an `unsafe` FFI seam (forgotten lock guard), so the study measures where the guarantee
 *stops* rather than only confirming that it holds.
 
 Two of those in-guarantee classes carry information the rest do not. `use_after_move` is the
@@ -58,7 +58,7 @@ The PDFs in this repository do not share a status and are not interchangeable.
 | -------- | ------ | ---- |
 | `Thesis_Plan_v2.pdf` | Reviewed, supervisor-facing | Approved plan: gap, RQs, methodology, timeline, contributions |
 | `Thesis_v2.pdf` | Reviewed, supervisor-facing | Supervisor read-through: Chapter 1 is the full draft introduction, chapters 2--8 keep five argument paragraphs each in plain prose. All eight chapters match the full draft's chapter list since 26 August 2026, and the results paragraphs quote the generated macros rather than carrying their own numbers |
-| `Ha_Vien_Mastersthesis_2026.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, full argument, and everything in it still needs review. The name is the UH submission format (`Lastname_Firstname_Mastersthesis_Year`, ASCII) and says nothing about review status. It was `Thesis_POC` until 19 August 2026 |
+| `Ha_Vien_Mastersthesis_2026.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, a full argument, and everything in it still need review. The name is the UH submission format (`Lastname_Firstname_Mastersthesis_Year`, ASCII) and says nothing about review status. It was `Thesis_POC` until 19 August 2026 |
 | `source_audit.pdf` | Generated citation audit | Every bibliography entry, ordered as in the full draft's reference list, with the citing sentence beside the source's own words. Built by [`.bibaudit/build_audit.py`](.bibaudit/build_audit.py). Do not hand-edit `source_audit.tex`, with one exception: the last column of Part 1 is the author's review tick, and turning a `$\square$` into a `$\blacksquare$` is how the source-checking pass records progress. The generator reads those ticks back out of the old document before overwriting it, mirrors them to `.bibaudit/reviewed.txt`, and prints how many it carried. Read that line after every rebuild, because a regeneration silently wiped 22 of them on 1 September 2026 |
 | `ai_statement.tex` | Declaration in the author's name | Statement on generative-AI use, shared by both thesis documents |
 | [`archive/`](archive/) | Superseded, not maintained | Earlier variants kept for reference only: `plain_thesis.tex`, `thesis-vi.tex` (renders its citations as `[?]`), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, and the v1 plan PDF. They read relative paths from the repository root, so they no longer build where they sit |
