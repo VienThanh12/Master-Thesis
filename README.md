@@ -103,7 +103,7 @@ reader-facing view of that record.
 │   ├── TODO.md            Phase checklist and open items
 │   ├── LITERATURE_NOTES.md, Sources_evidence.md   Citation audit trail. `source_audit.pdf` is the reader-facing view
 │   ├── citation.md        Citation conventions
-│   └── review/            Commented PDFs a reviewer returns, read by pdfannots.py
+│   └── review/            Commented PDFs a reviewer returns, read by pdfannots.py. Gitignored, create it locally
 ├── .bibaudit/         Generates `source_audit.tex` from `bibliography.bib`, the `.bbl`, and the evidence notes
 │   └── reviewed.txt       Mirror of Part 1's review ticks, so they survive a regeneration of the document
 ├── archive/           Superseded document variants, kept for reference; not maintained, do not build
@@ -120,7 +120,7 @@ reader-facing view of that record.
 ├── bibliography.bib
 ├── build_deck.py      Nokia-branded slide-deck generator (reads figures/ + faults/ results)
 ├── pdfpreview.py      Rasterise PDF pages into .pdf-preview/, since the WSL webview shows none
-├── pdfannots.py       Pull a reviewer's highlights and notes out of a commented PDF
+├── pdfannots.py       Pull a reviewer's highlights and notes out of a commented PDF in docs/review/
 └── .aitells.py, .vocab.py, .readability.py    Prose checks run over the LaTeX sources
 ```
 
@@ -312,8 +312,9 @@ latexmk -pdf Thesis_Plan_v2.tex               # thesis plan
 ```
 
 The audit generator takes printed numbers from the thesis `.bbl` and refuses to run when that
-file disagrees with the source's cite keys, so a stale numbering cannot reach the page. Never
-hand-edit `source_audit.tex`.
+file disagrees with the source's cite keys, so a stale numbering cannot reach the page.
+Everything in `source_audit.tex` is derived and a hand edit to it is lost on the next run, apart
+from the review tick described above.
 
 For thesis-grade performance numbers, provision a clean testbed and run the full measurement
 campaign. See [`bench/README.md`](bench/README.md) and [`bench/TESTBED.md`](bench/TESTBED.md).
@@ -330,8 +331,8 @@ bench/refresh_thesis.sh                  # refresh figures/tables/PDF from the n
 
 ### 4. Check the prose after writing
 
-Three surfaces reach a reader as prose, and each has its own gate, because none of the three
-can see the other two:
+Prose reaches a reader through three surfaces, the LaTeX sources, the diagram labels and the
+slide deck, and each carries its own gate because none of them can see the other two:
 
 ```bash
 ./.aitells.py Ha_Vien_Mastersthesis_2026.tex   # LaTeX sources, and the default if none is given
@@ -346,8 +347,8 @@ The three root scripts report counts rather than errors, so read the language-mo
 rather than at zero. Four of `.aitells.py`'s checks are house rules where zero is the target: em
 dashes, semicolons, and the two colon checks added on 4 September 2026 at the supervisor's
 request. A capital follows a colon in two shapes only, a run-in label such as `\textbf{H1:}` and
-a colon introducing a question. Every other colon keeps a lowercase word after it, and a sweep
-of those is not wanted.
+a colon introducing a question. Every other colon keeps a lowercase word after it, so do not
+sweep them.
 
 ## The subsystem under study
 

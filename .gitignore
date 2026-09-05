@@ -25,6 +25,8 @@ build/
 *.bcf
 *.dvi
 *.xdv
+# latexmk renames an intermediate it could not overwrite instead of losing it.
+*-SAVE-ERROR
 
 # C++ build
 cpp/build/
@@ -70,6 +72,10 @@ ffi/**/target/
 
 # Rendered PDF page images (workaround for broken WSL webview preview)
 .pdf-preview/
+
+# Commented PDFs a reviewer returns, read by pdfannots.py. Kept local: a marked-up
+# copy carries the reviewer's own words and may carry Nokia-internal comments.
+docs/review/
 
 # Slide-deck tooling
 .venv-pptx/
