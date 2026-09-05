@@ -59,7 +59,7 @@ The PDFs in this repository do not share a status and are not interchangeable.
 | `Thesis_Plan_v2.pdf` | Reviewed, supervisor-facing | Approved plan: gap, RQs, methodology, timeline, contributions |
 | `Thesis_v2.pdf` | Reviewed, supervisor-facing | Supervisor read-through: Chapter 1 is the full draft introduction, chapters 2--8 keep five argument paragraphs each in plain prose. All eight chapters match the full draft's chapter list since 26 August 2026, and the results paragraphs quote the generated macros rather than carrying their own numbers |
 | `Ha_Vien_Mastersthesis_2026.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, full argument, and everything in it still needs review. The name is the UH submission format (`Lastname_Firstname_Mastersthesis_Year`, ASCII) and says nothing about review status. It was `Thesis_POC` until 19 August 2026 |
-| `source_audit.pdf` | Generated citation audit | Every bibliography entry, ordered as in the full draft's reference list, with the citing sentence beside the source's own words. Built by [`.bibaudit/build_audit.py`](.bibaudit/build_audit.py). Never hand-edit `source_audit.tex` |
+| `source_audit.pdf` | Generated citation audit | Every bibliography entry, ordered as in the full draft's reference list, with the citing sentence beside the source's own words. Built by [`.bibaudit/build_audit.py`](.bibaudit/build_audit.py). Do not hand-edit `source_audit.tex`, with one exception: the last column of Part 1 is the author's review tick, and turning a `$\square$` into a `$\blacksquare$` is how the source-checking pass records progress. The generator reads those ticks back out of the old document before overwriting it, mirrors them to `.bibaudit/reviewed.txt`, and prints how many it carried. Read that line after every rebuild, because a regeneration silently wiped 22 of them on 1 September 2026 |
 | `ai_statement.tex` | Declaration in the author's name | Statement on generative-AI use, shared by both thesis documents |
 | [`archive/`](archive/) | Superseded, not maintained | Earlier variants kept for reference only: `plain_thesis.tex`, `thesis-vi.tex` (renders its citations as `[?]`), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, and the v1 plan PDF. They read relative paths from the repository root, so they no longer build where they sit |
 
@@ -102,8 +102,10 @@ reader-facing view of that record.
 │   ├── ASSESSMENT.md      Criterion-by-criterion self-assessment
 │   ├── TODO.md            Phase checklist and open items
 │   ├── LITERATURE_NOTES.md, Sources_evidence.md   Citation audit trail. `source_audit.pdf` is the reader-facing view
-│   └── citation.md        Citation conventions
+│   ├── citation.md        Citation conventions
+│   └── review/            Commented PDFs a reviewer returns, read by pdfannots.py
 ├── .bibaudit/         Generates `source_audit.tex` from `bibliography.bib`, the `.bbl`, and the evidence notes
+│   └── reviewed.txt       Mirror of Part 1's review ticks, so they survive a regeneration of the document
 ├── archive/           Superseded document variants, kept for reference; not maintained, do not build
 ├── template/          Assets HYthesisML.cls loads by path (cover-page dictionaries, HY logo)
 │   └── upstream/          Pristine CSM thesis template the class was taken from
@@ -112,11 +114,13 @@ reader-facing view of that record.
 ├── Ha_Vien_Mastersthesis_2026.tex   Canonical full draft, under the UH submission filename
 ├── Thesis_v2.tex      Supervisor-facing chapter skeleton
 ├── Thesis_Plan_v2.tex Revised thesis plan
-├── source_audit.tex   Generated citation audit. Do not edit. Rebuild with `.bibaudit/build_audit.py && latexmk -pdf source_audit.tex`
+├── source_audit.tex   Generated citation audit. Only the Part 1 review tick is hand-edited. Rebuild with `.bibaudit/build_audit.py && latexmk -pdf source_audit.tex`
 ├── ai_statement.tex  Declaration on generative-AI use, shared by both thesis documents
 ├── AGENT.md           Working rules: document roles, grade criteria, verification workflow
 ├── bibliography.bib
 ├── build_deck.py      Nokia-branded slide-deck generator (reads figures/ + faults/ results)
+├── pdfpreview.py      Rasterise PDF pages into .pdf-preview/, since the WSL webview shows none
+├── pdfannots.py       Pull a reviewer's highlights and notes out of a commented PDF
 └── .aitells.py, .vocab.py, .readability.py    Prose checks run over the LaTeX sources
 ```
 
@@ -151,7 +155,8 @@ Optional, each needed by one script only:
 | `cargo-llvm-cov`, `gcov` | `rust/coverage.sh`, `cpp/coverage.sh` |
 | `lizard` | complexity proxies in `bench/refresh_thesis.sh` |
 | `cairosvg` | re-rendering `diagrams/` |
-| `python-pptx`, `pymupdf` | `build_deck.py` |
+| `python-pptx` | `build_deck.py` |
+| `pymupdf` | `build_deck.py` (rasterising the result plots), `pdfpreview.py`, `pdfannots.py` |
 | Docker | [`docker/run.sh`](docker/README.md), the pinned-toolchain campaign path |
 | `perf` with a hardware PMU, `jeprof` | `bench/counters.sh`, `bench/alloc_profile.sh` (testbed only) |
 
@@ -323,6 +328,27 @@ bench/campaign.sh --repeats 20           # full load sweep with bootstrap CI (se
 bench/refresh_thesis.sh                  # refresh figures/tables/PDF from the newest campaign
 ```
 
+### 4. Check the prose after writing
+
+Three surfaces reach a reader as prose, and each has its own gate, because none of the three
+can see the other two:
+
+```bash
+./.aitells.py Ha_Vien_Mastersthesis_2026.tex   # LaTeX sources, and the default if none is given
+python3 .vocab.py                              # hard Latinate vocabulary
+python3 .readability.py                        # sentence and paragraph load
+diagrams/check_labels.py                       # diagram labels, also run by refresh_thesis.sh
+python3 build_deck.py                          # the deck checks its own slides on save
+```
+
+The three root scripts report counts rather than errors, so read the language-model fingerprints
+(transition openers, promotional adjectives, uniform sentence length) as frequency and aim low
+rather than at zero. Four of `.aitells.py`'s checks are house rules where zero is the target: em
+dashes, semicolons, and the two colon checks added on 4 September 2026 at the supervisor's
+request. A capital follows a colon in two shapes only, a run-in label such as `\textbf{H1:}` and
+a colon introducing a question. Every other colon keeps a lowercase word after it, and a sweep
+of those is not wanted.
+
 ## The subsystem under study
 
 A self-contained, stateful, concurrent **UE Context Management** service that owns the UE
@@ -365,9 +391,15 @@ from `diagrams/png/`, which `diagrams/render.py` writes.
 | RQ2 (safety) | Final. Fault-injection taxonomy complete across fourteen defect classes, seven inside the guarantee and seven outside it, plus Loom and Shuttle on the two concurrency boundary classes and Miri on the unsafe one |
 | RQ4 (migration) | Final. FFI prototype, interleaved native-vs-seam measurement of one real operation, seam size, and the three adoption-cost axes beyond the seam (build time, static footprint, third-party surface) |
 | RQ1/RQ3 (performance) | Complete. The matched bare-metal campaign ran on 27 August 2026 and is the reported dataset, so the per-language saturation limits, the overload divergence, the resource comparisons and the far tail below saturation are all resolved on one host at the canonical design. Rust's pooled p99.99 sits below C++'s at every load the two separate. Jitter and the p99.99 column are reported. One question the data raised remains open: whether the peak-RSS allocator effect tracks the transparent-hugepage policy |
-| Writing | `Ha_Vien_Mastersthesis_2026.pdf` builds clean with zero LaTeX errors and no undefined references. It is a full draft awaiting review. The printed abstract matches the tables, and the AI declaration records that it was written unaided. `Thesis_v2.pdf` is the eight-chapter supervisor read-through (full Chapter 1, five prose paragraphs in each of chapters 2--8), and its abstract is still the template placeholder |
+| Sources | 109 bibliography entries, every one of them cited. `docs/Sources_evidence.md` records per entry what claim the citation carries and where the supporting passage was read, and `source_audit.pdf` is the reader-facing view of it. 29 entries were ticked as read against the source itself at 2 September 2026 |
+| Writing | `Ha_Vien_Mastersthesis_2026.pdf` builds clean with zero LaTeX errors and no undefined references. It is a full draft awaiting review. The printed abstract matches the tables, and the AI declaration records that it was written unaided. Both thesis documents carry a front-matter list of acronyms as of 4 September 2026, so an acronym added to either needs a row there as well as the expansion at its first use. `Thesis_v2.pdf` is the eight-chapter supervisor read-through (full Chapter 1, five prose paragraphs in each of chapters 2--8), and its abstract is still the template placeholder |
 
-Open items and the post-campaign re-check list are tracked in [`docs/TODO.md`](docs/TODO.md).
+The self-assessment in [`docs/ASSESSMENT.md`](docs/ASSESSMENT.md) puts all six assessable areas
+at 5 as of its twentieth pass, 3 September 2026. It is the author's own reading against the CSM
+matrix rather than a mark, and what earned it was reviewers who were told nothing about what had
+changed: they found 49 of the 69 recorded defects, all of them prose disagreeing with an artefact
+that was itself correct. Open items and the post-campaign re-check list are tracked in
+[`docs/TODO.md`](docs/TODO.md).
 
 Every campaign summary number quoted in the thesis prose (representative load, saturation
 knee, repeat count, p99 spread) is generated into `figures/gen_macros.tex` by
