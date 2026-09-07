@@ -11,23 +11,19 @@ refinement pass. Source material was the thesis PDF and the supporting artefacts
 The thesis source was renamed from `Ha_Vien_Mastersthesis_2026.tex` to `Ha_Vien_Mastersthesis_2026.tex` on
 19 August 2026. Passes recorded before that date read the same document under the older name.
 
-An interactive version of this document exists as a Cursor canvas at
-`~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grading.canvas.tsx`. This file is
-the durable copy; keep the two in step if you revise either.
+An interactive version of this document exists as a Cursor canvas. The standing one is
+`~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-sep07.canvas.tsx`.
+This file is the durable copy; keep the two in step if you revise either.
 
-> **The last grading pass on record is the twelfth, 26 August 2026 late evening.** Two remediation
-> passes followed it (26 August night, and the dataset promotion of 27 August recorded at the end of
-> this file), and **neither has been graded**, deliberately: a remediation pass must not score its
-> own output. Treat criteria 3 and 4 as carrying their twelfth-pass values until a fresh pass runs.
-> The
-> summary table immediately below is the first pass and is kept as history, not as the standing
-> view. Eight passes are on record and they do not all agree: the second held criteria 3 and 4 at 4
-> rather than 4.5, on the grounds that three criticisms said to need new measurement were
-> answerable from the dataset already in hand, the fourth took criterion 6 from 5 to 4.5 on the
-> truthfulness of the AI declaration, and the sixth took criterion 4 from 4.5 to 4 after checking
-> the hand-typed prose values against the published artefacts rather than only counting them. The
-> seventh and eighth confirmed every area where the sixth left it. Read the passes in order if the
-> reasoning behind a half-grade matters. Where any two disagree, the later one is current.
+> **Current: twenty-first pass, 7 September 2026, mean 4.83.** Areas 1, 2, 3 and 5 at 5, areas 4
+> and 6 at **4.5**. Canvas: `thesis-grade-csm-sep07.canvas.tsx`. The finding is a claimed toolchain
+> match with the guest that `tab:testbed`'s own Toolchain row refutes (`\GuestGpp` 15.1.1 against
+> `\MainGpp` 15.2.1). See that pass at the end of this file.
+>
+> **The summary table immediately below is the first pass** and is kept as history, not as the
+> standing view. Twenty-one passes are on record and they do not all agree. Read the passes in
+> order if the reasoning behind a half-grade matters. Where any two disagree, the later one is
+> current.
 
 ---
 
@@ -4023,3 +4019,197 @@ No item holds an assessable area off 5.
 The unaided switch, the §2.2 short title, and the `tab:abbrev` reference remain **done**. Do not
 re-report them as grade caps.
 
+
+## Twenty-first pass — 7 September 2026
+
+Graded independently against the CSM matrix of 9 April 2024, on `Ha_Vien_Mastersthesis_2026.tex`
+as a **full draft**, scored as the manuscript an examiner would receive if submitted today.
+**Build verified rather than assumed**: the `.tex` timestamps are newer than the PDFs (draft
+09:50 on 7 September against a PDF of 12:23 on 6 September), but `latexmk -pdf` reports
+`Nothing to do` for both the draft and `Thesis_v2`, so latexmk's content hashes match and the
+newer timestamps are no-op re-saves. Declared length **96 pages plus 12 appendix pages** (118
+physical), unchanged since the 4 September acronym pass. Standard applied: the document prints no
+"Not submittable", so it is not scored down for that. It is still not supervisor-approved.
+
+View formed from the manuscript, both PDFs, and the artefacts before this file was re-read.
+Canvas: [`thesis-grade-csm-sep07.canvas.tsx`](/home/vienha/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-sep07.canvas.tsx).
+
+| Area | 20th pass (3 Sep) | This pass | Clause that sets it |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Level 5 holds. RQ1's metric list is still exactly `tab:latency`'s columns, RQ2 still two-sided |
+| 2. Scholarly framework and sources | 5 | **5** | Level 5 holds. 109/109 cited, 66% peer-reviewed, contrary results named as such |
+| 3. Research data and method | 5 | **5** | Level 5 holds. Considered and rejected a drop: see the note below |
+| 4. Presentation of results | 5 | **4.5** | Level 5's "well considered and apt". `tab:testbed`'s caption is contradicted by its own Toolchain row, §6.4.7 hand-types a wrong compiler version, `tab:findings`' RQ3 cell cannot pick out a host |
+| 5. Discussion and conclusions | 5 | **5** | Level 5 holds. None of this pass's findings is in Chapter 7 |
+| 6. Academic text | 5 | **4.5** | Level 4's "consistent ... description of research setup" (three toolchain-parity sites) and level 5's "excellent finishing polish" (a broken ellipsis in §1.4 of both documents) |
+| 7. Work during the thesis process | n/a | **n/a** | Not assessable from a manuscript |
+| **Mean of the six assessable** | 5.00 | **4.83** | |
+
+### The finding: toolchain parity with the guest is claimed and false
+
+**`\GuestGpp` is 15.1.1 and `\MainGpp` is 15.2.1**, each generated from its own campaign's
+environment capture (`env-20260812-154523.txt` and `env-20260827-151925.txt`). `rustc` does match
+at 1.97.1. The container pins the `gcc-toolset` major version and not the point release, so a
+rebuild between the guest campaign and the 27 August canonical repeat moved g++ by one patch
+release. Four sites do not know this:
+
+1. **§6.1 l. 2209–2211.** "Both implementations are built and run inside a pinned container image
+   carrying `\MainDistro` with `g++ \MainGpp` and `rustc \MainRustc`, **which is the same userspace
+   and compiler pair the earlier virtualised campaign used**." The macro in the same sentence
+   prints 15.2.1 and the guest's prints 15.1.1.
+2. **§6.4.5 l. 2997.** "at the same shard count, the same fourteen load levels, the same
+   `\GuestRepeats` repeats and **the same toolchain**. Two campaigns that differ in **the machine
+   alone** are an opportunity a single-host study does not get."
+3. **§6.4.5 l. 3131.** "The reported sweep and the virtualised one share a design and **differ in
+   the machine**."
+4. **`tab:testbed`'s caption, l. 4573–4575.** "The columns are arranged so that **each adjacent
+   pair isolates one change**. Reported sweep against virtualised host: the same design on a
+   different machine." Its own Toolchain row, l. 4591, prints `g++ 15.2.1` against `g++ 15.1.1`
+   against `g++ 13.3.0, rustc 1.98, so a compiler change is tested too`.
+
+**The second bare-metal column carries the disclosure and the guest column does not.** That is
+calibration pattern 3, half a pair fixed, at one remove: the eleventh pass found this exact defect
+for the confirmation host (item 3h), the remediation of 26 August fixed it by saying "four ways and
+not three", and nobody asked the same question of the guest comparison. Confirmed in the shipped
+PDF by text extraction, not only in the source.
+
+**Severity, stated plainly so a future pass does not over- or under-read it.** Nothing measured
+moves. A GCC patch release is not a plausible confound for any effect the thesis reports, and the
+honest repair *adds* a disclosure rather than withdrawing a claim, exactly as the `\Bm` column's
+did. What fails is the thesis's own standard: a table designed so each adjacent pair isolates one
+change, captioned as doing so, with a row that shows two changes.
+
+### The second finding: a wrong hand-typed compiler version
+
+**§6.4.7 l. 3162** reads "That C++ toolchain is the local development machine's and not the
+measurement host's `g++~15.1.1`". The measurement host is **15.2.1**. 15.1.1 is the *guest's*
+value. It was correct while the August campaigns were the main dataset and was not re-read when
+the canonical repeat replaced them, which is the pattern `AGENT.md` §2 says cost this thesis a
+grade point twice in two days. The fault-injection versions in the same two sentences (`g++ 13.3`,
+`rustc 1.97`) are hand-typed too and are **correct**, matching `faults/results/taxonomy.md`.
+
+**Why seven passes missed both.** `texaudit.py`'s prose-number heuristic requires a unit, so a bare
+dotted version number is invisible to it. Both values sit in the safety subsection and an appendix
+table rather than in the performance prose a pass reads first. And the generated layer was clean at
+every check, which is when a pass is most tempted to skip reading the sentences around it. This is a
+detector gap, and the fifth lift closes it.
+
+### The third finding: an editing pass broke an ellipsis in the introduction
+
+**§1.4, draft l. 683 and `Thesis_v2.tex` l. 488.** "On resources the Rust process holds a few MiB
+more resident memory, again under both allocators, in the same direction and the same order of
+magnitude on all three machines measured. **How it compares against the cost of the allocator
+choice is not:**" The `is not` has no predicate to elide. Traced through `git log -L`:
+
+- `a0e9122` wrote "**That effect is the same size on all three machines measured.** How it compares
+  against the cost of the allocator choice **is not**:" — grammatical, the copula is right there.
+- `ed6debe`, the fourteenth pass's scope-attachment fix, folded that clause into a prepositional
+  phrase hanging off "holds ... resident memory" and deleted the copula.
+
+So a fix introduced it, and it is in the introduction of both documents. `AGENT.md` already records
+that about 25 of the 69 August defects were introduced by the editing passes themselves; this is one
+more, and the sync rule applies because the passage is shared.
+
+### The fourth, minor: a guest-era phrase in `tab:findings`
+
+The RQ3 evidence cell reads "CPU: resolved in both regimes, opposite signs, and resolved with one
+sign **on bare metal** below saturation". The reported host is *also* bare metal now, so the phrase
+cannot pick out the confirmation host it means, and the main campaign's own CPU rows clear Holm
+under both allocators anyway. Ambiguous rather than wrong.
+
+### Mechanical evidence
+
+Hard gates pass (`texaudit.py` exit 0): no LaTeX errors, no undefined references or citations, no
+multiply defined labels, no float too large, no placeholders, **zero `Overfull` of any kind
+including `while \output is active`**, 0 underfull. Every float label referenced from the body. 109
+entries, all 109 cited, 72 peer-reviewed (66%). The one prose-number hit is Gonzalez's `0.19 \%`, a
+literature value and a known false positive.
+
+**`.acronyms.py` passes both documents**: `not written out at first use: 0` against 57 declared
+entries in the draft and 26 in the skeleton, with 5 waivers in the draft and 1 in the skeleton each
+printed with its reason, and 2 declared-without-bare-use names in the skeleton, both explained. The
+`UndefinedBehaviorSanitizer (UBSan)` expansion the gate was written to find ships in the PDF. The
+skeleton writes the sanitiser names out in full and never uses the acronyms, so nothing is owed
+there.
+
+**`.aitells.py`**: zero semicolons, both colon-capitalisation checks at **0**, sentence length
+21.5 ± 11.8 (range 3–83). Nine dash hits, all correct typography. The one `not just ... but` hit is
+the known `\emph`-stripping artefact. `rather than` at **72 instances, 20.3 per 10k**, up from the
+53 and 14.9 recorded in `CALIBRATION.md` item 4 at flat word count; part of the sentence
+lengthening is the acronym pass writing names out at first use.
+
+**Generated layer re-derived, not read.** `plot_figures.py --outdir /tmp/scratchgen` reproduced
+`gen_macros.tex` and **all 12 `tab_*.tex` byte-identical** to the shipped copies. Fourteenth
+consecutive pass with no wrong measured value, and the first since the fourteenth to re-derive
+rather than read. Spot-checks against definitions rather than values: `\PFiftyMedian` 70 is
+nearest-ten rounding of medians 72.1–73.7; `\BmFarTailSepHi` 96 **is** a load (`max` of the loads
+below the held-out top), so "between 32 and 96 kops/s" is right; `\OverloadCpuPerOpRatio` 1.8
+attaches to Rust at all five summary sites; every `\SatKnee` use is qualified as the lowest of the
+four and every "where an arm stops coping" sentence uses `\TrackingLoad{Cpp,Rust}`;
+`\BmRssLargerEffect` exists and is quoted nowhere.
+
+**Two sweeps run and clean.** A split-word detector over both rendered PDFs found **0 genuine
+hits**: the `safe`/`ty` defect the author fixed in the uncommitted diff was the only instance, and
+every candidate my fragment list flagged (`less`, `ships`, `like`, `some`, `fully`) is a real word.
+British spelling is held (behaviour 26/0, optimisation 9/0, analyse 6/0); `artifact` appears 9 times
+and **every one is the ACM-sense research deliverable** while `artefact` appears 14 times and none
+is, so it reads as a deliberate convention and was **not** scored as drift. Worth one confirmation
+from the author.
+
+Nothing was edited in the thesis source during this pass.
+
+### Per-area notes
+
+**1, carries 5.** Unchanged and untouched by these findings. Gap in named prior work, four RQs
+traced, RQ2 built to fail, RQ1's metric list still exactly `tab:latency`'s columns.
+
+**2, carries 5.** Unchanged. Arvidsson's tail is called a challenge it would be dishonest to omit.
+The five Ericsson theses are declared neither peer-reviewed nor indexed and cited as a record of
+vendor attempts rather than results.
+
+**3, holds 5, and the rejection is on the record.** A drop was considered, because
+`CALIBRATION.md`'s area-3 4.5 anchor is a *description* failure and this pass found one. Rejected:
+that anchor was set by load-bearing description defects (a reading rule contradicted by its own
+results section, a pinned load rule misdescribed), and a GCC patch release mis-described is not that
+weight. The method is untouched: the reading rule is kept where it costs nothing and said to be kept
+for that reason, the 448 rung is described and not tested, the pooled statistic returns `None`
+rather than falling back, ethics is present. **Do not read this hold as agreement that the finding
+is harmless to area 3 if it grows**: if a future pass finds the same shape on a variable that could
+move a result, area 3 is where it lands.
+
+**4, drops to 4.5.** Level 4 holds fully and is not in question. Level 5's aptness clause fails on
+three sites, above. The half grade encodes that the *evidence* reads at 5 (whole generated layer
+byte-identical, evidence status per RQ, printed abstract matching) and the *reporting* at 4.
+
+**5, carries 5.** Unchanged. All four toolchain-parity sites are in Chapter 6 and Appendix D, so
+this is not the area-4 finding counted twice, which is the same discipline the eleventh pass used in
+reverse. H1 to H3 revisited individually, fifteen-row threats table with a live residual per row,
+the single-author threat evidenced by Emberg and Wadsten's reversal rather than conceded.
+
+**6, drops to 4.5.** The half grade splits writing from consistency-and-finishing, which is what
+`CALIBRATION.md` says a 4.5 here means. Writing reads at 5 and the build is camera-ready. Level 4's
+clause on consistent description of the research setup is nicked by the three toolchain sites, and
+level 5's finishing polish by the §1.4 ellipsis in both documents. **The 83-word sentence is not
+counted**: the twentieth pass ruled it not a failing clause and that ruling is respected.
+
+### Outstanding
+
+1. **The three toolchain sites plus `tab:testbed`'s caption.** ~30 minutes. This is what holds
+   areas 4 and 6 at 4.5. Repair by disclosure, the way the `\Bm` column already does.
+2. **§6.4.7's `g++~15.1.1`.** ~20 minutes, use `\MainGpp`.
+3. **§1.4's ellipsis**, draft and skeleton together. ~5 minutes.
+4. **`tab:findings`' RQ3 evidence cell.** ~10 minutes, name the host.
+5. **The durable fix, ~1 hour.** Generate the fault-catalogue toolchain into `gen_artefacts.tex`
+   from `taxonomy.md`, and teach `texaudit.py` to flag bare dotted version numbers in prose. Items
+   1 and 2 recur without this.
+6. **Author proofread.** Process, not a matrix clause.
+7. Optional, no grade effect: `rather than` back down toward 15 per 10k; jitter's idle
+   `tab_jitter.tex` machinery; replace `bugden2022rust`. **New measurement**: the
+   transparent-hugepage experiment, about one machine-hour, still the only item needing an
+   instrument.
+8. **Not checked this pass**: the slide deck against the thesis. No campaign moved, so the risk is
+   low, but no gate in the repository sees it.
+
+The unaided switch, the ten abstract defects, the §2.2 short title, `SOFTWARE9` extraction, the
+bare-metal tail campaign, the pooled far tail with no per-run fallback, and the 448 rung's threats
+row remain **done**. Do not re-report them as grade caps.

@@ -40,9 +40,9 @@ What the container does buy is worth having, and it is three things.
 
 The image was pinned against the 12 August 2026 KVM guest
 (`bench/results/env-20260812-154523.txt`) and then reused for the 27 August
-bare-metal campaign the thesis reports (`campaign-20260827-151927`), so a
-change of machine is a change of machine only. GCC on the image is one patch
-level newer than that guest record:
+bare-metal campaign the thesis reports (`campaign-20260827-151927`). The
+container pins the `gcc-toolset` major version, not the point release, so GCC
+on the image is one patch level newer than that guest record:
 
 | | Guest campaign (12 Aug) | Image (and 27 Aug campaign) |
 | --- | --- | --- |
