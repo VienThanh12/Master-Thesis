@@ -756,15 +756,17 @@ correctness and timing behaviour are representative of the control plane as a wh
   % Control plane, with UE Context Management shown nested inside it
   \node[font=\footnotesize\bfseries] (cpttl) at (7.2,1.7) {gNB-CU-CP};
   \node[uecm] (uecm) at (7.2,0.85) {UE Context\\ Management};
-  \begin{scope}[on background layer]
-    \node[cpbox, fit=(cpttl)(uecm), inner sep=6pt] (cp) {};
-  \end{scope}
   % User plane
   \node[upbox] (up) at (7.2,-0.95) {gNB-CU-UP};
 
+  % The background layer paints in source order and the central unit's fill is opaque, so
+  % the control-plane box has to be drawn after it. Node (cp) carries the geometry that the
+  % central unit and the E1 arrow are measured against.
   \begin{scope}[on background layer]
+    \node[fit=(cpttl)(uecm), inner sep=6pt] (cp) {};
     \node[draw, dashed, rounded corners, fill=gray!3,
           fit=(cp)(up), inner sep=10pt, label={[font=\footnotesize\bfseries]above:gNB-CU}] (cu) {};
+    \node[cpbox, fit=(cp), inner sep=0pt] {};
   \end{scope}
 
   \node[box] (core) at (11.4,0) {5GC};
