@@ -115,7 +115,37 @@
 {\singlespacing
 \begin{otherlanguage}{english}
 \begin{abstract}
-\noindent Abstract to be written last.
+      \noindent\textbf{Context.}
+      Radio Access Network (RAN) control planes are written mostly in C++ for performance, at a
+      well-known cost in memory safety and concurrency. Rust promises comparable performance with
+      compile-time safety, but its fit for this latency-critical setting is unproven.
+      
+      \noindent\textbf{Objective.}
+      The thesis compares modern C++ and Rust on a UE Context Management service modelled on a real
+      Nokia gNB-CU-CP component. Average-throughput comparisons leave four dimensions open: tail latency, the C++ defect classes Rust prevents at compile time, the overhead of
+      its safety model, and the cost of incremental adoption.
+      
+      \noindent\textbf{Methods.}
+      One language-agnostic specification is frozen first, then implemented twice with identical
+      algorithms, concurrency model, allocator, and build settings. A synthetic workload is swept to
+      overload, both versions pass the same parity tests, and the evaluation adds fault injection and an
+      FFI prototype.
+      
+      \noindent\textbf{Results.}
+      Safe Rust rejects all seven injected memory-safety and data-race defect classes at compile
+      time. In C++ the same seven build cleanly and show up only at runtime, if a sanitiser catches
+      them. Seven further classes fail in both languages. On two of them C++ tooling reports what
+      Rust does not. The seam to C++ leaves the core \texttt{unsafe}-free and costs at most
+      $\FfiOpBoundPct\%$ of one operation. Performance changes at saturation. Below it the test resolves a few microseconds in Rust's favour, yet an end-to-end call spends only $\BudgetCoreShareMax\%$ on language
+      work. Cross-thread handoff takes the rest, so the sweep reflects the design more than the
+      language. Timed alone, Rust's operation is $\BudgetCoreRatio\times$ faster. The Rust arms still meet their offered rate to $\TrackingLoadRust$~kops/s, the C++ arms only to $\TrackingLoadCpp$~kops/s. After both have stopped tracking, \OverloadSustainedFaster{} holds
+      $\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{} in \OverloadThrAgree{}
+      interleaved repeats with both allocators. 
+      
+      \noindent\textbf{Conclusions.}
+      The main cost of adopting Rust is engineering effort and the learning curve, not run-time
+      performance at nominal load. The gain is freedom from data races, not from concurrency
+      defects in general. A nominal-load test would not expose the gap.
 \end{abstract}
 \end{otherlanguage}
 }
