@@ -879,7 +879,7 @@ for the fault-injection study in Chapter~\ref{chapter:eval}.
 
 C++ practice mitigates these defects with tooling rather than with language guarantees, and
 the tooling is inherently partial. Dynamic sanitisers such as AddressSanitizer (ASan),
-ThreadSanitizer (TSan), and UndefinedBehaviorSanitizer detect many errors, but only on the
+ThreadSanitizer (TSan), and UndefinedBehaviorSanitizer (UBSan) detect many errors, but only on
 code paths that a given test actually executes with the right inputs, and they impose runtime
 and memory overheads that make them unsuitable for production. TSan in particular reports only
 those data races that happen to occur during a run, so a race that manifests only under a rare
