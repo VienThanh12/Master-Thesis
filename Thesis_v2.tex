@@ -29,6 +29,19 @@
 \usepackage{longtable} % The front-matter list of acronyms
 %\usepackage{wrapfig} % For nice text-wrapping figures (use at own discretion)
 
+% The three figures drawn inline rather than included as PDFs need these: the
+% state machine uses automata and positioning, and both block diagrams use fit
+% and backgrounds to draw an enclosing box behind nodes already placed. Same
+% list as Ha_Vien_Mastersthesis_2026.tex, since the figures are shared.
+\usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
+
+% Fifteen figures in a document this short leave little room at the stock
+% \topfraction, so each would claim a float page of its own instead of sharing
+% one with text. Same values as the full draft.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.75}
+
 \onehalfspacing %line spacing
 %\singlespacing
 %\doublespacing
@@ -163,10 +176,19 @@
 \setcounter{page}{1}
 \tableofcontents
 
+% \cleardoublepage has to come before \addcontentsline: the \chapter* inside
+% \listoffigures opens a new page itself, so the contents entry must record the
+% page after that, not before. The entries are the short forms of the captions,
+% \caption[short]{full}. No list of tables, because this document has no tables.
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{\listfigurename}
+\listoffigures
+
 % The class already names this list: \nomname is set to "List of acronyms" in
 % \captionsenglish. Scoped to the acronyms this document uses, which is a subset of
 % the full draft's. No \caption, or the table would be announced in a list of tables
-% this document does not have. Expansions are sentence case. The two gNB rows keep a
+% this document does not have. Expansions are sentence case. The five gNB rows keep a
 % lowercase g, which is the token's own spelling and not an oversight.
 \cleardoublepage
 \phantomsection
@@ -200,19 +222,24 @@ CPU & Central processing unit \\
 EU & European Union \\
 FBI & Federal Bureau of Investigation \\
 FFI & Foreign function interface \\
+FIFO & First in, first out \\
 FNV-1a & Fowler--Noll--Vo hash function, variant 1a \\
 gNB & Next-generation NodeB, the 5G base station \\
 gNB-CU & gNB central unit \\
 gNB-CU-CP & gNB central unit control plane: the system class studied here \\
+gNB-CU-UP & gNB central unit user plane \\
+gNB-DU & gNB distributed unit \\
 HDR & High dynamic range, of the latency histogram \\
 IMT-2030 & International Mobile Telecommunications-2030, the ITU framework for 6G \\
 ITU & International Telecommunication Union \\
+MPSC & Multi-producer, single-consumer \\
 NG-RAN & Next-generation radio access network \\
 PHY & Physical layer \\
 RAII & Resource Acquisition Is Initialization \\
 RAN & Radio access network \\
 RQ & Research question \\
 RRC & Radio Resource Control \\
+RSS & Resident set size \\
 UE & User equipment, an end device such as a phone or a modem \\
 UECM & UE Context Management, the subsystem reimplemented and measured here \\
 \hline
@@ -554,6 +581,51 @@ In the next-generation radio access network (NG-RAN) architecture the base stati
 split into a central unit and a distributed unit. The central unit is split again into a control plane and a user plane.
 UE Context Management sits in the control plane, the gNB-CU-CP, and talks to its
 neighbours over the standardised F1, E1, and NG interfaces~\cite{3gpp38401}.
+Figure~\ref{fig:ngran} places it there.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[
+    font=\small, >={Stealth[length=2.4mm]},
+    box/.style={draw, rounded corners, minimum height=1.0cm, minimum width=1.7cm,
+                align=center, fill=gray!8},
+    cpbox/.style={draw, rounded corners, align=center, fill=blue!8},
+    upbox/.style={draw, rounded corners, minimum width=3.1cm, minimum height=0.8cm,
+                  align=center, fill=green!8},
+    uecm/.style={draw, rounded corners, minimum width=2.7cm, minimum height=0.62cm,
+                 fill=red!14, align=center}
+  ]
+  \node[box] (ue) at (0,0)   {UE};
+  \node[box] (du) at (2.4,0) {gNB-DU};
+
+  % Control plane, with UE Context Management shown nested inside it
+  \node[font=\footnotesize\bfseries] (cpttl) at (7.2,1.7) {gNB-CU-CP};
+  \node[uecm] (uecm) at (7.2,0.85) {UE Context\\ Management};
+  \begin{scope}[on background layer]
+    \node[cpbox, fit=(cpttl)(uecm), inner sep=6pt] (cp) {};
+  \end{scope}
+  % User plane
+  \node[upbox] (up) at (7.2,-0.95) {gNB-CU-UP};
+
+  \begin{scope}[on background layer]
+    \node[draw, dashed, rounded corners, fill=gray!3,
+          fit=(cp)(up), inner sep=10pt, label={[font=\footnotesize\bfseries]above:gNB-CU}] (cu) {};
+  \end{scope}
+
+  \node[box] (core) at (11.4,0) {5GC};
+
+  \draw[<->] (ue) -- node[above,font=\scriptsize]{Uu} (du);
+  \draw[<->] (du.east)         -- node[above,font=\scriptsize]{F1} (cu.west |- du);
+  \draw[<->] (cu.east |- core) -- node[above,font=\scriptsize]{NG} (core.west);
+  \draw[<->] (cp.south) -- node[right,font=\scriptsize]{E1} (up.north);
+\end{tikzpicture}
+\caption[Where the studied subsystem sits in the 5G NG-RAN]{Where the studied subsystem sits in the 5G NG-RAN. The gNB is split into a
+distributed unit (gNB-DU) and a central unit (gNB-CU), and the central unit is split again
+into control-plane (gNB-CU-CP) and user-plane (gNB-CU-UP) functions, connected by the
+standardised F1, E1, and NG interfaces. UE Context Management (highlighted) is the per-UE
+control-plane state manager inside the gNB-CU-CP that this thesis reimplements and
+measures.\label{fig:ngran}}
+\end{figure}
 
 Deadlines are met or missed because of predictability, not average speed. The metrics
 that matter are the p99 and p99.9 latencies and the jitter around
@@ -561,6 +633,18 @@ them~\cite{dean2013tail}. They must be measured past the saturation point. They 
 be recorded without coordinated omission, that is, without letting a load generator that
 has fallen behind hide its own slowest
 requests~\cite{schroeder2006openclosed,tene_hdrhistogram}.
+Figure~\ref{fig:tailconcept} shows why the distance between median and tail matters once
+one procedure runs several operations.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/11_tail_latency_concept.pdf}
+\caption[Why the tail, not the mean, governs RAN deadlines]{Why the tail, not the mean, governs RAN deadlines. On the left, most operations
+finish quickly and a few take far longer, so the p99 and p99.9 percentiles sit well to the
+right of the median. On the right, a procedure such as a call setup runs several operations
+and finishes only when the slowest one does, so a delay hitting one operation in a hundred
+reaches a much larger share of procedures.\label{fig:tailconcept}}
+\end{figure}
 
 C++ offers abstractions that cost nothing at run time, deterministic cleanup through the
 Resource Acquisition Is Initialization (RAII) idiom, and no garbage collector. Safety remains the programmer's
@@ -571,7 +655,18 @@ Rust has the same run-time model and also no garbage collector. It checks memory
 and freedom from data races at compile time, using ownership, borrowing, and thread-safety
 traits such as \texttt{Send}~\cite{klabnik2023rust,jung2021safe}. Code that needs to
 step outside those rules must be marked \texttt{unsafe}. That keeps such code small and
-easy to find.
+easy to find. Figure~\ref{fig:borrowuaf} puts the introduction's use-after-free beside its
+C++ form.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/08_borrow_checker_uaf.pdf}
+\caption[The same use-after-free in C++ and in safe Rust]{The same use-after-free defect in C++ and in safe Rust. The stale alias into the
+context map survives the \texttt{erase}/\texttt{remove} that frees it, which in C++ compiles
+and is caught only at runtime, and only under a sanitiser on a path a test exercises. Safe
+Rust's borrow checker rejects it at compile time (\texttt{E0499}), so the defect cannot be
+written at all.\label{fig:borrowuaf}}
+\end{figure}
 
 The comparison is C++ against Rust. Garbage-collected languages are left out because
 their pauses are incompatible with the latency targets. The concurrency model is held
@@ -581,7 +676,19 @@ earlier study isolates the language this way for a stateful, concurrent
 subsystem~\cite{karlback2021ran,emberg2023asn1}. The five closest studies by domain were
 all carried out at Ericsson, and none is peer-reviewed or
 indexed~\cite{karlback2021ran,olsson2023ranmgmt,olsson2023asyncpackets,arvidsson2025async,emberg2023asn1}.
-Repetition inside one organisation is not generality.
+Repetition inside one organisation is not generality. Figure~\ref{fig:gapmap} sets those
+five against the properties a controlled answer would need.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/29_research_gap.pdf}
+\caption[What the neighbouring studies control, and what they leave varying]{What the neighbouring studies control, and what they leave varying. Each row is a
+property that a controlled answer to the research questions would need and each column is a
+study, and no column holds all of them. Holding the design and the concurrency model fixed
+for a stateful, concurrent subsystem and then driving it past saturation is what this thesis
+adds, so the contribution is the control and not a new measurement
+technique.\label{fig:gapmap}}
+\end{figure}
 
 \chapter{Problem Context: UE Context Management and Predictability\label{chapter:context}}
 \chaptermark{Problem Context}
@@ -589,7 +696,35 @@ Repetition inside one organisation is not generality.
 UE Context Management owns the lifecycle of one context per connected device. Each
 context moves through four states, Idle, Connected, Reconfiguring, and Released, driven
 by a small set of lifecycle operations. An operation that is illegal in the current
-state returns a typed error. It is not carried out.
+state returns a typed error. It is not carried out. Figure~\ref{fig:fsm} gives the state
+machine both implementations encode.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[
+    ->, >=Stealth, node distance=3.2cm, font=\small,
+    every state/.style={draw, minimum size=1.5cm, fill=blue!6, thick},
+    every edge/.style={draw, thick}
+  ]
+  \node[state, initial, initial text=\scriptsize create] (idle) {Idle};
+  \node[state, right=of idle] (conn) {Connected};
+  \node[state, right=of conn] (reconf) {Reconf.};
+  \node[state, below=1.9cm of conn, fill=gray!10] (rel) {Released};
+
+  \path (idle)  edge node[above,font=\scriptsize]{setup} (conn)
+        (conn)  edge[bend left=18] node[above,font=\scriptsize]{begin} (reconf)
+        (reconf) edge[bend left=18] node[below,font=\scriptsize]{complete / abort} (conn)
+        (conn)  edge node[right,font=\scriptsize,pos=0.45]{release} (rel)
+        (idle)  edge[bend right=32] node[below,font=\scriptsize,pos=0.6]{release} (rel);
+  \path (conn) edge[loop above] node[font=\scriptsize]{signal / add\_drb} (conn);
+\end{tikzpicture}
+\caption[UE-context lifecycle state machine]{UE-context lifecycle state machine, encoded identically by both implementations.
+\texttt{create} allocates a context in \texttt{Idle} and \texttt{setup} connects it,
+\texttt{signal} and \texttt{add\_drb} are handled in place while \texttt{Connected}, a
+reconfiguration moves through \texttt{Reconfiguring} and back on \texttt{complete} or
+\texttt{abort}, and \texttt{release} tears the context down. Operations invalid for the
+current state return an \texttt{OpError} instead of changing state.\label{fig:fsm}}
+\end{figure}
 
 The subsystem was chosen because it is representative and still small enough to keep
 under control. It has mutable state per device, a strict lifecycle, heavy concurrency,
@@ -612,7 +747,19 @@ of the expected result. The C++ tooling reports what Rust's does not.
 Scale is what makes the tail matter. One procedure triggers many operations. One site
 serves many devices. A p99.9 measured on a single operation becomes a steady rate of
 degraded procedures in the field~\cite{dean2013tail}. That is why the load sweep is
-pushed past the point where the service starts to fall behind.
+pushed past the point where the service starts to fall behind. Figure~\ref{fig:cliff}
+sketches what lies beyond it.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.70\linewidth]{diagrams/pdf/15_overload_cliff.pdf}
+\caption[The overload cliff]{The overload cliff. Tail latency stays low and flat while offered load is below
+service capacity, then climbs steeply once the system is driven past saturation and requests
+queue behind the bounded, blocking queues. The figure is a schematic of the phenomenon and
+not a plot of this study's data, and whether the two languages differ in where the cliff
+begins or in what they sustain beyond it is what RQ1 asks and
+Chapter~\ref{chapter:eval} answers.\label{fig:cliff}}
+\end{figure}
 
 \chapter{Research Methodology\label{chapter:methodology}}
 
@@ -673,7 +820,65 @@ guards context state. Callers submit a request to the owning shard's bounded que
 wait on a single-use completion handle. The queue blocks when it is full. That is
 deliberate. A drop policy would hide overload, and this study needs overload to appear as
 latency. The only shared mutable state either version permits is one atomic counter. No
-control flow depends on its value.
+control flow depends on its value. Figure~\ref{fig:arch} shows the resulting data flow,
+with one multi-producer, single-consumer (MPSC) queue per shard that its worker drains
+first in, first out (FIFO).
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[
+    font=\small,
+    prod/.style={draw, rounded corners, minimum width=2.0cm, minimum height=0.66cm, fill=blue!8},
+    queue/.style={draw, minimum width=2.5cm, minimum height=0.66cm, fill=gray!12},
+    worker/.style={draw, rounded corners, minimum width=2.1cm, minimum height=0.66cm, fill=red!8},
+    store/.style={draw, cylinder, shape border rotate=90, aspect=0.25, minimum width=1.5cm, minimum height=0.85cm, fill=green!8},
+    lane/.style={draw, dotted, rounded corners, inner sep=7pt},
+    >={Stealth[length=2.4mm]}
+  ]
+  % producers, grouped in one box to avoid a tangle of crossing arrows
+  \node[prod] (p1) at (0,1.3)  {Producer 1};
+  \node[prod] (p2) at (0,0.0)  {Producer 2};
+  \node[prod] (p3) at (0,-1.3) {Producer $m$};
+  \begin{scope}[on background layer]
+    \node[draw, dashed, rounded corners, fill=blue!3, fit=(p1)(p2)(p3), inner sep=6pt] (pg) {};
+  \end{scope}
+  \node[font=\scriptsize] at (0,-2.15) {load generators};
+
+  % two representative shard lanes; spacing leaves room for the inline edge labels
+  \node[queue] (q1) at (5.2,1.3)   {MPSC queue};
+  \node[worker](w1) at (8.9,1.3)   {Worker 1};
+  \node[store] (s1) at (12.0,1.3)  {Shard 1};
+  \node[queue] (qn) at (5.2,-1.3)  {MPSC queue};
+  \node[worker](wn) at (8.9,-1.3)  {Worker $N$};
+  \node[store] (sn) at (12.0,-1.3) {Shard $N$};
+  \begin{scope}[on background layer]
+    \node[lane, fit=(q1)(s1)] (lane1) {};
+    \node[lane, fit=(qn)(sn)] (lanen) {};
+  \end{scope}
+  \node[font=\scriptsize] at (8.35,2.35) {shard-owning threads: no shared mutable state, no locks};
+
+  % submit: producer group -> each shard queue, routed by hash
+  \node[font=\scriptsize, align=center, fill=white, inner sep=2pt] at (2.85,0) {route by\\ hash(\texttt{ue\_id})};
+  \draw[->] (pg.east) -- (q1.west) node[midway, above, sloped, font=\scriptsize]{submit};
+  \draw[->] (pg.east) -- (qn.west) node[midway, below, sloped, font=\scriptsize]{submit};
+
+  % within-lane flow
+  \draw[->]  (q1) -- node[above, font=\scriptsize]{FIFO} (w1);
+  \draw[->]  (qn) -- node[above, font=\scriptsize]{FIFO} (wn);
+  \draw[<->] (w1) -- node[above, font=\scriptsize]{owns} (s1);
+  \draw[<->] (wn) -- node[above, font=\scriptsize]{owns} (sn);
+
+  % one-shot completion: clean orthogonal return path below everything
+  \draw[->, dashed, rounded corners=4pt]
+      (wn.south) -- ++(0,-0.75) -- (1.4,-2.9) -- ($(pg.south east)+(-0.4,0)$);
+  \node[font=\scriptsize] at (5.9,-3.05) {one-shot completion (result $\rightarrow$ waiting producer)};
+\end{tikzpicture}
+\caption[Shared-nothing, thread-per-shard architecture]{Shared-nothing, thread-per-shard architecture. Producers submit request messages to a
+shard's bounded, blocking queue, selected by a pinned hash of the \texttt{ue\_id}, and wait
+on a single-use completion handle. Each shard is read and written by exactly one worker
+thread, so there are no locks on context state, and blocking on a full queue is what makes
+overload observable as tail latency.\label{fig:arch}}
+\end{figure}
 
 Fairness is enforced below the design as well as in it. Both builds link the same
 \texttt{jemalloc} and keep a system-allocator build as a control. Both compile at
@@ -711,7 +916,8 @@ actually ran.
 The workload is synthetic and spec-justified. A deterministic driver walks each UE
 through the connection lifecycle the 3GPP specifications define. Its draw order is pinned,
 so the per-operation-kind counts come out identical in both languages for a given seed.
-That doubles as a parity signal. Each sweep point is repeated \NRepeats{} times. The
+That doubles as a parity signal, and Figure~\ref{fig:workload} shows the two workloads and
+the procedure sequence the mixed one walks. Each sweep point is repeated \NRepeats{} times. The
 four language and allocator variants are interleaved inside every repeat, so thermal or
 background drift falls on all of them alike. Every point is a median with a bootstrap
 $95\%$ confidence interval~\cite{georges2007rigorous,efron1993bootstrap}. The
@@ -728,9 +934,23 @@ onto one core. The same design was first measured on a \GuestCpu{} guest that co
 resolve the far tail. A second bare-metal host at a different shard count confirms that
 the directions survive a change of design.
 
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/27_workload_timeline.pdf}
+\caption[The two workloads, and the lifecycle the mixed one walks]{The two workloads. The \emph{signal} workload isolates the steady-state hot path,
+while the \emph{mixed} workload walks each UE through the full RAN procedure sequence, with
+a per-slot expected-state model ensuring that every operation it emits is legal for the
+state its context is actually in. Because the SplitMix64 draw order is pinned, a given seed
+and active-UE population produce identical per-operation-kind counts in both languages, so a
+divergence is a parity failure rather than a difference in what the two implementations were
+asked to do.\label{fig:workload}}
+\end{figure}
+
 Below saturation the four variants sit within $\PFiftyRange\,\mu$s of one another at the
 median, $\PFiftySpread\%$. The paired test resolves a difference of
-$\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators. Higher up the
+$\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators.
+Figure~\ref{fig:loadsweep} draws the sweep behind that, tail latency and achieved
+throughput against offered load. Higher up the
 distribution the ordering can now be read. The widest interval on a single variant's own
 p99 spans $\PNineNineMaxCI\,\mu$s against $\PNineNineRange\,\mu$s of spread between all
 four, so the uncertainty about one is smaller than the gap between them. On the
@@ -745,9 +965,35 @@ limit is structural. No host would fix it. An
 end-to-end operation is $\BudgetCoreShareMax\%$ the work the language performs. The rest
 is a cross-thread handoff charged to the operating
 system~\cite{zhou2025oltp}. This sweep cannot bound a language effect in either
-direction. Measured on its own the bare operation is $\BudgetCoreRatio\times$ faster in
+direction, which Figure~\ref{fig:budget} sets against what it can resolve. Measured on its
+own the bare operation is $\BudgetCoreRatio\times$ faster in
 \BudgetCoreFaster{}. The likely cause is the standard hash map's layout, not anything
 about safety.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/fig_load_sweep.pdf}
+\caption[The load sweep: tail latency and achieved throughput]{The load sweep, both panels
+against offered load. \textbf{(a)} Tail latency (p99) for the four build variants on a log
+axis, flat across the whole tracking region and then rising by four orders of magnitude in
+one step of the ladder. \textbf{(b)} Achieved throughput against the dotted ideal, which the
+C++ curves leave after an offered $\TrackingLoadCpp$~kops/s and the Rust curves after
+$\TrackingLoadRust$, so $\KneeGapLoad$~kops/s is the only load in the sweep at which the two
+languages differ in \emph{throughput} with Rust ahead. Lines are medians over \NRepeats{}
+repeats and shaded bands are bootstrap $95\%$ confidence intervals in both
+panels.\label{fig:loadsweep}}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/fig_budget.pdf}
+\caption[The end-to-end operation decomposed, against what the sweep can resolve]{Where an end-to-end operation's cost goes, and why the sweep cannot bound a language
+effect. \textbf{(a)} The round-trip at true proportion, in which the operation the language
+performs is $\BudgetCoreShareMax\%$ of the bar and the remainder is the cross-thread handoff.
+\textbf{(b)} The same quantities on a log axis against the smallest paired difference the
+sweep can resolve, shown as a blind zone that both operation measurements fall inside by a
+factor of $\BudgetBoundVsCore$.\label{fig:budget}}
+\end{figure}
 
 Once the offered rate outruns the service, two differences appear. They stop
 meeting the offered rate at different loads: the Rust arms hold to
@@ -765,6 +1011,22 @@ effort spent without completing anything. Isolating the bounded queue and the co
 handle on their own does not reproduce that ordering at significance, so the mechanism sits
 in the wider handoff path. This is the largest language effect in the tested family. A
 comparison that stopped at nominal load would have concluded the opposite.
+Figure~\ref{fig:overload} sets what each variant still completes beside what it spends
+completing it.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/fig_overload.pdf}
+\caption[Divergence past saturation]{Behaviour at $\OverloadLoad$~kops/s offered, the deepest swept load at which every
+variant has stopped meeting the offered rate.
+Bars are medians over \NRepeats{} repeats with bootstrap $95\%$ intervals, grouped so that
+the two bars inside a group differ only in language. \textbf{(a)} What each variant still
+completes, where \OverloadSustainedFaster{} sustains a factor of $\OverloadThrRatio$ more
+than \OverloadSustainedSlower. \textbf{(b)} Total CPU divided by the work that actually
+completed, which is what rules out the reading that the variant delivering less is simply
+doing less. It spends $\OverloadCpuPerOpRatio$ times as much CPU per sustained operation,
+and the CPU figures are summed across threads.\label{fig:overload}}
+\end{figure}
 
 Safety is measured by injecting $\FaultClasses$ defects. Seven come from inside the
 region Rust claims to govern. Seven were chosen because safe Rust is expected \emph{not}
@@ -784,13 +1046,28 @@ cannot reach~\cite{bornholt2021shardstore}, but only after each was re-imported 
 the checker's own primitives and shrunk to model size. Miri reports the seam double release, the one class
 that safe Rust rejects and unsafe Rust does not, but it interprets Rust and cannot
 execute the C++ host the defect ships behind. That half of the boundary is caught at test
-time, and for the concurrency cases only after a rewrite.
+time, and for the concurrency cases only after a rewrite. Figure~\ref{fig:taxonomy} draws
+the whole catalogue as an outcome matrix.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.72\linewidth]{figures/fig_taxonomy.pdf}
+\caption[Where the guarantee stops: the outcome matrix]{The fault-injection outcomes drawn as a matrix, generated from the taxonomy log the
+runner writes. Above the rule the Rust column is a single colour, because every defect there
+is a compile error and none can be written, while the C++ columns are a patchwork that no
+one sanitiser covers and the use-after-move row is covered by none of them. Below the rule
+the Rust column joins them, on the reference-cycle leak and the release-build overflow the
+C++ tooling is ahead, and the lock-order deadlock is the one cell where a tool reports
+intermittently, ThreadSanitizer flagging the inversion in $\DeadlockTsanHits$ of
+$\DeadlockTsanRuns$ runs while the program deadlocks on every one.\label{fig:taxonomy}}
+\end{figure}
 
 Resource use separates the variants where latency could not. Two effects of comparable
 size sit in the resident set. The Rust build costs $\RssLangDiffLo$--$\RssLangDiffHi$~MiB
 more peak resident set than the C++ build under either allocator. Linking
 \texttt{jemalloc} at all costs $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB in either
-language. Both are real. The language effect keeps its direction and order of magnitude on
+language. Both are real, and Figure~\ref{fig:resources} puts the pair beside the peak
+resident set size (RSS) they decompose. The language effect keeps its direction and order of magnitude on
 all three machines measured. The allocator's was an order of magnitude larger on the virtualised host this
 study used first, so their ratio is a property of the machine. The language difference is
 a fixed cost, not a per-context one, and the quiet host locates it. \texttt{jemalloc}'s
@@ -806,13 +1083,40 @@ not. The migration seam is small on every axis measured: $\FfiEntryPoints$ C ent
 points in $\FfiSeamLines$ lines of Rust. All raw-pointer work is confined to
 $\FfiUnsafeFns$ functions. The core is left free of \texttt{unsafe}. No cost is detected
 against the same operation called natively. That bounds any per-operation tax at
-$\FfiOpBoundPct\%$. Three adoption costs beyond the seam were measured as well. Two of
+$\FfiOpBoundPct\%$, and Figure~\ref{fig:ffiseam} shows the structure that bound belongs
+to. Three adoption costs beyond the seam were measured as well. Two of
 them contradict the received objection. $\BuildDepShareCpu\%$ of the Rust
 clean build is third-party code. The project's own source compiles in
 $\BuildAllFirstPartyCpuRatio$ times the CPU \texttt{g++} needs. The
 $\FootShippedRatio\times$ binary-size gap is a linkage policy that reverses when the
 policy is held fixed. The compared component resolves $\DepsCore$ crates and contains
 $\CoreUnsafe$ \texttt{unsafe} sites.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/fig_resources.pdf}
+\caption[Resource use, and the two effects inside peak RSS]{Resource use at a sustained offered load of $\ReprLoad$~kops/s, grouped by allocator
+so that the two bars in a group differ only in language and the two groups differ only in
+allocator. Medians over \NRepeats{} repeats with bootstrap $95\%$ intervals.
+\textbf{(a)} Peak resident set size. \textbf{(b)} The two effects it contains, each as a
+paired difference over the same repeats, which on a shared axis are of comparable size here
+and were not on the host this study used first. \textbf{(c)} CPU utilisation, summed across
+threads, where the difference runs the other way and is small.\label{fig:resources}}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/07_ffi_seam.pdf}
+\caption[The C++-to-Rust FFI migration seam]{The C++-to-Rust FFI migration seam. The C++ host sees only an opaque handle,
+$\FfiEntryPoints$ plain-C entry points, and a status-code convention, while a thin
+\texttt{extern "C"} seam crate concentrates all of the raw-pointer \texttt{unsafe} in
+$\FfiUnsafeFns$ functions and calls the unmodified Rust core, which remains free of
+\texttt{unsafe}. The band along the bottom is the comparison the argument rests on, the same
+signalling operation called natively at $\FfiOpNative$~\textmu s and through the seam at
+$\FfiOpSeam$~\textmu s, whose paired difference is not resolved and is bounded at
+$\FfiOpBoundPct\%$ of one operation. The do-nothing crossing costs $\FfiCrossing$~ns and
+bounds only itself.\label{fig:ffiseam}}
+\end{figure}
 
 \chapter{Discussion\label{chapter:discussion}}
 
@@ -834,7 +1138,8 @@ On safety the difference is one of kind. The boundary is reported as a first-cla
 result, not as a caveat. A compiler that refuses to build a program rules the defect out
 of every execution. A sanitiser rules it out only of the executions an instrumented test
 happens to take. What is absolute there is the execution coverage, not the breadth of
-the catalogue. Rust reasons about aliasing and not about acquisition order. A
+the catalogue, and Figure~\ref{fig:boundary} names the mechanism on each side of that line.
+Rust reasons about aliasing and not about acquisition order. A
 \texttt{Mutex} guard whose lifetime the borrow checker tracks perfectly says nothing
 about whether two threads take their locks in a compatible
 order~\cite{zhang2026deadlock}. The lost update escapes ThreadSanitizer for the same
@@ -850,6 +1155,20 @@ undefined behaviour into a diagnosable failure on the Rust side was an ordinary 
 check, not a proof. The property worth budgeting for is ``checked by default'', not
 ``ruled out at compile time''. The root cause belongs to the method. A prohibition stated
 without a mechanism behind it leaves each implementation to fail in its own idiom.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/17_guarantee_boundary.pdf}
+\caption[Where Rust's compile-time guarantee stops]{Where the compile-time guarantee stops. On the left are the classes safe Rust rejects
+outright, grouped by the \emph{mechanism} that rejects them rather than by defect family,
+which is ownership and borrowing for lifetime and aliasing errors and the
+\texttt{Send}/\texttt{Sync} discipline for unsynchronised access to a location. On the right
+are the classes the catalogue included to find the edge, which neither compiler prevents.
+The diagram names one class per mechanism rather than the whole catalogue, the phrase
+``thread safety'' spans both sides of the line, and the line itself moves once more than the
+diagram can show, because a program that writes \texttt{unsafe} crosses it
+voluntarily.\label{fig:boundary}}
+\end{figure}
 
 RQ3 splits by resource and the splits do not point the same way. RQ4 comes out cheap in
 the machine and expensive in the people. The memory penalty reproduces under both
