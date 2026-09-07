@@ -306,9 +306,10 @@ is written out at its first use in the body, so adding one means adding both the
 the row. The scoped list in `Thesis_v2.tex` is a subset, so an acronym added there needs its own
 row. And `consistency.py --acronyms` from the `academic-writing` skill now reads the list itself
 as prose and reports each row as an unexpanded first use, so scope it past the `longtable` before
-believing its output. **The abstract is out of scope for this work and stays as the author wrote
-it**, which is why it still uses `UE`, `gNB-CU-CP` and `FFI` cold: `\abstractunaidedtrue` ships
-and a model may not touch that text.
+believing its output. **The abstract's argument stays as the author wrote it.** On 7 September
+2026 the author asked for `UE`, `gNB-CU-CP` and `FFI` to be glossed there, because the abstract
+form is read before the list of acronyms. `\abstractunaidedtrue` still ships. Do not rewrite the
+claims, and do not gloss further unless asked.
 
 **The skeleton and the full draft carry the same chapter list again, resolved 26 August 2026 on
 the author's decision.** `Thesis_v2.tex` had nine chapters, because it kept a standalone

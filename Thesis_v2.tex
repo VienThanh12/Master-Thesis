@@ -121,15 +121,16 @@
       compile-time safety, but its fit for this latency-critical setting is unproven.
       
       \noindent\textbf{Objective.}
-      The thesis compares modern C++ and Rust on a UE Context Management service modelled on a real
-      Nokia gNB-CU-CP component. Average-throughput comparisons leave four dimensions open: tail latency, the C++ defect classes Rust prevents at compile time, the overhead of
+      The thesis compares modern C++ and Rust on a user equipment (UE) \mbox{Context Management} service
+      modelled on a real Nokia 5G base-station control-plane \mbox{component (gNB-CU-CP)}.
+      Average-throughput comparisons leave four dimensions open: tail latency, the C++ defect classes Rust prevents at compile time, the overhead of
       its safety model, and the cost of incremental adoption.
       
       \noindent\textbf{Methods.}
       One language-agnostic specification is frozen first, then implemented twice with identical
-      algorithms, concurrency model, allocator, and build settings. A synthetic workload is swept to
-      overload, both versions pass the same parity tests, and the evaluation adds fault injection and an
-      FFI prototype.
+      algorithms, concurrency model, allocator, and build settings. A synthetic workload is increased to
+      overload, both versions pass the same parity tests, and the evaluation adds fault injection and a
+      foreign function interface (FFI) prototype.
       
       \noindent\textbf{Results.}
       Safe Rust rejects all seven injected memory-safety and data-race defect classes at compile
