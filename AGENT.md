@@ -17,7 +17,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | Document | Source | Status | Role |
 | --- | --- | --- | --- |
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v2.tex`. |
-| **`Thesis_v2.pdf`** | `Thesis_v2.tex` | **Reviewed — supervisor-facing** | Supervisor read-through of the eight-chapter argument. Chapter 1 is the full introduction from the draft (copied 27 Aug 2026, cross-refs retargeted). Chapters 2 to 8 keep five argument paragraphs each, as plain prose rather than itemize. Cut from nine chapters to eight on 26 Aug 2026, when the standalone `Objectives` chapter was folded into the introduction to match the draft (§4). This is what goes to the supervisor alongside the plan. |
+| **`Thesis_v2.pdf`** | `Thesis_v2.tex` | **Reviewed — supervisor-facing** | Supervisor read-through of the eight-chapter argument. Chapter 1 is the full introduction from the draft (copied 27 Aug 2026, cross-refs retargeted). Chapters 2 to 8 keep five argument paragraphs each, as plain prose rather than itemize. Cut from nine chapters to eight on 26 Aug 2026, when the standalone `Objectives` chapter was folded into the introduction to match the draft (§4). Carries **15 of the draft's 22 figures** since 7 Sep 2026, with a list of figures in the front matter (§4). This is what goes to the supervisor alongside the plan. |
 | **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 26 Aug 2026, after the bare-metal campaign and a priced length pass: abstract form declaring **101 pages + 6 appendix pages** (115 physical). **Re-measured 31 Aug 2026 it declares 95 + 12 at the same 115 physical**, because the appendix list of §4 has grown to seven: the total is unchanged and six pages sit on the other side of the `\appendix` boundary. Read the split from the `.aux` and never from this line. It peaked at 105 when the `je` decomposition landed, and the length pass took it to 101 by the only two levers that return anything (a `\scriptsize` bibliography and §5.4.1's state-machine narration, whose two semantic commitments moved to §5.5). **Do not go looking for more: §5, *Length and layout*, now records every lever measured, and all but the bibliography return zero.** Before the campaign, the same day, it read 99 + 6 (113 physical). It read 100 and 102 on 25 Aug, 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. Six pages came back across three §6.4 passes on 25 and 26 August and none of them cost an argument: three from layout, two from cutting re-derived argument, and one from merging two single-panel figures into `fig:loadsweep`. Chapter 6 went 27 pages to 25 over the same work. See §5, *Length and layout*, for the ordering rule that made each of them pay. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v2.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex`, `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. See `archive/README.md`. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
@@ -386,10 +386,29 @@ Older notes in this file, in `docs/ASSESSMENT.md` and in `.cursor/rules/thesis-q
 call the evaluation chapter 7 or the discussion chapter 8 are using the retired nine-chapter
 numbering. The assessment passes are historical records and were left as written.
 
-Because the results chapters quote measured values, `Thesis_v2.tex` now `\input`s the same
-three generated macro files as the full draft (`gen_macros`, `gen_complexity`,
-`gen_artefacts`). It therefore has to be rebuilt whenever those are regenerated, not only when
-its own source changes.
+**The skeleton carries figures as of 7 September 2026**, on the author's decision: 15 of the
+draft's 22, chosen as one per argument move that has a figure, with a `\listoffigures` after
+the contents and no list of tables, because the document has no tables. Four rules govern any
+change to them. **They are floats and not paragraphs**, so each sits between two paragraphs
+and the five-paragraph rule above is unaffected: a paragraph count that reads six means a
+blank line landed inside one. **The image and TikZ sources are shared with the draft, not
+copied**, so both documents resolve `diagrams/pdf/` and `figures/` from the repository root
+and a regenerated plot reaches both. **The captions are trimmed to two to four sentences**
+against the draft's six to fifteen, because a five-paragraph chapter cannot carry captions
+that argue, and the short `\caption[...]` titles are the draft's verbatim so the two lists of
+figures agree. And **a caption's cross-references had to be retargeted or dropped**, since the
+draft's captions point at sections and tables this document does not have. Chapter 6 holds
+seven of the fifteen and chapters 4 and 8 hold none, which follows the draft. The five
+acronyms the figures introduced (FIFO, MPSC, RSS, gNB-CU-UP, gNB-DU) were added to the
+front-matter list in the same edit, with the draft's wording, and written out in the prose
+that cites each figure rather than in the caption, because `.acronyms.py` reads a TikZ node
+label as a use and the labels come before the caption in source order.
+
+Because the results chapters and now the figure captions quote measured values,
+`Thesis_v2.tex` `\input`s the same six generated macro files as the full draft (`gen_macros`,
+`gen_complexity`, `gen_artefacts`, `gen_adoption`, `gen_baremetal`, `gen_guest`). It therefore
+has to be rebuilt whenever those are regenerated, not only when its own source changes, and
+`bench/refresh_thesis.sh` does **not** rebuild it, so that step is manual.
 
 ---
 
@@ -825,7 +844,7 @@ When preparing material for **Keijo Heljanko** (supervisor) and Nokia instructor
 (**Christoph Luneburg**, **Petteri Kotimaa**):
 
 1. `Thesis_Plan_v2.pdf` — plan, status, timeline (dated; status table must match repo reality).
-2. `Thesis_v2.pdf` — supervisor read-through: full Chapter 1, five prose paragraphs in each of chapters 2--8 (46 physical pages, 38 declared, measured 6 September 2026 after the acronym pass added a one-page front-matter list). The skeleton's class writes no `\pagesCount`, so read its declared length from the printed folios: arabic 1 sits on physical page 9 and the last body page prints 38.
+2. `Thesis_v2.pdf` — supervisor read-through: full Chapter 1, five prose paragraphs in each of chapters 2--8, and 15 figures (52 physical pages, 41 declared, measured 7 September 2026 after the figures landed). The skeleton's class writes no `\pagesCount`, so read its declared length from the printed folios: arabic 1 sits on physical page 11 and the last body page prints 41. It read 46 physical and 38 declared before the figures.
 3. Optionally reference `Ha_Vien_Mastersthesis_2026.pdf` as the **working full draft** (clearly labelled not final).
 
 Port supervisor feedback into `Thesis_v2.tex` and `Ha_Vien_Mastersthesis_2026.tex` in the same
