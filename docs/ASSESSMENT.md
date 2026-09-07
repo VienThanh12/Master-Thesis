@@ -4213,3 +4213,188 @@ counted**: the twentieth pass ruled it not a failing clause and that ruling is r
 The unaided switch, the ten abstract defects, the §2.2 short title, `SOFTWARE9` extraction, the
 bare-metal tail campaign, the pooled far tail with no per-run fallback, and the 448 rung's threats
 row remain **done**. Do not re-report them as grade caps.
+
+## Twenty-second pass — 7 September 2026, afternoon
+
+Graded against the CSM matrix of 9 April 2024 on `Ha_Vien_Mastersthesis_2026.tex` as a **full
+draft**, scored as the manuscript an examiner would receive if submitted today. **Second pass of
+the same day.** The twenty-first graded the 09:50 source; eleven commits have landed since, and
+one of them put a **new abstract into `Thesis_v2.tex`**, so this is a pass over changed prose and
+not a restatement. Build verified: both sources and both PDFs carry 15:21 to 15:25 timestamps and
+`git status` is clean. Declared length **96 pages plus 12 appendix pages** (118 physical), read
+from the `.aux`, unchanged.
+
+Canvas: [`thesis-grade-csm-sep07-rev2.canvas.tsx`](/home/vienha/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-sep07-rev2.canvas.tsx).
+
+| Area | 21st pass (7 Sep, morning) | This pass | Clause that sets it |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Level 5 holds. Gap in named flaws of five vendor theses, four RQs traced, RQ2 two-sided, H1 refuted and then declared ill-posed |
+| 2. Scholarly framework and sources | 5 | **5** | Level 5 holds. 109/109 cited, 66% peer-reviewed, Arvidsson and Emmerich and Emberg engaged as contrary |
+| 3. Research data and method | 5 | **5** | Level 5 holds. Nothing in this pass's findings touches the method or the data |
+| 4. Presentation of results | 4.5 | **4.5** | Level 5's "well considered and apt". The same three sites, re-read in today's source and unchanged |
+| 5. Discussion and conclusions | 5 | **5** | Level 5 holds. A drop was considered on the H1 revisit's wording and rejected, below |
+| 6. Academic text | 4.5 | **4.5** | Level 4's "consistent … description of research setup" and level 5's finishing polish. Same two clauses |
+| 7. Work during the thesis process | n/a | **n/a** | Not assessable from a manuscript |
+| **Mean of the six assessable** | 4.83 | **4.83** | |
+
+### The four standing items were re-read, not taken on trust
+
+All four are unchanged in the shipped source. Line numbers are current as of the 15:21 file.
+
+1. **Toolchain parity, three prose sites.** §6.1 l. 2213 still reads "which is the same userspace
+   and compiler pair the earlier virtualised campaign used", and l. 2217 "differ in the hardware
+   alone". §6.4.5 l. 3000 "the same toolchain … differ in the machine alone". §6.4.5 l. 3134
+   "share a design and differ in the machine". `tab:testbed`'s caption l. 4576 still promises that
+   each adjacent pair isolates one change, over a Toolchain row at l. 4594 printing `\MainGpp`
+   against `\GuestGpp`.
+2. **§6.4.7 l. 3165** still hand-types "the measurement host's `g++~15.1.1`".
+3. **§1.4's ellipsis**, draft l. 686 and skeleton l. 516, still has no predicate.
+4. **`tab:findings`' RQ3 cell**, l. 3594, still says "on bare metal".
+
+The eleven commits since the morning went to the skeleton's abstract, to acronym capitalisation,
+and to `AGENT.md`, `README.md` and the grading skill. **None of them touched a site that holds a
+grade**, which is why the mean is a hold rather than a movement.
+
+### New finding: the word *operation* carries two referents a factor of 400 apart
+
+§6.4.1 l. 2574–2578 defines the term and the whole §`sec:budget` argument rests on the definition:
+"The operation is $\BudgetCoreCpp$~ns in C++ … The work the languages actually perform is
+therefore at most $\BudgetCoreShareMax\%$ of what the sweep measures." That is the sentence which
+licenses the thesis's non-negotiable refusal to bound a language effect from the sweep.
+
+Three later sites attach the same bare noun to the **end-to-end round-trip** instead:
+
+- **§7.1 l. 3621**, the RQ1 discussion: "the median gap is a fraction of a $\PFiftyMedian\,\mu$s
+  **operation**", where `\PFiftyMedian` is 70, the round-trip.
+- **§7.1 l. 3623**: "roughly the width of a whole median **operation**".
+- **§7.3 l. 3863**, the H1 revisit: "about a microsecond on an **operation** of
+  $\PFiftyMedian\,\mu$s".
+
+Line 3629, eight lines below the first of them, then reads "The operation the languages execute is
+$\BudgetCoreShareMax\%$ of what the sweep measures", and l. 3571 and l. 4173 both use bare
+"operation" for the *inner* quantity. §1.4 l. 672 gets it right and writes "end-to-end
+**round-trip** of $\PFiftyMedian\,\mu$s", which is the wording the three sites want.
+
+**Why it is worth fixing and why it did not drop an area.** It is `CALIBRATION.md`'s
+wrong-scope class, and it lands in two of the four places that file says a grader looks: the RQ
+discussion and the hypothesis revisit. But its direction is conservative, since it compares the
+gap against a number 400 times larger than the correct comparator and so understates the language
+effect, and no reliability judgement rests on it. Area 5 was therefore held after considering a
+drop, on the same discipline the twenty-first pass used to hold area 3. Area 6's consistency
+clause is already failing for the toolchain sites and this is nicked by the same clause rather
+than a new one.
+
+**The transferable part.** The twenty-first pass checked `\PFiftyMedian` and recorded, correctly,
+that 70 is nearest-ten rounding of medians 72.1–73.7. It checked the *value*. The referent of the
+noun beside it went unread. `CALIBRATION.md` already says to check a macro's definition and not
+only its value; this pass adds that the sentence's own nouns need the same treatment.
+
+### The skeleton's new abstract, written after the twenty-first pass
+
+`37cc871` added an abstract to `Thesis_v2.tex`, and four further commits numbered and clarified
+it. It is good work and the numbering is an improvement on the draft's run-on Results paragraph.
+Three items came in with it, all in l. 139:
+
+- **Point (3) drops a denominator.** "any extra time on a real call is at most
+  $\FfiOpBoundPct\%$". `plot_figures.py:2388` defines the macro as
+  `100 * op_seam_delta_hi_ns / native`, so the percentage is *of the native operation*, and the
+  draft's abstract says so ("costs at most $\FfiOpBoundPct\%$ of one operation"). A bare
+  percentage has no referent.
+- **Point (5) attributes the full path to a language.** Point (4) says "that clock cannot
+  attribute a gap to C++ or Rust", and point (5) then says "Below overload the full path is a few
+  microseconds faster in Rust". Same clock. The draft joins the two claims in one sentence with
+  "yet" and attributes the difference to the *test* rather than to the path, which is the register
+  the rest of the thesis holds.
+- **"mixed-order repeats" for "interleaved repeats".** Interleaving is a named fairness control.
+  The draft writes "interleaved" 34 times and "mixed-order" never, and §1.4 of the skeleton itself
+  states the identical claim as "in \OverloadThrAgree{} interleaved repeats" 372 lines below the
+  abstract.
+
+Separately, **the two abstracts have diverged**: the skeleton now carries the better version and
+the draft, which is the submission document, carries the older one. The sync rule of `AGENT.md` §1
+exists for this. None of the four is folded into a grade, under rule 1 of the grading skill: an
+examiner receives one manuscript and it is not this one. They are lifts.
+
+### Mechanical evidence
+
+**The generated layer was re-derived, not read.** `plot_figures.py --outdir /tmp/rederive`
+reproduced `gen_macros.tex` and **all 12 `tab_*.tex` byte-identical** to the shipped copies, in 24
+seconds. Fifteenth consecutive pass with no wrong measured value.
+
+Hard gates pass (`texaudit.py` exit 0): no LaTeX errors, no undefined references or citations, no
+multiply defined labels, no float too large, no placeholders, 118 pages, **zero `Overfull` of any
+kind**, 0 underfull. Every float label referenced from the body. 109 entries, all cited, 72
+peer-reviewed (66%). The single prose-number hit is Gonzalez's `0.19 \%`, the known literature
+value.
+
+`.aitells.py`: **0 semicolons** and both colon checks at **0** in both documents. Draft 21.5 ± 11.8
+words per sentence, skeleton 17.3 ± 11.1, both in the human band. Nine dash hits in the draft and
+seven in the skeleton, all numeric ranges or compound proper names. `.acronyms.py`: `not written
+out at first use: 0` on both, waivers printed.
+
+**Today's editing round in the draft is clean, which is unusual here.** `c3cf0e6` rewrote 58 lines
+standardising acronym expansions to sentence case, and it was checked in both directions: "radio
+access network" is lowercase at all six body sites across both documents and "UE Context
+Management" is capitalised at all twenty, so the list and the prose agree and no split was
+introduced.
+
+**One candidate defect was read and discounted.** l. 3205's "Safe Rust rejects the double release
+with `\texttt{E0382}`" sits in the seam double-free paragraph, whose `tab:taxonomy` row reads
+"compiles, aborts". The sentence describes the **in-guarantee** class, which `taxonomy.csv` records
+as "compile-time prevented (E0382)", and the clause immediately after it explains that handing a C
+caller a raw pointer is what ends that tracking. The prose is correct and should not be "fixed".
+
+**Headline claims read against each other**, not one at a time: far tail (resolved, Rust lower),
+overload throughput (C++ $1.7\times$, 20/20), overload CPU per completed operation (Rust
+$1.8\times$), peak RSS direction and size with a host named at every ratio, and the two tracking
+loads (448 against 392) agree across the abstract, the introduction, §6.4, Chapter 7 and Chapter 8.
+No inverted participle at any of the five summary sites.
+
+### Per-area notes
+
+**1, carries 5.** Untouched. The gap is located rather than asserted at l. 1110–1116, which names
+the flaw in each of the five vendor theses. Noted and not scored: RQ4 names *effort* and *risk*,
+and `tab:design` gives neither a primary metric, so those two axes are answered qualitatively in
+§7.6 where the other three are measured. Level 5 does not require it and the qualitative treatment
+is honest about being qualitative.
+
+**2, carries 5.** Untouched. Contrary results are engaged as challenges rather than mentioned. The
+"operation" referent is a concept-definition wobble on one term at three sites, which is not enough
+to fail "excellent in-depth command".
+
+**3, carries 5.** Untouched. Nothing in this pass reaches the method or the data. The refusals that
+earn the level are all still in place.
+
+**4, holds 4.5.** The same three sites, re-read. Level 4 holds fully. The evidence half still reads
+at 5, with the whole generated layer byte-identical.
+
+**5, holds 5, and the rejection is on the record.** A drop was considered on the H1 revisit's
+"operation of 70 µs", since chapter-7 wording is exactly what took this area to 4.5 at the eleventh
+pass. Rejected: that anchor was a discussion one section behind its own results, and a noun used
+loosely in a conservative direction is not that weight. **Do not read the hold as agreement that
+the wording is harmless if it spreads.**
+
+**6, holds 4.5.** Same two clauses. The half grade still splits writing from
+consistency-and-finishing. The 83-word sentence is **not** counted, per the twentieth pass, and a
+later pass does not relitigate a ruling on unchanged text.
+
+### Outstanding
+
+1. **The three toolchain sites plus `tab:testbed`'s caption.** ~30 minutes. Holds areas 4 and 6.
+2. **§6.4.7's `g++~15.1.1`.** ~20 minutes, use `\MainGpp`.
+3. **§1.4's ellipsis**, both documents together. ~5 minutes.
+4. **`tab:findings`' RQ3 evidence cell.** ~10 minutes, name the host.
+5. **Hold "operation" to one referent**, l. 3621, l. 3623 and l. 3863. ~15 minutes. §1.4 already
+   has the wording to copy. New this pass.
+6. **The skeleton's abstract**: restore the denominator in (3), restore the test-attribution
+   register in (5), put "interleaved" back, and port the numbered version to the draft so the two
+   documents agree again. ~15 minutes. New this pass.
+7. **The durable fix, ~1 hour.** Generate the fault-catalogue toolchain into `gen_artefacts.tex`,
+   and teach `texaudit.py` to flag bare dotted version numbers in prose. Items 1 and 2 recur
+   without it.
+8. **Author proofread.** Process, not a matrix clause.
+9. **Not checked this pass**: the slide deck against the thesis, for the second consecutive pass.
+   No campaign moved so the risk is low, but no gate in the repository sees the deck.
+
+Nothing was edited in the thesis source during this pass. The closed items listed at the end of the
+twenty-first pass remain closed and must not be re-reported as grade caps.

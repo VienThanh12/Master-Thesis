@@ -88,6 +88,20 @@ returns both areas to 5. The 23 pt running-header overflow on §2.2 remains **cl
 `\section[Latency and predictability]{...}` ships, the log has zero `Overfull`, including during
 `\output`. Area 7 is not assessable.
 
+**The twenty-second pass, the same afternoon, held 4.83 on the 15:21 source and re-read all four
+sites rather than trusting the record. All four are unchanged.** It added two items neither of
+which moves an area. First, **the word *operation* carries two referents a factor of 400 apart**:
+§6.4.1 defines it as the nanosecond-scale inner quantity that is `\BudgetCoreShareMax`% of the
+sweep, and §7.1 l. 3621, l. 3623 and §7.3 l. 3863 then attach the bare noun to the
+`\PFiftyMedian`-microsecond end-to-end round-trip. §1.4 l. 672 has the right wording
+("end-to-end round-trip") to copy. Second, **`Thesis_v2.tex`'s new abstract has diverged from the
+draft's** and carries three items of its own: a bare `\FfiOpBoundPct`% with the denominator
+dropped, a point (5) attributing the full path to a language after point (4) said that clock
+cannot, and "mixed-order repeats" for the named *interleaved* control that §1.4 of the same file
+still calls interleaved. The skeleton's numbered form is otherwise better than the draft's and
+should be ported back rather than reverted. The generated layer re-derived byte-identical for the
+fifteenth consecutive pass.
+
 **Every one of the 69 was prose disagreeing with an artefact that was itself correct.** The generated
 layer re-derived byte for byte at all four checks. About 25 were introduced by the editing passes
 themselves, including one fix that created a fresh instance of the class it was fixing. **So the
@@ -306,7 +320,13 @@ is written out at its first use in the body, so adding one means adding both the
 the row. The scoped list in `Thesis_v2.tex` is a subset, so an acronym added there needs its own
 row. And `consistency.py --acronyms` from the `academic-writing` skill now reads the list itself
 as prose and reports each row as an unexpanded first use, so scope it past the `longtable` before
-believing its output. **The abstract's argument stays as the author wrote it.** On 7 September
+believing its output. **Expansions are sentence case as of 7 September 2026**, on the author's
+decision and matching Appendix A's key-terms table, so the first letter is capitalised unless the
+phrase's own spelling forbids it. The four `gNB` rows keep a lowercase g and `3GPP` opens on a
+digit, and a comment above each table records it, because a mechanical sweep of the column would
+write `GNB central unit`. Capitalisation beyond the first letter still follows the phrase: proper
+nouns keep their capitals and generic terms gain none, which is why `Amazon Web Services` sits
+beside `Application binary interface`. **The abstract's argument stays as the author wrote it.** On 7 September
 2026 the author asked for `UE`, `gNB-CU-CP` and `FFI` to be glossed there, because the abstract
 form is read before the list of acronyms. `\abstractunaidedtrue` still ships. Do not rewrite the
 claims, and do not gloss further unless asked.
@@ -455,6 +475,16 @@ have passed it.
    deferred deliberately on 4 September. `.aitells.py` reports `lowercase after a label colon` and
    `lowercase question after a colon`, both at **0** after the fix, and both skip display type
    because `is_prose()` drops any line starting with a backslash.
+4. **`artefact` and `artifact` are both correct here, and the sense decides which.** Counted 7
+   September 2026: the draft carries 12 prose uses of `artefact` against 9 of `artifact`, and the
+   split is deliberate rather than drift. `artifact` is the research deliverable, the
+   design-science sense used by §1.4's contributions, §4.1, `tab:design`'s column, §5.6's own
+   heading *Reproducibility and research artifacts*, §7.6 and the conclusion, and it is the
+   spelling ACM's badging programme uses. `artefact` is the compiled binary or a measurement
+   artefact, which is why `bench/artefact_facts.py` and `figures/gen_artefacts.tex` carry the
+   British spelling. `consistency.py` reports the pair on every run and it is a false positive by
+   design. Do not normalise either spelling without being asked, and when adding a sentence, pick
+   by sense.
 
 The full style constraint is in the prose-style section of `.cursor/rules/thesis-quality.mdc`.
 
