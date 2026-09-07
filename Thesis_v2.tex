@@ -136,8 +136,7 @@
       (1)~Safe Rust rejects all seven injected memory-safety and data-race defect classes at compile
       time. In C++ the same seven build cleanly and show up only at runtime, if a sanitiser catches
       them. (2)~Seven further classes fail in both languages. On two of them C++ tooling reports what
-      Rust does not. (3)~The seam to C++ leaves the core \texttt{unsafe}-free and costs at most
-      $\FfiOpBoundPct\%$ of one operation. (4)~Performance changes at saturation. Below it the test resolves a few microseconds in Rust's favour, yet an end-to-end call spends only $\BudgetCoreShareMax\%$ on language
+      Rust does not. (3)~C++ can call the Rust service through a thin C interface. All \texttt{unsafe} stays there, and any extra time on a real call is at most $\FfiOpBoundPct\%$. (4)~Performance changes at saturation. Below it the test resolves a few microseconds in Rust's favour, yet an end-to-end call spends only $\BudgetCoreShareMax\%$ on language
       work. Cross-thread handoff takes the rest, so the sweep reflects the design more than the
       language. (5)~Timed alone, Rust's operation is $\BudgetCoreRatio\times$ faster. The Rust arms still meet their offered rate to $\TrackingLoadRust$~kops/s, the C++ arms only to $\TrackingLoadCpp$~kops/s. After both have stopped tracking, \OverloadSustainedFaster{} holds
       $\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{} in \OverloadThrAgree{}
