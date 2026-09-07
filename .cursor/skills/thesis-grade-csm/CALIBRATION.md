@@ -28,6 +28,8 @@ is that they are fixed points.
 | 3 | 4.5, data half now 5 | The thirteenth pass. The canonical repeat closed the data half, and the half grade **changed sides**: what holds it is the *description* of the method. §4.5 fixes a reading rule in advance and names dropping it for the convenient block as the failure it exists to prevent, and §6.4.1 then does exactly that. And `REPR_LOAD_OPS` is pinned in the generator for a documented reason while §6.2 still states the derived rule the code abandoned. **A 4.5 in this area no longer means "the hardware was inadequate".** Read which half before quoting the number. |
 | 4 | 4.5 → 4.0 | The thirteenth pass, on level 5's aptness clause. Thirteen prose statements disagreed with the artefact beside them, and **six were wrong rather than stale** (see the new defect class below). Level 4 held because no value in any table or figure was wrong, six passes running, and the structure, per-question evidence status and generalisability discussion were intact. |
 | 6 | 2 | Template dummies surviving on the abstract page, three different dates, duplicated and undefined labels, a stray Cyrillic word in the results, dense grammar errors, and no statement of AI use in the document. |
+| 4 | 5 → 4.5 | The twenty-first pass, on level 5's aptness clause, and **the smallest defect ever to move an area here**. `tab:testbed`'s caption says the columns are arranged so each adjacent pair isolates one change, and its own Toolchain row prints `g++ 15.2.1` for the reported sweep against `g++ 15.1.1` for the guest. A caption refuted by a row of its own table is the same shape as a figure title refuted by its own bars. Beside it, one hand-typed compiler version that is simply wrong, and one guest-era phrase (`on bare metal`) that can no longer pick out a host. **Calibration point: a single wrong configuration value plus a caption over-claim is a 4.5, not a 4.0.** The thirteenth pass's 4.0 took thirteen disagreeing statements, six of them wrong. |
+| 6 | 5 → 4.5 | The twenty-first pass, on **both** level 4's "consistent … description of research setup" (three prose sites claiming toolchain parity that an appendix table refutes) and level 5's finishing polish (an elliptical `is not` with no predicate, in §1.4 of both documents). The half grade splits writing from consistency-and-finishing, which is what a 4.5 means here. **The 83-word sentence was explicitly not counted**, because the twentieth pass ruled it not a failing clause and a later pass does not relitigate a ruling on unchanged text. |
 | 7 | n/a | Every pass. The manuscript cannot settle it. |
 
 ## The defect class the thirteenth pass added
@@ -196,8 +198,49 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
-**Updated at the twentieth pass, 3 September 2026.** A hold: all six assessable areas stay at 5 on
-the 1 September PDF. Blocker 2 remains closed. Blocker 1 is **CLOSED**, facts and declaration: the
+**Updated at the twenty-first pass, 7 September 2026. Mean 4.83: areas 1, 2, 3 and 5 at 5, areas
+4 and 6 at 4.5.** One live blocker, and it is editing:
+
+**Blocker 3, OPEN. Toolchain parity with the guest is claimed and false.** `\GuestGpp` is 15.1.1
+and `\MainGpp` is 15.2.1, each generated from its own campaign's environment capture. `rustc`
+matches at 1.97.1. The container pins the `gcc-toolset` major version, not the point release, so a
+rebuild between the guest campaign and the 27 August canonical repeat moved g++ by one patch. Four
+sites do not know it: §6.1 l. 2211 ("the same userspace and compiler pair the earlier virtualised
+campaign used"), §6.4.5 l. 2997 ("the same toolchain … differ in the machine alone"), §6.4.5
+l. 3131 ("share a design and differ in the machine"), and `tab:testbed`'s caption l. 4574 ("each
+adjacent pair isolates one change"), whose own Toolchain row at l. 4591 prints the contradiction.
+Separately **§6.4.7 l. 3162 hand-types 15.1.1 as *the measurement host's* g++**, which is wrong;
+the fault-run versions in the same sentence (`g++ 13.3`, `rustc 1.97`) are hand-typed and correct.
+
+Three things about it are the transferable part.
+
+- **It is `AGENT.md` §3 item 3h's defect on the other host.** The eleventh pass found exactly this
+  for the confirmation host and the 26 August remediation fixed it by saying "four ways and not
+  three". Nobody asked the same question of the guest comparison. Half a pair fixed, at one remove:
+  **when a pass fixes a claim about one comparison host, check the other one in the same edit.**
+- **No gate could see it.** `texaudit.py`'s prose-number heuristic requires a unit, and a bare
+  dotted version number has none. Both values sit in the safety subsection and an appendix table
+  rather than in the performance prose a pass reads first. Teach the heuristic dotted versions.
+- **Repair is by disclosure, not withdrawal.** A GCC patch release confounds nothing the thesis
+  reports, so the honest fix *adds* a caveat exactly as the `\Bm` column's did, and costs no claim.
+
+**Blocker 4, OPEN, five minutes.** §1.4 of *both* documents (draft l. 683, skeleton l. 488) reads
+"How it compares against the cost of the allocator choice **is not**:" with no predicate to elide.
+`a0e9122` wrote "That effect **is** the same size on all three machines measured" and `ed6debe`,
+the fourteenth pass's scope-attachment fix, folded that clause into a prepositional phrase and
+deleted the copula. **An editing pass introduced it and seven grading passes read past it.**
+
+**Two findings a twenty-first-pass sweep cleared, so do not re-open them.** A split-word detector
+over both rendered PDFs found **0** genuine hits, the author's `safe`/`ty` fix having been the only
+instance. And `artifact`/`artefact` is **not** drift: all 9 `artifact` uses are the ACM-sense
+research deliverable and none of the 14 `artefact` uses is, so it reads as a deliberate convention.
+
+**The generated layer was re-derived, not read**, for the first time since the fourteenth pass:
+`plot_figures.py --outdir` reproduced `gen_macros.tex` and all 12 `tab_*.tex` byte-identical. Do
+that rather than reading tables; it costs 24 seconds and settles the whole layer.
+
+*Historical, from the twentieth pass, 3 September 2026:* a hold at 5.00 on the 1 September PDF.
+Blocker 2 remains closed. Blocker 1 is **CLOSED**, facts and declaration: the
 printed abstract matches the tables, `\abstractunaidedtrue` ships, page 96 prints that the abstract
 was written by the author unaided, and the PDF contains no Not submittable. Area 6 is 5. The §2.2
 running-header overflow remains **CLOSED**: the source has

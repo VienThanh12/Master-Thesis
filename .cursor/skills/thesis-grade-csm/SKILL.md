@@ -78,6 +78,11 @@ appear to carry a hand-typed measured number. Exit code is non-zero when a hard 
 manuscript that exists only as a PDF, skip the script and take the same evidence by reading, in
 the order given in `CALIBRATION.md`.
 
+**The heuristic requires a unit, so a bare dotted version number is invisible to it.** The
+twenty-first pass's finding was `g++ 15.1.1` typed as the measurement host's compiler where
+`\MainGpp` is 15.2.1 and 15.1.1 is `\GuestGpp`. Check compiler versions against `\MainGpp` /
+`\GuestGpp` / `\BmGpp` by hand until the detector lands (`docs/TODO.md` item **S**).
+
 Then the two checks no script can do:
 
 - **Every number in the results prose against the table it describes.** This has the highest
@@ -88,7 +93,7 @@ Then the two checks no script can do:
   or a diagram left stale after the claim moved, is an area 4 and area 6 defect at once.
 
 For prose quality run the repo's own tools rather than judging by eye:
-`./.aitells.py`, `./.vocab.py`, `./.readability.py`.
+`./.aitells.py`, `./.vocab.py`, `./.readability.py`, `./.acronyms.py`.
 
 ### 3. Read the thesis for argument, per area
 
