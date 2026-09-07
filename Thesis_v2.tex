@@ -580,7 +580,9 @@ Chapter~\ref{chapter:discussion}.
 In the next-generation radio access network (NG-RAN) architecture the base station (gNB) is
 split into a central unit and a distributed unit. The central unit is split again into a control plane and a user plane.
 UE Context Management sits in the control plane, the gNB-CU-CP, and talks to its
-neighbours over the standardised F1, E1, and NG interfaces~\cite{3gpp38401}.
+neighbours over the standardised F1, E1, and NG interfaces~\cite{3gpp38401}. Uu is the radio
+interface to the UE. Its lower layers terminate in the distributed unit and the RRC signalling
+above them in the gNB-CU-CP~\cite{3gpp38401}.
 Figure~\ref{fig:ngran} places it there.
 
 \begin{figure}[ht]
@@ -624,9 +626,9 @@ Figure~\ref{fig:ngran} places it there.
 \caption[Where the studied subsystem sits in the 5G NG-RAN]{Where the studied subsystem sits in the 5G NG-RAN. The gNB is split into a
 distributed unit (gNB-DU) and a central unit (gNB-CU), and the central unit is split again
 into control-plane (gNB-CU-CP) and user-plane (gNB-CU-UP) functions, connected by the
-standardised F1, E1, and NG interfaces. UE Context Management (highlighted) is the per-UE
-control-plane state manager inside the gNB-CU-CP that this thesis reimplements and
-measures.\label{fig:ngran}}
+standardised F1, E1, and NG interfaces, with Uu the radio interface to the UE. UE Context
+Management (highlighted) is the per-UE control-plane state manager inside the gNB-CU-CP that
+this thesis reimplements and measures.\label{fig:ngran}}
 \end{figure}
 
 Deadlines are met or missed because of predictability, not average speed. The metrics
