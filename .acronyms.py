@@ -13,11 +13,18 @@ paths and verbatim code are stripped first: an acronym buried in \\cite{ieee...}
 is not a use a reader sees, and counting it would move first use earlier than
 the page it appears on.
 
-Expanded means the gloss sits beside the acronym, in either order and with
-either kind of bracket, within a window of a few words. The comparison uses the
-part of the list entry before its first comma, since the rest is a gloss the
-prose is not obliged to repeat, and it tolerates hyphen and case differences so
-that "next-generation NodeB" matches "Next-Generation NodeB".
+Expanded means the gloss sits beside the acronym, within a couple of source
+lines either way, because the body is hard-wrapped and a first use often
+straddles a break. The comparison takes the part of the list entry before its
+first comma or colon, since the rest is a gloss the prose need not repeat, and
+then asks only for that phrase's first three words. Requiring the whole phrase
+rejected "FNV-1a, the Fowler--Noll--Vo hash" for lacking the word "function",
+which is not a defect any reader would recognise.
+
+The exemption list is explicit, in the manner of diagrams/check_labels.py, and
+its entries are printed rather than hidden, so waiving one is a decision on the
+record instead of a silent pass. A heuristic loose enough to accept them all
+would have accepted the one real defect this script found.
 
     ./.acronyms.py                                  # the full draft
     ./.acronyms.py Thesis_v2.tex                    # any other document
@@ -38,6 +45,31 @@ STRIP = re.compile(
     r"lstinline|input|include|includegraphics|bibliography|addcontentsline)\s*"
     r"(?:\[[^]]*\])?\{[^}]*\}"
 )
+
+# A LaTeX comment starts at an unescaped percent. Splitting on the character
+# itself truncated any line carrying \% and hid the expansion of API, which sits
+# one line after a \FfiOpBoundPct\% macro.
+COMMENT = re.compile(r"(?<!\\)%")
+
+# Acronyms whose gloss the prose supplies in a form this check cannot match.
+# Each names the reason, so adding one is a decision and not an accident.
+ACCEPTED = {
+    "AI-RAN": "the list entry defines the term rather than expanding its letters, "
+              "and the prose defines it in a relative clause at first use",
+    "gNB-CU": "glossed as 'a central unit (gNB-CU)' in a sentence that has just named the gNB",
+    "gNB-DU": "glossed as 'distributed units (gNB-DU)' in the same sentence pattern",
+    "gNB-CU-UP": "glossed as 'the user-plane function (gNB-CU-UP)' beside its control-plane twin",
+    "RQ": "a column label, and RQ1 to RQ4 are defined by the numbered list in the introduction",
+}
+
+# Entries a list carries on purpose although that document's body never uses the
+# bare token. Both are stems of something the body does use, and a reader who
+# meets the compound looks the stem up, so the entry earns its line. Kept apart
+# from an entry nobody asked for, which is a defect and fails the gate.
+DECLARED_UNUSED = {
+    "RQ": "the body writes RQ1 to RQ4, and a reader meeting those looks up the stem",
+    "gNB-CU": "the body writes gNB-CU-CP, whose expansion is built on this one",
+}
 
 
 def declared() -> dict[str, str]:
@@ -72,7 +104,7 @@ def body_range() -> tuple[int, int]:
 
 def visible(line: str) -> str:
     """What a reader sees, with reference machinery removed."""
-    s = line.split("%")[0] if not line.lstrip().startswith("%") else ""
+    s = COMMENT.split(line)[0]
     s = STRIP.sub(" ", s)
     s = re.sub(r"\$[^$]*\$", " ", s)
     return s
@@ -91,6 +123,11 @@ def loose(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
 
 
+def sought(expansion: str) -> str:
+    """The first three words of the gloss, which is what the prose must carry."""
+    return " ".join(loose(core(expansion)).split()[:3])
+
+
 def main() -> int:
     acronyms = declared()
     if not acronyms:
@@ -98,28 +135,30 @@ def main() -> int:
         return 1
 
     lo, hi = body_range()
-    unexpanded, unused = [], []
+    unexpanded, accepted, unused = [], [], []
 
     for acr, expansion in acronyms.items():
-        # Longer acronyms first would shadow shorter ones, so anchor on word
-        # boundaries and require the exact token.
-        pat = re.compile(rf"(?<![A-Za-z0-9-]){re.escape(acr)}(?![A-Za-z0-9-])")
+        # A trailing lowercase s is the plural of the acronym, not another token,
+        # which is the only form the body uses for KPI.
+        pat = re.compile(rf"(?<![A-Za-z0-9-]){re.escape(acr)}s?(?![A-Za-z0-9-])")
         first = None
         for i in range(lo, hi):
             text = visible(lines[i])
             m = pat.search(text)
             if m:
-                first = (i + 1, text, m.start())
+                first = (i + 1, text)
                 break
         if first is None:
             unused.append(acr)
             continue
 
-        ln, text, at = first
-        # The gloss may sit on the neighbouring source line, since the body is
-        # hard-wrapped and a first use often straddles a break.
-        around = " ".join(visible(lines[j]) for j in range(max(lo, ln - 2), min(hi, ln + 2)))
-        if loose(core(expansion)) not in loose(around):
+        ln, text = first
+        around = " ".join(visible(lines[j]) for j in range(max(lo, ln - 3), min(hi, ln + 2)))
+        if sought(expansion) in loose(around):
+            continue
+        if acr in ACCEPTED:
+            accepted.append((acr, ln, ACCEPTED[acr]))
+        else:
             unexpanded.append((acr, ln, core(expansion), text.strip()[:96]))
 
     print("=" * 78)
@@ -127,19 +166,28 @@ def main() -> int:
     print(f"{len(acronyms)} declared in the front-matter list, body lines {lo}-{hi}")
     print("=" * 78)
 
-    if unexpanded:
-        print(f"\nnot written out at first use: {len(unexpanded)}")
-        for acr, ln, exp, snippet in unexpanded:
-            print(f"    L{ln:<5} {acr:<10} expects '{exp}'")
-            print(f"          {snippet}")
-    else:
-        print("\nnot written out at first use: 0")
+    print(f"\nnot written out at first use: {len(unexpanded)}")
+    for acr, ln, exp, snippet in unexpanded:
+        print(f"    L{ln:<5} {acr:<10} expects '{exp}'")
+        print(f"          {snippet}")
 
-    if unused:
-        print(f"\ndeclared but never used in the body: {len(unused)}")
-        print("    " + ", ".join(unused))
+    if accepted:
+        print(f"\naccepted by an explicit exemption: {len(accepted)}")
+        for acr, ln, why in accepted:
+            print(f"    L{ln:<5} {acr:<10} {why}")
 
-    return 1 if unexpanded else 0
+    deliberate = [a for a in unused if a in DECLARED_UNUSED]
+    stray = [a for a in unused if a not in DECLARED_UNUSED]
+
+    if stray:
+        print(f"\ndeclared but never used in the body: {len(stray)}")
+        print("    " + ", ".join(stray))
+    if deliberate:
+        print(f"\ndeclared without a bare use, on purpose: {len(deliberate)}")
+        for acr in deliberate:
+            print(f"    {acr:<10} {DECLARED_UNUSED[acr]}")
+
+    return 1 if unexpanded or stray else 0
 
 
 if __name__ == "__main__":

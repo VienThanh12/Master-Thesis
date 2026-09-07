@@ -42,7 +42,9 @@ body_start = next(
 )
 
 # Environments whose contents are code, data, or drawing commands.
-SKIP_ENV = re.compile(r"\\(begin|end)\{(lstlisting|tikzpicture|tabular|verbatim|figure|table)\}")
+SKIP_ENV = re.compile(
+    r"\\(begin|end)\{(lstlisting|tikzpicture|tabular|longtable|verbatim|figure|table)\}"
+)
 
 
 def is_prose(line):
