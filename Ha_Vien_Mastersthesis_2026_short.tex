@@ -656,7 +656,7 @@ roadmaps~\cite{cisa2023memorysafe,oncd2024building}, and anyone repeating a comp
 shape, who can reuse the specification, the pair, the harness and the catalogue.
 
 The scope is drawn deliberately to protect the internal validity of the language comparison. In
-scope are the UE Context Management functionality of Chapter~\ref{chapter:context}, the
+scope are the UE Context Management functionality of Section~\ref{sec:uecm}, the
 shared-nothing concurrency design, the load sweep to overload, the fault-injection catalogue,
 and the FFI prototype. Explicitly out of scope are the full gNB system and its remaining
 control-plane domains, physical layer (PHY) and layer-2 processing and the data-heavy user plane,
@@ -828,10 +828,16 @@ exactly which defect classes it eliminates and at what stage the remainder are c
 its safety model costs in throughput and resources, and what incremental adoption costs in
 practice. Closing this gap is the purpose of the four research questions. The next chapter
 grounds them in the specific subsystem, defect classes, and timing properties at stake, and
-Chapter~\ref{chapter:methodology} sets out the methodology by which they are pursued.
+sets out the methodology by which they are pursued.
 
-\chapter{Problem Context: UE Context Management and Predictability\label{chapter:context}}
-\chaptermark{Problem Context}
+\chapter{Research Methodology\label{chapter:methodology}}
+
+The preceding chapter set out the gap this study closes. This one sets out how, beginning with
+the subsystem the work is carried out on and the defect classes and timing properties at stake
+in it. It then states the overall research strategy, the method chosen for each research
+question and why it is appropriate, the controls that make a language comparison fair, the
+statistical treatment of the measurements, and the reproducibility and ethical commitments
+under which the work is carried out.
 
 \section{The UE Context Management subsystem}\label{sec:uecm}
 The subsystem under study is a UE Context Management service, modelled on a real Nokia
@@ -895,23 +901,15 @@ would exhibit it, so the catalogue answers to this subsystem and not to memory
 safety in the abstract, and Section~\ref{sec:safetyresults} reports what each one did.
 
 \paragraph{Why the tail is the metric here.}
-Two properties of the RAN setting put the tail, and not the mean, in charge of delivered quality.
-One user-visible action, a
+Section~\ref{sec:bgbrief} makes the tail the governing quantity for a latency-critical service,
+and two properties of this subsystem are why it governs here. One user-visible action, a
 call setup or a handover, becomes many dependent control-plane operations whose slowest member
 gates completion, and a busy site drives thousands of such procedures per second, so a percentile
-far out in the distribution is reached often enough to matter. The second property is the shape of
+far out in the distribution is reached often enough to matter. The second is the shape of
 the failure: a service of this design tracks
 its offered load with flat latency until a worker saturates, and then latency rises by orders of
 magnitude within one increment of load, which is why this study sweeps past saturation instead of
 stopping at a nominal operating point.
-
-\chapter{Research Methodology\label{chapter:methodology}}
-
-The previous chapter set out what the study must achieve. This one sets out how. It states
-the overall research strategy, the method chosen for each research question and why it is
-appropriate, the controls that make a language comparison fair, the statistical treatment of
-the measurements, and the reproducibility and ethical commitments under which the work is
-carried out.
 
 \section{Research approach}\label{sec:approach}
 The study is experimental with a constructive (design-science) element. The artifact is a pair
