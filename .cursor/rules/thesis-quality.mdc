@@ -25,9 +25,9 @@ When claims, RQs, methodology, or numbers change: sync plan + v1 + `Ha_Vien_Mast
 | 1 | Objectives & RQs | 5 | Keep falsifiable RQ2 (7 in-guarantee + 7 boundary defects) |
 | 2 | Scholarly sources | 5 | Acknowledge contrary results; consistent terminology |
 | 3 | Method & data | 5 | Bare-metal tail campaign is done. Do not add `isolcpus` |
-| 4 | Results presentation | 5 | Figures must match tables. The far tail is resolved as of 27 Aug 2026 |
+| 4 | Results presentation | 4.5 | `tab:testbed` caption vs its own Toolchain row (`g++` 15.2.1 vs 15.1.1). §6.4.7 hand-types the guest's compiler as the measurement host's. `tab:findings` RQ3 "on bare metal" cannot pick out a host |
 | 5 | Discussion | 5 | No over-claim: “cannot tell” ≠ “equivalent” |
-| 6 | Academic text | 5 | Nothing on the descriptor. Unaided switch is true. §2.2 header overflow is closed |
+| 6 | Academic text | 4.5 | Three prose sites claim toolchain parity the table refutes. §1.4 of both documents: "is not:" with no predicate |
 
 Full notes: `docs/ASSESSMENT.md`. Checklist per edit: `AGENT.md` §2.
 
@@ -71,9 +71,18 @@ not errors: frequency is the signal, so aim low rather than at zero.
   showcase, foster), "plays a role", "serves as", "the fact that", and A-A-A triads.
 - Vary sentence length. A stdev below about 8 words reads as machine-uniform; human academic prose
   runs 10 to 16.
+- **Write every listed acronym out where the text first uses it.** Both documents carry a
+  front-matter list of acronyms that promises exactly this, so a bare first use makes the document
+  contradict its own front matter. Put the expansion in parentheses after the words,
+  `AddressSanitizer (ASan)`, and add any new acronym to the `longtable` in the same edit, because
+  `./.acronyms.py` treats that list as the source of truth and cannot check what is not declared.
+  It is a gate rather than a count, so it exits non-zero, and it prints its waivers instead of
+  hiding them. The draft's list holds 57 entries and the skeleton's 26, a strict subset with
+  identical wording, so an entry added to one usually belongs in the other.
 
 Internal `.md` notes are exempt, but never paste them into a `.tex` file unrewritten. After any
-prose edit, run `./.aitells.py` on the file you touched.
+prose edit, run `./.aitells.py` on the file you touched, and `./.acronyms.py` as well if the edit
+introduced a term.
 
 `.aitells.py` reads `.tex` only, so slide prose is gated by the build instead. `build_deck.py`
 ends with `check_prose_style`, which walks every text run, table cell, and grouped shape in the
@@ -94,6 +103,9 @@ a generated table cell of `---` marks a value that does not exist, which `detex(
  earlier KVM guest could not resolve it and is retained only for the host comparison in
  `sec:hostcompare`. Never add `isolcpus`: it disables load balancing on the pinned set and put an
  entire 1120-run campaign on one core.
+- **Do not claim the guest and reported campaigns share a toolchain.** `\GuestGpp` is 15.1.1 and
+ `\MainGpp` is 15.2.1. The container pins the `gcc-toolset` major, not the point release. Quote the
+ macros. The `\Bm` column already discloses its compiler change.
 - The far tail is **pooled**, never a median of per-run p99.99 values. `tab:latency`'s p99.99 column
  and every `\FarTail*` macro read `<campaign>.hist.pooled.csv`, print without an interval because
  pooling makes the operation the unit of analysis, and carry a dagger the caption explains. Do not add
