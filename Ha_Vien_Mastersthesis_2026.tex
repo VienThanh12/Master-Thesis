@@ -731,9 +731,9 @@ time-critical layers close to the radio. The second is a \emph{control/user-plan
 inside the central unit, separating the control-plane function (gNB-CU-CP) from the
 user-plane function (gNB-CU-UP). These parts communicate over standardised
 interfaces: NG towards the 5G core, F1 between the CU and the DU, and E1 between the CU-CP and
-the CU-UP~\cite{3gpp38401,3gpp38300,3gpp38463}. Uu is the radio interface to the UE. Its lower
-layers terminate in the DU and the RRC signalling above them terminates in the
-CU-CP~\cite{3gpp38401,3gpp38300}. Open-RAN initiatives standardise these interfaces
+the CU-UP~\cite{3gpp38401,3gpp38300,3gpp38463}. Uu is the radio interface to the UE. The DU
+terminates its lower layers and the CU-CP its RRC signalling~\cite{3gpp38401,3gpp38300}.
+Open-RAN initiatives standardise these interfaces
 further so that each part can be supplied by a different vendor and run as software on
 commodity hardware~\cite{polese2023oran}. Figure~\ref{fig:ngran} places the subsystem studied
 in this thesis, UE Context Management (UECM), inside the gNB-CU-CP: it owns the per-UE
