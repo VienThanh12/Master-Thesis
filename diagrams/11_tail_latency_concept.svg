@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 480" width="940" height="480" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
   <defs>
-    <marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#33475b"/></marker>
-    <marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c0392b"/></marker>
+    <!-- refX equals markerWidth so the tip sits on the line's endpoint. markerUnits
+         defaults to strokeWidth, so any overhang here is multiplied by the stroke and
+         pushes the head through the target box's border on a shallow approach. -->
+    <marker id="a" markerWidth="12" markerHeight="8" refX="12" refY="4" orient="auto"><path d="M0,0 L12,4 L0,8 z" fill="#33475b"/></marker>
+    <marker id="ar" markerWidth="12" markerHeight="8" refX="12" refY="4" orient="auto"><path d="M0,0 L12,4 L0,8 z" fill="#c0392b"/></marker>
   </defs>
   <rect x="0" y="0" width="940" height="480" fill="#ffffff"/>
   <text x="470" y="34" text-anchor="middle" font-size="22" font-weight="700" fill="#12233a">Why tail latency, not the mean, governs RAN deadlines</text>

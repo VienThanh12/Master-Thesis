@@ -1,0 +1,267 @@
+\chapter{Introduction}
+
+Mobile networks are moving from specialised hardware to software on ordinary servers, and the
+radio access network (RAN), long the most hardware-bound part of the stack, is part of that
+shift. In 5G the base station, formally the next-generation NodeB (gNB), splits into a central
+unit and one or more distributed units, and the central unit splits again into control-plane and
+user-plane functions~\cite{3gpp38401,3gpp38300}. Open-RAN pushes that further, into virtualised,
+multi-vendor software linked by open interfaces~\cite{polese2023oran}. The resulting gNB central
+unit control plane (gNB-CU-CP) is large, stateful and highly concurrent: it tracks every
+connected device, each of which the standards call a user equipment (UE), runs Radio Resource
+Control (RRC) signalling~\cite{3gpp38331}, and coordinates mobility and handovers inside strict
+latency limits.
+
+A busy site runs thousands of connection-management and mobility procedures per second, each
+inside the millisecond-scale budget the 5G system sets for control-plane
+signalling~\cite{3gpp38913}, and may track millions of active devices. Under cloud-native,
+disaggregated deployment its timing and correctness increasingly set the quality of the whole
+network, so an outage or a tail-latency spike is no local defect: every device the site serves is
+affected~\cite{dean2013tail,barroso2017microseconds}.
+
+That software is written mostly in C++, which supplies what latency-critical systems demand:
+low-level control, mature tooling and performance. The cost is well known. Memory and concurrency
+management fall to the programmer, that burden is routinely mishandled, and the defects it
+produces, use-after-free, double-free, data races and their relatives, are expensive to find,
+dangerous in production, and behind a large share of security vulnerabilities in industry
+practice~\cite{msrc2019memory,google2022android}. Rust is the first mainstream systems language
+to promise an escape, enforcing memory safety and data-race freedom at compile time on
+machine-checked foundations~\cite{klabnik2023rust,jung2018rustbelt} at performance meant to rival
+C++~\cite{balasubramanian2017rust}. Whether it keeps that promise for a telecom-grade,
+latency-critical control plane, where predictability under overload matters as much as raw speed,
+is not well understood. This thesis, carried out at Nokia, builds two functionally equivalent
+implementations of a representative RAN subsystem, a \emph{UE Context Management (UECM)} service
+modelled on a real Nokia \emph{gNB-CU-CP} component, in modern C++ and in Rust, and compares them
+under a realistic synthetic signalling workload. \emph{Tail latency}, the p99 and p99.9
+percentiles rather than the mean, decides whether such a system meets its
+deadlines~\cite{dean2013tail,barroso2017microseconds}. Acronyms are written out at first use and
+collected in the \nomname{}, and terms that are not acronyms are fixed in
+Appendix~\ref{appendix:terms}.
+
+\section{Motivation and industrial context}\label{sec:motivation}
+Three trends make this comparison timely. The first is the RAN's cloud-native evolution. Running
+control-plane functions on general-purpose servers raises rather than lowers the premium on
+software quality, because the software is longer-lived, evolves continuously, runs at higher
+concurrency, and must meet deadlines without the determinism purpose-built hardware once gave.
+Open-RAN disaggregation accelerates that~\cite{polese2023oran}, so a vendor's control plane
+competes on software-engineering quality, on reliability, predictable timing, security and the
+ease of evolving a large codebase safely, and no longer on purpose-built hardware. A latency
+regression or a memory-corruption defect is then a network-wide reliability and security risk
+rather than a localised bug, and language selection becomes a concrete engineering decision.
+
+The second is that artificial intelligence (AI) is moving from a tool for tuning the network into
+a workload the network is built to carry, and the next generation is specified that way from the
+start. International Mobile Telecommunications-2030 (IMT-2030), the International
+Telecommunication Union (ITU) framework for 6G, lists artificial intelligence and communication
+among its six usage scenarios and ubiquitous intelligence among its four design
+principles~\cite{itu2023imt2030}. The architecture forming around it, AI-RAN, orchestrates
+telecommunications and AI workloads together on shared, accelerated infrastructure, so sites
+running the radio also host distributed edge AI platforms~\cite{polese2026airan}, and the AI-RAN
+Alliance puts the requirement directly: one common infrastructure has to run both concurrently,
+under service-level agreements that may differ~\cite{airan2026orchestrator}. A control plane thus
+contends for central processing unit (CPU), memory and cache with inference work whose arrival
+pattern it does not control, and a co-tenant taking capacity away lowers the load at which it
+saturates. Saturation is where the two languages separate most sharply in
+Chapter~\ref{chapter:eval}, so memory footprint and behaviour past that point are becoming
+selection criteria in their own right, settled by nothing in the architecture above the code.
+
+The third is the industry-wide shift to memory-safe languages. Large software organisations trace
+most of their serious security vulnerabilities to memory-safety errors and report measurable
+reductions where memory-safe languages are
+adopted~\cite{msrc2019memory,google2022android,vanderstoep2025android,google2024securebydesign},
+and the case is no longer the vendors' alone: academia and industry jointly argue that memory
+safety needs standardised terminology and requirements to be specified or procured at
+all~\cite{watson2025memorysafety}. Cybersecurity agencies urge manufacturers to publish
+``memory-safe roadmaps'' and to leave memory-unsafe languages such as C and
+C++~\cite{cisa2023memorysafe,oncd2024building}, and in this subsystem's market the question is
+regulatory too. The European Union (EU) Cyber Resilience Act imposes secure-by-design and
+lifecycle vulnerability-handling obligations on manufacturers of products with digital elements,
+its vulnerability-reporting obligations from September 2026 and most of the remainder from
+December 2027~\cite{eu2024cra}. It names no programming language, and reading it as requiring one
+would be wrong. What changes is that a memory-unsafe language's recurring defect classes become a
+compliance exposure as well as an engineering one. Rust meanwhile has reached operating-system
+kernels, cloud infrastructure and increasingly telecommunications: Amazon Web Services (AWS)
+Firecracker, the production hypervisor under its serverless platform, is written in
+it~\cite{agache2020firecracker}. Providing the direct, controlled evidence a telecom vendor needs
+about tail latency, prevented defect classes and the cost of incremental adoption, for a
+representative subsystem, motivates this work.
+
+\paragraph{Industrial setting.}
+This thesis is carried out at Nokia, one of the few vendors that build, maintain and evolve
+production RAN software end to end, in a market held in very few hands: the five largest
+suppliers took 96\% of worldwide RAN revenue over the first three quarters of 2025, with
+concentration by Herfindahl--Hirschman Index at a ten-year
+high~\cite{delloro2025ran3q,delloro2026ran}. Nor is the gNB-CU-CP minor. In the disaggregated
+architecture of the 3rd Generation Partnership Project (3GPP) it is the control-plane half of the
+central unit, hosting RRC and managing the UE context lifecycle~\cite{3gpp38401,3gpp38331} under
+the millisecond-scale procedure budgets the 5G system places on control
+signalling~\cite{3gpp38913}, at the event rates and connected-device counts a deployed network
+sustains, as Section~\ref{sec:ranarch} sets out. Written in C++, it inherits that language's
+performance together with its memory-safety and concurrency hazards, which is where the three
+trends converge, and software of this class is shipped, evolved and operated across live operator
+networks, which makes the decision a production concern rather than a hypothetical one. UECM is a
+deliberate study object within it, for the reasons Section~\ref{sec:uecm} gives: modelled on a real
+gNB-CU-CP component rather than a textbook example, small enough to reimplement faithfully and
+reason about in full, yet carrying the properties that make control-plane code hard. Its
+implementation follows a public, frozen specification rather than proprietary code, so the
+comparison stays reproducible outside Nokia.
+
+\paragraph{A decision with a generational horizon.}
+A language choice in software of this class is rarely revisited, and it outlives the generation
+it was made for. The next is being specified now. 3GPP has allocated Release 20 to the 6G studies
+and Release 21 to the normative work, against an ITU calendar asking for technology proposals in
+early 2029 and submitted specifications by mid-2030~\cite{3gpp2024road6g}. That work explicitly
+covers migration from and interworking with 5G, so a control plane written for the current
+generation is maintained alongside the next rather than retired when it arrives. Nor do
+the next generation's objectives relax what motivates this comparison: IMT-2030 names security
+and resilience as one of its four design principles, expects the system to be secure by design,
+defines resilience as the ability to keep operating correctly during and after a disruptive
+event, and carries the ultra-reliable low-latency scenario forward in strengthened
+form~\cite{itu2023imt2030}. Freedom from whole classes of defect and predictable behaviour under
+disturbance are being written into those objectives rather than left to implementers.
+
+The policy dates fall inside the same window. The Cybersecurity and Infrastructure Security
+Agency (CISA) and the Federal Bureau of Investigation (FBI) classify developing new product lines
+in a memory-unsafe language as a bad practice where the product serves critical infrastructure, a
+scope mobile-network infrastructure sits squarely inside, and they exempt an existing product
+from the memory-safe roadmap expectation only when its announced support ends before January
+2030~\cite{cisa2025badpractices}. A vendor deferring the question until the next generation is
+specified will not thereby have avoided making it. It will have made it by default, in the
+incumbent language, for another decade of deployments.
+
+What this thesis contributes to that decision is bounded. The measurements come from a subsystem
+modelled on a current-generation component and evaluated against published requirements, and no
+claim is made about requirements not yet written. What crosses the generational boundary is the
+language-level comparison itself rather than any latency figure: Which defect classes a compiler
+can rule out, what the safety model costs, and what incremental adoption inside a large C++
+codebase involves. Those questions have the same answers whichever generation the specification
+above them names, and they are cheapest to answer before the next codebase is started.
+
+\paragraph{A concrete failure mode.}
+Consider a mobility storm in which many UEs hand over at once. A single mishandled pointer, a UE
+context freed on release while an in-flight signalling message still references it, produces a
+use-after-free. In C++ it compiles cleanly and may pass ordinary testing, only to corrupt an
+unrelated UE's state or crash the worker thread under exactly the high-concurrency conditions the
+system exists to handle. The same latent race can equally surface as an unpredictable
+tail-latency spike instead of a crash. In safe Rust that design does not compile: ownership and
+borrowing reject the dangling reference at build time. The scenario captures why the thesis
+measures both \emph{safety} (which defects are prevented, and when) and \emph{predictability}
+(tail latency under overload) rather than average throughput alone.
+
+\section{Problem statement}
+Two properties of this domain make the language choice consequential. Those C++ defect classes
+are silent at compile time and costly to find and fix at telecom scale, and what governs whether
+RAN deadlines are met is not average throughput but worst-case and tail behaviour under load and
+overload~\cite{dean2013tail}, which is easy to regress and hard to measure correctly. Rust
+promises to remove the first at compile time while claiming competitive performance on the
+second, but the available evidence is largely general-purpose and
+average-case~\cite{balasubramanian2017rust,qin2020rust}. Vendors under growing pressure,
+technical and increasingly regulatory, to adopt memory-safe languages therefore lack
+\emph{direct, controlled} evidence for the RAN control plane. It is not established whether a
+Rust implementation of a stateful, concurrent control-plane subsystem matches modern C++ in
+\emph{tail latency and predictability under overload} (as opposed to average throughput), whether
+its compile-time guarantees eliminate the defect classes that affect the existing C++ code, or
+what incremental adoption \emph{costs} inside a large C++ codebase. Answering those three
+questions for a representative subsystem under controlled, reproducible conditions is this
+thesis's problem.
+
+\section{Research questions and hypotheses}\label{sec:rqs}
+Four research questions organise the thesis, ordered to put predictability and migration ahead of
+raw average performance:
+
+\begin{description}
+  \item[RQ1] How do Rust and modern C++ compare in latency predictability (median, p99,
+        p99.9 and p99.99 tail latency, and the maximum) for a RAN control-plane workload
+        under increasing load and overload?
+  \item[RQ2] Which classes of memory-safety and concurrency defects that occur in C++ are
+        eliminated at compile time in the Rust implementation, and at what stage and cost
+        are the remaining ones detected?
+  \item[RQ3] What is the overhead, if any, of Rust's safety model (bounds checks,
+        ownership-driven copies, abstraction cost) on throughput, CPU utilisation, and
+        memory behaviour?
+  \item[RQ4] What are the practical implications (effort, foreign function interface (FFI)
+        interoperability, and risk) of adopting Rust incrementally within an existing C++ RAN
+        software ecosystem?
+\end{description}
+
+Three prior expectations are stated in advance, so the evaluation can confirm or refute them
+rather than describe results afterwards. \textbf{H1:} For this workload the two languages are
+performance-equivalent in the operationally relevant region below saturation, with any difference
+confined to the far tail. \textbf{H2:} Safe Rust prevents at compile time the memory-safety and
+concurrency defect classes that C++ leaves to best-effort, after-the-fact detection.
+\textbf{H3:} The run-time cost of C++-to-Rust interoperability is negligible relative to the cost
+of the operations invoked, so that the true cost of incremental adoption is engineering effort
+rather than performance. H2 is stated so that it can fail: the defect catalogue behind RQ2 spans
+classes safe Rust should prevent and classes it should not, so the study can locate the boundary
+of the guarantee rather than only confirm it. Section~\ref{sec:hypotheses} revisits all three.
+
+\section{Contributions, results, and limitations}
+The thesis makes six contributions. Two are artifacts: a reproducible benchmarking framework for
+telecom control-plane workloads, and a frozen shared specification with two parity-tested
+implementations of the subsystem, one in C++ and one in Rust. Three are results: a latency and
+resource comparison dividing at the saturation knee, where the ordering between the languages
+reverses, a defect-class taxonomy from controlled fault injection marking where the compile-time
+guarantee stops in both directions, and a bound on what a comparison of this shape can attribute
+to a language at all, from decomposing an end-to-end operation into language work and the
+cross-thread handoff around it. The last is a set of engineering and migration guidelines for
+language selection in cloud-native RAN evolution (Section~\ref{sec:guidelines}). Neither the
+reversal nor the attribution bound was anticipated: both emerged from results the study had
+planned to report differently, and Section~\ref{sec:hypotheses} records what the first cost H1.
+
+The findings divide three ways. On \emph{safety} (RQ2), safe Rust prevents every injected
+memory-safety and data-race defect class at compile time. All compile in C++, where each is
+caught, if at all, only at run time and only under the right sanitiser, or on one class under
+none. Seven boundary classes were chosen deliberately and neither language prevents them: on two
+the C++ tooling is ahead, and on one the defect safe Rust rules out returns as soon as the
+program writes \texttt{unsafe}. On \emph{migration} (RQ4) the FFI seam is small, keeps the core
+free of \texttt{unsafe}, and costs at most $\FfiOpBoundPct\%$ of one operation against the same
+operation called natively, so the adoption cost is application programming interface (API)
+design, not run-time overhead. Two of three further costs measured for the same reason run
+against received wisdom: most of the Rust build's extra cost is compiling third-party code rather
+than the compiler's own work, and the binary-size ordering depends on which linkage policy the
+toolchains are held to rather than on the languages. Both results are final.
+
+On \emph{performance} (RQ1, RQ3) the answer divides twice. The first division separates what the
+sweep measures from what it can attribute: an end-to-end operation here is
+$\BudgetCoreShareMax\%$ language work and a cross-thread handoff takes the rest, so a
+matched-pair comparison on that path bounds the design and not the language. That limit holds
+whichever way the comparison comes out, and it reaches any study reporting an end-to-end median
+without measuring the share. Timed apart from the handoff, the operation is
+$\BudgetCoreRatio\times$ faster in Rust, which the sweep cannot see.
+
+The second division is by regime. Below saturation the two are equivalent end to end in central
+behaviour by a margin no deployment would notice, though the paired test does resolve a median
+difference of $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators on a round-trip of
+$\PFiftyMedian\,\mu$s, so the equivalence is practical, not statistical. The far tail there
+resolves on the reported host and favours \FarTailLower{}: pooled over \FarTailSamplesMin{} to
+\FarTailSamplesMax{} operations per variant the two languages' p99.99 values do not meet, the
+widest gap between variants is $\FarTailRange\,\mu$s, and a second bare-metal campaign at another
+shard count agrees on the direction (Section~\ref{sec:hostcompare}). Past saturation the ordering
+reverses, and where each implementation stops meeting its offered rate is itself a difference:
+the Rust arms track to $\TrackingLoadRust$~kops/s, the C++ arms to $\TrackingLoadCpp$. Deeper
+still, with all four collapsed, the C++ build sustains $\OverloadThrRatio\times$ the Rust build's
+throughput in \OverloadThrAgree{} interleaved repeats under both allocators, while Rust spends
+$\OverloadCpuPerOpRatio\times$ the CPU per completed operation, which rules out its simply doing
+less. Rust also holds a few MiB more resident memory, again under both allocators, in the same
+direction and order of magnitude on all three machines measured. How that compares with the
+allocator choice does not travel: the two are comparable on bare metal and the allocator's was an
+order of magnitude larger on the virtualised host used first, so the comparison is a property of
+the machine rather than of the allocators.
+
+Four limitations bound all of this: a synthetic workload, one simplified subsystem,
+single-author implementation bias, and an allocator footprint whose size moved with the host,
+each treated in Chapter~\ref{chapter:discussion}. The intended readers are the vendor
+making the language decision, the standards discussion around memory-safe
+roadmaps~\cite{cisa2023memorysafe,oncd2024building}, and anyone repeating a comparison of this
+shape, who can reuse the specification, the pair, the harness and the catalogue.
+
+Scope is drawn deliberately to protect internal validity. In scope are the UE Context Management
+functionality of Chapter~\ref{chapter:context}, the shared-nothing concurrency design, the load
+sweep to overload, the fault-injection catalogue and the FFI prototype. Out of scope are the full
+gNB system and its other control-plane domains, physical layer (PHY) and layer-2 processing and
+the data-heavy user plane, real captured traffic traces as opposed to a spec-justified synthetic
+workload, managed-language alternatives (excluded on the tail-latency grounds argued in
+Chapter~\ref{chapter:background}), and production deployment and operational concerns such as
+upgrade, observability and multi-tenancy. These exclusions trade external validity for the
+controlled conditions a fair comparison needs, and each returns as a limitation in
+Chapter~\ref{chapter:discussion}.
+

@@ -40,8 +40,17 @@ if s <= anchor < e:
 block = lines[s:e]
 labels = set(re.findall(r'\\label\{([^}]*)\}', '\n'.join(block)))
 
+forced = None
+for a in sys.argv[5:]:
+    if a.startswith('--title='):
+        forced = a.split('=', 1)[1]
+
 head = block[0]
-m = re.match(r'\\(?:chapter|section|subsection)\*?\{(.*)\}\s*$', head)
+if forced is not None:
+    block = [f'\\appendix{{{forced}}}'] + block
+    m = None
+else:
+    m = re.match(r'\\(?:chapter|section|subsection)\*?\{(.*)\}\s*$', head)
 if m:
     title = m.group(1)
     # a trailing \label{...} inside the braces is kept, one outside is folded in
@@ -55,7 +64,7 @@ if m:
             if inline:
                 title = inline.group(1) + inline.group(3) + f'\\label{{{inline.group(2)}}}'
     block[0] = f'\\appendix{{{title}}}'
-else:
+elif forced is None:
     raise SystemExit(f'block does not open with a chapter or section: {head[:60]}')
 
 if demote:

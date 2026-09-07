@@ -1,0 +1,375 @@
+\chapter{Research Methodology\label{chapter:methodology}}
+
+The previous chapter set out what the study must achieve. This one sets out how: the research
+strategy, the method chosen for each research question and why it fits, the controls that make a
+language comparison fair, the statistical treatment of the measurements, and the reproducibility
+and ethical commitments the work is carried out under.
+
+\section{Research approach}\label{sec:approach}
+The study is experimental with a constructive (design-science) element. The artifact is a pair
+of functionally equivalent implementations of the subsystem, one in C++ and one in Rust, plus
+the framework that benchmarks them, both built from a single frozen specification and evaluated
+under controlled experiments. Evidence is triangulated across the three independent methods
+Table~\ref{tab:design} lists, one of which, the FFI migration case study answering RQ4, is part
+measured and part qualitative. A weakness in one of them, such as the
+environment sensitivity of tail-latency measurement, therefore does not carry into the
+conclusions as a whole. Every measurement reports variance over repeated runs, and
+Section~\ref{sec:controls} sets out the controls that keep the language the only variable.
+
+That design follows from the shape of the questions. Each asks how one outcome (tail latency,
+defects prevented, resource use, migration cost) depends on one variable, the implementation
+language, which therefore has to be the only systematic difference between the two objects under
+test. That rules out the commonest language comparison in the literature, where two
+independently written programs are measured and a gap carrying the design, the libraries and the
+skill of their authors is attributed to the language. Building both sides from one specification
+removes the confound: the comparison is between two encodings of one design, and the artifact is
+both the contribution and the instrument that measures it. Where a question can be answered with
+numbers the treatment is quantitative, and where it cannot, as with the kind of guarantee in RQ2
+and the API-design effort in RQ4, it is qualitative but still systematic.
+
+The gap this design addresses (Section~\ref{sec:gap}) is only as good as the search that looked
+for it, so Appendix~\ref{appendix:search} records the databases, the term combinations, the
+citation chaining and the filtering rules. Two of its findings bear on the design and not just
+on the bibliography. The vendor-hosted theses closest to this study
+(Section~\ref{sec:relatedwork}) appear in no citation database, so chaining never reaches them
+and they had to be found in the institutional repositories directly. The same searches establish
+an absence on the other side: no Finnish thesis on Rust in a radio-access or telecom context, and
+no indexed publication mentioning Rust from the vendor hosting this work. The domain-specific
+literature on the language question is therefore Swedish and Ericsson-hosted, whether it carries
+over here is untested, and being grey literature it is cited as evidence of what a vendor has
+attempted and found rather than as peer-reviewed results. No study, indexed or grey, measures
+the tail-latency behaviour of a Rust and a C++ implementation of the same stateful, concurrent
+control-plane subsystem under overload.
+
+All four chains in Table~\ref{tab:design} end in the same place: Section~\ref{sec:rqdiscussion}
+judges each question and Section~\ref{sec:hypotheses} disposes of its hypothesis. RQ1 and RQ3
+share H1,
+worded to cover performance equivalence in both the latency and the resource sense, and that
+wording turns out to be the hypothesis's main weakness. RQ2 is insensitive to the environment,
+and RQ4 is so except along one axis: build time is a timing measurement, read as a ratio between
+two toolchains measured alternately on one machine. RQ1 and RQ3 depend on the measurement host
+and are reported against what it can carry (Section~\ref{sec:testbed}).
+
+\begin{table}[H]
+\centering
+\caption[Research design: how each research question is answered]{Research design: how each research question is answered. Every question is tied to a
+concrete method, a published artifact, the data it produces, and the metric on which the
+conclusion rests. RQ1 and RQ3 carry two methods rather than one: the sweep measures the
+round-trip a deployment would experience, and the component decomposition measures the part of
+it the language is responsible for. Section~\ref{sec:methodperf} states why one cannot stand in
+for the other. RQ1 and RQ3 are tested against H1, RQ2 against H2, and RQ4 against
+H3.\label{tab:design}}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}p{0.06\linewidth} p{0.24\linewidth} p{0.24\linewidth} p{0.32\linewidth}@{}}
+\hline\hline
+RQ & Method & Artifact / data & Primary metric \\
+\hline
+RQ1 & Load sweep to overload, interleaved repeats & Benchmark harness, latency histograms &
+median, p99/p99.9/p99.99 tail latency, and maximum vs.\ offered load \\
+RQ3 & Same sweep, resource capture & \texttt{getrusage} samples per run &
+peak resident set size (RSS), CPU utilisation, throughput \\
+RQ1, RQ3 & Component decomposition: the core called directly, then through the service &
+Matched microbenchmark pair, interleaved repeats &
+per-operation cost split into the operation and the cross-thread handoff \\
+RQ2 & Controlled fault injection & Defect catalogue, ASan/TSan/UBSan, \texttt{rustc},
+Loom/Shuttle and Miri logs &
+defect-class taxonomy (compile-time / runtime / undetected) \\
+RQ4 & FFI migration prototype & C++ host $+$ Rust C-ABI seam &
+seam size, \texttt{unsafe} scope, per-call interop cost \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Methods for the four research questions}
+
+\subsection{Performance measurement under a load sweep (RQ1, RQ3)}\label{sec:methodperf}
+RQ1 and RQ3 are answered by driving both implementations with one deterministic synthetic
+workload across a sweep of offered load, from light load through saturation into overload. Two
+design decisions make the measurement sound. The load generator follows an \emph{open-loop}
+schedule: each request has a fixed intended send time, and latency is measured against that time
+and not against the moment of admission, which corrects for coordinated omission as
+Chapter~\ref{chapter:background} defines it. The sweep is pushed past saturation deliberately,
+because the overload cliff appears only once offered load exceeds service capacity
+(Section~\ref{sec:predictability}). Latency goes into high-dynamic-range histograms configured
+identically on both sides, and resource use is sampled through the operating system.
+
+\paragraph{Measuring the component as well as the round-trip.}
+A round-trip bundles two costs of different character. One is the operation the language runs
+inside a single thread, a hash lookup or a state-machine guard, all compiler-generated. The
+other is the cross-thread handoff around it, an enqueue, a futex wake, a context switch, none of
+it language-specific. Only the first can plausibly differ between C++ and Rust, and no
+end-to-end measurement separates them. The method therefore works at two levels: the operation
+processor called directly with no queue in the path, then the full threaded service, whose
+difference is the handoff. Both are batch means over a long loop and not per-call medians,
+because a clock read costs tens of nanoseconds,
+the same order as the operation itself, so per-call timestamps would measure the instrument. The
+languages are interleaved across repeats and compared with the same exact paired test as the
+sweep, so the levels differ in what they measure and not in how they are analysed.
+
+Reporting both separates two questions the research questions did not distinguish as originally
+worded: What a deployment of this shape would experience, and what the language is doing.
+Section~\ref{sec:budget} finds the two more than two orders of magnitude apart, so the
+distinction decides whether the result can be interpreted at all. The second level was added
+after a first pass of the campaign, and Section~\ref{sec:threats} records that revision.
+
+\paragraph{Isolating the contended synchronisation primitives.}
+The overload comparison in Section~\ref{sec:overload} attributes its gap to two forced-idiom
+entries where the standard libraries diverge, the bounded blocking queue and the one-shot
+completion handle. That attribution is argued from the shape of the full-service measurement, so
+a third matched microbenchmark drives those two primitives alone, with no \texttt{ShardCore}
+work in the path, under the same interleaved repeats and paired test.
+Section~\ref{sec:contention} reports whether the isolated primitives reproduce the ordering the
+full service showed.
+
+\subsection{Controlled fault injection (RQ2)}\label{sec:methodfaults}
+RQ2 asks which defect classes a language prevents, and measuring defect-free code cannot answer
+that, because the absence of a bug in a passing test says nothing about whether the language
+would have caught it. The method is therefore adversarial, following the established practice of
+software fault injection, where faults are introduced deliberately to see how a system behaves
+in their presence~\cite{natella2016fault}. A catalogue of representative C++ defects is written
+\emph{deliberately} from the classes that affect this subsystem (Chapter~\ref{chapter:context}),
+each one a small self-contained program flavoured with the domain, built and run under
+AddressSanitizer, ThreadSanitizer and UndefinedBehaviorSanitizer, recording which tool detects
+it, if any, and at what stage.
+
+The same construct is then written in safe Rust and compiled. The compiler's outcome is
+recorded, and where it compiles, so is the program's behaviour. The boundary classes give the
+compiler nothing to say, so where another tool can reach one, the Rust side goes to that tool as
+well: the two concurrency classes to the model checkers Loom and Shuttle, and the class inside
+an \texttt{unsafe} block to the Miri interpreter. Those three are the cases these tools were run
+on, chosen because each is the kind of defect the tool is built for, and answering ``at what
+stage and at what cost'' for them is what the extra runs buy. Each is paired with a control in
+which the defect is fixed, so that finding the defect and reporting everything are not the same
+observation. Whether ThreadSanitizer reports the lock-order inversion depends on the schedule,
+so the runner executes that case twelve times and reports the rate, and intermittent detection
+is not mistaken for reliable detection.
+
+\paragraph{Why the C++ side is tooled with sanitisers only.}
+No static analyser is run against the C++ catalogue, and that is a decision. RQ2 does not ask
+which tool finds the most defects. It asks at what \emph{stage}, and with what force, each
+language rules a defect out, and the taxonomy's three outcomes (compile-time rejection, runtime
+detection, silent miss) are the categories that question needs. An opt-in pass belongs to none
+of them: a warning a build can be configured to ignore is a different kind of object from a
+compilation that cannot succeed, and that difference is what the method measures. The cost is a
+C++ side narrower than the best a C++ project could manage, since a well-configured analyser
+could plausibly reach the small intra-procedural memory-safety cases, though not the concurrency
+ones. The study therefore reports the tooling it ran, the sanitiser-based practice of
+Section~\ref{sec:cpplatency}, and not a ceiling on what C++ tooling can achieve.
+
+The injected fault is held fixed while the language varies, so any difference in outcome comes
+from the language's guarantees and not from the specific bug, and what the method establishes is
+the \emph{kind} of protection each language offers, not a performance number. One further
+decision determines whether the taxonomy can be trusted: a catalogue drawn only from classes the
+language is known to prevent could confirm the hypothesis but never disturb it, and would
+describe the author's choice of cases as much as the language. It is therefore built in two
+groups, classes inside Rust's stated guarantee and classes just outside it, where ownership and
+the \texttt{Send}/\texttt{Sync} discipline give no protection, each case carrying a recorded
+expectation the runner checks in either direction, so an unexpected outcome surfaces as a
+discrepancy instead of being absorbed into the narrative. What this buys is a boundary and not a
+score: which classes the language removes, and which comparable ones it leaves in place, which
+is what a migration decision needs.
+
+\subsection{Foreign-function-interface migration case study (RQ4)}\label{sec:methodffi}
+RQ4 concerns the practical cost of adopting Rust inside an existing C++ system, an engineering
+question as much as a performance one. It is answered with a prototype built in the realistic
+direction of migration, a C++ host calling a Rust component across a C application binary
+interface, on which three quantities are measured. The \emph{size} of the seam counts its entry
+points, lines of code and dependencies. The \emph{scope} of \texttt{unsafe} records where the
+checked language is left and whether the safety-critical core is affected. The \emph{per-call
+cost} is the price of crossing the boundary, measured against the same operation invoked
+natively so the comparison isolates what the seam adds. The first two are read off the code and
+the third is a matched pair of microbenchmarks, and pairing them separates the run-time cost of
+interoperability from its true cost, which lies in API design and human learning.
+
+Interoperability is one of the three terms RQ4 names, and a prototype answers it alone. Three
+further quantities cover the other two, chosen because a build engineer reaches them before
+anything the seam can show. \emph{Build time} is measured clean and incrementally, for the core
+library alone and for every default target, with the same job count and interleaved repeats on
+both sides so that one host's load falls on both toolchains equally. \emph{Static footprint} is
+measured on the conformance runner, the one executable both languages build from the same
+specification, and at both linkage policies rather than at each toolchain's default, because the
+defaults differ in whether the standard library is linked in and a single pair of numbers would
+report that choice as a language difference. \emph{Third-party surface} counts the transitive
+crates each configuration resolves and the \texttt{unsafe} sites inside them, which makes the
+dependency-free claim of Section~\ref{sec:idioms} checkable. The first is host-sensitive and the
+other two are not.
+
+\section{Fairness as a controlled-variable strategy}\label{sec:controls}
+Every research question attributes a difference to the language, so validity depends on holding
+everything else equal, and fairness is therefore the study's central control, enforced at
+several levels, which Table~\ref{tab:controls} states variable by variable. The
+\emph{specification} is frozen before any code is written, down to the sharding and concurrency
+model (Section~\ref{sec:fairness}), the \emph{run-time substrate} is equalised by allocator and
+optimisation level as closely as the toolchains allow, and one deterministic \emph{workload}
+driver puts both implementations through the same sequence of operations for a given seed and
+active-UE population, so any latency difference reflects how each language executes the same
+work and not a difference in what work is done. Where the two languages genuinely cannot express
+the same construct, the deviation is recorded in a forced-idiom log. What remains uncontrolled,
+principally single-author skill asymmetry, is acknowledged as a threat to validity
+(Chapter~\ref{chapter:discussion}) and not claimed to be eliminated.
+
+The table's third column matters most: a controlled experiment is credible in proportion to how
+honestly it accounts for what it failed to control. Three rows record a residual and not a clean fix, since the languages cannot
+always express the same construct, they do not ship the same hash-map layout, and one person
+wrote both implementations. The forced-idiom log handles the first, and the last row names the
+one variable with no control at all.
+
+\begin{table}[H]
+\centering
+\small
+\caption[The controlled-variable strategy]{The controlled-variable strategy: what is held fixed so that the language remains the
+only systematic difference, and what each control does not reach. The third column is not a
+list of oversights but the study's own account of its limits. Each entry is picked up again as
+a threat to validity in Section~\ref{sec:threats}. Only the last row names a variable for
+which there is no control at all.\label{tab:controls}}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}R{0.16\linewidth} R{0.44\linewidth} R{0.32\linewidth}@{}}
+\hline\hline
+Variable & How it is held fixed & What the control does not reach \\
+\hline
+Design & One specification, frozen before any code is written, fixing the public API, the state machine, the data structures and their algorithmic strategy, and how state is divided into shards (\S\ref{sec:fairness}) & Where the two languages cannot express the same construct, the divergence is logged, not removed (Table~\ref{tab:idioms}) \\
+Concurrency model & Thread-per-shard over bounded blocking multi-producer, single-consumer queues on both sides, with no asynchronous runtime on either & Nothing outstanding \\
+Hashing & SplitMix64 for shard selection and FNV-1a, the Fowler--Noll--Vo hash, inside the shard, pinned identically, so neither standard library's default hasher becomes an accidental advantage & The container itself is still each language's own hash map, and the two differ in layout (\S\ref{sec:budget}) \\
+Allocator & The same \texttt{jemalloc} linked on both sides, with a system-allocator build kept on each as a control & Nothing outstanding \\
+Optimisation & \texttt{-O2} against \texttt{opt-level~=~2} & Nominal parity is not identical code generation \\
+Workload & One deterministic driver. For a given seed and active-UE population both implementations execute the same operation sequence, checked by per-kind counts & Synthetic and spec-justified rather than replayed from production traffic \\
+Instrumentation & The same HDR histogram algorithm and configuration, the same open-loop schedule, the same repeat and interleaving discipline & Nothing outstanding \\
+Behaviour & A language-neutral conformance suite whose canonical transcripts are diffed op for op (\S\ref{sec:parity}) & Parity bounds behaviour, not performance \\
+\hline
+Author & No control & One person wrote both implementations and is not equally expert in both \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Statistical treatment of measurements}\label{sec:stats}
+Performance measurements are non-deterministic, so single-run numbers are avoided throughout.
+Each configuration (language $\times$ allocator $\times$ load level) is measured over many
+independent repeats, and the four variants are \emph{interleaved} within each repeat so that
+slow drift, thermal effects, and background activity perturb them equally instead of biasing
+one. Results are summarised by the median with a nonparametric bootstrap $95\%$ confidence
+interval~\cite{efron1993bootstrap} rather than by the mean with a standard deviation, because
+latency distributions are heavy-tailed and skewed and a distribution-free interval on the median
+makes no normality assumption. That follows established guidance on statistically rigorous
+performance evaluation, which warns that a single number invites conclusions run-to-run
+variation does not support~\cite{georges2007rigorous}. Tail percentiles (p99, p99.9, p99.99) are
+read from the HDR histograms, whose logarithmic bucketing retains three significant figures of
+resolution across the whole range so that high percentiles are not quantised away. Intervals are
+reported in full rather than as a symmetric half-width, because a bootstrap interval on the
+median of a heavy-tailed sample is markedly asymmetric and a half-width wide enough to cover its
+upper bound would place the lower bound below zero.
+
+How far into the tail a campaign can see is a property of how many operations it recorded. At
+the representative load a single run retires on the order of $170$~thousand measured
+operations, so its p99.99 rests on roughly seventeen observations and is dominated by sampling
+noise even on a perfectly quiet host. Reading the far tail therefore requires persisting each
+run's complete HDR bucket contents, so that the repeats can be \emph{pooled} into one
+distribution of several million operations. The harness does that, and keeps pooling and
+averaging apart, because they are different statistics. The pooled figure takes the operation as
+the unit of analysis and resolves the far tail, at the cost of carrying no across-repeat
+interval, while the median-of-repeats figures reported with intervals keep the repeat as the
+unit and remain the only basis for a paired comparison. The reported campaign's p99.99 is pooled
+by that procedure and reaches Table~\ref{tab:latency} as a column of its own, marked because it
+is the one column of that table computed at a different unit of analysis and so the one carrying
+no interval. The analysis scripts read the pooled file and never the per-run field, so a
+campaign whose histogram sidecars have not been pooled loses the column rather than printing the
+per-run figure just called uninterpretable. Jitter is likewise measured directly rather than
+inferred from the latency distribution, as the absolute difference between consecutive latencies
+within a producer. That is the packet-delay-variation quantity of Request for Comments
+(RFC)~3393~\cite{rfc3393}, and the sense in which this thesis uses the term: variation from one
+operation to the next, not spread of the distribution as a whole. It is recorded and reported
+descriptively, because no research question asks for it.
+
+Neither p99.99 nor jitter enters the family of paired tests described below, and that follows
+the same rule as the rest of the design rather than any shortage of data. Both are computed from
+precisely the operations that interference lands on, which is the class of statistic pairing
+does not rescue, so a paired interval on them could not be read as a language effect. They
+belong in a descriptive column, and the family stays the size the design committed to.
+
+Interval estimates alone are a weak basis for a comparison. Two intervals can overlap while one
+variant is ahead in every single repeat, and they can separate on a difference that does not
+reproduce. The study therefore tests the comparison directly, which the interleaved design makes
+possible: because the four variants are measured back to back inside each repeat, the runs form
+a matched design in which the interference common to a block cancels in the pairwise difference.
+Language is compared against language with the allocator held fixed, using an exact two-sided
+paired permutation test on the repeat-wise differences. The null hypothesis is that a pair
+differs only by run-to-run noise, under which the sign of each paired difference is
+exchangeable. For the repeat counts used here every one of the $2^{n}$ sign assignments is
+enumerated rather than sampled, so the $p$-value is exact and, like the bootstrap, assumes
+nothing about the shape of the distribution. Because the same comparison is made for several
+metrics and both allocators, the family is corrected with the Holm step-down
+procedure~\cite{holm1979simple}, which controls the family-wise error rate without assuming
+independence between the tests.
+
+Two decisions about how that family is read are taken here rather than after the results,
+because either could otherwise be made to suit whatever the data turned out to be.
+
+The first is which comparisons enter it, and the answer turns on the operating point rather than
+the metric. Below saturation every variant completes work as fast as it is offered, so achieved
+throughput there is pinned to the offered load by construction and cannot express a language
+effect whatever the languages do. It is reported with its interval instead of tested. Above
+saturation the reasoning inverts, because what each variant still sustains is pinned to nothing
+and becomes the one quantity that can separate them, so a second operating point is fixed in the
+overload region and sustained throughput and CPU utilisation are tested at it
+(Section~\ref{sec:overload}). Two commitments go with that. The overload comparisons join the
+same Holm family rather than forming a second one, so the division into two operating points
+cannot be read as a split chosen once the $p$-values were known. And no latency percentile is
+tested above saturation at all, because a producer that cannot keep up with a fixed intended
+schedule falls behind cumulatively, which makes the percentiles there a lower bound and not an
+estimate. Appendix~\ref{appendix:stats} sets out the reasoning behind both.
+
+The second is what to conclude when the interval and the $p$-value disagree, which at modest
+repeat counts they routinely will: a paired interval can sit wholly on one side of zero while
+the corrected $p$-value stays far above any conventional threshold. Which instrument to believe
+is not a free choice, and it does not depend on whether the metric happens to be interesting. It
+depends on whether pairing removes the interference that measurement is exposed to. Pairing
+cancels whatever an interleaved block shared, not interference that landed on one run of a pair
+and not the other. A run-level summary such as peak resident set size is unmoved by a handful of
+descheduled operations, and so is a central order statistic such as the median of tens of
+thousands of per-operation samples, so there a paired difference that keeps its sign across
+repeats is a difference in the software. p99 and p99.9 are the opposite case, computed from
+precisely the operations that were disturbed, so an interval excluding zero is as consistent
+with one run of a pair having been unlucky as with a real effect.
+Table~\ref{tab:significance} is therefore blocked by that distinction, and intervals in its
+second block are not read as findings however far from zero they sit. Applying the rule to the
+block that suits the argument while quietly dropping it for the other is the specific failure
+this pre-commitment exists to prevent.
+
+The resolving power the design can reach is bounded by the number of repeats, and is stated
+rather than left implicit. With \NRepeats{} repeats and \NTests{} comparisons the exact test's
+two-sided floor is $\MinAttainableP$, and $\CorrectedFloor$ after correction, so a null reported
+here reflects the data and not the arithmetic. Quoting both is what lets a reader tell a null
+result from an unresolvable one. Choosing the repeat count so that the corrected floor sits below
+the conventional $5\%$ is therefore part of the measurement protocol, alongside pinning the clock
+and running the pinned cores tickless (Section~\ref{sec:testbed}).
+Appendix~\ref{appendix:stats} derives the two floors.
+
+\section{Reproducibility and research artifacts}\label{sec:repro}
+The study is designed so that its results can be regenerated by a third party without access to
+Nokia's proprietary code. Three things make that possible. The implementations are driven
+entirely by the public frozen specification. The benchmarking harness, the fault catalogue and
+its runner, and the FFI prototype are published with the thesis. And every result table, every
+plot of measured data, and every quoted number in the evaluation is rebuilt by one regeneration
+script in the published package (\texttt{bench/refresh\_thesis.sh}) directly from the raw logs.
+Two things that claim might be read to cover are outside it. The hand-drawn schematics that
+explain a concept rather than report a result are authored and not generated. And running the
+same scripts over another host's campaign regenerates the artifacts by the same procedure, not
+with the same values, which Section~\ref{sec:baremetal} demonstrates on a campaign of its own
+design. What the script guarantees is that no figure, table, or sentence can hold a value the
+logs no longer support.
+
+The logs that script reads are part of the package. A performance campaign is an append-only
+newline-delimited JavaScript Object Notation (JSON) file, named by the timestamp at which it
+started. The reported sweep and the virtualised campaign it replaced both sit under
+\texttt{bench/results/}, while the second bare-metal campaign has a directory of its own. Each
+campaign has its own script and its own macro prefix, so a figure from one cannot reach a
+sentence about another. The two bare-metal campaigns also write a sidecar holding every run's
+complete histogram buckets, which is what the far-tail percentile is computed from and which the
+virtualised campaign predates. Each run's environment is recorded by
+\texttt{bench/capture\_env.sh} and stored beside the campaign data, and three runners write three
+machine-readable outcome files under \texttt{faults/results/}: \texttt{taxonomy.csv},
+\texttt{model\_checking.csv}, and \texttt{miri.csv}. Nothing in the evaluation chapters is
+transcribed from those files by hand. The execution environment travels with its data, which
+is what lets the thesis separate environment-sensitive results from
+environment-insensitive ones. Nothing on the path requires proprietary source.
+

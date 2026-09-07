@@ -1,0 +1,81 @@
+\chapter{Conclusion and Future Work\label{chapter:conclusions}}
+
+This thesis compared modern C++ and Rust on a UE Context Management service modelled on a real
+Nokia gNB-CU-CP component, along four dimensions: tail-latency predictability, compile-time
+defect prevention, safety-model overhead, and incremental-adoption cost. Built against one frozen
+specification and driven through identical code paths, the two implementations isolate language
+effects from design and skill.
+
+Three conclusions follow. First, on safety the difference is one of \emph{kind}, with a clear
+boundary. Safe Rust rejects all seven injected memory-safety and data-race classes at compile
+time, one of them a class no C++ sanitiser reports at all, so hazards C++ can only hope to catch
+under an instrumented test become unwriteable. The edge stops there. All seven boundary classes
+compile in safe Rust and all seven misbehave, though not always as they do in C++, and on two of
+them the C++ tooling is the one that reports. The guarantee is therefore best described precisely:
+Rust eliminates data races, not race conditions, and aliasing errors, not lock-ordering errors,
+leaks, wrapping arithmetic or fault containment, and it eliminates none of them in a region marked
+\texttt{unsafe}. Where the boundary defects are caught, they are caught at test time, in two of
+the three cases only after being rewritten into a model checker's primitives, which is a real cost
+and a different one from the sanitiser's.
+
+Second, on migration the cost is dominated by API design and the learning curve, not by any
+run-time tax. An unmodified Rust core can be driven from C++ across a thin,
+\texttt{unsafe}-isolated seam whose cost on a real operation, measured against the same operation
+called natively, is bounded at $\FfiOpBoundPct\%$. Nor do a build engineer's first objections
+change that ordering. Most of the Rust build's extra expense is compiling dependencies and not the
+compiler's own work, and the binary-size gap is a linkage policy whose ordering depends on which
+matched policy is chosen, Rust smaller when both standard libraries are linked statically and C++
+smaller when both are resolved dynamically. The compared component resolves no third-party code at
+all. Where C++ leads is the edit-compile loop, and only for edits that stay inside a translation
+unit.
+
+Third, on performance the evidence first divides by what is being measured. An end-to-end
+operation here is $\BudgetCoreShareMax\%$ the work the language performs, the rest a cross-thread
+handoff the operating system performs, so an end-to-end null cannot bound a language effect at
+all. Measured on the operation alone, Rust is faster, by $\BudgetCoreRatio\times$, for reasons
+tracing to the standard library's hash-map layout and not to anything about safety. At the
+representative load the paired test resolves $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both
+allocators, too small for a deployment to care about at the median, and at p99.99 the slowest Rust
+variant sits $\FarTailLangSep\,\mu$s below the fastest C++ one. The Rust arms hold their offered
+rate to $\TrackingLoadRust$~kops/s against $\TrackingLoadCpp$. Beyond that the C++ build sustains
+$\OverloadThrRatio\times$ the Rust build's throughput, in \OverloadThrAgree{} interleaved repeats
+under both allocators, while Rust spends $\OverloadCpuPerOpRatio\times$ the CPU on each operation
+it completes, so what it loses is not idleness but effort that finishes nothing. The isolated
+primitives do not reproduce that ordering at significance (Section~\ref{sec:contention}). On
+memory Rust carries a few MiB more fixed footprint under both allocators, in the same direction
+and order of magnitude on every machine measured, while the cost of the allocator choice moved by
+more than tenfold between them.
+
+Taken together these support a narrow claim. For stateful, concurrent, partitionable
+control-plane services of this kind, at the loads where the service still meets its offered rate,
+the choice is which classes of defect an organisation wants to make unwriteable, and whether it
+will pay the engineering and learning cost of getting them. Past that point it is a performance
+decision as well, for reasons lying in the concurrency plumbing and not in either language's
+guarantees. What this thesis adds is an instrument and not a verdict: the frozen specification,
+the parity-tested pair, a measurement framework reaching past the saturation knee, a decomposition
+that says how much of what it measures the language is answerable for, and a defect catalogue that
+maps where the guarantee stops.
+
+Several directions extend the work. The immediate priority needs no new machine: vary the
+transparent-hugepage policy on one host with everything else held fixed. Three hosts agree that
+the Rust build carries the larger footprint and disagree about how that compares against the
+allocator cost (Section~\ref{sec:hostcompare}), the hugepage policy differed between them, and
+only the system-allocator arm inherits it. One machine and two settings settle whether a footprint
+claim of this kind belongs to an allocator or to a kernel setting. Beyond that, the framework can
+take captured anonymised traces in place of the synthetic workload, further control-plane
+subsystems or the data-heavy L2/PHY path, and a whole-program model checker covering foreign
+dependencies~\cite{pearce2026rustmc}. It can also compare Rust async runtimes against
+thread-per-shard, separating the tail divergence Arvidsson and Kaller attribute to
+\texttt{async}/\texttt{await}~\cite{arvidsson2025async}, measure in-process isolation of the two
+heaps at the seam~\cite{rivera2021galeed,kirth2022pkrusafe}, and track defect density and review
+effort as Rust is adopted in a production RAN codebase.
+
+% Declaration of generative-AI use, required by the University when a language model has
+% been used. Shared with Thesis_v2.tex; edit ai_statement.tex, not a copy of it.
+\input{ai_statement.tex}
+
+\cleardoublepage %fixes the position of bibliography in bookmarks
+\phantomsection
+
+\addcontentsline{toc}{chapter}{\bibname}
+\printbibliography
