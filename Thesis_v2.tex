@@ -136,7 +136,15 @@
       (1)~Safe Rust rejects all seven injected memory-safety and data-race defect classes at compile
       time. In C++ the same seven build cleanly and show up only at runtime, if a sanitiser catches
       them. (2)~Seven further classes fail in both languages. On two of them C++ tooling reports what
-      Rust does not. (3)~C++ can call the Rust service through a thin C interface. All \texttt{unsafe} stays there, and any extra time on a real call is at most $\FfiOpBoundPct\%$. (4)~A full request spends only $\BudgetCoreShareMax\%$ on language work. Passing work between threads takes the rest, so that clock cannot attribute a gap to C++ or Rust. Timed on its own, Rust’s operation is $\BudgetCoreRatio\times$ faster. (5)~Below overload the full path is a few microseconds faster in Rust. The Rust versions keep up with the offered load to $\TrackingLoadRust$~kops/s, the C++ versions only to $\TrackingLoadCpp$. Once neither can keep up, \OverloadSustainedFaster{} still finishes $\OverloadThrRatio\times$ as much work as \OverloadSustainedSlower{} in \OverloadThrAgree{} mixed-order repeats with both allocators.
+      Rust does not. (3)~C++ can call the Rust service through a thin C interface. All \texttt{unsafe} 
+      stays there, and any extra time on a real call is at most $\FfiOpBoundPct\%$. (4)~A full request 
+      spends only $\BudgetCoreShareMax\%$ on language work. Passing work between threads takes the rest, 
+      so that clock cannot attribute a gap to C++ or Rust. Timed on its own, Rust’s operation 
+      is $\BudgetCoreRatio\times$ faster. 
+      (5)~Below overload the full path is a few microseconds faster in Rust. The Rust versions keep up 
+      with the offered load to $\TrackingLoadRust$~kops/s, the C++ versions only to $\TrackingLoadCpp$. 
+      Once neither can keep up, \OverloadSustainedFaster{} still finishes $\OverloadThrRatio\times$ as 
+      much work as \OverloadSustainedSlower{} in \OverloadThrAgree{} mixed-order repeats with both allocators.
       
       \noindent\textbf{Conclusions.}
       The main cost of adopting Rust is engineering effort and the learning curve, not run-time
@@ -512,10 +520,10 @@ build in \OverloadThrAgree{} interleaved repeats under both allocators, and the 
 $\OverloadCpuPerOpRatio\times$ the CPU on each operation it does complete, which is what rules out
 the reading that it is simply doing less. On resources the Rust process holds a few MiB more resident memory, again
 under both allocators, in the same direction and the same order of magnitude on all three machines
-measured. How it compares
-against the cost of the allocator choice is not: the two are comparable on bare metal and the
-allocator's was an order of magnitude larger on the virtualised host this study used first, so the
-comparison between them is a property of the machine rather than of the allocators.
+measured. How it compares against the cost of the allocator choice does not travel: the two are
+comparable on bare metal and the allocator's was an order of magnitude larger on the virtualised
+host this study used first, so the comparison between them is a property of the machine rather
+than of the allocators.
 
 Four limitations bound all of this: a synthetic workload, one simplified subsystem,
 single-author implementation bias, and an allocator footprint whose size moved with the host.
