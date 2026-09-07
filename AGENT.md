@@ -84,7 +84,31 @@ otherwise.** The same table prints both on one row under a caption claiming each
 pair isolates one change, and §6.4.7 then hand-types 15.1.1 as *the measurement host's* compiler,
 which is wrong. Nothing measured moves and a GCC patch release confounds nothing, but the `\Bm`
 column already carries this disclosure and the guest column does not. About an hour of editing
-returns both areas to 5. The 23 pt running-header overflow on §2.2 remains **closed**:
+returns both areas to 5.
+
+**Those sites were repaired on 7 September 2026**, in the session that set the acronym list to
+sentence case. §6.1 and the host-comparison opening now disclose the compiler difference, and the
+kernel one beside it. `tab:testbed`'s caption records both exceptions instead of promising one
+change per column pair, and the table grew the **Kernel** row its caption had always claimed to
+generate. §6.4.7 quotes `\MainGpp` where it had hand-typed 15.1.1 as the measurement host's
+compiler. `tab:findings`' RQ3 cell names the second bare-metal host where it read only "on bare
+metal". And §1.4's `is not:` regained a predicate in both documents, as "does not travel", which is
+how §7.2 already words the same claim. An **independent reader given only the artefacts found two
+further defects in those same passages**, both now closed and both of the shapes this file already
+warns about. The enumeration of what the two campaigns differ in omitted the kernel, which the
+container takes from the host, and the hosts differ (`\MainKernel` 6.17.0-23-generic against
+`\GuestKernel` 7.0.2-1.el8.elrepo.x86_64). And `tab:findings`' RQ3 cell read `\CpuDiffAbsMax` as a
+bound over the whole below-saturation regime where `write_generated_macros()` scopes it to the
+representative load alone, which §6.4.3 words correctly and the summary cell did not: **a generated
+macro that is the wrong quantity for the sentence holding it**, for the third time on record. The
+grade is deliberately not restated here, because a remediation pass must not grade its own work.
+
+One latent bug surfaced with it. `\GuestKernel` carried a raw `x86_64`, whose underscore is math
+mode, so the macro could not be typeset and no document had ever quoted it. The three kernel grabs
+in `guest_facts.py`, `baremetal_facts.py` and `plot_figures.py` now escape it, using the idiom
+`complexity.py` and `adoption_cost.py` already had. `detex()` in `build_deck.py` converts `\_` back,
+so the slide reading `\BmKernel` is unaffected. **A generated macro no document quotes is not
+checked by anything**, which is the same lesson `diagrams/26_contributions` taught. The 23 pt running-header overflow on §2.2 remains **closed**:
 `\section[Latency and predictability]{...}` ships, the log has zero `Overfull`, including during
 `\output`. Area 7 is not assessable.
 
@@ -292,7 +316,7 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
    - Build time is the **one host-sensitive axis** here. Absolutes describe the machine, the paired ratio travels. Do not let a sync pass restore the blanket claim that RQ4 is environment-insensitive.
 7. **No over-claim on Rust** — eliminates data races and aliasing errors, not race conditions or lock-order deadlocks.
 8. **Never boot a measurement host with `isolcpus`.** It gives the cleanest tails and it also removes those cores from every scheduling domain, which switches off load balancing across them. `bench/campaign.sh` pins to a *range* with `taskset -c 2-17` and relies on the kernel to spread `N_SHARDS + producers` threads over it, so with no balancer they all inherit the first allowed CPU. On 27 Aug 2026 that put **all 1120 runs of a campaign on `cpu2` alone**: `cpu_pct` flat at 100.1% at every load, `cpu3`–`cpu17` at 0.0% busy under sampling, plateau 84 kops/s against 336 and 448 on the other hosts. **Every record looked individually plausible**, and it was caught only by comparing three campaigns against each other. Use `nohz_full` and `rcu_nocbs` instead, and run `bench/canonical_repeat.sh check-spread` before any long campaign: it refuses to start below 150% `cpu_pct` on a probe run (broken config reads 100%, healthy reads ~688%). The dead dataset is kept at `bench/results-canonical/`.
-9. **Do not claim the guest and reported campaigns share a toolchain.** The container pins the `gcc-toolset` major version, not the point release. `\GuestGpp` is 15.1.1 and `\MainGpp` is 15.2.1. `rustc` matches at 1.97.1. The `\Bm` column already discloses its compiler change. Four prose sites and `tab:testbed`'s caption still say the machine was the only difference (twenty-first pass, 7 Sep 2026). Repair by disclosure, the way the `\Bm` column does. Quote `\MainGpp` / `\GuestGpp` / `\BmGpp`, never a typed version.
+9. **Do not claim the guest and reported campaigns share a toolchain.** The container pins the `gcc-toolset` major version, not the point release. `\GuestGpp` is 15.1.1 and `\MainGpp` is 15.2.1. `rustc` matches at 1.97.1. The `\Bm` column already discloses its compiler change. Four prose sites and `tab:testbed`'s caption said the machine was the only difference (twenty-first pass, 7 Sep 2026) and were repaired by disclosure on the same day, the way the `\Bm` column does. Quote `\MainGpp` / `\GuestGpp` / `\BmGpp`, never a typed version. **The compiler is not the only unpinned difference**: the container takes the kernel from the host, so the guest campaign also ran `\GuestKernel` against `\MainKernel`, and `tab:testbed` now prints that row. An enumeration of what the two campaigns differ in has to name both.
 
 ---
 

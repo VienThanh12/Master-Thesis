@@ -94,7 +94,7 @@ def host_facts(macros):
     numa = grab(r"NUMA node\(s\):\s+(\d+)")
     if numa:
         macros["BmNumaNodes"] = numa
-    macros["BmKernel"] = grab(r"Linux \S+ (\S+)", "unknown")
+    macros["BmKernel"] = grab(r"Linux \S+ (\S+)", "unknown").replace("_", r"\_")
     macros["BmDistro"] = grab(r"distro:\s+(.+)", "unknown")
     macros["BmVirt"] = grab(r"virtualisation:\s+(\S+)", "unknown")
     macros["BmGovernor"] = grab(r"governors:\s+(\S+)", "unknown")

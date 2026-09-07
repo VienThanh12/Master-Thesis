@@ -72,7 +72,10 @@ def host_facts(macros):
     macros["GuestCpu"] = re.sub(r"\s*@.*$", "", model).strip()
     macros["GuestCores"] = grab(r"^CPU\(s\):\s+(\d+)", "unknown")
     macros["GuestVirt"] = grab(r"virtualisation:\s+(\S+)")
-    macros["GuestKernel"] = grab(r"Linux \S+ (\S+)")
+    # A kernel release string can carry an architecture suffix such as .x86_64,
+    # whose underscore is math mode in LaTeX. Nothing quoted this macro until
+    # tab:testbed grew a Kernel row, so the first use of it was a build error.
+    macros["GuestKernel"] = grab(r"Linux \S+ (\S+)").replace("_", r"\_")
     macros["GuestDistro"] = grab(r"distro:\s+(.+)")
     # The two host properties that turned out to matter, and neither was chosen.
     # Transparent hugepages is the leading candidate for the allocator effect

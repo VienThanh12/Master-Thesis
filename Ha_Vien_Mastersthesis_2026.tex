@@ -2212,11 +2212,12 @@ Section~\ref{sec:repro}.
 The toolchain is not the host's. Both implementations are built and run inside a pinned container
 image carrying \MainDistro{} with \texttt{g++~\MainGpp} and \texttt{rustc~\MainRustc}, which is the
 same image and the same \texttt{rustc} the earlier virtualised campaign used. The image pins the
-\texttt{gcc-toolset} major version and not the point release, so that campaign compiled with
-\texttt{g++~\GuestGpp} instead, one patch release earlier. Fixing the toolchain in an image is what
-keeps a change of machine close to a change of machine only: the container shares the host's
+\texttt{gcc-toolset} major version and not the release within it, so that campaign compiled with
+\texttt{g++~\GuestGpp} instead, one GCC~15 release earlier. Fixing the toolchain in an image is
+what keeps a change of machine close to a change of machine only: the container shares the host's
 kernel, scheduler and clocksource, so the two campaigns compared in
-Section~\ref{sec:hostcompare} differ in the hardware and in that patch release.
+Section~\ref{sec:hostcompare} differ in the hardware, in the kernel it brings with it
+(\MainKernel{} against \GuestKernel{}), and in that compiler release.
 
 Two properties of this host are worth stating before any tail number is read, because they are what
 the previous host lacked. There is no hypervisor between the benchmark and the cores, so no
@@ -2998,10 +2999,10 @@ difference runs the other way and is small.\label{fig:resources}}
 \label{sec:baremetal}%
 Every number above was measured on the bare-metal host of Section~\ref{sec:testbed}. For most of
 this study they were measured on a virtualised one instead, at the same shard count, the same
-fourteen load levels, the same \GuestRepeats{} repeats and the same container image, whose
-\texttt{g++} was one patch release earlier, \texttt{\GuestGpp} against \texttt{\MainGpp}. Two
-campaigns that differ in the machine and in that patch release are an opportunity a single-host
-study does not get, and this section takes it. The question is not which host is faster. It is which of this chapter's findings are
+\GuestLoadLevels{} load levels, the same \GuestRepeats{} repeats and the same container image,
+whose \texttt{g++} was \texttt{\GuestGpp} there against \texttt{\MainGpp} here. Two campaigns that
+differ in the machine, in the kernel it carries and in that one compiler release are an
+opportunity a single-host study does not get, and this section takes it. The question is not which host is faster. It is which of this chapter's findings are
 properties of the code and which were properties of the machine, because a comparative study that
 cannot tell those apart is reporting its testbed.
 
@@ -3590,9 +3591,9 @@ the Rust build under \emph{both} allocators, in the same direction and order of 
 three machines measured. The
 allocator's own $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB is comparable here and was an order of
 magnitude larger on the virtualised host, so their ratio does not travel
-(Section~\ref{sec:hostcompare}). CPU inverts across the regimes: Rust draws up to
-$\CpuDiffAbsMax$ percentage points less below saturation and $\OverloadCpuPerOpRatio\times$ more
-per completed operation above it. & Memory: resolved, and located outside the allocator by its own
+(Section~\ref{sec:hostcompare}). CPU inverts across the regimes: at the representative load Rust
+draws up to $\CpuDiffAbsMax$ percentage points less, and past saturation
+$\OverloadCpuPerOpRatio\times$ more per completed operation. & Memory: resolved, and located outside the allocator by its own
 accounting. CPU: resolved in both regimes, opposite signs, and one sign below saturation on the
 second bare-metal host \\
 RQ4 & The seam is small and keeps the core \texttt{unsafe}-free at compile time. Measured against
@@ -4576,10 +4577,10 @@ measured. Every hardware, kernel and toolchain cell is generated from that campa
 environment capture rather than restated from the protocol of \texttt{bench/TESTBED.md}. The last
 two rows are prose, because what an instrument set is adequate for is a judgement and not a captured
 field. The columns are arranged so that each
-adjacent pair isolates one change, with the exception the Toolchain row itself records. Reported
-sweep against virtualised host: the same design and the same container image on a different
-machine, one \texttt{g++} patch release apart, which is what Section~\ref{sec:hostcompare} reads a
-hardware effect from.
+adjacent pair isolates one change, with the exceptions the Kernel and Toolchain rows record.
+Reported sweep against virtualised host: the same design and the same container image on a
+different machine, one \texttt{g++} release apart within GCC~15, which is what
+Section~\ref{sec:hostcompare} reads a hardware effect from.
 Reported sweep against second bare-metal host: a different shard count, load grid, repeat count and
 compiler on comparable hardware, which is what tests whether the findings depend on those choices.
 Rows where all three agree describe the source or the method rather than any machine. The
@@ -4591,6 +4592,7 @@ Rows where all three agree describe the source or the method rather than any mac
 Aspect & Reported sweep & Virtualised host, same design & Second bare-metal host, different design \\
 \hline
 Host & \MainCpu{}, \MainCores{} cores, \MainSockets{} socket & \GuestCpu{} guest, \GuestCores{} vCPUs & \BmCpu{}, \BmCores{} cores, \BmSockets{} socket \\
+Kernel & \MainKernel{} & \GuestKernel{} & \BmKernel{} \\
 Hypervisor & \MainVirt{}. Governor \MainGovernor{}, boost off, verified on the machine & \GuestVirt{}. Frequency and turbo host-controlled, unobservable from inside & \BmVirt{}. Governor \BmGovernor{}, verified on the machine \\
 CPU steal & None: no hypervisor to lose a timeslice to & Not characterised. The capture's single one-second sample read \GuestSteal{}, and no steal probe was run on this host & \BmStealWithSteal{} of \BmStealIntervals{} intervals on \BmStealCores{} pinned cores \\
 Isolation & \texttt{nohz\_full} \MainNohzFull{}. \texttt{isolcpus} \MainIsolcpus{}, omitted on purpose (\S\ref{sec:threats}) & \texttt{isolcpus} \GuestIsolcpus{}, \texttt{nohz\_full} \GuestNohzFull{} & \texttt{isolcpus} \BmIsolcpus{}, \texttt{nohz\_full} \BmNohzFull{}. \emph{Short of protocol} \\

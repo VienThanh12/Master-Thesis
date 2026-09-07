@@ -1849,7 +1849,7 @@ def main_host_macros(campaign_path):
         macros["MainSockets"] = sockets
     macros["MainNumaNodes"] = grab(r"NUMA node\(s\):\s+(\d+)")
     macros["MainDistro"] = grab(r"distro:\s+(.+)")
-    macros["MainKernel"] = grab(r"Linux \S+ (\S+)")
+    macros["MainKernel"] = grab(r"Linux \S+ (\S+)").replace("_", r"\_")
     macros["MainVirt"] = grab(r"virtualisation:\s+(\S+)")
     macros["MainGovernor"] = grab(r"governors:\s+(\S+)")
     macros["MainSmt"] = grab(r"smt/control:\s+(\S+)")
