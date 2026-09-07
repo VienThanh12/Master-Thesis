@@ -682,10 +682,10 @@ build in \OverloadThrAgree{} interleaved repeats under both allocators, and the 
 $\OverloadCpuPerOpRatio\times$ the CPU on each operation it does complete, which is what rules out
 the reading that it is simply doing less. On resources the Rust process holds a few MiB more resident memory, again
 under both allocators, in the same direction and the same order of magnitude on all three machines
-measured. How it compares
-against the cost of the allocator choice is not: the two are comparable on bare metal and the
-allocator's was an order of magnitude larger on the virtualised host this study used first, so the
-comparison between them is a property of the machine rather than of the allocators.
+measured. How it compares against the cost of the allocator choice does not travel: the two are
+comparable on bare metal and the allocator's was an order of magnitude larger on the virtualised
+host this study used first, so the comparison between them is a property of the machine rather
+than of the allocators.
 
 Four limitations bound all of this: a synthetic workload, one simplified subsystem,
 single-author implementation bias, and an allocator footprint whose size moved with the host.
@@ -2211,11 +2211,12 @@ Section~\ref{sec:repro}.
 
 The toolchain is not the host's. Both implementations are built and run inside a pinned container
 image carrying \MainDistro{} with \texttt{g++~\MainGpp} and \texttt{rustc~\MainRustc}, which is the
-same userspace and compiler pair the earlier virtualised campaign used. Fixing the toolchain in an
-image is what allows a change of machine to be a change of machine only: the container shares the
-host's kernel, scheduler and clocksource, so it buys toolchain identity and nothing else, and it is
-the reason the two campaigns compared in Section~\ref{sec:hostcompare} differ in the hardware
-alone.
+same image and the same \texttt{rustc} the earlier virtualised campaign used. The image pins the
+\texttt{gcc-toolset} major version and not the point release, so that campaign compiled with
+\texttt{g++~\GuestGpp} instead, one patch release earlier. Fixing the toolchain in an image is what
+keeps a change of machine close to a change of machine only: the container shares the host's
+kernel, scheduler and clocksource, so the two campaigns compared in
+Section~\ref{sec:hostcompare} differ in the hardware and in that patch release.
 
 Two properties of this host are worth stating before any tail number is read, because they are what
 the previous host lacked. There is no hypervisor between the benchmark and the cores, so no
@@ -2997,9 +2998,10 @@ difference runs the other way and is small.\label{fig:resources}}
 \label{sec:baremetal}%
 Every number above was measured on the bare-metal host of Section~\ref{sec:testbed}. For most of
 this study they were measured on a virtualised one instead, at the same shard count, the same
-fourteen load levels, the same \GuestRepeats{} repeats and the same toolchain. Two campaigns that
-differ in the machine alone are an opportunity a single-host study does not get, and this section
-takes it. The question is not which host is faster. It is which of this chapter's findings are
+fourteen load levels, the same \GuestRepeats{} repeats and the same container image, whose
+\texttt{g++} was one patch release earlier, \texttt{\GuestGpp} against \texttt{\MainGpp}. Two
+campaigns that differ in the machine and in that patch release are an opportunity a single-host
+study does not get, and this section takes it. The question is not which host is faster. It is which of this chapter's findings are
 properties of the code and which were properties of the machine, because a comparative study that
 cannot tell those apart is reporting its testbed.
 
@@ -3160,9 +3162,9 @@ bounded timeout, because compiling alone would not establish whether the defect 
 
 \paragraph{Results.}
 The outcomes are shown in Table~\ref{tab:taxonomy}, measured with \texttt{g++~13.3}
-(\texttt{-std=c++23}, \texttt{-O0} so the optimizer cannot elide an injected defect) and
+(\texttt{-std=c++23}, \texttt{-O0} so the optimiser cannot elide an injected defect) and
 \texttt{rustc~1.97} (edition~2021). That C++ toolchain is the local development machine's
-and not the measurement host's \texttt{g++~15.1.1}, and the catalogue was run there
+and not the measurement host's \texttt{g++~\MainGpp}, and the catalogue was run there
 deliberately. Whether a program compiles, and what a sanitiser reports when it runs, are
 properties of the toolchain and not of the machine hosting it.
 
@@ -3591,8 +3593,8 @@ magnitude larger on the virtualised host, so their ratio does not travel
 (Section~\ref{sec:hostcompare}). CPU inverts across the regimes: Rust draws up to
 $\CpuDiffAbsMax$ percentage points less below saturation and $\OverloadCpuPerOpRatio\times$ more
 per completed operation above it. & Memory: resolved, and located outside the allocator by its own
-accounting. CPU: resolved in both regimes, opposite signs, and resolved with one sign on bare metal
-below saturation \\
+accounting. CPU: resolved in both regimes, opposite signs, and one sign below saturation on the
+second bare-metal host \\
 RQ4 & The seam is small and keeps the core \texttt{unsafe}-free at compile time. Measured against
 the same operation called natively, no cost is detected and any tax is bounded at
 $\FfiOpBoundPct\%$ of an operation. The real cost is API design. The core remains exposed at run
@@ -4574,8 +4576,10 @@ measured. Every hardware, kernel and toolchain cell is generated from that campa
 environment capture rather than restated from the protocol of \texttt{bench/TESTBED.md}. The last
 two rows are prose, because what an instrument set is adequate for is a judgement and not a captured
 field. The columns are arranged so that each
-adjacent pair isolates one change. Reported sweep against virtualised host: the same design on a
-different machine, which is what Section~\ref{sec:hostcompare} reads a hardware effect from.
+adjacent pair isolates one change, with the exception the Toolchain row itself records. Reported
+sweep against virtualised host: the same design and the same container image on a different
+machine, one \texttt{g++} patch release apart, which is what Section~\ref{sec:hostcompare} reads a
+hardware effect from.
 Reported sweep against second bare-metal host: a different shard count, load grid, repeat count and
 compiler on comparable hardware, which is what tests whether the findings depend on those choices.
 Rows where all three agree describe the source or the method rather than any machine. The
