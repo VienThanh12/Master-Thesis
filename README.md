@@ -5,7 +5,7 @@ Master's thesis (University of Helsinki, Software study track) by **Ha Vien**.
 This repository holds both the written thesis (LaTeX) and the complete artefact
 built on: a language-agnostic specification, two functionally equivalent implementations
 of a Radio Access Network (RAN) control-plane subsystem in **modern C++** and **Rust**, and
-The measurement harnesses that produce every figure and table in the thesis.
+the measurement harnesses that produce every figure and table in the thesis.
 
 ## What the thesis studies
 
@@ -27,7 +27,7 @@ the fourteen defect classes at compile time (use-after-free, double free, iterat
 invalidation, data race, unguarded shared mutation, use-after-move, thread-unsafe sharing)
 and compiles the other seven without complaint (lock-order deadlock, lost update,
 reference-cycle leak, release-build integer overflow, worker-failure blast radius, double-free
-across an `unsafe` FFI seam (forgotten lock guard), so the study measures where the guarantee
+across an `unsafe` FFI seam, forgotten lock guard), so the study measures where the guarantee
 *stops* rather than only confirming that it holds.
 
 Two of those in-guarantee classes carry information the rest do not. `use_after_move` is the
@@ -121,7 +121,7 @@ reader-facing view of that record.
 ├── build_deck.py      Nokia-branded slide-deck generator (reads figures/ + faults/ results)
 ├── pdfpreview.py      Rasterise PDF pages into .pdf-preview/, since the WSL webview shows none
 ├── pdfannots.py       Pull a reviewer's highlights and notes out of a commented PDF in docs/review/
-└── .aitells.py, .vocab.py, .readability.py    Prose checks run over the LaTeX sources
+└── .aitells.py, .vocab.py, .readability.py, .acronyms.py    Prose checks. `.acronyms.py` is a gate, not a count
 ```
 
 The PDFs stay beside their sources, so `Ha_Vien_Mastersthesis_2026.pdf` and the SyncTeX index land
@@ -165,8 +165,11 @@ Optional, each needed by one script only:
 Every measured figure in the thesis comes from the harnesses here, run on a dedicated bare-metal
 AMD EPYC 7443 (24 cores, one socket, one NUMA node) with SMT off, the `performance` governor and
 boost disabled, `nohz_full` on the pinned cores, and no hypervisor. The toolchain is pinned in the
-Rocky Linux 8.10 container image of [`docker/`](docker/README.md) rather than taken from the host,
-so a change of machine is a change of machine only.
+Rocky Linux 8.10 container image of [`docker/`](docker/README.md) rather than taken from the host.
+The container pins the `gcc-toolset` major version, not the point release, so the reported campaign
+ran `g++` 15.2.1 against the guest campaign's 15.1.1. `rustc` matches at 1.97.1. Do not write that
+the two share a toolchain. The honest comparison is the same design on a different machine, with
+that one patch recorded. [`docker/README.md`](docker/README.md) already names it.
 
 Three campaigns exist and they are not interchangeable. The LaTeX macro prefix is what keeps
 them apart, and a sentence that quotes the wrong prefix is wrong in a way no build gate catches.
@@ -174,7 +177,7 @@ them apart, and a sentence that quotes the wrong prefix is wrong in a way no bui
 | Campaign | Macros | Role |
 | --- | --- | --- |
 | `campaign-20260827-151927` (bare metal, 7 shards, 7 producers, 20 repeats, 14 loads) | unprefixed, `figures/gen_macros.tex` | **Every result the thesis reports.** |
-| `campaign-20260812-154528` (KVM guest, identical design) | `\Guest*`, `figures/gen_guest.tex` | The measurement-validity comparison: the same code and design on a host that could not resolve the far tail. |
+| `campaign-20260812-154528` (KVM guest, identical design) | `\Guest*`, `figures/gen_guest.tex` | The measurement-validity comparison: the same code and design on a host that could not resolve the far tail. `g++` is one patch apart from the reported campaign (`\GuestGpp` 15.1.1, `\MainGpp` 15.2.1). |
 | `campaign-20260826-*` (bare metal, 8 shards, 8 producers, 15 repeats, 8 loads) | `\Bm*`, `figures/gen_baremetal.tex` | Whether the findings survive a change of shard count, load grid, repeat count and compiler. |
 
 `bench/results-canonical/` holds an invalid 1120-run campaign from 27 August 2026. It was
@@ -338,13 +341,15 @@ slide deck, and each carries its own gate because none of them can see the other
 ./.aitells.py Ha_Vien_Mastersthesis_2026.tex   # LaTeX sources, and the default if none is given
 python3 .vocab.py                              # hard Latinate vocabulary
 python3 .readability.py                        # sentence and paragraph load
+./.acronyms.py                                 # every front-matter acronym written out at first use
 diagrams/check_labels.py                       # diagram labels, also run by refresh_thesis.sh
 python3 build_deck.py                          # the deck checks its own slides on save
 ```
 
-The three root scripts report counts rather than errors, so read the language-model fingerprints
+The three count scripts report frequency rather than errors, so read the language-model fingerprints
 (transition openers, promotional adjectives, uniform sentence length) as frequency and aim low
-rather than at zero. Four of `.aitells.py`'s checks are house rules where zero is the target: em
+rather than at zero. `.acronyms.py` is a gate: it exits non-zero if a listed acronym is not written
+out at first use. Four of `.aitells.py`'s checks are house rules where zero is the target: em
 dashes, semicolons, and the two colon checks added on 4 September 2026 at the supervisor's
 request. A capital follows a colon in two shapes only, a run-in label such as `\textbf{H1:}` and
 a colon introducing a question. Every other colon keeps a lowercase word after it, so do not
@@ -395,12 +400,14 @@ from `diagrams/png/`, which `diagrams/render.py` writes.
 | Sources | 109 bibliography entries, every one of them cited. `docs/Sources_evidence.md` records per entry what claim the citation carries and where the supporting passage was read, and `source_audit.pdf` is the reader-facing view of it. 29 entries were ticked as read against the source itself at 2 September 2026 |
 | Writing | `Ha_Vien_Mastersthesis_2026.pdf` builds clean with zero LaTeX errors and no undefined references. It is a full draft awaiting review. The printed abstract matches the tables, and the AI declaration records that it was written unaided. Both thesis documents carry a front-matter list of acronyms as of 4 September 2026, so an acronym added to either needs a row there as well as the expansion at its first use. `Thesis_v2.pdf` is the eight-chapter supervisor read-through (full Chapter 1, five prose paragraphs in each of chapters 2--8), and its abstract is still the template placeholder |
 
-The self-assessment in [`docs/ASSESSMENT.md`](docs/ASSESSMENT.md) puts all six assessable areas
-at 5 as of its twentieth pass, 3 September 2026. It is the author's own reading against the CSM
-matrix rather than a mark, and what earned it was reviewers who were told nothing about what had
-changed: they found 49 of the 69 recorded defects, all of them prose disagreeing with an artefact
-that was itself correct. Open items and the post-campaign re-check list are tracked in
-[`docs/TODO.md`](docs/TODO.md).
+The self-assessment in [`docs/ASSESSMENT.md`](docs/ASSESSMENT.md) puts areas 1, 2, 3 and 5 at 5
+and areas 4 and 6 at **4.5** as of its twenty-first pass, 7 September 2026 (mean **4.83**). It is
+the author's own reading against the CSM matrix rather than a mark. What moved is not a measured
+value: four sites say the virtualised campaign ran the same toolchain as the reported one, and
+`\GuestGpp` 15.1.1 against `\MainGpp` 15.2.1 says otherwise. The repair is disclosure, about an
+hour of editing, listed as items **O** to **S** in [`docs/TODO.md`](docs/TODO.md). What earned the
+rest was reviewers who were told nothing about what had changed: they found 49 of the 69 recorded
+defects, all of them prose disagreeing with an artefact that was itself correct.
 
 Every campaign summary number quoted in the thesis prose (representative load, saturation
 knee, repeat count, p99 spread) is generated into `figures/gen_macros.tex` by
