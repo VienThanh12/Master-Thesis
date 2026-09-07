@@ -225,7 +225,7 @@
 \begin{otherlanguage}{english}
 \begin{abstract}
 \noindent\textbf{Context.}
-Radio Access Network (RAN) control planes are written mostly in C++ for performance, at a
+Radio access network (RAN) control planes are written mostly in C++ for performance, at a
 well-known cost in memory safety and concurrency. Rust promises comparable performance with
 compile-time safety, but its fit for this latency-critical setting is unproven.
 
@@ -287,7 +287,9 @@ defects in general. A nominal-load test would not expose the gap.
 % longtable rather than a table because the list runs past one page and must not
 % float away from its own heading. No \caption, or a front-matter table would be
 % announced in the list of tables three pages earlier. Terms that are not
-% acronyms stay in Appendix~\ref{appendix:terms}.
+% acronyms stay in Appendix~\ref{appendix:terms}. Expansions are sentence case, as
+% Appendix A's key-terms table is. The four gNB rows keep a lowercase g, which is the
+% token's own spelling and not an oversight.
 \cleardoublepage
 \phantomsection
 \addcontentsline{toc}{chapter}{\nomname}
@@ -313,62 +315,62 @@ Acronym & Expansion \\
 \hline
 \endhead
 3GPP & 3rd Generation Partnership Project, the body that specifies the 5G standards \\
-ABI & application binary interface \\
+ABI & Application binary interface \\
 ACM & Association for Computing Machinery \\
-AI & artificial intelligence \\
-AI-RAN & an architecture in which AI and radio access network workloads share one accelerated infrastructure \\
-API & application programming interface \\
+AI & Artificial intelligence \\
+AI-RAN & An architecture in which AI and radio access network workloads share one accelerated infrastructure \\
+API & Application programming interface \\
 ASan & AddressSanitizer \\
 ASN.1 & Abstract Syntax Notation One \\
 AWS & Amazon Web Services \\
 CISA & Cybersecurity and Infrastructure Security Agency \\
-CPU & central processing unit \\
+CPU & Central processing unit \\
 CVE & Common Vulnerabilities and Exposures \\
 CWE & Common Weakness Enumeration \\
-DBLP & the computer science bibliography of that name \\
+DBLP & The computer science bibliography of that name \\
 DiVA & Digitala Vetenskapliga Arkivet, the Nordic research repository \\
 DPDK & Data Plane Development Kit \\
 DTLS & Datagram Transport Layer Security \\
 EU & European Union \\
 FBI & Federal Bureau of Investigation \\
-FFI & foreign function interface \\
-FIFO & first in, first out \\
+FFI & Foreign function interface \\
+FIFO & First in, first out \\
 FNV-1a & Fowler--Noll--Vo hash function, variant 1a \\
-gNB & next-generation NodeB, the 5G base station \\
+gNB & Next-generation NodeB, the 5G base station \\
 gNB-CU & gNB central unit \\
 gNB-CU-CP & gNB central unit control plane: the system class studied here \\
 gNB-CU-UP & gNB central unit user plane \\
 gNB-DU & gNB distributed unit \\
-HDR & high dynamic range, of the latency histogram \\
+HDR & High dynamic range, of the latency histogram \\
 IEEE & Institute of Electrical and Electronics Engineers \\
 IMT-2030 & International Mobile Telecommunications-2030, the ITU framework for 6G \\
-IPC & inter-process communication \\
+IPC & Inter-process communication \\
 IPsec & Internet Protocol Security \\
 ITU & International Telecommunication Union \\
 JSON & JavaScript Object Notation \\
-KPI & key performance indicator \\
-MPSC & multi-producer, single-consumer \\
-NG-RAN & next-generation radio access network \\
-NLOC & non-commenting lines of code \\
-NUMA & non-uniform memory access \\
-PHY & physical layer \\
+KPI & Key performance indicator \\
+MPSC & Multi-producer, single-consumer \\
+NG-RAN & Next-generation radio access network \\
+NLOC & Non-commenting lines of code \\
+NUMA & Non-uniform memory access \\
+PHY & Physical layer \\
 POSIX & Portable Operating System Interface \\
 RAII & Resource Acquisition Is Initialization \\
-RAN & radio access network \\
+RAN & Radio access network \\
 RFC & Request for Comments \\
-RQ & research question \\
+RQ & Research question \\
 RRC & Radio Resource Control \\
-RSS & resident set size \\
-SMT & simultaneous multithreading \\
+RSS & Resident set size \\
+SMT & Simultaneous multithreading \\
 STAMP & Stanford Transactional Applications for Multi-Processing \\
 STL & Standard Template Library \\
-TEID & tunnel endpoint identifier \\
+TEID & Tunnel endpoint identifier \\
 TSan & ThreadSanitizer \\
 UBSan & UndefinedBehaviorSanitizer \\
 UDP & User Datagram Protocol \\
-UE & user equipment, an end device such as a phone or a modem \\
-UECM & UE context management, the subsystem reimplemented and measured here \\
-USENIX & the USENIX Association \\
+UE & User equipment, an end device such as a phone or a modem \\
+UECM & UE Context Management, the subsystem reimplemented and measured here \\
+USENIX & The USENIX Association \\
 \hline
 \end{longtable}
 \endgroup
@@ -390,7 +392,7 @@ USENIX & the USENIX Association \\
 
 Mobile networks are moving from specialised hardware to software on ordinary servers.
 Functions that once ran on fixed-purpose, vertically integrated equipment are now
-re-implemented as programs on general-purpose machines. The Radio Access Network (RAN),
+re-implemented as programs on general-purpose machines. The radio access network (RAN),
 long the most hardware-bound part of the stack, is part of that shift.
 
 In 5G, the base station, formally the next-generation NodeB (gNB), is split into a central

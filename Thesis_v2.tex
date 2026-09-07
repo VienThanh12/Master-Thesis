@@ -116,7 +116,7 @@
 \begin{otherlanguage}{english}
 \begin{abstract}
       \noindent\textbf{Context.}
-      Radio Access Network (RAN) control planes are written mostly in C++ for performance, at a
+      Radio access network (RAN) control planes are written mostly in C++ for performance, at a
       well-known cost in memory safety and concurrency. Rust promises comparable performance with
       compile-time safety, but its fit for this latency-critical setting is unproven.
       
@@ -158,7 +158,8 @@
 % The class already names this list: \nomname is set to "List of acronyms" in
 % \captionsenglish. Scoped to the acronyms this document uses, which is a subset of
 % the full draft's. No \caption, or the table would be announced in a list of tables
-% this document does not have.
+% this document does not have. Expansions are sentence case. The two gNB rows keep a
+% lowercase g, which is the token's own spelling and not an oversight.
 \cleardoublepage
 \phantomsection
 \addcontentsline{toc}{chapter}{\nomname}
@@ -181,31 +182,31 @@ Acronym & Expansion \\
 \hline
 \endhead
 3GPP & 3rd Generation Partnership Project, the body that specifies the 5G standards \\
-ABI & application binary interface \\
-AI & artificial intelligence \\
-AI-RAN & an architecture in which AI and radio access network workloads share one accelerated infrastructure \\
-API & application programming interface \\
+ABI & Application binary interface \\
+AI & Artificial intelligence \\
+AI-RAN & An architecture in which AI and radio access network workloads share one accelerated infrastructure \\
+API & Application programming interface \\
 AWS & Amazon Web Services \\
 CISA & Cybersecurity and Infrastructure Security Agency \\
-CPU & central processing unit \\
+CPU & Central processing unit \\
 EU & European Union \\
 FBI & Federal Bureau of Investigation \\
-FFI & foreign function interface \\
+FFI & Foreign function interface \\
 FNV-1a & Fowler--Noll--Vo hash function, variant 1a \\
-gNB & next-generation NodeB, the 5G base station \\
+gNB & Next-generation NodeB, the 5G base station \\
 gNB-CU & gNB central unit \\
 gNB-CU-CP & gNB central unit control plane: the system class studied here \\
-HDR & high dynamic range, of the latency histogram \\
+HDR & High dynamic range, of the latency histogram \\
 IMT-2030 & International Mobile Telecommunications-2030, the ITU framework for 6G \\
 ITU & International Telecommunication Union \\
-NG-RAN & next-generation radio access network \\
-PHY & physical layer \\
+NG-RAN & Next-generation radio access network \\
+PHY & Physical layer \\
 RAII & Resource Acquisition Is Initialization \\
-RAN & radio access network \\
-RQ & research question \\
+RAN & Radio access network \\
+RQ & Research question \\
 RRC & Radio Resource Control \\
-UE & user equipment, an end device such as a phone or a modem \\
-UECM & UE context management, the subsystem reimplemented and measured here \\
+UE & User equipment, an end device such as a phone or a modem \\
+UECM & UE Context Management, the subsystem reimplemented and measured here \\
 \hline
 \end{longtable}
 \endgroup
@@ -221,7 +222,7 @@ UECM & UE context management, the subsystem reimplemented and measured here \\
 
 Mobile networks are moving from specialised hardware to software on ordinary servers.
 Functions that once ran on fixed-purpose, vertically integrated equipment are now
-re-implemented as programs on general-purpose machines. The Radio Access Network (RAN),
+re-implemented as programs on general-purpose machines. The radio access network (RAN),
 long the most hardware-bound part of the stack, is part of that shift.
 % Checked (make sure everything is understandable)
 
