@@ -240,8 +240,8 @@ Three terms recur throughout. The \emph{gNB-CU-CP} is the control-plane software
 about. \emph{UE Context Management (UECM)} is the specific subsystem reimplemented and measured.
 \emph{Tail latency}, the p99 and p99.9 percentiles rather than the mean, is the property that,
 more than average speed, decides whether such a system meets its
-deadlines~\cite{dean2013tail,barroso2017microseconds}. Chapter~\ref{chapter:background} and Chapter~\ref{chapter:context} use them
-in that sense throughout.
+deadlines~\cite{dean2013tail,barroso2017microseconds}. Every acronym is written out where the
+text first uses it, and the \nomname{} in the front matter collects them.
 
 \section{Motivation and industrial context}\label{sec:motivation}
 Three trends make this comparison timely. The first is the cloud-native evolution of the RAN
@@ -359,8 +359,7 @@ plainly. The measurements here are taken on a subsystem modelled on a current-ge
 component and evaluated against requirements that are already published. No claim is made about
 requirements that have not yet been written. What crosses the generational boundary is not a
 latency figure but the language-level comparison itself: Which defect classes a compiler can rule
-out, what the safe
-ty model costs, and what incremental adoption inside a large C++ codebase
+out, what the safety model costs, and what incremental adoption inside a large C++ codebase
 involves. Those questions have the same answers whichever generation the specification above them
 names, and they are cheapest to answer before the next codebase is started rather than after.
 
