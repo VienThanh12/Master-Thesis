@@ -20,7 +20,7 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | **`Thesis_v2.pdf`** | `Thesis_v2.tex` | **Reviewed — supervisor-facing** | Supervisor read-through of the eight-chapter argument. Chapter 1 is the full introduction from the draft (copied 27 Aug 2026, cross-refs retargeted). Chapters 2 to 8 keep five argument paragraphs each, as plain prose rather than itemize. Cut from nine chapters to eight on 26 Aug 2026, when the standalone `Objectives` chapter was folded into the introduction to match the draft (§4). This is what goes to the supervisor alongside the plan. |
 | **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 26 Aug 2026, after the bare-metal campaign and a priced length pass: abstract form declaring **101 pages + 6 appendix pages** (115 physical). **Re-measured 31 Aug 2026 it declares 95 + 12 at the same 115 physical**, because the appendix list of §4 has grown to seven: the total is unchanged and six pages sit on the other side of the `\appendix` boundary. Read the split from the `.aux` and never from this line. It peaked at 105 when the `je` decomposition landed, and the length pass took it to 101 by the only two levers that return anything (a `\scriptsize` bibliography and §5.4.1's state-machine narration, whose two semantic commitments moved to §5.5). **Do not go looking for more: §5, *Length and layout*, now records every lever measured, and all but the bibliography return zero.** Before the campaign, the same day, it read 99 + 6 (113 physical). It read 100 and 102 on 25 Aug, 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. Six pages came back across three §6.4 passes on 25 and 26 August and none of them cost an argument: three from layout, two from cutting re-derived argument, and one from merging two single-panel figures into `fig:loadsweep`. Chapter 6 went 27 pages to 25 over the same work. See §5, *Length and layout*, for the ordering rule that made each of them pay. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex` and `Thesis_v2.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
-| `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex` (broken, missing bib), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. Kept for reference under their original names. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
+| `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex`, `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF. See `archive/README.md`. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
 | Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Ha_Vien_Mastersthesis_2026.tex`. |
 
 ### Sync rule
@@ -48,7 +48,7 @@ wrong prefix is wrong in a way no build gate catches.**
 | Dataset | Macros | Role |
 | --- | --- | --- |
 | `bench/results/campaign-20260827-151927.jsonl` — bare metal, 7 shards, 7 producers, 20 repeats, 14 loads | **unprefixed**, `gen_macros.tex` | **Canonical. Every result the thesis reports.** AMD EPYC 7443, SMT off, `performance` + boost off, `nohz_full`, no hypervisor, toolchain pinned in the Rocky container |
-| `bench/results/campaign-20260812-154528.jsonl` — KVM guest, identical design | `\Guest*`, `gen_guest.tex` | The measurement-validity comparison in §`sec:hostcompare`. Same code, same design, a host that could not resolve the far tail |
+| `bench/results/campaign-20260812-154528.jsonl` — KVM guest, identical design | `\Guest*`, `gen_guest.tex` | The measurement-validity comparison in §`sec:hostcompare`. Same code, same design, a host that could not resolve the far tail. `g++` is one patch apart (`\GuestGpp` 15.1.1, `\MainGpp` 15.2.1). `rustc` matches at 1.97.1. Do not write that they share a toolchain |
 | `bench/results-baremetal/campaign-20260826-*.jsonl` — bare metal, 8/8, 15 repeats, 8 loads | `\Bm*`, `gen_baremetal.tex` | Whether findings survive a change of shard count, load grid, repeat count and compiler |
 
 Host descriptions are generated too: `\Main*` from the reported campaign's own environment capture
@@ -76,9 +76,15 @@ thesis process, which no manuscript can settle. It is reproduced as issued in
 four passes on record, and the build-gate script live in the same skill. Use it for any new
 grading pass so passes stay comparable.
 
-**Current grades are the twentieth pass's, 3 September 2026: mean 5.00.** Areas 1, 2, 3, 4,
-5 and 6 at 5. A hold after the 1 September source, not a move. Area 6 reached 5 at the nineteenth
-when `\abstractunaidedtrue` shipped. The 23 pt running-header overflow on §2.2 remains **closed**:
+**Current grades are the twenty-first pass's, 7 September 2026: mean 4.83.** Areas 1, 2, 3 and 5
+at 5, areas 4 and 6 at **4.5**. The twentieth pass, 3 September, held 5.00. What moved is not a
+number but a claim: **§6.1, §6.4.5 twice, and `tab:testbed`'s caption say the virtualised campaign
+ran the same toolchain as the reported one, and `\GuestGpp` 15.1.1 against `\MainGpp` 15.2.1 says
+otherwise.** The same table prints both on one row under a caption claiming each adjacent column
+pair isolates one change, and §6.4.7 then hand-types 15.1.1 as *the measurement host's* compiler,
+which is wrong. Nothing measured moves and a GCC patch release confounds nothing, but the `\Bm`
+column already carries this disclosure and the guest column does not. About an hour of editing
+returns both areas to 5. The 23 pt running-header overflow on §2.2 remains **closed**:
 `\section[Latency and predictability]{...}` ships, the log has zero `Overfull`, including during
 `\output`. Area 7 is not assessable.
 
@@ -106,18 +112,24 @@ closed, and the reader-facing record is `source_audit.pdf` with the durable one 
 `docs/Sources_evidence.md`. **After any compression pass, re-read what each surviving citation now
 sits next to.**
 
-| # | Criterion | Target | Current (20th pass, 3 Sep 2026) | What still blocks a 5 |
+| # | Criterion | Target | Current (21st pass, 7 Sep 2026) | What still blocks a 5 |
 | --- | --- | --- | --- | --- |
 | **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (7 inside + 7 outside guarantee). The RQ1 alignment item is **closed**: RQ1 now names p99.99 in the draft, in `Thesis_v2.tex` and in `Thesis_Plan_v2.tex`, and §7.7 says the question was widened rather than claiming it always named the metric. |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
 | **3** | **Research data and method** | Sound method + decision-grade data | **5** | Nothing. The canonical repeat closed the data half (7/7/14/20, 1120 runs, no hypervisor, SMT off, `nohz_full`, zero errors) and the description half is repaired and independently re-checked. What earns the level is a pattern of refusals: the pre-committed reading rule is kept on a host where it costs nothing and said to be kept for that reason, the 448 kops/s rung is described and not tested because its operating point was found after the data, and the pooled and per-repeat statistics are held apart hard enough that the generator returns `None` rather than falling back and `fig:tailpct` was narrowed so the figure could not quote the disowned statistic either. **Do not add `isolcpus`. Do not restore the derived load rule. Do not let a fallback to the per-run `p9999` back in.** |
-| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **5** | Nothing on the descriptor. The printed abstract now matches the tables (seven and seven, a few microseconds in Rust's favour, 448 then 392 then C++ 1.7× after both have collapsed). The far-tail gap is compressed out of the abstract, which is a writing choice and not a wrong claim. |
+| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.5** | Level 5's "well considered and apt" fails at three sites. `tab:testbed`'s caption says each adjacent column pair isolates one change while its own Toolchain row prints `g++ 15.2.1` against `g++ 15.1.1`. §6.4.7 hand-types 15.1.1 as the measurement host's compiler, where `\MainGpp` and the campaign's own capture say 15.2.1 and 15.1.1 is the *guest's*. `tab:findings`' RQ3 cell says "resolved with one sign on bare metal" where the reported host is also bare metal. All editing. The printed abstract still matches the tables and the whole generated layer re-derived byte-identical. |
 | **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Nothing. All four chapter-7 sites that described a virtual machine are synced, and §7.2 now refuses a verdict on RQ1's overload half: it reports that the two effects run in opposite directions and names which deployment question each answers. Maintain register: “cannot tell” ≠ “equivalent”, the memory result is *located* and not *attributed to a call site*, the counters explain the operation-level timing and nothing about the footprint, and the 448 kops/s rung is described and not tested. |
-| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **5** | Nothing on the descriptor. `\abstractunaidedtrue` ships and the printed statement matches. The §2.2 header overflow is **closed** (optional short title ships; zero `Overfull` in the log). Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
+| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | Two clauses, one each, and the half grade splits writing from consistency-and-finishing. Level 4's "consistent … description of research setup": three prose sites claim toolchain parity with the guest that Appendix D's own table refutes. Level 5's "excellent finishing polish": §1.4 of **both** documents carries "How it compares against the cost of the allocator choice is not:" with no predicate to elide, because `ed6debe`'s scope fix deleted the copula `a0e9122` had put there. Writing itself reads at 5 and the build is camera-ready: zero `Overfull` of any kind, zero semicolons, both colon checks at 0, `.acronyms.py` clean on both documents. The 83-word sentence is **not** counted, per the twentieth pass. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
 
-**Overall mean (unweighted): 5.00** at the twentieth pass, 3 September 2026. The nineteenth, 31
+**Overall mean (unweighted): 4.83** at the twenty-first pass, 7 September 2026, down from 5.00.
+**The lesson is the one this record keeps rediscovering in a new place: the values that regenerate
+are safe and the ones a human typed beside them are not.** Every quantity in the twenty-first
+pass's findings has a generated twin the document already uses correctly elsewhere, and both
+survived seven passes because `texaudit.py`'s prose-number heuristic requires a unit and a bare
+dotted version number has none. The durable fix is a generator plus that heuristic, not the three
+sentences. The twentieth pass, 3 September, held 5.00. The nineteenth, 31
 August afternoon, was the first 5.00, when area 6 moved from 4.5. The eighteenth that morning had
-held 4.92. This pass held every area where the nineteenth left it, on a PDF rebuilt 1 September. The header overflow that shared the area-6 cap is closed. Area 4
+held 4.92. The header overflow that shared the area-6 cap is closed. Area 4
 had been the only area that moved on the 30 August evening pass, from 4.5 to 5. The fifteenth was the first
 figure on record confirmed by readers who wrote none of the work behind it. The sixteenth held
 4.83 and withdrew the claim that the abstract is the only finishing item. The thirteenth pass, on the
@@ -158,7 +170,9 @@ than the number.
    end**: the last round's audit found eight defects in thirty changed passages, a rate near one in
    four. Those closing edits were themselves read the same day.
 
-No assessable area is below 5. Criterion 6 reached 5 once the unaided switch was set and the printed
+Criteria 4 and 6 sit at 4.5 as of 7 September 2026 and the rest at 5, so all six are within about
+an hour of editing of 5.00 (the twenty-first pass in `docs/ASSESSMENT.md` lists the sites).
+Criterion 6 reached 5 once the unaided switch was set and the printed
 declaration matched it. Criterion 4 reached 5 once the printed abstract caught up with the body.
 Criterion 3 reached 5 once the method's *description* caught up with the method. The class-file item is **done**:
 the document builds on the department's own `HYthesisML.cls`, and the reconstructed `UH_DS_MSc.cls`
@@ -168,8 +182,9 @@ in the root is no longer loaded.
 evening PDF. The §2.2 header overflow is **closed** in the 31 August PDF (optional short title
 ships). `\abstractunaidedtrue` ships as of the nineteenth pass: page 96 prints that the abstract
 was written by the author unaided, and the PDF contains no Not submittable. A model may not flip
-it. The fifteenth pass's "one rewrite puts all six at 5" is now the recorded mean of the six
-assessable areas; area 7 remains n/a. The independent read of the fifteen edits after 11:15
+it. The fifteenth pass's "one rewrite puts all six at 5" was reached at the nineteenth and held
+through the twentieth; the twenty-first found two half-grade defects, so the mean of the six
+assessable areas reads 4.83 and area 7 remains n/a. The independent read of the fifteen edits after 11:15
 on 28 August was done the same day (eight further defects, all closed; residual-risk sites re-checked
 on 30 August and still closed). The remaining measurement is **the transparent-hugepage experiment**,
 about one machine-hour, already named in Chapter 8 as the priority. The allocation profile in
@@ -263,6 +278,7 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
    - Build time is the **one host-sensitive axis** here. Absolutes describe the machine, the paired ratio travels. Do not let a sync pass restore the blanket claim that RQ4 is environment-insensitive.
 7. **No over-claim on Rust** — eliminates data races and aliasing errors, not race conditions or lock-order deadlocks.
 8. **Never boot a measurement host with `isolcpus`.** It gives the cleanest tails and it also removes those cores from every scheduling domain, which switches off load balancing across them. `bench/campaign.sh` pins to a *range* with `taskset -c 2-17` and relies on the kernel to spread `N_SHARDS + producers` threads over it, so with no balancer they all inherit the first allowed CPU. On 27 Aug 2026 that put **all 1120 runs of a campaign on `cpu2` alone**: `cpu_pct` flat at 100.1% at every load, `cpu3`–`cpu17` at 0.0% busy under sampling, plateau 84 kops/s against 336 and 448 on the other hosts. **Every record looked individually plausible**, and it was caught only by comparing three campaigns against each other. Use `nohz_full` and `rcu_nocbs` instead, and run `bench/canonical_repeat.sh check-spread` before any long campaign: it refuses to start below 150% `cpu_pct` on a probe run (broken config reads 100%, healthy reads ~688%). The dead dataset is kept at `bench/results-canonical/`.
+9. **Do not claim the guest and reported campaigns share a toolchain.** The container pins the `gcc-toolset` major version, not the point release. `\GuestGpp` is 15.1.1 and `\MainGpp` is 15.2.1. `rustc` matches at 1.97.1. The `\Bm` column already discloses its compiler change. Four prose sites and `tab:testbed`'s caption still say the machine was the only difference (twenty-first pass, 7 Sep 2026). Repair by disclosure, the way the `\Bm` column does. Quote `\MainGpp` / `\GuestGpp` / `\BmGpp`, never a typed version.
 
 ---
 
@@ -382,17 +398,40 @@ load.
                            # promotional adjectives, sentence-length uniformity
 python3 .vocab.py          # hard Latinate words (not executable, needs the interpreter)
 python3 .readability.py    # sentence and paragraph load (same)
+./.acronyms.py             # every front-matter acronym written out at first use
 ```
 
-All three report counts rather than errors, so read them as frequency. Hard rules for thesis
-prose:
+The first three report counts rather than errors, so read them as frequency. Hard rules for
+thesis prose:
 
-All three default to `Ha_Vien_Mastersthesis_2026.tex` and take any other `.tex` file as their
+All four default to `Ha_Vien_Mastersthesis_2026.tex` and take any other `.tex` file as their
 one argument.
 
-1. **No em dashes**, neither `---` nor a literal `—`. As of 17 August 2026 `.aitells.py`
-   reports four dash hits in the thesis source, all correct typography (one compound proper
-   name, three numeric ranges). If that number rises, the new ones are yours.
+**`.acronyms.py` is a gate and not a count**, added 6 September 2026, and it exits non-zero on a
+hit. It enforces the promise the front matter makes in so many words, that each listed acronym is
+also written out where the text first uses it. The front-matter `longtable` is the source of
+truth, so an acronym cannot be checked without being declared and the script also names a
+declared acronym the body never uses. Four things about it are load-bearing. It reads from
+`\mainmatter` **to the end of the file**, because the appendices sit after `\printbibliography`
+here and stopping at the bibliography reported the literature-search protocol's own acronyms
+(ACM, DBLP, DiVA, IEEE, USENIX) as unused. It strips citation keys, labels and cross-references
+first, since an acronym inside `\cite{ieee...}` is not a use a reader sees and counting it moves
+first use to the wrong page. It asks only for the **first three words** of the gloss, because
+demanding the whole entry rejected `FNV-1a, the Fowler--Noll--Vo hash` for lacking the word
+"function". And its exemptions are an explicit list that the output **prints rather than hides**,
+in the manner of `diagrams/check_labels.py`, so waiving one is on the record. Five are waived
+today and the reason travels with each. When it found the real defect, a loose heuristic would
+have passed it.
+
+1. **No em dashes**, neither `---` nor a literal `—`. Re-counted 6 September 2026: `.aitells.py`
+   reports **9 hits in the draft and 7 in the skeleton**, and all sixteen are correct typography.
+   The draft's are the Herfindahl--Hirschman Index and eight numeric ranges, most of them the
+   peak-RSS figures in MiB, which is why the figure is no longer the four recorded on 17 August.
+   The skeleton's are that same name, four ranges, and **Fowler--Noll--Vo counted twice**, because
+   the pattern counts occurrences rather than names and that one carries two dashes. Those two
+   arrived with the acronym pass of 5 September, which put the hash's full name into body prose.
+   If the figure rises again the new ones are yours, but check for a compound proper name before
+   deleting a dash: two of the sixteen are one name, and a third of a name is not an improvement.
 2. **No semicolons.** Use a full stop, a comma, a colon, or two sentences instead. Semicolons in
    thesis prose read as stiff and are easy to spot on review.
 3. **Capitalise after a colon when what follows begins a unit of its own.** The supervisor asked for
@@ -456,7 +495,7 @@ rg 'gdef.(pagesCount|appendixCount)' build/Ha_Vien_Mastersthesis_2026.aux
 change moves the declared figure. It reads **96 with 12 appendix pages** (118 physical), measured
 4 September 2026, after the acronym pass. One declared page came from writing acronyms out at
 first use, and two physical ones from the front-matter list, which sits outside `\pagesCount`. It
-read 95 with 12 (115 physical) on 31 August 2026. The appendices span physical pages 104 to 115, which is where the 12 comes from.
+read 95 with 12 (115 physical) on 31 August 2026. The appendices span physical pages 107 to 118, which is where the 12 comes from.
 
 **Under 100 is a preference, not a rule.** The author set it as the target on 19 August 2026 and
 may revise it. No University of Helsinki or CSM requirement is behind it, and nothing in the
@@ -675,6 +714,8 @@ which is criterion 1's blocker.
 - No figure contradicts its table (see `docs/ASSESSMENT.md` refinement pass for past failures).
 - `diagrams/check_labels.py` reports “Diagram labels: no em dash, dash aside, or semicolon”. Run by
   `refresh_thesis.sh`; re-render and read any figure whose label you changed.
+- `./.acronyms.py` on any document whose front matter or first-use prose changed: `not written out
+  at first use: 0`, and no new name under `declared but never used`.
 - `build_deck.py` rebuilds and reports both “Layout: all added shapes inside the template content
   band” and “Prose style: no em dash, dash aside, or semicolon on any slide”. Either failure exits
   non-zero, and both are reported in the same run so one rebuild shows everything that is wrong.
@@ -692,6 +733,7 @@ which is criterion 1's blocker.
 - **Do not** transcribe measured numbers into `build_deck.py`; it reads them from the generated artefacts and fails loudly when one is missing.
 - **Do not** leave an em dash or a semicolon where a reader can see it, in the thesis source or on a slide. The deck build refuses to pass one.
 - **Do not** claim testbed-grade tail latency from the virtualised host.
+- **Do not** write that the guest and reported campaigns share a toolchain. `\GuestGpp` is 15.1.1 and `\MainGpp` is 15.2.1.
 - **Do not** remove boundary defect classes or sanitiser-only C++ outcomes to tidy the narrative.
 - **Do not** expand `Thesis_v2.tex` chapters 2--8 beyond five argument paragraphs, or replace Chapter 1 with a shorter skeleton. Chapter 1 is the draft introduction. The rest stay a five-move skeleton, now in plain prose rather than itemize, and the document is supervisor-facing.
 - **Do not** commit secrets, Nokia-internal identifiers, or confidential traces.
@@ -713,6 +755,7 @@ which is criterion 1's blocker.
 | `bench/artefact_facts.py` | Generates `figures/gen_artefacts.tex`: record sizes (compiled probes), parity-suite coverage, conformance campaign size, FFI seam size, **fault-catalogue outcomes** (deadlock detection rate, lost-update counts, undetected-class count) and **suite size** (C++ binaries, Rust tests). Anything measured that no campaign log holds belongs here, not in the prose. The deadlock rate is read from `taxonomy.csv` *and* recounted from the per-run logs, and a mismatch is a hard error |
 | `bench/complexity.py` | Generates `figures/tab_complexity.tex`, **`figures/tab_loc.tex`** and `gen_complexity.tex`. The `CONCERNS` partition decomposes the line-count gap and the script refuses to write the table unless every measured file is assigned to exactly one row and each column sums to its measured total. That check is why Table 5.4 can no longer go six lines short of its own printed total |
 | `diagrams/check_labels.py` | Prose-style gate over diagram labels, the third surface beside `.aitells.py` and the deck's `check_prose_style`. Scope computed from the documents; run by `refresh_thesis.sh` |
+| `.acronyms.py` | Gate over the front matter's own promise that every listed acronym is written out at first use. Takes the acronym list as the source of truth, reads `\mainmatter` to end of file so the appendices count, strips citation keys before deciding what first use means, and prints its five waivers instead of hiding them. Added 6 September 2026, when it found `UndefinedBehaviorSanitizer` shipped without `(UBSan)` beside `AddressSanitizer (ASan)` and `ThreadSanitizer (TSan)` |
 | `bench/adoption_cost.py` | Generates `figures/tab_adoption.tex` + `gen_adoption.tex`: RQ4's build time, static footprint, and third-party surface. `--measure` re-times the builds and records to `bench/results/adoption-*.json`; **without it, build time is replayed from the record** and only the deterministic axes are recomputed. `refresh_thesis.sh` calls it without `--measure` deliberately (see §3 item 6a and the `ffi/build.sh` warning in §5) |
 | `spec/SPECIFICATION.md` | Fairness baseline; freeze before implementation changes. §11.4–11.5 cover the reference model, generated vectors, sanitisers, Miri and coverage |
 | `spec/conformance/model.py` | Independent Python implementation of the spec; the oracle behind the generated vectors. Never derive its expectations from `cpp/` or `rust/` |
@@ -727,7 +770,7 @@ When preparing material for **Keijo Heljanko** (supervisor) and Nokia instructor
 (**Christoph Luneburg**, **Petteri Kotimaa**):
 
 1. `Thesis_Plan_v2.pdf` — plan, status, timeline (dated; status table must match repo reality).
-2. `Thesis_v2.pdf` — supervisor read-through: full Chapter 1, five prose paragraphs in each of chapters 2--8 (44 physical pages, 37 declared).
+2. `Thesis_v2.pdf` — supervisor read-through: full Chapter 1, five prose paragraphs in each of chapters 2--8 (46 physical pages, 38 declared, measured 6 September 2026 after the acronym pass added a one-page front-matter list). The skeleton's class writes no `\pagesCount`, so read its declared length from the printed folios: arabic 1 sits on physical page 9 and the last body page prints 38.
 3. Optionally reference `Ha_Vien_Mastersthesis_2026.pdf` as the **working full draft** (clearly labelled not final).
 
 Port supervisor feedback into `Thesis_v2.tex` and `Ha_Vien_Mastersthesis_2026.tex` in the same
