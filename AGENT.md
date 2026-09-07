@@ -525,9 +525,21 @@ have passed it.
    heading *Reproducibility and research artifacts*, §7.6 and the conclusion, and it is the
    spelling ACM's badging programme uses. `artefact` is the compiled binary or a measurement
    artefact, which is why `bench/artefact_facts.py` and `figures/gen_artefacts.tex` carry the
-   British spelling. `consistency.py` reports the pair on every run and it is a false positive by
+   British spelling.    `consistency.py` reports the pair on every run and it is a false positive by
    design. Do not normalise either spelling without being asked, and when adding a sentence, pick
    by sense.
+5. **A sentence that is only a count and a label is scaffolding, not prose.** `Three are results.`
+   opened §1.4's contribution list in both documents until 7 September 2026, ahead of one sentence
+   per result, and it is now folded into the first of them (`Three are results, and the first is a
+   comparison of latency and resource behaviour`). The test is deletability: a sentence that can go
+   without taking a claim with it was an outline heading. The family runs on through `Two risks
+   remain.`, `Three limitations remain.`, `Three are load-bearing.` and `Two responsibilities
+   follow.` **Length is not the test and treating it as one makes the prose worse**, because
+   `.readability.py` asks for 25 to 35 per cent of sentences under 15 words as recovery points, and
+   `Both implementations follow it.` is that width while carrying the fairness control.
+   `.aitells.py` counts the shape as `counting stub`, a count subject inside four words, reading
+   **2 in the skeleton and 12 in the draft**. Neither is a target and both lists hold sentences that
+   earn their place, so judge each hit rather than lengthening it.
 
 The full style constraint is in the prose-style section of `.cursor/rules/thesis-quality.mdc`.
 
@@ -783,7 +795,8 @@ which is criterion 1's blocker.
 - `build/Ha_Vien_Mastersthesis_2026.log`: **zero errors**, zero undefined references/citations. `.latexmkrc` keeps
   every LaTeX intermediate in `build/`; the PDF and its SyncTeX index still land at the root.
 - `./.aitells.py` on every file whose prose changed: no em-dash asides introduced, no semicolons
-  introduced, and both colon checks still at zero.
+  introduced, both colon checks still at zero, and no counting stub added (the count may fall, and
+  a rise means an edit announced a list instead of making one).
 - Figure/table macros in prose match `figures/gen_macros.tex`.
 - No figure contradicts its table (see `docs/ASSESSMENT.md` refinement pass for past failures).
 - `diagrams/check_labels.py` reports “Diagram labels: no em dash, dash aside, or semicolon”. Run by

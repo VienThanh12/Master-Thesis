@@ -4,10 +4,19 @@
 Companion to .vocab.py, which looks for hard Latinate words. This one looks for
 the patterns that make text read as machine-written even when every word is
 plain: dash asides, antithesis frames, transition openers, promotional
-adjectives, and uniform sentence length.
+adjectives, counting stubs, and uniform sentence length.
 
 Nothing here is wrong on its own. Frequency is the signal, so the report is
 counts with line numbers, not a list of errors.
+
+The counting stub is the one check whose test is not the pattern it matches. A
+sentence of `Three are results.` announces a list the next sentences then give,
+so deleting it costs no claim, and that is what makes it scaffolding rather
+than prose. Length cannot stand in for that test, because .readability.py asks
+for short sentences and rewards them: `Both of these results are final.` is the
+same width and states something. So the check asks for a count subject inside
+four words, which is where the deletable ones sit, and it will still report a
+few sentences that earn their place.
 
 Two checks are house style rather than model tells, and they are the only place
 where zero is the target. House style capitalises the first word after a colon
@@ -96,6 +105,15 @@ RAW_PATTERNS = {
     "lowercase after a label colon": r"\\(?:textbf|textit|emph)\{[^}]*:\}\s+[a-z]",
 }
 
+# A count in the subject and a verb that only links it to a label. Anything
+# longer than four words has usually acquired a predicate worth keeping, so the
+# budget is what separates the shape from a legitimate short sentence.
+STUB_SUBJECT = re.compile(
+    r"^(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Both|Neither|Either|Several"
+    r"|The (?:first|second|third|fourth|last|two|three|four))\b"
+)
+STUB_BUDGET = 4
+
 hits = defaultdict(list)
 for name in (*CASE_PATTERNS, *RAW_PATTERNS):
     hits[name]  # report the zero, so a clean run says so rather than staying silent
@@ -120,11 +138,33 @@ for i, raw in enumerate(raw_lines[body_start:], body_start + 1):
     for name, pat in RAW_PATTERNS.items():
         for m in re.finditer(pat, raw):
             hits[name].append((i, raw[max(0, m.start() - 40):m.end() + 30]))
-    sentences.append(text)
+    sentences.append((i, text))
 
 # Sentence-length spread. Human academic prose varies more than model prose.
-joined = " ".join(sentences)
+# `line_at` maps a character offset in the joined prose back to the line it came
+# from, which the stub check needs and the length statistics below do not. The
+# separator takes the number of the line that follows it, so a sentence opening
+# a line is attributed to that line and not to the one before it.
+parts, line_at = [], []
+for ln, text in sentences:
+    if parts:
+        parts.append(" ")
+        line_at.append(ln)
+    parts.append(text)
+    line_at.extend([ln] * len(text))
+joined = "".join(parts)
 lengths = [len(s.split()) for s in re.split(r"(?<=[.!?]) +", joined) if len(s.split()) > 2]
+
+# Runs here rather than in the line loop because a sentence can span lines. The
+# decimal point in `p99.99` is not a sentence end, and splitting there
+# manufactures a `Neither p99.` that matches the shape without being prose, so
+# hide it first. The substitution is the same width, which keeps `line_at`
+# aligned and lets the report quote the untouched text.
+probe = re.sub(r"(?<=\d)\.(?=\d)", "_", joined)
+for m in re.finditer(r"[^.!?]+[.!?]", probe):
+    sent = joined[m.start():m.end()].strip()
+    if len(sent.split()) <= STUB_BUDGET and STUB_SUBJECT.match(sent):
+        hits["counting stub (a count and a label, no claim)"].append((line_at[m.start()], sent))
 colons = joined.count(":")
 semis = joined.count(";")
 words = len(joined.split())
