@@ -726,8 +726,9 @@ advance. A surprise then shows up as a discrepancy, not as something explained a
 afterwards.
 
 RQ4 is answered by a working prototype in which C++ drives the Rust core through a
-foreign-function interface. Cross-language memory-management defects concentrate at that
-seam~\cite{li2022crosslang}. It yields three measurements: How large the seam is, how
+foreign-function interface, a thin seam of code where the two languages meet.
+Cross-language memory-management defects concentrate at that seam~\cite{li2022crosslang}.
+It yields three measurements: How large the seam is, how
 much \texttt{unsafe} code it needs, and what one call across it costs.
 
 Fairness is the central experimental control. The specification is frozen. Allocator and
@@ -860,7 +861,8 @@ $95\%$ confidence interval~\cite{georges2007rigorous,efron1993bootstrap}. The
 representative operating point is fixed at $\ReprLoad$~kops/s and not derived. The rule
 this study began with, the busiest swept load holding p99 under $5$~ms, located the
 virtualised host's noise floor and on a quiet host climbs until it collapses onto the
-saturation knee, so it is kept as a diagnostic only. The measured throughput plateau is
+saturation knee, the load beyond which throughput stops following demand, so it is kept
+as a diagnostic only. The measured throughput plateau is
 $\SatKnee$~kops/s, the lowest of the four, reached at an offered
 $\TrackingLoad$~kops/s. All of it runs on a dedicated \MainCpu{} pinned to cores
 \MainPinned{}. The frequency governor is fixed at \MainGovernor{} with boost disabled.
@@ -935,7 +937,7 @@ Once the offered rate outruns the service, two differences appear. They stop
 meeting the offered rate at different loads: the Rust arms hold to
 $\TrackingLoadRust$~kops/s and the C++ arms to $\TrackingLoadCpp$, so at
 $\KneeGapLoad$~kops/s \KneeGapFaster{} still serves $\KneeGapThrFast$~kops/s where
-\KneeGapSlower{} has collapsed to $\KneeGapThrSlow$. That rung is described and not
+\KneeGapSlower{} has collapsed to $\KneeGapThrSlow$. That load level is described and not
 tested, because the operating point was found after the data was in hand. Deeper, at
 $\OverloadLoad$~kops/s offered, the ordering reverses: \OverloadSustainedFaster{} sustains
 $\OverloadThrCpp$~kops/s where \OverloadSustainedSlower{} sustains
@@ -1113,7 +1115,7 @@ $p$-value. Peak resident set is a run-level maximum insensitive to the jitter th
 destroys a p99. It is a few MiB of fixed cost, and sized against the allocator's own
 effect the two are of the same order on both bare-metal hosts, interleaved on the reported
 one and with the allocator ahead on the other. On the virtualised host the allocator's was
-an order of magnitude larger. The language effect travels and the ratio
+an order of magnitude larger. The language effect travels to other machines and the ratio
 does not. The quiet host also locates
 the cost. \texttt{jemalloc}'s own accounting puts it \emph{outside} the allocator,
 because the Rust build holds less live data and fewer resident bytes there and still
