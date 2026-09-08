@@ -414,9 +414,7 @@ implementations of a representative RAN subsystem, a \emph{UE Context Management
 modelled on a real Nokia \emph{gNB-CU-CP} component, in modern C++ and in Rust, and compares them
 under a realistic synthetic signalling workload. The property that decides whether such a system
 meets its deadlines is \emph{tail latency}, the p99 and p99.9 percentiles and not the
-mean~\cite{dean2013tail,barroso2017microseconds}. Every acronym is written out where the
-text first uses it and collected in the \nomname{}, and the terms that are not acronyms are fixed
-in Appendix~\ref{appendix:terms} for readers outside telecom.
+mean~\cite{dean2013tail,barroso2017microseconds}.
 
 \section{Motivation and industrial context}\label{sec:motivation}
 Three trends make this comparison timely. The first is the cloud-native evolution of the RAN
@@ -590,82 +588,6 @@ engineering effort rather than performance. H2 is stated so that it can fail: th
 catalogue behind RQ2 spans classes safe Rust is expected to prevent and classes it is expected
 not to, so the study can locate the boundary of the guarantee instead of only confirming it.
 Section~\ref{sec:hypotheses} revisits all three against the evidence.
-
-\section{Contributions, results, and limitations}
-The thesis makes six contributions. Two are artifacts: a reproducible benchmarking framework for
-telecom control-plane workloads, and a frozen shared specification with two parity-tested
-implementations of a RAN control-plane subsystem, one in C++ and one in Rust. Three are results:
-a comparison of latency and resource behaviour that divides at the saturation knee, where the
-ordering between the two languages reverses, a defect-class taxonomy from controlled fault
-injection that marks where the compile-time guarantee stops in both directions, and a bound on
-what a comparison of this shape can attribute to a language at all, obtained by decomposing an
-end-to-end operation into the work the language performs and the cross-thread handoff around it.
-The last is a set of engineering and migration guidelines for language selection in cloud-native
-RAN evolution (Section~\ref{sec:guidelines}). Neither the reversal nor the attribution bound was
-anticipated. Both were found while reading results the study had planned to report differently,
-and Section~\ref{sec:hypotheses} records what the first of them cost H1.
-
-The findings divide three ways. On \emph{safety} (RQ2), safe Rust prevents every injected
-memory-safety and data-race defect class at compile time. All of them compile in C++, where each
-is caught, if at all, only at run time and only under the right sanitiser, or on one class under
-none of them. Seven boundary classes were chosen deliberately, and neither language prevents
-them: on two the C++ tooling is ahead, and on one the defect safe Rust rules out returns as soon
-as the program writes \texttt{unsafe}. On \emph{migration} (RQ4), the FFI seam is small, keeps
-the core free of \texttt{unsafe}, and costs at most $\FfiOpBoundPct\%$ of one operation measured
-against the same operation called natively, so the real adoption cost is application programming
-interface (API) design and not run-time overhead. Three costs beyond the seam are measured for
-the same reason, and two of them come back against the received wisdom: most of the Rust build's
-extra cost is compiling third-party code and not the compiler's own work, and the
-binary-size ordering depends on which linkage policy the two toolchains are held to, not on the
-languages. Both of these results are final.
-
-On \emph{performance} (RQ1, RQ3) the answer divides twice, and drawing both divisions correctly
-took most of the analysis. The first separates what the sweep measures from what it can
-attribute. An end-to-end operation in this design is $\BudgetCoreShareMax\%$ language work and a
-cross-thread handoff takes the rest, so a matched-pair comparison on that path bounds the design
-and not the language. That limit holds whichever way such a comparison comes out, and it reaches
-any study reporting an end-to-end median without measuring the share. Timed apart from the
-handoff, the operation is $\BudgetCoreRatio\times$ faster in Rust, which the sweep cannot see.
-
-The second division is by regime. Below saturation the two implementations are equivalent end to
-end in central behaviour, by a margin no deployment would notice: the paired test does resolve a
-median difference of $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators, on an
-end-to-end round-trip of $\PFiftyMedian\,\mu$s, so the equivalence is practical and not
-statistical. The far tail in that regime resolves on the reported host and favours
-\FarTailLower{}. Pooled over \FarTailSamplesMin{} to \FarTailSamplesMax{} operations per variant,
-the two languages' p99.99 values do not meet, the widest gap between variants is
-$\FarTailRange\,\mu$s, and a second bare-metal campaign at another shard count agrees on the
-direction. Past saturation the ordering reverses. Where each
-implementation stops meeting its offered rate is itself a difference: the Rust arms track to
-$\TrackingLoadRust$~kops/s and the C++ arms to $\TrackingLoadCpp$. Deeper still, where all four
-have collapsed, the C++ build sustains $\OverloadThrRatio\times$ the throughput of the Rust build
-in \OverloadThrAgree{} interleaved repeats under both allocators, and the Rust build spends
-$\OverloadCpuPerOpRatio\times$ the CPU on each operation it does complete, which rules out the
-reading that it is simply doing less. On resources the Rust process holds a few MiB more resident
-memory, again under both allocators, in the same direction and the same order of magnitude on all
-three machines measured. How that compares against the cost of the allocator choice does not
-travel. The two are comparable on bare metal, and the allocator's was an order of magnitude larger
-on the virtualised host this study used first, so the comparison between them is a property of
-the machine and not of the allocators.
-
-Four limitations bound all of this: a synthetic workload, one simplified subsystem,
-single-author implementation bias, and an allocator footprint whose size moved with the host.
-Chapter~\ref{chapter:discussion} treats each in detail. The intended readers are the vendor
-making the language decision, the standards discussion around memory-safe
-roadmaps~\cite{cisa2023memorysafe,oncd2024building}, and anyone repeating a comparison of this
-shape, who can reuse the specification, the pair, the harness and the catalogue.
-
-The scope is drawn deliberately to protect the internal validity of the language comparison. In
-scope are the UE Context Management functionality of Section~\ref{sec:uecm}, the
-shared-nothing concurrency design, the load sweep to overload, the fault-injection catalogue,
-and the FFI prototype. Explicitly out of scope are the full gNB system and its remaining
-control-plane domains, physical layer (PHY) and layer-2 processing and the data-heavy user plane,
-real captured traffic traces as opposed to a spec-justified synthetic workload, managed-language
-alternatives (excluded on the tail-latency grounds argued in
-Chapter~\ref{chapter:background}), and production deployment and operational concerns such as
-upgrade, observability, and multi-tenancy. These exclusions trade external validity for the
-controlled conditions a fair language comparison needs, and each is revisited as a limitation in
-Chapter~\ref{chapter:discussion}.
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
 % The class prints the chapter and section titles in the running head in capitals,
@@ -933,8 +855,8 @@ Such a gap also carries the design, the libraries and the skill of their authors
 Building both sides from one specification removes that confound. The comparison is then between
 two encodings of the same design, and the artifact becomes both the contribution and the
 instrument that measures it. Where a question can be answered with numbers, the treatment is
-quantitative. Where it cannot, as with the kind of guarantee in RQ2 and the API-design effort in
-RQ4, it is qualitative but still systematic.
+quantitative. Where it cannot, as with the kind of guarantee in RQ2 and the application
+programming interface (API) design effort in RQ4, it is qualitative but still systematic.
 
 The gap this design addresses (Section~\ref{sec:gap}) is only as good as the search that looked
 for it, so that search is on record. Appendix~\ref{appendix:search} gives the databases, the term
@@ -2539,8 +2461,8 @@ allocator cost. The hugepage policy differed between those hosts
 and only the system-allocator arm inherits it. A single machine and two settings settle whether
 a footprint claim of this kind belongs to an allocator or to a kernel setting. Beyond that, the
 framework can take captured anonymised traces in place of the synthetic workload, further
-control-plane subsystems or the data-heavy L2/PHY path, and a whole-program model checker
-covering foreign dependencies~\cite{pearce2026rustmc}. It can also compare Rust async runtimes
+control-plane subsystems or the data-heavy layer-2 and physical layer (PHY) path, and a
+whole-program model checker covering foreign dependencies~\cite{pearce2026rustmc}. It can also compare Rust async runtimes
 against the thread-per-shard model, which would separate the tail divergence Arvidsson and Kaller
 attribute to \texttt{async}/\texttt{await}~\cite{arvidsson2025async}, measure in-process isolation of
 the two heaps at the seam~\cite{rivera2021galeed,kirth2022pkrusafe}, and track defect density
