@@ -53,6 +53,13 @@ def load_macros():
 
 M = load_macros()
 
+#: Exponents on a slide have no math mode to fall back on, and a caret is the
+#: notation of a source file rather than of a thesis: the prose writes
+#: $2^{\NRepeats}$, so the artwork writes the same characters.
+SUPERSCRIPT = str.maketrans("0123456789",
+                            "\u2070\u00b9\u00b2\u00b3\u2074"
+                            "\u2075\u2076\u2077\u2078\u2079")
+
 
 def wrap(text, width):
     """Greedy wrap to a character budget, so line breaks stay explicit."""
@@ -342,8 +349,8 @@ def stats_pipeline():
         ]),
         ("3.  Test the comparison, not the overlap", [
             "An exact two-sided paired permutation test on the repeat-wise",
-            f"differences, with the allocator held fixed. All 2^"
-            f"{M['NRepeats']} sign",
+            f"differences, with the allocator held fixed. All "
+            f"2{M['NRepeats'].translate(SUPERSCRIPT)} sign",
             "assignments are enumerated, so the p-value is exact.",
         ]),
         ("4.  Correct the family", [
