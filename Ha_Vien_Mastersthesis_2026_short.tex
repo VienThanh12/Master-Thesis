@@ -1015,7 +1015,8 @@ depend on the machine. Table~\ref{tab:testbed} describes the machines and keeps 
 
 Every performance number here comes from one dedicated bare-metal server: a single-socket
 \MainCpu{} with \MainCores{} cores on \MainNumaNodes{} non-uniform memory access (NUMA) node,
-simultaneous multithreading (SMT) \MainSmt{}, kernel \MainKernel{}. The frequency governor is fixed
+simultaneous multithreading (SMT) \MainSmt{}, running \MainHostDistro{} on kernel \MainKernel{}.
+The frequency governor is fixed
 at \MainGovernor{} with boost disabled, so the cores hold their base clock, and cores \MainPinned{}
 carry the benchmark. The environment capture records virtualisation as \MainVirt{}, and every run
 records the metadata of Section~\ref{sec:repro}.
@@ -2678,7 +2679,9 @@ the configuration of the service, the workload and the campaign.
 \small
 \caption[The three measurement hosts]{The three machines the campaigns ran on, each reported as
 measured. Every hardware, kernel and toolchain cell is generated from that campaign's own
-environment capture rather than restated from the protocol of \texttt{bench/TESTBED.md}. The last
+environment capture rather than restated from the protocol of \texttt{bench/TESTBED.md}. The
+operating-system row names the machine and, where a campaign ran in a container, the image's
+userland beside it, so the kernel row prints one value for both. The last
 two rows are prose, because what an instrument set is adequate for is a judgement and not a captured
 field. The columns are arranged so that each
 adjacent pair isolates one change, with the exceptions the Kernel and Toolchain rows record.
@@ -2696,6 +2699,7 @@ Rows where all three agree describe the source or the method rather than any mac
 Aspect & Reported sweep & Virtualised host, same design & Second bare-metal host, different design \\
 \hline
 Host & \MainCpu{}, \MainCores{} cores, \MainSockets{} socket & \GuestCpu{} guest, \GuestCores{} vCPUs & \BmCpu{}, \BmCores{} cores, \BmSockets{} socket \\
+Operating system & \MainHostDistro{}, with \MainDistro{} in the container image & \GuestDistro{} & \BmDistro{} \\
 Kernel & \MainKernel{} & \GuestKernel{} & \BmKernel{} \\
 Hypervisor & \MainVirt{}. Governor \MainGovernor{}, boost off, verified on the machine & \GuestVirt{}. Frequency and turbo host-controlled, unobservable from inside & \BmVirt{}. Governor \BmGovernor{}, verified on the machine \\
 CPU steal & None: no hypervisor to lose a timeslice to & Not characterised. The capture's single one-second sample read \GuestSteal{}, and no steal probe was run on this host & \BmStealWithSteal{} of \BmStealIntervals{} intervals on \BmStealCores{} pinned cores \\

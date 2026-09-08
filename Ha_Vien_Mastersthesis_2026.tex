@@ -2217,7 +2217,8 @@ life. Table~\ref{tab:testbed} describes the machines and keeps the split clear.
 \paragraph{The environment used.}
 Every performance number in this chapter comes from one dedicated bare-metal server: a
 single-socket \MainCpu{} with \MainCores{} cores on \MainNumaNodes{} non-uniform memory access
-(NUMA) node, simultaneous multithreading (SMT) \MainSmt{}, kernel \MainKernel{}. The frequency governor is fixed at
+(NUMA) node, simultaneous multithreading (SMT) \MainSmt{}, running \MainHostDistro{} on kernel
+\MainKernel{}. The frequency governor is fixed at
 \MainGovernor{} with boost disabled, so the cores hold their base clock rather than a thermally
 negotiated one, and cores \MainPinned{} carry the benchmark. The environment capture records
 virtualisation as \MainVirt{}. Every run records the environment metadata of
@@ -4584,17 +4585,28 @@ record of what each campaign captured. Every column reports what was measured, a
 they are read against is published as \texttt{bench/TESTBED.md}. Table~\ref{tab:params} gathers
 the configuration of the service, the workload and the campaign.
 
-% [ht] and not [H] here on purpose, measured 26 Aug 2026. At [H] this table did
-% not fit under its own intro paragraph, and [H] forbids the following text from
-% flowing back into the gap, so the appendix opened on a page holding four lines
-% and nothing else. Letting it float recovers that page. The reference names the
-% table in the sentence, so a float is no harder to follow.
-\begin{table}[ht]
+% [tp] and not [H], measured twice. At [H] on 26 Aug 2026 the table did not fit
+% under its own intro paragraph, and [H] forbids the following text from flowing
+% back into the gap, so the appendix opened on a page holding four lines and
+% nothing else. [ht] recovered that page until the operating-system row and its
+% caption sentence landed on 8 Sep 2026, which made the table too tall for what
+% [ht] had left of the page: it floated one page on and stranded 303pt of
+% whitespace mid-appendix. [tp] puts it back at the top of the page the reference
+% sits on and repacks the four pages before the appendix tail. Appendix D is 13
+% pages at either setting, and [tp] spends its overflow as three lines on a tail
+% page rather than as a hole between two paragraphs. Closing that tail page needs
+% three lines out of the allocation-profile paragraph, which is a negative result
+% the thesis argues from, so it was not spent. [tp] on tab:params as well was
+% measured the same day and returned nothing. The reference names the table in
+% the sentence, so a float is no harder to follow.
+\begin{table}[tp]
 \centering
 \small
 \caption[The three measurement hosts]{The three machines the campaigns ran on, each reported as
 measured. Every hardware, kernel and toolchain cell is generated from that campaign's own
-environment capture rather than restated from the protocol of \texttt{bench/TESTBED.md}. The last
+environment capture rather than restated from the protocol of \texttt{bench/TESTBED.md}. The
+operating-system row names the machine and, where a campaign ran in a container, the image's
+userland beside it, so the kernel row prints one value for both. The last
 two rows are prose, because what an instrument set is adequate for is a judgement and not a captured
 field. The columns are arranged so that each
 adjacent pair isolates one change, with the exceptions the Kernel and Toolchain rows record.
@@ -4612,6 +4624,7 @@ Rows where all three agree describe the source or the method rather than any mac
 Aspect & Reported sweep & Virtualised host, same design & Second bare-metal host, different design \\
 \hline
 Host & \MainCpu{}, \MainCores{} cores, \MainSockets{} socket & \GuestCpu{} guest, \GuestCores{} vCPUs & \BmCpu{}, \BmCores{} cores, \BmSockets{} socket \\
+Operating system & \MainHostDistro{}. Image \MainDistro{} & \GuestDistro{} & \BmDistro{} \\
 Kernel & \MainKernel{} & \GuestKernel{} & \BmKernel{} \\
 Hypervisor & \MainVirt{}. Governor \MainGovernor{}, boost off, verified on the machine & \GuestVirt{}. Frequency and turbo host-controlled, unobservable from inside & \BmVirt{}. Governor \BmGovernor{}, verified on the machine \\
 CPU steal & None: no hypervisor to lose a timeslice to & Not characterised. The capture's single one-second sample read \GuestSteal{}, and no steal probe was run on this host & \BmStealWithSteal{} of \BmStealIntervals{} intervals on \BmStealCores{} pinned cores \\

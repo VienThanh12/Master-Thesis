@@ -55,6 +55,18 @@ wrong prefix is wrong in a way no build gate catches.**
 Host descriptions are generated too: `\Main*` from the reported campaign's own environment capture
 (matched by timestamp, not by taking the newest file), `\Guest*` and `\Bm*` from theirs.
 
+**`\MainDistro` is the container image's userland and `\MainHostDistro` is the machine's**, added 8
+September 2026 because the capture beside the reported campaign was written inside the container:
+its `distro:` line reads Rocky Linux 8.10 from the image while every other field around it, the
+kernel included, describes an Ubuntu 24.04.4 LTS host. `_host_distro()` in `bench/plot_figures.py`
+therefore reads the host's name from the capture taken *outside* the container in the same session
+(`env-20260827-151643.txt`), and matches candidates on the kernel, since a container shares the
+host's and a capture from another machine cannot pass that test. Two things follow. The value is
+`unknown`, visibly, when no such capture sits beside the campaign, rather than a guess. And
+`bench/results/` is in `.gitignore`, so that capture was copied there from
+`bench/results-canonical2/` and needs `git add -f` to survive a fresh checkout, the way the three
+guest-era captures under `bench/results/` are tracked.
+
 `bench/results-canonical/` holds an **invalid** 1120-run campaign from 27 Aug, kept on purpose as a
 worked example. Never quote it. See §3 item 8.
 
@@ -579,10 +591,13 @@ rg 'gdef.(pagesCount|appendixCount)' build/Ha_Vien_Mastersthesis_2026.aux
 ```
 
 `\pagesCount` counts the body **plus** the AI statement and the bibliography, so a reference-list
-change moves the declared figure. It reads **96 with 12 appendix pages** (118 physical), measured
-4 September 2026, after the acronym pass. One declared page came from writing acronyms out at
-first use, and two physical ones from the front-matter list, which sits outside `\pagesCount`. It
-read 95 with 12 (115 physical) on 31 August 2026. The appendices span physical pages 107 to 118, which is where the 12 comes from.
+change moves the declared figure. It reads **98 with 13 appendix pages** (121 physical), measured
+8 September 2026, after `tab:testbed` grew an operating-system row. That row and its caption
+sentence are the whole of the appendix page: the committed source ahead of them built 98 with 12,
+measured the same day for the comparison. It read 96 with 12 (118 physical) on 4 September 2026
+after the acronym pass, one declared page of which came from writing acronyms out at first use and
+two physical ones from the front-matter list, which sits outside `\pagesCount`. It
+read 95 with 12 (115 physical) on 31 August 2026. The appendices span the last 13 physical pages, which is where the 13 comes from.
 
 **Under 100 is a preference, not a rule.** The author set it as the target on 19 August 2026 and
 may revise it. No University of Helsinki or CSM requirement is behind it, and nothing in the
@@ -605,9 +620,17 @@ Two traps, both found by measurement on 19 August 2026:
   the gap when the table does not fit, which is where most short pages come from. Converting one
   table at a time and rebuilding after each does work: on 25 August 2026 `tab:taxonomy` moved to
   `[tp]` for a whole page, and `tab:equivalence`, `tab:contention`, `tab:budget` and
-  `tab:adoption` closed short pages at no cost. Two were measured and reverted, so do not retry
-  them: `tab:defectmap` at `[tp]` *added* a page, and `tab:findings` at `[H]` was mixed. After any
+  `tab:adoption` closed short pages at no cost. Three were measured and reverted, so do not retry
+  them: `tab:defectmap` at `[tp]` *added* a page, `tab:findings` at `[H]` was mixed, and
+  `tab:params` at `[tp]` returned nothing on 8 September 2026. After any
   such change, check that no converted table drifted past the page that cites it.
+  `tab:testbed` moved to `[tp]` the same day and is the case where the setting buys shape rather
+  than pages. The row added to it made the table too tall for what `[ht]` had left of its page, so
+  it floated one page on and left 303pt of whitespace between two paragraphs. At `[tp]` it returns
+  to the top of the page its reference sits on, the four pages before the appendix tail repack, and
+  the overflow is three lines on a tail page instead. Appendix D is 13 pages either way, and
+  closing that tail page would cost three lines of the allocation-profile paragraph, which is a
+  negative result the thesis argues from.
 
 Measured cost of the layout settings, cumulative, at unchanged content: 1.5 spacing 22 pages,
 full-width figures 4, `twoside,openright` 15 blank versos, loose heading and float gaps 3, and a

@@ -1812,6 +1812,40 @@ def write_jitter_table(rows, outdir, load):
     return out
 
 
+def _host_distro(text, envs, prior, kernel, image_distro):
+    """The operating system of the machine, not of the image the build ran in.
+
+    A capture written inside the container reads /etc/os-release from the image,
+    so its distro line describes the toolchain's userland while every other field
+    around it describes the host. That is exactly the pair a reader trips over:
+    tab:testbed prints one kernel for a column whose distro belongs to something
+    else. The host's own name has to come from the capture taken outside the
+    container in the same session.
+
+    Candidates are matched on the kernel, because a container shares the host's
+    and that is the one field the two captures must agree on, so a stray capture
+    from another machine cannot pass. Ordering follows the rule the caller uses
+    for the campaign itself, nearest at or before the campaign first, then later
+    captures. Nothing found leaves the value unknown rather than guessing, and an
+    uncontainerised campaign has only the one operating system to report.
+    """
+    container = re.search(r"^container:\s+(\S+)", text, re.M)
+    if not container or container.group(1) in ("none", "unknown"):
+        return image_distro
+    later = [e for e in envs if e not in prior]
+    for path in list(reversed(prior[:-1])) + later:
+        other = open(path, encoding="utf-8").read()
+        if not re.search(r"^container:\s+none\s*$", other, re.M):
+            continue
+        found = re.search(r"Linux \S+ (\S+)", other)
+        if not found or found.group(1) != kernel:
+            continue
+        distro = re.search(r"^distro:\s+(.+)", other, re.M)
+        if distro:
+            return distro.group(1).strip()
+    return "unknown"
+
+
 def main_host_macros(campaign_path):
     """Describe the host the reported campaign ran on, from its own capture.
 
@@ -1849,7 +1883,9 @@ def main_host_macros(campaign_path):
         macros["MainSockets"] = sockets
     macros["MainNumaNodes"] = grab(r"NUMA node\(s\):\s+(\d+)")
     macros["MainDistro"] = grab(r"distro:\s+(.+)")
-    macros["MainKernel"] = grab(r"Linux \S+ (\S+)").replace("_", r"\_")
+    kernel = grab(r"Linux \S+ (\S+)")
+    macros["MainKernel"] = kernel.replace("_", r"\_")
+    macros["MainHostDistro"] = _host_distro(text, envs, prior, kernel, macros["MainDistro"])
     macros["MainVirt"] = grab(r"virtualisation:\s+(\S+)")
     macros["MainGovernor"] = grab(r"governors:\s+(\S+)")
     macros["MainSmt"] = grab(r"smt/control:\s+(\S+)")
