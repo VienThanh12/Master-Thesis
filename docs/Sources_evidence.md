@@ -591,11 +591,20 @@ numbers below are the printed folios 25–32, not PDF pages):
 - Scope, same section (*Security Only*): "This work only focuses on security, **not performance**,
   correctness, maintainability", so it bounds RQ2 and says nothing about RQ1 or RQ3.
 
-**Two cautions for anyone re-quoting this source.** It prints the Virtually Impossible share of
+**Three cautions for anyone re-quoting this source.** It prints the Virtually Impossible share of
 the taxonomy as 14.8% on p. 28 where its own counts give 72 of 520, so quote the counts and not
-that percentage. And its Summary on p. 32 says the study covers "75 prominent, mature open source
-projects" where the abstract, §V-B and §V-C all say 68. The thesis quotes 68 and 58.2%, the pair
-the abstract and the results section agree on.
+that percentage. Its Summary on p. 32 says the study covers "75 prominent, mature open source
+projects" where the abstract, §V-B and §V-C all say 68. And **the CWE identifiers in its prose do
+not match the names beside them** (p. 28 gives CWE-401 as "Use of Pointer Subtraction to Determine
+Size", which is CWE-469, and p. 29 gives CWE-165 for integer wraparound, which is CWE-190), while
+Table II's identifiers on p. 31 are correct. Take a CWE number from the table only. The thesis
+quotes 68 and 58.2%, the pair the abstract and the results section agree on, and no CWE number
+from this source at all.
+**One cell of its mapping this thesis contradicts.** Table II classifies CWE-401 as Virtually
+Impossible where the `leak_cycle` boundary class compiles in safe Rust and leaks. The disagreement
+is recorded in `LITERATURE_NOTES.md` §A.1 of the 8 September 2026 addition, with MITRE's own
+reference-count example for that CWE and the paper's own method note that predicts it. Nothing in
+the thesis currently states this, so it is an available addition and not an outstanding defect.
 **Verdict** Entry OK. All four citing sentences carry the best-case framing with the number, which
 is the source's own reading of it.
 
@@ -1047,6 +1056,29 @@ advanced types in existing Rust software makes it challenging to engineer intero
 foreign function calls**, the limitations of the tools that they currently use … **limited tooling
 support for foreign function calls made participants uncertain about their design choices, and
 certain foreign aliasing and concurrency patterns were difficult to encapsulate**."
+**Verdict** OK.
+
+### `mccormack2025ffi` — Undefined Behavior Across Foreign Function Boundaries in Rust Libraries, ICSE 2025, 2075–2086
+**Metadata** ✔ Crossref matches the three-author list, the pages and the venue. Same first author
+and group as `mccormack2026unsafe`, which is the mixed-methods companion to this measurement.
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:3278` and `Ha_Vien_Mastersthesis_2026_short.tex:1845` —
+no shipped tool checks the C++ side of the seam.
+**Evidence — level A** (abstract): "Miri is currently the only dynamic analysis tool that can
+validate applications against these models, but **it does not support finding bugs in foreign
+functions** … We used Miri and an LLVM interpreter to jointly execute applications that call
+foreign functions, where we **found 46 instances of undefined or undesired behavior in 37
+libraries** … and **one was found in a library maintained by the Rust Project**."
+**What it may not be made to carry.** The three high-download bugs are "libraries that had more
+than 10,000 daily downloads on average during our observation period" and **not** libraries that
+had been audited. Do not upgrade the download figure into a review claim.
+**One thing it changed in the thesis beyond the citation.** §7.4 read that Miri "interprets the
+program against the Stacked Borrows aliasing model" and reports the second release. The artefact
+does not support the attribution: `faults/run_miri.sh` sets no `MIRIFLAGS` at all, so the run took
+Miri's defaults, and `faults/results/miri-seam_double_free.log` reports a `Box` validity error
+("encountered a dangling box (use-after-free)") rather than an aliasing violation. The model
+naming is removed. This paper is what made it matter, since it reports "the latest Tree Borrows
+model was significantly more permissive than the earlier Stacked Borrows model", so naming a model
+implies a configuration this study never set.
 **Verdict** OK.
 
 ### `li2024rustforlinux` — An Empirical Study of Rust-for-Linux, USENIX ATC 2024, 425–443
