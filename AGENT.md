@@ -260,6 +260,64 @@ worth remembering is `diagrams/26_contributions`, which no `.tex` includes, so n
 it still showed the pre-catalogue counts of five injected classes and two boundary ones long after
 the thesis said seven and seven. A diagram only the deck uses is outside every gate the thesis has.
 
+**The deck's host labels were resynced again on 8 September 2026, and the defect class is worth the
+paragraph.** Four slides described the virtualised guest while printing the reported host's numbers,
+because the resync of 26 August predated the bare-metal repeat of 27 August by a day. Slide 16 read
+its left column from `ENV`, which follows the newest campaign in `bench/results/`, so its values
+moved to bare metal and its labels did not: it printed the host's 48 threads as "48 cores, 1
+sockets" and the string "none guest" on the timing-floor row. It reads `\Main*` now, the values
+Appendix D prints, and its OS row splits `\MainHostDistro` from the image's `\MainDistro`. Slide 23
+compared guest against bare metal with no `\Guest*` macro in scope, so its guest column held
+unprefixed values with the guest's outcome typed beside them in words, which after the repeat meant
+a bare-metal microsecond under a heading reading virtualised guest. `gen_guest.tex` is now a deck
+macro source and that column reads `\GuestPNineNineMaxCI` against `\GuestPNineNineRange`, the
+interval swamping the spread, which is what "cannot resolve" means in numbers. The guest campaign
+recorded no histogram buckets, so the two pooled rows say there is nothing there to pool rather than
+reporting a null. Slides 22 and 28 claimed the allocator effect was an order of magnitude larger
+than the language effect, the claim this file and the rules forbid: both now read comparable here
+and `\GuestRssAllocOverLang` times it on the guest, matching `tab:findings`. Two lessons. A column
+whose heading names one host and whose cells come from another is the cell no gate can catch, and a
+raw capture read through `ENV` is a path that silently repoints when a campaign lands.
+
+**Slide PNGs do export on this machine, through Windows PowerPoint.** The deck skill requires a
+visual pass over rendered slides and neither LibreOffice nor Poppler is installed here, so earlier
+sessions checked the deck with the geometry and prose gates alone and said so. WSL can reach the
+host's Office instead. Copy the deck and
+`.cursor/skills/create-pptx-master-thesis/scripts/export_slides.ps1` to a Windows-visible directory
+such as `/mnt/c/temp/`, run `powershell.exe -ExecutionPolicy Bypass -File ... -PptxPath ...
+-OutDir ...`, and copy the PNGs back to `slides_preview/` (gitignored, 32 slides at about 7 MiB).
+The whole export takes some 15 seconds. It is worth the trouble because
+`check_slide_text_overflows()` is a conservative estimate rather than a renderer, and it is wrong in
+both directions. It has flagged the same ten shapes for several builds and the render shows every one
+of them fitting, so judge a flag by the PNG and treat a *new* flag as the signal it is meant to be.
+It also missed two real collisions, both a title or subtitle wrapping onto the shape below it, and
+one of them had been in the deck for as long as the slide had. Titles and subtitles are the exposure,
+because a wrap there lands on the table header or the figure rather than in white space, and the
+limit is rendered width and not a character count: the 62-character title on slide 10 holds one line
+while slide 18's 65-character one did not. Lengthen either and look at the render.
+
+The same pass corrected two deck-only diagrams, the class this section already warns about.
+`01_ngran_architecture.svg` drew E1 outside the dashed gNB-CU box with both arrowheads stopping at
+elbow bends, and E1 is internal to the central unit, so the artwork put a standardised interface in
+the wrong container and contradicted `fig:ngran`, whose TikZ draws it straight down from `cp.south`
+to `up.north`. The box is now tall enough to hold that arrow between the two planes, and F1 and NG
+stop three units short of the dashed border so the dashes no longer cut through their heads. In
+`23_stats_pipeline` the permutation count read `2^20`, a caret where the prose typesets
+$2^{\NRepeats}$, so `build_new_diagrams.py` now translates the exponent's digits to Unicode
+superscripts. Note what caught neither: `check_labels.py` does cover both files, since its scope
+includes what `build_deck.py` names, and `check_fit.py` reports no tight label in either. Geometry
+and notation are outside what both gates read.
+
+An audit of every number typed into a slide string followed, since the build only fails on a macro
+it cannot find and a literal is invisible to it. Four survive, and three are design facts that match
+their sources: `C++23` matches `CMAKE_CXX_STANDARD`, the two condition variables match
+`bounded_queue.hpp`, and capacity 1024 matches the default in `bench/queue_contention.sh`. The
+fourth was wrong in the way this file cares about. Slide 4 read that roughly 70 per cent of serious
+security vulnerabilities *at major vendors* are memory-safety defects, and the figure is Microsoft's
+own reporting of its own CVEs, which is how §2.1 states and cites it. The slide names the vendor now.
+Generalising a single-vendor number to an industry is the same defect as a column heading naming one
+host over another host's numbers, and neither the layout gate nor the prose gate can see either.
+
 The third item is **done as of 24 August 2026**: `figures/tab_taxonomy.tex` is now generated from
 `faults/results/taxonomy.csv` by `write_taxonomy_table()` in `bench/plot_figures.py`, so Table 7.6
 is no longer hand-maintained and §7.3's claim that table and figure come from the same log is
