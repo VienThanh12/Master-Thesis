@@ -18,9 +18,7 @@
 \renewcommand{\textfraction}{0.08}
 \renewcommand{\floatpagefraction}{0.75}
 
-\onehalfspacing %line spacing
-%\singlespacing
-%\doublespacing
+\onehalfspacing 
 
 \sloppy 
 
@@ -28,7 +26,7 @@
 \author{Ha Vien}
 \date{\today}
 \supervisors{Prof. Keijo Heljanko, Christoph Luneburg, Petteri Kotimaa}
-\examiners{Prof. Keijo Heljanko}
+\examiners{Prof. Keijo Heljanko, TBD}
 \keywords{Rust, C++, RAN control plane, tail latency, memory safety, fault injection, incremental adoption}
 \additionalinformation{\translate{\track}}
 
@@ -60,11 +58,7 @@
     urlcolor=cyan           % color of external links
 }
 
-% The same generated macro files Ha_Vien_Mastersthesis_2026.tex reads. The results
-% paragraphs quote these rather than carrying their own copies of the numbers, so a
-% rerun of bench/refresh_thesis.sh updates this document with the thesis. Macros
-% prefixed Bm belong to the second bare-metal host (a different design). Macros
-% prefixed Guest belong to the earlier virtualised campaign, retained for comparison.
+
 \input{figures/gen_macros.tex}
 \input{figures/gen_complexity.tex}
 \input{figures/gen_artefacts.tex}
@@ -74,16 +68,8 @@
 
 \begin{document}
 
-% Generate title page.
 \maketitle
 
-% STEP 3:
-% Write your abstract (of course you really do this last).
-% You can make several abstract pages (if you want it in different languages)
-% by repeating the otherlanguage environment with a different language.
-
-% The abstract form is a fixed-height box, so it is set single-spaced as in the
-% template; the 1.5 spacing of the body would cost it a fifth of its lines.
 {\singlespacing
 \begin{otherlanguage}{english}
 \begin{abstract}
@@ -126,19 +112,11 @@
 \end{otherlanguage}
 }
 
-% Place ToC. \mytableofcontents is not used here because it switches to arabic
-% numbering as its last act, which would number the acronym list 1 and 2 and then
-% let \mainmatter restart the body at 1. Front matter is numbered in roman instead,
-% as in Ha_Vien_Mastersthesis_2026.tex, and \mainmatter starts the body at arabic 1.
 \cleardoublepage
 \pagenumbering{roman}
 \setcounter{page}{1}
 \tableofcontents
 
-% \cleardoublepage has to come before \addcontentsline: the \chapter* inside
-% \listoffigures opens a new page itself, so the contents entry must record the
-% page after that, not before. The entries are the short forms of the captions,
-% \caption[short]{full}. No list of tables, because this document has no tables.
 \cleardoublepage
 \phantomsection
 \addcontentsline{toc}{chapter}{\listfigurename}
@@ -209,17 +187,13 @@ UECM & UE Context Management, the subsystem reimplemented and measured here \\
 \cleardoublepage
 \mainmatter
 
-% -----------------------------------------------------------------------------------
-% STEP 4: Write the thesis.
-% Your actual text starts here. You shouldn't mess with the code above the line except
-% to change the parameters. Removing the abstract and ToC commands will mess up stuff.
+
 \chapter{Introduction}
 
 Mobile networks are moving from specialised hardware to software on ordinary servers.
 Functions that once ran on fixed-purpose, vertically integrated equipment are now
 re-implemented as programs on general-purpose machines. The radio access network (RAN),
-long the most hardware-bound part of the stack, is part of that shift.
-% Checked (make sure everything is understandable)
+long the most hardware-centric part of the stack, is part of that shift.
 
 In 5G, the base station, formally the next-generation NodeB (gNB), is split into a central
 unit and one or more distributed units. The central unit is split again into control-plane
@@ -230,6 +204,8 @@ control plane (gNB-CU-CP), is a large, stateful, highly concurrent program. It t
 connected device, each of which the standards call a user equipment (UE), runs Radio Resource
 Control (RRC) signalling~\cite{3gpp38331}, and coordinates mobility and handovers, all within
 strict latency limits.
+
+% Checked (make sure everything is understandable)
 
 Load at a busy site is high. A single site can run thousands of connection-management and
 mobility procedures per second, each of which has to complete inside the millisecond-scale
