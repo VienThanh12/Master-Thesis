@@ -127,8 +127,8 @@
         -:  126:    : public _Mutex_base<_Lp>
         -:  127:    {
         -:  128:    public:
-  286466*:  129:      _Sp_counted_base() noexcept
-  286466*:  130:      : _M_use_count(1), _M_weak_count(1) { }
+  286407*:  129:      _Sp_counted_base() noexcept
+  286407*:  130:      : _M_use_count(1), _M_weak_count(1) { }
 ------------------
 _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EEC2Ev:
 function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EEC2Ev called 0 returned 0% blocks executed 0%
@@ -136,14 +136,14 @@ function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EEC2Ev called 0 ret
     #####:  130:      : _M_use_count(1), _M_weak_count(1) { }
 ------------------
 _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EEC2Ev:
-function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EEC2Ev called 286466 returned 100% blocks executed 100%
-   286466:  129:      _Sp_counted_base() noexcept
-   286466:  130:      : _M_use_count(1), _M_weak_count(1) { }
+function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EEC2Ev called 286407 returned 100% blocks executed 100%
+   286407:  129:      _Sp_counted_base() noexcept
+   286407:  130:      : _M_use_count(1), _M_weak_count(1) { }
 ------------------
         -:  131:
         -:  132:      virtual
-  286507*:  133:      ~_Sp_counted_base() noexcept
-  286507*:  134:      { }
+  286663*:  133:      ~_Sp_counted_base() noexcept
+  286663*:  134:      { }
 ------------------
 _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EED0Ev:
 function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EED0Ev called 0 returned 0% blocks executed 0%
@@ -165,9 +165,9 @@ call    0 never executed
 call    1 never executed
 ------------------
 _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EED2Ev:
-function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EED2Ev called 286507 returned 100% blocks executed 100%
-   286507:  133:      ~_Sp_counted_base() noexcept
-   286507:  134:      { }
+function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EED2Ev called 286663 returned 100% blocks executed 100%
+   286663:  133:      ~_Sp_counted_base() noexcept
+   286663:  134:      { }
 ------------------
         -:  135:
         -:  136:      // Called when _M_use_count drops to zero, to release the resources
@@ -202,8 +202,8 @@ call    2 never executed
         -:  148:
         -:  149:      // Increment the use count (used when the count is greater than zero).
         -:  150:      void
-  284316*:  151:      _M_add_ref_copy()
-  284316*:  152:      { __gnu_cxx::__atomic_add_dispatch(&_M_use_count, 1); }
+  284279*:  151:      _M_add_ref_copy()
+  284279*:  152:      { __gnu_cxx::__atomic_add_dispatch(&_M_use_count, 1); }
 ------------------
 _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE15_M_add_ref_copyEv:
 function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE15_M_add_ref_copyEv called 0 returned 0% blocks executed 0%
@@ -211,9 +211,9 @@ function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE15_M_add_ref_copy
     #####:  152:      { __gnu_cxx::__atomic_add_dispatch(&_M_use_count, 1); }
 ------------------
 _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE15_M_add_ref_copyEv:
-function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE15_M_add_ref_copyEv called 284316 returned 100% blocks executed 78%
-   284316:  151:      _M_add_ref_copy()
-   284316:  152:      { __gnu_cxx::__atomic_add_dispatch(&_M_use_count, 1); }
+function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE15_M_add_ref_copyEv called 284279 returned 100% blocks executed 78%
+   284279:  151:      _M_add_ref_copy()
+   284279:  152:      { __gnu_cxx::__atomic_add_dispatch(&_M_use_count, 1); }
 ------------------
         -:  153:
         -:  154:      // Increment the use count if it is non-zero, throw otherwise.
@@ -234,10 +234,10 @@ function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE15_M_add_ref_copy
         -:  169:
         -:  170:      // Called by _M_release() when the use count reaches zero.
         -:  171:      void
-    1126*:  172:      _M_release_last_use() noexcept
+    1148*:  172:      _M_release_last_use() noexcept
         -:  173:      {
         -:  174:	_GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER(&_M_use_count);
-    1126*:  175:	_M_dispose();
+    1148*:  175:	_M_dispose();
         -:  176:	// There must be a memory barrier between dispose() and destroy()
         -:  177:	// to ensure that the effects of dispose() are observed in the
         -:  178:	// thread that runs destroy().
@@ -249,13 +249,13 @@ function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE15_M_add_ref_copy
         -:  184:
         -:  185:	// Be race-detector-friendly.  For more info see bits/c++config.
         -:  186:	_GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE(&_M_weak_count);
-    1126*:  187:	if (__gnu_cxx::__exchange_and_add_dispatch(&_M_weak_count,
-    1126*:  188:						   -1) == 1)
+    1147*:  187:	if (__gnu_cxx::__exchange_and_add_dispatch(&_M_weak_count,
+    1147*:  188:						   -1) == 1)
         -:  189:	  {
         -:  190:	    _GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER(&_M_weak_count);
-    1126*:  191:	    _M_destroy();
+    1148*:  191:	    _M_destroy();
         -:  192:	  }
-    1126*:  193:      }
+    1147*:  193:      }
 ------------------
 _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE19_M_release_last_useEv:
 function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE19_M_release_last_useEv called 0 returned 0% blocks executed 0%
@@ -287,11 +287,11 @@ call    0 never executed
     #####:  193:      }
 ------------------
 _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE19_M_release_last_useEv:
-function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE19_M_release_last_useEv called 1126 returned 100% blocks executed 77%
-     1126:  172:      _M_release_last_use() noexcept
+function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE19_M_release_last_useEv called 1148 returned 100% blocks executed 77%
+     1148:  172:      _M_release_last_use() noexcept
         -:  173:      {
         -:  174:	_GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER(&_M_use_count);
-     1126:  175:	_M_dispose();
+     1148:  175:	_M_dispose();
 call    0 returned 100%
         -:  176:	// There must be a memory barrier between dispose() and destroy()
         -:  177:	// to ensure that the effects of dispose() are observed in the
@@ -304,23 +304,23 @@ call    0 returned 100%
         -:  184:
         -:  185:	// Be race-detector-friendly.  For more info see bits/c++config.
         -:  186:	_GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE(&_M_weak_count);
-     1126:  187:	if (__gnu_cxx::__exchange_and_add_dispatch(&_M_weak_count,
-     1126:  188:						   -1) == 1)
+     1147:  187:	if (__gnu_cxx::__exchange_and_add_dispatch(&_M_weak_count,
+     1147:  188:						   -1) == 1)
 branch  0 taken 100% (fallthrough)
-branch  1 taken 0%
+branch  1 taken -0%
         -:  189:	  {
         -:  190:	    _GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER(&_M_weak_count);
-     1126:  191:	    _M_destroy();
+     1148:  191:	    _M_destroy();
 call    0 returned 100%
         -:  192:	  }
-     1126:  193:      }
+     1147:  193:      }
 ------------------
         -:  194:
         -:  195:      // As above, but 'noinline' to reduce code size on the cold path.
         -:  196:      __attribute__((__noinline__))
         -:  197:      void
-    1126*:  198:      _M_release_last_use_cold() noexcept
-    1126*:  199:      { _M_release_last_use(); }
+    1148*:  198:      _M_release_last_use_cold() noexcept
+    1148*:  199:      { _M_release_last_use(); }
 ------------------
 _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE24_M_release_last_use_coldEv:
 function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE24_M_release_last_use_coldEv called 0 returned 0% blocks executed 0%
@@ -329,9 +329,9 @@ function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE24_M_release_last
 call    0 never executed
 ------------------
 _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE24_M_release_last_use_coldEv:
-function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE24_M_release_last_use_coldEv called 1126 returned 100% blocks executed 100%
-     1126:  198:      _M_release_last_use_cold() noexcept
-     1126:  199:      { _M_release_last_use(); }
+function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE24_M_release_last_use_coldEv called 1148 returned 100% blocks executed 100%
+     1148:  198:      _M_release_last_use_cold() noexcept
+     1148:  199:      { _M_release_last_use(); }
 call    0 returned 100%
 ------------------
         -:  200:
@@ -360,11 +360,11 @@ call    0 returned 100%
         -:  223:      }
         -:  224:
         -:  225:      long
-  287052*:  226:      _M_get_use_count() const noexcept
+  287218*:  226:      _M_get_use_count() const noexcept
         -:  227:      {
         -:  228:        // No memory barrier is used here so there is no synchronization
         -:  229:        // with other threads.
-  287052*:  230:        return __atomic_load_n(&_M_use_count, __ATOMIC_RELAXED);
+  287218*:  230:        return __atomic_load_n(&_M_use_count, __ATOMIC_RELAXED);
         -:  231:      }
 ------------------
 _ZNKSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE16_M_get_use_countEv:
@@ -377,12 +377,12 @@ function _ZNKSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE16_M_get_use_cou
         -:  231:      }
 ------------------
 _ZNKSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE16_M_get_use_countEv:
-function _ZNKSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE16_M_get_use_countEv called 287052 returned 100% blocks executed 100%
-   287052:  226:      _M_get_use_count() const noexcept
+function _ZNKSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE16_M_get_use_countEv called 287218 returned 100% blocks executed 100%
+   287218:  226:      _M_get_use_count() const noexcept
         -:  227:      {
         -:  228:        // No memory barrier is used here so there is no synchronization
         -:  229:        // with other threads.
-   287052:  230:        return __atomic_load_n(&_M_use_count, __ATOMIC_RELAXED);
+   287218:  230:        return __atomic_load_n(&_M_use_count, __ATOMIC_RELAXED);
         -:  231:      }
 ------------------
         -:  232:
@@ -470,44 +470,44 @@ function _ZNKSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE16_M_get_use_cou
         -:  314:
         -:  315:  template<>
         -:  316:    inline void
-  567292*:  317:    _Sp_counted_base<_S_atomic>::_M_release() noexcept
+  567312*:  317:    _Sp_counted_base<_S_atomic>::_M_release() noexcept
         -:  318:    {
         -:  319:      _GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE(&_M_use_count);
         -:  320:#if ! _GLIBCXX_TSAN
-  567292*:  321:      constexpr bool __lock_free
+  567312*:  321:      constexpr bool __lock_free
         -:  322:	= __atomic_always_lock_free(sizeof(long long), 0)
         -:  323:	&& __atomic_always_lock_free(sizeof(_Atomic_word), 0);
-  567292*:  324:      constexpr bool __double_word
+  567312*:  324:      constexpr bool __double_word
         -:  325:	= sizeof(long long) == 2 * sizeof(_Atomic_word);
         -:  326:      // The ref-count members follow the vptr, so are aligned to
         -:  327:      // alignof(void*).
-  567292*:  328:      constexpr bool __aligned = __alignof(long long) <= alignof(void*);
+  567312*:  328:      constexpr bool __aligned = __alignof(long long) <= alignof(void*);
         -:  329:      if _GLIBCXX17_CONSTEXPR (__lock_free && __double_word && __aligned)
         -:  330:	{
-  567292*:  331:	  constexpr int __wordbits = __CHAR_BIT__ * sizeof(_Atomic_word);
-  567292*:  332:	  constexpr int __shiftbits = __double_word ? __wordbits : 0;
-  567292*:  333:	  constexpr long long __unique_ref = 1LL + (1LL << __shiftbits);
-  567292*:  334:	  auto __both_counts = reinterpret_cast<long long*>(&_M_use_count);
+  567312*:  331:	  constexpr int __wordbits = __CHAR_BIT__ * sizeof(_Atomic_word);
+  567312*:  332:	  constexpr int __shiftbits = __double_word ? __wordbits : 0;
+  567312*:  333:	  constexpr long long __unique_ref = 1LL + (1LL << __shiftbits);
+  567312*:  334:	  auto __both_counts = reinterpret_cast<long long*>(&_M_use_count);
         -:  335:
         -:  336:	  _GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE(&_M_weak_count);
-  567292*:  337:	  if (__atomic_load_n(__both_counts, __ATOMIC_ACQUIRE) == __unique_ref)
+  567312*:  337:	  if (__atomic_load_n(__both_counts, __ATOMIC_ACQUIRE) == __unique_ref)
         -:  338:	    {
         -:  339:	      // Both counts are 1, so there are no weak references and
         -:  340:	      // we are releasing the last strong reference. No other
         -:  341:	      // threads can observe the effects of this _M_release()
         -:  342:	      // call (e.g. calling use_count()) without a data race.
-  284879*:  343:	      _M_weak_count = _M_use_count = 0;
+  284594*:  343:	      _M_weak_count = _M_use_count = 0;
         -:  344:	      _GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER(&_M_use_count);
         -:  345:	      _GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER(&_M_weak_count);
-  284879*:  346:	      _M_dispose();
-  285925*:  347:	      _M_destroy();
-  285295*:  348:	      return;
+  284594*:  346:	      _M_dispose();
+  286019*:  347:	      _M_destroy();
+  285441*:  348:	      return;
         -:  349:	    }
-  564826*:  350:	  if (__gnu_cxx::__exchange_and_add_dispatch(&_M_use_count, -1) == 1)
-    1126*:  351:	    [[__unlikely__]]
+  565436*:  350:	  if (__gnu_cxx::__exchange_and_add_dispatch(&_M_use_count, -1) == 1)
+    1148*:  351:	    [[__unlikely__]]
         -:  352:	    {
-    1126*:  353:	      _M_release_last_use_cold();
-    1126*:  354:	      return;
+    1148*:  353:	      _M_release_last_use_cold();
+    1148*:  354:	      return;
         -:  355:	    }
         -:  356:	}
         -:  357:      else
@@ -576,28 +576,28 @@ call    0 never executed
         -:  363:    }
 ------------------
 _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE10_M_releaseEv:
-function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE10_M_releaseEv called 567292 returned 100% blocks executed 82%
-   567292:  317:    _Sp_counted_base<_S_atomic>::_M_release() noexcept
+function _ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE10_M_releaseEv called 567312 returned 100% blocks executed 82%
+   567312:  317:    _Sp_counted_base<_S_atomic>::_M_release() noexcept
         -:  318:    {
         -:  319:      _GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE(&_M_use_count);
         -:  320:#if ! _GLIBCXX_TSAN
-   567292:  321:      constexpr bool __lock_free
+   567312:  321:      constexpr bool __lock_free
         -:  322:	= __atomic_always_lock_free(sizeof(long long), 0)
         -:  323:	&& __atomic_always_lock_free(sizeof(_Atomic_word), 0);
-   567292:  324:      constexpr bool __double_word
+   567312:  324:      constexpr bool __double_word
         -:  325:	= sizeof(long long) == 2 * sizeof(_Atomic_word);
         -:  326:      // The ref-count members follow the vptr, so are aligned to
         -:  327:      // alignof(void*).
-   567292:  328:      constexpr bool __aligned = __alignof(long long) <= alignof(void*);
+   567312:  328:      constexpr bool __aligned = __alignof(long long) <= alignof(void*);
         -:  329:      if _GLIBCXX17_CONSTEXPR (__lock_free && __double_word && __aligned)
         -:  330:	{
-   567292:  331:	  constexpr int __wordbits = __CHAR_BIT__ * sizeof(_Atomic_word);
-   567292:  332:	  constexpr int __shiftbits = __double_word ? __wordbits : 0;
-   567292:  333:	  constexpr long long __unique_ref = 1LL + (1LL << __shiftbits);
-   567292:  334:	  auto __both_counts = reinterpret_cast<long long*>(&_M_use_count);
+   567312:  331:	  constexpr int __wordbits = __CHAR_BIT__ * sizeof(_Atomic_word);
+   567312:  332:	  constexpr int __shiftbits = __double_word ? __wordbits : 0;
+   567312:  333:	  constexpr long long __unique_ref = 1LL + (1LL << __shiftbits);
+   567312:  334:	  auto __both_counts = reinterpret_cast<long long*>(&_M_use_count);
         -:  335:
         -:  336:	  _GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE(&_M_weak_count);
-   567292:  337:	  if (__atomic_load_n(__both_counts, __ATOMIC_ACQUIRE) == __unique_ref)
+   567312:  337:	  if (__atomic_load_n(__both_counts, __ATOMIC_ACQUIRE) == __unique_ref)
 branch  0 taken 50% (fallthrough)
 branch  1 taken 50%
         -:  338:	    {
@@ -605,23 +605,23 @@ branch  1 taken 50%
         -:  340:	      // we are releasing the last strong reference. No other
         -:  341:	      // threads can observe the effects of this _M_release()
         -:  342:	      // call (e.g. calling use_count()) without a data race.
-   284879:  343:	      _M_weak_count = _M_use_count = 0;
+   284594:  343:	      _M_weak_count = _M_use_count = 0;
         -:  344:	      _GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER(&_M_use_count);
         -:  345:	      _GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER(&_M_weak_count);
-   284879:  346:	      _M_dispose();
+   284594:  346:	      _M_dispose();
+call    0 returned 101%
+   286019:  347:	      _M_destroy();
 call    0 returned 100%
-   285925:  347:	      _M_destroy();
-call    0 returned 100%
-   285295:  348:	      return;
+   285441:  348:	      return;
         -:  349:	    }
-   564826:  350:	  if (__gnu_cxx::__exchange_and_add_dispatch(&_M_use_count, -1) == 1)
+   565436:  350:	  if (__gnu_cxx::__exchange_and_add_dispatch(&_M_use_count, -1) == 1)
 branch  0 taken 1% (fallthrough)
 branch  1 taken 100%
-     1126:  351:	    [[__unlikely__]]
+     1148:  351:	    [[__unlikely__]]
         -:  352:	    {
-     1126:  353:	      _M_release_last_use_cold();
+     1148:  353:	      _M_release_last_use_cold();
 call    0 returned 100%
-     1126:  354:	      return;
+     1148:  354:	      return;
         -:  355:	    }
         -:  356:	}
         -:  357:      else
@@ -738,28 +738,28 @@ call    0 returned 100%
         -:  467:  template<int _Nm, typename _Tp>
         -:  468:    struct _Sp_ebo_helper<_Nm, _Tp, true> : private _Tp
         -:  469:    {
-  286298*:  470:      explicit _Sp_ebo_helper(const _Tp& __tp) : _Tp(__tp) { }
+  286289*:  470:      explicit _Sp_ebo_helper(const _Tp& __tp) : _Tp(__tp) { }
 ------------------
 _ZNSt14_Sp_ebo_helperILi0ESaIvELb1EEC2ERKS0_:
 function _ZNSt14_Sp_ebo_helperILi0ESaIvELb1EEC2ERKS0_ called 0 returned 0% blocks executed 0%
     #####:  470:      explicit _Sp_ebo_helper(const _Tp& __tp) : _Tp(__tp) { }
 ------------------
 _ZNSt14_Sp_ebo_helperILi0ESaIvELb1EEC2ERKS0_:
-function _ZNSt14_Sp_ebo_helperILi0ESaIvELb1EEC2ERKS0_ called 286298 returned 100% blocks executed 100%
-   286298:  470:      explicit _Sp_ebo_helper(const _Tp& __tp) : _Tp(__tp) { }
+function _ZNSt14_Sp_ebo_helperILi0ESaIvELb1EEC2ERKS0_ called 286289 returned 100% blocks executed 100%
+   286289:  470:      explicit _Sp_ebo_helper(const _Tp& __tp) : _Tp(__tp) { }
 ------------------
         -:  471:      explicit _Sp_ebo_helper(_Tp&& __tp) : _Tp(std::move(__tp)) { }
         -:  472:
         -:  473:      static _Tp&
-  571380*:  474:      _S_get(_Sp_ebo_helper& __eboh) { return static_cast<_Tp&>(__eboh); }
+  571448*:  474:      _S_get(_Sp_ebo_helper& __eboh) { return static_cast<_Tp&>(__eboh); }
 ------------------
 _ZNSt14_Sp_ebo_helperILi0ESaIvELb1EE6_S_getERS1_:
 function _ZNSt14_Sp_ebo_helperILi0ESaIvELb1EE6_S_getERS1_ called 0 returned 0% blocks executed 0%
     #####:  474:      _S_get(_Sp_ebo_helper& __eboh) { return static_cast<_Tp&>(__eboh); }
 ------------------
 _ZNSt14_Sp_ebo_helperILi0ESaIvELb1EE6_S_getERS1_:
-function _ZNSt14_Sp_ebo_helperILi0ESaIvELb1EE6_S_getERS1_ called 571380 returned 100% blocks executed 100%
-   571380:  474:      _S_get(_Sp_ebo_helper& __eboh) { return static_cast<_Tp&>(__eboh); }
+function _ZNSt14_Sp_ebo_helperILi0ESaIvELb1EE6_S_getERS1_ called 571448 returned 100% blocks executed 100%
+   571448:  474:      _S_get(_Sp_ebo_helper& __eboh) { return static_cast<_Tp&>(__eboh); }
 ------------------
         -:  475:    };
         -:  476:
@@ -890,7 +890,7 @@ function _ZNSt19_Sp_make_shared_tag5_S_tiEv called 0 returned 0% blocks executed
         -:  584:	typedef _Sp_ebo_helper<0, _Alloc>	_A_base;
         -:  585:
         -:  586:      public:
-  286402*:  587:	explicit _Impl(_Alloc __a) noexcept : _A_base(__a) { }
+  286359*:  587:	explicit _Impl(_Alloc __a) noexcept : _A_base(__a) { }
 ------------------
 _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE5_ImplC2ES2_:
 function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE5_ImplC2ES2_ called 0 returned 0% blocks executed 0%
@@ -898,12 +898,12 @@ function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvEL
 call    0 never executed
 ------------------
 _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE5_ImplC2ES2_:
-function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE5_ImplC2ES2_ called 286402 returned 100% blocks executed 100%
-   286402:  587:	explicit _Impl(_Alloc __a) noexcept : _A_base(__a) { }
+function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE5_ImplC2ES2_ called 286359 returned 100% blocks executed 100%
+   286359:  587:	explicit _Impl(_Alloc __a) noexcept : _A_base(__a) { }
 call    0 returned 100%
 ------------------
         -:  588:
-  571443*:  589:	_Alloc& _M_alloc() noexcept { return _A_base::_S_get(*this); }
+  571457*:  589:	_Alloc& _M_alloc() noexcept { return _A_base::_S_get(*this); }
 ------------------
 _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE5_Impl8_M_allocEv:
 function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE5_Impl8_M_allocEv called 0 returned 0% blocks executed 0%
@@ -911,8 +911,8 @@ function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvEL
 call    0 never executed
 ------------------
 _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE5_Impl8_M_allocEv:
-function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE5_Impl8_M_allocEv called 571443 returned 100% blocks executed 100%
-   571443:  589:	_Alloc& _M_alloc() noexcept { return _A_base::_S_get(*this); }
+function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE5_Impl8_M_allocEv called 571457 returned 100% blocks executed 100%
+   571457:  589:	_Alloc& _M_alloc() noexcept { return _A_base::_S_get(*this); }
 call    0 returned 100%
 ------------------
         -:  590:
@@ -924,14 +924,14 @@ call    0 returned 100%
         -:  596:
         -:  597:      // Alloc parameter is not a reference so doesn't alias anything in __args
         -:  598:      template<typename... _Args>
-  286548*:  599:	_Sp_counted_ptr_inplace(_Alloc __a, _Args&&... __args)
-  286548*:  600:	: _M_impl(__a)
+  286516*:  599:	_Sp_counted_ptr_inplace(_Alloc __a, _Args&&... __args)
+  286516*:  600:	: _M_impl(__a)
         -:  601:	{
         -:  602:	  // _GLIBCXX_RESOLVE_LIB_DEFECTS
         -:  603:	  // 2070.  allocate_shared should use allocator_traits<A>::construct
-  286276*:  604:	  allocator_traits<_Alloc>::construct(__a, _M_ptr(),
+  286260*:  604:	  allocator_traits<_Alloc>::construct(__a, _M_ptr(),
         -:  605:	      std::forward<_Args>(__args)...); // might throw
-  285124*:  606:	}
+  285332*:  606:	}
 ------------------
 _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEC2IJEEES2_DpOT_:
 function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEC2IJEEES2_DpOT_ called 0 returned 0% blocks executed 0%
@@ -948,21 +948,21 @@ call    0 never executed
     #####:  606:	}
 ------------------
 _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEC2IJEEES2_DpOT_:
-function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEC2IJEEES2_DpOT_ called 286548 returned 100% blocks executed 100%
-   286548:  599:	_Sp_counted_ptr_inplace(_Alloc __a, _Args&&... __args)
-   286548:  600:	: _M_impl(__a)
+function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEC2IJEEES2_DpOT_ called 286516 returned 100% blocks executed 100%
+   286516:  599:	_Sp_counted_ptr_inplace(_Alloc __a, _Args&&... __args)
+   286516:  600:	: _M_impl(__a)
 call    0 returned 100%
 call    1 returned 100%
         -:  601:	{
         -:  602:	  // _GLIBCXX_RESOLVE_LIB_DEFECTS
         -:  603:	  // 2070.  allocate_shared should use allocator_traits<A>::construct
-   286276:  604:	  allocator_traits<_Alloc>::construct(__a, _M_ptr(),
+   286260:  604:	  allocator_traits<_Alloc>::construct(__a, _M_ptr(),
 call    0 returned 100%
         -:  605:	      std::forward<_Args>(__args)...); // might throw
-   285124:  606:	}
+   285332:  606:	}
 ------------------
         -:  607:
-  286587*:  608:      ~_Sp_counted_ptr_inplace() noexcept { }
+  286791*:  608:      ~_Sp_counted_ptr_inplace() noexcept { }
 ------------------
 _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EED0Ev:
 function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EED0Ev called 0 returned 0% blocks executed 0%
@@ -982,16 +982,16 @@ call    0 never executed
 call    1 never executed
 ------------------
 _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EED2Ev:
-function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EED2Ev called 286587 returned 100% blocks executed 100%
-   286587:  608:      ~_Sp_counted_ptr_inplace() noexcept { }
+function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EED2Ev called 286791 returned 100% blocks executed 100%
+   286791:  608:      ~_Sp_counted_ptr_inplace() noexcept { }
 call    0 returned 100%
 ------------------
         -:  609:
         -:  610:      virtual void
-  286066*:  611:      _M_dispose() noexcept
+  285715*:  611:      _M_dispose() noexcept
         -:  612:      {
-  286066*:  613:	allocator_traits<_Alloc>::destroy(_M_impl._M_alloc(), _M_ptr());
-  287074*:  614:      }
+  285715*:  613:	allocator_traits<_Alloc>::destroy(_M_impl._M_alloc(), _M_ptr());
+  287193*:  614:      }
 ------------------
 _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_disposeEv:
 function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_disposeEv called 0 returned 0% blocks executed 0%
@@ -1003,23 +1003,23 @@ call    1 never executed
     #####:  614:      }
 ------------------
 _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_disposeEv:
-function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_disposeEv called 286066 returned 100% blocks executed 100%
-   286066:  611:      _M_dispose() noexcept
+function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_disposeEv called 285715 returned 101% blocks executed 100%
+   285715:  611:      _M_dispose() noexcept
         -:  612:      {
-   286066:  613:	allocator_traits<_Alloc>::destroy(_M_impl._M_alloc(), _M_ptr());
+   285715:  613:	allocator_traits<_Alloc>::destroy(_M_impl._M_alloc(), _M_ptr());
 call    0 returned 100%
 call    1 returned 100%
-   287074:  614:      }
+   287193:  614:      }
 ------------------
         -:  615:
         -:  616:      // Override because the allocator needs to know the dynamic type
         -:  617:      virtual void
-  286996*:  618:      _M_destroy() noexcept
+  287074*:  618:      _M_destroy() noexcept
         -:  619:      {
-  286996*:  620:	__allocator_type __a(_M_impl._M_alloc());
-  286860*:  621:	__allocated_ptr<__allocator_type> __guard_ptr{ __a, this };
-  286640*:  622:	this->~_Sp_counted_ptr_inplace();
-  286521*:  623:      }
+  287074*:  620:	__allocator_type __a(_M_impl._M_alloc());
+  286991*:  621:	__allocated_ptr<__allocator_type> __guard_ptr{ __a, this };
+  286826*:  622:	this->~_Sp_counted_ptr_inplace();
+  286696*:  623:      }
 ------------------
 _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv:
 function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv called 0 returned 0% blocks executed 0%
@@ -1035,16 +1035,16 @@ call    0 never executed
 call    0 never executed
 ------------------
 _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv:
-function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv called 286996 returned 100% blocks executed 100%
-   286996:  618:      _M_destroy() noexcept
+function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv called 287074 returned 100% blocks executed 100%
+   287074:  618:      _M_destroy() noexcept
         -:  619:      {
-   286996:  620:	__allocator_type __a(_M_impl._M_alloc());
+   287074:  620:	__allocator_type __a(_M_impl._M_alloc());
 call    0 returned 100%
-   286860:  621:	__allocated_ptr<__allocator_type> __guard_ptr{ __a, this };
+   286991:  621:	__allocated_ptr<__allocator_type> __guard_ptr{ __a, this };
 call    0 returned 100%
-   286640:  622:	this->~_Sp_counted_ptr_inplace();
+   286826:  622:	this->~_Sp_counted_ptr_inplace();
 call    0 returned 100%
-   286521:  623:      }
+   286696:  623:      }
 call    0 returned 100%
 ------------------
         -:  624:
@@ -1134,7 +1134,7 @@ call    0 never executed
         -:  648:      }
 ------------------
         -:  649:
-  851152*:  650:      _Tp* _M_ptr() noexcept { return _M_impl._M_storage._M_ptr(); }
+  851725*:  650:      _Tp* _M_ptr() noexcept { return _M_impl._M_storage._M_ptr(); }
 ------------------
 _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE6_M_ptrEv:
 function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE6_M_ptrEv called 0 returned 0% blocks executed 0%
@@ -1142,8 +1142,8 @@ function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvEL
 call    0 never executed
 ------------------
 _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE6_M_ptrEv:
-function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE6_M_ptrEv called 851152 returned 100% blocks executed 100%
-   851152:  650:      _Tp* _M_ptr() noexcept { return _M_impl._M_storage._M_ptr(); }
+function _ZNSt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EE6_M_ptrEv called 851725 returned 100% blocks executed 100%
+   851725:  650:      _Tp* _M_ptr() noexcept { return _M_impl._M_storage._M_ptr(); }
 call    0 returned 100%
 ------------------
         -:  651:
@@ -1403,8 +1403,8 @@ call    0 returned 100%
         -:  905:#endif
         -:  906:
         -:  907:    public:
- 1135641*:  908:      constexpr __shared_count() noexcept : _M_pi(0)
- 1135641*:  909:      { }
+ 1135390*:  908:      constexpr __shared_count() noexcept : _M_pi(0)
+ 1135390*:  909:      { }
 ------------------
 _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2Ev:
 function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2Ev called 0 returned 0% blocks executed 0%
@@ -1412,9 +1412,9 @@ function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2Ev called 0 retur
     #####:  909:      { }
 ------------------
 _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2Ev:
-function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2Ev called 1135641 returned 100% blocks executed 100%
-  1135641:  908:      constexpr __shared_count() noexcept : _M_pi(0)
-  1135641:  909:      { }
+function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2Ev called 1135390 returned 100% blocks executed 100%
+  1135390:  908:      constexpr __shared_count() noexcept : _M_pi(0)
+  1135390:  909:      { }
 ------------------
         -:  910:
         -:  911:      template<typename _Ptr>
@@ -1470,19 +1470,19 @@ function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2Ev called 1135641
         -:  961:	}
         -:  962:
         -:  963:      template<typename _Tp, typename _Alloc, typename... _Args>
-  287068*:  964:	__shared_count(_Tp*& __p, _Sp_alloc_shared_tag<_Alloc> __a,
+  287005*:  964:	__shared_count(_Tp*& __p, _Sp_alloc_shared_tag<_Alloc> __a,
         -:  965:		       _Args&&... __args)
         -:  966:	{
         -:  967:	  typedef _Sp_counted_ptr_inplace<_Tp, _Alloc, _Lp> _Sp_cp_type;
-  287068*:  968:	  typename _Sp_cp_type::__allocator_type __a2(__a._M_a);
-  287068*:  969:	  auto __guard = std::__allocate_guarded(__a2);
-  286956*:  970:	  _Sp_cp_type* __mem = __guard.get();
-  286690*:  971:	  auto __pi = ::new (__mem)
+  287005*:  968:	  typename _Sp_cp_type::__allocator_type __a2(__a._M_a);
+  287005*:  969:	  auto __guard = std::__allocate_guarded(__a2);
+  286900*:  970:	  _Sp_cp_type* __mem = __guard.get();
+  286638*:  971:	  auto __pi = ::new (__mem)
         -:  972:	    _Sp_cp_type(__a._M_a, std::forward<_Args>(__args)...);
-  285108*:  973:	  __guard = nullptr;
-  285066*:  974:	  _M_pi = __pi;
-  285066*:  975:	  __p = __pi->_M_ptr();
-  569925*:  976:	}
+  285320*:  973:	  __guard = nullptr;
+  285296*:  974:	  _M_pi = __pi;
+  285296*:  975:	  __p = __pi->_M_ptr();
+  570652*:  976:	}
 ------------------
 _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2INSt13__future_base13_State_baseV2ESaIvEJEEERPT_St20_Sp_alloc_shared_tagIT0_EDpOT1_:
 function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2INSt13__future_base13_State_baseV2ESaIvEJEEERPT_St20_Sp_alloc_shared_tagIT0_EDpOT1_ called 0 returned 0% blocks executed 0%
@@ -1510,28 +1510,28 @@ call    0 never executed
 call    0 never executed
 ------------------
 _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2INSt13__future_base13_State_baseV2ESaIvEJEEERPT_St20_Sp_alloc_shared_tagIT0_EDpOT1_:
-function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2INSt13__future_base13_State_baseV2ESaIvEJEEERPT_St20_Sp_alloc_shared_tagIT0_EDpOT1_ called 287068 returned 99% blocks executed 86%
-   287068:  964:	__shared_count(_Tp*& __p, _Sp_alloc_shared_tag<_Alloc> __a,
+function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2INSt13__future_base13_State_baseV2ESaIvEJEEERPT_St20_Sp_alloc_shared_tagIT0_EDpOT1_ called 287005 returned 99% blocks executed 86%
+   287005:  964:	__shared_count(_Tp*& __p, _Sp_alloc_shared_tag<_Alloc> __a,
         -:  965:		       _Args&&... __args)
         -:  966:	{
         -:  967:	  typedef _Sp_counted_ptr_inplace<_Tp, _Alloc, _Lp> _Sp_cp_type;
-   287068:  968:	  typename _Sp_cp_type::__allocator_type __a2(__a._M_a);
-   287068:  969:	  auto __guard = std::__allocate_guarded(__a2);
+   287005:  968:	  typename _Sp_cp_type::__allocator_type __a2(__a._M_a);
+   287005:  969:	  auto __guard = std::__allocate_guarded(__a2);
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-   286956:  970:	  _Sp_cp_type* __mem = __guard.get();
+   286900:  970:	  _Sp_cp_type* __mem = __guard.get();
 call    0 returned 100%
-   286690:  971:	  auto __pi = ::new (__mem)
+   286638:  971:	  auto __pi = ::new (__mem)
 call    0 returned 100%
-call    1 returned 99%
+call    1 returned 100%
         -:  972:	    _Sp_cp_type(__a._M_a, std::forward<_Args>(__args)...);
-   285108:  973:	  __guard = nullptr;
+   285320:  973:	  __guard = nullptr;
 call    0 returned 100%
-   285066:  974:	  _M_pi = __pi;
-   285066:  975:	  __p = __pi->_M_ptr();
+   285296:  974:	  _M_pi = __pi;
+   285296:  975:	  __p = __pi->_M_ptr();
 call    0 returned 100%
-   569925:  976:	}
+   570652:  976:	}
 call    0 returned 100%
 ------------------
         -:  977:
@@ -1625,11 +1625,11 @@ call    0 returned 100%
         -: 1065:      explicit
         -: 1066:      __shared_count(const __weak_count<_Lp>& __r, std::nothrow_t) noexcept;
         -: 1067:
- 1686121*: 1068:      ~__shared_count() noexcept
+ 1688274*: 1068:      ~__shared_count() noexcept
         -: 1069:      {
- 1686121*: 1070:	if (_M_pi != nullptr)
-  567527*: 1071:	  _M_pi->_M_release();
- 1692395*: 1072:      }
+ 1688274*: 1070:	if (_M_pi != nullptr)
+  567653*: 1071:	  _M_pi->_M_release();
+ 1694523*: 1072:      }
 ------------------
 _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EED2Ev:
 function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EED2Ev called 0 returned 0% blocks executed 0%
@@ -1643,23 +1643,23 @@ call    0 never executed
     #####: 1072:      }
 ------------------
 _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EED2Ev:
-function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EED2Ev called 1686121 returned 100% blocks executed 100%
-  1686121: 1068:      ~__shared_count() noexcept
+function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EED2Ev called 1688274 returned 100% blocks executed 100%
+  1688274: 1068:      ~__shared_count() noexcept
         -: 1069:      {
-  1686121: 1070:	if (_M_pi != nullptr)
+  1688274: 1070:	if (_M_pi != nullptr)
 branch  0 taken 34% (fallthrough)
 branch  1 taken 66%
-   567527: 1071:	  _M_pi->_M_release();
+   567653: 1071:	  _M_pi->_M_release();
 call    0 returned 101%
-  1692395: 1072:      }
+  1694523: 1072:      }
 ------------------
         -: 1073:
-  284223*: 1074:      __shared_count(const __shared_count& __r) noexcept
-  284223*: 1075:      : _M_pi(__r._M_pi)
+  284218*: 1074:      __shared_count(const __shared_count& __r) noexcept
+  284218*: 1075:      : _M_pi(__r._M_pi)
         -: 1076:      {
-  284223*: 1077:	if (_M_pi != nullptr)
-  284356*: 1078:	  _M_pi->_M_add_ref_copy();
-  287894*: 1079:      }
+  284218*: 1077:	if (_M_pi != nullptr)
+  284337*: 1078:	  _M_pi->_M_add_ref_copy();
+  287891*: 1079:      }
 ------------------
 _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2ERKS2_:
 function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2ERKS2_ called 0 returned 0% blocks executed 0%
@@ -1674,16 +1674,16 @@ call    0 never executed
     #####: 1079:      }
 ------------------
 _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2ERKS2_:
-function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2ERKS2_ called 284223 returned 101% blocks executed 100%
-   284223: 1074:      __shared_count(const __shared_count& __r) noexcept
-   284223: 1075:      : _M_pi(__r._M_pi)
+function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2ERKS2_ called 284218 returned 101% blocks executed 100%
+   284218: 1074:      __shared_count(const __shared_count& __r) noexcept
+   284218: 1075:      : _M_pi(__r._M_pi)
         -: 1076:      {
-   284223: 1077:	if (_M_pi != nullptr)
+   284218: 1077:	if (_M_pi != nullptr)
 branch  0 taken 100% (fallthrough)
 branch  1 taken -0%
-   284356: 1078:	  _M_pi->_M_add_ref_copy();
+   284337: 1078:	  _M_pi->_M_add_ref_copy();
 call    0 returned 101%
-   287894: 1079:      }
+   287891: 1079:      }
 ------------------
         -: 1080:
         -: 1081:      __shared_count&
@@ -1702,12 +1702,12 @@ call    0 returned 101%
         -: 1094:      }
         -: 1095:
         -: 1096:      void
- 1132775*: 1097:      _M_swap(__shared_count& __r) noexcept
+ 1132473*: 1097:      _M_swap(__shared_count& __r) noexcept
         -: 1098:      {
- 1132775*: 1099:	_Sp_counted_base<_Lp>* __tmp = __r._M_pi;
- 1132775*: 1100:	__r._M_pi = _M_pi;
- 1132775*: 1101:	_M_pi = __tmp;
- 1132775*: 1102:      }
+ 1132473*: 1099:	_Sp_counted_base<_Lp>* __tmp = __r._M_pi;
+ 1132473*: 1100:	__r._M_pi = _M_pi;
+ 1132473*: 1101:	_M_pi = __tmp;
+ 1132473*: 1102:      }
 ------------------
 _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE7_M_swapERS2_:
 function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE7_M_swapERS2_ called 0 returned 0% blocks executed 0%
@@ -1719,18 +1719,18 @@ function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE7_M_swapERS2_ calle
     #####: 1102:      }
 ------------------
 _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE7_M_swapERS2_:
-function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE7_M_swapERS2_ called 1132775 returned 100% blocks executed 100%
-  1132775: 1097:      _M_swap(__shared_count& __r) noexcept
+function _ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE7_M_swapERS2_ called 1132473 returned 100% blocks executed 100%
+  1132473: 1097:      _M_swap(__shared_count& __r) noexcept
         -: 1098:      {
-  1132775: 1099:	_Sp_counted_base<_Lp>* __tmp = __r._M_pi;
-  1132775: 1100:	__r._M_pi = _M_pi;
-  1132775: 1101:	_M_pi = __tmp;
-  1132775: 1102:      }
+  1132473: 1099:	_Sp_counted_base<_Lp>* __tmp = __r._M_pi;
+  1132473: 1100:	__r._M_pi = _M_pi;
+  1132473: 1101:	_M_pi = __tmp;
+  1132473: 1102:      }
 ------------------
         -: 1103:
         -: 1104:      long
-  287048*: 1105:      _M_get_use_count() const noexcept
-  287048*: 1106:      { return _M_pi ? _M_pi->_M_get_use_count() : 0; }
+  287201*: 1105:      _M_get_use_count() const noexcept
+  287201*: 1106:      { return _M_pi ? _M_pi->_M_get_use_count() : 0; }
 ------------------
 _ZNKSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE16_M_get_use_countEv:
 function _ZNKSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE16_M_get_use_countEv called 0 returned 0% blocks executed 0%
@@ -1741,17 +1741,17 @@ branch  1 never executed
 call    2 never executed
 ------------------
 _ZNKSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE16_M_get_use_countEv:
-function _ZNKSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE16_M_get_use_countEv called 287048 returned 100% blocks executed 100%
-   287048: 1105:      _M_get_use_count() const noexcept
-   287048: 1106:      { return _M_pi ? _M_pi->_M_get_use_count() : 0; }
+function _ZNKSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE16_M_get_use_countEv called 287201 returned 100% blocks executed 100%
+   287201: 1105:      _M_get_use_count() const noexcept
+   287201: 1106:      { return _M_pi ? _M_pi->_M_get_use_count() : 0; }
 branch  0 taken 100% (fallthrough)
 branch  1 taken -0%
 call    2 returned 100%
 ------------------
         -: 1107:
         -: 1108:      bool
-  287058*: 1109:      _M_unique() const noexcept
-  287058*: 1110:      { return this->_M_get_use_count() == 1; }
+  287188*: 1109:      _M_unique() const noexcept
+  287188*: 1110:      { return this->_M_get_use_count() == 1; }
 ------------------
 _ZNKSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE9_M_uniqueEv:
 function _ZNKSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE9_M_uniqueEv called 0 returned 0% blocks executed 0%
@@ -1760,9 +1760,9 @@ function _ZNKSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE9_M_uniqueEv calle
 call    0 never executed
 ------------------
 _ZNKSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE9_M_uniqueEv:
-function _ZNKSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE9_M_uniqueEv called 287058 returned 100% blocks executed 100%
-   287058: 1109:      _M_unique() const noexcept
-   287058: 1110:      { return this->_M_get_use_count() == 1; }
+function _ZNKSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EE9_M_uniqueEv called 287188 returned 100% blocks executed 100%
+   287188: 1109:      _M_unique() const noexcept
+   287188: 1110:      { return this->_M_get_use_count() == 1; }
 call    0 returned 100%
 ------------------
         -: 1111:
@@ -2001,10 +2001,10 @@ call    0 returned 100%
         -: 1344:      using element_type = _Tp;
         -: 1345:
         -: 1346:      element_type&
-  286727*: 1347:      operator*() const noexcept
+  286871*: 1347:      operator*() const noexcept
         -: 1348:      {
-  286727*: 1349:	__glibcxx_assert(_M_get() != nullptr);
-  286682*: 1350:	return *_M_get();
+  286871*: 1349:	__glibcxx_assert(_M_get() != nullptr);
+  286872*: 1350:	return *_M_get();
         -: 1351:      }
 ------------------
 _ZNKSt19__shared_ptr_accessINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2ELb0ELb0EEdeEv:
@@ -2026,10 +2026,10 @@ call    0 never executed
         -: 1351:      }
 ------------------
 _ZNKSt19__shared_ptr_accessINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2ELb0ELb0EEdeEv:
-function _ZNKSt19__shared_ptr_accessINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2ELb0ELb0EEdeEv called 286727 returned 100% blocks executed 70%
-   286727: 1347:      operator*() const noexcept
+function _ZNKSt19__shared_ptr_accessINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2ELb0ELb0EEdeEv called 286871 returned 100% blocks executed 70%
+   286871: 1347:      operator*() const noexcept
         -: 1348:      {
-  286727*: 1349:	__glibcxx_assert(_M_get() != nullptr);
+  286871*: 1349:	__glibcxx_assert(_M_get() != nullptr);
 call    0 returned 100%
 branch  1 taken -0% (fallthrough)
 branch  2 taken 100%
@@ -2039,16 +2039,16 @@ branch  5 never executed
 branch  6 taken 0% (fallthrough)
 branch  7 taken 100%
 call    8 never executed
-   286682: 1350:	return *_M_get();
+   286872: 1350:	return *_M_get();
 call    0 returned 100%
         -: 1351:      }
 ------------------
         -: 1352:
         -: 1353:      element_type*
-  840958*: 1354:      operator->() const noexcept
+  842676*: 1354:      operator->() const noexcept
         -: 1355:      {
         -: 1356:	_GLIBCXX_DEBUG_PEDASSERT(_M_get() != nullptr);
-  840958*: 1357:	return _M_get();
+  842676*: 1357:	return _M_get();
         -: 1358:      }
 ------------------
 _ZNKSt19__shared_ptr_accessINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2ELb0ELb0EEptEv:
@@ -2061,19 +2061,19 @@ call    0 never executed
         -: 1358:      }
 ------------------
 _ZNKSt19__shared_ptr_accessINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2ELb0ELb0EEptEv:
-function _ZNKSt19__shared_ptr_accessINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2ELb0ELb0EEptEv called 840958 returned 100% blocks executed 100%
-   840958: 1354:      operator->() const noexcept
+function _ZNKSt19__shared_ptr_accessINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2ELb0ELb0EEptEv called 842676 returned 100% blocks executed 100%
+   842676: 1354:      operator->() const noexcept
         -: 1355:      {
         -: 1356:	_GLIBCXX_DEBUG_PEDASSERT(_M_get() != nullptr);
-   840958: 1357:	return _M_get();
+   842676: 1357:	return _M_get();
 call    0 returned 100%
         -: 1358:      }
 ------------------
         -: 1359:
         -: 1360:    private:
         -: 1361:      element_type*
- 1120919*: 1362:      _M_get() const noexcept
- 1120919*: 1363:      { return static_cast<const __shared_ptr<_Tp, _Lp>*>(this)->get(); }
+ 1123271*: 1362:      _M_get() const noexcept
+ 1123271*: 1363:      { return static_cast<const __shared_ptr<_Tp, _Lp>*>(this)->get(); }
 ------------------
 _ZNKSt19__shared_ptr_accessINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2ELb0ELb0EE6_M_getEv:
 function _ZNKSt19__shared_ptr_accessINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2ELb0ELb0EE6_M_getEv called 0 returned 0% blocks executed 0%
@@ -2082,9 +2082,9 @@ function _ZNKSt19__shared_ptr_accessINSt13__future_base13_State_baseV2ELN9__gnu_
 call    0 never executed
 ------------------
 _ZNKSt19__shared_ptr_accessINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2ELb0ELb0EE6_M_getEv:
-function _ZNKSt19__shared_ptr_accessINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2ELb0ELb0EE6_M_getEv called 1120919 returned 100% blocks executed 100%
-  1120919: 1362:      _M_get() const noexcept
-  1120919: 1363:      { return static_cast<const __shared_ptr<_Tp, _Lp>*>(this)->get(); }
+function _ZNKSt19__shared_ptr_accessINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2ELb0ELb0EE6_M_getEv called 1123271 returned 100% blocks executed 100%
+  1123271: 1362:      _M_get() const noexcept
+  1123271: 1363:      { return static_cast<const __shared_ptr<_Tp, _Lp>*>(this)->get(); }
 call    0 returned 100%
 ------------------
         -: 1364:    };
@@ -2185,9 +2185,9 @@ call    0 returned 100%
         -: 1459:      using weak_type = __weak_ptr<_Tp, _Lp>;
         -: 1460:#endif
         -: 1461:
-  285960*: 1462:      constexpr __shared_ptr() noexcept
-  285960*: 1463:      : _M_ptr(0), _M_refcount()
-  285918*: 1464:      { }
+  285681*: 1462:      constexpr __shared_ptr() noexcept
+  285681*: 1463:      : _M_ptr(0), _M_refcount()
+  285677*: 1464:      { }
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2Ev:
 function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2Ev called 0 returned 0% blocks executed 0%
@@ -2197,11 +2197,11 @@ call    0 never executed
     #####: 1464:      { }
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2Ev:
-function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2Ev called 285960 returned 100% blocks executed 100%
-   285960: 1462:      constexpr __shared_ptr() noexcept
-   285960: 1463:      : _M_ptr(0), _M_refcount()
+function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2Ev called 285681 returned 100% blocks executed 100%
+   285681: 1462:      constexpr __shared_ptr() noexcept
+   285681: 1463:      : _M_ptr(0), _M_refcount()
 call    0 returned 100%
-   285918: 1464:      { }
+   285677: 1464:      { }
 ------------------
         -: 1465:
         -: 1466:      template<typename _Yp, typename = _SafeConv<_Yp>>
@@ -2260,7 +2260,7 @@ call    0 returned 100%
         -: 1519:	  __r._M_ptr = nullptr;
         -: 1520:	}
         -: 1521:
-  284195*: 1522:      __shared_ptr(const __shared_ptr&) noexcept = default;
+  284252*: 1522:      __shared_ptr(const __shared_ptr&) noexcept = default;
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2ERKS4_:
 function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2ERKS4_ called 0 returned 0% blocks executed 0%
@@ -2268,12 +2268,12 @@ function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lo
 call    0 never executed
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2ERKS4_:
-function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2ERKS4_ called 284195 returned 101% blocks executed 100%
-   284195: 1522:      __shared_ptr(const __shared_ptr&) noexcept = default;
+function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2ERKS4_ called 284252 returned 101% blocks executed 100%
+   284252: 1522:      __shared_ptr(const __shared_ptr&) noexcept = default;
 call    0 returned 101%
 ------------------
         -: 1523:      __shared_ptr& operator=(const __shared_ptr&) noexcept = default;
- 1687509*: 1524:      ~__shared_ptr() = default;
+ 1689609*: 1524:      ~__shared_ptr() = default;
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EED2Ev:
 function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EED2Ev called 0 returned 0% blocks executed 0%
@@ -2281,8 +2281,8 @@ function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lo
 call    0 never executed
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EED2Ev:
-function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EED2Ev called 1687509 returned 101% blocks executed 100%
-  1687509: 1524:      ~__shared_ptr() = default;
+function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EED2Ev called 1689609 returned 101% blocks executed 100%
+  1689609: 1524:      ~__shared_ptr() = default;
 call    0 returned 101%
 ------------------
         -: 1525:
@@ -2291,12 +2291,12 @@ call    0 returned 101%
         -: 1528:	: _M_ptr(__r._M_ptr), _M_refcount(__r._M_refcount)
         -: 1529:	{ }
         -: 1530:
-  853668*: 1531:      __shared_ptr(__shared_ptr&& __r) noexcept
-  853668*: 1532:      : _M_ptr(__r._M_ptr), _M_refcount()
+  853691*: 1531:      __shared_ptr(__shared_ptr&& __r) noexcept
+  853691*: 1532:      : _M_ptr(__r._M_ptr), _M_refcount()
         -: 1533:      {
-  853753*: 1534:	_M_refcount._M_swap(__r._M_refcount);
-  852857*: 1535:	__r._M_ptr = nullptr;
-  852857*: 1536:      }
+  853784*: 1534:	_M_refcount._M_swap(__r._M_refcount);
+  853073*: 1535:	__r._M_ptr = nullptr;
+  853073*: 1536:      }
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2EOS4_:
 function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2EOS4_ called 0 returned 0% blocks executed 0%
@@ -2310,15 +2310,15 @@ call    0 never executed
     #####: 1536:      }
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2EOS4_:
-function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2EOS4_ called 853668 returned 100% blocks executed 100%
-   853668: 1531:      __shared_ptr(__shared_ptr&& __r) noexcept
-   853668: 1532:      : _M_ptr(__r._M_ptr), _M_refcount()
+function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2EOS4_ called 853691 returned 100% blocks executed 100%
+   853691: 1531:      __shared_ptr(__shared_ptr&& __r) noexcept
+   853691: 1532:      : _M_ptr(__r._M_ptr), _M_refcount()
 call    0 returned 100%
         -: 1533:      {
-   853753: 1534:	_M_refcount._M_swap(__r._M_refcount);
+   853784: 1534:	_M_refcount._M_swap(__r._M_refcount);
 call    0 returned 100%
-   852857: 1535:	__r._M_ptr = nullptr;
-   852857: 1536:      }
+   853073: 1535:	__r._M_ptr = nullptr;
+   853073: 1536:      }
 ------------------
         -: 1537:
         -: 1538:      template<typename _Yp, typename = _Compatible<_Yp>>
@@ -2424,8 +2424,8 @@ call    0 returned 100%
         -: 1638:	}
         -: 1639:
         -: 1640:      void
-  285949*: 1641:      reset() noexcept
-  285949*: 1642:      { __shared_ptr().swap(*this); }
+  285756*: 1641:      reset() noexcept
+  285756*: 1642:      { __shared_ptr().swap(*this); }
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE5resetEv:
 function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE5resetEv called 0 returned 0% blocks executed 0%
@@ -2436,9 +2436,9 @@ call    1 never executed
 call    2 never executed
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE5resetEv:
-function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE5resetEv called 285949 returned 100% blocks executed 100%
-   285949: 1641:      reset() noexcept
-   285949: 1642:      { __shared_ptr().swap(*this); }
+function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE5resetEv called 285756 returned 100% blocks executed 100%
+   285756: 1641:      reset() noexcept
+   285756: 1642:      { __shared_ptr().swap(*this); }
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 100%
@@ -2465,8 +2465,8 @@ call    2 returned 100%
         -: 1662:
         -: 1663:      /// Return the stored pointer.
         -: 1664:      element_type*
- 1120541*: 1665:      get() const noexcept
- 1120541*: 1666:      { return _M_ptr; }
+ 1123271*: 1665:      get() const noexcept
+ 1123271*: 1666:      { return _M_ptr; }
 ------------------
 _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE3getEv:
 function _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE3getEv called 0 returned 0% blocks executed 0%
@@ -2474,14 +2474,14 @@ function _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_L
     #####: 1666:      { return _M_ptr; }
 ------------------
 _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE3getEv:
-function _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE3getEv called 1120541 returned 100% blocks executed 100%
-  1120541: 1665:      get() const noexcept
-  1120541: 1666:      { return _M_ptr; }
+function _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE3getEv called 1123271 returned 100% blocks executed 100%
+  1123271: 1665:      get() const noexcept
+  1123271: 1666:      { return _M_ptr; }
 ------------------
         -: 1667:
         -: 1668:      /// Return true if the stored pointer is not null.
- 1978625*: 1669:      explicit operator bool() const noexcept
- 1978625*: 1670:      { return _M_ptr != nullptr; }
+ 1980990*: 1669:      explicit operator bool() const noexcept
+ 1980990*: 1670:      { return _M_ptr != nullptr; }
 ------------------
 _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEcvbEv:
 function _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEcvbEv called 0 returned 0% blocks executed 0%
@@ -2489,15 +2489,15 @@ function _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_L
     #####: 1670:      { return _M_ptr != nullptr; }
 ------------------
 _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEcvbEv:
-function _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEcvbEv called 1978625 returned 100% blocks executed 100%
-  1978625: 1669:      explicit operator bool() const noexcept
-  1978625: 1670:      { return _M_ptr != nullptr; }
+function _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEcvbEv called 1980990 returned 100% blocks executed 100%
+  1980990: 1669:      explicit operator bool() const noexcept
+  1980990: 1670:      { return _M_ptr != nullptr; }
 ------------------
         -: 1671:
         -: 1672:      /// Return true if use_count() == 1.
         -: 1673:      bool
-  287163*: 1674:      unique() const noexcept
-  287163*: 1675:      { return _M_refcount._M_unique(); }
+  287301*: 1674:      unique() const noexcept
+  287301*: 1675:      { return _M_refcount._M_unique(); }
 ------------------
 _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE6uniqueEv:
 function _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE6uniqueEv called 0 returned 0% blocks executed 0%
@@ -2506,9 +2506,9 @@ function _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_L
 call    0 never executed
 ------------------
 _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE6uniqueEv:
-function _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE6uniqueEv called 287163 returned 100% blocks executed 100%
-   287163: 1674:      unique() const noexcept
-   287163: 1675:      { return _M_refcount._M_unique(); }
+function _ZNKSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE6uniqueEv called 287301 returned 100% blocks executed 100%
+   287301: 1674:      unique() const noexcept
+   287301: 1675:      { return _M_refcount._M_unique(); }
 call    0 returned 100%
 ------------------
         -: 1676:
@@ -2519,11 +2519,11 @@ call    0 returned 100%
         -: 1681:
         -: 1682:      /// Exchange both the owned pointer and the stored pointer.
         -: 1683:      void
-  285752*: 1684:      swap(__shared_ptr<_Tp, _Lp>& __other) noexcept
+  285479*: 1684:      swap(__shared_ptr<_Tp, _Lp>& __other) noexcept
         -: 1685:      {
-  285752*: 1686:	std::swap(_M_ptr, __other._M_ptr);
-  285486*: 1687:	_M_refcount._M_swap(__other._M_refcount);
-  285381*: 1688:      }
+  285479*: 1686:	std::swap(_M_ptr, __other._M_ptr);
+  285202*: 1687:	_M_refcount._M_swap(__other._M_refcount);
+  285152*: 1688:      }
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE4swapERS4_:
 function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE4swapERS4_ called 0 returned 0% blocks executed 0%
@@ -2536,14 +2536,14 @@ call    0 never executed
     #####: 1688:      }
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE4swapERS4_:
-function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE4swapERS4_ called 285752 returned 100% blocks executed 100%
-   285752: 1684:      swap(__shared_ptr<_Tp, _Lp>& __other) noexcept
+function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE4swapERS4_ called 285479 returned 100% blocks executed 100%
+   285479: 1684:      swap(__shared_ptr<_Tp, _Lp>& __other) noexcept
         -: 1685:      {
-   285752: 1686:	std::swap(_M_ptr, __other._M_ptr);
+   285479: 1686:	std::swap(_M_ptr, __other._M_ptr);
 call    0 returned 100%
-   285486: 1687:	_M_refcount._M_swap(__other._M_refcount);
+   285202: 1687:	_M_refcount._M_swap(__other._M_refcount);
 call    0 returned 100%
-   285381: 1688:      }
+   285152: 1688:      }
 ------------------
         -: 1689:
         -: 1690:      /** @brief Define an ordering based on ownership.
@@ -2567,9 +2567,9 @@ call    0 returned 100%
         -: 1708:    protected:
         -: 1709:      // This constructor is non-standard, it is used by allocate_shared.
         -: 1710:      template<typename _Alloc, typename... _Args>
-  287067*: 1711:	__shared_ptr(_Sp_alloc_shared_tag<_Alloc> __tag, _Args&&... __args)
-  287067*: 1712:	: _M_ptr(), _M_refcount(_M_ptr, __tag, std::forward<_Args>(__args)...)
-  284897*: 1713:	{ _M_enable_shared_from_this_with(_M_ptr); }
+  287053*: 1711:	__shared_ptr(_Sp_alloc_shared_tag<_Alloc> __tag, _Args&&... __args)
+  287053*: 1712:	: _M_ptr(), _M_refcount(_M_ptr, __tag, std::forward<_Args>(__args)...)
+  285268*: 1713:	{ _M_enable_shared_from_this_with(_M_ptr); }
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2ISaIvEJEEESt20_Sp_alloc_shared_tagIT_EDpOT0_:
 function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2ISaIvEJEEESt20_Sp_alloc_shared_tagIT_EDpOT0_ called 0 returned 0% blocks executed 0%
@@ -2580,11 +2580,11 @@ call    0 never executed
 call    0 never executed
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2ISaIvEJEEESt20_Sp_alloc_shared_tagIT_EDpOT0_:
-function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2ISaIvEJEEESt20_Sp_alloc_shared_tagIT_EDpOT0_ called 287067 returned 99% blocks executed 100%
-   287067: 1711:	__shared_ptr(_Sp_alloc_shared_tag<_Alloc> __tag, _Args&&... __args)
-   287067: 1712:	: _M_ptr(), _M_refcount(_M_ptr, __tag, std::forward<_Args>(__args)...)
+function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EEC2ISaIvEJEEESt20_Sp_alloc_shared_tagIT_EDpOT0_ called 287053 returned 99% blocks executed 100%
+   287053: 1711:	__shared_ptr(_Sp_alloc_shared_tag<_Alloc> __tag, _Args&&... __args)
+   287053: 1712:	: _M_ptr(), _M_refcount(_M_ptr, __tag, std::forward<_Args>(__args)...)
 call    0 returned 99%
-   284897: 1713:	{ _M_enable_shared_from_this_with(_M_ptr); }
+   285268: 1713:	{ _M_enable_shared_from_this_with(_M_ptr); }
 call    0 returned 100%
 ------------------
         -: 1714:
@@ -2638,8 +2638,8 @@ call    0 returned 100%
         -: 1762:
         -: 1763:      template<typename _Yp, typename _Yp2 = typename remove_cv<_Yp>::type>
         -: 1764:	typename enable_if<!__has_esft_base<_Yp2>::value>::type
-  284876*: 1765:	_M_enable_shared_from_this_with(_Yp*) noexcept
-  284876*: 1766:	{ }
+  285272*: 1765:	_M_enable_shared_from_this_with(_Yp*) noexcept
+  285272*: 1766:	{ }
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE31_M_enable_shared_from_this_withIS1_S1_EENSt9enable_ifIXntsrNS4_15__has_esft_baseIT0_vEE5valueEvE4typeEPT_:
 function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE31_M_enable_shared_from_this_withIS1_S1_EENSt9enable_ifIXntsrNS4_15__has_esft_baseIT0_vEE5valueEvE4typeEPT_ called 0 returned 0% blocks executed 0%
@@ -2647,9 +2647,9 @@ function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lo
     #####: 1766:	{ }
 ------------------
 _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE31_M_enable_shared_from_this_withIS1_S1_EENSt9enable_ifIXntsrNS4_15__has_esft_baseIT0_vEE5valueEvE4typeEPT_:
-function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE31_M_enable_shared_from_this_withIS1_S1_EENSt9enable_ifIXntsrNS4_15__has_esft_baseIT0_vEE5valueEvE4typeEPT_ called 284876 returned 100% blocks executed 100%
-   284876: 1765:	_M_enable_shared_from_this_with(_Yp*) noexcept
-   284876: 1766:	{ }
+function _ZNSt12__shared_ptrINSt13__future_base13_State_baseV2ELN9__gnu_cxx12_Lock_policyE2EE31_M_enable_shared_from_this_withIS1_S1_EENSt9enable_ifIXntsrNS4_15__has_esft_baseIT0_vEE5valueEvE4typeEPT_ called 285272 returned 100% blocks executed 100%
+   285272: 1765:	_M_enable_shared_from_this_with(_Yp*) noexcept
+   285272: 1766:	{ }
 ------------------
         -: 1767:
         -: 1768:      void*

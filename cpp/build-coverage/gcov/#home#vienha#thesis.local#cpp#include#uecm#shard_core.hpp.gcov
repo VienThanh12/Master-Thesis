@@ -70,9 +70,9 @@ call    0 returned 100%
 ------------------
         -:   49:
         -:   50: private:
-function _ZN4uecm9ShardCore8next_seqEv called 214920 returned 100% blocks executed 100%
-   214920:   51:  std::uint64_t next_seq() noexcept {
-   429840:   52:    return activity_seq_.fetch_add(1, std::memory_order_relaxed);
+function _ZN4uecm9ShardCore8next_seqEv called 215263 returned 100% blocks executed 100%
+   215263:   51:  std::uint64_t next_seq() noexcept {
+   430526:   52:    return activity_seq_.fetch_add(1, std::memory_order_relaxed);
         -:   53:  }
         -:   54:
         -:   55:  Config cfg_;

@@ -65,15 +65,15 @@
         -:   64:#ifdef __GTHREAD_MUTEX_INIT
         -:   65:    __native_type  _M_mutex = __GTHREAD_MUTEX_INIT;
         -:   66:
-     441*:   67:    constexpr __mutex_base() noexcept = default;
+     449*:   67:    constexpr __mutex_base() noexcept = default;
 ------------------
 _ZNSt12__mutex_baseC2Ev:
 function _ZNSt12__mutex_baseC2Ev called 0 returned 0% blocks executed 0%
     #####:   67:    constexpr __mutex_base() noexcept = default;
 ------------------
 _ZNSt12__mutex_baseC2Ev:
-function _ZNSt12__mutex_baseC2Ev called 441 returned 100% blocks executed 100%
-      441:   67:    constexpr __mutex_base() noexcept = default;
+function _ZNSt12__mutex_baseC2Ev called 449 returned 100% blocks executed 100%
+      449:   67:    constexpr __mutex_base() noexcept = default;
 ------------------
         -:   68:#else
         -:   69:    __native_type  _M_mutex;
@@ -111,7 +111,7 @@ function _ZNSt12__mutex_baseC2Ev called 441 returned 100% blocks executed 100%
         -:  101:#ifdef __GTHREAD_MUTEX_INIT
         -:  102:    constexpr
         -:  103:#endif
-     441*:  104:    mutex() noexcept = default;
+     449*:  104:    mutex() noexcept = default;
 ------------------
 _ZNSt5mutexC2Ev:
 function _ZNSt5mutexC2Ev called 0 returned 0% blocks executed 0%
@@ -119,8 +119,8 @@ function _ZNSt5mutexC2Ev called 0 returned 0% blocks executed 0%
 call    0 never executed
 ------------------
 _ZNSt5mutexC2Ev:
-function _ZNSt5mutexC2Ev called 441 returned 100% blocks executed 100%
-      441:  104:    mutex() noexcept = default;
+function _ZNSt5mutexC2Ev called 449 returned 100% blocks executed 100%
+      449:  104:    mutex() noexcept = default;
 call    0 returned 100%
 ------------------
         -:  105:    ~mutex() = default;
@@ -129,14 +129,14 @@ call    0 returned 100%
         -:  108:    mutex& operator=(const mutex&) = delete;
         -:  109:
         -:  110:    void
-  567973*:  111:    lock()
+  568173*:  111:    lock()
         -:  112:    {
-  567973*:  113:      int __e = __gthread_mutex_lock(&_M_mutex);
+  568173*:  113:      int __e = __gthread_mutex_lock(&_M_mutex);
         -:  114:
         -:  115:      // EINVAL, EAGAIN, EBUSY, EINVAL, EDEADLK(may)
-  575566*:  116:      if (__e)
+  575442*:  116:      if (__e)
     #####:  117:	__throw_system_error(__e);
-  575566*:  118:    }
+  575442*:  118:    }
 ------------------
 _ZNSt5mutex4lockEv:
 function _ZNSt5mutex4lockEv called 0 returned 0% blocks executed 0%
@@ -154,19 +154,19 @@ call    0 never executed
     #####:  118:    }
 ------------------
 _ZNSt5mutex4lockEv:
-function _ZNSt5mutex4lockEv called 567973 returned 101% blocks executed 75%
-   567973:  111:    lock()
+function _ZNSt5mutex4lockEv called 568173 returned 101% blocks executed 75%
+   568173:  111:    lock()
         -:  112:    {
-   567973:  113:      int __e = __gthread_mutex_lock(&_M_mutex);
+   568173:  113:      int __e = __gthread_mutex_lock(&_M_mutex);
 call    0 returned 101%
         -:  114:
         -:  115:      // EINVAL, EAGAIN, EBUSY, EINVAL, EDEADLK(may)
-   575566:  116:      if (__e)
+   575442:  116:      if (__e)
 branch  0 taken 0% (fallthrough)
 branch  1 taken 100%
     #####:  117:	__throw_system_error(__e);
 call    0 never executed
-   575566:  118:    }
+   575442:  118:    }
 ------------------
 _ZNSt5mutex4lockEv:
 function _ZNSt5mutex4lockEv called 0 returned 0% blocks executed 0%
@@ -193,11 +193,11 @@ call    0 never executed
         -:  126:    }
         -:  127:
         -:  128:    void
-  568895*:  129:    unlock()
+  569065*:  129:    unlock()
         -:  130:    {
         -:  131:      // XXX EINVAL, EAGAIN, EPERM
-  568895*:  132:      __gthread_mutex_unlock(&_M_mutex);
-  576472*:  133:    }
+  569065*:  132:      __gthread_mutex_unlock(&_M_mutex);
+  576343*:  133:    }
 ------------------
 _ZNSt5mutex6unlockEv:
 function _ZNSt5mutex6unlockEv called 0 returned 0% blocks executed 0%
@@ -209,13 +209,13 @@ call    0 never executed
     #####:  133:    }
 ------------------
 _ZNSt5mutex6unlockEv:
-function _ZNSt5mutex6unlockEv called 568895 returned 101% blocks executed 100%
-   568895:  129:    unlock()
+function _ZNSt5mutex6unlockEv called 569065 returned 101% blocks executed 100%
+   569065:  129:    unlock()
         -:  130:    {
         -:  131:      // XXX EINVAL, EAGAIN, EPERM
-   568895:  132:      __gthread_mutex_unlock(&_M_mutex);
+   569065:  132:      __gthread_mutex_unlock(&_M_mutex);
 call    0 returned 101%
-   576472:  133:    }
+   576343:  133:    }
 ------------------
 _ZNSt5mutex6unlockEv:
 function _ZNSt5mutex6unlockEv called 0 returned 0% blocks executed 0%

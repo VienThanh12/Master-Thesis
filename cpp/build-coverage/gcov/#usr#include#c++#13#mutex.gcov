@@ -798,15 +798,15 @@
         -:  797:  /// Flag type used by std::call_once
         -:  798:  struct once_flag
         -:  799:  {
-  285104*:  800:    constexpr once_flag() noexcept = default;
+  285293*:  800:    constexpr once_flag() noexcept = default;
 ------------------
 _ZNSt9once_flagC2Ev:
 function _ZNSt9once_flagC2Ev called 0 returned 0% blocks executed 0%
     #####:  800:    constexpr once_flag() noexcept = default;
 ------------------
 _ZNSt9once_flagC2Ev:
-function _ZNSt9once_flagC2Ev called 285104 returned 100% blocks executed 100%
-   285104:  800:    constexpr once_flag() noexcept = default;
+function _ZNSt9once_flagC2Ev called 285293 returned 100% blocks executed 100%
+   285293:  800:    constexpr once_flag() noexcept = default;
 ------------------
         -:  801:
         -:  802:    /// Deleted copy constructor
@@ -838,13 +838,13 @@ function _ZNSt9once_flagC2Ev called 285104 returned 100% blocks executed 100%
         -:  828:  {
         -:  829:    template<typename _Callable>
         -:  830:      explicit
-  286432*:  831:      _Prepare_execution(_Callable& __c)
+  286546*:  831:      _Prepare_execution(_Callable& __c)
         -:  832:      {
         -:  833:	// Store address in thread-local pointer:
-  286432*:  834:	__once_callable = std::__addressof(__c);
+  286546*:  834:	__once_callable = std::__addressof(__c);
         -:  835:	// Trampoline function to invoke the closure via thread-local pointer:
-  574753*:  836:	__once_call = [] { (*static_cast<_Callable*>(__once_callable))(); };
-  286410*:  837:      }
+  574789*:  836:	__once_call = [] { (*static_cast<_Callable*>(__once_callable))(); };
+  286520*:  837:      }
 ------------------
 _ZNSt9once_flag18_Prepare_executionC2IZSt9call_onceIMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS3_12_Result_baseENS7_8_DeleterEEvEEPbEJPS4_SC_SD_EEvRS_OT_DpOT0_EUlvE_EERSI_:
 function _ZNSt9once_flag18_Prepare_executionC2IZSt9call_onceIMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS3_12_Result_baseENS7_8_DeleterEEvEEPbEJPS4_SC_SD_EEvRS_OT_DpOT0_EUlvE_EERSI_ called 0 returned 0% blocks executed 0%
@@ -859,24 +859,24 @@ call    0 never executed
     #####:  837:      }
 ------------------
 _ZNSt9once_flag18_Prepare_executionC2IZSt9call_onceIMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS3_12_Result_baseENS7_8_DeleterEEvEEPbEJPS4_SC_SD_EEvRS_OT_DpOT0_EUlvE_EERSI_:
-function _ZNSt9once_flag18_Prepare_executionC2IZSt9call_onceIMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS3_12_Result_baseENS7_8_DeleterEEvEEPbEJPS4_SC_SD_EEvRS_OT_DpOT0_EUlvE_EERSI_ called 286432 returned 100% blocks executed 100%
-   286432:  831:      _Prepare_execution(_Callable& __c)
+function _ZNSt9once_flag18_Prepare_executionC2IZSt9call_onceIMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS3_12_Result_baseENS7_8_DeleterEEvEEPbEJPS4_SC_SD_EEvRS_OT_DpOT0_EUlvE_EERSI_ called 286546 returned 100% blocks executed 100%
+   286546:  831:      _Prepare_execution(_Callable& __c)
         -:  832:      {
         -:  833:	// Store address in thread-local pointer:
-   286432:  834:	__once_callable = std::__addressof(__c);
+   286546:  834:	__once_callable = std::__addressof(__c);
 call    0 returned 100%
         -:  835:	// Trampoline function to invoke the closure via thread-local pointer:
-   286458:  836:	__once_call = [] { (*static_cast<_Callable*>(__once_callable))(); };
+   286547:  836:	__once_call = [] { (*static_cast<_Callable*>(__once_callable))(); };
 call    0 returned 100%
-   286410:  837:      }
+   286520:  837:      }
 ------------------
         -:  838:
-  287998*:  839:    ~_Prepare_execution()
+  287987*:  839:    ~_Prepare_execution()
         -:  840:    {
         -:  841:      // PR libstdc++/82481
-  287998*:  842:      __once_callable = nullptr;
-  287998*:  843:      __once_call = nullptr;
-  287998*:  844:    }
+  287987*:  842:      __once_callable = nullptr;
+  287987*:  843:      __once_call = nullptr;
+  287987*:  844:    }
 ------------------
 _ZNSt9once_flag18_Prepare_executionD2Ev:
 function _ZNSt9once_flag18_Prepare_executionD2Ev called 0 returned 0% blocks executed 0%
@@ -888,13 +888,13 @@ function _ZNSt9once_flag18_Prepare_executionD2Ev called 0 returned 0% blocks exe
     #####:  844:    }
 ------------------
 _ZNSt9once_flag18_Prepare_executionD2Ev:
-function _ZNSt9once_flag18_Prepare_executionD2Ev called 287998 returned 100% blocks executed 100%
-   287998:  839:    ~_Prepare_execution()
+function _ZNSt9once_flag18_Prepare_executionD2Ev called 287987 returned 100% blocks executed 100%
+   287987:  839:    ~_Prepare_execution()
         -:  840:    {
         -:  841:      // PR libstdc++/82481
-   287998:  842:      __once_callable = nullptr;
-   287998:  843:      __once_call = nullptr;
-   287998:  844:    }
+   287987:  842:      __once_callable = nullptr;
+   287987:  843:      __once_call = nullptr;
+   287987:  844:    }
 ------------------
         -:  845:
         -:  846:    _Prepare_execution(const _Prepare_execution&) = delete;
@@ -947,11 +947,11 @@ function _ZNSt9once_flag18_Prepare_executionD2Ev called 287998 returned 100% blo
         -:  893:  /// Invoke a callable and synchronize with other calls using the same flag
         -:  894:  template<typename _Callable, typename... _Args>
         -:  895:    void
-  286299*:  896:    call_once(once_flag& __once, _Callable&& __f, _Args&&... __args)
+  286456*:  896:    call_once(once_flag& __once, _Callable&& __f, _Args&&... __args)
         -:  897:    {
         -:  898:      // Closure type that runs the function
-  858891*:  899:      auto __callable = [&] {
-  288259*:  900:	  std::__invoke(std::forward<_Callable>(__f),
+  858756*:  899:      auto __callable = [&] {
+  288184*:  900:	  std::__invoke(std::forward<_Callable>(__f),
 call    0 never executed
 call    1 never executed
 call    2 never executed
@@ -965,12 +965,12 @@ call    9 returned 99%
         -:  901:			std::forward<_Args>(__args)...);
         -:  902:      };
         -:  903:
-  286299*:  904:      once_flag::_Prepare_execution __exec(__callable);
+  286456*:  904:      once_flag::_Prepare_execution __exec(__callable);
         -:  905:
         -:  906:      // XXX pthread_once does not reset the flag if an exception is thrown.
-  286343*:  907:      if (int __e = __gthread_once(&__once._M_once, &__once_proxy))
+  286494*:  907:      if (int __e = __gthread_once(&__once._M_once, &__once_proxy))
     #####:  908:	__throw_system_error(__e);
-  288063*:  909:    }
+  288035*:  909:    }
 ------------------
 _ZSt9call_onceIMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS0_12_Result_baseENS4_8_DeleterEEvEEPbEJPS1_S9_SA_EEvRSt9once_flagOT_DpOT0_:
 function _ZSt9call_onceIMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS0_12_Result_baseENS4_8_DeleterEEvEEPbEJPS1_S9_SA_EEvRSt9once_flagOT_DpOT0_ called 0 returned 0% blocks executed 0%
@@ -999,20 +999,20 @@ call    0 never executed
 call    1 never executed
 ------------------
 _ZSt9call_onceIMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS0_12_Result_baseENS4_8_DeleterEEvEEPbEJPS1_S9_SA_EEvRSt9once_flagOT_DpOT0_:
-function _ZSt9call_onceIMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS0_12_Result_baseENS4_8_DeleterEEvEEPbEJPS1_S9_SA_EEvRSt9once_flagOT_DpOT0_ called 286299 returned 101% blocks executed 67%
-   286299:  896:    call_once(once_flag& __once, _Callable&& __f, _Args&&... __args)
+function _ZSt9call_onceIMNSt13__future_base13_State_baseV2EFvPSt8functionIFSt10unique_ptrINS0_12_Result_baseENS4_8_DeleterEEvEEPbEJPS1_S9_SA_EEvRSt9once_flagOT_DpOT0_ called 286456 returned 101% blocks executed 67%
+   286456:  896:    call_once(once_flag& __once, _Callable&& __f, _Args&&... __args)
         -:  897:    {
         -:  898:      // Closure type that runs the function
-   286299:  899:      auto __callable = [&] {
+   286456:  899:      auto __callable = [&] {
         -:  900:	  std::__invoke(std::forward<_Callable>(__f),
         -:  901:			std::forward<_Args>(__args)...);
         -:  902:      };
         -:  903:
-   286299:  904:      once_flag::_Prepare_execution __exec(__callable);
+   286456:  904:      once_flag::_Prepare_execution __exec(__callable);
 call    0 returned 100%
         -:  905:
         -:  906:      // XXX pthread_once does not reset the flag if an exception is thrown.
-   286343:  907:      if (int __e = __gthread_once(&__once._M_once, &__once_proxy))
+   286494:  907:      if (int __e = __gthread_once(&__once._M_once, &__once_proxy))
 call    0 returned 101%
 branch  1 taken 101% (fallthrough)
 branch  2 taken 0% (throw)
@@ -1020,7 +1020,7 @@ branch  3 taken 0% (fallthrough)
 branch  4 taken 100%
     #####:  908:	__throw_system_error(__e);
 call    0 never executed
-   288063:  909:    }
+   288035:  909:    }
 call    0 returned 100%
 call    1 never executed
 ------------------

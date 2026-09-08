@@ -202,7 +202,7 @@
         -:  201:       */
         -:  202:      constexpr shared_ptr() noexcept : __shared_ptr<_Tp>() { }
         -:  203:
-  283968*:  204:      shared_ptr(const shared_ptr&) noexcept = default; ///< Copy constructor
+  284081*:  204:      shared_ptr(const shared_ptr&) noexcept = default; ///< Copy constructor
 ------------------
 _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2ERKS2_:
 function _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2ERKS2_ called 0 returned 0% blocks executed 0%
@@ -210,8 +210,8 @@ function _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2ERKS2_ called 0 
 call    0 never executed
 ------------------
 _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2ERKS2_:
-function _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2ERKS2_ called 283968 returned 101% blocks executed 100%
-   283968:  204:      shared_ptr(const shared_ptr&) noexcept = default; ///< Copy constructor
+function _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2ERKS2_ called 284081 returned 101% blocks executed 100%
+   284081:  204:      shared_ptr(const shared_ptr&) noexcept = default; ///< Copy constructor
 call    0 returned 101%
 ------------------
         -:  205:
@@ -368,8 +368,8 @@ call    0 returned 101%
         -:  356:       *  @param  __r  A %shared_ptr rvalue.
         -:  357:       *  @post   *this contains the old value of @a __r, @a __r is empty.
         -:  358:       */
-  852984*:  359:      shared_ptr(shared_ptr&& __r) noexcept
-  852984*:  360:      : __shared_ptr<_Tp>(std::move(__r)) { }
+  853149*:  359:      shared_ptr(shared_ptr&& __r) noexcept
+  853149*:  360:      : __shared_ptr<_Tp>(std::move(__r)) { }
 ------------------
 _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2EOS2_:
 function _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2EOS2_ called 0 returned 0% blocks executed 0%
@@ -379,9 +379,9 @@ call    0 never executed
 call    1 never executed
 ------------------
 _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2EOS2_:
-function _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2EOS2_ called 852984 returned 100% blocks executed 100%
-   852984:  359:      shared_ptr(shared_ptr&& __r) noexcept
-   852984:  360:      : __shared_ptr<_Tp>(std::move(__r)) { }
+function _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2EOS2_ called 853149 returned 100% blocks executed 100%
+   853149:  359:      shared_ptr(shared_ptr&& __r) noexcept
+   853149:  360:      : __shared_ptr<_Tp>(std::move(__r)) { }
 call    0 returned 100%
 call    1 returned 100%
 ------------------
@@ -487,9 +487,9 @@ call    1 returned 100%
         -:  460:    private:
         -:  461:      // This constructor is non-standard, it is used by allocate_shared.
         -:  462:      template<typename _Alloc, typename... _Args>
-  287087*:  463:	shared_ptr(_Sp_alloc_shared_tag<_Alloc> __tag, _Args&&... __args)
-  287087*:  464:	: __shared_ptr<_Tp>(__tag, std::forward<_Args>(__args)...)
-  284899*:  465:	{ }
+  287075*:  463:	shared_ptr(_Sp_alloc_shared_tag<_Alloc> __tag, _Args&&... __args)
+  287075*:  464:	: __shared_ptr<_Tp>(__tag, std::forward<_Args>(__args)...)
+  285278*:  465:	{ }
 ------------------
 _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2ISaIvEJEEESt20_Sp_alloc_shared_tagIT_EDpOT0_:
 function _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2ISaIvEJEEESt20_Sp_alloc_shared_tagIT_EDpOT0_ called 0 returned 0% blocks executed 0%
@@ -499,11 +499,11 @@ call    0 never executed
     #####:  465:	{ }
 ------------------
 _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2ISaIvEJEEESt20_Sp_alloc_shared_tagIT_EDpOT0_:
-function _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2ISaIvEJEEESt20_Sp_alloc_shared_tagIT_EDpOT0_ called 287087 returned 99% blocks executed 100%
-   287087:  463:	shared_ptr(_Sp_alloc_shared_tag<_Alloc> __tag, _Args&&... __args)
-   287087:  464:	: __shared_ptr<_Tp>(__tag, std::forward<_Args>(__args)...)
+function _ZNSt10shared_ptrINSt13__future_base13_State_baseV2EEC2ISaIvEJEEESt20_Sp_alloc_shared_tagIT_EDpOT0_ called 287075 returned 99% blocks executed 100%
+   287075:  463:	shared_ptr(_Sp_alloc_shared_tag<_Alloc> __tag, _Args&&... __args)
+   287075:  464:	: __shared_ptr<_Tp>(__tag, std::forward<_Args>(__args)...)
 call    0 returned 99%
-   284899:  465:	{ }
+   285278:  465:	{ }
 ------------------
         -:  466:
         -:  467:      template<typename _Yp, typename _Alloc, typename... _Args>
@@ -1044,12 +1044,12 @@ call    0 returned 99%
         -: 1002:   */
         -: 1003:  template<typename _Tp, typename... _Args>
         -: 1004:    inline shared_ptr<_NonArray<_Tp>>
-  287065*: 1005:    make_shared(_Args&&... __args)
+  287077*: 1005:    make_shared(_Args&&... __args)
         -: 1006:    {
         -: 1007:      using _Alloc = allocator<void>;
         -: 1008:      _Alloc __a;
         -: 1009:      return shared_ptr<_Tp>(_Sp_alloc_shared_tag<_Alloc>{__a},
-  571970*: 1010:			     std::forward<_Args>(__args)...);
+  572359*: 1010:			     std::forward<_Args>(__args)...);
         -: 1011:    }
         -: 1012:
         -: 1013:#if __cpp_lib_shared_ptr_arrays >= 201707L

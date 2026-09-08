@@ -13,10 +13,10 @@ Regenerate with `rust/coverage.sh`.
 | `rust/src/config.rs` | 8 | 8 | 100.0% | 100.0% |
 | `rust/src/error.rs` | 8 | 8 | 100.0% | 100.0% |
 | `rust/src/hash.rs` | 33 | 33 | 100.0% | 100.0% |
-| `rust/src/service.rs` | 185 | 185 | 100.0% | 99.7% |
+| `rust/src/service.rs` | 191 | 190 | 99.5% | 99.3% |
 | `rust/src/shard_core.rs` | 140 | 140 | 100.0% | 100.0% |
 | `rust/src/types.rs` | 7 | 0 | 0.0% | 0.0% |
-| **Total** | **381** | **374** | **98.2%** | **99.3%** |
+| **Total** | **387** | **379** | **97.9%** | **99.1%** |
 
 Coverage bounds every negative result taken from this suite, the Miri run in
 `results/miri.md` included: an interpreter reports only on code that runs.

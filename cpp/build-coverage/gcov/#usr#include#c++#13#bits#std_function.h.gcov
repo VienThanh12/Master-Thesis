@@ -83,31 +83,31 @@
         -:   82:
         -:   83:  union [[gnu::may_alias]] _Any_data
         -:   84:  {
-  573183*:   85:    void*       _M_access()       noexcept { return &_M_pod_data[0]; }
+  573468*:   85:    void*       _M_access()       noexcept { return &_M_pod_data[0]; }
 ------------------
 _ZNSt9_Any_data9_M_accessEv:
 function _ZNSt9_Any_data9_M_accessEv called 0 returned 0% blocks executed 0%
     #####:   85:    void*       _M_access()       noexcept { return &_M_pod_data[0]; }
 ------------------
 _ZNSt9_Any_data9_M_accessEv:
-function _ZNSt9_Any_data9_M_accessEv called 573183 returned 100% blocks executed 100%
-   573183:   85:    void*       _M_access()       noexcept { return &_M_pod_data[0]; }
+function _ZNSt9_Any_data9_M_accessEv called 573468 returned 100% blocks executed 100%
+   573468:   85:    void*       _M_access()       noexcept { return &_M_pod_data[0]; }
 ------------------
-  286806*:   86:    const void* _M_access() const noexcept { return &_M_pod_data[0]; }
+  286977*:   86:    const void* _M_access() const noexcept { return &_M_pod_data[0]; }
 ------------------
 _ZNKSt9_Any_data9_M_accessEv:
 function _ZNKSt9_Any_data9_M_accessEv called 0 returned 0% blocks executed 0%
     #####:   86:    const void* _M_access() const noexcept { return &_M_pod_data[0]; }
 ------------------
 _ZNKSt9_Any_data9_M_accessEv:
-function _ZNKSt9_Any_data9_M_accessEv called 286806 returned 100% blocks executed 100%
-   286806:   86:    const void* _M_access() const noexcept { return &_M_pod_data[0]; }
+function _ZNKSt9_Any_data9_M_accessEv called 286977 returned 100% blocks executed 100%
+   286977:   86:    const void* _M_access() const noexcept { return &_M_pod_data[0]; }
 ------------------
         -:   87:
         -:   88:    template<typename _Tp>
         -:   89:      _Tp&
-  287860*:   90:      _M_access() noexcept
-  287860*:   91:      { return *static_cast<_Tp*>(_M_access()); }
+  288002*:   90:      _M_access() noexcept
+  288002*:   91:      { return *static_cast<_Tp*>(_M_access()); }
 ------------------
 _ZNSt9_Any_data9_M_accessINSt13__future_base13_State_baseV27_SetterIvvEEEERT_v:
 function _ZNSt9_Any_data9_M_accessINSt13__future_base13_State_baseV27_SetterIvvEEEERT_v called 0 returned 0% blocks executed 0%
@@ -128,9 +128,9 @@ function _ZNSt9_Any_data9_M_accessIPKSt9type_infoEERT_v called 0 returned 0% blo
 call    0 never executed
 ------------------
 _ZNSt9_Any_data9_M_accessINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEEERT_v:
-function _ZNSt9_Any_data9_M_accessINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEEERT_v called 287860 returned 100% blocks executed 100%
-   287860:   90:      _M_access() noexcept
-   287860:   91:      { return *static_cast<_Tp*>(_M_access()); }
+function _ZNSt9_Any_data9_M_accessINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEEERT_v called 288002 returned 100% blocks executed 100%
+   288002:   90:      _M_access() noexcept
+   288002:   91:      { return *static_cast<_Tp*>(_M_access()); }
 call    0 returned 100%
 ------------------
 _ZNSt9_Any_data9_M_accessIPNSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEEERT_v:
@@ -148,8 +148,8 @@ call    0 never executed
         -:   92:
         -:   93:    template<typename _Tp>
         -:   94:      const _Tp&
-  286808*:   95:      _M_access() const noexcept
-  286808*:   96:      { return *static_cast<const _Tp*>(_M_access()); }
+  286970*:   95:      _M_access() const noexcept
+  286970*:   96:      { return *static_cast<const _Tp*>(_M_access()); }
 ------------------
 _ZNKSt9_Any_data9_M_accessINSt13__future_base13_State_baseV27_SetterIvvEEEERKT_v:
 function _ZNKSt9_Any_data9_M_accessINSt13__future_base13_State_baseV27_SetterIvvEEEERKT_v called 0 returned 0% blocks executed 0%
@@ -158,9 +158,9 @@ function _ZNKSt9_Any_data9_M_accessINSt13__future_base13_State_baseV27_SetterIvv
 call    0 never executed
 ------------------
 _ZNKSt9_Any_data9_M_accessINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEEERKT_v:
-function _ZNKSt9_Any_data9_M_accessINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEEERKT_v called 286808 returned 100% blocks executed 100%
-   286808:   95:      _M_access() const noexcept
-   286808:   96:      { return *static_cast<const _Tp*>(_M_access()); }
+function _ZNKSt9_Any_data9_M_accessINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEEERKT_v called 286970 returned 100% blocks executed 100%
+   286970:   95:      _M_access() const noexcept
+   286970:   96:      { return *static_cast<const _Tp*>(_M_access()); }
 call    0 returned 100%
 ------------------
         -:   97:
@@ -200,12 +200,12 @@ call    0 returned 100%
         -:  131:
         -:  132:	// Retrieve a pointer to the function object
         -:  133:	static _Functor*
-  286842*:  134:	_M_get_pointer(const _Any_data& __source) noexcept
+  287017*:  134:	_M_get_pointer(const _Any_data& __source) noexcept
         -:  135:	{
         -:  136:	  if _GLIBCXX17_CONSTEXPR (__stored_locally)
         -:  137:	    {
-  286842*:  138:	      const _Functor& __f = __source._M_access<_Functor>();
-  286765*:  139:	      return const_cast<_Functor*>(std::__addressof(__f));
+  287017*:  138:	      const _Functor& __f = __source._M_access<_Functor>();
+  286964*:  139:	      return const_cast<_Functor*>(std::__addressof(__f));
         -:  140:	    }
         -:  141:	  else // have stored a pointer
         -:  142:	    return __source._M_access<_Functor*>();
@@ -227,14 +227,14 @@ call    0 never executed
         -:  143:	}
 ------------------
 _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE14_M_get_pointerERKSt9_Any_data:
-function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE14_M_get_pointerERKSt9_Any_data called 286842 returned 100% blocks executed 100%
-   286842:  134:	_M_get_pointer(const _Any_data& __source) noexcept
+function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE14_M_get_pointerERKSt9_Any_data called 287017 returned 100% blocks executed 100%
+   287017:  134:	_M_get_pointer(const _Any_data& __source) noexcept
         -:  135:	{
         -:  136:	  if _GLIBCXX17_CONSTEXPR (__stored_locally)
         -:  137:	    {
-   286842:  138:	      const _Functor& __f = __source._M_access<_Functor>();
+   287017:  138:	      const _Functor& __f = __source._M_access<_Functor>();
 call    0 returned 100%
-   286765:  139:	      return const_cast<_Functor*>(std::__addressof(__f));
+   286964:  139:	      return const_cast<_Functor*>(std::__addressof(__f));
 call    0 returned 100%
         -:  140:	    }
         -:  141:	  else // have stored a pointer
@@ -247,10 +247,10 @@ call    0 returned 100%
         -:  147:	// an _Any_data structure.
         -:  148:	template<typename _Fn>
         -:  149:	  static void
-  286530*:  150:	  _M_create(_Any_data& __dest, _Fn&& __f, true_type)
+  286728*:  150:	  _M_create(_Any_data& __dest, _Fn&& __f, true_type)
         -:  151:	  {
-  286530*:  152:	    ::new (__dest._M_access()) _Functor(std::forward<_Fn>(__f));
-  286415*:  153:	  }
+  286728*:  152:	    ::new (__dest._M_access()) _Functor(std::forward<_Fn>(__f));
+  286611*:  153:	  }
 ------------------
 _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterIvvEEE9_M_createIRKS4_EEvRSt9_Any_dataOT_St17integral_constantIbLb1EE:
 function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterIvvEEE9_M_createIRKS4_EEvRSt9_Any_dataOT_St17integral_constantIbLb1EE called 0 returned 0% blocks executed 0%
@@ -283,14 +283,14 @@ call    2 never executed
     #####:  153:	  }
 ------------------
 _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE9_M_createISG_EEvRSt9_Any_dataOT_St17integral_constantIbLb1EE:
-function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE9_M_createISG_EEvRSt9_Any_dataOT_St17integral_constantIbLb1EE called 286530 returned 100% blocks executed 100%
-   286530:  150:	  _M_create(_Any_data& __dest, _Fn&& __f, true_type)
+function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE9_M_createISG_EEvRSt9_Any_dataOT_St17integral_constantIbLb1EE called 286728 returned 100% blocks executed 100%
+   286728:  150:	  _M_create(_Any_data& __dest, _Fn&& __f, true_type)
         -:  151:	  {
-   286530:  152:	    ::new (__dest._M_access()) _Functor(std::forward<_Fn>(__f));
+   286728:  152:	    ::new (__dest._M_access()) _Functor(std::forward<_Fn>(__f));
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 100%
-   286415:  153:	  }
+   286611:  153:	  }
 ------------------
         -:  154:
         -:  155:	// Construct a function object on the heap and store a pointer.
@@ -304,10 +304,10 @@ call    2 returned 100%
         -:  163:
         -:  164:	// Destroy an object stored in the internal buffer.
         -:  165:	static void
-  287949*:  166:	_M_destroy(_Any_data& __victim, true_type)
+  288013*:  166:	_M_destroy(_Any_data& __victim, true_type)
         -:  167:	{
-  287949*:  168:	  __victim._M_access<_Functor>().~_Functor();
-  287828*:  169:	}
+  288013*:  168:	  __victim._M_access<_Functor>().~_Functor();
+  287930*:  169:	}
 ------------------
 _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterIvvEEE10_M_destroyERSt9_Any_dataSt17integral_constantIbLb1EE:
 function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterIvvEEE10_M_destroyERSt9_Any_dataSt17integral_constantIbLb1EE called 0 returned 0% blocks executed 0%
@@ -318,12 +318,12 @@ call    0 never executed
     #####:  169:	}
 ------------------
 _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE10_M_destroyERSt9_Any_dataSt17integral_constantIbLb1EE:
-function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE10_M_destroyERSt9_Any_dataSt17integral_constantIbLb1EE called 287949 returned 100% blocks executed 100%
-   287949:  166:	_M_destroy(_Any_data& __victim, true_type)
+function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE10_M_destroyERSt9_Any_dataSt17integral_constantIbLb1EE called 288013 returned 100% blocks executed 100%
+   288013:  166:	_M_destroy(_Any_data& __victim, true_type)
         -:  167:	{
-   287949:  168:	  __victim._M_access<_Functor>().~_Functor();
+   288013:  168:	  __victim._M_access<_Functor>().~_Functor();
 call    0 returned 100%
-   287828:  169:	}
+   287930:  169:	}
 ------------------
         -:  170:
         -:  171:	// Destroy an object located on the heap.
@@ -335,10 +335,10 @@ call    0 returned 100%
         -:  177:
         -:  178:      public:
         -:  179:	static bool
-  287997*:  180:	_M_manager(_Any_data& __dest, const _Any_data& __source,
+  288013*:  180:	_M_manager(_Any_data& __dest, const _Any_data& __source,
         -:  181:		   _Manager_operation __op)
         -:  182:	{
-  287997*:  183:	  switch (__op)
+  288013*:  183:	  switch (__op)
         -:  184:	    {
     #####:  185:	    case __get_type_info:
         -:  186:#if __cpp_rtti
@@ -355,13 +355,13 @@ call    0 returned 100%
     #####:  197:	    case __clone_functor:
     #####:  198:	      _M_init_functor(__dest,
     #####:  199:		  *const_cast<const _Functor*>(_M_get_pointer(__source)));
-      21*:  200:	      break;
+      71*:  200:	      break;
         -:  201:
-  288012*:  202:	    case __destroy_functor:
-  288012*:  203:	      _M_destroy(__dest, _Local_storage());
-  287811*:  204:	      break;
+  288076*:  202:	    case __destroy_functor:
+  288076*:  203:	      _M_destroy(__dest, _Local_storage());
+  287909*:  204:	      break;
         -:  205:	    }
-  287817*:  206:	  return false;
+  287917*:  206:	  return false;
         -:  207:	}
 ------------------
 _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterIvvEEE10_M_managerERSt9_Any_dataRKS6_St18_Manager_operation:
@@ -407,11 +407,11 @@ call    0 never executed
         -:  207:	}
 ------------------
 _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE10_M_managerERSt9_Any_dataRKSI_St18_Manager_operation:
-function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE10_M_managerERSt9_Any_dataRKSI_St18_Manager_operation called 287997 returned 100% blocks executed 46%
-   287997:  180:	_M_manager(_Any_data& __dest, const _Any_data& __source,
+function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE10_M_managerERSt9_Any_dataRKSI_St18_Manager_operation called 288013 returned 100% blocks executed 46%
+   288013:  180:	_M_manager(_Any_data& __dest, const _Any_data& __source,
         -:  181:		   _Manager_operation __op)
         -:  182:	{
-   287997:  183:	  switch (__op)
+   288013:  183:	  switch (__op)
 branch  0 taken 0%
 branch  1 taken 0%
 branch  2 taken 0%
@@ -438,25 +438,25 @@ call    1 never executed
 call    0 never executed
     #####:  199:		  *const_cast<const _Functor*>(_M_get_pointer(__source)));
 call    0 never executed
-       21:  200:	      break;
+       71:  200:	      break;
         -:  201:
-   288012:  202:	    case __destroy_functor:
-   288012:  203:	      _M_destroy(__dest, _Local_storage());
+   288076:  202:	    case __destroy_functor:
+   288076:  203:	      _M_destroy(__dest, _Local_storage());
 call    0 returned 100%
-   287811:  204:	      break;
+   287909:  204:	      break;
         -:  205:	    }
-   287817:  206:	  return false;
+   287917:  206:	  return false;
         -:  207:	}
 ------------------
         -:  208:
         -:  209:	template<typename _Fn>
         -:  210:	  static void
-  286168*:  211:	  _M_init_functor(_Any_data& __functor, _Fn&& __f)
+  286436*:  211:	  _M_init_functor(_Any_data& __functor, _Fn&& __f)
         -:  212:	  noexcept(__and_<_Local_storage,
         -:  213:			  is_nothrow_constructible<_Functor, _Fn>>::value)
         -:  214:	  {
-  286168*:  215:	    _M_create(__functor, std::forward<_Fn>(__f), _Local_storage());
-  286361*:  216:	  }
+  286436*:  215:	    _M_create(__functor, std::forward<_Fn>(__f), _Local_storage());
+  286553*:  216:	  }
 ------------------
 _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterIvvEEE15_M_init_functorIRKS4_EEvRSt9_Any_dataOT_:
 function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterIvvEEE15_M_init_functorIRKS4_EEvRSt9_Any_dataOT_ called 0 returned 0% blocks executed 0%
@@ -492,15 +492,15 @@ call    1 never executed
     #####:  216:	  }
 ------------------
 _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE15_M_init_functorISG_EEvRSt9_Any_dataOT_:
-function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE15_M_init_functorISG_EEvRSt9_Any_dataOT_ called 286168 returned 100% blocks executed 100%
-   286168:  211:	  _M_init_functor(_Any_data& __functor, _Fn&& __f)
+function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE15_M_init_functorISG_EEvRSt9_Any_dataOT_ called 286436 returned 100% blocks executed 100%
+   286436:  211:	  _M_init_functor(_Any_data& __functor, _Fn&& __f)
         -:  212:	  noexcept(__and_<_Local_storage,
         -:  213:			  is_nothrow_constructible<_Functor, _Fn>>::value)
         -:  214:	  {
-   286168:  215:	    _M_create(__functor, std::forward<_Fn>(__f), _Local_storage());
+   286436:  215:	    _M_create(__functor, std::forward<_Fn>(__f), _Local_storage());
 call    0 returned 100%
 call    1 returned 100%
-   286361:  216:	  }
+   286553:  216:	  }
 ------------------
         -:  217:
         -:  218:	template<typename _Signature>
@@ -520,8 +520,8 @@ call    1 returned 100%
         -:  232:
         -:  233:	template<typename _Tp>
         -:  234:	  static bool
-  286229*:  235:	  _M_not_empty_function(const _Tp&) noexcept
-  286229*:  236:	  { return true; }
+  286518*:  235:	  _M_not_empty_function(const _Tp&) noexcept
+  286518*:  236:	  { return true; }
 ------------------
 _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterIvvEEE21_M_not_empty_functionIS4_EEbRKT_:
 function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterIvvEEE21_M_not_empty_functionIS4_EEbRKT_ called 0 returned 0% blocks executed 0%
@@ -529,28 +529,28 @@ function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27
     #####:  236:	  { return true; }
 ------------------
 _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE21_M_not_empty_functionISG_EEbRKT_:
-function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE21_M_not_empty_functionISG_EEbRKT_ called 286229 returned 100% blocks executed 100%
-   286229:  235:	  _M_not_empty_function(const _Tp&) noexcept
-   286229:  236:	  { return true; }
+function _ZNSt14_Function_base13_Base_managerINSt13__future_base13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES5_INS6_12SignalingAckES7_ES5_INS6_13UeContextViewES7_ES5_ImS7_EEEOSE_EEE21_M_not_empty_functionISG_EEbRKT_ called 286518 returned 100% blocks executed 100%
+   286518:  235:	  _M_not_empty_function(const _Tp&) noexcept
+   286518:  236:	  { return true; }
 ------------------
         -:  237:      };
         -:  238:
-  286253*:  239:    _Function_base() = default;
+  286560*:  239:    _Function_base() = default;
 ------------------
 _ZNSt14_Function_baseC2Ev:
 function _ZNSt14_Function_baseC2Ev called 0 returned 0% blocks executed 0%
     #####:  239:    _Function_base() = default;
 ------------------
 _ZNSt14_Function_baseC2Ev:
-function _ZNSt14_Function_baseC2Ev called 286253 returned 100% blocks executed 100%
-   286253:  239:    _Function_base() = default;
+function _ZNSt14_Function_baseC2Ev called 286560 returned 100% blocks executed 100%
+   286560:  239:    _Function_base() = default;
 ------------------
         -:  240:
-  288254*:  241:    ~_Function_base()
+  288174*:  241:    ~_Function_base()
         -:  242:    {
-  288254*:  243:      if (_M_manager)
-  288308*:  244:	_M_manager(_M_functor, _M_functor, __destroy_functor);
-  287730*:  245:    }
+  288174*:  243:      if (_M_manager)
+  288227*:  244:	_M_manager(_M_functor, _M_functor, __destroy_functor);
+  287838*:  245:    }
 ------------------
 _ZNSt14_Function_baseD2Ev:
 function _ZNSt14_Function_baseD2Ev called 0 returned 0% blocks executed 0%
@@ -564,26 +564,26 @@ call    0 never executed
     #####:  245:    }
 ------------------
 _ZNSt14_Function_baseD2Ev:
-function _ZNSt14_Function_baseD2Ev called 288254 returned 100% blocks executed 100%
-   288254:  241:    ~_Function_base()
+function _ZNSt14_Function_baseD2Ev called 288174 returned 100% blocks executed 100%
+   288174:  241:    ~_Function_base()
         -:  242:    {
-   288254:  243:      if (_M_manager)
+   288174:  243:      if (_M_manager)
 branch  0 taken 100% (fallthrough)
 branch  1 taken -0%
-   288308:  244:	_M_manager(_M_functor, _M_functor, __destroy_functor);
+   288227:  244:	_M_manager(_M_functor, _M_functor, __destroy_functor);
 call    0 returned 100%
-   287730:  245:    }
+   287838:  245:    }
 ------------------
         -:  246:
-  286966*:  247:    bool _M_empty() const { return !_M_manager; }
+  287064*:  247:    bool _M_empty() const { return !_M_manager; }
 ------------------
 _ZNKSt14_Function_base8_M_emptyEv:
 function _ZNKSt14_Function_base8_M_emptyEv called 0 returned 0% blocks executed 0%
     #####:  247:    bool _M_empty() const { return !_M_manager; }
 ------------------
 _ZNKSt14_Function_base8_M_emptyEv:
-function _ZNKSt14_Function_base8_M_emptyEv called 286966 returned 100% blocks executed 100%
-   286966:  247:    bool _M_empty() const { return !_M_manager; }
+function _ZNKSt14_Function_base8_M_emptyEv called 287064 returned 100% blocks executed 100%
+   287064:  247:    bool _M_empty() const { return !_M_manager; }
 ------------------
         -:  248:
         -:  249:    using _Manager_type
@@ -604,10 +604,10 @@ function _ZNKSt14_Function_base8_M_emptyEv called 286966 returned 100% blocks ex
         -:  264:
         -:  265:    public:
         -:  266:      static bool
-  288046*:  267:      _M_manager(_Any_data& __dest, const _Any_data& __source,
+  288072*:  267:      _M_manager(_Any_data& __dest, const _Any_data& __source,
         -:  268:		 _Manager_operation __op)
         -:  269:      {
-  288046*:  270:	switch (__op)
+  288072*:  270:	switch (__op)
         -:  271:	  {
         -:  272:#if __cpp_rtti
     #####:  273:	  case __get_type_info:
@@ -618,10 +618,10 @@ function _ZNKSt14_Function_base8_M_emptyEv called 286966 returned 100% blocks ex
     #####:  278:	    __dest._M_access<_Functor*>() = _Base::_M_get_pointer(__source);
     #####:  279:	    break;
         -:  280:
-  288046*:  281:	  default:
-  288046*:  282:	    _Base::_M_manager(__dest, __source, __op);
+  288072*:  281:	  default:
+  288072*:  282:	    _Base::_M_manager(__dest, __source, __op);
         -:  283:	  }
-  287822*:  284:	return false;
+  287904*:  284:	return false;
         -:  285:      }
 ------------------
 _ZNSt17_Function_handlerIFSt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEEvENS1_13_State_baseV27_SetterIvvEEE10_M_managerERSt9_Any_dataRKSA_St18_Manager_operation:
@@ -654,11 +654,11 @@ call    0 never executed
         -:  285:      }
 ------------------
 _ZNSt17_Function_handlerIFSt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEEvENS1_13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES9_INSA_12SignalingAckESB_ES9_INSA_13UeContextViewESB_ES9_ImSB_EEEOSI_EEE10_M_managerERSt9_Any_dataRKSM_St18_Manager_operation:
-function _ZNSt17_Function_handlerIFSt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEEvENS1_13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES9_INSA_12SignalingAckESB_ES9_INSA_13UeContextViewESB_ES9_ImSB_EEEOSI_EEE10_M_managerERSt9_Any_dataRKSM_St18_Manager_operation called 288046 returned 100% blocks executed 44%
-   288046:  267:      _M_manager(_Any_data& __dest, const _Any_data& __source,
+function _ZNSt17_Function_handlerIFSt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEEvENS1_13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES9_INSA_12SignalingAckESB_ES9_INSA_13UeContextViewESB_ES9_ImSB_EEEOSI_EEE10_M_managerERSt9_Any_dataRKSM_St18_Manager_operation called 288072 returned 100% blocks executed 44%
+   288072:  267:      _M_manager(_Any_data& __dest, const _Any_data& __source,
         -:  268:		 _Manager_operation __op)
         -:  269:      {
-   288046:  270:	switch (__op)
+   288072:  270:	switch (__op)
 branch  0 taken 0%
 branch  1 taken 0%
 branch  2 taken 100%
@@ -675,19 +675,19 @@ call    0 never executed
 call    1 never executed
     #####:  279:	    break;
         -:  280:
-   288046:  281:	  default:
-   288046:  282:	    _Base::_M_manager(__dest, __source, __op);
+   288072:  281:	  default:
+   288072:  282:	    _Base::_M_manager(__dest, __source, __op);
 call    0 returned 100%
         -:  283:	  }
-   287822:  284:	return false;
+   287904:  284:	return false;
         -:  285:      }
 ------------------
         -:  286:
         -:  287:      static _Res
-  286911*:  288:      _M_invoke(const _Any_data& __functor, _ArgTypes&&... __args)
+  287058*:  288:      _M_invoke(const _Any_data& __functor, _ArgTypes&&... __args)
         -:  289:      {
-  286911*:  290:	return std::__invoke_r<_Res>(*_Base::_M_get_pointer(__functor),
-  286737*:  291:				     std::forward<_ArgTypes>(__args)...);
+  287058*:  290:	return std::__invoke_r<_Res>(*_Base::_M_get_pointer(__functor),
+  286931*:  291:				     std::forward<_ArgTypes>(__args)...);
         -:  292:      }
 ------------------
 _ZNSt17_Function_handlerIFSt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEEvENS1_13_State_baseV27_SetterIvvEEE9_M_invokeERKSt9_Any_data:
@@ -701,12 +701,12 @@ call    0 never executed
         -:  292:      }
 ------------------
 _ZNSt17_Function_handlerIFSt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEEvENS1_13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES9_INSA_12SignalingAckESB_ES9_INSA_13UeContextViewESB_ES9_ImSB_EEEOSI_EEE9_M_invokeERKSt9_Any_data:
-function _ZNSt17_Function_handlerIFSt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEEvENS1_13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES9_INSA_12SignalingAckESB_ES9_INSA_13UeContextViewESB_ES9_ImSB_EEEOSI_EEE9_M_invokeERKSt9_Any_data called 286911 returned 99% blocks executed 100%
-   286911:  288:      _M_invoke(const _Any_data& __functor, _ArgTypes&&... __args)
+function _ZNSt17_Function_handlerIFSt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEEvENS1_13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEES9_INSA_12SignalingAckESB_ES9_INSA_13UeContextViewESB_ES9_ImSB_EEEOSI_EEE9_M_invokeERKSt9_Any_data called 287058 returned 99% blocks executed 100%
+   287058:  288:      _M_invoke(const _Any_data& __functor, _ArgTypes&&... __args)
         -:  289:      {
-   286911:  290:	return std::__invoke_r<_Res>(*_Base::_M_get_pointer(__functor),
+   287058:  290:	return std::__invoke_r<_Res>(*_Base::_M_get_pointer(__functor),
 call    0 returned 100%
-   286737:  291:				     std::forward<_ArgTypes>(__args)...);
+   286931:  291:				     std::forward<_ArgTypes>(__args)...);
 call    0 returned 99%
         -:  292:      }
 ------------------
@@ -852,9 +852,9 @@ call    0 returned 99%
         -:  432:      // 2774. std::function construction vs assignment
         -:  433:      template<typename _Functor,
         -:  434:	       typename _Constraints = _Requires<_Callable<_Functor>>>
-  286322*:  435:	function(_Functor&& __f)
+  286600*:  435:	function(_Functor&& __f)
         -:  436:	noexcept(_Handler<_Functor>::template _S_nothrow_init<_Functor>())
-  286322*:  437:	: _Function_base()
+  286600*:  437:	: _Function_base()
         -:  438:	{
         -:  439:	  static_assert(is_copy_constructible<__decay_t<_Functor>>::value,
         -:  440:	      "std::function target must be copy-constructible");
@@ -864,14 +864,14 @@ call    0 returned 99%
         -:  444:
         -:  445:	  using _My_handler = _Handler<_Functor>;
         -:  446:
-  286228*:  447:	  if (_My_handler::_M_not_empty_function(__f))
+  286526*:  447:	  if (_My_handler::_M_not_empty_function(__f))
         -:  448:	    {
-  286222*:  449:	      _My_handler::_M_init_functor(_M_functor,
+  286498*:  449:	      _My_handler::_M_init_functor(_M_functor,
         -:  450:					   std::forward<_Functor>(__f));
-  286323*:  451:	      _M_invoker = &_My_handler::_M_invoke;
-  286323*:  452:	      _M_manager = &_My_handler::_M_manager;
+  286526*:  451:	      _M_invoker = &_My_handler::_M_invoke;
+  286526*:  452:	      _M_manager = &_My_handler::_M_manager;
         -:  453:	    }
-  286299*:  454:	}
+  286522*:  454:	}
 ------------------
 _ZNSt8functionIFSt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEEvEEC2INS1_13_State_baseV27_SetterIvvEEvEEOT_:
 function _ZNSt8functionIFSt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEEvEEC2INS1_13_State_baseV27_SetterIvvEEvEEOT_ called 0 returned 0% blocks executed 0%
@@ -903,10 +903,10 @@ call    1 never executed
     #####:  454:	}
 ------------------
 _ZNSt8functionIFSt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEEvEEC2INS1_13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEESB_INSC_12SignalingAckESD_ESB_INSC_13UeContextViewESD_ESB_ImSD_EEEOSK_EEvEEOT_:
-function _ZNSt8functionIFSt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEEvEEC2INS1_13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEESB_INSC_12SignalingAckESD_ESB_INSC_13UeContextViewESD_ESB_ImSD_EEEOSK_EEvEEOT_ called 286322 returned 100% blocks executed 100%
-   286322:  435:	function(_Functor&& __f)
+function _ZNSt8functionIFSt10unique_ptrINSt13__future_base12_Result_baseENS2_8_DeleterEEvEEC2INS1_13_State_baseV27_SetterISt7variantIJSt8expectedIvN4uecm7OpErrorEESB_INSC_12SignalingAckESD_ESB_INSC_13UeContextViewESD_ESB_ImSD_EEEOSK_EEvEEOT_ called 286600 returned 100% blocks executed 100%
+   286600:  435:	function(_Functor&& __f)
         -:  436:	noexcept(_Handler<_Functor>::template _S_nothrow_init<_Functor>())
-   286322:  437:	: _Function_base()
+   286600:  437:	: _Function_base()
 call    0 returned 100%
         -:  438:	{
         -:  439:	  static_assert(is_copy_constructible<__decay_t<_Functor>>::value,
@@ -917,19 +917,19 @@ call    0 returned 100%
         -:  444:
         -:  445:	  using _My_handler = _Handler<_Functor>;
         -:  446:
-   286228:  447:	  if (_My_handler::_M_not_empty_function(__f))
+   286526:  447:	  if (_My_handler::_M_not_empty_function(__f))
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken -0%
         -:  448:	    {
-   286222:  449:	      _My_handler::_M_init_functor(_M_functor,
+   286498:  449:	      _My_handler::_M_init_functor(_M_functor,
 call    0 returned 100%
 call    1 returned 100%
         -:  450:					   std::forward<_Functor>(__f));
-   286323:  451:	      _M_invoker = &_My_handler::_M_invoke;
-   286323:  452:	      _M_manager = &_My_handler::_M_manager;
+   286526:  451:	      _M_invoker = &_My_handler::_M_invoke;
+   286526:  452:	      _M_manager = &_My_handler::_M_manager;
         -:  453:	    }
-   286299:  454:	}
+   286522:  454:	}
 ------------------
         -:  455:
         -:  456:      /**
@@ -1063,11 +1063,11 @@ call    1 returned 100%
         -:  584:       *  stored by `this`.
         -:  585:       */
         -:  586:      _Res
-  286984*:  587:      operator()(_ArgTypes... __args) const
+  287108*:  587:      operator()(_ArgTypes... __args) const
         -:  588:      {
-  286984*:  589:	if (_M_empty())
+  287108*:  589:	if (_M_empty())
     #####:  590:	  __throw_bad_function_call();
-  286962*:  591:	return _M_invoker(_M_functor, std::forward<_ArgTypes>(__args)...);
+  287091*:  591:	return _M_invoker(_M_functor, std::forward<_ArgTypes>(__args)...);
         -:  592:      }
         -:  593:
         -:  594:#if __cpp_rtti

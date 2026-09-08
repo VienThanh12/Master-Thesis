@@ -481,28 +481,28 @@ call    0 returned 100%
         -:  391:      expected(expected&&) = default;
         -:  392:
         -:  393:      constexpr
-function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEC2EOS3_ called 191162 returned 100% blocks executed 100%
-   191162:  394:      expected(expected&& __x)
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEC2EOS3_ called 190848 returned 100% blocks executed 100%
+   190848:  394:      expected(expected&& __x)
         -:  395:      noexcept(__and_v<is_nothrow_move_constructible<_Tp>,
         -:  396:		       is_nothrow_move_constructible<_Er>>)
         -:  397:      requires is_move_constructible_v<_Tp> && is_move_constructible_v<_Er>
         -:  398:      && (!is_trivially_move_constructible_v<_Tp>
         -:  399:	  || !is_trivially_move_constructible_v<_Er>)
-   191162:  400:      : _M_has_value(__x._M_has_value)
+   190848:  400:      : _M_has_value(__x._M_has_value)
         -:  401:      {
-   191162:  402:	if (_M_has_value)
+   190848:  402:	if (_M_has_value)
 branch  0 taken 99% (fallthrough)
 branch  1 taken 1%
-   189273:  403:	  std::construct_at(__builtin_addressof(_M_val),
-   189316:  404:			    std::move(__x)._M_val);
+   188933:  403:	  std::construct_at(__builtin_addressof(_M_val),
+   188986:  404:			    std::move(__x)._M_val);
 call    0 returned 100%
 call    1 returned 100%
         -:  405:	else
      1872:  406:	  std::construct_at(__builtin_addressof(_M_unex),
-     1846:  407:			    std::move(__x)._M_unex);
+     1862:  407:			    std::move(__x)._M_unex);
 call    0 returned 101%
 call    1 returned 100%
-   191324:  408:      }
+   190968:  408:      }
         -:  409:
         -:  410:      template<typename _Up, typename _Gr>
         -:  411:	requires is_constructible_v<_Tp, const _Up&>
@@ -544,27 +544,27 @@ call    1 returned 100%
         -:  447:	  && (!__expected::__is_unexpected<remove_cvref_t<_Up>>)
         -:  448:	  && is_constructible_v<_Tp, _Up>
         -:  449:	constexpr explicit(!is_convertible_v<_Up, _Tp>)
-   176251:  450:	expected(_Up&& __v)
+   176186:  450:	expected(_Up&& __v)
         -:  451:	noexcept(is_nothrow_constructible_v<_Tp, _Up>)
-   176251:  452:	: _M_val(std::forward<_Up>(__v)), _M_has_value(true)
-   176223:  453:	{ }
+   176186:  452:	: _M_val(std::forward<_Up>(__v)), _M_has_value(true)
+   176183:  453:	{ }
 ------------------
 _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEC2IS1_EEOT_:
-function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEC2IS1_EEOT_ called 48608 returned 100% blocks executed 100%
-    48608:  450:	expected(_Up&& __v)
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEC2IS1_EEOT_ called 48537 returned 100% blocks executed 100%
+    48537:  450:	expected(_Up&& __v)
         -:  451:	noexcept(is_nothrow_constructible_v<_Tp, _Up>)
-    48608:  452:	: _M_val(std::forward<_Up>(__v)), _M_has_value(true)
+    48537:  452:	: _M_val(std::forward<_Up>(__v)), _M_has_value(true)
 call    0 returned 100%
 call    1 returned 100%
-    48621:  453:	{ }
+    48554:  453:	{ }
 ------------------
 _ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEC2IS1_EEOT_:
-function _ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEC2IS1_EEOT_ called 125869 returned 100% blocks executed 100%
-   125869:  450:	expected(_Up&& __v)
+function _ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEC2IS1_EEOT_ called 125875 returned 100% blocks executed 100%
+   125875:  450:	expected(_Up&& __v)
         -:  451:	noexcept(is_nothrow_constructible_v<_Tp, _Up>)
-   125869:  452:	: _M_val(std::forward<_Up>(__v)), _M_has_value(true)
+   125875:  452:	: _M_val(std::forward<_Up>(__v)), _M_has_value(true)
 call    0 returned 100%
-   125828:  453:	{ }
+   125855:  453:	{ }
 ------------------
 _ZNSt8expectedImN4uecm7OpErrorEEC2ImEEOT_:
 function _ZNSt8expectedImN4uecm7OpErrorEEC2ImEEOT_ called 1774 returned 100% blocks executed 100%
@@ -646,31 +646,31 @@ call    1 returned 100%
         -:  504:
         -:  505:      constexpr ~expected() = default;
         -:  506:
-  241955*:  507:      constexpr ~expected()
+  241698*:  507:      constexpr ~expected()
         -:  508:      requires (!is_trivially_destructible_v<_Tp>)
         -:  509:	    || (!is_trivially_destructible_v<_Er>)
         -:  510:      {
-  241955*:  511:	if (_M_has_value)
-  237659*:  512:	  std::destroy_at(__builtin_addressof(_M_val));
+  241698*:  511:	if (_M_has_value)
+  237405*:  512:	  std::destroy_at(__builtin_addressof(_M_val));
         -:  513:	else
-    4296*:  514:	  std::destroy_at(__builtin_addressof(_M_unex));
-  241945*:  515:      }
+    4293*:  514:	  std::destroy_at(__builtin_addressof(_M_unex));
+  241566*:  515:      }
 ------------------
 _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev:
-function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev called 198995 returned 100% blocks executed 100%
-   198995:  507:      constexpr ~expected()
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev called 199083 returned 100% blocks executed 100%
+   199083:  507:      constexpr ~expected()
         -:  508:      requires (!is_trivially_destructible_v<_Tp>)
         -:  509:	    || (!is_trivially_destructible_v<_Er>)
         -:  510:      {
-   198995:  511:	if (_M_has_value)
+   199083:  511:	if (_M_has_value)
 branch  0 taken 100% (fallthrough)
 branch  1 taken -0%
-   199047:  512:	  std::destroy_at(__builtin_addressof(_M_val));
+   199137:  512:	  std::destroy_at(__builtin_addressof(_M_val));
 call    0 returned 100%
         -:  513:	else
     #####:  514:	  std::destroy_at(__builtin_addressof(_M_unex));
 call    0 returned -0%
-   199017:  515:      }
+   198990:  515:      }
 ------------------
 _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev:
 function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev called 2 returned 100% blocks executed 75%
@@ -721,36 +721,36 @@ call    0 returned 100%
        98:  515:      }
 ------------------
 _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev:
-function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev called 10109 returned 100% blocks executed 100%
-    10109:  507:      constexpr ~expected()
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev called 10118 returned 100% blocks executed 100%
+    10118:  507:      constexpr ~expected()
         -:  508:      requires (!is_trivially_destructible_v<_Tp>)
         -:  509:	    || (!is_trivially_destructible_v<_Er>)
         -:  510:      {
-    10109:  511:	if (_M_has_value)
+    10118:  511:	if (_M_has_value)
 branch  0 taken 77% (fallthrough)
 branch  1 taken 23%
-     7777:  512:	  std::destroy_at(__builtin_addressof(_M_val));
+     7788:  512:	  std::destroy_at(__builtin_addressof(_M_val));
 call    0 returned 100%
         -:  513:	else
-     2332:  514:	  std::destroy_at(__builtin_addressof(_M_unex));
+     2330:  514:	  std::destroy_at(__builtin_addressof(_M_unex));
 call    0 returned 100%
-    10102:  515:      }
+    10115:  515:      }
 ------------------
 _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev:
-function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev called 29735 returned 100% blocks executed 100%
-    29735:  507:      constexpr ~expected()
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev called 29381 returned 100% blocks executed 100%
+    29381:  507:      constexpr ~expected()
         -:  508:      requires (!is_trivially_destructible_v<_Tp>)
         -:  509:	    || (!is_trivially_destructible_v<_Er>)
         -:  510:      {
-    29735:  511:	if (_M_has_value)
+    29381:  511:	if (_M_has_value)
 branch  0 taken 100% (fallthrough)
 branch  1 taken -0%
-    29738:  512:	  std::destroy_at(__builtin_addressof(_M_val));
+    29383:  512:	  std::destroy_at(__builtin_addressof(_M_val));
 call    0 returned 100%
         -:  513:	else
     #####:  514:	  std::destroy_at(__builtin_addressof(_M_unex));
 call    0 returned -0%
-    29710:  515:      }
+    29345:  515:      }
 ------------------
 _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev:
 function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEED2Ev called 3016 returned 100% blocks executed 100%
@@ -933,17 +933,17 @@ call    0 returned 100%
         -:  678:
         -:  679:      [[nodiscard]]
         -:  680:      constexpr _Tp*
-    85209:  681:      operator->() noexcept
+    84865:  681:      operator->() noexcept
         -:  682:      {
-   85209*:  683:	__glibcxx_assert(_M_has_value);
-    85210:  684:	return __builtin_addressof(_M_val);
+   84865*:  683:	__glibcxx_assert(_M_has_value);
+    84860:  684:	return __builtin_addressof(_M_val);
         -:  685:      }
 ------------------
 _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv:
-function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv called 39930 returned 100% blocks executed 67%
-    39930:  681:      operator->() noexcept
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv called 39943 returned 100% blocks executed 67%
+    39943:  681:      operator->() noexcept
         -:  682:      {
-   39930*:  683:	__glibcxx_assert(_M_has_value);
+   39943*:  683:	__glibcxx_assert(_M_has_value);
 call    0 returned 100%
 branch  1 taken 0% (fallthrough)
 branch  2 taken 100%
@@ -952,7 +952,7 @@ branch  4 never executed
 branch  5 taken 0% (fallthrough)
 branch  6 taken 100%
 call    7 never executed
-    39934:  684:	return __builtin_addressof(_M_val);
+    39944:  684:	return __builtin_addressof(_M_val);
         -:  685:      }
 ------------------
 _ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEptEv:
@@ -1052,10 +1052,10 @@ call    7 never executed
         -:  685:      }
 ------------------
 _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv:
-function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv called 35770 returned 100% blocks executed 67%
-    35770:  681:      operator->() noexcept
+function _ZNSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEptEv called 35390 returned 100% blocks executed 67%
+    35390:  681:      operator->() noexcept
         -:  682:      {
-   35770*:  683:	__glibcxx_assert(_M_has_value);
+   35390*:  683:	__glibcxx_assert(_M_has_value);
 call    0 returned 100%
 branch  1 taken 0% (fallthrough)
 branch  2 taken 100%
@@ -1064,14 +1064,14 @@ branch  4 never executed
 branch  5 taken 0% (fallthrough)
 branch  6 taken 100%
 call    7 never executed
-    35768:  684:	return __builtin_addressof(_M_val);
+    35384:  684:	return __builtin_addressof(_M_val);
         -:  685:      }
 ------------------
 _ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEptEv:
-function _ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEptEv called 2376 returned 100% blocks executed 67%
-     2376:  681:      operator->() noexcept
+function _ZNSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEptEv called 2399 returned 100% blocks executed 67%
+     2399:  681:      operator->() noexcept
         -:  682:      {
-    2376*:  683:	__glibcxx_assert(_M_has_value);
+    2399*:  683:	__glibcxx_assert(_M_has_value);
 call    0 returned 100%
 branch  1 taken 0% (fallthrough)
 branch  2 taken 100%
@@ -1080,7 +1080,7 @@ branch  4 never executed
 branch  5 taken 0% (fallthrough)
 branch  6 taken 100%
 call    7 never executed
-     2375:  684:	return __builtin_addressof(_M_val);
+     2399:  684:	return __builtin_addressof(_M_val);
         -:  685:      }
 ------------------
         -:  686:
@@ -1118,23 +1118,23 @@ call    7 never executed
         -:  718:
         -:  719:      [[nodiscard]]
         -:  720:      constexpr explicit
-   170805:  721:      operator bool() const noexcept { return _M_has_value; }
+   170684:  721:      operator bool() const noexcept { return _M_has_value; }
 ------------------
 _ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEcvbEv:
-function _ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEcvbEv called 119324 returned 100% blocks executed 100%
-   119324:  721:      operator bool() const noexcept { return _M_has_value; }
+function _ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEcvbEv called 119245 returned 100% blocks executed 100%
+   119245:  721:      operator bool() const noexcept { return _M_has_value; }
 ------------------
 _ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEcvbEv:
-function _ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEcvbEv called 39929 returned 100% blocks executed 100%
-    39929:  721:      operator bool() const noexcept { return _M_has_value; }
+function _ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEcvbEv called 39940 returned 100% blocks executed 100%
+    39940:  721:      operator bool() const noexcept { return _M_has_value; }
 ------------------
 _ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEcvbEv:
-function _ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEcvbEv called 5968 returned 100% blocks executed 100%
-     5968:  721:      operator bool() const noexcept { return _M_has_value; }
+function _ZNKSt8expectedIN4uecm13UeContextViewENS0_7OpErrorEEcvbEv called 5905 returned 100% blocks executed 100%
+     5905:  721:      operator bool() const noexcept { return _M_has_value; }
 ------------------
 _ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEcvbEv:
-function _ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEcvbEv called 5584 returned 100% blocks executed 100%
-     5584:  721:      operator bool() const noexcept { return _M_has_value; }
+function _ZNKSt8expectedIN4uecm12SignalingAckENS0_7OpErrorEEcvbEv called 5594 returned 100% blocks executed 100%
+     5594:  721:      operator bool() const noexcept { return _M_has_value; }
 ------------------
         -:  722:
         -:  723:      [[nodiscard]]
@@ -1874,10 +1874,10 @@ call    7 never executed
         -: 1263:	using rebind = expected<_Up, error_type>;
         -: 1264:
         -: 1265:      constexpr
-function _ZNSt8expectedIvN4uecm7OpErrorEEC2Ev called 110602 returned 100% blocks executed 100%
-   110602: 1266:      expected() noexcept
-   110602: 1267:      : _M_void(), _M_has_value(true)
-   110602: 1268:      { }
+function _ZNSt8expectedIvN4uecm7OpErrorEEC2Ev called 110656 returned 100% blocks executed 100%
+   110656: 1266:      expected() noexcept
+   110656: 1267:      : _M_void(), _M_has_value(true)
+   110656: 1268:      { }
         -: 1269:
         -: 1270:      expected(const expected&) = default;
         -: 1271:
@@ -2086,23 +2086,23 @@ call    1 returned 100%
         -: 1471:
         -: 1472:      [[nodiscard]]
         -: 1473:      constexpr explicit
-   104287: 1474:      operator bool() const noexcept { return _M_has_value; }
+   104274: 1474:      operator bool() const noexcept { return _M_has_value; }
 ------------------
 _ZNKSt8expectedIvN4uecm7OpErrorEEcvbEv:
-function _ZNKSt8expectedIvN4uecm7OpErrorEEcvbEv called 99497 returned 100% blocks executed 100%
-    99497: 1474:      operator bool() const noexcept { return _M_has_value; }
+function _ZNKSt8expectedIvN4uecm7OpErrorEEcvbEv called 99470 returned 100% blocks executed 100%
+    99470: 1474:      operator bool() const noexcept { return _M_has_value; }
 ------------------
 _ZNKSt8expectedIvN4uecm7OpErrorEEcvbEv:
-function _ZNKSt8expectedIvN4uecm7OpErrorEEcvbEv called 4790 returned 100% blocks executed 100%
-     4790: 1474:      operator bool() const noexcept { return _M_has_value; }
+function _ZNKSt8expectedIvN4uecm7OpErrorEEcvbEv called 4804 returned 100% blocks executed 100%
+     4804: 1474:      operator bool() const noexcept { return _M_has_value; }
 ------------------
         -: 1475:
         -: 1476:      [[nodiscard]]
-    8268*: 1477:      constexpr bool has_value() const noexcept { return _M_has_value; }
+    8269*: 1477:      constexpr bool has_value() const noexcept { return _M_has_value; }
 ------------------
 _ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv:
-function _ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv called 4 returned 100% blocks executed 100%
-        4: 1477:      constexpr bool has_value() const noexcept { return _M_has_value; }
+function _ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv called 5 returned 100% blocks executed 100%
+        5: 1477:      constexpr bool has_value() const noexcept { return _M_has_value; }
 ------------------
 _ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv:
 function _ZNKSt8expectedIvN4uecm7OpErrorEE9has_valueEv called 22 returned 100% blocks executed 100%

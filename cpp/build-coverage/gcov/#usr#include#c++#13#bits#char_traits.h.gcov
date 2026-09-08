@@ -1046,28 +1046,28 @@ branch  2 never executed
 ------------------
         -:  391:
         -:  392:      static _GLIBCXX17_CONSTEXPR size_t
-  176222*:  393:      length(const char_type* __s)
+  176228*:  393:      length(const char_type* __s)
         -:  394:      {
         -:  395:#if __cplusplus >= 201703L
-  176222*:  396:	if (std::__is_constant_evaluated())
+  176228*:  396:	if (std::__is_constant_evaluated())
     #####:  397:	  return __gnu_cxx::char_traits<char_type>::length(__s);
         -:  398:#endif
-  176222*:  399:	return __builtin_strlen(__s);
+  176228*:  399:	return __builtin_strlen(__s);
         -:  400:      }
 ------------------
 _ZNSt11char_traitsIcE6lengthEPKc:
-function _ZNSt11char_traitsIcE6lengthEPKc called 10 returned 100% blocks executed 67%
-       10:  393:      length(const char_type* __s)
+function _ZNSt11char_traitsIcE6lengthEPKc called 16 returned 100% blocks executed 67%
+       16:  393:      length(const char_type* __s)
         -:  394:      {
         -:  395:#if __cplusplus >= 201703L
-       10:  396:	if (std::__is_constant_evaluated())
+       16:  396:	if (std::__is_constant_evaluated())
 call    0 returned 100%
 branch  1 taken 0% (fallthrough)
 branch  2 taken 100%
     #####:  397:	  return __gnu_cxx::char_traits<char_type>::length(__s);
 call    0 never executed
         -:  398:#endif
-       10:  399:	return __builtin_strlen(__s);
+       16:  399:	return __builtin_strlen(__s);
         -:  400:      }
 ------------------
 _ZNSt11char_traitsIcE6lengthEPKc:

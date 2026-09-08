@@ -50,7 +50,7 @@
         -:   49:#ifndef __GTHREADS
         -:   50:    return true;
         -:   51:#elif __has_include(<sys/single_threaded.h>)
-  567855*:   52:    return ::__libc_single_threaded;
+  568144*:   52:    return ::__libc_single_threaded;
         -:   53:#else
         -:   54:    return !__gthread_active_p();
         -:   55:#endif
@@ -64,12 +64,12 @@
         -:   63:  inline _Atomic_word
         -:   64:  __attribute__((__always_inline__))
         -:   65:  __exchange_and_add(volatile _Atomic_word* __mem, int __val)
-  283539*:   66:  { return __atomic_fetch_add(__mem, __val, __ATOMIC_ACQ_REL); }
+  283865*:   66:  { return __atomic_fetch_add(__mem, __val, __ATOMIC_ACQ_REL); }
         -:   67:
         -:   68:  inline void
         -:   69:  __attribute__((__always_inline__))
         -:   70:  __atomic_add(volatile _Atomic_word* __mem, int __val)
-  284316*:   71:  { __atomic_fetch_add(__mem, __val, __ATOMIC_ACQ_REL); }
+  284279*:   71:  { __atomic_fetch_add(__mem, __val, __ATOMIC_ACQ_REL); }
         -:   72:#else
         -:   73:  _Atomic_word
         -:   74:  __exchange_and_add(volatile _Atomic_word*, int) _GLIBCXX_NOTHROW;
@@ -96,7 +96,7 @@
         -:   95:  __attribute__ ((__always_inline__))
         -:   96:  __exchange_and_add_dispatch(_Atomic_word* __mem, int __val)
         -:   97:  {
-  283539*:   98:    if (__is_single_threaded())
+  283865*:   98:    if (__is_single_threaded())
 branch  0 never executed (fallthrough)
 branch  1 never executed
 branch  2 never executed (fallthrough)
@@ -107,14 +107,14 @@ branch  6 taken 0% (fallthrough)
 branch  7 taken 100%
     #####:   99:      return __exchange_and_add_single(__mem, __val);
         -:  100:    else
-  283539*:  101:      return __exchange_and_add(__mem, __val);
+  283865*:  101:      return __exchange_and_add(__mem, __val);
         -:  102:  }
         -:  103:
         -:  104:  inline void
         -:  105:  __attribute__ ((__always_inline__))
         -:  106:  __atomic_add_dispatch(_Atomic_word* __mem, int __val)
         -:  107:  {
-  284316*:  108:    if (__is_single_threaded())
+  284279*:  108:    if (__is_single_threaded())
 branch  0 never executed (fallthrough)
 branch  1 never executed
 branch  2 taken 0% (fallthrough)
@@ -122,7 +122,7 @@ branch  3 taken 100%
         -:  109:      __atomic_add_single(__mem, __val);
         -:  110:    else
         -:  111:      __atomic_add(__mem, __val);
-  284316*:  112:  }
+  284279*:  112:  }
         -:  113:
         -:  114:_GLIBCXX_END_NAMESPACE_VERSION
         -:  115:} // namespace

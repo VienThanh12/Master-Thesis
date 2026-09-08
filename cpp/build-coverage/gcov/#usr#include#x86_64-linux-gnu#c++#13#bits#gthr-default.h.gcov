@@ -298,9 +298,9 @@
         -:  297:#else /* not hppa-hpux */
         -:  298:
         -:  299:static inline int
- 1403533*:  300:__gthread_active_p (void)
+ 1405324*:  300:__gthread_active_p (void)
         -:  301:{
- 1403533*:  302:  return 1;
+ 1405324*:  302:  return 1;
         -:  303:}
 ------------------
 _ZL18__gthread_active_pv:
@@ -311,10 +311,10 @@ function _ZL18__gthread_active_pv called 0 returned 0% blocks executed 0%
         -:  303:}
 ------------------
 _ZL18__gthread_active_pv:
-function _ZL18__gthread_active_pv called 1403533 returned 100% blocks executed 100%
-  1403533:  300:__gthread_active_p (void)
+function _ZL18__gthread_active_pv called 1405324 returned 100% blocks executed 100%
+  1405324:  300:__gthread_active_p (void)
         -:  301:{
-  1403533:  302:  return 1;
+  1405324:  302:  return 1;
         -:  303:}
 ------------------
 _ZL18__gthread_active_pv:
@@ -717,10 +717,10 @@ function _ZL18__gthread_active_pv called 0 returned 0% blocks executed 0%
         -:  694:}
         -:  695:
         -:  696:static inline int
-  286298*:  697:__gthread_once (__gthread_once_t *__once, void (*__func) (void))
+  286438*:  697:__gthread_once (__gthread_once_t *__once, void (*__func) (void))
         -:  698:{
-  286298*:  699:  if (__gthread_active_p ())
-  286260*:  700:    return __gthrw_(pthread_once) (__once, __func);
+  286438*:  699:  if (__gthread_active_p ())
+  286493*:  700:    return __gthrw_(pthread_once) (__once, __func);
         -:  701:  else
     #####:  702:    return -1;
         -:  703:}
@@ -740,14 +740,14 @@ call    0 never executed
         -:  703:}
 ------------------
 _ZL14__gthread_oncePiPFvvE:
-function _ZL14__gthread_oncePiPFvvE called 286298 returned 101% blocks executed 83%
-   286298:  697:__gthread_once (__gthread_once_t *__once, void (*__func) (void))
+function _ZL14__gthread_oncePiPFvvE called 286438 returned 101% blocks executed 83%
+   286438:  697:__gthread_once (__gthread_once_t *__once, void (*__func) (void))
         -:  698:{
-   286298:  699:  if (__gthread_active_p ())
+   286438:  699:  if (__gthread_active_p ())
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0%
-   286260:  700:    return __gthrw_(pthread_once) (__once, __func);
+   286493:  700:    return __gthrw_(pthread_once) (__once, __func);
 call    0 returned 101%
         -:  701:  else
     #####:  702:    return -1;
@@ -795,10 +795,10 @@ call    0 returned 101%
         -:  743:}
         -:  744:
         -:  745:static inline int
-  567711*:  746:__gthread_mutex_lock (__gthread_mutex_t *__mutex)
+  568039*:  746:__gthread_mutex_lock (__gthread_mutex_t *__mutex)
         -:  747:{
-  567711*:  748:  if (__gthread_active_p ())
-  567461*:  749:    return __gthrw_(pthread_mutex_lock) (__mutex);
+  568039*:  748:  if (__gthread_active_p ())
+  567843*:  749:    return __gthrw_(pthread_mutex_lock) (__mutex);
         -:  750:  else
     #####:  751:    return 0;
         -:  752:}
@@ -818,14 +818,14 @@ call    0 never executed
         -:  752:}
 ------------------
 _ZL20__gthread_mutex_lockP15pthread_mutex_t:
-function _ZL20__gthread_mutex_lockP15pthread_mutex_t called 567711 returned 101% blocks executed 80%
-   567711:  746:__gthread_mutex_lock (__gthread_mutex_t *__mutex)
+function _ZL20__gthread_mutex_lockP15pthread_mutex_t called 568039 returned 101% blocks executed 80%
+   568039:  746:__gthread_mutex_lock (__gthread_mutex_t *__mutex)
         -:  747:{
-   567711:  748:  if (__gthread_active_p ())
+   568039:  748:  if (__gthread_active_p ())
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0%
-   567461:  749:    return __gthrw_(pthread_mutex_lock) (__mutex);
+   567843:  749:    return __gthrw_(pthread_mutex_lock) (__mutex);
 call    0 returned 101%
         -:  750:  else
     #####:  751:    return 0;
@@ -868,10 +868,10 @@ call    0 never executed
         -:  773:#endif
         -:  774:
         -:  775:static inline int
-  568842*:  776:__gthread_mutex_unlock (__gthread_mutex_t *__mutex)
+  569140*:  776:__gthread_mutex_unlock (__gthread_mutex_t *__mutex)
         -:  777:{
-  568842*:  778:  if (__gthread_active_p ())
-  568827*:  779:    return __gthrw_(pthread_mutex_unlock) (__mutex);
+  569140*:  778:  if (__gthread_active_p ())
+  568955*:  779:    return __gthrw_(pthread_mutex_unlock) (__mutex);
         -:  780:  else
     #####:  781:    return 0;
         -:  782:}

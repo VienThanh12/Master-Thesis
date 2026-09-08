@@ -1,40 +1,48 @@
         -:    0:Source:/home/vienha/thesis.local/cpp/src/service.cpp
         -:    1:#include "uecm/service.hpp"
         -:    2:
-        -:    3:#include <utility>
-        -:    4:#include <variant>
-        -:    5:
-        -:    6:#include "uecm/hash.hpp"
-        -:    7:
-        -:    8:namespace uecm {
-        -:    9:
-function _ZN4uecm7ServiceC2ERKNS_6ConfigE called 65 returned 100% blocks executed 100%
-       65:   10:Service::Service(const Config& cfg) : cfg_(cfg) {
+        -:    3:#include <stdexcept>
+        -:    4:#include <utility>
+        -:    5:#include <variant>
+        -:    6:
+        -:    7:#include "uecm/hash.hpp"
+        -:    8:
+        -:    9:namespace uecm {
+        -:   10:namespace {
+        -:   11:// Spec §7.1: operating outside the running window is a caller error, not one of
+        -:   12:// the five OpError codes, so it is reported out of band rather than widening the
+        -:   13:// closed error set.
+        -:   14:constexpr const char* kNotRunning =
+        -:   15:    "uecm::Service: operation submitted while the service is not running (spec §7.1)";
+        -:   16:}  // namespace
+        -:   17:
+function _ZN4uecm7ServiceC2ERKNS_6ConfigE called 67 returned 100% blocks executed 100%
+       67:   18:Service::Service(const Config& cfg) : cfg_(cfg) {
 call    0 returned 100%
 call    1 returned 100%
-       65:   11:  if (cfg_.n_shards == 0) cfg_.n_shards = 1;
-branch  0 taken 2% (fallthrough)
-branch  1 taken 98%
-       65:   12:}
-        -:   13:
-function _ZN4uecm7ServiceD2Ev called 65 returned 100% blocks executed 100%
-       65:   14:Service::~Service() { shutdown(); }
+       67:   19:  if (cfg_.n_shards == 0) cfg_.n_shards = 1;
+branch  0 taken 1% (fallthrough)
+branch  1 taken 99%
+       67:   20:}
+        -:   21:
+function _ZN4uecm7ServiceD2Ev called 67 returned 100% blocks executed 100%
+       67:   22:Service::~Service() { shutdown(); }
 call    0 returned 100%
 call    1 returned 100%
-        -:   15:
-function _ZN4uecm7Service5startEv called 69 returned 100% blocks executed 82%
-       69:   16:void Service::start() {
-       69:   17:  if (running_) return;
+        -:   23:
+function _ZN4uecm7Service5startEv called 70 returned 100% blocks executed 82%
+       70:   24:void Service::start() {
+       70:   25:  if (running_) return;
 branch  0 taken 6% (fallthrough)
 branch  1 taken 94%
-       65:   18:  shards_.clear();
+       66:   26:  shards_.clear();
 call    0 returned 100%
-       65:   19:  shards_.reserve(cfg_.n_shards);
+       66:   27:  shards_.reserve(cfg_.n_shards);
 call    0 returned 100%
-      506:   20:  for (std::uint64_t i = 0; i < cfg_.n_shards; ++i)
+      515:   28:  for (std::uint64_t i = 0; i < cfg_.n_shards; ++i)
 branch  0 taken 87%
 branch  1 taken 13% (fallthrough)
-      441:   21:    shards_.push_back(std::make_unique<Shard>(cfg_, activity_seq_));
+      449:   29:    shards_.push_back(std::make_unique<Shard>(cfg_, activity_seq_));
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
@@ -44,18 +52,18 @@ branch  5 taken 0% (throw)
 call    6 returned 100%
 call    7 never executed
 call    8 never executed
-       65:   22:  running_ = true;
-      506:   23:  for (auto& s : shards_) {
+       66:   30:  running_ = true;
+      515:   31:  for (auto& s : shards_) {
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 100%
 call    3 returned 100%
 branch  4 taken 87%
 branch  5 taken 13% (fallthrough)
-      441:   24:    Shard& shard = *s;
+      449:   32:    Shard& shard = *s;
 call    0 returned 100%
-function _ZZN4uecm7Service5startEvENKUlvE_clEv called 438 returned 100% blocks executed 100%
-      879:   25:    shard.worker = std::thread([this, &shard] { worker_loop(shard); });
+function _ZZN4uecm7Service5startEvENKUlvE_clEv called 449 returned 100% blocks executed 100%
+      898:   33:    shard.worker = std::thread([this, &shard] { worker_loop(shard); });
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
@@ -63,15 +71,15 @@ call    3 returned 100%
 call    4 returned 100%
 call    5 returned 100%
 call    6 returned 100%
-        -:   26:  }
-        -:   27:}
-        -:   28:
-function _ZN4uecm7Service8shutdownEv called 134 returned 100% blocks executed 81%
-      134:   29:void Service::shutdown() {
-      134:   30:  if (!running_) return;
-branch  0 taken 51% (fallthrough)
-branch  1 taken 49%
-      506:   31:  for (auto& s : shards_) {
+        -:   34:  }
+        -:   35:}
+        -:   36:
+function _ZN4uecm7Service8shutdownEv called 137 returned 100% blocks executed 81%
+      137:   37:void Service::shutdown() {
+      137:   38:  if (!running_) return;
+branch  0 taken 52% (fallthrough)
+branch  1 taken 48%
+      515:   39:  for (auto& s : shards_) {
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 100%
@@ -79,12 +87,12 @@ call    3 returned 100%
 call    4 returned 100%
 branch  5 taken 87%
 branch  6 taken 13% (fallthrough)
-      441:   32:    Request stop;
+      449:   40:    Request stop;
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-      441:   33:    stop.kind = OpKind::Stop;
-      441:   34:    s->queue.push(std::move(stop));  // FIFO: drains prior requests first
+      449:   41:    stop.kind = OpKind::Stop;
+      449:   42:    s->queue.push(std::move(stop));  // FIFO: drains prior requests first
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 100%
@@ -93,10 +101,10 @@ branch  4 taken 100% (fallthrough)
 branch  5 taken 0% (throw)
 call    6 returned 100%
 call    7 never executed
-      441:   35:  }
+      449:   43:  }
 call    0 returned 100%
 call    1 never executed
-      506:   36:  for (auto& s : shards_)
+      515:   44:  for (auto& s : shards_)
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 100%
@@ -104,7 +112,7 @@ call    3 returned 100%
 call    4 returned 100%
 branch  5 taken 87%
 branch  6 taken 13% (fallthrough)
-      441:   37:    if (s->worker.joinable()) s->worker.join();
+      449:   45:    if (s->worker.joinable()) s->worker.join();
 call    0 returned 100%
 call    1 returned 100%
 branch  2 taken 100% (fallthrough)
@@ -113,21 +121,21 @@ call    4 returned 100%
 call    5 returned 100%
 branch  6 taken 100% (fallthrough)
 branch  7 taken 0% (throw)
-       65:   38:  running_ = false;
-       65:   39:  shards_.clear();
+       66:   46:  running_ = false;
+       66:   47:  shards_.clear();
 call    0 returned 100%
-        -:   40:}
-        -:   41:
-function _ZN4uecm7Service11worker_loopERNS0_5ShardE called 441 returned 110% blocks executed 59%
-      441:   42:void Service::worker_loop(Shard& shard) {
-      441:   43:  ShardCore& core = *shard.core;
+        -:   48:}
+        -:   49:
+function _ZN4uecm7Service11worker_loopERNS0_5ShardE called 449 returned 97% blocks executed 59%
+      449:   50:void Service::worker_loop(Shard& shard) {
+      449:   51:  ShardCore& core = *shard.core;
 call    0 returned 100%
-        -:   44:  for (;;) {
-   288502:   45:    Request req = shard.queue.pop();
+        -:   52:  for (;;) {
+   288515:   53:    Request req = shard.queue.pop();
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-   288301:   46:    switch (req.kind) {
+   288331:   54:    switch (req.kind) {
 branch  0 taken 15%
 branch  1 taken 15%
 branch  2 taken 44%
@@ -140,8 +148,8 @@ branch  8 taken 17%
 branch  9 taken 1%
 branch 10 taken 1%
 branch 11 taken -0%
-    44532:   47:      case OpKind::CreateContext:
-    44532:   48:        req.completion.set_value(core.create_context(req.ue_id, req.create_params));
+    44548:   55:      case OpKind::CreateContext:
+    44548:   56:        req.completion.set_value(core.create_context(req.ue_id, req.create_params));
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
@@ -151,9 +159,9 @@ branch  5 taken 100% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 never executed
-    44505:   49:        break;
-    43979:   50:      case OpKind::SetupConnection:
-    43979:   51:        req.completion.set_value(core.setup_connection(req.ue_id));
+    44522:   57:        break;
+    43981:   58:      case OpKind::SetupConnection:
+    43981:   59:        req.completion.set_value(core.setup_connection(req.ue_id));
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
@@ -163,9 +171,9 @@ branch  5 taken 100% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 never executed
-    43932:   52:        break;
-   126194:   53:      case OpKind::HandleSignaling:
-   126194:   54:        req.completion.set_value(core.handle_signaling(req.ue_id, req.signaling));
+    43950:   60:        break;
+   126234:   61:      case OpKind::HandleSignaling:
+   126234:   62:        req.completion.set_value(core.handle_signaling(req.ue_id, req.signaling));
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
@@ -175,9 +183,9 @@ branch  5 taken 100% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 never executed
-   125900:   55:        break;
-     1343:   56:      case OpKind::AddDrb:
-     1343:   57:        req.completion.set_value(core.add_drb(req.ue_id, req.drb));
+   125947:   63:        break;
+     1343:   64:      case OpKind::AddDrb:
+     1343:   65:        req.completion.set_value(core.add_drb(req.ue_id, req.drb));
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
@@ -187,9 +195,9 @@ branch  5 taken 100% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 never executed
-     1343:   58:        break;
-      703:   59:      case OpKind::BeginReconfigure:
-      703:   60:        req.completion.set_value(core.begin_reconfigure(req.ue_id, req.reconfig));
+     1343:   66:        break;
+      703:   67:      case OpKind::BeginReconfigure:
+      703:   68:        req.completion.set_value(core.begin_reconfigure(req.ue_id, req.reconfig));
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
@@ -199,9 +207,9 @@ branch  5 taken 100% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 never executed
-      703:   61:        break;
-      470:   62:      case OpKind::CompleteReconfigure:
-      470:   63:        req.completion.set_value(core.complete_reconfigure(req.ue_id));
+      703:   69:        break;
+      470:   70:      case OpKind::CompleteReconfigure:
+      470:   71:        req.completion.set_value(core.complete_reconfigure(req.ue_id));
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
@@ -211,9 +219,9 @@ branch  5 taken 100% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 never executed
-      470:   64:        break;
-      487:   65:      case OpKind::AbortReconfigure:
-      487:   66:        req.completion.set_value(core.abort_reconfigure(req.ue_id));
+      470:   72:        break;
+      487:   73:      case OpKind::AbortReconfigure:
+      487:   74:        req.completion.set_value(core.abort_reconfigure(req.ue_id));
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
@@ -223,9 +231,9 @@ branch  5 taken 100% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 never executed
-      487:   67:        break;
-    20777:   68:      case OpKind::ReleaseContext:
-    20777:   69:        req.completion.set_value(core.release_context(req.ue_id));
+      487:   75:        break;
+    20785:   76:      case OpKind::ReleaseContext:
+    20785:   77:        req.completion.set_value(core.release_context(req.ue_id));
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
@@ -235,9 +243,9 @@ branch  5 taken 100% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 never executed
-    20777:   70:        break;
-    48036:   71:      case OpKind::Lookup:
-    48036:   72:        req.completion.set_value(core.lookup(req.ue_id));
+    20776:   78:        break;
+    47963:   79:      case OpKind::Lookup:
+    47963:   80:        req.completion.set_value(core.lookup(req.ue_id));
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
@@ -249,9 +257,9 @@ call    7 returned 100%
 call    8 returned 99%
 call    9 never executed
 call   10 never executed
-    47300:   73:        break;
-     1774:   74:      case OpKind::Count:
-     1774:   75:        req.completion.set_value(OpResult<std::uint64_t>(core.count()));
+    47320:   81:        break;
+     1774:   82:      case OpKind::Count:
+     1774:   83:        req.completion.set_value(OpResult<std::uint64_t>(core.count()));
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 100%
@@ -260,30 +268,39 @@ branch  4 taken 100% (fallthrough)
 branch  5 taken 0% (throw)
 call    6 returned 100%
 call    7 never executed
-     1774:   76:        break;
-      441:   77:      case OpKind::Stop:
-      928:   78:        return;
-        -:   79:    }
-   575259:   80:  }
+     1774:   84:        break;
+      449:   85:      case OpKind::Stop:
+      883:   86:        return;
+        -:   87:    }
+   575401:   88:  }
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 1%
 call    3 never executed
-        -:   81:}
-        -:   82:
-function _ZN4uecm7Service6submitENS_6OpKindEmONS_7RequestE called 282273 returned 101% blocks executed 74%
-   282273:   83:Response Service::submit(OpKind kind, UeId ue_id, Request&& req) {
-   282273:   84:  req.kind = kind;
-   282273:   85:  req.ue_id = ue_id;
-   282273:   86:  auto fut = req.completion.get_future();
+        -:   89:}
+        -:   90:
+function _ZN4uecm7Service6submitENS_6OpKindEmONS_7RequestE called 282451 returned 101% blocks executed 72%
+   282451:   91:Response Service::submit(OpKind kind, UeId ue_id, Request&& req) {
+   282451:   92:  if (!running_) throw std::logic_error(kNotRunning);
+branch  0 taken 1% (fallthrough)
+branch  1 taken 100%
+call    2 returned 100%
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+   282448:   93:  req.kind = kind;
+   282448:   94:  req.ue_id = ue_id;
+   282448:   95:  auto fut = req.completion.get_future();
 call    0 returned 101%
 branch  1 taken 101% (fallthrough)
 branch  2 taken 0% (throw)
-   285708:   87:  std::uint64_t s = shard_index(ue_id, cfg_.n_shards);
+   285791:   96:  std::uint64_t s = shard_index(ue_id, cfg_.n_shards);
 call    0 returned 100%
-   284885:   88:  shards_[s]->queue.push(std::move(req));
+   284762:   97:  shards_[s]->queue.push(std::move(req));
 call    0 returned 100%
-call    1 returned 99%
+call    1 returned 100%
 call    2 returned 100%
 call    3 returned 99%
 call    4 returned 102%
@@ -291,24 +308,44 @@ branch  5 taken 102% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 never executed
-   570410:   89:  return fut.get();
+   570395:   98:  return fut.get();
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-   284766:   90:}
+   284641:   99:}
 call    0 returned 100%
 call    1 never executed
-        -:   91:
-        -:   92:// --- Typed API ----------------------------------------------------------------
-        -:   93:
-function _ZN4uecm7Service14create_contextEmRKNS_12CreateParamsE called 44495 returned 100% blocks executed 67%
-    44495:   94:OpResult<void> Service::create_context(UeId ue_id, const CreateParams& params) {
-    44495:   95:  Request req;
+        -:  100:
+        -:  101:// --- Typed API ----------------------------------------------------------------
+        -:  102:
+function _ZN4uecm7Service14create_contextEmRKNS_12CreateParamsE called 44476 returned 100% blocks executed 87%
+    44476:  103:OpResult<void> Service::create_context(UeId ue_id, const CreateParams& params) {
+    44476:  104:  Request req;
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-    44428:   96:  req.create_params = params;
-    88869:   97:  return std::get<OpResult<void>>(submit(OpKind::CreateContext, ue_id, std::move(req)));
+    44432:  105:  req.create_params = params;
+    88907:  106:  return std::get<OpResult<void>>(submit(OpKind::CreateContext, ue_id, std::move(req)));
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 1% (throw)
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+call    8 never executed
+    44476:  107:}
+call    0 returned 100%
+call    1 returned 100%
+        -:  108:
+function _ZN4uecm7Service16setup_connectionEm called 43931 returned 100% blocks executed 67%
+    43931:  109:OpResult<void> Service::setup_connection(UeId ue_id) {
+    43931:  110:  Request req;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+    87786:  111:  return std::get<OpResult<void>>(submit(OpKind::SetupConnection, ue_id, std::move(req)));
 call    0 returned 100%
 call    1 returned 100%
 branch  2 taken 100% (fallthrough)
@@ -318,60 +355,40 @@ branch  5 taken 100% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 never executed
-    44452:   98:}
+    43916:  112:}
 call    0 returned 100%
 call    1 never executed
-        -:   99:
-function _ZN4uecm7Service16setup_connectionEm called 43911 returned 100% blocks executed 67%
-    43911:  100:OpResult<void> Service::setup_connection(UeId ue_id) {
-    43911:  101:  Request req;
+        -:  113:
+function _ZN4uecm7Service16handle_signalingEmRKNS_12SignalingMsgE called 125777 returned 100% blocks executed 64%
+   125777:  114:OpResult<SignalingAck> Service::handle_signaling(UeId ue_id, const SignalingMsg& msg) {
+   125777:  115:  Request req;
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-    87760:  102:  return std::get<OpResult<void>>(submit(OpKind::SetupConnection, ue_id, std::move(req)));
-call    0 returned 100%
-call    1 returned 100%
-branch  2 taken 100% (fallthrough)
-branch  3 taken 0% (throw)
-call    4 returned 100%
-branch  5 taken 100% (fallthrough)
-branch  6 taken 0% (throw)
-call    7 returned 100%
-call    8 never executed
-    43903:  103:}
-call    0 returned 100%
-call    1 never executed
-        -:  104:
-function _ZN4uecm7Service16handle_signalingEmRKNS_12SignalingMsgE called 125789 returned 100% blocks executed 64%
-   125789:  105:OpResult<SignalingAck> Service::handle_signaling(UeId ue_id, const SignalingMsg& msg) {
-   125789:  106:  Request req;
+   125370:  116:  req.signaling = msg;
+   125860:  117:  return std::get<OpResult<SignalingAck>>(
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-   125359:  107:  req.signaling = msg;
-   125804:  108:  return std::get<OpResult<SignalingAck>>(
-call    0 returned 100%
-branch  1 taken 100% (fallthrough)
-branch  2 taken 0% (throw)
-   376630:  109:      submit(OpKind::HandleSignaling, ue_id, std::move(req)));
+   376837:  118:      submit(OpKind::HandleSignaling, ue_id, std::move(req)));
 call    0 returned 100%
 call    1 returned 100%
 branch  2 taken 100% (fallthrough)
 branch  3 taken 0% (throw)
 call    4 returned 100%
 call    5 never executed
-   125582:  110:}
+   125728:  119:}
 call    0 returned 100%
 call    1 never executed
-        -:  111:
+        -:  120:
 function _ZN4uecm7Service7add_drbEmRKNS_8DrbEntryE called 1343 returned 100% blocks executed 67%
-     1343:  112:OpResult<void> Service::add_drb(UeId ue_id, const DrbEntry& drb) {
-     1343:  113:  Request req;
+     1343:  121:OpResult<void> Service::add_drb(UeId ue_id, const DrbEntry& drb) {
+     1343:  122:  Request req;
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-     1343:  114:  req.drb = drb;
-     2686:  115:  return std::get<OpResult<void>>(submit(OpKind::AddDrb, ue_id, std::move(req)));
+     1343:  123:  req.drb = drb;
+     2686:  124:  return std::get<OpResult<void>>(submit(OpKind::AddDrb, ue_id, std::move(req)));
 call    0 returned 100%
 call    1 returned 100%
 branch  2 taken 100% (fallthrough)
@@ -381,18 +398,18 @@ branch  5 taken 100% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 never executed
-     1343:  116:}
+     1343:  125:}
 call    0 returned 100%
 call    1 never executed
-        -:  117:
+        -:  126:
 function _ZN4uecm7Service17begin_reconfigureEmRKNS_14ReconfigParamsE called 703 returned 100% blocks executed 67%
-      703:  118:OpResult<void> Service::begin_reconfigure(UeId ue_id, const ReconfigParams& params) {
-      703:  119:  Request req;
+      703:  127:OpResult<void> Service::begin_reconfigure(UeId ue_id, const ReconfigParams& params) {
+      703:  128:  Request req;
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-      703:  120:  req.reconfig = params;
-     1406:  121:  return std::get<OpResult<void>>(submit(OpKind::BeginReconfigure, ue_id, std::move(req)));
+      703:  129:  req.reconfig = params;
+     1406:  130:  return std::get<OpResult<void>>(submit(OpKind::BeginReconfigure, ue_id, std::move(req)));
 call    0 returned 100%
 call    1 returned 100%
 branch  2 taken 100% (fallthrough)
@@ -402,38 +419,38 @@ branch  5 taken 100% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 never executed
-      703:  122:}
+      703:  131:}
 call    0 returned 100%
 call    1 never executed
-        -:  123:
+        -:  132:
 function _ZN4uecm7Service20complete_reconfigureEm called 470 returned 100% blocks executed 64%
-      470:  124:OpResult<void> Service::complete_reconfigure(UeId ue_id) {
-      470:  125:  Request req;
+      470:  133:OpResult<void> Service::complete_reconfigure(UeId ue_id) {
+      470:  134:  Request req;
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-      470:  126:  return std::get<OpResult<void>>(
+      470:  135:  return std::get<OpResult<void>>(
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-     1410:  127:      submit(OpKind::CompleteReconfigure, ue_id, std::move(req)));
+     1410:  136:      submit(OpKind::CompleteReconfigure, ue_id, std::move(req)));
 call    0 returned 100%
 call    1 returned 100%
 branch  2 taken 100% (fallthrough)
 branch  3 taken 0% (throw)
 call    4 returned 100%
 call    5 never executed
-      470:  128:}
+      470:  137:}
 call    0 returned 100%
 call    1 never executed
-        -:  129:
+        -:  138:
 function _ZN4uecm7Service17abort_reconfigureEm called 487 returned 100% blocks executed 67%
-      487:  130:OpResult<void> Service::abort_reconfigure(UeId ue_id) {
-      487:  131:  Request req;
+      487:  139:OpResult<void> Service::abort_reconfigure(UeId ue_id) {
+      487:  140:  Request req;
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-      974:  132:  return std::get<OpResult<void>>(submit(OpKind::AbortReconfigure, ue_id, std::move(req)));
+      974:  141:  return std::get<OpResult<void>>(submit(OpKind::AbortReconfigure, ue_id, std::move(req)));
 call    0 returned 100%
 call    1 returned 100%
 branch  2 taken 100% (fallthrough)
@@ -443,67 +460,76 @@ branch  5 taken 100% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 never executed
-      487:  133:}
+      487:  142:}
 call    0 returned 100%
 call    1 never executed
-        -:  134:
-function _ZN4uecm7Service15release_contextEm called 20776 returned 100% blocks executed 67%
-    20776:  135:OpResult<void> Service::release_context(UeId ue_id) {
-    20776:  136:  Request req;
+        -:  143:
+function _ZN4uecm7Service15release_contextEm called 20773 returned 100% blocks executed 87%
+    20773:  144:OpResult<void> Service::release_context(UeId ue_id) {
+    20773:  145:  Request req;
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-    41518:  137:  return std::get<OpResult<void>>(submit(OpKind::ReleaseContext, ue_id, std::move(req)));
+    41530:  146:  return std::get<OpResult<void>>(submit(OpKind::ReleaseContext, ue_id, std::move(req)));
 call    0 returned 100%
 call    1 returned 100%
 branch  2 taken 100% (fallthrough)
-branch  3 taken 0% (throw)
+branch  3 taken 1% (throw)
 call    4 returned 100%
 branch  5 taken 100% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 never executed
-    20757:  138:}
+    20773:  147:}
 call    0 returned 100%
-call    1 never executed
-        -:  139:
-function _ZN4uecm7Service6lookupEm called 47929 returned 100% blocks executed 67%
-    47929:  140:OpResult<UeContextView> Service::lookup(UeId ue_id) {
-    47929:  141:  Request req;
+call    1 returned 100%
+        -:  148:
+function _ZN4uecm7Service6lookupEm called 47854 returned 100% blocks executed 87%
+    47854:  149:OpResult<UeContextView> Service::lookup(UeId ue_id) {
+    47854:  150:  Request req;
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-    95795:  142:  return std::get<OpResult<UeContextView>>(submit(OpKind::Lookup, ue_id, std::move(req)));
+    95697:  151:  return std::get<OpResult<UeContextView>>(submit(OpKind::Lookup, ue_id, std::move(req)));
 call    0 returned 100%
 call    1 returned 100%
 branch  2 taken 100% (fallthrough)
-branch  3 taken 0% (throw)
+branch  3 taken 1% (throw)
 call    4 returned 100%
 branch  5 taken 100% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 returned 100%
 call    9 never executed
-    47957:  143:}
+    47900:  152:}
 call    0 returned 100%
-call    1 never executed
-        -:  144:
-function _ZN4uecm7Service5countEv called 311 returned 100% blocks executed 67%
-      311:  145:std::uint64_t Service::count() {
-      311:  146:  std::uint64_t total = 0;
-     2085:  147:  for (std::uint64_t i = 0; i < cfg_.n_shards; ++i) {
+call    1 returned 100%
+        -:  153:
+function _ZN4uecm7Service5countEv called 313 returned 99% blocks executed 67%
+      313:  154:std::uint64_t Service::count() {
+      313:  155:  if (!running_) throw std::logic_error(kNotRunning);
+branch  0 taken 1% (fallthrough)
+branch  1 taken 99%
+call    2 returned 100%
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 0%
+call    7 never executed
+      311:  156:  std::uint64_t total = 0;
+     2085:  157:  for (std::uint64_t i = 0; i < cfg_.n_shards; ++i) {
 branch  0 taken 85%
 branch  1 taken 15% (fallthrough)
-     1774:  148:    Request req;
+     1774:  158:    Request req;
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-     1774:  149:    req.kind = OpKind::Count;
-     1774:  150:    auto fut = req.completion.get_future();
+     1774:  159:    req.kind = OpKind::Count;
+     1774:  160:    auto fut = req.completion.get_future();
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
-     1774:  151:    shards_[i]->queue.push(std::move(req));
+     1774:  161:    shards_[i]->queue.push(std::move(req));
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 100%
@@ -513,7 +539,7 @@ branch  5 taken 100% (fallthrough)
 branch  6 taken 0% (throw)
 call    7 returned 100%
 call    8 never executed
-     1774:  152:    total += std::get<OpResult<std::uint64_t>>(fut.get()).value();
+     1774:  162:    total += std::get<OpResult<std::uint64_t>>(fut.get()).value();
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0% (throw)
@@ -525,12 +551,12 @@ branch  7 taken 100% (fallthrough)
 branch  8 taken 0% (throw)
 call    9 returned 100%
 call   10 never executed
-     1774:  153:  }
+     1774:  163:  }
 call    0 returned 100%
 call    1 returned 100%
 call    2 never executed
 call    3 never executed
-      311:  154:  return total;
-        -:  155:}
-        -:  156:
-        -:  157:}  // namespace uecm
+      311:  164:  return total;
+        -:  165:}
+        -:  166:
+        -:  167:}  // namespace uecm

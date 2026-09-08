@@ -162,21 +162,21 @@
         -:  161:#else
         -:  162:      void
         -:  163:#endif
-  284912*:  164:      deque<_Tp, _Alloc>::
+  284806*:  164:      deque<_Tp, _Alloc>::
         -:  165:      emplace_back(_Args&&... __args)
         -:  166:      {
-  284912*:  167:	if (this->_M_impl._M_finish._M_cur
-  284912*:  168:	    != this->_M_impl._M_finish._M_last - 1)
+  284806*:  167:	if (this->_M_impl._M_finish._M_cur
+  284806*:  168:	    != this->_M_impl._M_finish._M_last - 1)
         -:  169:	  {
-  191021*:  170:	    _Alloc_traits::construct(this->_M_impl,
+  191011*:  170:	    _Alloc_traits::construct(this->_M_impl,
         -:  171:				     this->_M_impl._M_finish._M_cur,
         -:  172:				     std::forward<_Args>(__args)...);
-  190402*:  173:	    ++this->_M_impl._M_finish._M_cur;
+  190404*:  173:	    ++this->_M_impl._M_finish._M_cur;
         -:  174:	  }
         -:  175:	else
-   93891*:  176:	  _M_push_back_aux(std::forward<_Args>(__args)...);
+   93795*:  176:	  _M_push_back_aux(std::forward<_Args>(__args)...);
         -:  177:#if __cplusplus > 201402L
-  286068*:  178:	return back();
+  286040*:  178:	return back();
         -:  179:#endif
         -:  180:      }
 ------------------
@@ -208,28 +208,28 @@ call    0 never executed
         -:  180:      }
 ------------------
 _ZNSt5dequeIN4uecm7RequestESaIS1_EE12emplace_backIJS1_EEERS1_DpOT_:
-function _ZNSt5dequeIN4uecm7RequestESaIS1_EE12emplace_backIJS1_EEERS1_DpOT_ called 284912 returned 100% blocks executed 100%
-   284912:  164:      deque<_Tp, _Alloc>::
+function _ZNSt5dequeIN4uecm7RequestESaIS1_EE12emplace_backIJS1_EEERS1_DpOT_ called 284806 returned 100% blocks executed 100%
+   284806:  164:      deque<_Tp, _Alloc>::
         -:  165:      emplace_back(_Args&&... __args)
         -:  166:      {
-   284912:  167:	if (this->_M_impl._M_finish._M_cur
-   284912:  168:	    != this->_M_impl._M_finish._M_last - 1)
+   284806:  167:	if (this->_M_impl._M_finish._M_cur
+   284806:  168:	    != this->_M_impl._M_finish._M_last - 1)
 branch  0 taken 67% (fallthrough)
 branch  1 taken 33%
         -:  169:	  {
-   191021:  170:	    _Alloc_traits::construct(this->_M_impl,
+   191011:  170:	    _Alloc_traits::construct(this->_M_impl,
 call    0 returned 100%
 call    1 returned 100%
         -:  171:				     this->_M_impl._M_finish._M_cur,
         -:  172:				     std::forward<_Args>(__args)...);
-   190402:  173:	    ++this->_M_impl._M_finish._M_cur;
+   190404:  173:	    ++this->_M_impl._M_finish._M_cur;
         -:  174:	  }
         -:  175:	else
-    93891:  176:	  _M_push_back_aux(std::forward<_Args>(__args)...);
+    93795:  176:	  _M_push_back_aux(std::forward<_Args>(__args)...);
 call    0 returned 102%
 call    1 returned 100%
         -:  177:#if __cplusplus > 201402L
-   286068:  178:	return back();
+   286040:  178:	return back();
 call    0 returned 100%
         -:  179:#endif
         -:  180:      }
@@ -537,7 +537,7 @@ call    0 returned 100%
         -:  481:#if __cplusplus >= 201103L
         -:  482:    template<typename... _Args>
         -:  483:      void
-   95623*:  484:      deque<_Tp, _Alloc>::
+   95622*:  484:      deque<_Tp, _Alloc>::
         -:  485:      _M_push_back_aux(_Args&&... __args)
         -:  486:#else
         -:  487:      void
@@ -545,31 +545,31 @@ call    0 returned 100%
         -:  489:      _M_push_back_aux(const value_type& __t)
         -:  490:#endif
         -:  491:      {
-   95623*:  492:	if (size() == max_size())
+   95622*:  492:	if (size() == max_size())
     #####:  493:	  __throw_length_error(
         -:  494:	      __N("cannot create std::deque larger than max_size()"));
         -:  495:
-   95601*:  496:	_M_reserve_map_at_back();
-   95748*:  497:	*(this->_M_impl._M_finish._M_node + 1) = this->_M_allocate_node();
+   95570*:  496:	_M_reserve_map_at_back();
+   95694*:  497:	*(this->_M_impl._M_finish._M_node + 1) = this->_M_allocate_node();
         -:  498:	__try
         -:  499:	  {
         -:  500:#if __cplusplus >= 201103L
-   96060*:  501:	    _Alloc_traits::construct(this->_M_impl,
+   96036*:  501:	    _Alloc_traits::construct(this->_M_impl,
         -:  502:				     this->_M_impl._M_finish._M_cur,
         -:  503:				     std::forward<_Args>(__args)...);
         -:  504:#else
         -:  505:	    this->_M_impl.construct(this->_M_impl._M_finish._M_cur, __t);
         -:  506:#endif
-   95705*:  507:	    this->_M_impl._M_finish._M_set_node(this->_M_impl._M_finish._M_node
+   95668*:  507:	    this->_M_impl._M_finish._M_set_node(this->_M_impl._M_finish._M_node
         -:  508:						+ 1);
-   95675*:  509:	    this->_M_impl._M_finish._M_cur = this->_M_impl._M_finish._M_first;
+   95640*:  509:	    this->_M_impl._M_finish._M_cur = this->_M_impl._M_finish._M_first;
         -:  510:	  }
         -:  511:	__catch(...)
         -:  512:	  {
         -:  513:	    _M_deallocate_node(*(this->_M_impl._M_finish._M_node + 1));
         -:  514:	    __throw_exception_again;
         -:  515:	  }
-   95675*:  516:      }
+   95640*:  516:      }
 ------------------
 _ZNSt5dequeIN12_GLOBAL__N_13JobESaIS1_EE16_M_push_back_auxIJS1_EEEvDpOT_:
 function _ZNSt5dequeIN12_GLOBAL__N_13JobESaIS1_EE16_M_push_back_auxIJS1_EEEvDpOT_ called 0 returned 0% blocks executed 0%
@@ -618,8 +618,8 @@ call    0 never executed
     #####:  516:      }
 ------------------
 _ZNSt5dequeIN4uecm7RequestESaIS1_EE16_M_push_back_auxIJS1_EEEvDpOT_:
-function _ZNSt5dequeIN4uecm7RequestESaIS1_EE16_M_push_back_auxIJS1_EEEvDpOT_ called 95623 returned 100% blocks executed 92%
-    95623:  484:      deque<_Tp, _Alloc>::
+function _ZNSt5dequeIN4uecm7RequestESaIS1_EE16_M_push_back_auxIJS1_EEEvDpOT_ called 95622 returned 100% blocks executed 92%
+    95622:  484:      deque<_Tp, _Alloc>::
         -:  485:      _M_push_back_aux(_Args&&... __args)
         -:  486:#else
         -:  487:      void
@@ -627,7 +627,7 @@ function _ZNSt5dequeIN4uecm7RequestESaIS1_EE16_M_push_back_auxIJS1_EEEvDpOT_ cal
         -:  489:      _M_push_back_aux(const value_type& __t)
         -:  490:#endif
         -:  491:      {
-    95623:  492:	if (size() == max_size())
+    95622:  492:	if (size() == max_size())
 call    0 returned 100%
 call    1 returned 100%
 branch  2 taken 0% (fallthrough)
@@ -636,14 +636,14 @@ branch  3 taken 100%
 call    0 never executed
         -:  494:	      __N("cannot create std::deque larger than max_size()"));
         -:  495:
-    95601:  496:	_M_reserve_map_at_back();
+    95570:  496:	_M_reserve_map_at_back();
 call    0 returned 100%
-    95748:  497:	*(this->_M_impl._M_finish._M_node + 1) = this->_M_allocate_node();
+    95694:  497:	*(this->_M_impl._M_finish._M_node + 1) = this->_M_allocate_node();
 call    0 returned 100%
         -:  498:	__try
         -:  499:	  {
         -:  500:#if __cplusplus >= 201103L
-    96060:  501:	    _Alloc_traits::construct(this->_M_impl,
+    96036:  501:	    _Alloc_traits::construct(this->_M_impl,
 call    0 returned 100%
 call    1 returned 100%
         -:  502:				     this->_M_impl._M_finish._M_cur,
@@ -651,17 +651,17 @@ call    1 returned 100%
         -:  504:#else
         -:  505:	    this->_M_impl.construct(this->_M_impl._M_finish._M_cur, __t);
         -:  506:#endif
-    95705:  507:	    this->_M_impl._M_finish._M_set_node(this->_M_impl._M_finish._M_node
+    95668:  507:	    this->_M_impl._M_finish._M_set_node(this->_M_impl._M_finish._M_node
 call    0 returned 100%
         -:  508:						+ 1);
-    95675:  509:	    this->_M_impl._M_finish._M_cur = this->_M_impl._M_finish._M_first;
+    95640:  509:	    this->_M_impl._M_finish._M_cur = this->_M_impl._M_finish._M_first;
         -:  510:	  }
         -:  511:	__catch(...)
         -:  512:	  {
         -:  513:	    _M_deallocate_node(*(this->_M_impl._M_finish._M_node + 1));
         -:  514:	    __throw_exception_again;
         -:  515:	  }
-    95675:  516:      }
+    95640:  516:      }
 ------------------
         -:  517:
         -:  518:  // Called only if _M_impl._M_start._M_cur == _M_impl._M_start._M_first.
@@ -722,15 +722,15 @@ call    0 returned 100%
         -:  573:  //   _M_impl._M_start._M_cur == _M_impl._M_start._M_last,
         -:  574:  // then the deque must have at least two nodes.
         -:  575:  template <typename _Tp, typename _Alloc>
-   95944*:  576:    void deque<_Tp, _Alloc>::
+   95932*:  576:    void deque<_Tp, _Alloc>::
         -:  577:    _M_pop_front_aux()
         -:  578:    {
-   95944*:  579:      _Alloc_traits::destroy(_M_get_Tp_allocator(),
+   95932*:  579:      _Alloc_traits::destroy(_M_get_Tp_allocator(),
         -:  580:			     this->_M_impl._M_start._M_cur);
-   95901*:  581:      _M_deallocate_node(this->_M_impl._M_start._M_first);
-   96121*:  582:      this->_M_impl._M_start._M_set_node(this->_M_impl._M_start._M_node + 1);
-   96073*:  583:      this->_M_impl._M_start._M_cur = this->_M_impl._M_start._M_first;
-   96073*:  584:    }
+   95891*:  581:      _M_deallocate_node(this->_M_impl._M_start._M_first);
+   96085*:  582:      this->_M_impl._M_start._M_set_node(this->_M_impl._M_start._M_node + 1);
+   96051*:  583:      this->_M_impl._M_start._M_cur = this->_M_impl._M_start._M_first;
+   96051*:  584:    }
 ------------------
 _ZNSt5dequeIN12_GLOBAL__N_13JobESaIS1_EE16_M_pop_front_auxEv:
 function _ZNSt5dequeIN12_GLOBAL__N_13JobESaIS1_EE16_M_pop_front_auxEv called 0 returned 0% blocks executed 0%
@@ -748,19 +748,19 @@ call    0 never executed
     #####:  584:    }
 ------------------
 _ZNSt5dequeIN4uecm7RequestESaIS1_EE16_M_pop_front_auxEv:
-function _ZNSt5dequeIN4uecm7RequestESaIS1_EE16_M_pop_front_auxEv called 95944 returned 100% blocks executed 100%
-    95944:  576:    void deque<_Tp, _Alloc>::
+function _ZNSt5dequeIN4uecm7RequestESaIS1_EE16_M_pop_front_auxEv called 95932 returned 100% blocks executed 100%
+    95932:  576:    void deque<_Tp, _Alloc>::
         -:  577:    _M_pop_front_aux()
         -:  578:    {
-    95944:  579:      _Alloc_traits::destroy(_M_get_Tp_allocator(),
+    95932:  579:      _Alloc_traits::destroy(_M_get_Tp_allocator(),
 call    0 returned 100%
         -:  580:			     this->_M_impl._M_start._M_cur);
-    95901:  581:      _M_deallocate_node(this->_M_impl._M_start._M_first);
+    95891:  581:      _M_deallocate_node(this->_M_impl._M_start._M_first);
 call    0 returned 100%
-    96121:  582:      this->_M_impl._M_start._M_set_node(this->_M_impl._M_start._M_node + 1);
+    96085:  582:      this->_M_impl._M_start._M_set_node(this->_M_impl._M_start._M_node + 1);
 call    0 returned 100%
-    96073:  583:      this->_M_impl._M_start._M_cur = this->_M_impl._M_start._M_first;
-    96073:  584:    }
+    96051:  583:      this->_M_impl._M_start._M_cur = this->_M_impl._M_start._M_first;
+    96051:  584:    }
 ------------------
         -:  585:
         -:  586:  template <typename _Tp, typename _Alloc>
@@ -1036,15 +1036,15 @@ call    0 returned 100%
         -:  856:
         -:  857:   template<typename _Tp, typename _Alloc>
         -:  858:     void
-     441*:  859:     deque<_Tp, _Alloc>::
+     449*:  859:     deque<_Tp, _Alloc>::
         -:  860:     _M_destroy_data_aux(iterator __first, iterator __last)
         -:  861:     {
-     441*:  862:       for (_Map_pointer __node = __first._M_node + 1;
-     441*:  863:	    __node < __last._M_node; ++__node)
+     449*:  862:       for (_Map_pointer __node = __first._M_node + 1;
+     449*:  863:	    __node < __last._M_node; ++__node)
     #####:  864:	 std::_Destroy(*__node, *__node + _S_buffer_size(),
     #####:  865:		       _M_get_Tp_allocator());
         -:  866:
-     441*:  867:       if (__first._M_node != __last._M_node)
+     449*:  867:       if (__first._M_node != __last._M_node)
         -:  868:	 {
     #####:  869:	   std::_Destroy(__first._M_cur, __first._M_last,
     #####:  870:			 _M_get_Tp_allocator());
@@ -1052,9 +1052,9 @@ call    0 returned 100%
     #####:  872:			 _M_get_Tp_allocator());
         -:  873:	 }
         -:  874:       else
-     441*:  875:	 std::_Destroy(__first._M_cur, __last._M_cur,
-     441*:  876:		       _M_get_Tp_allocator());
-     441*:  877:     }
+     449*:  875:	 std::_Destroy(__first._M_cur, __last._M_cur,
+     449*:  876:		       _M_get_Tp_allocator());
+     449*:  877:     }
 ------------------
 _ZNSt5dequeIN12_GLOBAL__N_13JobESaIS1_EE19_M_destroy_data_auxESt15_Deque_iteratorIS1_RS1_PS1_ES7_:
 function _ZNSt5dequeIN12_GLOBAL__N_13JobESaIS1_EE19_M_destroy_data_auxESt15_Deque_iteratorIS1_RS1_PS1_ES7_ called 0 returned 0% blocks executed 0%
@@ -1092,12 +1092,12 @@ call    0 never executed
     #####:  877:     }
 ------------------
 _ZNSt5dequeIN4uecm7RequestESaIS1_EE19_M_destroy_data_auxESt15_Deque_iteratorIS1_RS1_PS1_ES7_:
-function _ZNSt5dequeIN4uecm7RequestESaIS1_EE19_M_destroy_data_auxESt15_Deque_iteratorIS1_RS1_PS1_ES7_ called 441 returned 100% blocks executed 40%
-      441:  859:     deque<_Tp, _Alloc>::
+function _ZNSt5dequeIN4uecm7RequestESaIS1_EE19_M_destroy_data_auxESt15_Deque_iteratorIS1_RS1_PS1_ES7_ called 449 returned 100% blocks executed 40%
+      449:  859:     deque<_Tp, _Alloc>::
         -:  860:     _M_destroy_data_aux(iterator __first, iterator __last)
         -:  861:     {
-     441*:  862:       for (_Map_pointer __node = __first._M_node + 1;
-      441:  863:	    __node < __last._M_node; ++__node)
+     449*:  862:       for (_Map_pointer __node = __first._M_node + 1;
+      449:  863:	    __node < __last._M_node; ++__node)
 branch  0 taken 0%
 branch  1 taken 100% (fallthrough)
     #####:  864:	 std::_Destroy(*__node, *__node + _S_buffer_size(),
@@ -1106,7 +1106,7 @@ call    1 never executed
     #####:  865:		       _M_get_Tp_allocator());
 call    0 never executed
         -:  866:
-      441:  867:       if (__first._M_node != __last._M_node)
+      449:  867:       if (__first._M_node != __last._M_node)
 branch  0 taken 0% (fallthrough)
 branch  1 taken 100%
         -:  868:	 {
@@ -1120,11 +1120,11 @@ call    0 never executed
 call    0 never executed
         -:  873:	 }
         -:  874:       else
-      441:  875:	 std::_Destroy(__first._M_cur, __last._M_cur,
+      449:  875:	 std::_Destroy(__first._M_cur, __last._M_cur,
 call    0 returned 100%
-      441:  876:		       _M_get_Tp_allocator());
+      449:  876:		       _M_get_Tp_allocator());
 call    0 returned 100%
-      441:  877:     }
+      449:  877:     }
 ------------------
         -:  878:
         -:  879:  template <typename _Tp, typename _Alloc>
@@ -1179,22 +1179,22 @@ call    0 returned 100%
         -:  928:
         -:  929:  template <typename _Tp, typename _Alloc>
         -:  930:    void
-   22778*:  931:    deque<_Tp, _Alloc>::
+   23897*:  931:    deque<_Tp, _Alloc>::
         -:  932:    _M_reallocate_map(size_type __nodes_to_add, bool __add_at_front)
         -:  933:    {
-   22778*:  934:      const size_type __old_num_nodes
-   22778*:  935:	= this->_M_impl._M_finish._M_node - this->_M_impl._M_start._M_node + 1;
-   22778*:  936:      const size_type __new_num_nodes = __old_num_nodes + __nodes_to_add;
+   23897*:  934:      const size_type __old_num_nodes
+   23897*:  935:	= this->_M_impl._M_finish._M_node - this->_M_impl._M_start._M_node + 1;
+   23897*:  936:      const size_type __new_num_nodes = __old_num_nodes + __nodes_to_add;
         -:  937:
         -:  938:      _Map_pointer __new_nstart;
-   22778*:  939:      if (this->_M_impl._M_map_size > 2 * __new_num_nodes)
+   23897*:  939:      if (this->_M_impl._M_map_size > 2 * __new_num_nodes)
         -:  940:	{
-   45552*:  941:	  __new_nstart = this->_M_impl._M_map + (this->_M_impl._M_map_size
-   22776*:  942:					 - __new_num_nodes) / 2
-   22776*:  943:			 + (__add_at_front ? __nodes_to_add : 0);
-   22776*:  944:	  if (__new_nstart < this->_M_impl._M_start._M_node)
-   22776*:  945:	    std::copy(this->_M_impl._M_start._M_node,
-   22776*:  946:		      this->_M_impl._M_finish._M_node + 1,
+   47798*:  941:	  __new_nstart = this->_M_impl._M_map + (this->_M_impl._M_map_size
+   23899*:  942:					 - __new_num_nodes) / 2
+   23899*:  943:			 + (__add_at_front ? __nodes_to_add : 0);
+   23899*:  944:	  if (__new_nstart < this->_M_impl._M_start._M_node)
+   23899*:  945:	    std::copy(this->_M_impl._M_start._M_node,
+   23899*:  946:		      this->_M_impl._M_finish._M_node + 1,
         -:  947:		      __new_nstart);
         -:  948:	  else
     #####:  949:	    std::copy_backward(this->_M_impl._M_start._M_node,
@@ -1203,25 +1203,25 @@ call    0 returned 100%
         -:  952:	}
         -:  953:      else
         -:  954:	{
-       4*:  955:	  size_type __new_map_size = this->_M_impl._M_map_size
-       2*:  956:				     + std::max(this->_M_impl._M_map_size,
+    #####:  955:	  size_type __new_map_size = this->_M_impl._M_map_size
+    #####:  956:				     + std::max(this->_M_impl._M_map_size,
         -:  957:						__nodes_to_add) + 2;
         -:  958:
-       2*:  959:	  _Map_pointer __new_map = this->_M_allocate_map(__new_map_size);
-       4*:  960:	  __new_nstart = __new_map + (__new_map_size - __new_num_nodes) / 2
-       2*:  961:			 + (__add_at_front ? __nodes_to_add : 0);
-       2*:  962:	  std::copy(this->_M_impl._M_start._M_node,
-       2*:  963:		    this->_M_impl._M_finish._M_node + 1,
+    #####:  959:	  _Map_pointer __new_map = this->_M_allocate_map(__new_map_size);
+    #####:  960:	  __new_nstart = __new_map + (__new_map_size - __new_num_nodes) / 2
+    #####:  961:			 + (__add_at_front ? __nodes_to_add : 0);
+    #####:  962:	  std::copy(this->_M_impl._M_start._M_node,
+    #####:  963:		    this->_M_impl._M_finish._M_node + 1,
         -:  964:		    __new_nstart);
-       2*:  965:	  _M_deallocate_map(this->_M_impl._M_map, this->_M_impl._M_map_size);
+    #####:  965:	  _M_deallocate_map(this->_M_impl._M_map, this->_M_impl._M_map_size);
         -:  966:
-       2*:  967:	  this->_M_impl._M_map = __new_map;
-       2*:  968:	  this->_M_impl._M_map_size = __new_map_size;
+    #####:  967:	  this->_M_impl._M_map = __new_map;
+    #####:  968:	  this->_M_impl._M_map_size = __new_map_size;
         -:  969:	}
         -:  970:
-   22776*:  971:      this->_M_impl._M_start._M_set_node(__new_nstart);
-   22773*:  972:      this->_M_impl._M_finish._M_set_node(__new_nstart + __old_num_nodes - 1);
-   22770*:  973:    }
+   23909*:  971:      this->_M_impl._M_start._M_set_node(__new_nstart);
+   23908*:  972:      this->_M_impl._M_finish._M_set_node(__new_nstart + __old_num_nodes - 1);
+   23906*:  973:    }
 ------------------
 _ZNSt5dequeIN12_GLOBAL__N_13JobESaIS1_EE17_M_reallocate_mapEmb:
 function _ZNSt5dequeIN12_GLOBAL__N_13JobESaIS1_EE17_M_reallocate_mapEmb called 0 returned 0% blocks executed 0%
@@ -1286,29 +1286,29 @@ call    0 never executed
     #####:  973:    }
 ------------------
 _ZNSt5dequeIN4uecm7RequestESaIS1_EE17_M_reallocate_mapEmb:
-function _ZNSt5dequeIN4uecm7RequestESaIS1_EE17_M_reallocate_mapEmb called 22778 returned 100% blocks executed 83%
-    22778:  931:    deque<_Tp, _Alloc>::
+function _ZNSt5dequeIN4uecm7RequestESaIS1_EE17_M_reallocate_mapEmb called 23897 returned 100% blocks executed 50%
+    23897:  931:    deque<_Tp, _Alloc>::
         -:  932:    _M_reallocate_map(size_type __nodes_to_add, bool __add_at_front)
         -:  933:    {
-    22778:  934:      const size_type __old_num_nodes
-    22778:  935:	= this->_M_impl._M_finish._M_node - this->_M_impl._M_start._M_node + 1;
-    22778:  936:      const size_type __new_num_nodes = __old_num_nodes + __nodes_to_add;
+    23897:  934:      const size_type __old_num_nodes
+    23897:  935:	= this->_M_impl._M_finish._M_node - this->_M_impl._M_start._M_node + 1;
+    23897:  936:      const size_type __new_num_nodes = __old_num_nodes + __nodes_to_add;
         -:  937:
         -:  938:      _Map_pointer __new_nstart;
-    22778:  939:      if (this->_M_impl._M_map_size > 2 * __new_num_nodes)
+    23897:  939:      if (this->_M_impl._M_map_size > 2 * __new_num_nodes)
 branch  0 taken 100% (fallthrough)
-branch  1 taken 1%
+branch  1 taken -0%
         -:  940:	{
-    45552:  941:	  __new_nstart = this->_M_impl._M_map + (this->_M_impl._M_map_size
-    22776:  942:					 - __new_num_nodes) / 2
-   22776*:  943:			 + (__add_at_front ? __nodes_to_add : 0);
+    47798:  941:	  __new_nstart = this->_M_impl._M_map + (this->_M_impl._M_map_size
+    23899:  942:					 - __new_num_nodes) / 2
+   23899*:  943:			 + (__add_at_front ? __nodes_to_add : 0);
 branch  0 taken 0% (fallthrough)
 branch  1 taken 100%
-    22776:  944:	  if (__new_nstart < this->_M_impl._M_start._M_node)
+    23899:  944:	  if (__new_nstart < this->_M_impl._M_start._M_node)
 branch  0 taken 100% (fallthrough)
 branch  1 taken 0%
-    22776:  945:	    std::copy(this->_M_impl._M_start._M_node,
-    22776:  946:		      this->_M_impl._M_finish._M_node + 1,
+    23899:  945:	    std::copy(this->_M_impl._M_start._M_node,
+    23899:  946:		      this->_M_impl._M_finish._M_node + 1,
 call    0 returned 100%
         -:  947:		      __new_nstart);
         -:  948:	  else
@@ -1319,33 +1319,33 @@ call    0 never executed
         -:  952:	}
         -:  953:      else
         -:  954:	{
-        4:  955:	  size_type __new_map_size = this->_M_impl._M_map_size
-        2:  956:				     + std::max(this->_M_impl._M_map_size,
-call    0 returned 100%
+    #####:  955:	  size_type __new_map_size = this->_M_impl._M_map_size
+    #####:  956:				     + std::max(this->_M_impl._M_map_size,
+call    0 returned -0%
         -:  957:						__nodes_to_add) + 2;
         -:  958:
-        2:  959:	  _Map_pointer __new_map = this->_M_allocate_map(__new_map_size);
-call    0 returned 100%
-        4:  960:	  __new_nstart = __new_map + (__new_map_size - __new_num_nodes) / 2
-       2*:  961:			 + (__add_at_front ? __nodes_to_add : 0);
-branch  0 taken 0% (fallthrough)
-branch  1 taken 100%
-        2:  962:	  std::copy(this->_M_impl._M_start._M_node,
-        2:  963:		    this->_M_impl._M_finish._M_node + 1,
-call    0 returned 100%
+    #####:  959:	  _Map_pointer __new_map = this->_M_allocate_map(__new_map_size);
+call    0 never executed
+    #####:  960:	  __new_nstart = __new_map + (__new_map_size - __new_num_nodes) / 2
+    #####:  961:			 + (__add_at_front ? __nodes_to_add : 0);
+branch  0 never executed (fallthrough)
+branch  1 never executed
+    #####:  962:	  std::copy(this->_M_impl._M_start._M_node,
+    #####:  963:		    this->_M_impl._M_finish._M_node + 1,
+call    0 never executed
         -:  964:		    __new_nstart);
-        2:  965:	  _M_deallocate_map(this->_M_impl._M_map, this->_M_impl._M_map_size);
-call    0 returned 100%
+    #####:  965:	  _M_deallocate_map(this->_M_impl._M_map, this->_M_impl._M_map_size);
+call    0 never executed
         -:  966:
-        2:  967:	  this->_M_impl._M_map = __new_map;
-        2:  968:	  this->_M_impl._M_map_size = __new_map_size;
+    #####:  967:	  this->_M_impl._M_map = __new_map;
+    #####:  968:	  this->_M_impl._M_map_size = __new_map_size;
         -:  969:	}
         -:  970:
-    22776:  971:      this->_M_impl._M_start._M_set_node(__new_nstart);
+    23909:  971:      this->_M_impl._M_start._M_set_node(__new_nstart);
 call    0 returned 100%
-    22773:  972:      this->_M_impl._M_finish._M_set_node(__new_nstart + __old_num_nodes - 1);
+    23908:  972:      this->_M_impl._M_finish._M_set_node(__new_nstart + __old_num_nodes - 1);
 call    0 returned 100%
-    22770:  973:    }
+    23906:  973:    }
 ------------------
         -:  974:
         -:  975:_GLIBCXX_END_NAMESPACE_CONTAINER

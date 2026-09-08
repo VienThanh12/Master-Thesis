@@ -111,9 +111,9 @@ call    0 returned 100%
         -:  108:    { _M_base.store(__i, __m); }
         -:  109:
         -:  110:    bool
-function _ZNKSt6atomicIbE4loadESt12memory_order called 5972 returned 100% blocks executed 68%
-     5972:  111:    load(memory_order __m = memory_order_seq_cst) const noexcept
-    11939:  112:    { return _M_base.load(__m); }
+function _ZNKSt6atomicIbE4loadESt12memory_order called 5890 returned 100% blocks executed 68%
+     5890:  111:    load(memory_order __m = memory_order_seq_cst) const noexcept
+    11776:  112:    { return _M_base.load(__m); }
 call    0 returned 100%
         -:  113:
         -:  114:    bool
@@ -858,7 +858,7 @@ call    0 returned 100%
         -:  853:      atomic& operator=(const atomic&) = delete;
         -:  854:      atomic& operator=(const atomic&) volatile = delete;
         -:  855:
-  285262*:  856:      constexpr atomic(__integral_type __i) noexcept : __base_type(__i) { }
+  285365*:  856:      constexpr atomic(__integral_type __i) noexcept : __base_type(__i) { }
 ------------------
 _ZNSt6atomicIjEC2Ej:
 function _ZNSt6atomicIjEC2Ej called 0 returned 0% blocks executed 0%
@@ -866,8 +866,8 @@ function _ZNSt6atomicIjEC2Ej called 0 returned 0% blocks executed 0%
 call    0 never executed
 ------------------
 _ZNSt6atomicIjEC2Ej:
-function _ZNSt6atomicIjEC2Ej called 285262 returned 100% blocks executed 100%
-   285262:  856:      constexpr atomic(__integral_type __i) noexcept : __base_type(__i) { }
+function _ZNSt6atomicIjEC2Ej called 285365 returned 100% blocks executed 100%
+   285365:  856:      constexpr atomic(__integral_type __i) noexcept : __base_type(__i) { }
 call    0 returned 100%
 ------------------
         -:  857:
@@ -915,8 +915,8 @@ call    0 returned 100%
         -:  899:      atomic& operator=(const atomic&) = delete;
         -:  900:      atomic& operator=(const atomic&) volatile = delete;
         -:  901:
-function _ZNSt6atomicImEC2Em called 65 returned 100% blocks executed 100%
-       65:  902:      constexpr atomic(__integral_type __i) noexcept : __base_type(__i) { }
+function _ZNSt6atomicImEC2Em called 67 returned 100% blocks executed 100%
+       67:  902:      constexpr atomic(__integral_type __i) noexcept : __base_type(__i) { }
 call    0 returned 100%
         -:  903:
         -:  904:      using __base_type::operator __integral_type;

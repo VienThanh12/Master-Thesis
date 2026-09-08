@@ -66,12 +66,12 @@
         -:   65:      : _M_device(0), _M_owns(false)
         -:   66:      { }
         -:   67:
-  569189*:   68:      explicit unique_lock(mutex_type& __m)
-  569189*:   69:      : _M_device(std::__addressof(__m)), _M_owns(false)
+  569501*:   68:      explicit unique_lock(mutex_type& __m)
+  569501*:   69:      : _M_device(std::__addressof(__m)), _M_owns(false)
         -:   70:      {
-  568746*:   71:	lock();
-  575203*:   72:	_M_owns = true;
-  575203*:   73:      }
+  569100*:   71:	lock();
+  575171*:   72:	_M_owns = true;
+  575171*:   73:      }
 ------------------
 _ZNSt11unique_lockISt5mutexEC2ERS0_:
 function _ZNSt11unique_lockISt5mutexEC2ERS0_ called 0 returned 0% blocks executed 0%
@@ -85,15 +85,15 @@ call    0 never executed
     #####:   73:      }
 ------------------
 _ZNSt11unique_lockISt5mutexEC2ERS0_:
-function _ZNSt11unique_lockISt5mutexEC2ERS0_ called 569189 returned 101% blocks executed 100%
-   569189:   68:      explicit unique_lock(mutex_type& __m)
-   569189:   69:      : _M_device(std::__addressof(__m)), _M_owns(false)
+function _ZNSt11unique_lockISt5mutexEC2ERS0_ called 569501 returned 101% blocks executed 100%
+   569501:   68:      explicit unique_lock(mutex_type& __m)
+   569501:   69:      : _M_device(std::__addressof(__m)), _M_owns(false)
 call    0 returned 100%
         -:   70:      {
-   568746:   71:	lock();
+   569100:   71:	lock();
 call    0 returned 101%
-   575203:   72:	_M_owns = true;
-   575203:   73:      }
+   575171:   72:	_M_owns = true;
+   575171:   73:      }
 ------------------
         -:   74:
         -:   75:      unique_lock(mutex_type& __m, defer_lock_t) noexcept
@@ -124,11 +124,11 @@ call    0 returned 101%
         -:  100:	  _M_owns(_M_device->try_lock_for(__rtime))
         -:  101:	{ }
         -:  102:
-  576365*:  103:      ~unique_lock()
+  576261*:  103:      ~unique_lock()
         -:  104:      {
-  576365*:  105:	if (_M_owns)
+  576261*:  105:	if (_M_owns)
     #####:  106:	  unlock();
-  576365*:  107:      }
+  576261*:  107:      }
 ------------------
 _ZNSt11unique_lockISt5mutexED2Ev:
 function _ZNSt11unique_lockISt5mutexED2Ev called 0 returned 0% blocks executed 0%
@@ -142,15 +142,15 @@ call    0 never executed
     #####:  107:      }
 ------------------
 _ZNSt11unique_lockISt5mutexED2Ev:
-function _ZNSt11unique_lockISt5mutexED2Ev called 576365 returned 100% blocks executed 67%
-   576365:  103:      ~unique_lock()
+function _ZNSt11unique_lockISt5mutexED2Ev called 576261 returned 100% blocks executed 67%
+   576261:  103:      ~unique_lock()
         -:  104:      {
-   576365:  105:	if (_M_owns)
+   576261:  105:	if (_M_owns)
 branch  0 taken 0% (fallthrough)
 branch  1 taken 100%
     #####:  106:	  unlock();
 call    0 never executed
-   576365:  107:      }
+   576261:  107:      }
 ------------------
         -:  108:
         -:  109:      unique_lock(const unique_lock&) = delete;
@@ -177,18 +177,18 @@ call    0 never executed
         -:  130:      }
         -:  131:
         -:  132:      void
-  568384*:  133:      lock()
+  568801*:  133:      lock()
         -:  134:      {
-  568384*:  135:	if (!_M_device)
+  568801*:  135:	if (!_M_device)
     #####:  136:	  __throw_system_error(int(errc::operation_not_permitted));
-  568384*:  137:	else if (_M_owns)
+  568801*:  137:	else if (_M_owns)
     #####:  138:	  __throw_system_error(int(errc::resource_deadlock_would_occur));
         -:  139:	else
         -:  140:	  {
-  568384*:  141:	    _M_device->lock();
-  575448*:  142:	    _M_owns = true;
+  568801*:  141:	    _M_device->lock();
+  575437*:  142:	    _M_owns = true;
         -:  143:	  }
-  575448*:  144:      }
+  575437*:  144:      }
 ------------------
 _ZNSt11unique_lockISt5mutexE4lockEv:
 function _ZNSt11unique_lockISt5mutexE4lockEv called 0 returned 0% blocks executed 0%
@@ -213,26 +213,26 @@ call    0 never executed
     #####:  144:      }
 ------------------
 _ZNSt11unique_lockISt5mutexE4lockEv:
-function _ZNSt11unique_lockISt5mutexE4lockEv called 568384 returned 101% blocks executed 67%
-   568384:  133:      lock()
+function _ZNSt11unique_lockISt5mutexE4lockEv called 568801 returned 101% blocks executed 67%
+   568801:  133:      lock()
         -:  134:      {
-   568384:  135:	if (!_M_device)
+   568801:  135:	if (!_M_device)
 branch  0 taken 0% (fallthrough)
 branch  1 taken 100%
     #####:  136:	  __throw_system_error(int(errc::operation_not_permitted));
 call    0 never executed
-   568384:  137:	else if (_M_owns)
+   568801:  137:	else if (_M_owns)
 branch  0 taken 0% (fallthrough)
 branch  1 taken 100%
     #####:  138:	  __throw_system_error(int(errc::resource_deadlock_would_occur));
 call    0 never executed
         -:  139:	else
         -:  140:	  {
-   568384:  141:	    _M_device->lock();
+   568801:  141:	    _M_device->lock();
 call    0 returned 101%
-   575448:  142:	    _M_owns = true;
+   575437:  142:	    _M_owns = true;
         -:  143:	  }
-   575448:  144:      }
+   575437:  144:      }
 ------------------
         -:  145:
         -:  146:      _GLIBCXX_NODISCARD
@@ -283,16 +283,16 @@ call    0 returned 101%
         -:  191:	 }
         -:  192:
         -:  193:      void
-  568935*:  194:      unlock()
+  569015*:  194:      unlock()
         -:  195:      {
-  568935*:  196:	if (!_M_owns)
+  569015*:  196:	if (!_M_owns)
     #####:  197:	  __throw_system_error(int(errc::operation_not_permitted));
-  568935*:  198:	else if (_M_device)
+  569015*:  198:	else if (_M_device)
         -:  199:	  {
-  569111*:  200:	    _M_device->unlock();
-  576450*:  201:	    _M_owns = false;
+  569172*:  200:	    _M_device->unlock();
+  576296*:  201:	    _M_owns = false;
         -:  202:	  }
-  576274*:  203:      }
+  576139*:  203:      }
 ------------------
 _ZNSt11unique_lockISt5mutexE6unlockEv:
 function _ZNSt11unique_lockISt5mutexE6unlockEv called 0 returned 0% blocks executed 0%
@@ -314,23 +314,23 @@ call    0 never executed
     #####:  203:      }
 ------------------
 _ZNSt11unique_lockISt5mutexE6unlockEv:
-function _ZNSt11unique_lockISt5mutexE6unlockEv called 568935 returned 101% blocks executed 83%
-   568935:  194:      unlock()
+function _ZNSt11unique_lockISt5mutexE6unlockEv called 569015 returned 101% blocks executed 83%
+   569015:  194:      unlock()
         -:  195:      {
-   568935:  196:	if (!_M_owns)
+   569015:  196:	if (!_M_owns)
 branch  0 taken 0% (fallthrough)
 branch  1 taken 100%
     #####:  197:	  __throw_system_error(int(errc::operation_not_permitted));
 call    0 never executed
-   568935:  198:	else if (_M_device)
+   569015:  198:	else if (_M_device)
 branch  0 taken 100% (fallthrough)
 branch  1 taken -0%
         -:  199:	  {
-   569111:  200:	    _M_device->unlock();
+   569172:  200:	    _M_device->unlock();
 call    0 returned 101%
-   576450:  201:	    _M_owns = false;
+   576296:  201:	    _M_owns = false;
         -:  202:	  }
-   576274:  203:      }
+   576139:  203:      }
 ------------------
         -:  204:
         -:  205:      void

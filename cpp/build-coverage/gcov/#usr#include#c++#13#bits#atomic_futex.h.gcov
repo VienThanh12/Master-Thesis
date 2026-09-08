@@ -78,7 +78,7 @@
         -:   77:
         -:   78:  public:
         -:   79:    explicit
-  285359*:   80:    __atomic_futex_unsigned(unsigned __data) : _M_data(__data)
+  285425*:   80:    __atomic_futex_unsigned(unsigned __data) : _M_data(__data)
   285332*:   81:    { }
 ------------------
 _ZNSt23__atomic_futex_unsignedILj2147483648EEC2Ej:
@@ -88,8 +88,8 @@ call    0 never executed
     #####:   81:    { }
 ------------------
 _ZNSt23__atomic_futex_unsignedILj2147483648EEC2Ej:
-function _ZNSt23__atomic_futex_unsignedILj2147483648EEC2Ej called 285359 returned 100% blocks executed 100%
-   285359:   80:    __atomic_futex_unsigned(unsigned __data) : _M_data(__data)
+function _ZNSt23__atomic_futex_unsignedILj2147483648EEC2Ej called 285425 returned 100% blocks executed 100%
+   285425:   80:    __atomic_futex_unsigned(unsigned __data) : _M_data(__data)
 call    0 returned 100%
    285332:   81:    { }
 ------------------
@@ -97,7 +97,7 @@ call    0 returned 100%
         -:   83:    _GLIBCXX_ALWAYS_INLINE unsigned
         -:   84:    _M_load(memory_order __mo)
         -:   85:    {
-  856235*:   86:      return _M_data.load(__mo) & ~_Waiter_bit;
+  856103*:   86:      return _M_data.load(__mo) & ~_Waiter_bit;
 call    0 never executed
 call    1 returned 100%
         -:   87:    }
@@ -110,25 +110,25 @@ call    1 returned 100%
         -:   94:    // when making the call.
         -:   95:    // __s and __ns are measured against CLOCK_REALTIME.
         -:   96:    unsigned
-  281642*:   97:    _M_load_and_test_until(unsigned __assumed, unsigned __operand,
+  281714*:   97:    _M_load_and_test_until(unsigned __assumed, unsigned __operand,
         -:   98:	bool __equal, memory_order __mo, bool __has_timeout,
         -:   99:	chrono::seconds __s, chrono::nanoseconds __ns)
         -:  100:    {
-    1365*:  101:      for (;;)
+    1265*:  101:      for (;;)
         -:  102:	{
         -:  103:	  // Don't bother checking the value again because we expect the caller
         -:  104:	  // to have done it recently.
         -:  105:	  // memory_order_relaxed is sufficient because we can rely on just the
         -:  106:	  // modification order (store_notify uses an atomic RMW operation too),
         -:  107:	  // and the futex syscalls synchronize between themselves.
-  283007*:  108:	  _M_data.fetch_or(_Waiter_bit, memory_order_relaxed);
-  283007*:  109:	  bool __ret = _M_futex_wait_until((unsigned*)(void*)&_M_data,
+  282979*:  108:	  _M_data.fetch_or(_Waiter_bit, memory_order_relaxed);
+  282979*:  109:	  bool __ret = _M_futex_wait_until((unsigned*)(void*)&_M_data,
         -:  110:					   __assumed | _Waiter_bit,
         -:  111:					   __has_timeout, __s, __ns);
         -:  112:	  // Fetch the current value after waiting (clears _Waiter_bit).
-  282932*:  113:	  __assumed = _M_load(__mo);
-  282932*:  114:	  if (!__ret || ((__operand == __assumed) == __equal))
-  281567*:  115:	    return __assumed;
+  282923*:  113:	  __assumed = _M_load(__mo);
+  282923*:  114:	  if (!__ret || ((__operand == __assumed) == __equal))
+  281658*:  115:	    return __assumed;
         -:  116:	  // TODO adapt wait time
         -:  117:	}
         -:  118:    }
@@ -165,32 +165,32 @@ branch  3 never executed
         -:  118:    }
 ------------------
 _ZNSt23__atomic_futex_unsignedILj2147483648EE22_M_load_and_test_untilEjjbSt12memory_orderbNSt6chrono8durationIlSt5ratioILl1ELl1EEEENS3_IlS4_ILl1ELl1000000000EEEE:
-function _ZNSt23__atomic_futex_unsignedILj2147483648EE22_M_load_and_test_untilEjjbSt12memory_orderbNSt6chrono8durationIlSt5ratioILl1ELl1EEEENS3_IlS4_ILl1ELl1000000000EEEE called 281642 returned 100% blocks executed 79%
-   281642:   97:    _M_load_and_test_until(unsigned __assumed, unsigned __operand,
+function _ZNSt23__atomic_futex_unsignedILj2147483648EE22_M_load_and_test_untilEjjbSt12memory_orderbNSt6chrono8durationIlSt5ratioILl1ELl1EEEENS3_IlS4_ILl1ELl1000000000EEEE called 281714 returned 100% blocks executed 79%
+   281714:   97:    _M_load_and_test_until(unsigned __assumed, unsigned __operand,
         -:   98:	bool __equal, memory_order __mo, bool __has_timeout,
         -:   99:	chrono::seconds __s, chrono::nanoseconds __ns)
         -:  100:    {
-     1365:  101:      for (;;)
+     1265:  101:      for (;;)
         -:  102:	{
         -:  103:	  // Don't bother checking the value again because we expect the caller
         -:  104:	  // to have done it recently.
         -:  105:	  // memory_order_relaxed is sufficient because we can rely on just the
         -:  106:	  // modification order (store_notify uses an atomic RMW operation too),
         -:  107:	  // and the futex syscalls synchronize between themselves.
-   283007:  108:	  _M_data.fetch_or(_Waiter_bit, memory_order_relaxed);
-   283007:  109:	  bool __ret = _M_futex_wait_until((unsigned*)(void*)&_M_data,
+   282979:  108:	  _M_data.fetch_or(_Waiter_bit, memory_order_relaxed);
+   282979:  109:	  bool __ret = _M_futex_wait_until((unsigned*)(void*)&_M_data,
 call    0 returned 100%
 call    1 returned 100%
         -:  110:					   __assumed | _Waiter_bit,
         -:  111:					   __has_timeout, __s, __ns);
         -:  112:	  // Fetch the current value after waiting (clears _Waiter_bit).
-   282932:  113:	  __assumed = _M_load(__mo);
-   282932:  114:	  if (!__ret || ((__operand == __assumed) == __equal))
+   282923:  113:	  __assumed = _M_load(__mo);
+   282923:  114:	  if (!__ret || ((__operand == __assumed) == __equal))
 branch  0 taken 100% (fallthrough)
 branch  1 taken 1%
 branch  2 taken 100% (fallthrough)
 branch  3 taken 1%
-   281567:  115:	    return __assumed;
+   281658:  115:	    return __assumed;
         -:  116:	  // TODO adapt wait time
         -:  117:	}
         -:  118:    }
@@ -231,11 +231,11 @@ branch  3 taken 1%
         -:  152:    // The assumed value is the caller's assumption about the current value
         -:  153:    // when making the call.
         -:  154:    unsigned
-  281467*:  155:    _M_load_and_test(unsigned __assumed, unsigned __operand,
+  281559*:  155:    _M_load_and_test(unsigned __assumed, unsigned __operand,
         -:  156:	bool __equal, memory_order __mo)
         -:  157:    {
-  281467*:  158:      return _M_load_and_test_until(__assumed, __operand, __equal, __mo,
-  282733*:  159:				    false, {}, {});
+  281559*:  158:      return _M_load_and_test_until(__assumed, __operand, __equal, __mo,
+  282834*:  159:				    false, {}, {});
         -:  160:    }
 ------------------
 _ZNSt23__atomic_futex_unsignedILj2147483648EE16_M_load_and_testEjjbSt12memory_order:
@@ -249,13 +249,13 @@ call    0 never executed
         -:  160:    }
 ------------------
 _ZNSt23__atomic_futex_unsignedILj2147483648EE16_M_load_and_testEjjbSt12memory_order:
-function _ZNSt23__atomic_futex_unsignedILj2147483648EE16_M_load_and_testEjjbSt12memory_order called 281467 returned 100% blocks executed 100%
-   281467:  155:    _M_load_and_test(unsigned __assumed, unsigned __operand,
+function _ZNSt23__atomic_futex_unsignedILj2147483648EE16_M_load_and_testEjjbSt12memory_order called 281559 returned 100% blocks executed 100%
+   281559:  155:    _M_load_and_test(unsigned __assumed, unsigned __operand,
         -:  156:	bool __equal, memory_order __mo)
         -:  157:    {
-   281467:  158:      return _M_load_and_test_until(__assumed, __operand, __equal, __mo,
+   281559:  158:      return _M_load_and_test_until(__assumed, __operand, __equal, __mo,
 call    0 returned 100%
-   282733:  159:				    false, {}, {});
+   282834:  159:				    false, {}, {});
         -:  160:    }
 ------------------
         -:  161:
@@ -305,15 +305,15 @@ call    0 returned 100%
         -:  205:    _GLIBCXX_ALWAYS_INLINE void
         -:  206:    _M_load_when_equal(unsigned __val, memory_order __mo)
         -:  207:    {
-  286571*:  208:      unsigned __i = _M_load(__mo);
-  286571*:  209:      if ((__i & ~_Waiter_bit) == __val)
+  286480*:  208:      unsigned __i = _M_load(__mo);
+  286480*:  209:      if ((__i & ~_Waiter_bit) == __val)
 branch  0 never executed (fallthrough)
 branch  1 never executed
 branch  2 taken 2% (fallthrough)
 branch  3 taken 98%
-    5103*:  210:	return;
+    5003*:  210:	return;
         -:  211:      // TODO Spin-wait first.
-  281468*:  212:      _M_load_and_test(__i, __val, true, __mo);
+  281477*:  212:      _M_load_and_test(__i, __val, true, __mo);
 call    0 never executed
 call    1 returned 100%
         -:  213:    }
@@ -379,8 +379,8 @@ call    1 returned 100%
         -:  273:    _GLIBCXX_ALWAYS_INLINE void
         -:  274:    _M_store_notify_all(unsigned __val, memory_order __mo)
         -:  275:    {
-  287955*:  276:      unsigned* __futex = (unsigned *)(void *)&_M_data;
-  575910*:  277:      if (_M_data.exchange(__val, __mo) & _Waiter_bit)
+  287933*:  276:      unsigned* __futex = (unsigned *)(void *)&_M_data;
+  575866*:  277:      if (_M_data.exchange(__val, __mo) & _Waiter_bit)
 branch  0 never executed (fallthrough)
 branch  1 never executed
 branch  2 never executed (fallthrough)
@@ -389,7 +389,7 @@ branch  4 never executed (fallthrough)
 branch  5 never executed
 branch  6 taken 98% (fallthrough)
 branch  7 taken 2%
-  283136*:  278:	_M_futex_notify_all(__futex);
+  283255*:  278:	_M_futex_notify_all(__futex);
 call    0 never executed
 call    1 never executed
 branch  2 never executed (fallthrough)
@@ -398,7 +398,7 @@ call    4 never executed
 call    5 returned 100%
 branch  6 taken 100% (fallthrough)
 branch  7 taken 0% (throw)
-  288072*:  279:    }
+  288045*:  279:    }
         -:  280:  };
         -:  281:
         -:  282:#else // ! (_GLIBCXX_HAVE_LINUX_FUTEX && ATOMIC_INT_LOCK_FREE > 1)

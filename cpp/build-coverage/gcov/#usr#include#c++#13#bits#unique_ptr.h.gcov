@@ -91,14 +91,14 @@
         -:   90:      /// Calls `delete __ptr`
         -:   91:      _GLIBCXX23_CONSTEXPR
         -:   92:      void
-     907*:   93:      operator()(_Tp* __ptr) const
+     923*:   93:      operator()(_Tp* __ptr) const
         -:   94:      {
         -:   95:	static_assert(!is_void<_Tp>::value,
         -:   96:		      "can't delete pointer to incomplete type");
         -:   97:	static_assert(sizeof(_Tp)>0,
         -:   98:		      "can't delete pointer to incomplete type");
-     907*:   99:	delete __ptr;
-     907*:  100:      }
+     923*:   99:	delete __ptr;
+     923*:  100:      }
 ------------------
 _ZNKSt14default_deleteINSt6thread6_StateEEclEPS1_:
 function _ZNKSt14default_deleteINSt6thread6_StateEEclEPS1_ called 0 returned 0% blocks executed 0%
@@ -143,34 +143,34 @@ call    2 never executed
     #####:  100:      }
 ------------------
 _ZNKSt14default_deleteIN4uecm7Service5ShardEEclEPS2_:
-function _ZNKSt14default_deleteIN4uecm7Service5ShardEEclEPS2_ called 441 returned 100% blocks executed 100%
-      441:   93:      operator()(_Tp* __ptr) const
+function _ZNKSt14default_deleteIN4uecm7Service5ShardEEclEPS2_ called 449 returned 100% blocks executed 100%
+      449:   93:      operator()(_Tp* __ptr) const
         -:   94:      {
         -:   95:	static_assert(!is_void<_Tp>::value,
         -:   96:		      "can't delete pointer to incomplete type");
         -:   97:	static_assert(sizeof(_Tp)>0,
         -:   98:		      "can't delete pointer to incomplete type");
-      441:   99:	delete __ptr;
+      449:   99:	delete __ptr;
 branch  0 taken 100% (fallthrough)
 branch  1 taken 0%
 call    2 returned 100%
 call    3 returned 100%
-      441:  100:      }
+      449:  100:      }
 ------------------
 _ZNKSt14default_deleteIN4uecm9ShardCoreEEclEPS1_:
-function _ZNKSt14default_deleteIN4uecm9ShardCoreEEclEPS1_ called 441 returned 100% blocks executed 100%
-      441:   93:      operator()(_Tp* __ptr) const
+function _ZNKSt14default_deleteIN4uecm9ShardCoreEEclEPS1_ called 449 returned 100% blocks executed 100%
+      449:   93:      operator()(_Tp* __ptr) const
         -:   94:      {
         -:   95:	static_assert(!is_void<_Tp>::value,
         -:   96:		      "can't delete pointer to incomplete type");
         -:   97:	static_assert(sizeof(_Tp)>0,
         -:   98:		      "can't delete pointer to incomplete type");
-      441:   99:	delete __ptr;
+      449:   99:	delete __ptr;
 branch  0 taken 100% (fallthrough)
 branch  1 taken 0%
 call    2 returned 100%
 call    3 returned 100%
-      441:  100:      }
+      449:  100:      }
 ------------------
 _ZNKSt14default_deleteIN4uecm7ServiceEEclEPS1_:
 function _ZNKSt14default_deleteIN4uecm7ServiceEEclEPS1_ called 20 returned 100% blocks executed 100%
@@ -303,7 +303,7 @@ call    3 returned 100%
         -:  171:		     "unique_ptr's deleter type must be a function object type"
         -:  172:		     " or an lvalue reference type" );
         -:  173:
-  285601*:  174:      __uniq_ptr_impl() = default;
+  285624*:  174:      __uniq_ptr_impl() = default;
 ------------------
 _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEEC2Ev:
 function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEEC2Ev called 0 returned 0% blocks executed 0%
@@ -311,16 +311,16 @@ function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE
 call    0 never executed
 ------------------
 _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEEC2Ev:
-function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEEC2Ev called 285601 returned 100% blocks executed 100%
-   285601:  174:      __uniq_ptr_impl() = default;
+function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEEC2Ev called 285624 returned 100% blocks executed 100%
+   285624:  174:      __uniq_ptr_impl() = default;
 call    0 returned 100%
 ------------------
         -:  175:      _GLIBCXX23_CONSTEXPR
-  287096*:  176:      __uniq_ptr_impl(pointer __p) : _M_t() { _M_ptr() = __p; }
+  287230*:  176:      __uniq_ptr_impl(pointer __p) : _M_t() { _M_ptr() = __p; }
 ------------------
 _ZNSt15__uniq_ptr_implINSt6thread6_StateESt14default_deleteIS1_EEC2EPS1_:
-function _ZNSt15__uniq_ptr_implINSt6thread6_StateESt14default_deleteIS1_EEC2EPS1_ called 24 returned 100% blocks executed 100%
-       24:  176:      __uniq_ptr_impl(pointer __p) : _M_t() { _M_ptr() = __p; }
+function _ZNSt15__uniq_ptr_implINSt6thread6_StateESt14default_deleteIS1_EEC2EPS1_ called 32 returned 100% blocks executed 100%
+       32:  176:      __uniq_ptr_impl(pointer __p) : _M_t() { _M_ptr() = __p; }
 call    0 returned 100%
 call    1 returned 100%
 ------------------
@@ -337,8 +337,8 @@ call    0 never executed
 call    1 never executed
 ------------------
 _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEEC2EPSD_:
-function _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEEC2EPSD_ called 285727 returned 100% blocks executed 100%
-   285727:  176:      __uniq_ptr_impl(pointer __p) : _M_t() { _M_ptr() = __p; }
+function _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEEC2EPSD_ called 285837 returned 100% blocks executed 100%
+   285837:  176:      __uniq_ptr_impl(pointer __p) : _M_t() { _M_ptr() = __p; }
 call    0 returned 100%
 call    1 returned 100%
 ------------------
@@ -349,14 +349,14 @@ call    0 returned 100%
 call    1 returned 100%
 ------------------
 _ZNSt15__uniq_ptr_implIN4uecm7Service5ShardESt14default_deleteIS2_EEC2EPS2_:
-function _ZNSt15__uniq_ptr_implIN4uecm7Service5ShardESt14default_deleteIS2_EEC2EPS2_ called 441 returned 100% blocks executed 100%
-      441:  176:      __uniq_ptr_impl(pointer __p) : _M_t() { _M_ptr() = __p; }
+function _ZNSt15__uniq_ptr_implIN4uecm7Service5ShardESt14default_deleteIS2_EEC2EPS2_ called 449 returned 100% blocks executed 100%
+      449:  176:      __uniq_ptr_impl(pointer __p) : _M_t() { _M_ptr() = __p; }
 call    0 returned 100%
 call    1 returned 100%
 ------------------
 _ZNSt15__uniq_ptr_implIN4uecm9ShardCoreESt14default_deleteIS1_EEC2EPS1_:
-function _ZNSt15__uniq_ptr_implIN4uecm9ShardCoreESt14default_deleteIS1_EEC2EPS1_ called 441 returned 100% blocks executed 100%
-      441:  176:      __uniq_ptr_impl(pointer __p) : _M_t() { _M_ptr() = __p; }
+function _ZNSt15__uniq_ptr_implIN4uecm9ShardCoreESt14default_deleteIS1_EEC2EPS1_ called 449 returned 100% blocks executed 100%
+      449:  176:      __uniq_ptr_impl(pointer __p) : _M_t() { _M_ptr() = __p; }
 call    0 returned 100%
 call    1 returned 100%
 ------------------
@@ -387,8 +387,8 @@ call    1 returned 100%
         -:  177:
         -:  178:      template<typename _Del>
         -:  179:	_GLIBCXX23_CONSTEXPR
-  551329*:  180:	__uniq_ptr_impl(pointer __p, _Del&& __d)
-  551329*:  181:	: _M_t(__p, std::forward<_Del>(__d)) { }
+  552756*:  180:	__uniq_ptr_impl(pointer __p, _Del&& __d)
+  552756*:  181:	: _M_t(__p, std::forward<_Del>(__d)) { }
 ------------------
 _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEEC2IS2_EEPS1_OT_:
 function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEEC2IS2_EEPS1_OT_ called 0 returned 0% blocks executed 0%
@@ -398,17 +398,17 @@ call    0 never executed
 call    1 never executed
 ------------------
 _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEEC2IS2_EEPS1_OT_:
-function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEEC2IS2_EEPS1_OT_ called 551329 returned 100% blocks executed 100%
-   551329:  180:	__uniq_ptr_impl(pointer __p, _Del&& __d)
-   551329:  181:	: _M_t(__p, std::forward<_Del>(__d)) { }
+function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEEC2IS2_EEPS1_OT_ called 552756 returned 100% blocks executed 100%
+   552756:  180:	__uniq_ptr_impl(pointer __p, _Del&& __d)
+   552756:  181:	: _M_t(__p, std::forward<_Del>(__d)) { }
 call    0 returned 100%
 call    1 returned 100%
 ------------------
         -:  182:
         -:  183:      _GLIBCXX23_CONSTEXPR
- 1132563*:  184:      __uniq_ptr_impl(__uniq_ptr_impl&& __u) noexcept
- 1132563*:  185:      : _M_t(std::move(__u._M_t))
- 1130916*:  186:      { __u._M_ptr() = nullptr; }
+ 1132628*:  184:      __uniq_ptr_impl(__uniq_ptr_impl&& __u) noexcept
+ 1132628*:  185:      : _M_t(std::move(__u._M_t))
+ 1131425*:  186:      { __u._M_ptr() = nullptr; }
 ------------------
 _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultIvEENS0_12_Result_base8_DeleterEEC2EOS5_:
 function _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultIvEENS0_12_Result_base8_DeleterEEC2EOS5_ called 0 returned 0% blocks executed 0%
@@ -420,21 +420,21 @@ call    1 never executed
 call    0 never executed
 ------------------
 _ZNSt15__uniq_ptr_implIN4uecm7Service5ShardESt14default_deleteIS2_EEC2EOS5_:
-function _ZNSt15__uniq_ptr_implIN4uecm7Service5ShardESt14default_deleteIS2_EEC2EOS5_ called 441 returned 100% blocks executed 100%
-      441:  184:      __uniq_ptr_impl(__uniq_ptr_impl&& __u) noexcept
-      441:  185:      : _M_t(std::move(__u._M_t))
+function _ZNSt15__uniq_ptr_implIN4uecm7Service5ShardESt14default_deleteIS2_EEC2EOS5_ called 449 returned 100% blocks executed 100%
+      449:  184:      __uniq_ptr_impl(__uniq_ptr_impl&& __u) noexcept
+      449:  185:      : _M_t(std::move(__u._M_t))
 call    0 returned 100%
 call    1 returned 100%
-      441:  186:      { __u._M_ptr() = nullptr; }
+      449:  186:      { __u._M_ptr() = nullptr; }
 call    0 returned 100%
 ------------------
 _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEEC2EOSG_:
-function _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEEC2EOSG_ called 1132110 returned 100% blocks executed 100%
-  1132110:  184:      __uniq_ptr_impl(__uniq_ptr_impl&& __u) noexcept
-  1132110:  185:      : _M_t(std::move(__u._M_t))
+function _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEEC2EOSG_ called 1132167 returned 100% blocks executed 100%
+  1132167:  184:      __uniq_ptr_impl(__uniq_ptr_impl&& __u) noexcept
+  1132167:  185:      : _M_t(std::move(__u._M_t))
 call    0 returned 100%
 call    1 returned 100%
-  1130463:  186:      { __u._M_ptr() = nullptr; }
+  1130964:  186:      { __u._M_ptr() = nullptr; }
 call    0 returned 100%
 ------------------
 _ZNSt15__uniq_ptr_implIN4uecm9ShardCoreESt14default_deleteIS1_EEC2EOS4_:
@@ -462,11 +462,11 @@ call    2 returned 100%
         -:  194:      }
         -:  195:
         -:  196:      _GLIBCXX23_CONSTEXPR
- 5212350*:  197:      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+ 5214847*:  197:      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
 ------------------
 _ZNSt15__uniq_ptr_implINSt6thread6_StateESt14default_deleteIS1_EE6_M_ptrEv:
-function _ZNSt15__uniq_ptr_implINSt6thread6_StateESt14default_deleteIS1_EE6_M_ptrEv called 48 returned 100% blocks executed 100%
-       48:  197:      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+function _ZNSt15__uniq_ptr_implINSt6thread6_StateESt14default_deleteIS1_EE6_M_ptrEv called 64 returned 100% blocks executed 100%
+       64:  197:      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
 call    0 returned 100%
 ------------------
 _ZNSt15__uniq_ptr_implINSt6thread6_StateESt14default_deleteIS1_EE6_M_ptrEv:
@@ -485,8 +485,8 @@ function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE
 call    0 never executed
 ------------------
 _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE6_M_ptrEv:
-function _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE6_M_ptrEv called 3821014 returned 100% blocks executed 100%
-  3821014:  197:      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+function _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE6_M_ptrEv called 3823792 returned 100% blocks executed 100%
+  3823792:  197:      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
 call    0 returned 100%
 ------------------
 _ZNSt15__uniq_ptr_implINSt6thread6_StateESt14default_deleteIS1_EE6_M_ptrEv:
@@ -495,18 +495,18 @@ function _ZNSt15__uniq_ptr_implINSt6thread6_StateESt14default_deleteIS1_EE6_M_pt
 call    0 returned 100%
 ------------------
 _ZNSt15__uniq_ptr_implIN4uecm7Service5ShardESt14default_deleteIS2_EE6_M_ptrEv:
-function _ZNSt15__uniq_ptr_implIN4uecm7Service5ShardESt14default_deleteIS2_EE6_M_ptrEv called 1764 returned 100% blocks executed 100%
-     1764:  197:      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+function _ZNSt15__uniq_ptr_implIN4uecm7Service5ShardESt14default_deleteIS2_EE6_M_ptrEv called 1796 returned 100% blocks executed 100%
+     1796:  197:      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
 call    0 returned 100%
 ------------------
 _ZNSt15__uniq_ptr_implIN4uecm9ShardCoreESt14default_deleteIS1_EE6_M_ptrEv:
-function _ZNSt15__uniq_ptr_implIN4uecm9ShardCoreESt14default_deleteIS1_EE6_M_ptrEv called 882 returned 100% blocks executed 100%
-      882:  197:      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+function _ZNSt15__uniq_ptr_implIN4uecm9ShardCoreESt14default_deleteIS1_EE6_M_ptrEv called 898 returned 100% blocks executed 100%
+      898:  197:      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
 call    0 returned 100%
 ------------------
 _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE6_M_ptrEv:
-function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE6_M_ptrEv called 1387590 returned 100% blocks executed 100%
-  1387590:  197:      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE6_M_ptrEv called 1387245 returned 100% blocks executed 100%
+  1387245:  197:      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
 call    0 returned 100%
 ------------------
 _ZNSt15__uniq_ptr_implIN4uecm7ServiceESt14default_deleteIS1_EE6_M_ptrEv:
@@ -530,7 +530,7 @@ function _ZNSt15__uniq_ptr_implIN4uecm9ShardCoreESt14default_deleteIS1_EE6_M_ptr
 call    0 returned 100%
 ------------------
         -:  198:      _GLIBCXX23_CONSTEXPR
- 1150698*:  199:      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+ 1152430*:  199:      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
 ------------------
 _ZNKSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE6_M_ptrEv:
 function _ZNKSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE6_M_ptrEv called 0 returned 0% blocks executed 0%
@@ -538,23 +538,23 @@ function _ZNKSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterE
 call    0 never executed
 ------------------
 _ZNKSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE6_M_ptrEv:
-function _ZNKSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE6_M_ptrEv called 286440 returned 100% blocks executed 100%
-   286440:  199:      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+function _ZNKSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE6_M_ptrEv called 286743 returned 100% blocks executed 100%
+   286743:  199:      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
 call    0 returned 100%
 ------------------
 _ZNKSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE6_M_ptrEv:
-function _ZNKSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE6_M_ptrEv called 555940 returned 100% blocks executed 100%
-   555940:  199:      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+function _ZNKSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE6_M_ptrEv called 557246 returned 100% blocks executed 100%
+   557246:  199:      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
 call    0 returned 100%
 ------------------
 _ZNKSt15__uniq_ptr_implIN4uecm9ShardCoreESt14default_deleteIS1_EE6_M_ptrEv:
-function _ZNKSt15__uniq_ptr_implIN4uecm9ShardCoreESt14default_deleteIS1_EE6_M_ptrEv called 440 returned 100% blocks executed 100%
-      440:  199:      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+function _ZNKSt15__uniq_ptr_implIN4uecm9ShardCoreESt14default_deleteIS1_EE6_M_ptrEv called 449 returned 100% blocks executed 100%
+      449:  199:      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
 call    0 returned 100%
 ------------------
 _ZNKSt15__uniq_ptr_implIN4uecm7Service5ShardESt14default_deleteIS2_EE6_M_ptrEv:
-function _ZNKSt15__uniq_ptr_implIN4uecm7Service5ShardESt14default_deleteIS2_EE6_M_ptrEv called 287375 returned 100% blocks executed 100%
-   287375:  199:      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+function _ZNKSt15__uniq_ptr_implIN4uecm7Service5ShardESt14default_deleteIS2_EE6_M_ptrEv called 287489 returned 100% blocks executed 100%
+   287489:  199:      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
 call    0 returned 100%
 ------------------
 _ZNKSt15__uniq_ptr_implIN4uecm7ServiceESt14default_deleteIS1_EE6_M_ptrEv:
@@ -568,7 +568,7 @@ function _ZNKSt15__uniq_ptr_implIN4uecm9ShardCoreESt14default_deleteIS1_EE6_M_pt
 call    0 returned 100%
 ------------------
         -:  200:      _GLIBCXX23_CONSTEXPR
- 1402428*:  201:      _Dp&       _M_deleter() noexcept { return std::get<1>(_M_t); }
+ 1402212*:  201:      _Dp&       _M_deleter() noexcept { return std::get<1>(_M_t); }
 ------------------
 _ZNSt15__uniq_ptr_implINSt6thread6_StateESt14default_deleteIS1_EE10_M_deleterEv:
 function _ZNSt15__uniq_ptr_implINSt6thread6_StateESt14default_deleteIS1_EE10_M_deleterEv called 0 returned 0% blocks executed 0%
@@ -591,8 +591,8 @@ function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE
 call    0 never executed
 ------------------
 _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE10_M_deleterEv:
-function _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE10_M_deleterEv called 555710 returned 100% blocks executed 100%
-   555710:  201:      _Dp&       _M_deleter() noexcept { return std::get<1>(_M_t); }
+function _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE10_M_deleterEv called 556567 returned 100% blocks executed 100%
+   556567:  201:      _Dp&       _M_deleter() noexcept { return std::get<1>(_M_t); }
 call    0 returned 100%
 ------------------
 _ZNSt15__uniq_ptr_implINSt6thread6_StateESt14default_deleteIS1_EE10_M_deleterEv:
@@ -601,18 +601,18 @@ function _ZNSt15__uniq_ptr_implINSt6thread6_StateESt14default_deleteIS1_EE10_M_d
 call    0 never executed
 ------------------
 _ZNSt15__uniq_ptr_implIN4uecm7Service5ShardESt14default_deleteIS2_EE10_M_deleterEv:
-function _ZNSt15__uniq_ptr_implIN4uecm7Service5ShardESt14default_deleteIS2_EE10_M_deleterEv called 441 returned 100% blocks executed 100%
-      441:  201:      _Dp&       _M_deleter() noexcept { return std::get<1>(_M_t); }
+function _ZNSt15__uniq_ptr_implIN4uecm7Service5ShardESt14default_deleteIS2_EE10_M_deleterEv called 449 returned 100% blocks executed 100%
+      449:  201:      _Dp&       _M_deleter() noexcept { return std::get<1>(_M_t); }
 call    0 returned 100%
 ------------------
 _ZNSt15__uniq_ptr_implIN4uecm9ShardCoreESt14default_deleteIS1_EE10_M_deleterEv:
-function _ZNSt15__uniq_ptr_implIN4uecm9ShardCoreESt14default_deleteIS1_EE10_M_deleterEv called 441 returned 100% blocks executed 100%
-      441:  201:      _Dp&       _M_deleter() noexcept { return std::get<1>(_M_t); }
+function _ZNSt15__uniq_ptr_implIN4uecm9ShardCoreESt14default_deleteIS1_EE10_M_deleterEv called 449 returned 100% blocks executed 100%
+      449:  201:      _Dp&       _M_deleter() noexcept { return std::get<1>(_M_t); }
 call    0 returned 100%
 ------------------
 _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE10_M_deleterEv:
-function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE10_M_deleterEv called 845771 returned 100% blocks executed 100%
-   845771:  201:      _Dp&       _M_deleter() noexcept { return std::get<1>(_M_t); }
+function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE10_M_deleterEv called 844682 returned 100% blocks executed 100%
+   844682:  201:      _Dp&       _M_deleter() noexcept { return std::get<1>(_M_t); }
 call    0 returned 100%
 ------------------
 _ZNSt15__uniq_ptr_implIN4uecm7ServiceESt14default_deleteIS1_EE10_M_deleterEv:
@@ -655,11 +655,11 @@ call    1 never executed
        20:  212:      }
         -:  213:
         -:  214:      _GLIBCXX23_CONSTEXPR
-  554273*:  215:      pointer release() noexcept
+  555445*:  215:      pointer release() noexcept
         -:  216:      {
-  554273*:  217:	pointer __p = _M_ptr();
-  553302*:  218:	_M_ptr() = nullptr;
-  551133*:  219:	return __p;
+  555445*:  217:	pointer __p = _M_ptr();
+  554550*:  218:	_M_ptr() = nullptr;
+  552557*:  219:	return __p;
         -:  220:      }
 ------------------
 _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultIvEENS0_12_Result_base8_DeleterEE7releaseEv:
@@ -674,14 +674,14 @@ call    0 never executed
         -:  220:      }
 ------------------
 _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE7releaseEv:
-function _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE7releaseEv called 554253 returned 99% blocks executed 100%
-   554253:  215:      pointer release() noexcept
+function _ZNSt15__uniq_ptr_implINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE7releaseEv called 555425 returned 99% blocks executed 100%
+   555425:  215:      pointer release() noexcept
         -:  216:      {
-   554253:  217:	pointer __p = _M_ptr();
+   555425:  217:	pointer __p = _M_ptr();
 call    0 returned 100%
-   553282:  218:	_M_ptr() = nullptr;
+   554530:  218:	_M_ptr() = nullptr;
 call    0 returned 100%
-   551113:  219:	return __p;
+   552537:  219:	return __p;
         -:  220:      }
 ------------------
 _ZNSt15__uniq_ptr_implIN4uecm7ServiceESt14default_deleteIS1_EE7releaseEv:
@@ -698,12 +698,12 @@ call    0 returned 100%
         -:  221:
         -:  222:      _GLIBCXX23_CONSTEXPR
         -:  223:      void
-  284145*:  224:      swap(__uniq_ptr_impl& __rhs) noexcept
+  284386*:  224:      swap(__uniq_ptr_impl& __rhs) noexcept
         -:  225:      {
         -:  226:	using std::swap;
-  284145*:  227:	swap(this->_M_ptr(), __rhs._M_ptr());
-  284011*:  228:	swap(this->_M_deleter(), __rhs._M_deleter());
-  284136*:  229:      }
+  284386*:  227:	swap(this->_M_ptr(), __rhs._M_ptr());
+  284057*:  228:	swap(this->_M_deleter(), __rhs._M_deleter());
+  283887*:  229:      }
 ------------------
 _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE4swapERS3_:
 function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE4swapERS3_ called 0 returned 0% blocks executed 0%
@@ -721,19 +721,19 @@ call    2 never executed
     #####:  229:      }
 ------------------
 _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE4swapERS3_:
-function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE4swapERS3_ called 284145 returned 100% blocks executed 100%
-   284145:  224:      swap(__uniq_ptr_impl& __rhs) noexcept
+function _ZNSt15__uniq_ptr_implINSt13__future_base12_Result_baseENS1_8_DeleterEE4swapERS3_ called 284386 returned 100% blocks executed 100%
+   284386:  224:      swap(__uniq_ptr_impl& __rhs) noexcept
         -:  225:      {
         -:  226:	using std::swap;
-   284145:  227:	swap(this->_M_ptr(), __rhs._M_ptr());
+   284386:  227:	swap(this->_M_ptr(), __rhs._M_ptr());
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 100%
-   284011:  228:	swap(this->_M_deleter(), __rhs._M_deleter());
+   284057:  228:	swap(this->_M_deleter(), __rhs._M_deleter());
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 100%
-   284136:  229:      }
+   283887:  229:      }
 ------------------
         -:  230:
         -:  231:    private:
@@ -747,7 +747,7 @@ call    2 returned 100%
         -:  239:    struct __uniq_ptr_data : __uniq_ptr_impl<_Tp, _Dp>
         -:  240:    {
         -:  241:      using __uniq_ptr_impl<_Tp, _Dp>::__uniq_ptr_impl;
- 1133669*:  242:      __uniq_ptr_data(__uniq_ptr_data&&) = default;
+ 1133593*:  242:      __uniq_ptr_data(__uniq_ptr_data&&) = default;
 ------------------
 _ZNSt15__uniq_ptr_dataINSt13__future_base7_ResultIvEENS0_12_Result_base8_DeleterELb1ELb1EEC2EOS5_:
 function _ZNSt15__uniq_ptr_dataINSt13__future_base7_ResultIvEENS0_12_Result_base8_DeleterELb1ELb1EEC2EOS5_ called 0 returned 0% blocks executed 0%
@@ -755,13 +755,13 @@ function _ZNSt15__uniq_ptr_dataINSt13__future_base7_ResultIvEENS0_12_Result_base
 call    0 never executed
 ------------------
 _ZNSt15__uniq_ptr_dataIN4uecm7Service5ShardESt14default_deleteIS2_ELb1ELb1EEC2EOS5_:
-function _ZNSt15__uniq_ptr_dataIN4uecm7Service5ShardESt14default_deleteIS2_ELb1ELb1EEC2EOS5_ called 441 returned 100% blocks executed 100%
-      441:  242:      __uniq_ptr_data(__uniq_ptr_data&&) = default;
+function _ZNSt15__uniq_ptr_dataIN4uecm7Service5ShardESt14default_deleteIS2_ELb1ELb1EEC2EOS5_ called 449 returned 100% blocks executed 100%
+      449:  242:      __uniq_ptr_data(__uniq_ptr_data&&) = default;
 call    0 returned 100%
 ------------------
 _ZNSt15__uniq_ptr_dataINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterELb1ELb1EEC2EOSG_:
-function _ZNSt15__uniq_ptr_dataINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterELb1ELb1EEC2EOSG_ called 1133216 returned 99% blocks executed 100%
-  1133216:  242:      __uniq_ptr_data(__uniq_ptr_data&&) = default;
+function _ZNSt15__uniq_ptr_dataINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterELb1ELb1EEC2EOSG_ called 1133132 returned 99% blocks executed 100%
+  1133132:  242:      __uniq_ptr_data(__uniq_ptr_data&&) = default;
 call    0 returned 99%
 ------------------
 _ZNSt15__uniq_ptr_dataIN4uecm9ShardCoreESt14default_deleteIS1_ELb1ELb1EEC2EOS4_:
@@ -832,9 +832,9 @@ call    0 returned 100%
         -:  301:
         -:  302:      /// Default constructor, creates a unique_ptr that owns nothing.
         -:  303:      template<typename _Del = _Dp, typename = _DeleterConstraint<_Del>>
-  285624*:  304:	constexpr unique_ptr() noexcept
-  285624*:  305:	: _M_t()
-  285366*:  306:	{ }
+  285596*:  304:	constexpr unique_ptr() noexcept
+  285596*:  305:	: _M_t()
+  285411*:  306:	{ }
 ------------------
 _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEC2IS2_vEEv:
 function _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEC2IS2_vEEv called 0 returned 0% blocks executed 0%
@@ -844,11 +844,11 @@ call    0 never executed
     #####:  306:	{ }
 ------------------
 _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEC2IS2_vEEv:
-function _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEC2IS2_vEEv called 285624 returned 100% blocks executed 100%
-   285624:  304:	constexpr unique_ptr() noexcept
-   285624:  305:	: _M_t()
+function _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEC2IS2_vEEv called 285596 returned 100% blocks executed 100%
+   285596:  304:	constexpr unique_ptr() noexcept
+   285596:  305:	: _M_t()
 call    0 returned 100%
-   285366:  306:	{ }
+   285411:  306:	{ }
 ------------------
         -:  307:
         -:  308:      /** Takes ownership of a pointer.
@@ -860,16 +860,16 @@ call    0 returned 100%
         -:  314:      template<typename _Del = _Dp, typename = _DeleterConstraint<_Del>>
         -:  315:	_GLIBCXX23_CONSTEXPR
         -:  316:	explicit
-  286648*:  317:	unique_ptr(pointer __p) noexcept
-  286648*:  318:	: _M_t(__p)
-  286013*:  319:        { }
+  286956*:  317:	unique_ptr(pointer __p) noexcept
+  286956*:  318:	: _M_t(__p)
+  286169*:  319:        { }
 ------------------
 _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EEC2IS3_vEEPS1_:
-function _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EEC2IS3_vEEPS1_ called 24 returned 100% blocks executed 100%
-       24:  317:	unique_ptr(pointer __p) noexcept
-       24:  318:	: _M_t(__p)
+function _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EEC2IS3_vEEPS1_ called 32 returned 100% blocks executed 100%
+       32:  317:	unique_ptr(pointer __p) noexcept
+       32:  318:	: _M_t(__p)
 call    0 returned 100%
-       24:  319:        { }
+       32:  319:        { }
 ------------------
 _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EEC2IS3_vEEPS1_:
 function _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EEC2IS3_vEEPS1_ called 0 returned 0% blocks executed 0%
@@ -886,11 +886,11 @@ call    0 never executed
     #####:  319:        { }
 ------------------
 _ZNSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEEC2ISF_vEEPSD_:
-function _ZNSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEEC2ISF_vEEPSD_ called 285279 returned 100% blocks executed 100%
-   285279:  317:	unique_ptr(pointer __p) noexcept
-   285279:  318:	: _M_t(__p)
+function _ZNSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEEC2ISF_vEEPSD_ called 285563 returned 100% blocks executed 100%
+   285563:  317:	unique_ptr(pointer __p) noexcept
+   285563:  318:	: _M_t(__p)
 call    0 returned 100%
-   284644:  319:        { }
+   284776:  319:        { }
 ------------------
 _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EEC2IS3_vEEPS1_:
 function _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EEC2IS3_vEEPS1_ called 403 returned 100% blocks executed 100%
@@ -900,18 +900,18 @@ call    0 returned 100%
       403:  319:        { }
 ------------------
 _ZNSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EEC2IS4_vEEPS2_:
-function _ZNSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EEC2IS4_vEEPS2_ called 441 returned 100% blocks executed 100%
-      441:  317:	unique_ptr(pointer __p) noexcept
-      441:  318:	: _M_t(__p)
+function _ZNSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EEC2IS4_vEEPS2_ called 449 returned 100% blocks executed 100%
+      449:  317:	unique_ptr(pointer __p) noexcept
+      449:  318:	: _M_t(__p)
 call    0 returned 100%
-      441:  319:        { }
+      449:  319:        { }
 ------------------
 _ZNSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EEC2IS3_vEEPS1_:
-function _ZNSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EEC2IS3_vEEPS1_ called 441 returned 100% blocks executed 100%
-      441:  317:	unique_ptr(pointer __p) noexcept
-      441:  318:	: _M_t(__p)
+function _ZNSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EEC2IS3_vEEPS1_ called 449 returned 100% blocks executed 100%
+      449:  317:	unique_ptr(pointer __p) noexcept
+      449:  318:	: _M_t(__p)
 call    0 returned 100%
-      441:  319:        { }
+      449:  319:        { }
 ------------------
 _ZNSt10unique_ptrIN4uecm7ServiceESt14default_deleteIS1_EEC2IS3_vEEPS1_:
 function _ZNSt10unique_ptrIN4uecm7ServiceESt14default_deleteIS1_EEC2IS3_vEEPS1_ called 20 returned 100% blocks executed 100%
@@ -987,7 +987,7 @@ call    0 returned 100%
         -:  363:      // Move constructors.
         -:  364:
         -:  365:      /// Move constructor.
- 1133385*:  366:      unique_ptr(unique_ptr&&) = default;
+ 1133382*:  366:      unique_ptr(unique_ptr&&) = default;
 ------------------
 _ZNSt10unique_ptrINSt13__future_base7_ResultIvEENS0_12_Result_base8_DeleterEEC2EOS5_:
 function _ZNSt10unique_ptrINSt13__future_base7_ResultIvEENS0_12_Result_base8_DeleterEEC2EOS5_ called 0 returned 0% blocks executed 0%
@@ -995,13 +995,13 @@ function _ZNSt10unique_ptrINSt13__future_base7_ResultIvEENS0_12_Result_base8_Del
 call    0 never executed
 ------------------
 _ZNSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EEC2EOS5_:
-function _ZNSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EEC2EOS5_ called 441 returned 100% blocks executed 100%
-      441:  366:      unique_ptr(unique_ptr&&) = default;
+function _ZNSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EEC2EOS5_ called 449 returned 100% blocks executed 100%
+      449:  366:      unique_ptr(unique_ptr&&) = default;
 call    0 returned 100%
 ------------------
 _ZNSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEEC2EOSG_:
-function _ZNSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEEC2EOSG_ called 1132932 returned 99% blocks executed 100%
-  1132932:  366:      unique_ptr(unique_ptr&&) = default;
+function _ZNSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEEC2EOSG_ called 1132921 returned 99% blocks executed 100%
+  1132921:  366:      unique_ptr(unique_ptr&&) = default;
 call    0 returned 99%
 ------------------
 _ZNSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EEC2EOS4_:
@@ -1022,9 +1022,9 @@ call    0 returned 100%
         -:  377:			       is_same<_Ep, _Dp>,
         -:  378:			       is_convertible<_Ep, _Dp>>>>
         -:  379:	_GLIBCXX23_CONSTEXPR
-  555484*:  380:	unique_ptr(unique_ptr<_Up, _Ep>&& __u) noexcept
-  555484*:  381:	: _M_t(__u.release(), std::forward<_Ep>(__u.get_deleter()))
-  551001*:  382:	{ }
+  556374*:  380:	unique_ptr(unique_ptr<_Up, _Ep>&& __u) noexcept
+  556374*:  381:	: _M_t(__u.release(), std::forward<_Ep>(__u.get_deleter()))
+  552387*:  382:	{ }
 ------------------
 _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEC2INS0_7_ResultIvEES2_vEEOS_IT_T0_E:
 function _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEC2INS0_7_ResultIvEES2_vEEOS_IT_T0_E called 0 returned 0% blocks executed 0%
@@ -1037,14 +1037,14 @@ call    3 never executed
     #####:  382:	{ }
 ------------------
 _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEC2INS0_7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES7_INS8_12SignalingAckES9_ES7_INS8_13UeContextViewES9_ES7_ImS9_EEEEES2_vEEOS_IT_T0_E:
-function _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEC2INS0_7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES7_INS8_12SignalingAckES9_ES7_INS8_13UeContextViewES9_ES7_ImS9_EEEEES2_vEEOS_IT_T0_E called 555484 returned 99% blocks executed 100%
-   555484:  380:	unique_ptr(unique_ptr<_Up, _Ep>&& __u) noexcept
-   555484:  381:	: _M_t(__u.release(), std::forward<_Ep>(__u.get_deleter()))
+function _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEC2INS0_7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES7_INS8_12SignalingAckES9_ES7_INS8_13UeContextViewES9_ES7_ImS9_EEEEES2_vEEOS_IT_T0_E called 556374 returned 99% blocks executed 100%
+   556374:  380:	unique_ptr(unique_ptr<_Up, _Ep>&& __u) noexcept
+   556374:  381:	: _M_t(__u.release(), std::forward<_Ep>(__u.get_deleter()))
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 99%
 call    3 returned 100%
-   551001:  382:	{ }
+   552387:  382:	{ }
 ------------------
         -:  383:
         -:  384:#if _GLIBCXX_USE_DEPRECATED
@@ -1061,33 +1061,33 @@ call    3 returned 100%
         -:  395:#if __cplusplus > 202002L && __cpp_constexpr_dynamic_alloc
         -:  396:      constexpr
         -:  397:#endif
- 2248530*:  398:      ~unique_ptr() noexcept
+ 2251199*:  398:      ~unique_ptr() noexcept
         -:  399:      {
         -:  400:	static_assert(__is_invocable<deleter_type&, pointer>::value,
         -:  401:		      "unique_ptr's deleter must be invocable with a pointer");
- 2248530*:  402:	auto& __ptr = _M_t._M_ptr();
- 2244746*:  403:	if (__ptr != nullptr)
-  286146*:  404:	  get_deleter()(std::move(__ptr));
- 2246597*:  405:	__ptr = pointer();
- 2246597*:  406:      }
+ 2251199*:  402:	auto& __ptr = _M_t._M_ptr();
+ 2247339*:  403:	if (__ptr != nullptr)
+  285959*:  404:	  get_deleter()(std::move(__ptr));
+ 2249460*:  405:	__ptr = pointer();
+ 2249460*:  406:      }
 ------------------
 _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EED2Ev:
-function _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EED2Ev called 24 returned 100% blocks executed 50%
-       24:  398:      ~unique_ptr() noexcept
+function _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EED2Ev called 32 returned 100% blocks executed 50%
+       32:  398:      ~unique_ptr() noexcept
         -:  399:      {
         -:  400:	static_assert(__is_invocable<deleter_type&, pointer>::value,
         -:  401:		      "unique_ptr's deleter must be invocable with a pointer");
-       24:  402:	auto& __ptr = _M_t._M_ptr();
+       32:  402:	auto& __ptr = _M_t._M_ptr();
 call    0 returned 100%
-       24:  403:	if (__ptr != nullptr)
+       32:  403:	if (__ptr != nullptr)
 branch  0 taken 0% (fallthrough)
 branch  1 taken 100%
     #####:  404:	  get_deleter()(std::move(__ptr));
 call    0 never executed
 call    1 never executed
 call    2 never executed
-       24:  405:	__ptr = pointer();
-       24:  406:      }
+       32:  405:	__ptr = pointer();
+       32:  406:      }
 ------------------
 _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EED2Ev:
 function _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EED2Ev called 0 returned 0% blocks executed 0%
@@ -1144,22 +1144,22 @@ call    2 never executed
     #####:  406:      }
 ------------------
 _ZNSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEED2Ev:
-function _ZNSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEED2Ev called 1412413 returned 100% blocks executed 100%
-  1412413:  398:      ~unique_ptr() noexcept
+function _ZNSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEED2Ev called 1413895 returned 100% blocks executed 100%
+  1413895:  398:      ~unique_ptr() noexcept
         -:  399:      {
         -:  400:	static_assert(__is_invocable<deleter_type&, pointer>::value,
         -:  401:		      "unique_ptr's deleter must be invocable with a pointer");
-  1412413:  402:	auto& __ptr = _M_t._M_ptr();
+  1413895:  402:	auto& __ptr = _M_t._M_ptr();
 call    0 returned 100%
-  1409271:  403:	if (__ptr != nullptr)
+  1410985:  403:	if (__ptr != nullptr)
 branch  0 taken 1% (fallthrough)
 branch  1 taken 100%
-      440:  404:	  get_deleter()(std::move(__ptr));
+      449:  404:	  get_deleter()(std::move(__ptr));
 call    0 returned 100%
 call    1 returned 100%
-call    2 returned 100%
-  1409272:  405:	__ptr = pointer();
-  1409272:  406:      }
+call    2 returned 101%
+  1410988:  405:	__ptr = pointer();
+  1410988:  406:      }
 ------------------
 _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EED2Ev:
 function _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EED2Ev called 403 returned 100% blocks executed 50%
@@ -1180,58 +1180,58 @@ call    2 never executed
       403:  406:      }
 ------------------
 _ZNSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EED2Ev:
-function _ZNSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EED2Ev called 882 returned 100% blocks executed 100%
-      882:  398:      ~unique_ptr() noexcept
+function _ZNSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EED2Ev called 898 returned 100% blocks executed 100%
+      898:  398:      ~unique_ptr() noexcept
         -:  399:      {
         -:  400:	static_assert(__is_invocable<deleter_type&, pointer>::value,
         -:  401:		      "unique_ptr's deleter must be invocable with a pointer");
-      882:  402:	auto& __ptr = _M_t._M_ptr();
+      898:  402:	auto& __ptr = _M_t._M_ptr();
 call    0 returned 100%
-      882:  403:	if (__ptr != nullptr)
+      898:  403:	if (__ptr != nullptr)
 branch  0 taken 50% (fallthrough)
 branch  1 taken 50%
-      441:  404:	  get_deleter()(std::move(__ptr));
+      449:  404:	  get_deleter()(std::move(__ptr));
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 100%
-      882:  405:	__ptr = pointer();
-      882:  406:      }
+      898:  405:	__ptr = pointer();
+      898:  406:      }
 ------------------
 _ZNSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EED2Ev:
-function _ZNSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EED2Ev called 441 returned 100% blocks executed 100%
-      441:  398:      ~unique_ptr() noexcept
+function _ZNSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EED2Ev called 449 returned 100% blocks executed 100%
+      449:  398:      ~unique_ptr() noexcept
         -:  399:      {
         -:  400:	static_assert(__is_invocable<deleter_type&, pointer>::value,
         -:  401:		      "unique_ptr's deleter must be invocable with a pointer");
-      441:  402:	auto& __ptr = _M_t._M_ptr();
+      449:  402:	auto& __ptr = _M_t._M_ptr();
 call    0 returned 100%
-      441:  403:	if (__ptr != nullptr)
+      449:  403:	if (__ptr != nullptr)
 branch  0 taken 100% (fallthrough)
 branch  1 taken 0%
-      441:  404:	  get_deleter()(std::move(__ptr));
+      449:  404:	  get_deleter()(std::move(__ptr));
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 100%
-      441:  405:	__ptr = pointer();
-      441:  406:      }
+      449:  405:	__ptr = pointer();
+      449:  406:      }
 ------------------
 _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEED2Ev:
-function _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEED2Ev called 834273 returned 100% blocks executed 100%
-   834273:  398:      ~unique_ptr() noexcept
+function _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEED2Ev called 835428 returned 100% blocks executed 100%
+   835428:  398:      ~unique_ptr() noexcept
         -:  399:      {
         -:  400:	static_assert(__is_invocable<deleter_type&, pointer>::value,
         -:  401:		      "unique_ptr's deleter must be invocable with a pointer");
-   834273:  402:	auto& __ptr = _M_t._M_ptr();
+   835428:  402:	auto& __ptr = _M_t._M_ptr();
 call    0 returned 100%
-   833631:  403:	if (__ptr != nullptr)
+   834478:  403:	if (__ptr != nullptr)
 branch  0 taken 34% (fallthrough)
 branch  1 taken 66%
-   284799:  404:	  get_deleter()(std::move(__ptr));
+   284587:  404:	  get_deleter()(std::move(__ptr));
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 101%
-   835481:  405:	__ptr = pointer();
-   835481:  406:      }
+   836596:  405:	__ptr = pointer();
+   836596:  406:      }
 ------------------
 _ZNSt10unique_ptrIN4uecm7ServiceESt14default_deleteIS1_EED2Ev:
 function _ZNSt10unique_ptrIN4uecm7ServiceESt14default_deleteIS1_EED2Ev called 42 returned 100% blocks executed 100%
@@ -1351,10 +1351,10 @@ call    0 returned 100%
         -:  448:      /// Dereference the stored pointer.
         -:  449:      _GLIBCXX23_CONSTEXPR
         -:  450:      typename add_lvalue_reference<element_type>::type
-  288720*:  451:      operator*() const noexcept(noexcept(*std::declval<pointer>()))
+  288592*:  451:      operator*() const noexcept(noexcept(*std::declval<pointer>()))
         -:  452:      {
-  288720*:  453:	__glibcxx_assert(get() != pointer());
-  288776*:  454:	return *get();
+  288592*:  453:	__glibcxx_assert(get() != pointer());
+  288668*:  454:	return *get();
         -:  455:      }
 ------------------
 _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEdeEv:
@@ -1376,10 +1376,10 @@ call    0 never executed
         -:  455:      }
 ------------------
 _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEdeEv:
-function _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEdeEv called 287838 returned 100% blocks executed 70%
-   287838:  451:      operator*() const noexcept(noexcept(*std::declval<pointer>()))
+function _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEdeEv called 287694 returned 100% blocks executed 70%
+   287694:  451:      operator*() const noexcept(noexcept(*std::declval<pointer>()))
         -:  452:      {
-  287838*:  453:	__glibcxx_assert(get() != pointer());
+  287694*:  453:	__glibcxx_assert(get() != pointer());
 call    0 returned 100%
 branch  1 taken -0% (fallthrough)
 branch  2 taken 100%
@@ -1389,15 +1389,15 @@ branch  5 never executed
 branch  6 taken 0% (fallthrough)
 branch  7 taken 100%
 call    8 never executed
-   287894:  454:	return *get();
+   287770:  454:	return *get();
 call    0 returned 100%
         -:  455:      }
 ------------------
 _ZNKSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EEdeEv:
-function _ZNKSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EEdeEv called 441 returned 100% blocks executed 60%
-      441:  451:      operator*() const noexcept(noexcept(*std::declval<pointer>()))
+function _ZNKSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EEdeEv called 449 returned 100% blocks executed 60%
+      449:  451:      operator*() const noexcept(noexcept(*std::declval<pointer>()))
         -:  452:      {
-     441*:  453:	__glibcxx_assert(get() != pointer());
+     449*:  453:	__glibcxx_assert(get() != pointer());
 call    0 returned 100%
 branch  1 taken 0% (fallthrough)
 branch  2 taken 100%
@@ -1407,15 +1407,15 @@ branch  5 never executed
 branch  6 taken 0% (fallthrough)
 branch  7 taken 100%
 call    8 never executed
-      441:  454:	return *get();
+      449:  454:	return *get();
 call    0 returned 100%
         -:  455:      }
 ------------------
 _ZNKSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EEdeEv:
-function _ZNKSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EEdeEv called 441 returned 100% blocks executed 60%
-      441:  451:      operator*() const noexcept(noexcept(*std::declval<pointer>()))
+function _ZNKSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EEdeEv called 449 returned 100% blocks executed 60%
+      449:  451:      operator*() const noexcept(noexcept(*std::declval<pointer>()))
         -:  452:      {
-     441*:  453:	__glibcxx_assert(get() != pointer());
+     449*:  453:	__glibcxx_assert(get() != pointer());
 call    0 returned 100%
 branch  1 taken 0% (fallthrough)
 branch  2 taken 100%
@@ -1425,7 +1425,7 @@ branch  5 never executed
 branch  6 taken 0% (fallthrough)
 branch  7 taken 100%
 call    8 never executed
-      441:  454:	return *get();
+      449:  454:	return *get();
 call    0 returned 100%
         -:  455:      }
 ------------------
@@ -1433,10 +1433,10 @@ call    0 returned 100%
         -:  457:      /// Return the stored pointer.
         -:  458:      _GLIBCXX23_CONSTEXPR
         -:  459:      pointer
-  585872*:  460:      operator->() const noexcept
+  586168*:  460:      operator->() const noexcept
         -:  461:      {
         -:  462:	_GLIBCXX_DEBUG_PEDASSERT(get() != pointer());
-  585872*:  463:	return get();
+  586168*:  463:	return get();
         -:  464:      }
 ------------------
 _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEptEv:
@@ -1449,20 +1449,20 @@ call    0 never executed
         -:  464:      }
 ------------------
 _ZNKSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEEptEv:
-function _ZNKSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEEptEv called 286545 returned 100% blocks executed 100%
-   286545:  460:      operator->() const noexcept
+function _ZNKSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEEptEv called 286828 returned 100% blocks executed 100%
+   286828:  460:      operator->() const noexcept
         -:  461:      {
         -:  462:	_GLIBCXX_DEBUG_PEDASSERT(get() != pointer());
-   286545:  463:	return get();
+   286828:  463:	return get();
 call    0 returned 100%
         -:  464:      }
 ------------------
 _ZNKSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EEptEv:
-function _ZNKSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EEptEv called 287325 returned 100% blocks executed 100%
-   287325:  460:      operator->() const noexcept
+function _ZNKSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EEptEv called 287338 returned 100% blocks executed 100%
+   287338:  460:      operator->() const noexcept
         -:  461:      {
         -:  462:	_GLIBCXX_DEBUG_PEDASSERT(get() != pointer());
-   287325:  463:	return get();
+   287338:  463:	return get();
 call    0 returned 100%
         -:  464:      }
 ------------------
@@ -1497,8 +1497,8 @@ call    0 returned 100%
         -:  466:      /// Return the stored pointer.
         -:  467:      _GLIBCXX23_CONSTEXPR
         -:  468:      pointer
- 1151054*:  469:      get() const noexcept
- 1151054*:  470:      { return _M_t._M_ptr(); }
+ 1152890*:  469:      get() const noexcept
+ 1152890*:  470:      { return _M_t._M_ptr(); }
 ------------------
 _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEE3getEv:
 function _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEE3getEv called 0 returned 0% blocks executed 0%
@@ -1507,27 +1507,27 @@ function _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEE3get
 call    0 never executed
 ------------------
 _ZNKSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE3getEv:
-function _ZNKSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE3getEv called 286531 returned 100% blocks executed 100%
-   286531:  469:      get() const noexcept
-   286531:  470:      { return _M_t._M_ptr(); }
+function _ZNKSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE3getEv called 286826 returned 100% blocks executed 100%
+   286826:  469:      get() const noexcept
+   286826:  470:      { return _M_t._M_ptr(); }
 call    0 returned 100%
 ------------------
 _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEE3getEv:
-function _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEE3getEv called 556058 returned 100% blocks executed 100%
-   556058:  469:      get() const noexcept
-   556058:  470:      { return _M_t._M_ptr(); }
+function _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEE3getEv called 557516 returned 100% blocks executed 100%
+   557516:  469:      get() const noexcept
+   557516:  470:      { return _M_t._M_ptr(); }
 call    0 returned 100%
 ------------------
 _ZNKSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EE3getEv:
-function _ZNKSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EE3getEv called 441 returned 100% blocks executed 100%
-      441:  469:      get() const noexcept
-      441:  470:      { return _M_t._M_ptr(); }
+function _ZNKSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EE3getEv called 449 returned 100% blocks executed 100%
+      449:  469:      get() const noexcept
+      449:  470:      { return _M_t._M_ptr(); }
 call    0 returned 100%
 ------------------
 _ZNKSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EE3getEv:
-function _ZNKSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EE3getEv called 287521 returned 100% blocks executed 100%
-   287521:  469:      get() const noexcept
-   287521:  470:      { return _M_t._M_ptr(); }
+function _ZNKSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EE3getEv called 287596 returned 100% blocks executed 100%
+   287596:  469:      get() const noexcept
+   287596:  470:      { return _M_t._M_ptr(); }
 call    0 returned 100%
 ------------------
 _ZNKSt10unique_ptrIN4uecm7ServiceESt14default_deleteIS1_EE3getEv:
@@ -1546,8 +1546,8 @@ call    0 returned 100%
         -:  472:      /// Return a reference to the stored deleter.
         -:  473:      _GLIBCXX23_CONSTEXPR
         -:  474:      deleter_type&
-  841404*:  475:      get_deleter() noexcept
-  841404*:  476:      { return _M_t._M_deleter(); }
+  842097*:  475:      get_deleter() noexcept
+  842097*:  476:      { return _M_t._M_deleter(); }
 ------------------
 _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EE11get_deleterEv:
 function _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EE11get_deleterEv called 0 returned 0% blocks executed 0%
@@ -1574,9 +1574,9 @@ function _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEE11get
 call    0 never executed
 ------------------
 _ZNSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE11get_deleterEv:
-function _ZNSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE11get_deleterEv called 555792 returned 100% blocks executed 100%
-   555792:  475:      get_deleter() noexcept
-   555792:  476:      { return _M_t._M_deleter(); }
+function _ZNSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE11get_deleterEv called 556642 returned 100% blocks executed 100%
+   556642:  475:      get_deleter() noexcept
+   556642:  476:      { return _M_t._M_deleter(); }
 call    0 returned 100%
 ------------------
 _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EE11get_deleterEv:
@@ -1586,21 +1586,21 @@ function _ZNSt10unique_ptrINSt6thread6_StateESt14default_deleteIS1_EE11get_delet
 call    0 never executed
 ------------------
 _ZNSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EE11get_deleterEv:
-function _ZNSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EE11get_deleterEv called 441 returned 100% blocks executed 100%
-      441:  475:      get_deleter() noexcept
-      441:  476:      { return _M_t._M_deleter(); }
+function _ZNSt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS2_EE11get_deleterEv called 449 returned 100% blocks executed 100%
+      449:  475:      get_deleter() noexcept
+      449:  476:      { return _M_t._M_deleter(); }
 call    0 returned 100%
 ------------------
 _ZNSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EE11get_deleterEv:
-function _ZNSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EE11get_deleterEv called 441 returned 100% blocks executed 100%
-      441:  475:      get_deleter() noexcept
-      441:  476:      { return _M_t._M_deleter(); }
+function _ZNSt10unique_ptrIN4uecm9ShardCoreESt14default_deleteIS1_EE11get_deleterEv called 449 returned 100% blocks executed 100%
+      449:  475:      get_deleter() noexcept
+      449:  476:      { return _M_t._M_deleter(); }
 call    0 returned 100%
 ------------------
 _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEE11get_deleterEv:
-function _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEE11get_deleterEv called 284705 returned 100% blocks executed 100%
-   284705:  475:      get_deleter() noexcept
-   284705:  476:      { return _M_t._M_deleter(); }
+function _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEE11get_deleterEv called 284532 returned 100% blocks executed 100%
+   284532:  475:      get_deleter() noexcept
+   284532:  476:      { return _M_t._M_deleter(); }
 call    0 returned 100%
 ------------------
 _ZNSt10unique_ptrIN4uecm7ServiceESt14default_deleteIS1_EE11get_deleterEv:
@@ -1636,8 +1636,8 @@ call    0 returned 100%
         -:  483:
         -:  484:      /// Return @c true if the stored pointer is not null.
         -:  485:      _GLIBCXX23_CONSTEXPR
-  278929*:  486:      explicit operator bool() const noexcept
-  278929*:  487:      { return get() == pointer() ? false : true; }
+  280378*:  486:      explicit operator bool() const noexcept
+  280378*:  487:      { return get() == pointer() ? false : true; }
 ------------------
 _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEcvbEv:
 function _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEcvbEv called 0 returned 0% blocks executed 0%
@@ -1646,9 +1646,9 @@ function _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEcvbE
 call    0 never executed
 ------------------
 _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEcvbEv:
-function _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEcvbEv called 270428 returned 100% blocks executed 100%
-   270428:  486:      explicit operator bool() const noexcept
-   270428:  487:      { return get() == pointer() ? false : true; }
+function _ZNKSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEEcvbEv called 271877 returned 100% blocks executed 100%
+   271877:  486:      explicit operator bool() const noexcept
+   271877:  487:      { return get() == pointer() ? false : true; }
 call    0 returned 100%
 ------------------
 _ZNKSt10unique_ptrIN4uecm7ServiceESt14default_deleteIS1_EEcvbEv:
@@ -1663,8 +1663,8 @@ call    0 returned 100%
         -:  491:      /// Release ownership of any stored pointer.
         -:  492:      _GLIBCXX23_CONSTEXPR
         -:  493:      pointer
-  554334*:  494:      release() noexcept
-  554334*:  495:      { return _M_t.release(); }
+  555495*:  494:      release() noexcept
+  555495*:  495:      { return _M_t.release(); }
 ------------------
 _ZNSt10unique_ptrINSt13__future_base7_ResultIvEENS0_12_Result_base8_DeleterEE7releaseEv:
 function _ZNSt10unique_ptrINSt13__future_base7_ResultIvEENS0_12_Result_base8_DeleterEE7releaseEv called 0 returned 0% blocks executed 0%
@@ -1673,9 +1673,9 @@ function _ZNSt10unique_ptrINSt13__future_base7_ResultIvEENS0_12_Result_base8_Del
 call    0 never executed
 ------------------
 _ZNSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE7releaseEv:
-function _ZNSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE7releaseEv called 554334 returned 99% blocks executed 100%
-   554334:  494:      release() noexcept
-   554334:  495:      { return _M_t.release(); }
+function _ZNSt10unique_ptrINSt13__future_base7_ResultISt7variantIJSt8expectedIvN4uecm7OpErrorEES3_INS4_12SignalingAckES5_ES3_INS4_13UeContextViewES5_ES3_ImS5_EEEEENS0_12_Result_base8_DeleterEE7releaseEv called 555495 returned 99% blocks executed 100%
+   555495:  494:      release() noexcept
+   555495:  495:      { return _M_t.release(); }
 call    0 returned 99%
 ------------------
         -:  496:
@@ -1697,11 +1697,11 @@ call    0 returned 99%
         -:  512:      /// Exchange the pointer and deleter with another object.
         -:  513:      _GLIBCXX23_CONSTEXPR
         -:  514:      void
-  284202*:  515:      swap(unique_ptr& __u) noexcept
+  284419*:  515:      swap(unique_ptr& __u) noexcept
         -:  516:      {
         -:  517:	static_assert(__is_swappable<_Dp>::value, "deleter must be swappable");
-  284202*:  518:	_M_t.swap(__u._M_t);
-  284144*:  519:      }
+  284419*:  518:	_M_t.swap(__u._M_t);
+  283894*:  519:      }
 ------------------
 _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEE4swapERS3_:
 function _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEE4swapERS3_ called 0 returned 0% blocks executed 0%
@@ -1713,13 +1713,13 @@ call    0 never executed
     #####:  519:      }
 ------------------
 _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEE4swapERS3_:
-function _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEE4swapERS3_ called 284202 returned 100% blocks executed 100%
-   284202:  515:      swap(unique_ptr& __u) noexcept
+function _ZNSt10unique_ptrINSt13__future_base12_Result_baseENS1_8_DeleterEE4swapERS3_ called 284419 returned 100% blocks executed 100%
+   284419:  515:      swap(unique_ptr& __u) noexcept
         -:  516:      {
         -:  517:	static_assert(__is_swappable<_Dp>::value, "deleter must be swappable");
-   284202:  518:	_M_t.swap(__u._M_t);
+   284419:  518:	_M_t.swap(__u._M_t);
 call    0 returned 100%
-   284144:  519:      }
+   283894:  519:      }
 ------------------
         -:  520:
         -:  521:      // Disable copy from lvalue.
@@ -2270,13 +2270,13 @@ call    0 returned 100%
         -: 1066:  template<typename _Tp, typename... _Args>
         -: 1067:    _GLIBCXX23_CONSTEXPR
         -: 1068:    inline __detail::__unique_ptr_t<_Tp>
-      907: 1069:    make_unique(_Args&&... __args)
-      907: 1070:    { return unique_ptr<_Tp>(new _Tp(std::forward<_Args>(__args)...)); }
+      923: 1069:    make_unique(_Args&&... __args)
+      923: 1070:    { return unique_ptr<_Tp>(new _Tp(std::forward<_Args>(__args)...)); }
 ------------------
 _ZSt11make_uniqueIN4uecm7Service5ShardEJRNS0_6ConfigERSt6atomicImEEENSt8__detail9_MakeUniqIT_E15__single_objectEDpOT0_:
-function _ZSt11make_uniqueIN4uecm7Service5ShardEJRNS0_6ConfigERSt6atomicImEEENSt8__detail9_MakeUniqIT_E15__single_objectEDpOT0_ called 441 returned 100% blocks executed 78%
-      441: 1069:    make_unique(_Args&&... __args)
-      441: 1070:    { return unique_ptr<_Tp>(new _Tp(std::forward<_Args>(__args)...)); }
+function _ZSt11make_uniqueIN4uecm7Service5ShardEJRNS0_6ConfigERSt6atomicImEEENSt8__detail9_MakeUniqIT_E15__single_objectEDpOT0_ called 449 returned 100% blocks executed 78%
+      449: 1069:    make_unique(_Args&&... __args)
+      449: 1070:    { return unique_ptr<_Tp>(new _Tp(std::forward<_Args>(__args)...)); }
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 100%
@@ -2289,9 +2289,9 @@ branch  8 never executed
 call    9 never executed
 ------------------
 _ZSt11make_uniqueIN4uecm9ShardCoreEJRKNS0_6ConfigERSt6atomicImEEENSt8__detail9_MakeUniqIT_E15__single_objectEDpOT0_:
-function _ZSt11make_uniqueIN4uecm9ShardCoreEJRKNS0_6ConfigERSt6atomicImEEENSt8__detail9_MakeUniqIT_E15__single_objectEDpOT0_ called 441 returned 100% blocks executed 78%
-      441: 1069:    make_unique(_Args&&... __args)
-      441: 1070:    { return unique_ptr<_Tp>(new _Tp(std::forward<_Args>(__args)...)); }
+function _ZSt11make_uniqueIN4uecm9ShardCoreEJRKNS0_6ConfigERSt6atomicImEEENSt8__detail9_MakeUniqIT_E15__single_objectEDpOT0_ called 449 returned 100% blocks executed 78%
+      449: 1069:    make_unique(_Args&&... __args)
+      449: 1070:    { return unique_ptr<_Tp>(new _Tp(std::forward<_Args>(__args)...)); }
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 100%

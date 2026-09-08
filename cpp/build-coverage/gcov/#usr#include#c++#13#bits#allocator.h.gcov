@@ -161,12 +161,12 @@
         -:  160:      // 3035. std::allocator's constructors should be constexpr
         -:  161:      __attribute__((__always_inline__))
         -:  162:      _GLIBCXX20_CONSTEXPR
-  148453*:  163:      allocator() _GLIBCXX_NOTHROW { }
+  148471*:  163:      allocator() _GLIBCXX_NOTHROW { }
         -:  164:
         -:  165:      __attribute__((__always_inline__))
         -:  166:      _GLIBCXX20_CONSTEXPR
         -:  167:      allocator(const allocator& __a) _GLIBCXX_NOTHROW
-  492373*:  168:      : __allocator_base<_Tp>(__a) { }
+  491900*:  168:      : __allocator_base<_Tp>(__a) { }
         -:  169:
         -:  170:#if __cplusplus >= 201103L
         -:  171:      // Avoid implicit deprecation.
@@ -176,20 +176,20 @@
         -:  175:      template<typename _Tp1>
         -:  176:	__attribute__((__always_inline__))
         -:  177:	_GLIBCXX20_CONSTEXPR
-  583966*:  178:	allocator(const allocator<_Tp1>&) _GLIBCXX_NOTHROW { }
+  584062*:  178:	allocator(const allocator<_Tp1>&) _GLIBCXX_NOTHROW { }
         -:  179:
         -:  180:      __attribute__((__always_inline__))
         -:  181:#if __cpp_constexpr_dynamic_alloc
         -:  182:      constexpr
         -:  183:#endif
-  737211*:  184:      ~allocator() _GLIBCXX_NOTHROW { }
+  737761*:  184:      ~allocator() _GLIBCXX_NOTHROW { }
         -:  185:
         -:  186:#if __cplusplus > 201703L
         -:  187:      [[nodiscard,__gnu__::__always_inline__]]
         -:  188:      constexpr _Tp*
         -:  189:      allocate(size_t __n)
         -:  190:      {
-  513783*:  191:	if (std::__is_constant_evaluated())
+  513756*:  191:	if (std::__is_constant_evaluated())
 call    0 returned 100%
 branch  1 taken 0% (fallthrough)
 branch  2 taken 100%
@@ -400,7 +400,7 @@ call   34 never executed
 call   35 never executed
         -:  196:	  }
         -:  197:
-  513744*:  198:	return __allocator_base<_Tp>::allocate(__n, 0);
+  513729*:  198:	return __allocator_base<_Tp>::allocate(__n, 0);
 call    0 returned 100%
 call    1 never executed
 call    2 never executed
@@ -443,7 +443,7 @@ call   35 returned 100%
         -:  202:      constexpr void
         -:  203:      deallocate(_Tp* __p, size_t __n)
         -:  204:      {
-  506970*:  205:	if (std::__is_constant_evaluated())
+  507145*:  205:	if (std::__is_constant_evaluated())
 call    0 never executed
 branch  1 never executed (fallthrough)
 branch  2 never executed
@@ -656,7 +656,7 @@ call   50 never executed
 call   51 never executed
     #####:  208:	    return;
         -:  209:	  }
-  506852*:  210:	__allocator_base<_Tp>::deallocate(__p, __n);
+  507026*:  210:	__allocator_base<_Tp>::deallocate(__p, __n);
 call    0 never executed
 call    1 returned 100%
 call    2 never executed

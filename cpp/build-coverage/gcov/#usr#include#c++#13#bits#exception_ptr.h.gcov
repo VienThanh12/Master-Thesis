@@ -97,7 +97,7 @@
         -:   96:     */
         -:   97:    class exception_ptr
         -:   98:    {
-  287085*:   99:      void* _M_exception_object;
+  287144*:   99:      void* _M_exception_object;
         -:  100:
         -:  101:      explicit exception_ptr(void* __e) _GLIBCXX_USE_NOEXCEPT;
         -:  102:
@@ -117,9 +117,9 @@
         -:  116:      exception_ptr(const exception_ptr&) _GLIBCXX_USE_NOEXCEPT;
         -:  117:
         -:  118:#if __cplusplus >= 201103L
-  287109*:  119:      exception_ptr(nullptr_t) noexcept
-  287109*:  120:      : _M_exception_object(nullptr)
-  287109*:  121:      { }
+  287001*:  119:      exception_ptr(nullptr_t) noexcept
+  287001*:  120:      : _M_exception_object(nullptr)
+  287001*:  121:      { }
 ------------------
 _ZNSt15__exception_ptr13exception_ptrC2EDn:
 function _ZNSt15__exception_ptr13exception_ptrC2EDn called 0 returned 0% blocks executed 0%
@@ -128,10 +128,10 @@ function _ZNSt15__exception_ptr13exception_ptrC2EDn called 0 returned 0% blocks 
     #####:  121:      { }
 ------------------
 _ZNSt15__exception_ptr13exception_ptrC2EDn:
-function _ZNSt15__exception_ptr13exception_ptrC2EDn called 287109 returned 100% blocks executed 100%
-   287109:  119:      exception_ptr(nullptr_t) noexcept
-   287109:  120:      : _M_exception_object(nullptr)
-   287109:  121:      { }
+function _ZNSt15__exception_ptr13exception_ptrC2EDn called 287001 returned 100% blocks executed 100%
+   287001:  119:      exception_ptr(nullptr_t) noexcept
+   287001:  120:      : _M_exception_object(nullptr)
+   287001:  121:      { }
 ------------------
         -:  122:
     #####:  123:      exception_ptr(exception_ptr&& __o) noexcept
@@ -216,7 +216,7 @@ call    2 never executed
         -:  166:#if __cpp_impl_three_way_comparison >= 201907L \
         -:  167:      && ! defined _GLIBCXX_EH_PTR_RELOPS_COMPAT
         -:  168:      friend bool
-  287085*:  169:      operator==(const exception_ptr&, const exception_ptr&) noexcept = default;
+  287144*:  169:      operator==(const exception_ptr&, const exception_ptr&) noexcept = default;
 ------------------
 _ZNSt15__exception_ptreqERKNS_13exception_ptrES2_:
 function _ZNSt15__exception_ptreqERKNS_13exception_ptrES2_ called 0 returned 0% blocks executed 0%
@@ -225,8 +225,8 @@ branch  0 never executed (fallthrough)
 branch  1 never executed
 ------------------
 _ZNSt15__exception_ptreqERKNS_13exception_ptrES2_:
-function _ZNSt15__exception_ptreqERKNS_13exception_ptrES2_ called 287085 returned 100% blocks executed 75%
-  287085*:  169:      operator==(const exception_ptr&, const exception_ptr&) noexcept = default;
+function _ZNSt15__exception_ptreqERKNS_13exception_ptrES2_ called 287144 returned 100% blocks executed 75%
+  287144*:  169:      operator==(const exception_ptr&, const exception_ptr&) noexcept = default;
 branch  0 taken 0% (fallthrough)
 branch  1 taken 100%
 ------------------
@@ -292,11 +292,11 @@ call    0 never executed
         -:  202:
         -:  203:    _GLIBCXX_EH_PTR_USED
         -:  204:    inline
-  287142*:  205:    exception_ptr::~exception_ptr() _GLIBCXX_USE_NOEXCEPT
+  287231*:  205:    exception_ptr::~exception_ptr() _GLIBCXX_USE_NOEXCEPT
         -:  206:    {
-  287142*:  207:      if (_M_exception_object)
+  287231*:  207:      if (_M_exception_object)
     #####:  208:	_M_release();
-  287142*:  209:    }
+  287231*:  209:    }
 ------------------
 _ZNSt15__exception_ptr13exception_ptrD2Ev:
 function _ZNSt15__exception_ptr13exception_ptrD2Ev called 0 returned 0% blocks executed 0%
@@ -310,15 +310,15 @@ call    0 never executed
     #####:  209:    }
 ------------------
 _ZNSt15__exception_ptr13exception_ptrD2Ev:
-function _ZNSt15__exception_ptr13exception_ptrD2Ev called 287142 returned 100% blocks executed 67%
-   287142:  205:    exception_ptr::~exception_ptr() _GLIBCXX_USE_NOEXCEPT
+function _ZNSt15__exception_ptr13exception_ptrD2Ev called 287231 returned 100% blocks executed 67%
+   287231:  205:    exception_ptr::~exception_ptr() _GLIBCXX_USE_NOEXCEPT
         -:  206:    {
-   287142:  207:      if (_M_exception_object)
+   287231:  207:      if (_M_exception_object)
 branch  0 taken 0% (fallthrough)
 branch  1 taken 100%
     #####:  208:	_M_release();
 call    0 never executed
-   287142:  209:    }
+   287231:  209:    }
 ------------------
         -:  210:
         -:  211:    _GLIBCXX_EH_PTR_USED

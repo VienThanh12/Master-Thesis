@@ -51,9 +51,9 @@
         -:   50:      using value_type = typename allocator_traits<_Alloc>::value_type;
         -:   51:
         -:   52:      /// Take ownership of __ptr
-  572935*:   53:      __allocated_ptr(_Alloc& __a, pointer __ptr) noexcept
-  572935*:   54:      : _M_alloc(std::__addressof(__a)), _M_ptr(__ptr)
-  572854*:   55:      { }
+  573061*:   53:      __allocated_ptr(_Alloc& __a, pointer __ptr) noexcept
+  573061*:   54:      : _M_alloc(std::__addressof(__a)), _M_ptr(__ptr)
+  572969*:   55:      { }
 ------------------
 _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEEC2ERS7_PS6_:
 function _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEEC2ERS7_PS6_ called 0 returned 0% blocks executed 0%
@@ -63,11 +63,11 @@ call    0 never executed
     #####:   55:      { }
 ------------------
 _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEEC2ERS7_PS6_:
-function _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEEC2ERS7_PS6_ called 572935 returned 100% blocks executed 100%
-   572935:   53:      __allocated_ptr(_Alloc& __a, pointer __ptr) noexcept
-   572935:   54:      : _M_alloc(std::__addressof(__a)), _M_ptr(__ptr)
+function _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEEC2ERS7_PS6_ called 573061 returned 100% blocks executed 100%
+   573061:   53:      __allocated_ptr(_Alloc& __a, pointer __ptr) noexcept
+   573061:   54:      : _M_alloc(std::__addressof(__a)), _M_ptr(__ptr)
 call    0 returned 100%
-   572854:   55:      { }
+   572969:   55:      { }
 ------------------
         -:   56:
         -:   57:      /// Convert __ptr to allocator's pointer type and take ownership of it
@@ -84,11 +84,11 @@ call    0 returned 100%
         -:   68:      { __gd._M_ptr = nullptr; }
         -:   69:
         -:   70:      /// Deallocate the owned pointer
-  569682*:   71:      ~__allocated_ptr()
+  570447*:   71:      ~__allocated_ptr()
         -:   72:      {
-  569682*:   73:	if (_M_ptr != nullptr)
-  286518*:   74:	  std::allocator_traits<_Alloc>::deallocate(*_M_alloc, _M_ptr, 1);
-  569579*:   75:      }
+  570447*:   73:	if (_M_ptr != nullptr)
+  286680*:   74:	  std::allocator_traits<_Alloc>::deallocate(*_M_alloc, _M_ptr, 1);
+  570293*:   75:      }
 ------------------
 _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEED2Ev:
 function _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEED2Ev called 0 returned 0% blocks executed 0%
@@ -102,23 +102,23 @@ call    0 never executed
     #####:   75:      }
 ------------------
 _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEED2Ev:
-function _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEED2Ev called 569682 returned 100% blocks executed 78%
-   569682:   71:      ~__allocated_ptr()
+function _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEED2Ev called 570447 returned 100% blocks executed 78%
+   570447:   71:      ~__allocated_ptr()
         -:   72:      {
-   569682:   73:	if (_M_ptr != nullptr)
+   570447:   73:	if (_M_ptr != nullptr)
 branch  0 taken 50% (fallthrough)
 branch  1 taken 50%
-   286518:   74:	  std::allocator_traits<_Alloc>::deallocate(*_M_alloc, _M_ptr, 1);
+   286680:   74:	  std::allocator_traits<_Alloc>::deallocate(*_M_alloc, _M_ptr, 1);
 call    0 returned 100%
-   569579:   75:      }
+   570293:   75:      }
 ------------------
         -:   76:
         -:   77:      /// Release ownership of the owned pointer
         -:   78:      __allocated_ptr&
-  285099*:   79:      operator=(std::nullptr_t) noexcept
+  285337*:   79:      operator=(std::nullptr_t) noexcept
         -:   80:      {
-  285099*:   81:	_M_ptr = nullptr;
-  285099*:   82:	return *this;
+  285337*:   81:	_M_ptr = nullptr;
+  285337*:   82:	return *this;
         -:   83:      }
 ------------------
 _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEEaSEDn:
@@ -130,16 +130,16 @@ function _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_bas
         -:   83:      }
 ------------------
 _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEEaSEDn:
-function _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEEaSEDn called 285099 returned 100% blocks executed 100%
-   285099:   79:      operator=(std::nullptr_t) noexcept
+function _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEEaSEDn called 285337 returned 100% blocks executed 100%
+   285337:   79:      operator=(std::nullptr_t) noexcept
         -:   80:      {
-   285099:   81:	_M_ptr = nullptr;
-   285099:   82:	return *this;
+   285337:   81:	_M_ptr = nullptr;
+   285337:   82:	return *this;
         -:   83:      }
 ------------------
         -:   84:
         -:   85:      /// Get the address that the owned pointer refers to.
-  286788*:   86:      value_type* get() { return std::__to_address(_M_ptr); }
+  286746*:   86:      value_type* get() { return std::__to_address(_M_ptr); }
 ------------------
 _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEE3getEv:
 function _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEE3getEv called 0 returned 0% blocks executed 0%
@@ -147,8 +147,8 @@ function _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_bas
 call    0 never executed
 ------------------
 _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEE3getEv:
-function _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEE3getEv called 286788 returned 100% blocks executed 100%
-   286788:   86:      value_type* get() { return std::__to_address(_M_ptr); }
+function _ZNSt15__allocated_ptrISaISt23_Sp_counted_ptr_inplaceINSt13__future_base13_State_baseV2ESaIvELN9__gnu_cxx12_Lock_policyE2EEEE3getEv called 286746 returned 100% blocks executed 100%
+   286746:   86:      value_type* get() { return std::__to_address(_M_ptr); }
 call    0 returned 100%
 ------------------
         -:   87:
@@ -160,9 +160,9 @@ call    0 returned 100%
         -:   93:  /// Allocate space for a single object using __a
         -:   94:  template<typename _Alloc>
         -:   95:    __allocated_ptr<_Alloc>
-  287046*:   96:    __allocate_guarded(_Alloc& __a)
+  287034*:   96:    __allocate_guarded(_Alloc& __a)
         -:   97:    {
-  287202*:   98:      return { __a, std::allocator_traits<_Alloc>::allocate(__a, 1) };
+  287120*:   98:      return { __a, std::allocator_traits<_Alloc>::allocate(__a, 1) };
         -:   99:    }
         -:  100:
         -:  101:/// @endcond

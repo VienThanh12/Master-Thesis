@@ -6,7 +6,7 @@ data_race,"Data race",clean,detected,clean,"runtime (TSan)","compile-time preven
 unguarded_shared_mutation,"Unguarded shared mutation",clean,detected,clean,"runtime (TSan)","compile-time prevented (E0502,E0524,E0597)","",prevented,""
 use_after_move,"Use-after-move",clean,clean,clean,"undetected","compile-time prevented (E0382)","",prevented,""
 thread_unsafe_sharing,"Thread-unsafe handle shared",clean,detected,clean,"runtime (TSan)","compile-time prevented (E0277)","",prevented,""
-lock_order_deadlock,"Lock-order deadlock",hung,flaky,hung,"runtime, intermittent (TSan)","not prevented (compiles; deadlocks)","deadlocks",not-prevented,"TSan reported in 5/12 runs"
+lock_order_deadlock,"Lock-order deadlock",hung,flaky,hung,"runtime, intermittent (TSan)","not prevented (compiles; deadlocks)","deadlocks",not-prevented,"TSan reported in 3/12 runs"
 lost_update,"Lost update",clean,clean,clean,"undetected","not prevented (compiles; wrong result)","wrong result",not-prevented,""
 leak_cycle,"Reference-cycle leak",detected,clean,clean,"runtime (ASan)","not prevented (compiles; wrong result)","leaks",not-prevented,""
 integer_overflow,"Integer overflow (release)",clean,clean,detected,"runtime (UBSan)","not prevented (compiles; wrong result)","wrong result",not-prevented,""

@@ -100,11 +100,11 @@
         -:   99:
         -:  100:    template<typename _Predicate>
         -:  101:      void
-  575336*:  102:      wait(unique_lock<mutex>& __lock, _Predicate __p)
+  575319*:  102:      wait(unique_lock<mutex>& __lock, _Predicate __p)
         -:  103:      {
-  717516*:  104:	while (!__p())
-  141968*:  105:	  wait(__lock);
-  573378*:  106:      }
+  714795*:  104:	while (!__p())
+  139190*:  105:	  wait(__lock);
+  573505*:  106:      }
 ------------------
 _ZNSt18condition_variable4waitIZN4uecm12BoundedQueueIN12_GLOBAL__N_13JobEE4pushES4_EUlvE_EEvRSt11unique_lockISt5mutexET_:
 function _ZNSt18condition_variable4waitIZN4uecm12BoundedQueueIN12_GLOBAL__N_13JobEE4pushES4_EUlvE_EEvRSt11unique_lockISt5mutexET_ called 0 returned 0% blocks executed 0%
@@ -131,26 +131,26 @@ call    0 never executed
     #####:  106:      }
 ------------------
 _ZNSt18condition_variable4waitIZN4uecm12BoundedQueueINS1_7RequestEE3popEvEUlvE_EEvRSt11unique_lockISt5mutexET_:
-function _ZNSt18condition_variable4waitIZN4uecm12BoundedQueueINS1_7RequestEE3popEvEUlvE_EEvRSt11unique_lockISt5mutexET_ called 287867 returned 100% blocks executed 100%
-   287867:  102:      wait(unique_lock<mutex>& __lock, _Predicate __p)
+function _ZNSt18condition_variable4waitIZN4uecm12BoundedQueueINS1_7RequestEE3popEvEUlvE_EEvRSt11unique_lockISt5mutexET_ called 287975 returned 100% blocks executed 100%
+   287975:  102:      wait(unique_lock<mutex>& __lock, _Predicate __p)
         -:  103:      {
-   425125:  104:	while (!__p())
+   422687:  104:	while (!__p())
 call    0 returned 100%
 branch  1 taken 32%
 branch  2 taken 68% (fallthrough)
-   137046:  105:	  wait(__lock);
+   134428:  105:	  wait(__lock);
 call    0 returned 100%
-   287174:  106:      }
+   287301:  106:      }
 ------------------
 _ZNSt18condition_variable4waitIZN4uecm12BoundedQueueINS1_7RequestEE4pushES3_EUlvE_EEvRSt11unique_lockISt5mutexET_:
-function _ZNSt18condition_variable4waitIZN4uecm12BoundedQueueINS1_7RequestEE4pushES3_EUlvE_EEvRSt11unique_lockISt5mutexET_ called 287469 returned 100% blocks executed 100%
-   287469:  102:      wait(unique_lock<mutex>& __lock, _Predicate __p)
+function _ZNSt18condition_variable4waitIZN4uecm12BoundedQueueINS1_7RequestEE4pushES3_EUlvE_EEvRSt11unique_lockISt5mutexET_ called 287344 returned 100% blocks executed 100%
+   287344:  102:      wait(unique_lock<mutex>& __lock, _Predicate __p)
         -:  103:      {
-   292391:  104:	while (!__p())
+   292108:  104:	while (!__p())
 call    0 returned 100%
 branch  1 taken 2%
 branch  2 taken 98% (fallthrough)
-     4922:  105:	  wait(__lock);
+     4762:  105:	  wait(__lock);
 call    0 returned 100%
    286204:  106:      }
 ------------------

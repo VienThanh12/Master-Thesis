@@ -164,8 +164,8 @@
         -:  163:#else
         -:  164:      template<typename _Seq = _Sequence, typename _Requires = typename
         -:  165:	       enable_if<is_default_constructible<_Seq>::value>::type>
-     441*:  166:	queue()
-     441*:  167:	: c() { }
+     449*:  166:	queue()
+     449*:  167:	: c() { }
 ------------------
 _ZNSt5queueIN12_GLOBAL__N_13JobESt5dequeIS1_SaIS1_EEEC2IS4_vEEv:
 function _ZNSt5queueIN12_GLOBAL__N_13JobESt5dequeIS1_SaIS1_EEEC2IS4_vEEv called 0 returned 0% blocks executed 0%
@@ -174,9 +174,9 @@ function _ZNSt5queueIN12_GLOBAL__N_13JobESt5dequeIS1_SaIS1_EEEC2IS4_vEEv called 
 call    0 never executed
 ------------------
 _ZNSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEEC2IS4_vEEv:
-function _ZNSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEEC2IS4_vEEv called 441 returned 100% blocks executed 100%
-      441:  166:	queue()
-      441:  167:	: c() { }
+function _ZNSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEEC2IS4_vEEv called 449 returned 100% blocks executed 100%
+      449:  166:	queue()
+      449:  167:	: c() { }
 call    0 returned 100%
 ------------------
         -:  168:
@@ -229,8 +229,8 @@ call    0 returned 100%
         -:  215:       *  Returns true if the %queue is empty.
         -:  216:       */
         -:  217:      _GLIBCXX_NODISCARD bool
-  424680*:  218:      empty() const
-  424680*:  219:      { return c.empty(); }
+  422231*:  218:      empty() const
+  422231*:  219:      { return c.empty(); }
 ------------------
 _ZNKSt5queueIN12_GLOBAL__N_13JobESt5dequeIS1_SaIS1_EEE5emptyEv:
 function _ZNKSt5queueIN12_GLOBAL__N_13JobESt5dequeIS1_SaIS1_EEE5emptyEv called 0 returned 0% blocks executed 0%
@@ -239,17 +239,17 @@ function _ZNKSt5queueIN12_GLOBAL__N_13JobESt5dequeIS1_SaIS1_EEE5emptyEv called 0
 call    0 never executed
 ------------------
 _ZNKSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEE5emptyEv:
-function _ZNKSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEE5emptyEv called 424680 returned 100% blocks executed 100%
-   424680:  218:      empty() const
-   424680:  219:      { return c.empty(); }
+function _ZNKSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEE5emptyEv called 422231 returned 100% blocks executed 100%
+   422231:  218:      empty() const
+   422231:  219:      { return c.empty(); }
 call    0 returned 100%
 ------------------
         -:  220:
         -:  221:      /**  Returns the number of elements in the %queue.  */
         -:  222:      _GLIBCXX_NODISCARD
         -:  223:      size_type
-  292007*:  224:      size() const
-  292007*:  225:      { return c.size(); }
+  291711*:  224:      size() const
+  291711*:  225:      { return c.size(); }
 ------------------
 _ZNKSt5queueIN12_GLOBAL__N_13JobESt5dequeIS1_SaIS1_EEE4sizeEv:
 function _ZNKSt5queueIN12_GLOBAL__N_13JobESt5dequeIS1_SaIS1_EEE4sizeEv called 0 returned 0% blocks executed 0%
@@ -258,9 +258,9 @@ function _ZNKSt5queueIN12_GLOBAL__N_13JobESt5dequeIS1_SaIS1_EEE4sizeEv called 0 
 call    0 never executed
 ------------------
 _ZNKSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEE4sizeEv:
-function _ZNKSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEE4sizeEv called 292007 returned 100% blocks executed 100%
-   292007:  224:      size() const
-   292007:  225:      { return c.size(); }
+function _ZNKSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEE4sizeEv called 291711 returned 100% blocks executed 100%
+   291711:  224:      size() const
+   291711:  225:      { return c.size(); }
 call    0 returned 100%
 ------------------
         -:  226:
@@ -270,10 +270,10 @@ call    0 returned 100%
         -:  230:       */
         -:  231:      _GLIBCXX_NODISCARD
         -:  232:      reference
-  288123*:  233:      front()
+  288133*:  233:      front()
         -:  234:      {
         -:  235:	__glibcxx_requires_nonempty();
-  288123*:  236:	return c.front();
+  288133*:  236:	return c.front();
         -:  237:      }
 ------------------
 _ZNSt5queueIN12_GLOBAL__N_13JobESt5dequeIS1_SaIS1_EEE5frontEv:
@@ -286,11 +286,11 @@ call    0 never executed
         -:  237:      }
 ------------------
 _ZNSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEE5frontEv:
-function _ZNSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEE5frontEv called 288123 returned 100% blocks executed 100%
-   288123:  233:      front()
+function _ZNSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEE5frontEv called 288133 returned 100% blocks executed 100%
+   288133:  233:      front()
         -:  234:      {
         -:  235:	__glibcxx_requires_nonempty();
-   288123:  236:	return c.front();
+   288133:  236:	return c.front();
 call    0 returned 100%
         -:  237:      }
 ------------------
@@ -346,8 +346,8 @@ call    0 returned 100%
         -:  287:
         -:  288:#if __cplusplus >= 201103L
         -:  289:      void
-  285816*:  290:      push(value_type&& __x)
-  285816*:  291:      { c.push_back(std::move(__x)); }
+  285761*:  290:      push(value_type&& __x)
+  285761*:  291:      { c.push_back(std::move(__x)); }
 ------------------
 _ZNSt5queueIN12_GLOBAL__N_13JobESt5dequeIS1_SaIS1_EEE4pushEOS1_:
 function _ZNSt5queueIN12_GLOBAL__N_13JobESt5dequeIS1_SaIS1_EEE4pushEOS1_ called 0 returned 0% blocks executed 0%
@@ -357,9 +357,9 @@ call    0 never executed
 call    1 never executed
 ------------------
 _ZNSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEE4pushEOS1_:
-function _ZNSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEE4pushEOS1_ called 285816 returned 100% blocks executed 100%
-   285816:  290:      push(value_type&& __x)
-   285816:  291:      { c.push_back(std::move(__x)); }
+function _ZNSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEE4pushEOS1_ called 285761 returned 100% blocks executed 100%
+   285761:  290:      push(value_type&& __x)
+   285761:  291:      { c.push_back(std::move(__x)); }
 call    0 returned 100%
 call    1 returned 100%
 ------------------
@@ -389,11 +389,11 @@ call    1 returned 100%
         -:  315:       *  called.
         -:  316:       */
         -:  317:      void
-  286957*:  318:      pop()
+  287101*:  318:      pop()
         -:  319:      {
         -:  320:	__glibcxx_requires_nonempty();
-  286957*:  321:	c.pop_front();
-  287354*:  322:      }
+  287101*:  321:	c.pop_front();
+  287442*:  322:      }
 ------------------
 _ZNSt5queueIN12_GLOBAL__N_13JobESt5dequeIS1_SaIS1_EEE3popEv:
 function _ZNSt5queueIN12_GLOBAL__N_13JobESt5dequeIS1_SaIS1_EEE3popEv called 0 returned 0% blocks executed 0%
@@ -405,13 +405,13 @@ call    0 never executed
     #####:  322:      }
 ------------------
 _ZNSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEE3popEv:
-function _ZNSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEE3popEv called 286957 returned 100% blocks executed 100%
-   286957:  318:      pop()
+function _ZNSt5queueIN4uecm7RequestESt5dequeIS1_SaIS1_EEE3popEv called 287101 returned 100% blocks executed 100%
+   287101:  318:      pop()
         -:  319:      {
         -:  320:	__glibcxx_requires_nonempty();
-   286957:  321:	c.pop_front();
+   287101:  321:	c.pop_front();
 call    0 returned 100%
-   287354:  322:      }
+   287442:  322:      }
 ------------------
         -:  323:
         -:  324:#if __cplusplus >= 201103L

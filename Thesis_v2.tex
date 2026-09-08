@@ -1,43 +1,19 @@
-%% Supervisor-facing thesis document. Chapter 1 is the full introduction from
-%% Ha_Vien_Mastersthesis_2026.tex, with cross-references retargeted to chapter
-%% labels this file actually has. Chapters 2--8 keep five argument paragraphs
-%% each, still one move per paragraph, written as plain prose rather than as a
-%% bullet list. Written on the CSM thesis template (HYthesisML.cls).
-%% Kept in step with Ha_Vien_Mastersthesis_2026.tex, which uses the same class and options.
-
 \documentclass[english,twoside,openright,a4paper,censored,csm,software-track-2020]{HYthesisML}
 
 \usepackage{csquotes}
 
-% REFERENCES: numeric (Vancouver) style, one of the three styles the template
-% offers. sorting=none keeps the numbers in citation order, as IEEEtran did.
 \usepackage[style=numeric,bibstyle=numeric,backend=biber,natbib=true,
             sorting=none,sortcites=true,maxbibnames=99,giveninits=true,uniquename=init]{biblatex}
 \addbibresource{bibliography.bib}
-% List the authors in the bibliography as Lastname F.
 \DeclareNameAlias{sortname}{family-given}
-% Without a mark of its own the bibliography keeps the last chapter's title in
-% the running head of its continuation pages.
 \defbibheading{bibliography}[\bibname]{%
   \chapter*{#1}%
   \markboth{#1}{#1}}
 
-% lmodern, textcomp, color, graphicx, epsfig, subfigure, tikz, amsmath, amssymb,
-% caption, titlesec and appendix are all loaded by the class itself.
 \usepackage[pdftex, plainpages=false]{hyperref} % For hyperlinks and pdf metadata
-\usepackage{fancyhdr} % For nicer page headers
-\usepackage{longtable} % The front-matter list of acronyms
-%\usepackage{wrapfig} % For nice text-wrapping figures (use at own discretion)
-
-% The three figures drawn inline rather than included as PDFs need these: the
-% state machine uses automata and positioning, and both block diagrams use fit
-% and backgrounds to draw an enclosing box behind nodes already placed. Same
-% list as Ha_Vien_Mastersthesis_2026.tex, since the figures are shared.
+\usepackage{fancyhdr} 
+\usepackage{longtable} 
 \usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
-
-% Fifteen figures in a document this short leave little room at the stock
-% \topfraction, so each would claim a float page of its own instead of sharing
-% one with text. Same values as the full draft.
 \renewcommand{\topfraction}{0.9}
 \renewcommand{\textfraction}{0.08}
 \renewcommand{\floatpagefraction}{0.75}
@@ -46,25 +22,14 @@
 %\singlespacing
 %\doublespacing
 
-%\fussy 
-\sloppy % sloppy and fussy commands can be used to avoid overlong text lines
+\sloppy 
 
-% STEP 2:
-% Set up all the information for the title page and the abstract form.
-% Replace parameters with your information.
 \title{Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia RAN Control-Plane Systems}
 \author{Ha Vien}
 \date{\today}
-% Supervisors are printed on the abstract form rather than on the title page.
-% TODO before submission: the template asks for the academic title (Prof., Dr.)
-% in front of each name.
 \supervisors{Prof. Keijo Heljanko, Christoph Luneburg, Petteri Kotimaa}
-% The class prints examiners nowhere, so this is recorded but has no output.
-% The faculty has not named the second examiner yet.
 \examiners{Prof. Keijo Heljanko}
 \keywords{Rust, C++, RAN control plane, tail latency, memory safety, fault injection, incremental adoption}
-% Where deposited fills itself in from the class. Additional information is the
-% study track, taken from the software-track-2020 class option.
 \additionalinformation{\translate{\track}}
 
 
@@ -74,12 +39,6 @@
 \  Networks $\rightarrow$ Network types $\rightarrow$ Mobile networks
 }}
 
-% if you want to quote someone special. You can comment this line and there will be nothing on the document.
-%\quoting{Bachelor's degrees make pretty good placemats if you get them laminated.}{Jeph Jacques} 
-
-
-% OPTIONAL STEP: Set up properties and metadata for the pdf file that pdfLaTeX makes.
-% But you don't really need to do this unless you want to.
 \hypersetup{
     %bookmarks=true,         % show bookmarks bar first?
     unicode=true,           % to show non-Latin characters in Acrobat’s bookmarks

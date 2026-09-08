@@ -10,14 +10,14 @@ Regenerate with `cpp/coverage.sh`.
 
 | File | Executable lines | Covered | Coverage |
 |---|---:|---:|---:|
-| `cpp/include/uecm/bounded_queue.hpp` | 54 | 36 | 66.7% |
+| `cpp/include/uecm/bounded_queue.hpp` | 57 | 38 | 66.7% |
 | `cpp/include/uecm/error.hpp` | 8 | 7 | 87.5% |
 | `cpp/include/uecm/hash.hpp` | 56 | 56 | 100.0% |
 | `cpp/include/uecm/service.hpp` | 3 | 3 | 100.0% |
 | `cpp/include/uecm/shard_core.hpp` | 7 | 7 | 100.0% |
-| `cpp/src/service.cpp` | 122 | 122 | 100.0% |
+| `cpp/src/service.cpp` | 124 | 124 | 100.0% |
 | `cpp/src/shard_core.cpp` | 103 | 103 | 100.0% |
-| **Total** | **353** | **334** | **94.6%** |
+| **Total** | **358** | **338** | **94.4%** |
 
 Coverage bounds every negative result taken from this suite. A sanitiser
 reports only on code that runs, so `results/sanitisers.md` being clean is a

@@ -139,8 +139,8 @@
         -:  138:       *  @return `addressof(__r)`
         -:  139:      */
         -:  140:      static _GLIBCXX20_CONSTEXPR pointer
-  686408*:  141:      pointer_to(element_type& __r) noexcept
-  686408*:  142:      { return std::addressof(__r); }
+  686418*:  141:      pointer_to(element_type& __r) noexcept
+  686418*:  142:      { return std::addressof(__r); }
 ------------------
 _ZNSt19__ptr_traits_ptr_toIPNSt8__detail10_Hash_nodeISt4pairIKmN4uecm9UeContextEELb0EEES7_Lb0EE10pointer_toERS7_:
 function _ZNSt19__ptr_traits_ptr_toIPNSt8__detail10_Hash_nodeISt4pairIKmN4uecm9UeContextEELb0EEES7_Lb0EE10pointer_toERS7_ called 91 returned 100% blocks executed 100%
@@ -233,15 +233,15 @@ function _ZNSt19__ptr_traits_ptr_toIPKcS0_Lb0EE10pointer_toERS0_ called 0 return
 call    0 never executed
 ------------------
 _ZNSt19__ptr_traits_ptr_toIPPNSt8__detail15_Hash_node_baseES2_Lb0EE10pointer_toERS2_:
-function _ZNSt19__ptr_traits_ptr_toIPPNSt8__detail15_Hash_node_baseES2_Lb0EE10pointer_toERS2_ called 38 returned 100% blocks executed 100%
-       38:  141:      pointer_to(element_type& __r) noexcept
-       38:  142:      { return std::addressof(__r); }
+function _ZNSt19__ptr_traits_ptr_toIPPNSt8__detail15_Hash_node_baseES2_Lb0EE10pointer_toERS2_ called 46 returned 100% blocks executed 100%
+       46:  141:      pointer_to(element_type& __r) noexcept
+       46:  142:      { return std::addressof(__r); }
 call    0 returned 100%
 ------------------
 _ZNSt19__ptr_traits_ptr_toIPNSt8__detail10_Hash_nodeISt4pairIKmN4uecm9UeContextEELb0EEES7_Lb0EE10pointer_toERS7_:
-function _ZNSt19__ptr_traits_ptr_toIPNSt8__detail10_Hash_nodeISt4pairIKmN4uecm9UeContextEELb0EEES7_Lb0EE10pointer_toERS7_ called 43839 returned 100% blocks executed 100%
-    43839:  141:      pointer_to(element_type& __r) noexcept
-    43839:  142:      { return std::addressof(__r); }
+function _ZNSt19__ptr_traits_ptr_toIPNSt8__detail10_Hash_nodeISt4pairIKmN4uecm9UeContextEELb0EEES7_Lb0EE10pointer_toERS7_ called 43841 returned 100% blocks executed 100%
+    43841:  141:      pointer_to(element_type& __r) noexcept
+    43841:  142:      { return std::addressof(__r); }
 call    0 returned 100%
 ------------------
 _ZNSt19__ptr_traits_ptr_toIPPNSt8__detail15_Hash_node_baseES2_Lb0EE10pointer_toERS2_:
@@ -355,10 +355,10 @@ call    0 never executed
         -:  209:
         -:  210:  template<typename _Tp>
         -:  211:    constexpr _Tp*
-  343250*:  212:    __to_address(_Tp* __ptr) noexcept
+  343244*:  212:    __to_address(_Tp* __ptr) noexcept
         -:  213:    {
         -:  214:      static_assert(!std::is_function<_Tp>::value, "not a function pointer");
-  343250*:  215:      return __ptr;
+  343244*:  215:      return __ptr;
         -:  216:    }
         -:  217:
         -:  218:#if __cplusplus <= 201703L

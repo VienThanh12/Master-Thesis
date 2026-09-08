@@ -9,20 +9,20 @@
         -:    8:inline int g_failures = 0;
         -:    9:inline int g_checks = 0;
         -:   10:
-    14194:   11:inline void report(bool ok, std::string_view expr, const char* file, int line) {
-    14194:   12:  ++g_checks;
-    14194:   13:  if (!ok) {
+    14200:   11:inline void report(bool ok, std::string_view expr, const char* file, int line) {
+    14200:   12:  ++g_checks;
+    14200:   13:  if (!ok) {
     #####:   14:    ++g_failures;
     #####:   15:    std::fprintf(stderr, "FAIL %s:%d: %.*s\n", file, line,
     #####:   16:                 static_cast<int>(expr.size()), expr.data());
         -:   17:  }
-    14194:   18:}
+    14200:   18:}
 ------------------
 _ZN4uecm4test6reportEbSt17basic_string_viewIcSt11char_traitsIcEEPKci:
-function _ZN4uecm4test6reportEbSt17basic_string_viewIcSt11char_traitsIcEEPKci called 10 returned 100% blocks executed 40%
-       10:   11:inline void report(bool ok, std::string_view expr, const char* file, int line) {
-       10:   12:  ++g_checks;
-       10:   13:  if (!ok) {
+function _ZN4uecm4test6reportEbSt17basic_string_viewIcSt11char_traitsIcEEPKci called 16 returned 100% blocks executed 40%
+       16:   11:inline void report(bool ok, std::string_view expr, const char* file, int line) {
+       16:   12:  ++g_checks;
+       16:   13:  if (!ok) {
 branch  0 taken 0% (fallthrough)
 branch  1 taken 100%
     #####:   14:    ++g_failures;
@@ -32,7 +32,7 @@ call    1 never executed
     #####:   16:                 static_cast<int>(expr.size()), expr.data());
 call    0 never executed
         -:   17:  }
-       10:   18:}
+       16:   18:}
 ------------------
 _ZN4uecm4test6reportEbSt17basic_string_viewIcSt11char_traitsIcEEPKci:
 function _ZN4uecm4test6reportEbSt17basic_string_viewIcSt11char_traitsIcEEPKci called 34 returned 100% blocks executed 40%

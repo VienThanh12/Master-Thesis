@@ -65,21 +65,21 @@
         -:   64:  template<typename _Tp, typename _Alloc>
         -:   65:    _GLIBCXX20_CONSTEXPR
         -:   66:    void
-      65*:   67:    vector<_Tp, _Alloc>::
+      66*:   67:    vector<_Tp, _Alloc>::
         -:   68:    reserve(size_type __n)
         -:   69:    {
-      65*:   70:      if (__n > this->max_size())
+      66*:   70:      if (__n > this->max_size())
     #####:   71:	__throw_length_error(__N("vector::reserve"));
-      65*:   72:      if (this->capacity() < __n)
+      66*:   72:      if (this->capacity() < __n)
         -:   73:	{
-      65*:   74:	  const size_type __old_size = size();
+      66*:   74:	  const size_type __old_size = size();
         -:   75:	  pointer __tmp;
         -:   76:#if __cplusplus >= 201103L
         -:   77:	  if _GLIBCXX17_CONSTEXPR (_S_use_relocate())
         -:   78:	    {
-      65*:   79:	      __tmp = this->_M_allocate(__n);
-      65*:   80:	      _S_relocate(this->_M_impl._M_start, this->_M_impl._M_finish,
-      65*:   81:			  __tmp, _M_get_Tp_allocator());
+      66*:   79:	      __tmp = this->_M_allocate(__n);
+      66*:   80:	      _S_relocate(this->_M_impl._M_start, this->_M_impl._M_finish,
+      66*:   81:			  __tmp, _M_get_Tp_allocator());
         -:   82:	    }
         -:   83:	  else
         -:   84:#endif
@@ -91,14 +91,14 @@
         -:   90:			    _M_get_Tp_allocator());
         -:   91:	    }
         -:   92:	  _GLIBCXX_ASAN_ANNOTATE_REINIT;
-      65*:   93:	  _M_deallocate(this->_M_impl._M_start,
-      65*:   94:			this->_M_impl._M_end_of_storage
-      65*:   95:			- this->_M_impl._M_start);
-      65*:   96:	  this->_M_impl._M_start = __tmp;
-      65*:   97:	  this->_M_impl._M_finish = __tmp + __old_size;
-      65*:   98:	  this->_M_impl._M_end_of_storage = this->_M_impl._M_start + __n;
+      66*:   93:	  _M_deallocate(this->_M_impl._M_start,
+      66*:   94:			this->_M_impl._M_end_of_storage
+      66*:   95:			- this->_M_impl._M_start);
+      66*:   96:	  this->_M_impl._M_start = __tmp;
+      66*:   97:	  this->_M_impl._M_finish = __tmp + __old_size;
+      66*:   98:	  this->_M_impl._M_end_of_storage = this->_M_impl._M_start + __n;
         -:   99:	}
-      65*:  100:    }
+      66*:  100:    }
 ------------------
 _ZNSt6vectorISt6threadSaIS0_EE7reserveEm:
 function _ZNSt6vectorISt6threadSaIS0_EE7reserveEm called 0 returned 0% blocks executed 0%
@@ -150,32 +150,32 @@ call    0 never executed
     #####:  100:    }
 ------------------
 _ZNSt6vectorISt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS3_EESaIS6_EE7reserveEm:
-function _ZNSt6vectorISt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS3_EESaIS6_EE7reserveEm called 65 returned 100% blocks executed 92%
-       65:   67:    vector<_Tp, _Alloc>::
+function _ZNSt6vectorISt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS3_EESaIS6_EE7reserveEm called 66 returned 100% blocks executed 92%
+       66:   67:    vector<_Tp, _Alloc>::
         -:   68:    reserve(size_type __n)
         -:   69:    {
-       65:   70:      if (__n > this->max_size())
+       66:   70:      if (__n > this->max_size())
 call    0 returned 100%
 branch  1 taken 0% (fallthrough)
 branch  2 taken 100%
     #####:   71:	__throw_length_error(__N("vector::reserve"));
 call    0 never executed
-       65:   72:      if (this->capacity() < __n)
+       66:   72:      if (this->capacity() < __n)
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 0%
         -:   73:	{
-       65:   74:	  const size_type __old_size = size();
+       66:   74:	  const size_type __old_size = size();
 call    0 returned 100%
         -:   75:	  pointer __tmp;
         -:   76:#if __cplusplus >= 201103L
         -:   77:	  if _GLIBCXX17_CONSTEXPR (_S_use_relocate())
         -:   78:	    {
-       65:   79:	      __tmp = this->_M_allocate(__n);
+       66:   79:	      __tmp = this->_M_allocate(__n);
 call    0 returned 100%
-       65:   80:	      _S_relocate(this->_M_impl._M_start, this->_M_impl._M_finish,
+       66:   80:	      _S_relocate(this->_M_impl._M_start, this->_M_impl._M_finish,
 call    0 returned 100%
-       65:   81:			  __tmp, _M_get_Tp_allocator());
+       66:   81:			  __tmp, _M_get_Tp_allocator());
 call    0 returned 100%
         -:   82:	    }
         -:   83:	  else
@@ -188,15 +188,15 @@ call    0 returned 100%
         -:   90:			    _M_get_Tp_allocator());
         -:   91:	    }
         -:   92:	  _GLIBCXX_ASAN_ANNOTATE_REINIT;
-       65:   93:	  _M_deallocate(this->_M_impl._M_start,
-       65:   94:			this->_M_impl._M_end_of_storage
-       65:   95:			- this->_M_impl._M_start);
+       66:   93:	  _M_deallocate(this->_M_impl._M_start,
+       66:   94:			this->_M_impl._M_end_of_storage
+       66:   95:			- this->_M_impl._M_start);
 call    0 returned 100%
-       65:   96:	  this->_M_impl._M_start = __tmp;
-       65:   97:	  this->_M_impl._M_finish = __tmp + __old_size;
-       65:   98:	  this->_M_impl._M_end_of_storage = this->_M_impl._M_start + __n;
+       66:   96:	  this->_M_impl._M_start = __tmp;
+       66:   97:	  this->_M_impl._M_finish = __tmp + __old_size;
+       66:   98:	  this->_M_impl._M_end_of_storage = this->_M_impl._M_start + __n;
         -:   99:	}
-       65:  100:    }
+       66:  100:    }
 ------------------
         -:  101:
         -:  102:#if __cplusplus >= 201103L
@@ -208,21 +208,21 @@ call    0 returned 100%
         -:  108:#else
         -:  109:      void
         -:  110:#endif
-     467*:  111:      vector<_Tp, _Alloc>::
+     475*:  111:      vector<_Tp, _Alloc>::
         -:  112:      emplace_back(_Args&&... __args)
         -:  113:      {
-     467*:  114:	if (this->_M_impl._M_finish != this->_M_impl._M_end_of_storage)
+     475*:  114:	if (this->_M_impl._M_finish != this->_M_impl._M_end_of_storage)
         -:  115:	  {
         -:  116:	    _GLIBCXX_ASAN_ANNOTATE_GROW(1);
-     449*:  117:	    _Alloc_traits::construct(this->_M_impl, this->_M_impl._M_finish,
+     457*:  117:	    _Alloc_traits::construct(this->_M_impl, this->_M_impl._M_finish,
         -:  118:				     std::forward<_Args>(__args)...);
-     449*:  119:	    ++this->_M_impl._M_finish;
+     457*:  119:	    ++this->_M_impl._M_finish;
         -:  120:	    _GLIBCXX_ASAN_ANNOTATE_GREW(1);
         -:  121:	  }
         -:  122:	else
       18*:  123:	  _M_realloc_insert(end(), std::forward<_Args>(__args)...);
         -:  124:#if __cplusplus > 201402L
-     467*:  125:	return back();
+     475*:  125:	return back();
         -:  126:#endif
         -:  127:      }
 ------------------
@@ -285,20 +285,20 @@ call    0 never executed
         -:  127:      }
 ------------------
 _ZNSt6vectorISt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS3_EESaIS6_EE12emplace_backIJS6_EEERS6_DpOT_:
-function _ZNSt6vectorISt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS3_EESaIS6_EE12emplace_backIJS6_EEERS6_DpOT_ called 441 returned 100% blocks executed 73%
-      441:  111:      vector<_Tp, _Alloc>::
+function _ZNSt6vectorISt10unique_ptrIN4uecm7Service5ShardESt14default_deleteIS3_EESaIS6_EE12emplace_backIJS6_EEERS6_DpOT_ called 449 returned 100% blocks executed 73%
+      449:  111:      vector<_Tp, _Alloc>::
         -:  112:      emplace_back(_Args&&... __args)
         -:  113:      {
-      441:  114:	if (this->_M_impl._M_finish != this->_M_impl._M_end_of_storage)
+      449:  114:	if (this->_M_impl._M_finish != this->_M_impl._M_end_of_storage)
 branch  0 taken 100% (fallthrough)
 branch  1 taken 0%
         -:  115:	  {
         -:  116:	    _GLIBCXX_ASAN_ANNOTATE_GROW(1);
-      441:  117:	    _Alloc_traits::construct(this->_M_impl, this->_M_impl._M_finish,
+      449:  117:	    _Alloc_traits::construct(this->_M_impl, this->_M_impl._M_finish,
 call    0 returned 100%
 call    1 returned 100%
         -:  118:				     std::forward<_Args>(__args)...);
-      441:  119:	    ++this->_M_impl._M_finish;
+      449:  119:	    ++this->_M_impl._M_finish;
         -:  120:	    _GLIBCXX_ASAN_ANNOTATE_GREW(1);
         -:  121:	  }
         -:  122:	else
@@ -307,7 +307,7 @@ call    0 never executed
 call    1 never executed
 call    2 never executed
         -:  124:#if __cplusplus > 201402L
-      441:  125:	return back();
+      449:  125:	return back();
 call    0 returned 100%
         -:  126:#endif
         -:  127:      }
@@ -566,18 +566,18 @@ call    0 returned 100%
         -:  207:  template<typename _Tp, typename _Alloc>
         -:  208:    _GLIBCXX20_CONSTEXPR
         -:  209:    vector<_Tp, _Alloc>&
-function _ZNSt6vectorIN4uecm8DrbEntryESaIS1_EEaSERKS3_ called 48633 returned 100% blocks executed 58%
-    48633:  210:    vector<_Tp, _Alloc>::
+function _ZNSt6vectorIN4uecm8DrbEntryESaIS1_EEaSERKS3_ called 48554 returned 100% blocks executed 57%
+    48554:  210:    vector<_Tp, _Alloc>::
         -:  211:    operator=(const vector<_Tp, _Alloc>& __x)
         -:  212:    {
-    48633:  213:      if (std::__addressof(__x) != this)
+    48554:  213:      if (std::__addressof(__x) != this)
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
 branch  2 taken 1%
         -:  214:	{
         -:  215:	  _GLIBCXX_ASAN_ANNOTATE_REINIT;
         -:  216:#if __cplusplus >= 201103L
-    48631:  217:	  if (_Alloc_traits::_S_propagate_on_copy_assign())
+    48552:  217:	  if (_Alloc_traits::_S_propagate_on_copy_assign())
 branch  0 taken 0% (fallthrough)
 branch  1 taken 100%
         -:  218:	    {
@@ -609,9 +609,9 @@ call    0 never executed
 call    0 never executed
         -:  233:	    }
         -:  234:#endif
-    48631:  235:	  const size_type __xlen = __x.size();
+    48552:  235:	  const size_type __xlen = __x.size();
 call    0 returned 100%
-    48625:  236:	  if (__xlen > capacity())
+    48550:  236:	  if (__xlen > capacity())
 call    0 returned 100%
 branch  1 taken 2% (fallthrough)
 branch  2 taken 98%
@@ -632,24 +632,24 @@ call    0 returned 100%
       849:  245:	      this->_M_impl._M_start = __tmp;
       849:  246:	      this->_M_impl._M_end_of_storage = this->_M_impl._M_start + __xlen;
         -:  247:	    }
-    47787:  248:	  else if (size() >= __xlen)
+    47719:  248:	  else if (size() >= __xlen)
 call    0 returned 100%
 branch  1 taken 100% (fallthrough)
-branch  2 taken -0%
+branch  2 taken 0%
         -:  249:	    {
-    95548:  250:	      std::_Destroy(std::copy(__x.begin(), __x.end(), begin()),
+    95405:  250:	      std::_Destroy(std::copy(__x.begin(), __x.end(), begin()),
 call    0 returned 100%
 call    1 returned 100%
 call    2 returned 100%
 call    3 returned 100%
 call    4 returned 100%
-    47787:  251:			    end(), _M_get_Tp_allocator());
+    47719:  251:			    end(), _M_get_Tp_allocator());
 call    0 returned 100%
         -:  252:	    }
         -:  253:	  else
         -:  254:	    {
     #####:  255:	      std::copy(__x._M_impl._M_start, __x._M_impl._M_start + size(),
-call    0 returned -0%
+call    0 never executed
 call    1 never executed
         -:  256:			this->_M_impl._M_start);
     #####:  257:	      std::__uninitialized_copy_a(__x._M_impl._M_start + size(),
@@ -660,9 +660,9 @@ call    0 never executed
     #####:  260:					  _M_get_Tp_allocator());
 call    0 never executed
         -:  261:	    }
-    48610:  262:	  this->_M_impl._M_finish = this->_M_impl._M_start + __xlen;
+    48540:  262:	  this->_M_impl._M_finish = this->_M_impl._M_start + __xlen;
         -:  263:	}
-    48611:  264:      return *this;
+    48541:  264:      return *this;
         -:  265:    }
         -:  266:
         -:  267:  template<typename _Tp, typename _Alloc>

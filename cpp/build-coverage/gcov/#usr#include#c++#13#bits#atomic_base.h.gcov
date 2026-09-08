@@ -105,16 +105,16 @@
         -:  104:  }
         -:  105:
         -:  106:  constexpr memory_order
-  574514*:  107:  operator&(memory_order __m, __memory_order_modifier __mod)
+  574254*:  107:  operator&(memory_order __m, __memory_order_modifier __mod)
         -:  108:  {
-  574514*:  109:    return memory_order(int(__m) & int(__mod));
+  574254*:  109:    return memory_order(int(__m) & int(__mod));
         -:  110:  }
 ------------------
 _ZStanSt12memory_orderSt23__memory_order_modifier:
-function _ZStanSt12memory_orderSt23__memory_order_modifier called 511989 returned 100% blocks executed 100%
-   511989:  107:  operator&(memory_order __m, __memory_order_modifier __mod)
+function _ZStanSt12memory_orderSt23__memory_order_modifier called 511985 returned 100% blocks executed 100%
+   511985:  107:  operator&(memory_order __m, __memory_order_modifier __mod)
         -:  108:  {
-   511989:  109:    return memory_order(int(__m) & int(__mod));
+   511985:  109:    return memory_order(int(__m) & int(__mod));
         -:  110:  }
 ------------------
 _ZStanSt12memory_orderSt23__memory_order_modifier:
@@ -125,17 +125,17 @@ function _ZStanSt12memory_orderSt23__memory_order_modifier called 0 returned 0% 
         -:  110:  }
 ------------------
 _ZStanSt12memory_orderSt23__memory_order_modifier:
-function _ZStanSt12memory_orderSt23__memory_order_modifier called 19883 returned 100% blocks executed 100%
-    19883:  107:  operator&(memory_order __m, __memory_order_modifier __mod)
+function _ZStanSt12memory_orderSt23__memory_order_modifier called 19865 returned 100% blocks executed 100%
+    19865:  107:  operator&(memory_order __m, __memory_order_modifier __mod)
         -:  108:  {
-    19883:  109:    return memory_order(int(__m) & int(__mod));
+    19865:  109:    return memory_order(int(__m) & int(__mod));
         -:  110:  }
 ------------------
 _ZStanSt12memory_orderSt23__memory_order_modifier:
-function _ZStanSt12memory_orderSt23__memory_order_modifier called 42642 returned 100% blocks executed 100%
-    42642:  107:  operator&(memory_order __m, __memory_order_modifier __mod)
+function _ZStanSt12memory_orderSt23__memory_order_modifier called 42404 returned 100% blocks executed 100%
+    42404:  107:  operator&(memory_order __m, __memory_order_modifier __mod)
         -:  108:  {
-    42642:  109:    return memory_order(int(__m) & int(__mod));
+    42404:  109:    return memory_order(int(__m) & int(__mod));
         -:  110:  }
 ------------------
 _ZStanSt12memory_orderSt23__memory_order_modifier:
@@ -255,9 +255,9 @@ function _ZStanSt12memory_orderSt23__memory_order_modifier called 0 returned 0% 
         -:  218:    atomic_flag& operator=(const atomic_flag&) volatile = delete;
         -:  219:
         -:  220:    // Conversion to ATOMIC_FLAG_INIT.
-  285257*:  221:    constexpr atomic_flag(bool __i) noexcept
-  285257*:  222:      : __atomic_flag_base{ _S_init(__i) }
-  285232*:  223:    { }
+  285281*:  221:    constexpr atomic_flag(bool __i) noexcept
+  285281*:  222:      : __atomic_flag_base{ _S_init(__i) }
+  285323*:  223:    { }
 ------------------
 _ZNSt11atomic_flagC2Eb:
 function _ZNSt11atomic_flagC2Eb called 0 returned 0% blocks executed 0%
@@ -267,17 +267,17 @@ call    0 never executed
     #####:  223:    { }
 ------------------
 _ZNSt11atomic_flagC2Eb:
-function _ZNSt11atomic_flagC2Eb called 285257 returned 100% blocks executed 100%
-   285257:  221:    constexpr atomic_flag(bool __i) noexcept
-   285257:  222:      : __atomic_flag_base{ _S_init(__i) }
+function _ZNSt11atomic_flagC2Eb called 285281 returned 100% blocks executed 100%
+   285281:  221:    constexpr atomic_flag(bool __i) noexcept
+   285281:  222:      : __atomic_flag_base{ _S_init(__i) }
 call    0 returned 100%
-   285232:  223:    { }
+   285323:  223:    { }
 ------------------
         -:  224:
         -:  225:    _GLIBCXX_ALWAYS_INLINE bool
         -:  226:    test_and_set(memory_order __m = memory_order_seq_cst) noexcept
         -:  227:    {
-  285711*:  228:      return __atomic_test_and_set (&_M_i, int(__m));
+  286118*:  228:      return __atomic_test_and_set (&_M_i, int(__m));
         -:  229:    }
         -:  230:
         -:  231:    _GLIBCXX_ALWAYS_INLINE bool
@@ -359,8 +359,8 @@ call    0 returned 100%
         -:  307:
         -:  308:  private:
         -:  309:    static constexpr __atomic_flag_data_type
-  285275*:  310:    _S_init(bool __i)
-  285275*:  311:    { return __i ? __GCC_ATOMIC_TEST_AND_SET_TRUEVAL : 0; }
+  285300*:  310:    _S_init(bool __i)
+  285300*:  311:    { return __i ? __GCC_ATOMIC_TEST_AND_SET_TRUEVAL : 0; }
 ------------------
 _ZNSt11atomic_flag7_S_initEb:
 function _ZNSt11atomic_flag7_S_initEb called 0 returned 0% blocks executed 0%
@@ -370,9 +370,9 @@ branch  0 never executed (fallthrough)
 branch  1 never executed
 ------------------
 _ZNSt11atomic_flag7_S_initEb:
-function _ZNSt11atomic_flag7_S_initEb called 285275 returned 100% blocks executed 80%
-   285275:  310:    _S_init(bool __i)
-  285275*:  311:    { return __i ? __GCC_ATOMIC_TEST_AND_SET_TRUEVAL : 0; }
+function _ZNSt11atomic_flag7_S_initEb called 285300 returned 100% blocks executed 80%
+   285300:  310:    _S_init(bool __i)
+  285300*:  311:    { return __i ? __GCC_ATOMIC_TEST_AND_SET_TRUEVAL : 0; }
 branch  0 taken 0% (fallthrough)
 branch  1 taken 100%
 ------------------
@@ -426,19 +426,19 @@ branch  1 taken 100%
         -:  359:      __atomic_base& operator=(const __atomic_base&) volatile = delete;
         -:  360:
         -:  361:      // Requires __int_type convertible to _M_i.
-  285376*:  362:      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+  285427*:  362:      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
 ------------------
 _ZNSt13__atomic_baseIjEC2Ej:
 function _ZNSt13__atomic_baseIjEC2Ej called 0 returned 0% blocks executed 0%
     #####:  362:      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
 ------------------
 _ZNSt13__atomic_baseImEC2Em:
-function _ZNSt13__atomic_baseImEC2Em called 65 returned 100% blocks executed 100%
-       65:  362:      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+function _ZNSt13__atomic_baseImEC2Em called 67 returned 100% blocks executed 100%
+       67:  362:      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
 ------------------
 _ZNSt13__atomic_baseIjEC2Ej:
-function _ZNSt13__atomic_baseIjEC2Ej called 285311 returned 100% blocks executed 100%
-   285311:  362:      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+function _ZNSt13__atomic_baseIjEC2Ej called 285360 returned 100% blocks executed 100%
+   285360:  362:      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
 ------------------
         -:  363:
         -:  364:      operator __int_type() const noexcept
@@ -614,7 +614,7 @@ call    7 never executed
         -:  498:      load(memory_order __m = memory_order_seq_cst) const noexcept
         -:  499:      {
         -:  500:	memory_order __b __attribute__ ((__unused__))
-  575553*:  501:	  = __m & __memory_order_mask;
+  575481*:  501:	  = __m & __memory_order_mask;
 call    0 returned 100%
 call    1 never executed
 call    2 never executed
@@ -628,7 +628,7 @@ call    9 returned 100%
 call   10 never executed
 call   11 never executed
 call   12 never executed
-  575654*:  502:	__glibcxx_assert(__b != memory_order_release);
+  575515*:  502:	__glibcxx_assert(__b != memory_order_release);
 call    0 returned 100%
 branch  1 taken 0% (fallthrough)
 branch  2 taken 100%
@@ -733,7 +733,7 @@ branch 100 never executed
 branch 101 never executed (fallthrough)
 branch 102 never executed
 call   103 never executed
-  575577*:  503:	__glibcxx_assert(__b != memory_order_acq_rel);
+  575434*:  503:	__glibcxx_assert(__b != memory_order_acq_rel);
 call    0 returned 100%
 branch  1 taken 0% (fallthrough)
 branch  2 taken 100%
@@ -839,7 +839,7 @@ branch 101 never executed (fallthrough)
 branch 102 never executed
 call   103 never executed
         -:  504:
-  575474*:  505:	return __atomic_load_n(&_M_i, int(__m));
+  575293*:  505:	return __atomic_load_n(&_M_i, int(__m));
         -:  506:      }
         -:  507:
         -:  508:      _GLIBCXX_ALWAYS_INLINE __int_type
@@ -857,7 +857,7 @@ call   103 never executed
         -:  520:      exchange(__int_type __i,
         -:  521:	       memory_order __m = memory_order_seq_cst) noexcept
         -:  522:      {
-  287955*:  523:	return __atomic_exchange_n(&_M_i, __i, int(__m));
+  287933*:  523:	return __atomic_exchange_n(&_M_i, __i, int(__m));
         -:  524:      }
         -:  525:
         -:  526:
@@ -969,7 +969,7 @@ call   103 never executed
         -:  632:      _GLIBCXX_ALWAYS_INLINE __int_type
         -:  633:      fetch_add(__int_type __i,
         -:  634:		memory_order __m = memory_order_seq_cst) noexcept
-  214920*:  635:      { return __atomic_fetch_add(&_M_i, __i, int(__m)); }
+  215263*:  635:      { return __atomic_fetch_add(&_M_i, __i, int(__m)); }
         -:  636:
         -:  637:      _GLIBCXX_ALWAYS_INLINE __int_type
         -:  638:      fetch_add(__int_type __i,
@@ -999,7 +999,7 @@ call   103 never executed
         -:  662:      _GLIBCXX_ALWAYS_INLINE __int_type
         -:  663:      fetch_or(__int_type __i,
         -:  664:	       memory_order __m = memory_order_seq_cst) noexcept
-  283007*:  665:      { return __atomic_fetch_or(&_M_i, __i, int(__m)); }
+  282979*:  665:      { return __atomic_fetch_or(&_M_i, __i, int(__m)); }
         -:  666:
         -:  667:      _GLIBCXX_ALWAYS_INLINE __int_type
         -:  668:      fetch_or(__int_type __i,

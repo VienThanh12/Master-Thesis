@@ -27,7 +27,7 @@ record whichever outcome the scheduler happened to give.
 | unguarded_shared_mutation | clean | detected | clean | runtime (TSan) | compile-time prevented (E0502,E0524,E0597) | - |
 | use_after_move | clean | clean | clean | undetected | compile-time prevented (E0382) | - |
 | thread_unsafe_sharing | clean | detected | clean | runtime (TSan) | compile-time prevented (E0277) | - |
-| lock_order_deadlock | hung | flaky | hung | runtime, intermittent (TSan) | not prevented (compiles; deadlocks) | TSan reported in 5/12 runs |
+| lock_order_deadlock | hung | flaky | hung | runtime, intermittent (TSan) | not prevented (compiles; deadlocks) | TSan reported in 3/12 runs |
 | lost_update | clean | clean | clean | undetected | not prevented (compiles; wrong result) | - |
 | leak_cycle | detected | clean | clean | runtime (ASan) | not prevented (compiles; wrong result) | - |
 | integer_overflow | clean | clean | detected | runtime (UBSan) | not prevented (compiles; wrong result) | - |

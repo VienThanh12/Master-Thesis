@@ -3647,10 +3647,10 @@
         -: 3646:  /// Returns true only when called during constant evaluation.
         -: 3647:  /// @since C++20
         -: 3648:  constexpr inline bool
-  224204*: 3649:  is_constant_evaluated() noexcept
+  225264*: 3649:  is_constant_evaluated() noexcept
         -: 3650:  {
         -: 3651:#if __cpp_if_consteval >= 202106L
-  224204*: 3652:    if consteval { return true; } else { return false; }
+  225264*: 3652:    if consteval { return true; } else { return false; }
         -: 3653:#else
         -: 3654:    return __builtin_is_constant_evaluated();
         -: 3655:#endif
