@@ -3269,14 +3269,17 @@ the other not at all. Neither language's story here is the simple one, and
 Chapter~\ref{chapter:discussion} develops the consequence for practice.
 
 The seam double-free is answered by a different tool and comes with a sharper limit. Miri
-interprets the program against the Stacked Borrows aliasing model and reports the second
-release precisely, as a dangling box reconstructed from a freed allocation, while a control that
+interprets the program and reports the second release precisely, as a dangling box
+reconstructed from a freed allocation, while a control that
 releases the same handle once is clean. The stage for this class is therefore test
 time again, and this time without a rewrite. The limit is what a migration has to weigh. Miri
 interprets Rust and cannot execute a C++ host, so the program it checked uses a Rust stand-in
 for the host. The tool that finds this defect cannot be pointed at the configuration the defect
-ships in, which is a seam with C++ on the other side of it. Nothing in the toolchain checks
-that boundary, and the practical answer is the one
+ships in, which is a seam with C++ on the other side of it. No shipped tool checks that
+boundary. Driving Miri together with an interpreter for the foreign side is a published research
+result rather than something a migration can adopt, and it found 46 instances of undefined or
+undesired behaviour in 37 libraries that call foreign functions, one of them in a library the
+Rust project maintains itself~\cite{mccormack2025ffi}. That leaves the practical answer
 Section~\ref{sec:migrationresults} argues from the prototype: keep the seam small enough to
 review by hand, because review is what is left.
 
@@ -3679,8 +3682,8 @@ That fits the CVE evidence that Rust memory-safety bugs always involve
 through dependencies~\cite{evans2020rust}, which is why keeping the core \texttt{unsafe}-free
 matters. The seam double-free is that evidence reproduced under controlled conditions: the one
 class in this catalogue that safe Rust rejects and unsafe Rust does not. It also exercises the
-assumption every estimate of Rust's preventive reach has to make. The taxonomy-scale mapping of
-Section~\ref{sec:rqs} names that assumption as its own first limitation, because a class counted
+premise on which a class-level estimate of Rust's reach depends. The taxonomy-scale mapping cited
+in Section~\ref{sec:rqs} names that premise as its own first limitation, because a class counted
 as virtually impossible stays impossible only while the converted code stays
 safe~\cite{meneely2025justuserust}.
 

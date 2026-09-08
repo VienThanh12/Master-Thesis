@@ -1836,14 +1836,17 @@ unreliably and the other not at all. Neither language's story here is the simple
 Chapter~\ref{chapter:discussion} develops the consequence for practice.
 
 The seam double-free is answered by a different tool and comes with a sharper limit. Miri
-interprets the program against the Stacked Borrows aliasing model and reports the second
+interprets the program and reports the second
 release precisely, as a dangling box reconstructed from a freed allocation, while a control that
 releases the same handle once is clean, so the stage for this class is test time again and this
 time without a rewrite. The limit is what a migration has to weigh. Miri interprets Rust and
 cannot execute a C++ host, so the program it checked uses a Rust stand-in for the host. The tool
 that finds this defect cannot be pointed at the configuration the defect ships in, which is a
-seam with C++ on the other side of it. Nothing in the toolchain checks that boundary, and the
-practical answer is the one Section~\ref{sec:migrationresults} argues from the prototype: keep
+seam with C++ on the other side of it. No shipped tool checks that boundary, and the published
+attempt that drives Miri with an interpreter for the foreign side found 46 instances of
+undefined or undesired behaviour in 37 libraries that call foreign
+functions~\cite{mccormack2025ffi}. That leaves the practical answer
+Section~\ref{sec:migrationresults} argues from the prototype: keep
 the seam small enough to review by hand, because review is what is left.
 
 \paragraph{A defect that was not injected.}
