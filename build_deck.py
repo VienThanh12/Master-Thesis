@@ -22,11 +22,14 @@ contradicting the thesis. A macro the deck asks for and the data does not
 provide is a hard error rather than a stale literal, and a diagram whose own
 labels disagree with the macros is refused before it can reach a slide.
 
-Two campaigns are reported and they are kept apart. The sweep on the virtualised
-guest carries the unprefixed macros, and the bare-metal confirmation carries the
-Bm ones. A slide quoting a Bm value names its host, because the confirmation
-changes the shard count, the load grid, the repeat count and the toolchain along
-with the machine.
+Two campaigns are reported and they are kept apart. The reported sweep carries
+the unprefixed macros and has run on bare metal since the canonical repeat of
+27 August 2026, and the second bare-metal host carries the Bm ones. A slide
+quoting a Bm value names its host, because the confirmation changes the shard
+count, the load grid, the repeat count and the toolchain along with the machine.
+The virtualised guest the sweep ran on before that repeat carries the Guest
+macros, read here since 8 September 2026 so that the two slides comparing hosts
+can print its values instead of describing it in words beside another host's.
 """
 import csv
 import glob
@@ -105,9 +108,19 @@ def read_macros(*paths):
 #: The bare-metal campaign keeps its own file, and every macro in it carries the
 #: Bm prefix, because the two campaigns must not be quotable as one. A slide
 #: naming a Bm value has to say which host it belongs to.
+#:
+#: gen_guest.tex joined them on 8 September 2026, for the reason the Guest prefix
+#: exists. Slide 23 compared the retired guest against a bare-metal host and had
+#: no guest values to compare with, so it filled that column from the unprefixed
+#: macros and typed the guest's outcome in words beside them. Once the reported
+#: sweep moved to bare metal those unprefixed values became the quiet host's, and
+#: the column printed 1 microsecond under a heading reading virtualised guest,
+#: against a typed cell saying no ordering was readable. A host described in
+#: prose next to another host's numbers is the cell nothing checks.
 MACROS = read_macros(os.path.join(FIGURES, "gen_macros.tex"),
                      os.path.join(FIGURES, "gen_complexity.tex"),
-                     os.path.join(FIGURES, "gen_baremetal.tex"))
+                     os.path.join(FIGURES, "gen_baremetal.tex"),
+                     os.path.join(FIGURES, "gen_guest.tex"))
 
 
 def M(name):
@@ -808,8 +821,11 @@ add_notes(s, [
     ("A hard place to be wrong",
      "The control plane is large, stateful, and highly concurrent, running on commodity "
      "servers under millisecond budgets while coordinating millions of devices."),
+    # The figure is Microsoft's own reporting and the slide said "major
+    # vendors", which is a claim no source in the bibliography makes. Section
+    # 2.1 names the vendor and cites it, so the slide names it too.
     ("Memory safety dominates the defects",
-     "Roughly 70% of serious security vulnerabilities at major vendors come from "
+     "Roughly 70% of the security vulnerabilities reported at Microsoft are "
      "memory-safety defects, the class C++ leaves to the programmer."),
     ("Policy is moving ahead of evidence",
      "Agencies now push vendors toward memory-safe languages, yet no controlled "
@@ -1013,33 +1029,48 @@ add_figure(s, _png, crop_top=_crop)
 # =====================================================================
 # Slide 16: The two measurement hosts
 #
-# The left column is read from the environment capture stored beside the
-# campaign the figures were plotted from; the right one from the macros
-# bench/baremetal_facts.py writes. Neither is typed, so the slide cannot come
-# to describe a host the results did not run on.
+# Both columns are macros the thesis prints: the left the \Main* set that
+# bench/plot_figures.py derives from the reported campaign's own capture, the
+# right the \Bm* set from bench/baremetal_facts.py. Neither is typed, so the
+# slide cannot come to describe a host the results did not run on.
+#
+# The left column read the capture directly through ENV until 8 September 2026,
+# and its labels called it a virtualised guest, which the main sweep was until
+# the canonical bare-metal repeat of 27 August 2026. ENV follows the newest
+# campaign in bench/results, so the values moved to the bare-metal host and the
+# labels stayed behind: the slide printed that host under a guest heading, with
+# "none guest" on the timing-floor row and its 48 threads as "48 cores, 1
+# sockets". Reading the macros fixes the class of defect and not just this
+# instance, because they are the values Appendix D prints.
+#
+# The retired guest has no column here, though \Guest* macros are in scope for
+# slide 23. Its settings differ on every row, so a third column would make the
+# table a specification sheet when what the slide has to establish is that two
+# machines agree. The caption carries what the guest settled instead.
 # =====================================================================
-s = headline(1, "Two hosts, because one of them cannot hold the far tail",
-             "The sweep runs on a virtualised guest. A second campaign confirms it on bare metal")
+s = headline(1, "Two bare-metal hosts, so no finding rests on one machine",
+             "The reported sweep, and a confirmation campaign that moves the design with the host")
 _, tbl_bottom = add_data_table(
     s,
     [
-        ("Aspect", "Main sweep: virtualised guest", "Confirmation: bare metal"),
-        ("CPU", f"{ENV.get('cpu_model', 'unknown')}: {ENV.get('cpus', '?')} cores, "
-                f"{ENV.get('sockets', '?')} sockets, {ENV.get('numa', '?')} NUMA node, "
-                f"SMT {ENV.get('smt', 'unknown')}",
+        ("Aspect", "Reported sweep", "Confirmation: second bare-metal host"),
+        ("CPU", f"{M('MainCpu')}: {M('MainCores')} cores, {M('MainSockets')} socket, "
+                f"{M('MainNumaNodes')} NUMA node, SMT {M('MainSmt')}",
          f"{M('BmCpu')}: {M('BmCores')} cores, {M('BmSockets')} socket, "
          f"{M('BmNumaNodes')} NUMA node, SMT {M('BmSmt')}"),
-        ("OS / kernel", f"{ENV.get('distro', 'unknown')}, kernel {ENV.get('kernel', 'unknown')}",
+        ("OS / kernel", f"{M('MainHostDistro')}, kernel {M('MainKernel')}. "
+                        f"Image {M('MainDistro')}",
          f"{M('BmDistro')}, kernel {M('BmKernel')}"),
-        ("Toolchains", f"{ENV.get('gpp', 'unknown')} and {ENV.get('rustc', 'unknown')}",
-         f"g++ {M('BmGpp')} and rustc {M('BmRustc')}"),
-        ("Timing floor", f"{ENV.get('virt', 'unknown')} guest, governor {ENV.get('governor', 'unknown')}, "
-                         "turbo host-controlled, steal comparable to the tail measured",
+        ("Toolchains", f"g++ {M('MainGpp')} and rustc {M('MainRustc')}, pinned in that image",
+         f"g++ {M('BmGpp')} and rustc {M('BmRustc')}, the host's own"),
+        ("Timing floor", f"virtualisation {M('MainVirt')}, governor {M('MainGovernor')}, boost off, "
+                         "so no timeslice goes to a machine this study cannot observe",
          f"virtualisation {M('BmVirt')}, governor {M('BmGovernor')}, steal in "
          f"{M('BmStealWithSteal')} of {M('BmStealIntervals')} sampling intervals"),
-        ("Core isolation", f"isolcpus {ENV.get('isolcpus', 'unknown')}, nohz_full {ENV.get('nohz', 'unknown')}: "
-                           "a benchmark thread can lose its core",
-         "also none recorded, so this half of the protocol is unmet on both hosts"),
+        ("Core isolation", f"nohz_full {M('MainNohzFull')}, isolcpus {M('MainIsolcpus')}, "
+                           "omitted on purpose to keep load balancing",
+         f"isolcpus {M('BmIsolcpus')}, nohz_full {M('BmNohzFull')}, so this half of the "
+         "protocol is unmet here"),
         ("Campaign", f"{M('NRepeats')} repeats \u00d7 {M('NLoadLevels')} loads \u00d7 "
                      f"{M('NVariants')} variants = {M('NRuns')} runs",
          f"{M('BmRepeats')} repeats \u00d7 {M('BmLoadLevels')} loads \u00d7 {M('NVariants')} variants "
@@ -1053,10 +1084,10 @@ _, tbl_bottom = add_data_table(
     body_size=10.5,
 )
 add_caption(s, tbl_bottom + Cm(0.3), size=11, text=
-            "The guest settles parity, fault injection, the seam, the saturation knee, the overload comparison "
-            "and the resource comparisons. What it cannot settle is the far tail below saturation. The "
+            "The reported sweep settles every result the thesis reports, the far tail below saturation "
+            "included, which the virtualised host this study measured on first could not resolve. The "
             "confirmation campaign moves shard count, load grid, repeats and toolchain along with the host, so "
-            "it corroborates the sweep rather than replacing it.")
+            "it tests whether the findings depend on those choices rather than replacing them.")
 
 # =====================================================================
 # Slide 17: How the comparison is tested (diagram)
@@ -1073,7 +1104,11 @@ add_figure(s, _png, crop_top=_crop)
 # interval did swamp the spread above the median. On the reported host it never
 # does: the figure's own panel (b) annotates ratios below one at every percentile
 # it draws. Both now read off the same macros the panel does.
-s = headline(1, "RQ1 below saturation: the comparison resolves at every percentile",
+# The title has to hold one line. At 65 characters this one wrapped and the
+# wrapped word printed through the subtitle, caught by the PNG review of
+# 8 September 2026. The limit is width and not a character count, since the
+# 62-character title on slide 10 fits, so check a lengthened title in a render.
+s = headline(1, "RQ1 below saturation: resolvable at every percentile",
              f"Latency by percentile at {M('ReprLoad')} kops/s, median over {M('NRepeats')} interleaved repeats")
 add_figure(s, result_figure("fig_tail_percentiles"), top=Cm(3.4), height=Cm(6.9))
 add_notes(s, [
@@ -1160,9 +1195,8 @@ add_notes(s, [
      f"under both allocators (interval [{M('RssLangCILo')}, {M('RssLangCIHi')}] MiB), a "
      "language effect that replicates."),
     (f"+{M('RssAllocDiffLo')}\u2013{M('RssAllocDiffHi')} MiB for jemalloc",
-     f"in either language here, an order of magnitude more. On bare metal, "
-     f"{M('BmRssAllocLo')}\u2013{M('BmRssAllocHi')} against {M('BmRssLangLo')}\u2013"
-     f"{M('BmRssLangHi')} MiB."),
+     f"in either language, comparable to it. On the guest, {M('GuestRssAllocLo')}\u2013"
+     f"{M('GuestRssAllocHi')} MiB, {M('GuestRssAllocOverLang')} times its language effect."),
     ("The ordering travels",
      "The ratio does not, so the next two slides read the footprint on a host that can "
      "decompose it."),
@@ -1171,23 +1205,31 @@ add_notes(s, [
 # =====================================================================
 # Slide 23: The far tail, on the confirmation host
 #
-# The guest column and the bare-metal column are the same statistic computed
-# the same way, which is the point: what changes between them is the machine,
+# The two columns are the same statistic computed the same way wherever both
+# hosts have it, which is the point: what changes between them is the machine,
 # so the null on the left is a property of the host and not of the languages.
+# Each column now reads its own campaign's macros, Guest against Bm. The guest
+# recorded percentiles per run and no histogram buckets, so there is nothing
+# there to pool and the two pooled rows say so rather than reporting an
+# outcome. The reported sweep resolves the same percentile and the caption
+# carries it, because giving it a third column would mean deriving a range
+# across variants that no macro holds.
 # =====================================================================
 s = headline(1, "The far tail, on a machine quiet enough to hold it",
-             f"The confirmation campaign: {M('BmRuns')} runs on bare metal, repeats pooled to p99.99")
+             # One line only. At 94 characters this wrapped onto the table's header
+             # row, which the overflow estimate did not catch and the render did.
+             f"An interval wider than the spread cannot order anything. {M('BmRuns')} bare-metal runs")
 _, tbl_bottom = add_data_table(
     s,
     [
         ("Below saturation", "Virtualised guest", "Bare metal"),
         ("Widest 95% interval on one variant's p99",
-         f"{M('PNineNineMaxCI')} \u00b5s", f"{M('BmPNineNineMaxCI')} \u00b5s"),
+         f"{M('GuestPNineNineMaxCI')} \u00b5s", f"{M('BmPNineNineMaxCI')} \u00b5s"),
         ("Range across the four variants' p99",
-         f"{M('PNineNineRange')} \u00b5s", f"{M('BmPNineNineRange')} \u00b5s"),
-        ("Pooled p99.99, the two C++ variants", "no ordering readable",
+         f"{M('GuestPNineNineRange')} \u00b5s", f"{M('BmPNineNineRange')} \u00b5s"),
+        ("Pooled p99.99, the two C++ variants", "no histograms to pool",
          f"{M('BmFarTailCppLo')}\u2013{M('BmFarTailCppHi')} \u00b5s"),
-        ("Pooled p99.99, the two Rust variants", "no ordering readable",
+        ("Pooled p99.99, the two Rust variants", "no histograms to pool",
          f"{M('BmFarTailRustLo')}\u2013{M('BmFarTailRustHi')} \u00b5s"),
     ],
     top=Cm(3.5),
@@ -1198,8 +1240,8 @@ _, tbl_bottom = add_data_table(
 )
 add_notes(s, [
     ("Rust lower at p99.99",
-     f"From {M('BmFarTailSepLoad')} to {M('BmFarTailSepHi')} kops/s the pooled ranges do not "
-     "meet. Below that the four are alike."),
+     f"By {M('FarTailLangSep')} \u00b5s on the reported sweep. Here the ranges part from "
+     f"{M('BmFarTailSepLoad')} to {M('BmFarTailSepHi')} kops/s, alike below that."),
     ("The median sharpens too",
      f"{M('BmPFiftyFaster')} lower at {M('BmPFiftySig')} of {M('BmPFiftyTested')} points, by "
      f"{M('BmPFiftyDiffLo')}\u2013{M('BmPFiftyDiffHi')} \u00b5s on a {M('BmPFiftyMedian')} \u00b5s operation."),
@@ -1295,9 +1337,10 @@ add_data_table(
         ("RQ2", f"All {len(IN_GUARANTEE)} in-guarantee classes are compile errors in safe Rust. The "
                 f"{len(BOUNDARY)} boundary classes compile in both languages", "Final"),
         ("RQ3", f"{M('RssLangDiffLo')}\u2013{M('RssLangDiffHi')} MiB more peak RSS in Rust under both allocators, "
-                f"an order of magnitude less than the allocator's own "
-                f"{M('RssAllocDiffLo')}\u2013{M('RssAllocDiffHi')} MiB here and about half of it on bare metal, "
-                f"where it sits outside the allocator",
+                f"same direction on all three machines. The allocator's own "
+                f"{M('RssAllocDiffLo')}\u2013{M('RssAllocDiffHi')} MiB is comparable here and was "
+                f"{M('GuestRssAllocOverLang')} times the language effect on the virtualised host, so "
+                f"their ratio does not travel",
          "Resolved, and located outside the allocator"),
         ("RQ4", f"Thin, unsafe-isolated seam. No cost detected and any tax bounded at "
                 f"{M('FfiOpBoundPct')}% of an operation", "Final"),
@@ -1484,7 +1527,7 @@ _pictures = sum(1 for sl in prs.slides for sh in sl.shapes if sh.shape_type == 1
 print("Saved", OUT, "with", len(prs.slides._sldIdLst), "slides")
 print(f"Figures placed: {_pictures}")
 print("Data read from:")
-print("  figures/gen_{macros,complexity,baremetal}.tex "
+print("  figures/gen_{macros,complexity,baremetal,guest}.tex "
       f"({len(MACROS)} macros)")
 print("  figures/tab_{latency,resource,overload,budget,contention,ffi,resident}.tex")
 print("  figures/fig_*.pdf, diagrams/png/*.png")

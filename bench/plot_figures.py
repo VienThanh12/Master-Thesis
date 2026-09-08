@@ -2089,7 +2089,17 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
     lat_fields, lat_labels = latency_table_fields(rows, pooled)
     cols = "@{}l" + " r" * len(lat_fields) + "@{}"
     macros["LatencyTabular"] = "\\begin{tabular}{" + cols + "}"
-    macros["LatencyHead"] = "Variant & " + " & ".join(lat_labels)
+    # Units sit in the header a reader looks at, not only in the caption.
+    # tab:resource already names (kops/s), (MiB) and (%) on its columns.
+    # tab:latency used to bury microseconds in the caption's second sentence,
+    # which left the body looking like a unitless score. The spanning row
+    # is generated with the column count so a campaign that drops p99.99
+    # cannot leave a five-column banner over four number columns.
+    n = len(lat_labels)
+    macros["LatencyHead"] = (
+        f"& \\multicolumn{{{n}}}{{c}}{{(\\textmu s)}} \\\\ "
+        "Variant & " + " & ".join(lat_labels)
+    )
 
     # p99.99 and inter-operation jitter, reported descriptively.
     #
