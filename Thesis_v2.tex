@@ -205,7 +205,6 @@ connected device, each of which the standards call a user equipment (UE), runs R
 Control (RRC) signalling~\cite{3gpp38331}, and coordinates mobility and handovers, all within
 strict latency limits.
 
-% Checked (make sure everything is understandable)
 
 Load at a busy site is high. A single site can run thousands of connection-management and
 mobility procedures per second, each of which has to complete within the millisecond-scale
@@ -214,6 +213,7 @@ devices at once. As the RAN moves to cloud-native, disaggregated deployments, th
 correctness, reliability, and timing of this software increasingly set the quality of the
 whole network. An outage or a tail-latency spike here is not a local defect. Every device
 the site serves is affected~\cite{dean2013tail,barroso2017microseconds}.
+
 
 This control-plane software is, today, written mostly in C++. The choice is a
 practical one: C++ offers the low-level control, mature tooling, and performance that
@@ -233,6 +233,8 @@ the question directly: it develops two functionally equivalent implementations o
 representative RAN subsystem, a UE Context Management service modelled on a real Nokia
 gNB-CU-CP component, in modern C++ and in Rust, and compares them under a realistic
 synthetic signalling workload.
+
+% Checked (make sure everything is understandable)
 
 Three terms recur throughout. The \emph{gNB-CU-CP} is the control-plane software this work is
 about. \emph{UE Context Management (UECM)} is the specific subsystem reimplemented and measured.
