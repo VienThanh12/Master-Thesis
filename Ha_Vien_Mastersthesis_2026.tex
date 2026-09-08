@@ -643,7 +643,8 @@ The thesis makes six contributions. Two are artifacts: a reproducible benchmarki
 for telecom control-plane workloads, and a frozen shared specification with two parity-tested
 implementations of a RAN control-plane subsystem, one in C++ and one in Rust. Three are
 results, and the first is a comparison of latency and resource behaviour that divides at
-the saturation knee, where the ordering between the two languages reverses. The second is a
+the saturation knee, the load beyond which throughput stops following demand and the
+ordering between the two languages reverses. The second is a
 defect-class taxonomy from controlled fault injection that marks where the compile-time
 guarantee stops, in both directions. The third is a bound on what a comparison of this shape can
 attribute to a language at all, obtained by decomposing an end-to-end operation into the work the
@@ -659,9 +660,10 @@ in C++, and each is caught, if at all, only at run time and only under the right
 one class under none of them. Seven
 boundary classes were chosen deliberately, and neither language prevents them. On two of those
 the C++ tooling is ahead, and on one the defect that safe Rust rules out returns as soon as the
-program writes \texttt{unsafe}. On \emph{migration} (RQ4), the FFI seam is small and keeps the core
-free of \texttt{unsafe}. Measured against the same operation called natively it costs at most
-$\FfiOpBoundPct\%$ of one operation, so the real adoption cost is application programming
+program writes \texttt{unsafe}. On \emph{migration} (RQ4), the FFI seam, the thin layer of code
+where the two languages meet, is small and keeps the core free of \texttt{unsafe}. Measured
+against the same operation called natively it costs at most $\FfiOpBoundPct\%$ of one
+operation, so the real adoption cost is application programming
 interface (API) design and not run-time
 overhead. Three costs beyond the seam are measured for the same reason, and two of them come back
 against the received wisdom: most of the Rust build's extra cost is compiling third-party code and
@@ -692,8 +694,9 @@ build in \OverloadThrAgree{} interleaved repeats under both allocators, and the 
 $\OverloadCpuPerOpRatio\times$ the CPU on each operation it does complete, which is what rules out
 the reading that it is simply doing less. On resources the Rust process holds a few MiB more resident memory, again
 under both allocators, in the same direction and the same order of magnitude on all three machines
-measured. How it compares against the cost of the allocator choice does not travel: the two are
-comparable on bare metal and the allocator's was an order of magnitude larger on the virtualised
+measured. How it compares against the cost of the allocator choice does not travel to another
+machine: the two are comparable on bare metal and the allocator's was an order of magnitude
+larger on the virtualised
 host this study used first, so the comparison between them is a property of the machine rather
 than of the allocators.
 
@@ -1601,7 +1604,7 @@ therefore built in two groups: classes inside Rust's stated guarantee, and class
 it, where ownership and the \texttt{Send}/\texttt{Sync} discipline give no protection. Each case
 carries a recorded expectation and the runner reports a violation in either direction, so an
 unexpected outcome surfaces as a discrepancy instead of being absorbed into the narrative. What
-this buys is a boundary and not a score: the study can state which classes the language removes
+this gives is a boundary and not a score: the study can state which classes the language removes
 and which comparable ones it leaves in place, which is what a migration decision needs.
 
 \subsection{Foreign-function-interface migration case study (RQ4)}\label{sec:methodffi}
@@ -2337,7 +2340,7 @@ $\GuestDeadlineLoad$~kops/s, where p99 sat just under the deadline, so it was lo
 host's interference reached $5$~ms. On a quiet host p99 stays near $\PNineNineTrackingTop\,\mu$s
 until capacity binds, so the same rule climbs until it collapses the representative point onto the
 saturation knee. One rule, two quantities, decided by how noisy the machine was. Fixing the point
-costs the appearance of derivation and buys two things worth more: the hosts are compared at the same
+costs the appearance of derivation and gains two things worth more: the hosts are compared at the same
 offered load, and the point stays below saturation on all of them, which every below-saturation claim
 in this chapter already assumes.
 
@@ -2381,13 +2384,13 @@ alone.
 That agreement extends up the distribution, and stating why takes one comparison. The p99
 values differ by $\PNineNineRange\,\mu$s across variants while the widest $95\%$ confidence
 interval on a single variant's own p99 spans $\PNineNineMaxCI\,\mu$s, so the uncertainty about one
-variant is smaller than the gap between them. That relation is what licenses an ordering, and it is
+variant is smaller than the gap between them. That relation is what justifies an ordering, and it is
 the relation this study could not obtain for most of its life: on the virtualised host the same two
 quantities were $\GuestPNineNineRange\,\mu$s and $\GuestPNineNineMaxCI\,\mu$s, the wrong way round
 by a factor of five. Section~\ref{sec:hostcompare} sets the two hosts side by side, because the
 difference between them is a result about measurement rather than about either language.
 
-The tail rows of Table~\ref{tab:significance} therefore carry a finding rather than a shrug, and the
+The tail rows of Table~\ref{tab:significance} therefore carry a finding rather than no answer, and the
 instrument that carries it is the corrected $p$-value and not the interval. Both p99 rows and both
 p99.9 rows clear the Holm correction, \NTailSignificant{} rows in all, with the same direction as at
 the median. Their intervals also exclude zero, and Section~\ref{sec:stats} fixes in advance that an
@@ -2408,9 +2411,9 @@ smallest, and both \FarTailLower{} variants sit below both of the others.
 \begin{table}[H]
 \centering
 \small
-\caption[Per-operation latency at the representative load]{Per-operation latency at a sustained offered load of $\ReprLoad$~kops/s (mixed
-RAN-lifecycle workload, $7$ shards). Values in microseconds: the median over \NRepeats{}
-repeats above its nonparametric bootstrap $95\%$ confidence interval. The interval is printed
+\caption[Per-operation latency (\textmu s) at the representative load]{Per-operation latency, in microseconds, at a sustained offered load of $\ReprLoad$~kops/s (mixed
+RAN-lifecycle workload, $7$ shards). The median over \NRepeats{}
+repeats is printed above its nonparametric bootstrap $95\%$ confidence interval. The interval is printed
 in full rather than as a symmetric half-width because it is strongly asymmetric at these
 percentiles, and a half-width wide enough to cover the upper bound would place the lower one
 below zero. $^{\dagger}$The p99.99 column is the exception, and deliberately so: it is one
@@ -2450,10 +2453,10 @@ bare-metal campaign reaches independently (Section~\ref{sec:hostcompare}).
 \paragraph{Testing the comparison rather than eyeballing it.}
 Overlapping intervals are a weak instrument in both directions, so the comparison is also tested
 directly, by the procedure fixed in Section~\ref{sec:stats} and reported in
-Table~\ref{tab:significance}. What licenses the pairing is a property of this campaign and not of
+Table~\ref{tab:significance}. What justifies the pairing is a property of this campaign and not of
 the statistic: the four variants are interleaved inside every repeat, so the $i$-th run of each met
 the same ambient conditions and whatever interference that block carried cancels in their
-difference. That is the second thing the interleaving discipline buys, beyond the fairness argument
+difference. That is the second thing the interleaving discipline provides, beyond the fairness argument
 it was adopted for.
 
 \begin{table}[tp]
@@ -2689,8 +2692,9 @@ Panel~(b) shows achieved throughput against the same axis, and it is the
 more informative of the two, because an average over a whole run is far less sensitive than
 a percentile to interference landing on individual operations. All four variants track the ideal
 offered-equals-achieved line up to an offered $\TrackingLoad$~kops/s, and the lowest plateau any of
-them reaches is $\SatKnee$~kops/s. Each knee is bracketed by the rate ladder and not pinned by it:
-the next rung is where an arm stops tracking, so its true saturation point lies between the two and
+them reaches is $\SatKnee$~kops/s. Each knee is bracketed by the rate ladder of offered-load
+levels and not pinned by it: the next rung is where an arm stops tracking, so its true
+saturation point lies between the two and
 the sweep steps over it. Achieved throughput matches offered load below the knee to within
 $\ReprLoadShortfall\%$, so the operating point of Table~\ref{tab:latency} is a genuinely
 \emph{sustained} load and not a nominal one, and the latencies reported there are not those of an
@@ -2705,7 +2709,7 @@ consequence is the largest throughput gap anywhere in the sweep: \KneeGapFaster{
 $\KneeGapThrFast$~kops/s while \KneeGapSlower{} has already collapsed to $\KneeGapThrSlow$, a factor
 of $\KneeGapRatio$, in \KneeGapAgree{} paired repeats.
 
-Three things bound what that rung licenses. It is \emph{not} added to the tested family of
+Three things bound what may be claimed from that rung. It is \emph{not} added to the tested family of
 Section~\ref{sec:stats}, because the operating point was identified after seeing the sweep and the
 family is fixed in advance precisely so that a point chosen that way cannot enter it, whatever its
 $p$-value would be. It is reported descriptively instead, with its per-repeat agreement, and the
@@ -2760,12 +2764,12 @@ show instead is two languages separated at every percentile with the gap widenin
 against the widest confidence interval on any one of them, with the ratio annotated above each pair
 of bars. Once that ratio passes one, the uncertainty about a single variant is larger than the gap
 between all four and no ordering can be read off. It does not pass one anywhere here, peaking at
-$\TailResolveRatioMax$ at \TailResolveRatioMaxAt{}, which is what licenses reading an ordering at the
+$\TailResolveRatioMax$ at \TailResolveRatioMaxAt{}, which is what justifies reading an ordering at the
 percentiles drawn here. On the virtualised host of Section~\ref{sec:hostcompare} it passed one above
 the median. Both panels stop at p99.9, because both are built from per-run percentiles aggregated
 across repeats and the reported p99.99 is pooled instead, for the reason Section~\ref{sec:stats}
 gives. A pooled figure has no across-repeat interval, so it has no place in panel~(b)'s comparison,
-and the far-tail ordering of Table~\ref{tab:latency} is licensed by the millions of operations behind
+and the far-tail ordering of Table~\ref{tab:latency} rests on the millions of operations behind
 it and not by this diagnostic.\label{fig:tailpct}}
 \end{figure}
 
@@ -2823,7 +2827,7 @@ full-service ordering at significance. That rules them out \emph{alone} as the w
 for a $\OverloadThrRatio\times$ gap. As in Section~\ref{sec:budget}, nothing in the safety model
 is implicated.
 
-The setting bounds what the finding licenses, and Section~\ref{sec:threats} says how far it
+The setting bounds what the finding can support, and Section~\ref{sec:threats} says how far it
 travels. The depth of the collapse depends on one design, one request outstanding per producer and
 a queue bound of $1\,024$, measured with a harness whose producers block per request. What travels is the ordering under collapse, and that the isolated primitives do not produce
 it on their own.
@@ -3592,7 +3596,7 @@ $\FarTailRange\,\mu$s. The end-to-end number is
 only $\BudgetCoreShareMax\%$ operation, so it cannot bound a language effect in any case, while
 the operation measured apart is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster. Past
 saturation they diverge decisively, and in both directions: the Rust arms hold their offered rate
-one rung further, to $\TrackingLoadRust$~kops/s against $\TrackingLoadCpp$, while at
+one load level further, to $\TrackingLoadRust$~kops/s against $\TrackingLoadCpp$, while at
 $\OverloadLoad$~kops/s, where all four have collapsed,
 \OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$ the throughput of
 \OverloadSustainedSlower{} in \OverloadThrAgree{} repeats under both allocators. & Overload,
@@ -3705,7 +3709,7 @@ and not of either language. A specification that states a prohibition without as
 mechanism leaves each implementation to fail in its own idiom. The two idioms here are a
 panic and a use-after-free.
 
-Where the guarantee stops matters just as much to a vendor deciding what Rust buys, and the two
+Where the guarantee stops matters just as much to a vendor deciding what Rust offers, and the two
 boundary classes are instructive for different reasons. The lock-order deadlock shows that Rust
 reasons about \emph{aliasing} and not about \emph{acquisition order}. A \texttt{Mutex} guard is an
 ordinary value whose lifetime the borrow checker tracks perfectly, and tracking it perfectly
@@ -3781,7 +3785,7 @@ neither figure is the safety model in any case. Throughput splits the same way a
 reason. Below saturation there is nothing to measure, because achieved throughput tracks offered
 load by construction. Above it sits the largest effect in the study.
 
-Back to the memory penalty, because three things bound what it licenses. It is a fixed cost
+Back to the memory penalty, because three things bound what may be concluded from it. It is a fixed cost
 rather than a per-context one, so its share of a deployment's footprint falls as the deployment
 grows. It is also located: the allocator's own accounting puts the difference \emph{outside}
 the allocator, since the Rust build holds less live data and fewer resident bytes inside
@@ -3790,7 +3794,7 @@ That is a one-off charge per process, the standard library and the runtime, rath
 the work. Nothing here isolates bounds checking or ownership-driven copying as the cause.
 The mechanisms the literature has localised~\cite{zhang2022runtime,harris2023morello} are
 candidates to test, not conclusions to import. Adopting Rust here costs a few megabytes of
-fixed footprint per process, and it buys a faster core operation (Section~\ref{sec:budget})
+fixed footprint per process, and it gives a faster core operation (Section~\ref{sec:budget})
 that this workload's structure never turns into throughput below saturation, and that turns
 into a deficit above it.
 
@@ -3819,7 +3823,7 @@ allocation to differ, and what remains is the fixed footprint reported above, co
 number of UEs and not proportional to it. Their disagreement with this result is therefore
 between two concurrency runtimes and not between two languages, which is as direct a
 demonstration as the literature offers of why this study holds the concurrency model fixed. It
-also sharpens the caveat attached to the present number. It licenses nothing about Rust's
+also sharpens the caveat attached to the present number. It shows nothing about Rust's
 memory behaviour under a task-per-UE design, which is a different experiment.
 
 \paragraph{RQ4 (migration).} The prototype shows that incremental adoption is technically
@@ -3844,7 +3848,7 @@ Rust-owned data however carefully the Rust side was checked. That is why the rem
 in the literature isolate the two heaps with hardware support instead of relying on interface
 discipline~\cite{rivera2021galeed,kirth2022pkrusafe}, and the defect classes that arise at such
 boundaries have been catalogued in their own right~\cite{li2022crosslang}. So a migration
-of this shape buys less than ``the Rust part is safe''. It buys a migrated
+of this shape gives less than ``the Rust part is safe''. It gives a migrated
 component that stops \emph{contributing} new memory-safety defects, while it stays exposed to those
 of the host until the host is migrated too. That is still the right direction of travel, and it
 is a reason to sequence a migration so that the components sharing the most mutable state cross
@@ -4269,7 +4273,7 @@ result in particular would move on a codebase with a different header structure.
 The performance
 results travel least. UECM was deliberately chosen to be small and
 partitionable, and its shared-nothing design removes lock contention from the hot path. A
-subsystem with genuinely shared mutable state, deep call graphs, or heavy allocation churn could
+subsystem with genuinely shared mutable state, deep call graphs, or frequent allocation and release could
 therefore exercise the two languages' abstraction and allocation costs quite differently. The
 workload is synthetic and spec-justified, not replayed from production traffic, so its operation
 mix is plausible but unvalidated. Nothing here speaks to PHY or L2 processing, to the data-heavy
@@ -4394,8 +4398,8 @@ Taken together these support a narrow claim. For stateful, concurrent, partition
 control-plane services of this kind, at the loads where the service still meets its offered
 rate, the choice is which classes of defect an organisation wants to make unwriteable, and
 whether it will pay the engineering and learning cost of getting them. Past that point it
-is a performance decision as well. The reasons for the latter lie in the concurrency
-plumbing and not in either language's guarantees. What this thesis adds is an instrument
+is a performance decision as well. The reasons for the latter lie in how concurrency is
+implemented and not in either language's guarantees. What this thesis adds is an instrument
 and not a verdict: the frozen specification, the parity-tested pair, a measurement
 framework that reaches past the saturation knee, a decomposition that says how much of what
 it measures the language is answerable for, and a defect catalogue that maps where the
@@ -4673,7 +4677,7 @@ Workloads & signal, mixed & mixed walks the full RAN lifecycle \\
 Active UEs & \SweepUes{} & \\
 Offered-load levels & \NLoadLevels{} & up to $\MaxOfferedLoad$~kops/s \\
 Representative load & $\ReprLoad$~kops/s & fixed, see caption \\
-Measured throughput plateau & $\SatKnee$~kops/s achieved & the lowest of the four, reached at an offered $\TrackingLoad$~kops/s. The Rust arms track one rung further, to $\TrackingLoadRust$ \\
+Measured throughput plateau & $\SatKnee$~kops/s achieved & the lowest of the four, reached at an offered $\TrackingLoad$~kops/s. The Rust arms track one load level further, to $\TrackingLoadRust$ \\
 Load model & open loop, fixed intended schedule & latency measured from intended send time \\
 \hline
 \multicolumn{3}{@{}l}{\emph{Campaign}} \\

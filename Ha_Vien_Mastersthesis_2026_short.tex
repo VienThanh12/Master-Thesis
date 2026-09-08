@@ -1176,10 +1176,10 @@ smallest, and both \FarTailLower{} variants sit below both of the others.
 \begin{table}[H]
 \centering
 \small
-\caption[Per-operation latency at the representative load]{Per-operation latency at a sustained
-offered load of $\ReprLoad$~kops/s (mixed RAN-lifecycle workload, $7$ shards). Values in
-microseconds: the median over \NRepeats{} repeats above its nonparametric bootstrap $95\%$
-confidence interval, printed in full rather than as a symmetric half-width because it is strongly
+\caption[Per-operation latency (\textmu s) at the representative load]{Per-operation latency, in microseconds, at a sustained
+offered load of $\ReprLoad$~kops/s (mixed RAN-lifecycle workload, $7$ shards). The median over
+\NRepeats{} repeats is printed above its nonparametric bootstrap $95\%$ confidence interval. The
+interval is printed in full rather than as a symmetric half-width because it is strongly
 asymmetric at these percentiles and a half-width covering the upper bound would place the lower
 one below zero. $^{\dagger}$The p99.99 column is the deliberate exception, one percentile of the
 \NRepeats{} repeats' histograms concatenated, \FarTailSamplesMin{} to \FarTailSamplesMax{}
