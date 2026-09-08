@@ -1319,7 +1319,7 @@ what each surviving citation now sits next to.""" + r"""
 """ + f"""{'None. This list is closed.' if not unlocated else
 f'''These {len(unlocated)} entries carry a sweep note rather than a located passage, so no page or
 clause is given and no evidence level is assigned. {len(v2_unlocated)} of them are cited by
-\\\\texttt{{{{Thesis\\\\_v2}}}}.'''}
+\\texttt{{Thesis\\_v2}}.'''}
 
 The list was six entries until 31 August 2026, all of them student theses or a paywalled paper, and
 three of the defects above sat on three of those keys. Where nobody had written down what the

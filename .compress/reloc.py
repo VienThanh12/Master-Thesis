@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Move a body block into the appendices and fix every reference prefix that points at it.
 
-Usage:  .reloc.py FILE 'start-line-prefix' 'end-line-prefix' 'anchor-line-prefix' [--demote]
+Usage:  .compress/reloc.py FILE 'start-line-prefix' 'end-line-prefix' 'anchor-line-prefix' [--demote]
+
+Run from the repository root, as with the bench/ scripts: FILE is resolved against the
+working directory.
 
 The block runs from the first line starting with `start-line-prefix` up to (not including) the
 first later line starting with `end-line-prefix`. It is inserted immediately before the first

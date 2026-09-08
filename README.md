@@ -59,6 +59,7 @@ The PDFs in this repository do not share a status and are not interchangeable.
 | `Thesis_Plan_v2.pdf` | Reviewed, supervisor-facing | Approved plan: gap, RQs, methodology, timeline, contributions |
 | `Thesis_v2.pdf` | Reviewed, supervisor-facing | Supervisor read-through: Chapter 1 is the full draft introduction, chapters 2--8 keep five argument paragraphs each in plain prose. All eight chapters match the full draft's chapter list since 26 August 2026, and the results paragraphs quote the generated macros rather than carrying their own numbers |
 | `Ha_Vien_Mastersthesis_2026.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, a full argument, and everything in it still need review. The name is the UH submission format (`Lastname_Firstname_Mastersthesis_Year`, ASCII) and says nothing about review status. It was `Thesis_POC` until 19 August 2026 |
+| `Ha_Vien_Mastersthesis_2026_short.pdf` | Compression pass, in progress | A shorter cut of the full draft, built from the same class, macros, figures and bibliography. It declares 55 pages against the draft's 97, with the same 12 appendix pages, and it is `oneside` where the draft is `twoside,openright`. The material it sheds is relocated to appendices or merged rather than deleted, and [`.compress/shortcheck.py`](.compress/shortcheck.py) is what checks that nothing was lost. Not supervisor-facing and not a submission candidate |
 | `source_audit.pdf` | Generated citation audit | Every bibliography entry, ordered as in the full draft's reference list, with the citing sentence beside the source's own words. Built by [`.bibaudit/build_audit.py`](.bibaudit/build_audit.py). Do not hand-edit `source_audit.tex`, with one exception: the last column of Part 1 is the author's review tick, and turning a `$\square$` into a `$\blacksquare$` is how the source-checking pass records progress. The generator reads those ticks back out of the old document before overwriting it, mirrors them to `.bibaudit/reviewed.txt`, and prints how many it carried. Read that line after every rebuild, because a regeneration silently wiped 22 of them on 1 September 2026 |
 | `ai_statement.tex` | Declaration in the author's name | Statement on generative-AI use, shared by both thesis documents |
 | [`archive/`](archive/) | Superseded, not maintained | Earlier variants kept for reference only: `plain_thesis.tex`, `thesis-vi.tex` (renders its citations as `[?]`), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, and the v1 plan PDF. They read relative paths from the repository root, so they no longer build where they sit |
@@ -106,12 +107,19 @@ reader-facing view of that record.
 │   └── review/            Commented PDFs a reviewer returns, read by pdfannots.py. Gitignored, create it locally
 ├── .bibaudit/         Generates `source_audit.tex` from `bibliography.bib`, the `.bbl`, and the evidence notes
 │   └── reviewed.txt       Mirror of Part 1's review ticks, so they survive a regeneration of the document
-├── archive/           Superseded document variants, kept for reference; not maintained, do not build
+├── .compress/         One-shot tools for the short cut of the full draft. Run them from the repository root, as with bench/
+│   ├── lengthprice.py     Price prose words, floats and page span per chapter, section and subsection
+│   ├── shortcheck.py      Report citation keys, labels, references and macros the short cut dropped
+│   ├── reloc.py, movapp.py   Move a body block into the appendices, or reorder appendices
+│   ├── strip.py, deref.py, retarget.py   Delete relocated material and repoint what referenced it
+│   └── drafts/            Rewritten chapter candidates and the pre-relocation backup
+├── archive/           Superseded document variants and retired assets, kept for reference; not maintained, do not build
 ├── template/          Assets HYthesisML.cls loads by path (cover-page dictionaries, HY logo)
 │   └── upstream/          Pristine CSM thesis template the class was taken from
 ├── build/             latexmk intermediates (.aux, .log, .bbl); gitignored, safe to delete
 ├── HYthesisML.cls     Department class file the thesis documents build on
 ├── Ha_Vien_Mastersthesis_2026.tex   Canonical full draft, under the UH submission filename
+├── Ha_Vien_Mastersthesis_2026_short.tex   Shorter cut of the same draft, in progress. Tooling in `.compress/`
 ├── Thesis_v2.tex      Supervisor-facing chapter skeleton
 ├── Thesis_Plan_v2.tex Revised thesis plan
 ├── source_audit.tex   Generated citation audit. Only the Part 1 review tick is hand-edited. Rebuild with `.bibaudit/build_audit.py && latexmk -pdf source_audit.tex`
@@ -127,6 +135,13 @@ reader-facing view of that record.
 The PDFs stay beside their sources, so `Ha_Vien_Mastersthesis_2026.pdf` and the SyncTeX index land
 at the root where the editor expects them. Only the intermediates go to `build/`, which
 `.latexmkrc` sets.
+
+**The document sources have to stay at the root**, which is worth knowing before anyone tidies them
+into a subdirectory. Every one of them resolves `figures/`, `diagrams/pdf/`, `template/figures/` and
+`ai_statement.tex` as paths from the root, and [`archive/README.md`](archive/README.md) records that
+the archived variants stopped building the moment they moved. The four prose checks are pinned for a
+different reason: `bench/refresh_thesis.sh`, `diagrams/check_labels.py`, the grading skill and
+`.cursor/rules/thesis-quality.mdc` all name them by path.
 
 Each component directory (`spec/conformance/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/`,
 `docker/`) has its own `README.md` with build and run instructions.

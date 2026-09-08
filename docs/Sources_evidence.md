@@ -562,6 +562,43 @@ checked** by the Rust compiler because of Unsafe Rust **hidden somewhere in a li
 chain**."
 **Verdict** OK — this is close to a word-for-word match with the thesis sentence at 810.
 
+### `meneely2025justuserust` — "Just Use Rust", SVM@ICSE 2025, 25–32
+**Metadata** ✔ DOI `10.1109/SVM66695.2025.00008` resolves. IEEE/ACM 3rd International Workshop on
+Software Vulnerability Management, co-located with ICSE 2025, Ottawa, 3 May 2025. Author order
+taken from the publisher record and from the first author's ORCID, both of which give Meneely,
+Green, Jaafari, Fluet, Keller — **not** the reading-order of the paper's own two-column author
+block, which puts Fluet second. Pages 25–32 confirmed against the workshop's table of contents.
+**Cited** `Ha_Vien_Mastersthesis_2026.tex:635, 3685`; `Thesis_v2.tex:501`;
+`Thesis_Plan_v2.tex:169` — the boundary RQ2 sets out to locate has been estimated once at
+taxonomy scale, and that estimate assumes the converted code stays safe, which is the assumption
+the seam double-free withdraws.
+**Evidence — level A** (the paper as published, read from the Helsinki-licensed Xplore PDF; page
+numbers below are the printed folios 25–32, not PDF pages):
+- The figure the thesis quotes, p. 25 (abstract) and again as a display claim on p. 30: "We
+  estimate that **58.2% of historical vulnerabilities in our selection of open source C projects
+  would have been virtually impossible in Rust**."
+- Its denominator, p. 30 (§V-C): 4,507 vulnerabilities are associated with the 68 projects and
+  "**2,257 had a CWE designation**", which is what Figure 2 weights. The thesis therefore writes
+  *classified* vulnerabilities and not *recorded* ones.
+- The mapping, p. 27 (§IV-A): "**We counted 520 CWE Base entries** and had the first author map
+  each one." Every base entry is covered, which is what "at the scale of a whole weakness
+  taxonomy" reports.
+- The assumption, p. 32 (§VI *Limitations*, first item, *Safe Rust*): "all of the Virtually
+  Impossible designations **require safe Rust**. Automated conversion tooling or careless
+  implementation may simply mark some code as unsafe, which **brings back these vulnerabilities
+  as possibilities**." This is the clause the RQ2 discussion cites, and it is the authors' own
+  first limitation rather than an inference from their result.
+- Scope, same section (*Security Only*): "This work only focuses on security, **not performance**,
+  correctness, maintainability", so it bounds RQ2 and says nothing about RQ1 or RQ3.
+
+**Two cautions for anyone re-quoting this source.** It prints the Virtually Impossible share of
+the taxonomy as 14.8% on p. 28 where its own counts give 72 of 520, so quote the counts and not
+that percentage. And its Summary on p. 32 says the study covers "75 prominent, mature open source
+projects" where the abstract, §V-B and §V-C all say 68. The thesis quotes 68 and 58.2%, the pair
+the abstract and the results section agree on.
+**Verdict** Entry OK. All four citing sentences carry the best-case framing with the number, which
+is the source's own reading of it.
+
 ### `bae2021rudra` — Rudra, SOSP 2021, 84–99
 **Metadata** ✔ Crossref matches.
 **Cited** `Ha_Vien_Mastersthesis_2026.tex:3645` — ecosystem-scale auditing finds defects nonetheless.

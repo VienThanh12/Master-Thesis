@@ -5,7 +5,9 @@ Reports citation keys, labels, cross-references and generated macros present in
 the reference document and missing from the short one, plus any reference to a
 label the short document no longer defines.
 
-Usage: .shortcheck.py reference.tex short.tex
+Usage: .compress/shortcheck.py reference.tex short.tex
+
+Run from the repository root, as with the bench/ scripts.
 """
 import re
 import sys

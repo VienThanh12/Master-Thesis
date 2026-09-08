@@ -628,6 +628,16 @@ classes it is expected not to, so the study can locate the boundary of the guara
 only confirming it. These hypotheses are revisited against the evidence in
 Section~\ref{sec:hypotheses}.
 
+The boundary RQ2 sets out to locate has been estimated once already at the scale of a whole
+weakness taxonomy. Every base entry of the Common Weakness Enumeration (CWE) has been mapped
+onto what safe Rust would prevent, and weighting those classes by the vulnerability history of
+68 open-source C projects puts 58.2\% of the classified vulnerabilities into classes safe Rust
+would have made virtually impossible~\cite{meneely2025justuserust}. The estimate is a best case
+by construction. It assumes the converted code stays safe, and it reads prevention from the
+weakness class rather than from a compiler that refused to build a particular program. RQ2 asks
+the same question of programs that are compiled and run, which is what lets it report at what
+stage and cost the classes outside the guarantee are caught.
+
 \section{Contributions, results, and limitations}
 The thesis makes six contributions. Two are artifacts: a reproducible benchmarking framework
 for telecom control-plane workloads, and a frozen shared specification with two parity-tested
@@ -3668,7 +3678,11 @@ That fits the CVE evidence that Rust memory-safety bugs always involve
 \texttt{unsafe}~\cite{xu2021rustcve}, and the caution that unsafety can still spread
 through dependencies~\cite{evans2020rust}, which is why keeping the core \texttt{unsafe}-free
 matters. The seam double-free is that evidence reproduced under controlled conditions: the one
-class in this catalogue that safe Rust rejects and unsafe Rust does not.
+class in this catalogue that safe Rust rejects and unsafe Rust does not. It also exercises the
+assumption every estimate of Rust's preventive reach has to make. The taxonomy-scale mapping of
+Section~\ref{sec:rqs} names that assumption as its own first limitation, because a class counted
+as virtually impossible stays impossible only while the converted code stays
+safe~\cite{meneely2025justuserust}.
 
 The one case that reaches past the written programs is the lifecycle defect of
 Section~\ref{sec:safetyresults}. It was found in the implementation, not written for
@@ -3981,8 +3995,7 @@ Section~\ref{sec:threats} treats that as the principal threat to construct valid
 
 Two 2026 bachelor's theses from outside the vendor set apply parts of the method to smaller
 objects: matched C and Rust user-space drivers, with a fixed memory overhead and no measurable
-run-time cost~\cite{sundvisson2026drivers}, and a Common Weakness Enumeration (CWE) staging
-study across C++, Rust and
+run-time cost~\cite{sundvisson2026drivers}, and a CWE staging study across C++, Rust and
 Python~\cite{andersson2026stdmemsafety}. Neither involves concurrency, a telecom workload, or a
 load sweep.
 

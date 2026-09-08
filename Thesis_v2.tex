@@ -219,6 +219,7 @@ API & Application programming interface \\
 AWS & Amazon Web Services \\
 CISA & Cybersecurity and Infrastructure Security Agency \\
 CPU & Central processing unit \\
+CWE & Common Weakness Enumeration \\
 EU & European Union \\
 FBI & Federal Bureau of Investigation \\
 FFI & Foreign function interface \\
@@ -492,6 +493,16 @@ it can fail. The defect catalogue behind RQ2 spans classes safe Rust is expected
 classes it is expected not to, so the study can locate the boundary of the guarantee instead of
 only confirming it. These hypotheses are revisited against the evidence in
 Chapter~\ref{chapter:discussion}.
+
+The boundary RQ2 sets out to locate has been estimated once already at the scale of a whole
+weakness taxonomy. Every base entry of the Common Weakness Enumeration (CWE) has been mapped
+onto what safe Rust would prevent, and weighting those classes by the vulnerability history of
+68 open-source C projects puts 58.2\% of the classified vulnerabilities into classes safe Rust
+would have made virtually impossible~\cite{meneely2025justuserust}. The estimate is a best case
+by construction. It assumes the converted code stays safe, and it reads prevention from the
+weakness class rather than from a compiler that refused to build a particular program. RQ2 asks
+the same question of programs that are compiled and run, which is what lets it report at what
+stage and cost the classes outside the guarantee are caught.
 
 \section{Contributions, results, and limitations}
 The thesis makes six contributions. Two are artifacts: a reproducible benchmarking framework

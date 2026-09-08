@@ -162,6 +162,11 @@ classes safe Rust rejects and seven it does not. Memory-safety defects in real
 Rust code invariably trace back to \texttt{unsafe}~\cite{xu2021rustcve}, which
 one boundary class now reproduces directly, while
 deadlock remains an open problem for the language~\cite{zhang2026deadlock}.
+The premise that converted code stays safe carries more than this catalogue. A
+taxonomy-scale mapping of the Common Weakness Enumeration onto safe Rust puts
+58.2\% of the vulnerabilities recorded against 68 open-source C projects on the
+prevented side, and names that premise as its own first
+limitation~\cite{meneely2025justuserust}.
 Two of the seven boundary classes returned the opposite of the expected result,
 with the C++ tooling reporting what Rust's does not, which is the kind of
 finding a one-sided catalogue could not have produced.

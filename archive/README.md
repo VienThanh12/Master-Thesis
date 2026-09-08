@@ -11,6 +11,8 @@ they are maintained. Nothing here is a deliverable, and none of it is checked by
 | `thesis_wbm_full_backup.tex` / `.pdf` | Backup of the skeleton before the bibliography move | One word different from `Thesis_v2.tex` and still on `\bibliographystyle{abbrv}` |
 | `Thesis_POC.tex.bak-before-cuts` | `Thesis_POC.tex` as it stood before the August length cuts | Snapshot only. Git history holds the same content |
 | `Thesis_Plan.pdf` | First thesis plan | Superseded by `Thesis_Plan_v2.pdf`. Its source is no longer in the repository |
+| `UH_DS_MSc.cls` / `UH-logo.png` | Reconstructed data-science master's class and the logo its title page loaded | Superseded by the department's own `HYthesisML.cls`, which no document has loaded since it landed. The class is the only thing that ever referenced the logo, so the two retire together |
+| `rollback-20260827-220354/` | Dated snapshot of `AGENT.md`, both thesis sources, `TODO.md` and thirty generated figures and tables, taken before the canonical bare-metal integration | Git history holds the same state at that commit. Moved out of the repository root on 8 September 2026 |
 
 These sources resolve `figures/`, `diagrams/`, and `ai_statement.tex` relative to the repository
 root, so they do not build from this directory. Reviving one means fixing those paths and, for

@@ -3,7 +3,10 @@
 
 Reports prose words, float count and the declared page span of every chapter,
 section and subsection, so a length pass can be planned against measured cost.
-Usage: .lengthprice.py [file.tex]
+Usage: .compress/lengthprice.py [file.tex]
+
+Run from the repository root, as with the bench/ scripts. The default and any
+relative argument are resolved against the working directory.
 """
 import re
 import sys

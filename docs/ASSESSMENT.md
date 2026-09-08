@@ -2549,7 +2549,7 @@ whether §`sec:workload`'s new wording earns the change or merely announces it.
 118 physical pages. Zero LaTeX errors, zero undefined references, zero warnings. One overfull box,
 pre-existing, in a running header. `./.aitells.py`: zero semicolons, sentence-length stdev 11.3, all
 14 dash hits numeric ranges or a compound proper name. `bench/refresh_thesis.sh` runs end to end.
-Rollback point: `.rollback-20260827-220354`.
+Rollback point: `archive/rollback-20260827-220354` (at the repository root as `.rollback-20260827-220354` until 8 September 2026).
 
 ### What is left
 
