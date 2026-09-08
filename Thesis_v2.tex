@@ -234,14 +234,14 @@ representative RAN subsystem, a UE Context Management service modelled on a real
 gNB-CU-CP component, in modern C++ and in Rust, and compares them under a realistic
 synthetic signalling workload.
 
-% Checked (make sure everything is understandable)
 
 Three terms recur throughout. The \emph{gNB-CU-CP} is the control-plane software this work is
 about. \emph{UE Context Management (UECM)} is the specific subsystem reimplemented and measured.
 \emph{Tail latency}, the p99 and p99.9 percentiles rather than the mean, is the property that,
 more than average speed, decides whether such a system meets its
-deadlines~\cite{dean2013tail,barroso2017microseconds}. Every acronym is written out where the
-text first uses it, and the \nomname{} in the front matter collects them.
+deadlines~\cite{dean2013tail,barroso2017microseconds}.
+
+% Checked (make sure everything is understandable)
 
 \section{Motivation and industrial context}\label{sec:motivation}
 Three trends make this comparison timely. The first is the cloud-native evolution of the RAN
