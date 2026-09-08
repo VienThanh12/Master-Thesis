@@ -3479,3 +3479,376 @@ currently 105 entries with no orphans, so anything taken from here has to be cit
    keep standing. Optional, and lowest risk of the six.
 7. **Then reconsider §F.** Three of those eight were recommended a week ago and attach to results
    that currently have no support at all.
+
+---
+
+# Addition, 8 September 2026 — a taxonomy-scale estimate of what Rust prevents
+
+Not a sweep. One source, brought in because the author's Nokia instructor pointed at it and asked
+for it beside RQ2.
+
+## A. Meneely, Green, Jaafari, Fluet and Keller, SVM@ICSE 2025 — VERIFIED
+
+`meneely2025justuserust`. "Just Use Rust": A Best-Case Historical Study of Open Source
+Vulnerabilities in C. IEEE/ACM 3rd International Workshop on Software Vulnerability Management,
+Ottawa, 3 May 2025, pages 25–32, DOI `10.1109/SVM66695.2025.00008`. Peer-reviewed workshop paper
+at an ICSE satellite event, so it is not grey literature and needs no hedge of the kind the five
+vendor theses carry.
+
+**Author order is the one trap in the metadata.** The paper's own two-column author block reads
+Meneely, Fluet, Green down the left and Keller, Jaafari on the right, so reading it top to bottom
+gives the wrong order. The publisher record, the workshop table of contents and the first author's
+ORCID all give **Meneely, Green, Jaafari, Fluet, Keller**, which is what the entry uses.
+
+**What it carries that nothing already in the bibliography does.** Every source the thesis had for
+the reach of memory safety was either a vendor's own count (`msrc2019memory`,
+`google2022android`, `vanderstoep2025android`) or a study of defects found *in* Rust
+(`xu2021rustcve`, `evans2020rust`, `qin2020rust`, `qin2024safety`, `zheng2024security`). None of
+them puts a number on how much of a C project's recorded vulnerability history a compiler could
+have refused. This one does, over 520 CWE base entries and the histories of 68 C projects, and it
+reports both sides of the division rather than the favourable one. That is the two-sided reading
+RQ2's catalogue is built for, at a scale a hand-written catalogue of fourteen programs cannot
+reach.
+
+**Where it is cited, and what each site asks of it.** Four sites, and none of them leans on the
+number alone.
+
+1. `Ha_Vien_Mastersthesis_2026.tex:635` and `Thesis_v2.tex:501`, §1.3, a new paragraph after the
+   hypotheses: the boundary RQ2 sets out to locate has been estimated once at taxonomy scale, on a
+   best case that reads prevention from the weakness class and not from a compiler that refused to
+   build a program.
+2. `Ha_Vien_Mastersthesis_2026.tex:3685`, the RQ2 discussion, beside the seam double-free: the
+   safe-code premise is the authors' own first limitation, and the seam class is that limitation
+   exercised rather than stated.
+3. `Thesis_Plan_v2.tex:169`, the RQ2 two-sided paragraph, for the same premise.
+
+**What it may not be made to carry.** Four things, all of them easy to reach for later.
+
+- **Not a performance claim.** Its own *Security Only* limitation says the work "only focuses on
+  security, not performance, correctness, maintainability", so it cannot support anything in RQ1
+  or RQ3, and it is not a contrary result to weigh against them either.
+- **Not 14.8%.** The paper prints that as the Virtually Impossible share of the taxonomy where its
+  own counts give 72 of 520. Quote the counts.
+- **Not 75 projects.** Its Summary says 75 where the abstract and both results sections say 68.
+  The thesis quotes 68.
+- **Never a CWE identifier taken from its prose.** §V-A's worked examples carry identifiers that do
+  not match the names beside them: it gives CWE-401 as "Use of Pointer Subtraction to Determine
+  Size" (that is CWE-469, and CWE-401 is a memory leak), CWE-165 for integer wraparound (CWE-190),
+  CWE-320 and CWE-321 for the two race conditions (CWE-364 and CWE-366), CWE-322 for TOCTOU
+  (CWE-367, which the same paper later writes correctly and elsewhere as CWE-376), and CWE-79 for
+  code injection (CWE-94). **Table II's identifiers are right**, so take any CWE number from the
+  table and never from the surrounding text.
+
+## A.1 The one cell of their mapping this thesis contradicts
+
+Worth knowing before anyone cites the paper as agreeing with `tab:taxonomy` throughout. **Table II
+classifies CWE-401, Missing Release of Memory after Effective Lifetime, as Virtually Impossible in
+safe Rust, across 96 CVEs in 6 projects.** The `leak_cycle` boundary class compiles in safe Rust,
+leaks, and is caught by ASan on the C++ side and by nothing on the Rust side, which is one of the
+two rows where `AGENT.md` §3 item 3 records the C++ tooling as ahead.
+
+Three things make the disagreement worth stating rather than smoothing over.
+
+1. **The class is theirs, not a stretch of ours.** MITRE's own observed example for CWE-401 is
+   `CVE-2002-0574`, "chain: reference count is not decremented, leading to memory leak", so a
+   reference-cycle leak sits inside CWE-401 as MITRE documents it. Its listed mitigation is to
+   "choose a language or tool that provides automatic memory management", which is the mechanism
+   that leaks in the cycle case.
+2. **Their own method predicts the failure.** §IV-A says "Rust may have different preventions for
+   one Variant or another within the same Base. In practice, we did not encounter such an example."
+   CWE-401 is that example. Forgetting to free is prevented by `Drop`. A cycle of shared owners is
+   not, and both are the same Base entry.
+3. **They asked for exactly this.** The paper invites "healthy debate", runs the mapping as an open
+   project, and says corrections will be reflected in its published analysis. A controlled
+   injection that moves one cell is the form of correction it asked for.
+
+This is a finding about their mapping and not about Rust: `Rc` cycles are the textbook leak in the
+Rust documentation. Do not write it up as a discovery about the language.
+
+Full evidence record, with the passage behind each clause, is in `Sources_evidence.md`.
+
+## B. BibTeX
+
+```bibtex
+@inproceedings{meneely2025justuserust,
+  author    = {Meneely, Andrew and Green, Aiden and Jaafari, Tyler and
+               Fluet, Matthew and Keller, Brandon},
+  title     = {``Just Use {Rust}'': {A} Best-Case Historical Study of Open Source
+               Vulnerabilities in {C}},
+  booktitle = {Proceedings of the 3rd IEEE/ACM International Workshop on Software
+               Vulnerability Management (SVM)},
+  pages     = {25--32},
+  year      = {2025},
+  doi       = {10.1109/SVM66695.2025.00008},
+  url       = {https://doi.org/10.1109/SVM66695.2025.00008}
+}
+```
+
+## C. One repository defect it exposed on the way in
+
+`.bibaudit/build_audit.py` writes a sentence counting the entries whose supporting passage was
+never located, and that branch had never run, because the list has been at zero since 31 August.
+Adding a bibliography entry before its `Sources_evidence.md` record put one entry on the list, the
+branch fired, and its `\texttt{Thesis\_v2}` was escaped twice over inside a nested f-string, which
+is four LaTeX errors in `source_audit.tex`. The escaping is fixed and the record is written, so the
+list is back to zero and the branch is dormant again. Same lesson as `diagrams/26_contributions`:
+**generated output that nothing has ever printed is not checked by anything.**
+
+---
+
+# Seventh sweep, 8 September 2026 — the forward-chaining step, actually executed
+
+The sixth sweep asked whether anyone else reaches this thesis's conclusions. This one asks a
+question about the search rather than the argument: **Appendix B says the result set was "extended
+by backward and forward citation chaining from the core Rust-safety papers", so what does that
+step return when it is run to completion?** It was prompted by the Meneely addition earlier the
+same day, which the appendix's own filter clause had excluded and which chaining should have
+reached.
+
+## A. Method, and what it cost
+
+Twelve seeds: the ten safety-strand anchors (`jung2018rustbelt`, `jung2021safe`,
+`jung2020stacked`, `qin2020rust`, `astrauskas2020unsafe`, `xu2021rustcve`, `bae2021rudra`,
+`zheng2024security`, `qin2024safety`, `evans2020rust`) plus `balasubramanian2017rust` and
+`emmerich2019drivers`. For each, the OpenAlex `cites:` list was paginated **to the end** rather
+than sampled. That is 911 citing slots, 557 unique works, of which 210 mention Rust and touch one
+of six topic buckets once everything already in the bibliography is subtracted. Metadata for every
+item below is Crossref-verified.
+
+Two method notes for the next person.
+
+1. **`emmerich2019drivers` returns `cited_by_count` 0 in OpenAlex**, which is plainly wrong for
+   that paper. Its record is a stub and the citations sit on a duplicate. A seed reporting zero is
+   a broken record, not an uncited paper, so check before concluding the branch is empty.
+2. One referenced work in a 28-item list answered HTTP 404 when fetched singly, because OpenAlex
+   had merged it. Batch the resolution through `filter=openalex:W1|W2|...` instead of looping over
+   single-work endpoints, which both avoids the merge holes and costs one request.
+
+## B. The finding about the search, before the findings about the literature
+
+The three most useful items below are all in the reference list of `mccormack2026unsafe`, **which
+is already in the bibliography**. One backward hop from an entry the thesis already cites would
+have delivered the ICSE 2025 foreign-function study, Tree Borrows, and the Miri paper. The
+Meneely paper sits one forward hop away, in the `cites:` lists of `xu2021rustcve` and
+`evans2020rust`, which hold 63 and 61 works.
+
+So the chaining step described in Appendix B was not performed as described. Nothing was out of
+reach and no index was missing anything. That is the honest diagnosis and it is cheaper to fix
+than a coverage problem: read each seed's cited-by list to the end once before submission, and
+read the reference list of every entry added after the first sweep.
+
+## C. What it returned, ordered by what it does to the thesis
+
+### C.1 It corrects a sentence the thesis asserts without support — McCormack, Sunshine and Aldrich, ICSE 2025 — VERIFIED
+
+Section 7.4 currently reads, of the seam double-free: "Miri interprets Rust and cannot execute a
+C++ host, so the program it checked uses a Rust stand-in for the host. The tool that finds this
+defect cannot be pointed at the configuration the defect ships in ... **Nothing in the toolchain
+checks that boundary**". That is asserted from this study's own experience and carries no citation.
+
+This paper is that claim, at ICSE, with a measurement behind it. Miri "does not support finding
+bugs in foreign functions", and pairing Miri with an LLVM interpreter to execute both sides found
+**46 instances of undefined or undesired behaviour in 37 libraries**, three of them in libraries
+that had already been audited.
+
+It also **qualifies the thesis's wording**, which is why this is a correction and not just a
+citation. "Nothing in the toolchain" is too strong now: no shipped tool checks the boundary, and
+the research prototype that does found defects at that rate. The sentence should say the first and
+cite the second. Note also that the same group's mixed-methods paper is `mccormack2026unsafe`,
+already cited for `unsafe` concentrating at boundaries, so this is its measurement companion.
+
+### C.2 The thesis runs Miri and cites nothing for it — Jung et al., POPL 2026 — VERIFIED
+
+Miri carries part of the RQ2 boundary evidence (`faults/run_miri.sh`, the tooling table, §6.3 and
+§7.4) and has no citation anywhere in the document. The tool now has a paper, by the author of
+`jung2018rustbelt` and `jung2020stacked`, both cited three times over. Straightforward gap, and an
+examiner would notice a tool doing evidential work with no reference.
+
+### C.3 A contrary result with a mechanism, and it places this thesis's own design — Abdi et al., SPAA 2024 — VERIFIED
+
+Fourteen benchmarks ported from C++ to Rust. The finding splits by parallelism shape: Rust with
+Rayon "indeed delivers fearlessness for program phases comprising only regular parallelism",
+while for **any irregular parallelism** the programmer "must choose between unsafe code or
+high-overhead dynamic checks with errors that manifest at run time".
+
+Two uses, and the second matters more.
+
+- It belongs in §7.5's contrary-results passage beside `suchert2023stamp`, as a matched port that
+  finds a cost where this thesis finds none.
+- **It locates this study's concurrency model in the favourable half of its own division.** A
+  sharded, shared-nothing, run-to-completion design is regular parallelism, which is exactly the
+  case the paper reports as fearless and zero-cost. That is an external-validity statement the
+  thesis does not currently make, it is unflattering in the right way, and it is the kind of
+  scoping criterion 5 rewards.
+
+### C.4 A matched implementation in the network I/O domain — Sagramoni, Lettieri and Procissi, HPSR 2024 — VERIFIED
+
+Nethuns, a fast C network I/O library, rewritten in Rust, concluding that the Rust version
+"ensures a significantly higher level of safety at compile time, with a modest performance
+trade-off". Joins the §7.5 cluster of matched implementations (`li2021ipc`,
+`gonzalez2023rustudp`, `emmerich2019drivers`, `xiao2024rpkt`) and its verdict sits with this
+thesis rather than against it. Closest published work to this study's method in a networking
+context.
+
+### C.5 It qualifies a negative result the sixth sweep recorded — Wang et al., ISSRE 2024 — VERIFIED
+
+Sweep 6 §G recorded: "No Rust-specific atomicity-violation detector in the literature ... The
+atomicity-violation literature is general purpose ... and **none of it is about Rust**", and drew
+the inference that "the absence is itself a small point in favour of the thesis's `lost_update`
+row being worth publishing."
+
+This paper is "the first empirical study of atomic operations and memory ordering usage in Rust",
+inspecting 2,883 atomic usages and reporting 15 thread bugs and 150 performance issues. The
+detector half of the negative result survives, because this is a study and not a tool. The "none
+of it is about Rust" half does not, and **the inference drawn from the absence is weaker than
+recorded.** Keep the distinction straight if it is cited: `lost_update` is a logical atomicity
+violation under correct synchronisation, not a memory-ordering misuse.
+
+### C.6 The Bugden replacement, rediscovered — Costanzo et al., CLEI 2021 — VERIFIED
+
+`AGENT.md` names one remaining soft spot under criterion 2: the load-bearing arXiv cite
+`bugden2022rust`, used at §2.1 and in Appendix B. **The first sweep's §F.2 already verified this
+paper as its peer-reviewed replacement and it was never added.** Chaining found it independently
+from two seeds. A matched Rust and C comparison on an N-body case study, reporting both
+performance and programming effort, 20 citations.
+
+## D. Worth having, none of it load-bearing
+
+- **Wu, Yang and Hua, TrustCom 2025**, "Security Risks of Transpiling C Programs to Rust". A
+  dataset of 25,183 vulnerable C programs, examining how known vulnerabilities manifest after
+  transpilation. The empirical counterpart to the safe-Rust premise the Meneely paper names as its
+  own first limitation, so the two belong within a sentence of each other.
+- **Villani et al., PLDI 2025**, "Tree Borrows". Verified in the first sweep's §5.3 and still
+  absent. Also a staleness check rather than only an addition: §7.4 says Miri interprets against
+  **Stacked Borrows**, and Tree Borrows is the successor aliasing model. Confirm which model the
+  recorded run used before quoting either.
+- **Cui et al., ICSE 2024**, "Is unsafe an Achilles' Heel?". Safety requirements in unsafe API
+  documentation are inconsistent and insufficient. Supports the §7.4 fallback that hand review is
+  what is left at the seam, by showing what the reviewer has to work from.
+- **Zhang et al., QRS 2024**, "Beyond Memory Safety". 790 bug fixes across six projects and the
+  standard library, characterising run-time panics. §7.3 says "the two idioms here are a panic and
+  a use-after-free" with nothing behind the panic half.
+- **Popescu et al., PLDI 2026**, "Cpp2Rust". The only C++-to-Rust translation work in the whole
+  candidate set, where everything else translates C. Since this thesis's incumbent is C++ and not
+  C, that distinction is worth one clause in §7.6.
+
+## E. Rejected, and negative results
+
+- **Rejected: Procedia Computer Science 2023**, "Rust's Memory Safety Model: An Evaluation of Its
+  Effectiveness in Preventing Common Vulnerabilities", DOI 10.1016/j.procs.2023.10.509. It looks
+  ideal by title and it is a comparative essay with no measurement, published through a
+  proceedings service with weak review. Eight citations do not change that. Do not cite.
+- **The 210-candidate set contains no load-dependent Rust/C++ performance reversal.** Sweep 6 §G
+  reached that from keyword searches. It now also holds across the complete citing sets of twelve
+  seeds, which is a stronger form of the same absence.
+- **No matched-pair peak RSS measurement in the set either**, and nothing on a telecom control
+  plane. Results 4, 9 and 10 of the sixth sweep's table stay unreplicated.
+- **Around 150 of the 210 are verification, type systems and translation tooling.** That is the
+  shape of the citing literature around the safety anchors, and it is why chaining from those
+  seeds is cheap to do and easy to abandon halfway. Budget for the triage, not the harvest.
+
+## F. BibTeX for the six in §C, Crossref-verified
+
+```bibtex
+@inproceedings{mccormack2025ffi,
+  author    = {McCormack, Ian and Sunshine, Joshua and Aldrich, Jonathan},
+  title     = {A Study of Undefined Behavior Across Foreign Function Boundaries in
+               {Rust} Libraries},
+  booktitle = {Proceedings of the 47th IEEE/ACM International Conference on Software
+               Engineering (ICSE)},
+  pages     = {2075--2086},
+  year      = {2025},
+  doi       = {10.1109/ICSE55347.2025.00167},
+  url       = {https://doi.org/10.1109/ICSE55347.2025.00167}
+}
+
+@article{jung2026miri,
+  author    = {Jung, Ralf and Kimock, Benjamin and Poveda, Christian and
+               Mu{\~n}oz, Eduardo S{\'a}nchez and Scherer, Oli and Wang, Qian},
+  title     = {Miri: Practical Undefined Behavior Detection for {Rust}},
+  journal   = {Proceedings of the ACM on Programming Languages},
+  volume    = {10},
+  number    = {POPL},
+  pages     = {1383--1411},
+  year      = {2026},
+  doi       = {10.1145/3776690},
+  url       = {https://doi.org/10.1145/3776690}
+}
+
+@inproceedings{abdi2024fearless,
+  author    = {Abdi, Javad and Posluns, Gilead and Zhang, Guozheng and
+               Wang, Boxuan and Jeffrey, Mark C.},
+  title     = {When Is Parallelism Fearless and Zero-Cost with {Rust}?},
+  booktitle = {Proceedings of the 36th ACM Symposium on Parallelism in Algorithms
+               and Architectures (SPAA)},
+  pages     = {27--40},
+  year      = {2024},
+  doi       = {10.1145/3626183.3659966},
+  url       = {https://doi.org/10.1145/3626183.3659966}
+}
+
+@inproceedings{sagramoni2024netio,
+  author    = {Sagramoni, Riccardo and Lettieri, Giuseppe and Procissi, Gregorio},
+  title     = {On the Impact of Memory Safety on Fast Network {I/O}},
+  booktitle = {Proceedings of the 25th IEEE International Conference on High
+               Performance Switching and Routing (HPSR)},
+  pages     = {161--166},
+  year      = {2024},
+  doi       = {10.1109/HPSR62440.2024.10635971},
+  url       = {https://doi.org/10.1109/HPSR62440.2024.10635971}
+}
+
+@inproceedings{wang2024atomics,
+  author    = {Wang, Cheng and Tu, Tengfei and Qin, Sujuan and Wu, Guangjun and
+               Gao, Fei and Wan, Mingchao},
+  title     = {Understanding Atomics and Memory Ordering Issues in Real-World
+               {Rust} Software},
+  booktitle = {Proceedings of the 35th IEEE International Symposium on Software
+               Reliability Engineering (ISSRE)},
+  pages     = {582--592},
+  year      = {2024},
+  doi       = {10.1109/ISSRE62328.2024.00061},
+  url       = {https://doi.org/10.1109/ISSRE62328.2024.00061}
+}
+
+@inproceedings{costanzo2021nbody,
+  author    = {Costanzo, Manuel and Rucci, Enzo and Naiouf, Marcelo and
+               De Giusti, Armando},
+  title     = {Performance vs Programming Effort between {Rust} and {C} on
+               Multicore Architectures: Case Study in N-Body},
+  booktitle = {Proceedings of the XLVII Latin American Computing Conference (CLEI)},
+  pages     = {1--10},
+  year      = {2021},
+  doi       = {10.1109/CLEI53233.2021.9640225},
+  url       = {https://doi.org/10.1109/CLEI53233.2021.9640225}
+}
+```
+
+## G. What to change in the documents, if any of this is taken up
+
+Nothing here is a defect in a result. Five are additions and one is a correction.
+
+1. ~~**§7.4's "Nothing in the toolchain checks that boundary"** should become the narrower claim,
+   with `mccormack2025ffi` behind it.~~ **Done, 8 September 2026.** It now reads "No shipped tool
+   checks that boundary", followed by what the joint Miri and foreign-side execution found, in the
+   draft and in the short cut. `Thesis_v2.tex` needed nothing: its own sentence says Miri "cannot
+   execute the C++ host the defect ships behind" and never made the stronger claim.
+   **The edit turned up a second defect in the same two sentences**, which is why this item was
+   worth doing first. §7.4 read that Miri "interprets the program against the Stacked Borrows
+   aliasing model", and `faults/run_miri.sh` sets no `MIRIFLAGS` at all while
+   `faults/results/miri-seam_double_free.log` reports a `Box` validity error, "encountered a
+   dangling box (use-after-free)", and not an aliasing violation. The model naming is gone. It was
+   this paper that made it matter, since it reports Tree Borrows as "significantly more permissive"
+   than Stacked Borrows, so naming a model asserts a configuration the run never set. Same shape as
+   the three the twenty-first pass found: **prose beside an artefact that was itself correct.**
+2. **Appendix B's filter clause** admits work that "measures a systems language empirically,
+   formalises Rust's guarantees, or reports adoption experience". Repository-mining and taxonomy
+   studies of the incumbent language's own defect record are a fourth kind, and naming it is what
+   would have admitted `meneely2025justuserust`. The appendix should also stop claiming a chaining
+   step that this sweep is the first execution of.
+3. `jung2026miri` wherever Miri first appears, which is the tooling table in Chapter 5.
+4. `abdi2024fearless` twice: §7.5's contrary-results passage, and a scoping clause wherever the
+   thesis says its concurrency model is shared-nothing.
+5. `sagramoni2024netio` in §7.5's matched-implementation cluster.
+6. `costanzo2021nbody` alongside or in place of `bugden2022rust` at §2.1, which closes the last
+   arXiv dependency `AGENT.md` flags under criterion 2.
