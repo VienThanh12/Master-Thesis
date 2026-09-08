@@ -8,7 +8,7 @@ they are maintained. Nothing here is a deliverable, and none of it is checked by
 | --- | --- | --- |
 | `plain_thesis.tex` / `.pdf` | Plain-language variant of the full draft (121 pages) for a reader with no 5G background. Same argument, same data, same generated macros | Superseded by `Ha_Vien_Mastersthesis_2026.tex` (called `Thesis_POC` until 19 August 2026) |
 | `thesis-vi.tex` / `.pdf` | Vietnamese translation (~108 pages + appendices) | Rebuilt 24 Aug 2026 from `Ha_Vien_Mastersthesis_2026.tex` via modular `archive/vi/ch*.tex` fragments. Uses `figures/gen_macros.tex` and generated tables. Build from repo root: `latexmk -xelatex -output-directory=build archive/thesis-vi.tex`, then copy `build/thesis-vi.pdf` here. |
-| `thesis_wbm_full_backup.tex` / `.pdf` | Backup of the skeleton before the bibliography move | One word different from `Thesis_v2.tex` and still on `\bibliographystyle{abbrv}` |
+| `thesis_wbm_full_backup.tex` / `.pdf` | Backup of the skeleton before the bibliography move | One word different from `Thesis_v3.tex` and still on `\bibliographystyle{abbrv}` |
 | `Thesis_POC.tex.bak-before-cuts` | `Thesis_POC.tex` as it stood before the August length cuts | Snapshot only. Git history holds the same content |
 | `Thesis_Plan.pdf` | First thesis plan | Superseded by `Thesis_Plan_v2.pdf`. Its source is no longer in the repository |
 | `UH_DS_MSc.cls` / `UH-logo.png` | Reconstructed data-science master's class and the logo its title page loaded | Superseded by the department's own `HYthesisML.cls`, which no document has loaded since it landed. The class is the only thing that ever referenced the logo, so the two retire together |

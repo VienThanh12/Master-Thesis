@@ -48,7 +48,7 @@ TICK_ROW = re.compile(r"(?m)^\d+ [^\n]*?\\texttt\{\\small ([^}]+)\}[^\n]*?"
 # the .bbl that fixes their printed numbering. Order matters: the first is the audit's spine.
 DOCUMENTS = [
     ("Ha_Vien_Mastersthesis_2026.tex", "draft", "Full draft"),
-    ("Thesis_v2.tex", "v2", "Thesis_v2"),
+    ("Thesis_v3.tex", "v3", "Thesis_v3"),
     ("Thesis_Plan_v2.tex", "plan", "Plan"),
 ]
 
@@ -932,7 +932,7 @@ def status_of(rec) -> str:
 
 def part0(bib, spine, numbering, levels, unlocated) -> str:
     scope = (r"""Where a work is also cited by
-\texttt{Thesis\_v2} or by the plan, the number it carries in those documents is given as well,
+\texttt{Thesis\_v3} or by the plan, the number it carries in those documents is given as well,
 because their lists are shorter and number the same work differently."""
              if multi() else
              r"""It covers
@@ -991,8 +991,8 @@ Any dash or semicolon below therefore sits inside quoted source material and is 
 \textbf{Coverage.} """ + f"""{len(spine)} entries, every one of them cited in the thesis.
 {levels['A']} at level~A, {levels['B']} at level~B, {levels['C']} at level~C, and
 {len(unlocated)} with no located passage.
-""" + ("" if not multi() else f"""\\texttt{{Thesis\\_v2}} cites
-{len(numbering.get('v2', {}))} of them and the plan {len(numbering.get('plan', {}))}.
+""" + ("" if not multi() else f"""\\texttt{{Thesis\\_v3}} cites
+{len(numbering.get('v3', {}))} of them and the plan {len(numbering.get('plan', {}))}.
 """)
 
 
@@ -1005,7 +1005,7 @@ def part1(bib, records, spine, numbering, total_sites) -> str:
     # exist when more than one document is in scope. The freed width goes to the key.
     cols = [(RIGHT + "p{7mm}", r"\textbf{\#}")]
     if multi():
-        cols += [(RIGHT + "p{6mm}", r"\textbf{v2}"), (RIGHT + "p{6mm}", r"\textbf{pl}")]
+        cols += [(RIGHT + "p{6mm}", r"\textbf{v3}"), (RIGHT + "p{6mm}", r"\textbf{pl}")]
     cols += [("p{%dmm}" % (44 if multi() else 50), r"\textbf{key}"),
              ("p{%dmm}" % (25 if multi() else 31), r"\textbf{source}"),
              ("p{20mm}", r"\textbf{kind}"),
@@ -1025,7 +1025,7 @@ def part1(bib, records, spine, numbering, total_sites) -> str:
         level = rec["level"] if rec and rec["level"] else ""
         cells = [str(numbering["draft"][key])]
         if multi():
-            for tag in ("v2", "plan"):
+            for tag in ("v3", "plan"):
                 n = numbering.get(tag, {}).get(key)
                 cells.append(str(n) if n else "")
         cells += [
@@ -1039,8 +1039,8 @@ def part1(bib, records, spine, numbering, total_sites) -> str:
         ]
         rows.append(" & ".join(cells) + r" \\")
 
-    scope = (r"""\textbf{v2} and \textbf{pl} give
-the number the same work carries in \texttt{Thesis\_v2} and in the plan, and a blank means that
+    scope = (r"""\textbf{v3} and \textbf{pl} give
+the number the same work carries in \texttt{Thesis\_v3} and in the plan, and a blank means that
 document does not cite it. \textbf{cit} counts the places the work is cited across all three
 documents."""
              if multi() else
@@ -1090,7 +1090,7 @@ each located by the chapter or section it sits in.
         rec = records.get(key)
         num = numbering["draft"][key]
         also = []
-        for tag, label in (("v2", "Thesis\\_v2"), ("plan", "Plan")):
+        for tag, label in (("v3", "Thesis\\_v3"), ("plan", "Plan")):
             if key in numbering.get(tag, {}):
                 also.append(f"{label} [{numbering[tag][key]}]")
         badge = tex_escape_plain(source_kind(entry))
@@ -1270,8 +1270,8 @@ def part3(bib, records, spine, numbering, unlocated, level_c) -> str:
         items = []
         for k in sorted(keys, key=lambda k: numbering["draft"][k]):
             marks = f"[{numbering['draft'][k]}]"
-            if k in numbering.get("v2", {}):
-                marks += f", v2 [{numbering['v2'][k]}]"
+            if k in numbering.get("v3", {}):
+                marks += f", v3 [{numbering['v3'][k]}]"
             items.append(f"\\item \\texttt{{{tex_escape_plain(k)}}}\\hfill {marks}")
         return ("\\begin{itemize}[leftmargin=1.4em,itemsep=0pt,topsep=2pt]\n"
                 + "\n".join(items) + "\n\\end{itemize}")
@@ -1280,9 +1280,9 @@ def part3(bib, records, spine, numbering, unlocated, level_c) -> str:
     for keys, where, why, fix in ATTACHMENT_DEFECTS:
         nums = []
         for k in [x.strip() for x in keys.split(",")]:
-            if k in numbering.get("v2", {}):
-                nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, \\texttt{{Thesis\\_v2}} "
-                            f"[{numbering['v2'][k]}], thesis [{numbering['draft'][k]}]")
+            if k in numbering.get("v3", {}):
+                nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, \\texttt{{Thesis\\_v3}} "
+                            f"[{numbering['v3'][k]}], thesis [{numbering['draft'][k]}]")
             else:
                 nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, thesis [{numbering['draft'][k]}]")
         defects.append(f"\\item \\textbf{{{where}.}}\\par {'. '.join(nums)}.\\par {why}"
@@ -1290,7 +1290,7 @@ def part3(bib, records, spine, numbering, unlocated, level_c) -> str:
 
     benign = "\n".join(f"\\item \\textbf{{{name}.}} {text}" for name, text in BENIGN)
 
-    v2_unlocated = [k for k in unlocated if k in numbering.get("v2", {})]
+    v3_unlocated = [k for k in unlocated if k in numbering.get("v3", {})]
     return (r"""
 \clearpage
 \section*{Part 3. Findings and open items}
@@ -1304,10 +1304,10 @@ here because the pattern recurs. In every case the work itself was sound and cit
 elsewhere, so each was closed by moving or dropping the citation rather than by replacing the
 source. No source was added that the bibliography did not already hold.
 
-Four of the six existed only in \\texttt{{Thesis\\_v2}} and the full draft had them right, which
+Four of the six existed only in \\texttt{{Thesis\\_v3}} and the full draft had them right, which
 locates the cause: compressing a chapter into five paragraphs detaches a citation from the clause
 it was attached to. The two that reached the full draft are both in Chapter~1, which
-\\texttt{{Thesis\\_v2}} carries as a copy. So the rule for the next compression pass is to re-read
+\\texttt{{Thesis\\_v3}} carries as a copy. So the rule for the next compression pass is to re-read
 what each surviving citation now sits next to.""" + r"""
 
 \begin{enumerate}[leftmargin=1.6em,itemsep=4pt]
@@ -1318,8 +1318,8 @@ what each surviving citation now sits next to.""" + r"""
 
 """ + f"""{'None. This list is closed.' if not unlocated else
 f'''These {len(unlocated)} entries carry a sweep note rather than a located passage, so no page or
-clause is given and no evidence level is assigned. {len(v2_unlocated)} of them are cited by
-\\texttt{{Thesis\\_v2}}.'''}
+clause is given and no evidence level is assigned. {len(v3_unlocated)} of them are cited by
+\\texttt{{Thesis\\_v3}}.'''}
 
 The list was six entries until 31 August 2026, all of them student theses or a paywalled paper, and
 three of the defects above sat on three of those keys. Where nobody had written down what the
@@ -1397,8 +1397,8 @@ Every entry in the bibliography is cited, so there is no orphan and no citation 
 entry. The thesis carries {n_commands} citation commands naming {key_occurrences} works between
 them, since one command often cites several.
 {peer} entries ({100 * peer / len(spine):.0f}\\,\\%) are in peer-reviewed venues.
-""" + ("" if not multi() else f"""\\texttt{{Thesis\\_v2}} cites
-{len(numbering.get('v2', {}))} of the {len(spine)} and the plan {len(numbering.get('plan', {}))}.
+""" + ("" if not multi() else f"""\\texttt{{Thesis\\_v3}} cites
+{len(numbering.get('v3', {}))} of the {len(spine)} and the plan {len(numbering.get('plan', {}))}.
 """))
 
 
@@ -1411,7 +1411,7 @@ def main() -> int:
     ap.add_argument("--allow-stale", action="store_true",
                     help="emit even when a .bbl disagrees with its source (numbers may be wrong)")
     ap.add_argument("--all-documents", action="store_true",
-                    help="also cover Thesis_v2 and the plan, with their own printed numbers")
+                    help="also cover Thesis_v3 and the plan, with their own printed numbers")
     args = ap.parse_args()
 
     global ACTIVE
@@ -1489,7 +1489,7 @@ def main() -> int:
     print(f"review ticks: {carried} of {len(spine)} entries marked reviewed, carried over"
           + (f" ({held} held for keys not currently cited)" if held else ""))
     print(f"scope: {scope}"
-          + ("" if multi() else "  (pass --all-documents to add Thesis_v2 and the plan)"))
+          + ("" if multi() else "  (pass --all-documents to add Thesis_v3 and the plan)"))
     print(f"prose style: {DASH_KEPT} dashes and {SEMI_KEPT} semicolons left standing inside "
           f"quoted source material, where rewriting them would misquote the source")
     return 0

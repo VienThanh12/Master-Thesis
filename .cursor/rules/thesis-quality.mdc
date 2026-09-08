@@ -12,7 +12,7 @@ alwaysApply: true
 | Document | Status |
 | --- | --- |
 | `Thesis_Plan_v2.tex` / `.pdf` | **Supervisor-facing, reviewed** |
-| `Thesis_v2.tex` / `.pdf` | **Supervisor-facing, reviewed** (Chapter 1 is the draft introduction; chapters 2--8 are five prose paragraphs each, matching the draft's chapter list since 26 Aug 2026) |
+| `Thesis_v3.tex` / `.pdf` | **Supervisor-facing, reviewed** (Chapter 1 is the draft introduction; chapters 2--8 are five prose paragraphs each, matching the draft's chapter list since 26 Aug 2026) |
 | `Ha_Vien_Mastersthesis_2026.tex` / `.pdf` | **Full draft**, canonical but still needs review. Submission filename, was `Thesis_POC` until 19 Aug 2026 |
 | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Evidence; must match thesis claims |
 
@@ -153,10 +153,10 @@ a generated table cell of `---` marks a value that does not exist, which `detex(
 
 ## After substantive changes
 
-Run `bench/refresh_thesis.sh` when numbers change (it regenerates figures/tables, the colloquium deck, and `Ha_Vien_Mastersthesis_2026.pdf`). Rebuild `Thesis_Plan_v2.tex` when its source changes, and `Thesis_v2.tex` whenever either its source or the generated macros change, since its results paragraphs now read them. Zero LaTeX errors and undefined refs required.
+Run `bench/refresh_thesis.sh` when numbers change (it regenerates figures/tables, the colloquium deck, and `Ha_Vien_Mastersthesis_2026.pdf`). Rebuild `Thesis_Plan_v2.tex` when its source changes, and `Thesis_v3.tex` whenever either its source or the generated macros change, since its results paragraphs now read them. Zero LaTeX errors and undefined refs required.
 
 ## Do not
 
 - Treat `Ha_Vien_Mastersthesis_2026.pdf` as supervisor-approved. The submission filename says nothing about review status.
-- Expand `Thesis_v2.tex` chapters 2--8 beyond five argument paragraphs, or replace Chapter 1 with a shorter skeleton. Chapter 1 is the draft introduction. The rest stay a five-move skeleton in plain prose.
+- Expand `Thesis_v3.tex` chapters 2--8 beyond five argument paragraphs, or replace Chapter 1 with a shorter skeleton. Chapter 1 is the draft introduction. The rest stay a five-move skeleton in plain prose.
 - Commit unless explicitly asked.

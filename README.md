@@ -57,7 +57,7 @@ The PDFs in this repository do not share a status and are not interchangeable.
 | Document | Status | Role |
 | -------- | ------ | ---- |
 | `Thesis_Plan_v2.pdf` | Reviewed, supervisor-facing | Approved plan: gap, RQs, methodology, timeline, contributions |
-| `Thesis_v2.pdf` | Reviewed, supervisor-facing | Supervisor read-through: Chapter 1 is the full draft introduction, chapters 2--8 keep five argument paragraphs each in plain prose. All eight chapters match the full draft's chapter list since 26 August 2026, and the results paragraphs quote the generated macros rather than carrying their own numbers |
+| `Thesis_v3.pdf` | Reviewed, supervisor-facing | Supervisor read-through: Chapter 1 is the full draft introduction, chapters 2--8 keep five argument paragraphs each in plain prose. All eight chapters match the full draft's chapter list since 26 August 2026, and the results paragraphs quote the generated macros rather than carrying their own numbers |
 | `Ha_Vien_Mastersthesis_2026.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, a full argument, and everything in it still need review. The name is the UH submission format (`Lastname_Firstname_Mastersthesis_Year`, ASCII) and says nothing about review status. It was `Thesis_POC` until 19 August 2026 |
 | `Ha_Vien_Mastersthesis_2026_short.pdf` | Compression pass, in progress | A shorter cut of the full draft, built from the same class, macros, figures and bibliography. It declares 55 pages against the draft's 97, with the same 12 appendix pages, and it is `oneside` where the draft is `twoside,openright`. The material it sheds is relocated to appendices or merged rather than deleted, and [`.compress/shortcheck.py`](.compress/shortcheck.py) is what checks that nothing was lost. Not supervisor-facing and not a submission candidate |
 | `source_audit.pdf` | Generated citation audit | Every bibliography entry, ordered as in the full draft's reference list, with the citing sentence beside the source's own words. Built by [`.bibaudit/build_audit.py`](.bibaudit/build_audit.py). Do not hand-edit `source_audit.tex`, with one exception: the last column of Part 1 is the author's review tick, and turning a `$\square$` into a `$\blacksquare$` is how the source-checking pass records progress. The generator reads those ticks back out of the old document before overwriting it, mirrors them to `.bibaudit/reviewed.txt`, and prints how many it carried. Read that line after every rebuild, because a regeneration silently wiped 22 of them on 1 September 2026 |
@@ -120,7 +120,7 @@ reader-facing view of that record.
 ├── HYthesisML.cls     Department class file the thesis documents build on
 ├── Ha_Vien_Mastersthesis_2026.tex   Canonical full draft, under the UH submission filename
 ├── Ha_Vien_Mastersthesis_2026_short.tex   Shorter cut of the same draft, in progress. Tooling in `.compress/`
-├── Thesis_v2.tex      Supervisor-facing chapter skeleton
+├── Thesis_v3.tex      Supervisor-facing chapter skeleton
 ├── Thesis_Plan_v2.tex Revised thesis plan
 ├── source_audit.tex   Generated citation audit. Only the Part 1 review tick is hand-edited. Rebuild with `.bibaudit/build_audit.py && latexmk -pdf source_audit.tex`
 ├── ai_statement.tex  Declaration on generative-AI use, shared by both thesis documents
@@ -153,7 +153,7 @@ Each component directory (`spec/conformance/`, `cpp/`, `rust/`, `bench/`, `fault
 | C++23 compiler (g++ 13+ / clang 17+, `std::expected` is required), CMake 3.20+, Ninja | [`cpp/`](cpp/) |
 | Rust stable, edition 2021 (developed on 1.97), `cargo` | [`rust/`](rust/) |
 | jemalloc (`libjemalloc`) | the jemalloc arms of the benchmark (`-DUECM_USE_JEMALLOC=ON`, `cargo --features jemalloc`) |
-| `latexmk`, TeX Live, bundled `HYthesisML.cls` | `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v2.tex`, `Thesis_Plan_v2.tex`, `source_audit.tex` |
+| `latexmk`, TeX Live, bundled `HYthesisML.cls` | `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v3.tex`, `Thesis_Plan_v2.tex`, `source_audit.tex` |
 | Python 3 + `matplotlib` | [`bench/`](bench/) plotting (`pip install -r bench/requirements.txt`) |
 | AddressSanitizer / ThreadSanitizer / UBSan (`g++`) | [`faults/`](faults/), `cpp/sanitise.sh` |
 
@@ -324,7 +324,7 @@ To build a document alone:
 
 ```bash
 latexmk -pdf Ha_Vien_Mastersthesis_2026.tex   # the thesis
-latexmk -pdf Thesis_v2.tex                    # supervisor skeleton
+latexmk -pdf Thesis_v3.tex                    # supervisor skeleton
 latexmk -pdf Thesis_Plan_v2.tex               # thesis plan
 .bibaudit/build_audit.py && latexmk -pdf source_audit.tex   # citation audit
 ```
@@ -413,7 +413,7 @@ from `diagrams/png/`, which `diagrams/render.py` writes.
 | RQ4 (migration) | Final. FFI prototype, interleaved native-vs-seam measurement of one real operation, seam size, and the three adoption-cost axes beyond the seam (build time, static footprint, third-party surface) |
 | RQ1/RQ3 (performance) | Complete. The matched bare-metal campaign ran on 27 August 2026 and is the reported dataset, so the per-language saturation limits, the overload divergence, the resource comparisons and the far tail below saturation are all resolved on one host at the canonical design. Rust's pooled p99.99 sits below C++'s at every load the two separate. Jitter and the p99.99 column are reported. One question the data raised remains open: whether the peak-RSS allocator effect tracks the transparent-hugepage policy |
 | Sources | 109 bibliography entries, every one of them cited. `docs/Sources_evidence.md` records per entry what claim the citation carries and where the supporting passage was read, and `source_audit.pdf` is the reader-facing view of it. 29 entries were ticked as read against the source itself at 2 September 2026 |
-| Writing | `Ha_Vien_Mastersthesis_2026.pdf` builds clean with zero LaTeX errors and no undefined references. It is a full draft awaiting review. The printed abstract matches the tables, and the AI declaration records that it was written unaided. Both thesis documents carry a front-matter list of acronyms as of 4 September 2026, so an acronym added to either needs a row there as well as the expansion at its first use. `Thesis_v2.pdf` is the eight-chapter supervisor read-through (full Chapter 1, five prose paragraphs in each of chapters 2--8), and its abstract is still the template placeholder |
+| Writing | `Ha_Vien_Mastersthesis_2026.pdf` builds clean with zero LaTeX errors and no undefined references. It is a full draft awaiting review. The printed abstract matches the tables, and the AI declaration records that it was written unaided. Both thesis documents carry a front-matter list of acronyms as of 4 September 2026, so an acronym added to either needs a row there as well as the expansion at its first use. `Thesis_v3.pdf` is the eight-chapter supervisor read-through (full Chapter 1, five prose paragraphs in each of chapters 2--8), and its abstract is still the template placeholder |
 
 The self-assessment in [`docs/ASSESSMENT.md`](docs/ASSESSMENT.md) puts areas 1, 2, 3 and 5 at 5
 and areas 4 and 6 at **4.5** as of its twenty-first pass, 7 September 2026 (mean **4.83**). It is

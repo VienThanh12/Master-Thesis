@@ -366,7 +366,7 @@ each located by the chapter or section it sits in.
 \begin{citedsentence}\textbf{\small Section 3.1.}\enspace It is core RAN layer-3 functionality, and it carries the properties that make production control-plane code difficult: per-UE mutable state, a strict operation lifecycle, high concurrency across UEs, and the latency and reliability targets the 5G system sets for control-plane procedures~\citemark{5, 29}.\end{citedsentence}
 \afield{Claim it carries}{the millisecond-scale control-plane budget, and specifically the 10 ms target}
 \afield{Source says}{}
-\begin{saidquote}(\texttt{tr\_138913v180000p.pdf}, \textbf{p. 24}, clause 7.4 \enquote{Control plane latency}): \enquote{Control plane latency refers to the time to move from a battery efficient state (e.g., IDLE) to start of continuous data transfer (e.g., ACTIVE). \textbf{The target for control plane latency should be 10ms.}} This is exactly the claim at \texttt{Thesis\_v2.tex} and the wording already in the entry's \texttt{note} field.\end{saidquote}
+\begin{saidquote}(\texttt{tr\_138913v180000p.pdf}, \textbf{p. 24}, clause 7.4 \enquote{Control plane latency}): \enquote{Control plane latency refers to the time to move from a battery efficient state (e.g., IDLE) to start of continuous data transfer (e.g., ACTIVE). \textbf{The target for control plane latency should be 10ms.}} This is exactly the claim at \texttt{Thesis\_v3.tex} and the wording already in the entry's \texttt{note} field.\end{saidquote}
 \afield{Metadata}{[nit] month. \texttt{38913-i00.zip} is dated \textbf{2024-04-04}. ETSI mirror is \emph{ETSI TR 138 913 V18.0.0 (2024-05)}. The entry says March 2024. $\rightarrow$ \texttt{month = apr}.}
 \afield{Verdict}{Claim verified, fix the month.}
 \afield{Record}{Sources\_evidence.md, entry record.}
@@ -405,7 +405,7 @@ each located by the chapter or section it sits in.
 \afield{Reference}{\fullcite{msrc2019memory}}
 \afield{Entry}{\href{https://github.com/microsoft/MSRC-Security-Research/tree/master/presentations/2019_02_BlueHatIL}{source page}. Approximately 70\% of Microsoft CVEs are memory-safety issues.}
 \afield{Cited in}{5 places.}
-\begin{citedsentence}\textbf{\small Chapter 1.}\enspace C++ places the burden of memory and concurrency management on the programmer, and decades of experience show that this burden is routinely mishandled, producing use-after-free errors, double-frees, data races, and related defects that are expensive to find, dangerous in production, and responsible for a large share of security vulnerabilities in industry practice~\citemark{8, 9}.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Chapter 1.}\enspace They also account for a large share of security vulnerabilities~\citemark{8, 9}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 1.1.}\enspace Large software organisations report that the majority of their serious security vulnerabilities stem from memory-safety errors, and that adopting memory-safe languages measurably reduces them~\citemark{8, 9, 16, 17}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 2.3.}\enspace Memory-safety issues account for roughly 70\,\% of the security vulnerabilities reported at Microsoft~\citemark{8}, and Google reports a sharp drop in such vulnerabilities as memory-safe languages are adopted in Android, to below a fifth of that platform's total vulnerabilities by 2025~\citemark{9, 16}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Appendix B.}\enspace The safety strand is settled the same partial way, with machine-checked foundations for the safe fragment and the aliasing discipline \texttt{unsafe} code has to respect~\citemark{11, 40, 41}, confirmation that \texttt{unsafe} is used sparingly and that memory-safety CVEs always involve it~\citemark{27, 42, 43}, auditing that finds defects at scale even so and unsafety spreading through dependency chains~\citemark{99, 100, 92, 44}, and the reports motivating the shift set against a long record of memory corruption resisting runtime mitigation~\citemark{8, 9, 17, 19, 20, 34}.\end{citedsentence}
@@ -420,7 +420,7 @@ each located by the chapter or section it sits in.
 \afield{Reference}{\fullcite{google2022android}}
 \afield{Entry}{\href{https://security.googleblog.com/2022/12/memory-safe-languages-in-android-13.html}{source page}.}
 \afield{Cited in}{5 places.}
-\begin{citedsentence}\textbf{\small Chapter 1.}\enspace C++ places the burden of memory and concurrency management on the programmer, and decades of experience show that this burden is routinely mishandled, producing use-after-free errors, double-frees, data races, and related defects that are expensive to find, dangerous in production, and responsible for a large share of security vulnerabilities in industry practice~\citemark{8, 9}.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Chapter 1.}\enspace They also account for a large share of security vulnerabilities~\citemark{8, 9}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 1.1.}\enspace Large software organisations report that the majority of their serious security vulnerabilities stem from memory-safety errors, and that adopting memory-safe languages measurably reduces them~\citemark{8, 9, 16, 17}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 2.3.}\enspace Memory-safety issues account for roughly 70\,\% of the security vulnerabilities reported at Microsoft~\citemark{8}, and Google reports a sharp drop in such vulnerabilities as memory-safe languages are adopted in Android, to below a fifth of that platform's total vulnerabilities by 2025~\citemark{9, 16}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Appendix B.}\enspace The safety strand is settled the same partial way, with machine-checked foundations for the safe fragment and the aliasing discipline \texttt{unsafe} code has to respect~\citemark{11, 40, 41}, confirmation that \texttt{unsafe} is used sparingly and that memory-safety CVEs always involve it~\citemark{27, 42, 43}, auditing that finds defects at scale even so and unsafety spreading through dependency chains~\citemark{99, 100, 92, 44}, and the reports motivating the shift set against a long record of memory corruption resisting runtime mitigation~\citemark{8, 9, 17, 19, 20, 34}.\end{citedsentence}
@@ -434,7 +434,7 @@ each located by the chapter or section it sits in.
 \afield{Reference}{\fullcite{klabnik2023rust}}
 \afield{Entry}{\href{https://openlibrary.org/isbn/9781718503106}{source page}.}
 \afield{Cited in}{2 places.}
-\begin{citedsentence}\textbf{\small Chapter 1.}\enspace Rust has emerged as the first mainstream systems language to promise an escape from this trade-off: memory safety and data-race freedom enforced at compile time on machine-checked foundations~\citemark{10, 11}, with performance intended to be competitive with C++~\citemark{12}.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Chapter 1.}\enspace Its compiler enforces memory safety and data-race freedom at compile time, on foundations that have been checked by machine~\citemark{10, 11}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 2.4.}\enspace Rust enforces memory safety and data-race freedom at compile time through its ownership and borrowing model~\citemark{10}, and ships with modern tooling in Cargo and integrated testing.\end{citedsentence}
 \afield{Claim it carries}{ownership and borrowing, safety at compile time}
 \afield{Source says}{}
@@ -446,7 +446,7 @@ each located by the chapter or section it sits in.
 \afield{Reference}{\fullcite{jung2018rustbelt}}
 \afield{Entry}{DOI \href{https://doi.org/10.1145/3158154}{\texttt{10.1145/3158154}}.}
 \afield{Cited in}{3 places.}
-\begin{citedsentence}\textbf{\small Chapter 1.}\enspace Rust has emerged as the first mainstream systems language to promise an escape from this trade-off: memory safety and data-race freedom enforced at compile time on machine-checked foundations~\citemark{10, 11}, with performance intended to be competitive with C++~\citemark{12}.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Chapter 1.}\enspace Its compiler enforces memory safety and data-race freedom at compile time, on foundations that have been checked by machine~\citemark{10, 11}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 2.4.}\enspace The soundness of the safe fragment of the language, including the role of \texttt{unsafe} as an explicitly marked escape hatch, has been established formally by the RustBelt project~\citemark{11}, and the aliasing discipline that even \texttt{unsafe} code must respect has been given a precise operational semantics~\citemark{41}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Appendix B.}\enspace The safety strand is settled the same partial way, with machine-checked foundations for the safe fragment and the aliasing discipline \texttt{unsafe} code has to respect~\citemark{11, 40, 41}, confirmation that \texttt{unsafe} is used sparingly and that memory-safety CVEs always involve it~\citemark{27, 42, 43}, auditing that finds defects at scale even so and unsafety spreading through dependency chains~\citemark{99, 100, 92, 44}, and the reports motivating the shift set against a long record of memory corruption resisting runtime mitigation~\citemark{8, 9, 17, 19, 20, 34}.\end{citedsentence}
 \afield{Claim it carries}{machine-checked foundations for safe Rust}
@@ -459,7 +459,7 @@ each located by the chapter or section it sits in.
 \afield{Reference}{\fullcite{balasubramanian2017rust}}
 \afield{Entry}{DOI \href{https://doi.org/10.1145/3102980.3103006}{\texttt{10.1145/3102980.3103006}}.}
 \afield{Cited in}{7 places.}
-\begin{citedsentence}\textbf{\small Chapter 1.}\enspace Rust has emerged as the first mainstream systems language to promise an escape from this trade-off: memory safety and data-race freedom enforced at compile time on machine-checked foundations~\citemark{10, 11}, with performance intended to be competitive with C++~\citemark{12}.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Chapter 1.}\enspace The intended performance is competitive with C++~\citemark{12}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 1.2.}\enspace The available evidence is largely general-purpose and average-case~\citemark{12, 27}, leaving these three questions (predictability, prevented-defect scope, and migration cost) open for a representative subsystem.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 2.4.}\enspace Systems research argues Rust attains safety without the overhead of garbage collection or runtime checks, and even enables efficiency techniques that are impractical in C~\citemark{12}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 2.4.}\enspace Rust is the first widely supported language to combine compile-time memory and thread safety with the absence of a garbage collector and throughput and memory use alongside C and C++~\citemark{12, 40, 45}.\end{citedsentence}
@@ -1116,7 +1116,7 @@ each located by the chapter or section it sits in.
 \afield{Source says}{}
 \begin{saidquote}(\texttt{hdrhistogram.github.io}): \enquote{A Histogram that supports \textbf{recording and analyzing sampled data value counts across a configurable integer value range with configurable value precision} within the range. Value precision is expressed as the number of significant digits\ldots{}}, this fully supports the use at \texttt{Ha\_Vien\_Mastersthesis\_2026.tex} (identical HDR configuration, three significant figures).\end{saidquote}
 \afield{Metadata}{[verified] Gil Tene is credited on the project page (Authors, Contributors and License section). Accessed August 2026 as stated.}
-\afield{Issue}{The page does \textbf{not} discuss coordinated omission, which is what the citation is being asked to carry at 2402, 3922, \texttt{Thesis\_v2.tex} and \texttt{Thesis\_Plan\_v2.tex}. In all four places \texttt{schroeder2006openclosed} is cited alongside and does carry it (fix \#8).}
+\afield{Issue}{The page does \textbf{not} discuss coordinated omission, which is what the citation is being asked to carry at 2402, 3922, \texttt{Thesis\_v3.tex} and \texttt{Thesis\_Plan\_v2.tex}. In all four places \texttt{schroeder2006openclosed} is cited alongside and does carry it (fix \#8).}
 \afield{Verdict}{OK for the histogram, re-point or drop for coordinated omission.}
 \afield{Record}{Sources\_evidence.md, entry record.}
 \auditentry{65}{lizard}{tool record, level~A}
@@ -1648,10 +1648,10 @@ here because the pattern recurs. In every case the work itself was sound and cit
 elsewhere, so each was closed by moving or dropping the citation rather than by replacing the
 source. No source was added that the bibliography did not already hold.
 
-Four of the six existed only in \texttt{Thesis\_v2} and the full draft had them right, which
+Four of the six existed only in \texttt{Thesis\_v3} and the full draft had them right, which
 locates the cause: compressing a chapter into five paragraphs detaches a citation from the clause
 it was attached to. The two that reached the full draft are both in Chapter~1, which
-\texttt{Thesis\_v2} carries as a copy. So the rule for the next compression pass is to re-read
+\texttt{Thesis\_v3} carries as a copy. So the rule for the next compression pass is to re-read
 what each surviving citation now sits next to.
 
 \begin{enumerate}[leftmargin=1.6em,itemsep=4pt]
