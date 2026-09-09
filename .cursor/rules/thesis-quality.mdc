@@ -102,6 +102,48 @@ Internal `.md` notes are exempt, but never paste them into a `.tex` file unrewri
 prose edit, run `./.aitells.py` on the file you touched, and `./.acronyms.py` as well if the edit
 introduced a term.
 
+### Screen suggested prose before showing it, not after
+
+**Prose offered in chat is held to the same bar as prose written to a file.** The author reads a
+suggestion, judges it, and pastes it, so an unscreened suggestion puts the defect in the document
+by a longer route. The failure this rule exists for is real and recent: a shortening pass on
+§1.2's second trend was offered as easier to read and measured Flesch 38.5 and grade 14.0 with
+**no sentence under 15 words at all**, against 46.8 and 11.0 for `Thesis_v3.tex` as a whole. The
+author had to say twice that it was hard to follow. Rewriting it plainly took one pass and moved
+it to 53.1 and 10.5, so the cost of screening first is minutes and the cost of skipping it is the
+author's trust.
+
+Write the candidate to `.prose-scratch/candidate.tex` (gitignored, disposable) with
+`\chapter{Introduction}` as the first line and `\bibliography{bibliography}` as the last, because
+both screens anchor the body on those. Then run all three, since each catches what the others miss:
+
+```bash
+python3 .readability.py .prose-scratch/candidate.tex
+python3 .aitells.py .prose-scratch/candidate.tex
+python3 .vocab.py .prose-scratch/candidate.tex
+```
+
+**Two numbers are gates, not counts.** A paragraph of three or more sentences with **no sentence
+under 15 words** goes back regardless of how it reads, because the reader gets no footing. And
+Flesch below the host document's own figure means the suggestion is harder than the thesis it
+joins, which is the opposite of the request every time shortening or clarifying is asked for. Read
+the document's baseline rather than assuming one: `python3 .readability.py Thesis_v3.tex`.
+
+**Then read it three times, each pass with one job**, because the screens cannot see sense:
+
+1. **Argument.** Does every sentence carry a claim the neighbours do not? A sentence that can go
+   without costing a claim goes now. This is also where a compressed cite is caught attaching a
+   claim to the wrong source, which is how §1.2's `\cite{itu2023imt2030}` briefly came to carry
+   Polese's tool-to-workload contrast that ITU does not make.
+2. **Sentence.** Read it aloud and stop at the first place a re-read is needed. The `HARDEST
+   PARAGRAPHS` block names the site, but only reading finds the cause, usually a subject separated
+   from its verb by two subordinate clauses or an acronym expanded mid-clause.
+3. **House style.** Dashes, semicolons, capital after a colon, acronym expanded at first use in
+   *that* document, and every generated macro checked against its definition rather than its value.
+
+Say what the screen reported when offering the prose. A suggestion presented with its numbers can
+be judged, and one presented as "clearer" cannot.
+
 `.aitells.py` reads `.tex` only, so slide prose is gated by the build instead. `build_deck.py`
 ends with `check_prose_style`, which walks every text run, table cell, and grouped shape in the
 saved deck and prints `Prose style: no em dash, dash aside, or semicolon on any slide`. A hit is

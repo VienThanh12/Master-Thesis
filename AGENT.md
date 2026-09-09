@@ -367,6 +367,7 @@ Before considering a change done, ask:
 - [ ] No duplicated sections; signposting clear; sentences not overloaded.
 - [ ] Terminology matches earlier definitions (UECM, open-loop, coordinated omission, etc.).
 - [ ] Abstract box on page 3: visually check after edits (CCS block overflows easily).
+- [ ] Prose **suggested in chat** screened before it is offered, not after it is pasted: `.prose-scratch/candidate.tex` through `.readability.py`, `.aitells.py` and `.vocab.py`, then three reads (argument, sentence, house style). Two gates: no 3+ sentence paragraph without a sentence under 15 words, and Flesch not below the host document's. See the *Screen suggested prose* section of `.cursor/rules/thesis-quality.mdc`.
 
 ---
 
