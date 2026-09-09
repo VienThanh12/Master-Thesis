@@ -387,15 +387,16 @@ The defect list for RQ2 includes classes safe Rust is expected to prevent and cl
 is expected not to. The study can then find where the safety guarantee ends, instead of
 only showing that it holds.
 
-That boundary has been estimated once already, across a full list of weakness types.
-Every base item of the Common Weakness Enumeration (CWE) has been marked by whether
-safe Rust would prevent it. Counting those classes by how often they appeared in 68
-open-source C projects puts 58.2\% of the classified vulnerabilities into classes safe Rust
-would have made virtually impossible~\cite{meneely2025justuserust}. The estimate is a
-best case, given how it is built. It assumes the rewritten code stays in safe Rust. It
-reads prevention from the type of weakness, not from a compiler that refused to build a
-given program. RQ2 asks the same question of programs that are compiled and run. That is
-what lets it report when, and at what cost, the classes outside the guarantee are caught.
+A previous study already estimated that boundary from a catalogue, not from
+compiled programs. It took the Common Weakness Enumeration (CWE), a long list of
+bug types, and marked each type as one that safe Rust would prevent or would not.
+It then counted real vulnerabilities in 68 open-source C projects. 58.2\% of
+those classified vulnerabilities sat in types that safe Rust would have made
+almost impossible~\cite{meneely2025justuserust}. That share is a best case: it
+assumes the new code stays in safe Rust. A type counts as prevented if the mapping
+says so, even if no compiler has rejected a program. RQ2 asks the same question
+of programs that are compiled and run. That is how it can say when the remaining
+types are caught, and what it costs to catch them.
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
 % The class prints the chapter titles in the running head in capitals, where the
