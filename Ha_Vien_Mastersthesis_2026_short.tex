@@ -326,6 +326,7 @@ AWS & Amazon Web Services \\
 CISA & Cybersecurity and Infrastructure Security Agency \\
 CPU & Central processing unit \\
 CVE & Common Vulnerabilities and Exposures \\
+CWE & Common Weakness Enumeration \\
 DBLP & The computer science bibliography of that name \\
 DiVA & Digitala Vetenskapliga Arkivet, the Nordic research repository \\
 DPDK & Data Plane Development Kit \\
@@ -379,188 +380,210 @@ USENIX & The USENIX Association \\
 
 \chapter{Introduction}
 
-Mobile networks are moving from specialised hardware to software on ordinary servers, and the
-radio access network (RAN), long the most hardware-bound part of the stack, is part of that
-shift. In 5G the base station, formally the next-generation NodeB (gNB), splits into a central
-unit and one or more distributed units, and the central unit splits again into control-plane and
-user-plane functions~\cite{3gpp38401,3gpp38300}. Open-RAN pushes the idea further, into
-virtualised, multi-vendor software linked by open interfaces~\cite{polese2023oran}. The control
-plane that results, the gNB central unit control plane (gNB-CU-CP), is a large, stateful, highly
-concurrent program. It tracks every connected device, each of which the standards call a user
-equipment (UE), runs Radio Resource Control (RRC) signalling~\cite{3gpp38331}, and coordinates
-mobility and handovers inside strict latency limits.
+Mobile networks are moving from specialised hardware to software on ordinary servers.
+Functions that once ran on fixed-purpose equipment are now programs on general-purpose
+machines. The radio access network (RAN), long the most hardware-bound part of the stack, is
+part of that shift.
 
-A busy site runs thousands of connection-management and mobility procedures per second, each
-inside the millisecond-scale budget the 5G system sets for control-plane
-signalling~\cite{3gpp38913}, and may track millions of active devices at once. As the RAN moves
-to cloud-native, disaggregated deployments, the correctness, reliability, and timing of this
-software increasingly set the quality of the whole network, so an outage or a tail-latency spike
-here is not a local defect: every device the site serves is
-affected~\cite{dean2013tail,barroso2017microseconds}.
+In 5G the base station, formally the next-generation NodeB (gNB), is split into a central
+unit and one or more distributed units. The central unit is split again into control-plane and
+user-plane functions~\cite{3gpp38401,3gpp38300}. Open-RAN pushes the same idea further. The RAN
+becomes virtualised, multi-vendor software linked by open interfaces~\cite{polese2023oran}. The
+control plane that results, the gNB central unit control plane (gNB-CU-CP), is a large,
+stateful, highly concurrent program. It tracks every connected device, each of which the
+standards call a user equipment (UE). It runs Radio Resource Control (RRC)
+signalling~\cite{3gpp38331}. It coordinates mobility and handovers, all within strict latency
+limits.
 
-That software is written mostly in C++, which supplies the low-level control, mature tooling, and
-performance latency-critical systems demand at a well-known cost. Memory and concurrency
-management fall to the programmer, and decades of experience show the burden is routinely
-mishandled. The result is use-after-free errors, double-frees, data races, and related defects
-that are expensive to find, dangerous in production, and responsible for a large share of security
-vulnerabilities in industry practice~\cite{msrc2019memory,google2022android}. Rust is the first
-mainstream systems language to promise an escape from that trade-off, enforcing memory safety and
-data-race freedom at compile time on machine-checked
-foundations~\cite{klabnik2023rust,jung2018rustbelt} with performance intended to be competitive
-with C++~\cite{balasubramanian2017rust}. Whether the promise holds for a telecom-grade,
-latency-critical control plane, where predictability under overload matters as much as raw speed,
-is not well understood. This thesis, carried out at Nokia, develops two functionally equivalent
-implementations of a representative RAN subsystem, a \emph{UE Context Management (UECM)} service
-modelled on a real Nokia \emph{gNB-CU-CP} component, in modern C++ and in Rust, and compares them
-under a realistic synthetic signalling workload. The property that decides whether such a system
-meets its deadlines is \emph{tail latency}, the p99 and p99.9 percentiles and not the
-mean~\cite{dean2013tail,barroso2017microseconds}.
+Load at a busy site is high. A single site can run thousands of connection-management and
+mobility procedures per second. Each has to finish inside the millisecond-scale budget the 5G
+system sets for control-plane signalling~\cite{3gpp38913}. A deployed control plane may track
+millions of active devices at once. As the RAN moves to cloud-native, disaggregated
+deployments, the correctness, reliability, and timing of this software set the quality of the
+whole network. An outage or a tail-latency spike here is not a local defect. Every device the
+site serves is affected~\cite{dean2013tail,barroso2017microseconds}.
+
+This control-plane software is written mostly in C++. That choice is practical: C++ lets
+the programmer control the machine closely, and it has the tools and speed that systems
+with tight time limits need. The cost is that the programmer must manage memory and
+concurrent access. Decades of industry practice show that this is often mishandled. The
+result is use-after-free errors, double-frees, data races, and related defects. Those
+defects are expensive to find and dangerous in production. They also account for a large
+share of security vulnerabilities~\cite{msrc2019memory,google2022android}. Rust is the first mainstream systems
+language that claims this trade-off is not necessary. Its compiler enforces memory safety and
+data-race freedom at compile time, on foundations that have been checked by
+machine~\cite{klabnik2023rust,jung2018rustbelt}. The intended performance is competitive with
+C++~\cite{balasubramanian2017rust}. Whether that claim holds for a RAN control plane, where
+keeping latency stable under overload matters as much as raw speed, is not well understood.
+This thesis, carried out at Nokia, addresses the question directly. It builds two functionally
+equivalent implementations of a representative RAN subsystem, a UE Context Management
+service modelled on a real Nokia gNB-CU-CP component, one in modern C++ and one in Rust. They
+are compared under a realistic synthetic signalling workload.
+
+The \emph{gNB-CU-CP} is the control-plane software this work is about, \emph{UE Context
+Management (UECM)} is the subsystem reimplemented and measured, and \emph{tail latency} is the
+slow end of the latency distribution. That last quantity is the p99 and p99.9 percentiles,
+not the mean. If a hundred operations are ordered by how long they took, p99 is the 99th,
+so one in a hundred is slower. That property, more than average speed, decides whether such a
+system meets its deadlines~\cite{dean2013tail,barroso2017microseconds}. Every acronym is
+written out where the text first uses it, and the \nomname{} in the front matter collects
+them. The terms that are not acronyms are fixed in Appendix~\ref{appendix:terms} for readers
+outside telecom.
 
 \section{Motivation and industrial context}\label{sec:motivation}
-Three trends make this comparison timely. The first is the cloud-native evolution of the RAN
-itself. Moving control-plane functions onto general-purpose servers raises rather than lowers the
-premium on software quality: the software is longer-lived, evolves continuously, runs at higher
-concurrency, and must meet its deadlines without the determinism purpose-built hardware once
-provided. Open-RAN disaggregation accelerates that shift, turning the base station into
-virtualised, multi-vendor software connected by open interfaces~\cite{polese2023oran}, so the
-control plane a vendor ships competes on software-engineering quality (reliability, predictable
-timing, security, and the ease of evolving a large codebase safely) and no longer on
-purpose-built hardware. A latency regression or a memory-corruption defect is then a
-network-wide reliability and security risk and not a localised bug, and language selection
-becomes a concrete engineering decision.
+Three trends make this comparison timely.
 
-The second trend is that artificial intelligence (AI) is moving from a tool for tuning the
-network into a workload the network is built to carry, and the next generation is specified that
+The first is that the RAN is becoming cloud-native software. Moving control-plane functions
+onto general-purpose servers raises the premium on software quality. The software lives
+longer, evolves continuously, and runs at higher concurrency. It must meet its deadlines
+without the determinism that purpose-built hardware once provided. Open-RAN accelerates that
+shift. It turns the base station into virtualised, multi-vendor software connected by open
+interfaces~\cite{polese2023oran}. The control plane a vendor ships then competes on
+software-engineering quality (reliability, predictable timing, security, and the ease of
+evolving a large codebase safely) and no longer on purpose-built hardware. A latency
+regression or a memory-corruption defect is then a network-wide reliability and security risk,
+not a localised bug. Language selection becomes a concrete engineering decision.
+
+The second trend is that artificial intelligence (AI) is moving from a tool used to tune the
+network into a workload the network is built to carry. The next generation is specified that
 way from the start. International Mobile Telecommunications-2030 (IMT-2030), the International
-Telecommunication Union (ITU) framework for 6G, lists artificial intelligence and communication
-among its six usage scenarios and ubiquitous intelligence among its four design
-principles~\cite{itu2023imt2030}. The architecture forming around that is AI-RAN, which
-orchestrates telecommunications and AI workloads together on shared, accelerated infrastructure,
-so the sites that run the radio also host distributed edge AI platforms~\cite{polese2026airan}.
-The AI-RAN Alliance states the operational requirement directly: one common infrastructure has
-to run both kinds of workload concurrently, and their service-level agreements may
-differ~\cite{airan2026orchestrator}. Control-plane software therefore no longer has the host to
-itself. It contends for central processing unit (CPU), memory, and cache with inference work
-whose arrival pattern it does not control, and a co-tenant that takes capacity away lowers the
-load at which the control plane saturates. Saturation is where the two languages separate most
-sharply in the measurements of Chapter~\ref{chapter:eval}, so memory footprint and behaviour past
-that point are becoming selection criteria in their own right, and neither is settled by the
-architecture above the code.
+Telecommunication Union (ITU) framework for 6G, lists artificial intelligence and
+communication among its six usage scenarios and ubiquitous intelligence among its four design
+principles~\cite{itu2023imt2030}. The architecture forming around that is AI-RAN. In it,
+telecommunications and AI workloads share one accelerated infrastructure, so the sites that
+run the radio also host distributed edge AI platforms~\cite{polese2026airan}. The AI-RAN
+Alliance states the operational requirement directly. One common infrastructure has to run
+both kinds of workload concurrently, and their service-level agreements may
+differ~\cite{airan2026orchestrator}. Control-plane software therefore no longer has the host
+to itself. It contends for central processing unit (CPU), memory, and cache with inference
+work whose arrival pattern it does not control. A co-tenant that takes capacity away lowers
+the load at which the control plane saturates. Saturation is the load beyond which the
+service can no longer keep up with the requests it is offered. It is where the two languages
+separate most sharply in the measurements of Chapter~\ref{chapter:eval}. Memory footprint and
+behaviour past that point are becoming selection criteria in their own right. Neither is
+settled by the architecture above the code.
 
 The third trend is an industry-wide shift toward memory-safe languages. Large software
 organisations report that the majority of their serious security vulnerabilities stem from
 memory-safety errors, and that adopting memory-safe languages measurably reduces
-them~\cite{msrc2019memory,google2022android,vanderstoep2025android,google2024securebydesign}. The
-case no longer rests on vendor reporting alone: a group spanning academia and industry has argued
-that memory safety now needs standardised terminology and requirements if it is to be specified
-and procured at all~\cite{watson2025memorysafety}. National policy has followed, with
-cybersecurity agencies urging software manufacturers to publish ``memory-safe roadmaps'' and to
+them~\cite{msrc2019memory,google2022android,vanderstoep2025android,google2024securebydesign}.
+The case no longer rests on vendor reporting alone. A group spanning academia and industry has
+argued that memory safety now needs standardised terminology and requirements if it is to be
+specified and procured at all~\cite{watson2025memorysafety}. National policy has followed.
+Cybersecurity agencies urge software manufacturers to publish ``memory-safe roadmaps'' and to
 migrate away from memory-unsafe languages such as C and
-C++~\cite{cisa2023memorysafe,oncd2024building}. In the market this subsystem is sold into it is a
-regulatory matter too. The European Union (EU) Cyber Resilience Act places secure-by-design and
-lifecycle vulnerability-handling obligations on manufacturers of products with digital elements,
-with the vulnerability-reporting obligations applying from September 2026 and most of the
-remainder from December 2027~\cite{eu2024cra}. It names no programming language, and it would be
-wrong to read it as requiring one. What it changes is that the recurring defect classes of a
-memory-unsafe language become a compliance exposure as well as an engineering one. Rust,
-meanwhile, has moved from a niche language into operating-system kernels, cloud infrastructure,
-and increasingly telecommunications: production hypervisors such as Amazon Web Services (AWS)
+C++~\cite{cisa2023memorysafe,oncd2024building}. In the market this subsystem is sold into it is
+a regulatory matter too. The European Union (EU) Cyber Resilience Act places secure-by-design
+and lifecycle vulnerability-handling obligations on manufacturers of products with digital
+elements, with the vulnerability-reporting obligations applying from September 2026 and most of
+the remainder from December 2027~\cite{eu2024cra}. It names no programming language, and it
+would be wrong to read it as requiring one. What it changes is that the recurring defect
+classes of a memory-unsafe language become a compliance exposure as well as an engineering one.
+
+Rust has moved from a niche language into operating-system kernels, cloud infrastructure, and
+increasingly telecommunications. Production hypervisors such as Amazon Web Services (AWS)
 Firecracker, which underpins its serverless platform, are already written in
 Rust~\cite{agache2020firecracker}. The evidence base for Rust's suitability, though, rests
-largely on general-purpose software and average-case benchmarks, so the questions a telecom
-vendor must actually answer, about tail latency and predictability, about which defect classes
-are genuinely prevented, and about the cost of incremental adoption inside a large C++ codebase,
-have no direct and controlled answer. Providing one for a representative subsystem is the
-motivation for this work.
+largely on general-purpose software and average-case benchmarks. The questions a telecom
+vendor must actually answer, about tail latency and predictability, about which defect
+classes are genuinely prevented, and about the cost of incremental adoption inside a large
+C++ codebase, have no direct and controlled answer. Providing one for a representative
+subsystem is the motivation for this work.
 
 \paragraph{Industrial setting.}
 This thesis is carried out at Nokia, one of the few vendors that build, maintain, and evolve
-production RAN software end to end. That market is concentrated in very few hands: the five
-largest suppliers took 96\% of worldwide RAN revenue over the first three quarters of 2025, with
-concentration by Herfindahl--Hirschman Index at a ten-year
-high~\cite{delloro2025ran3q,delloro2026ran}. Nor is the gNB-CU-CP a minor component. In the
-disaggregated architecture of the 3rd Generation Partnership Project (3GPP) it is the
-control-plane half of the central unit, hosting RRC and managing the UE context
-lifecycle~\cite{3gpp38401,3gpp38331} under the millisecond-scale procedure budgets the 5G system
-places on control signalling~\cite{3gpp38913} and at the event rates and connected-device counts
-a deployed network sustains, and Section~\ref{sec:ranarch} places it in the wider architecture.
-Being written in C++, it inherits both that language's performance and its memory-safety and
-concurrency hazards, which is where the three trends converge. Software of this class is shipped,
-evolved, and operated across live operator networks, so the language-selection decision is a
-production concern rather than a hypothetical one. UECM is a deliberate choice of study object
-within that setting, for the reasons Section~\ref{sec:uecm} sets out: it is modelled on a real
-gNB-CU-CP control-plane component rather than a textbook example, and it is small enough to
-reimplement faithfully and reason about in full while still carrying the properties that make
-control-plane code hard. Its implementation is driven entirely by a public, frozen specification
-rather than by proprietary code, so the comparison stays reproducible by readers outside Nokia.
+production RAN software end to end. That market is concentrated in very few hands. The five
+largest suppliers took 96\% of worldwide RAN revenue over the first three quarters of 2025,
+with concentration by Herfindahl--Hirschman Index at a ten-year
+high~\cite{delloro2025ran3q,delloro2026ran}.
+
+The gNB-CU-CP is not a minor component. In the disaggregated architecture of the 3rd Generation
+Partnership Project (3GPP) it is the control-plane half of the central unit. It hosts RRC and
+manages the UE context lifecycle~\cite{3gpp38401,3gpp38331} under the millisecond-scale
+procedure budgets the 5G system places on control signalling~\cite{3gpp38913} and at the event
+rates and connected-device counts a deployed network sustains. Section~\ref{sec:ranarch}
+places it in the wider architecture. Being written in C++, it inherits both that language's
+performance and its memory-safety and concurrency hazards. That is where the three trends
+converge. Software of this class is shipped, evolved, and operated across live operator
+networks, so the language-selection decision is a production concern rather than a hypothetical
+one.
+
+UECM is a deliberate choice of study object within that setting, for the reasons
+Section~\ref{sec:uecm} sets out. It is modelled on a real gNB-CU-CP control-plane component
+rather than a textbook example. It is small enough to reimplement faithfully and reason about
+in full, while still carrying the properties that make control-plane code hard. Its
+implementation is driven entirely by a public, frozen specification rather than by
+proprietary code, so the comparison stays reproducible by readers outside Nokia.
 
 \paragraph{A decision with a generational horizon.}
 A language choice in software of this class is not revisited often, and it outlives the
-generation it was made for. The next one is being specified now: 3GPP has allocated Release 20 to
-the 6G studies and Release 21 to the normative work, against an ITU calendar that asks for
+generation it was made for. The next one is being specified now. 3GPP has allocated Release 20
+to the 6G studies and Release 21 to the normative work, against an ITU calendar that asks for
 technology proposals in early 2029 and the submitted specifications by
 mid-2030~\cite{3gpp2024road6g}. That work explicitly covers migration from and interworking with
-5G, so a control plane written for the current generation is maintained alongside the next one
-rather than retired when it arrives. Nor do the next generation's objectives relax what motivates
-this comparison. IMT-2030 names security and resilience as one of its four design principles,
-expects the system to be secure by design, defines resilience as the ability to keep operating
-correctly during and after a disruptive event, and carries the ultra-reliable low-latency
-scenario forward in strengthened form~\cite{itu2023imt2030}. Freedom from whole classes of defect
-and predictable behaviour under disturbance are being written into the next generation's
-objectives instead of left to implementers.
+5G. A control plane written for the current generation is therefore maintained alongside the
+next one rather than retired when it arrives. Nor do the next generation's objectives relax
+what motivates this comparison. IMT-2030 names security and resilience as one of its four
+design principles. It expects the system to be secure by design. It defines resilience as the
+ability to keep operating correctly during and after a disruptive event. It carries the
+ultra-reliable low-latency scenario forward in strengthened form~\cite{itu2023imt2030}.
+Freedom from whole classes of defect and predictable behaviour under disturbance are being
+written into the next generation's objectives instead of left to implementers.
 
-The policy dates named above fall inside the same window. The Cybersecurity and Infrastructure
-Security Agency (CISA) and the Federal Bureau of Investigation (FBI) classify developing new
-product lines in a memory-unsafe language as a bad practice where the product serves critical
-infrastructure, a scope mobile-network infrastructure sits squarely inside, and they exempt an
-existing product from the memory-safe roadmap expectation only when its announced support ends
-before January 2030~\cite{cisa2025badpractices}. A vendor that defers the language question until
-the next generation is specified will not thereby have avoided making it. It will have made it by
-default, in the incumbent language, for another decade of deployments.
+The policy dates named above fall inside the same window. The Cybersecurity and
+Infrastructure Security Agency (CISA) and the Federal Bureau of Investigation (FBI) classify
+developing new product lines in a memory-unsafe language as a bad practice where the product
+serves critical infrastructure. Mobile-network infrastructure sits inside that scope. They
+exempt an existing product from the memory-safe roadmap expectation only when its announced
+support ends before January 2030~\cite{cisa2025badpractices}. A vendor that defers
+the language question until the next generation is specified will not have avoided
+making it. It will have made it by default, in the incumbent language, for another decade of
+deployments.
 
 What this thesis contributes to that decision is bounded. The measurements are taken on a
 subsystem modelled on a current-generation component and evaluated against requirements that are
-already published, and no claim is made about requirements not yet written. What crosses the
+already published. No claim is made about requirements not yet written. What crosses the
 generational boundary is not a latency figure but the language-level comparison itself: Which
 defect classes a compiler can rule out, what the safety model costs, and what incremental
 adoption inside a large C++ codebase involves. Those questions have the same answers whichever
-generation the specification above them names, and they are cheapest to answer before the next
+generation the specification above them names. They are cheapest to answer before the next
 codebase is started.
 
 \paragraph{A concrete failure mode.}
 To make the stakes concrete, consider a mobility storm in which many UEs hand over at once. A
-single mishandled pointer, a UE context freed on release while an in-flight signalling message
-still references it, produces a use-after-free. In C++ this compiles cleanly and may pass
-ordinary testing, only to corrupt an unrelated UE's state or crash the worker thread under
-precisely the high-concurrency conditions the system exists to handle. The same latent race can
-equally show up as an unpredictable tail-latency spike instead of an outright crash. In safe Rust
-the same design does not compile: ownership and borrowing reject the dangling reference at build
-time. This one scenario captures why the thesis measures both \emph{safety} (which defects are
-prevented, and when) and \emph{predictability} (tail latency under overload) rather than average
-throughput alone.
+single mishandled pointer produces a use-after-free: a UE context is freed on release while an
+in-flight signalling message still points at it. In C++ this compiles cleanly and may pass
+ordinary testing. Under the high-concurrency conditions the system exists to handle, it can
+corrupt an unrelated UE's state or crash the worker thread. The same latent race can equally
+show up as an unpredictable tail-latency spike instead of an outright crash. In safe Rust
+the same design does not compile. Ownership and borrowing reject the dangling reference at
+build time. This one scenario captures why the thesis measures both \emph{safety} (which
+defects are prevented, and when) and \emph{predictability} (tail latency under overload)
+rather than average throughput alone.
 
 \section{Problem statement}
 Two properties of this domain make the language choice consequential. Manual memory and
 concurrency management in C++ exposes the software to defects such as use-after-free,
-double-free, data races, and iterator invalidation, which are silent at compile time and costly
-to find and fix at telecom scale. And what governs whether RAN deadlines are met is not average
-throughput but worst-case and tail behaviour under load and overload~\cite{dean2013tail}, which
-is easy to regress and hard to measure correctly. Rust promises to remove the first class of
-defect at compile time while claiming performance competitive on the second, yet vendors under
-growing pressure, technical and increasingly regulatory, to adopt memory-safe languages lack
-\emph{direct, controlled} evidence for the RAN control plane. It is not established whether a
-Rust implementation of a stateful, concurrent control-plane subsystem can match modern C++ in
-\emph{tail latency and predictability under overload} (as opposed to average throughput), whether
-Rust's compile-time guarantees actually eliminate the specific defect classes that affect the
-existing C++ code, and what incremental adoption \emph{costs} inside a large C++ codebase. The
-available evidence is largely general-purpose and
-average-case~\cite{balasubramanian2017rust,qin2020rust}, leaving these three questions
-(predictability, prevented-defect scope, and migration cost) open for a representative subsystem.
+double-free, data races, and iterator invalidation. Those defects are silent at compile time and
+costly to find and fix at telecom scale. And what governs whether RAN deadlines are met is not
+average throughput but worst-case and tail behaviour under load and
+overload~\cite{dean2013tail}. That property is easy to regress and hard to measure correctly.
+Rust promises to remove the first class of defect at compile time while claiming performance
+competitive on the second. Vendors under growing pressure, technical and increasingly
+regulatory, to adopt memory-safe languages still lack \emph{direct, controlled} evidence for the
+RAN control plane. It is not established whether a Rust implementation of a stateful, concurrent
+control-plane subsystem can match modern C++ in \emph{tail latency and predictability under
+overload} (as opposed to average throughput). It is not established whether Rust's
+compile-time guarantees actually eliminate the specific defect classes that affect the
+existing C++ code. And it is not established what incremental adoption \emph{costs} inside a
+large C++ codebase. The available evidence is largely general-purpose and
+average-case~\cite{balasubramanian2017rust,qin2020rust}. Those three questions (predictability,
+prevented-defect scope, and migration cost) remain open for a representative subsystem.
 Answering them under controlled, reproducible conditions is the problem this thesis solves.
 
 \section{Research questions and hypotheses}\label{sec:rqs}
-Four research questions organise the thesis, ordered to put predictability and migration ahead of
-raw average performance:
+Four research questions organise the thesis. They are ordered to put predictability and
+migration ahead of raw average performance.
 
 \begin{description}
   \item[RQ1] How do Rust and modern C++ compare in latency predictability (median, p99,
@@ -577,17 +600,29 @@ raw average performance:
         software ecosystem?
 \end{description}
 
-Three prior expectations accompany them, stated in advance so the evaluation can confirm or
-refute them instead of describing results after the fact. \textbf{H1:} For this workload the two
-languages are performance-equivalent in the operationally relevant region below saturation, with
-any difference confined to the far tail. \textbf{H2:} Safe Rust prevents at compile time the
-memory-safety and concurrency defect classes that C++ leaves to best-effort, after-the-fact
-detection. \textbf{H3:} The run-time cost of C++-to-Rust interoperability is negligible relative
-to the cost of the operations invoked, so that the true cost of incremental adoption is
-engineering effort rather than performance. H2 is stated so that it can fail: the defect
-catalogue behind RQ2 spans classes safe Rust is expected to prevent and classes it is expected
-not to, so the study can locate the boundary of the guarantee instead of only confirming it.
-Section~\ref{sec:hypotheses} revisits all three against the evidence.
+Three hypotheses are written down before any measurement.
+
+\begin{description}
+\item[H1] For this workload the two languages are performance-equivalent below saturation. Any
+  difference appears only in the far tail.
+\item[H2] Safe Rust prevents at compile time the memory-safety and concurrency defect classes
+  that C++ leaves to best-effort, after-the-fact detection.
+\item[H3] The extra time when C++ calls into Rust is small next to the operations themselves.
+  The real cost of adding Rust a piece at a time is engineering work, not run-time speed.
+\end{description}
+
+H2 is stated so that it can fail. The defect catalogue behind RQ2 spans classes safe Rust is
+expected to prevent and classes it is expected not to, so the study can locate the boundary of
+the guarantee instead of only confirming it. Section~\ref{sec:hypotheses} revisits all three
+against the evidence.
+
+A previous study tried to estimate that boundary from a catalogue, not from compiled
+programs. The Common Weakness Enumeration (CWE) is a long list of bug types. The authors mapped
+each type to whether Rust's rules would block it, then counted how often those types appeared
+in 68 C projects. Their figure is that 58.2\% of the recorded issues fall in types Rust would
+block~\cite{meneely2025justuserust}. That number is a best case. It assumes the new code stays
+in safe Rust, and it counts a type as prevented if the mapping says so. RQ2 compiles and runs
+programs instead, so it can say when the leftover types are caught and what it costs.
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
 % The class prints the chapter and section titles in the running head in capitals,
@@ -595,30 +630,32 @@ Section~\ref{sec:hypotheses} revisits all three against the evidence.
 \chaptermark{Background}
 
 \section{RAN control-plane systems and the gNB-CU-CP}\label{sec:ranarch}
-The next-generation radio access network (NG-RAN) architecture splits the gNB into a central
-unit (gNB-CU) and distributed units, with the control plane (gNB-CU-CP) handling RRC and
-connection management for each UE~\cite{3gpp38401,3gpp38300,3gpp38331}. Such control-plane
-systems must satisfy demanding non-functional requirements: very high event rates (UE
-mobility, signalling storms), strict and predictable latency bounds that the 5G service and
-RAN specifications quantify as key performance indicators
-(KPIs)~\cite{3gpp38913,3gpp22261}, long-lived software with continuously evolving complexity,
-and heavily concurrent workloads. In these systems the worst-case and tail behaviour,
-rather than the average, determines whether deadlines are met, which motivates the
-predictability focus of this thesis.
+The next-generation radio access network (NG-RAN) splits the gNB into a central unit
+(gNB-CU) and one or more distributed units. The control plane of that central unit
+(gNB-CU-CP) handles RRC and connection management for each
+UE~\cite{3gpp38401,3gpp38300,3gpp38331}. This class of software has to meet several hard
+requirements at once. Event rates are high, from UE mobility and from signalling storms.
+Latency bounds are strict, and the 5G service and RAN specifications write them as key
+performance indicators (KPIs)~\cite{3gpp38913,3gpp22261}. The software is long-lived and keeps
+growing in complexity, and many threads run at once. In these systems the worst-case and
+tail behaviour, not the average, decides whether deadlines are met. That is why this thesis
+measures predictability.
 
-Functionally, the gNB is disaggregated along two independent axes. The first is a
-\emph{central/distributed} split: a central unit (gNB-CU) hosts the higher layers of the
-protocol stack, while one or more distributed units (gNB-DU) host the lower, more
-time-critical layers close to the radio. The second is a \emph{control/user-plane} split
-inside the central unit, separating the control-plane function (gNB-CU-CP) from the
-user-plane function (gNB-CU-UP). These parts communicate over standardised
-interfaces: NG towards the 5G core, F1 between the CU and the DU, and E1 between the CU-CP and
-the CU-UP~\cite{3gpp38401,3gpp38300,3gpp38463}. Open-RAN initiatives standardise these interfaces
-further so that each part can be supplied by a different vendor and run as software on
-commodity hardware~\cite{polese2023oran}. Figure~\ref{fig:ngran} places the subsystem studied
-in this thesis, UE Context Management (UECM), inside the gNB-CU-CP: it owns the per-UE
-control-plane state and mediates the RRC signalling and mobility procedures, which is why its
-correctness and timing behaviour are representative of the control plane as a whole.
+Functionally, the gNB is split along two independent axes. The first is a
+\emph{central/distributed} split. A central unit (gNB-CU) hosts the higher layers of the
+protocol stack. One or more distributed units (gNB-DU) host the lower, more time-critical
+layers close to the radio. The second is a \emph{control/user-plane} split inside the central
+unit. It separates the control-plane function (gNB-CU-CP) from the user-plane function
+(gNB-CU-UP). These parts communicate over standardised interfaces: NG towards the 5G core, F1
+between the CU and the DU, and E1 between the CU-CP and the
+CU-UP~\cite{3gpp38401,3gpp38300,3gpp38463}. Uu is the radio interface to the UE. The DU
+terminates its lower layers and the CU-CP its RRC signalling~\cite{3gpp38401,3gpp38300}.
+Open-RAN initiatives standardise these interfaces further so that each part can be supplied
+by a different vendor and run as software on commodity hardware~\cite{polese2023oran}.
+Figure~\ref{fig:ngran} places the subsystem studied in this thesis, UE Context Management
+(UECM), inside the gNB-CU-CP. UECM owns the per-UE control-plane state and mediates the RRC
+signalling and mobility procedures. That is why its correctness and timing behaviour stand in
+for the control plane as a whole.
 
 \begin{figure}[ht]
 \centering
@@ -665,33 +702,36 @@ measures.\label{fig:ngran}}
 \end{figure}
 
 \section{Predictability and the two languages}\label{sec:bgbrief}
-Four strands of background bear on the comparison, and this section states each as the position
-the study inherits from it. Predictability, not average
-throughput, is the governing property of a latency-critical service, so the quantity to measure
-is the tail of the distribution and not its mean, and measuring it correctly
-constrains the harness as much as the metric: an open-loop schedule is required, because a
-closed-loop one stops issuing requests while a stall is in progress and so never records the
-latency of the stall.
+Four strands of background bear on the comparison. This section states each as the position
+the study inherits from it.
+
+Predictability, not average throughput, is what a latency-critical service is judged on. The
+quantity to measure is therefore the tail of the distribution, not its mean. Measuring that
+tail correctly constrains the harness as much as the metric. An open-loop schedule is
+required: the driver keeps issuing requests on a timer even while a stall is in progress. A
+closed-loop one stops issuing requests during the stall, so it never records how long the
+stall lasted.
 
 C++ supplies the control the domain demands and leaves memory and concurrency safety to the
-programmer, with sanitisers and review standing in for a guarantee. The standards committee's
-work on enforced safety profiles is neither standardised nor generally implemented. Rust's ownership and borrowing discipline rules out lifetime and
-aliasing errors at compile time, and its \texttt{Send} and \texttt{Sync} traits rule out data
-races. That is a narrower claim than the phrase ``thread safety'' suggests. It says nothing about
-lock-acquisition order, about the atomicity of a composed operation, or about leaks, and it is
-suspended wherever a program writes \texttt{unsafe}. Both languages can express the same
-concurrency structures, and a comparison that lets the structure vary with the language measures
-the structure. The two meet through a C application binary interface, which is the mechanism any
-incremental migration has to use and the reason a seam concentrates whatever \texttt{unsafe} a
-migration needs.
+programmer. Sanitisers and review stand in for a guarantee. The standards committee's work
+on enforced safety profiles is neither standardised nor generally implemented. Rust's
+ownership and borrowing discipline rules out lifetime and aliasing errors at compile time,
+and its \texttt{Send} and \texttt{Sync} traits rule out data races. That is a narrower claim
+than the phrase ``thread safety'' suggests. It says nothing about lock-acquisition order,
+about the atomicity of a composed operation, or about leaks. It is suspended wherever a
+program writes \texttt{unsafe}. Both languages can express the same concurrency structures. A
+comparison that lets the structure vary with the language measures the structure, not the
+language. The two meet through a C application binary interface (ABI), which is the mechanism
+any incremental migration has to use. That is why a seam concentrates whatever \texttt{unsafe}
+a migration needs.
 
 \section{Research gap}\label{sec:gap}
 The preceding sections set up the gap. The RAN control plane is a soft-to-firm real-time,
-highly concurrent domain where tail behaviour under overload, not average throughput, governs
-the quality the network delivers. C++ supplies the control and performance the domain demands,
-but leaves whole classes of memory and concurrency defects to best-effort detection after the
-fact. Rust promises to prevent those classes at compile time at no run-time cost, and offers a
-credible incremental adoption path through the C application binary interface (ABI).
+highly concurrent domain. Tail behaviour under overload, not average throughput, governs the
+quality the network delivers. C++ supplies the control and performance the domain demands, but
+leaves whole classes of memory and concurrency defects to best-effort detection after the
+fact. Rust promises to prevent those classes at compile time at no run-time cost. It also
+offers a credible incremental adoption path through the C ABI.
 
 The domain is not unstudied, and the volume of prior work is easy to underestimate because
 almost none of it is indexed. At least five vendor-hosted master's theses, all carried out at
@@ -742,10 +782,10 @@ it past saturation is what this thesis adds. The contribution is the control, no
 measurement technique.\label{fig:gapmap}}
 \end{figure}
 
-What is therefore missing from the literature
-is \emph{direct, controlled} evidence for a representative control-plane subsystem: Whether
-Rust actually holds its tail latency and predictability under overload against modern C++
-\emph{when the concurrency model, algorithms, and data structures are held fixed},
+What is therefore missing from the literature is \emph{direct, controlled} evidence for a
+representative control-plane subsystem. The missing comparison is this: Whether Rust actually
+holds its tail latency and predictability under overload against modern C++ \emph{when the
+concurrency model, algorithms, and data structures are held fixed}. The same gap covers
 exactly which defect classes it eliminates and at what stage the remainder are caught, what
 its safety model costs in throughput and resources, and what incremental adoption costs in
 practice. Closing this gap is the purpose of the four research questions. The next chapter
@@ -754,20 +794,21 @@ sets out the methodology by which they are pursued.
 
 \chapter{Research Methodology\label{chapter:methodology}}
 
-The preceding chapter set out the gap this study closes. This one sets out how, beginning with
-the subsystem the work is carried out on and the defect classes and timing properties at stake
-in it. It then states the overall research strategy, the method chosen for each research
-question and why it is appropriate, the controls that make a language comparison fair, the
-statistical treatment of the measurements, and the reproducibility and ethical commitments
-under which the work is carried out.
+The preceding chapter set out the gap this study closes. This one sets out how. It begins
+with the subsystem the work is carried out on, and with the defect classes and timing
+properties at stake in it. It then states the overall research strategy, the method chosen
+for each research question and why it is appropriate, the controls that make a language
+comparison fair, the statistical treatment of the measurements, and the reproducibility and
+ethical commitments under which the work is carried out.
 
 \section{The UE Context Management subsystem}\label{sec:uecm}
-The subsystem under study is a UE Context Management service, modelled on a real Nokia
+The subsystem under study is a UE Context Management service. It is modelled on a real Nokia
 gNB-CU-CP service domain that owns the UE context lifecycle, RRC procedure
-execution~\cite{3gpp38331}, and mobility/handover, the functions the 3GPP architecture assigns
-to the control-plane part of a disaggregated gNB (Section~\ref{sec:ranarch}).
-Figure~\ref{fig:fsm} shows the UE-context lifecycle state machine both implementations encode
-identically and the mixed workload of Section~\ref{sec:workload} walks each UE through.
+execution~\cite{3gpp38331}, and mobility and handover. Those are the functions the 3GPP
+architecture assigns to the control-plane part of a disaggregated gNB
+(Section~\ref{sec:ranarch}). Figure~\ref{fig:fsm} shows the UE-context lifecycle state machine
+both implementations encode identically. The mixed workload of Section~\ref{sec:workload}
+walks each UE through that machine.
 
 \begin{figure}[ht]
 \centering
@@ -795,62 +836,62 @@ in place while \texttt{Connected}. Operations invalid for the current state retu
 \end{figure}
 
 \paragraph{Why this subsystem.}
-UECM is core RAN layer-3 functionality carrying the properties that make production
+UECM is core RAN layer-3 functionality. It carries the properties that make production
 control-plane code difficult: per-UE mutable state, a strict operation lifecycle, high
 concurrency across UEs, and the latency and reliability targets the 5G system sets for
 control-plane procedures~\cite{3gpp38913,3gpp22261}. Conclusions about how a language handles
-those properties therefore transfer to other stateful, concurrent control-plane services. It is
-also small enough to specify precisely, implement faithfully in two languages, and reason about
-in full, which is what makes a parity-tested comparison possible. A larger subsystem would buy
-external validity at the cost of the internal validity a fair language comparison depends on.
+those properties therefore transfer to other stateful, concurrent control-plane services. It
+is also small enough to specify precisely, implement faithfully in two languages, and reason
+about in full. That is what makes a parity-tested comparison possible. A larger subsystem would
+buy external validity at the cost of the internal validity a fair language comparison depends
+on.
 
 \paragraph{Operation set.}
-The interface exercised by the study is deliberately small and lifecycle-oriented: create and
-release a context, set up a connection (\texttt{Idle}$\rightarrow$\texttt{Connected}), handle an
-in-session signalling message, add a data radio bearer, begin, complete, or abort a
+The interface exercised by the study is deliberately small and lifecycle-oriented. It can
+create and release a context, set up a connection (\texttt{Idle}$\rightarrow$\texttt{Connected}),
+handle an in-session signalling message, add a data radio bearer, begin, complete, or abort a
 reconfiguration or handover, and look up a context's state under concurrent load. Every
-operation is defined for every state of Figure~\ref{fig:fsm}, and one illegal in the current
-state returns a typed error and leaves the context unchanged instead of throwing or corrupting
-state. That closed, well-typed set lets the same test vectors and the same workload drive both
-implementations along identical paths.
+operation is defined for every state of Figure~\ref{fig:fsm}. An operation illegal in the
+current state returns a typed error and leaves the context unchanged, instead of throwing or
+corrupting state. That closed, well-typed set lets the same test vectors and the same workload
+drive both implementations along identical paths.
 
 \paragraph{The defect classes this subsystem can exhibit.}
-RQ2 needs a catalogue and not a list of hazards, and one is built from this operation set. It is $\FaultClasses$ classes in two groups of seven, and the split is
-the falsifiable commitment: seven drawn from inside the region safe Rust claims to govern, and
-seven chosen precisely because safe Rust is expected \emph{not} to prevent them, each with its
-expectation recorded before the programs were run. Every class is mapped to an operation that
-would exhibit it, so the catalogue answers to this subsystem and not to memory
-safety in the abstract, and Section~\ref{sec:safetyresults} reports what each one did.
+RQ2 needs a catalogue and not a list of hazards. One is built from this operation set. It is
+$\FaultClasses$ classes in two groups of seven. The split is the falsifiable commitment: seven
+drawn from inside the region safe Rust claims to govern, and seven chosen precisely because
+safe Rust is expected \emph{not} to prevent them. Each has its expectation recorded before the
+programs were run. Every class is mapped to an operation that would exhibit it, so the
+catalogue answers to this subsystem and not to memory safety in the abstract.
+Section~\ref{sec:safetyresults} reports what each one did.
 
 \paragraph{Why the tail is the metric here.}
-Section~\ref{sec:bgbrief} makes the tail the governing quantity for a latency-critical service,
-and two properties of this subsystem are why it governs here. One user-visible action, a
-call setup or a handover, becomes many dependent control-plane operations whose slowest member
-gates completion, and a busy site drives thousands of such procedures per second, so a percentile
-far out in the distribution is reached often enough to matter. The second is the shape of
-the failure: a service of this design tracks
-its offered load with flat latency until a worker saturates, and then latency rises by orders of
-magnitude within one increment of load, which is why this study sweeps past saturation instead of
-stopping at a nominal operating point.
+Section~\ref{sec:bgbrief} makes the tail the governing quantity for a latency-critical service.
+Two properties of this subsystem are why it governs here. One user-visible action, a call
+setup or a handover, becomes many dependent control-plane operations. The slowest member gates
+completion. A busy site drives thousands of such procedures per second, so a percentile far
+out in the distribution is reached often enough to matter. The second is the shape of the
+failure. A service of this design tracks its offered load with flat latency until a worker
+saturates. Then latency rises by orders of magnitude within one increment of load. That is why
+this study sweeps past saturation instead of stopping at a nominal operating point.
 
 \section{Research approach}\label{sec:approach}
 The study is experimental with a constructive (design-science) element. The artifact is a pair
-of functionally equivalent implementations of the subsystem, one in C++ and one in Rust, plus
-the framework that benchmarks them. Both are built from a single frozen specification and then
-evaluated under controlled experiments. Evidence is triangulated across three methods.
-Performance measurement under a load sweep answers RQ1 and RQ3, a controlled fault-injection
-study answers RQ2, and an FFI migration case study, part measured and part qualitative, answers
-RQ4. The three are independent. A weakness in one of them, such as the environment sensitivity
-of tail-latency measurement, therefore does not carry into the conclusions as a whole. Every
-measurement reports variance over repeated runs, and Section~\ref{sec:controlsbrief} sets out the
-controls that keep the language the only variable.
+of functionally equivalent implementations of the subsystem, one in C++ and one in Rust,
+plus the framework that benchmarks them. Both are built from a single frozen specification
+and then evaluated under controlled experiments. Evidence is triangulated across three
+methods. Performance measurement under a load sweep answers RQ1 and RQ3. A controlled
+fault-injection study answers RQ2. An FFI migration case study, part measured and part
+qualitative, answers RQ4. A weakness in one of them, such as the environment sensitivity of tail-latency
+measurement, therefore does not carry into the conclusions as a whole, because the three methods are independent of each other. Every measurement reports variance over repeated runs.
+Section~\ref{sec:controlsbrief} sets out the controls that keep the language the only variable.
 
 That design follows from the shape of the questions. Each asks how one outcome (tail latency,
 defects prevented, resource use, migration cost) depends on one variable, the implementation
 language. The language therefore has to be the only systematic difference between the two
 objects under test. This rules out the commonest form of language comparison in the literature,
-where two independently written programs are measured and the gap is attributed to the language.
-Such a gap also carries the design, the libraries and the skill of their authors.
+where two independently written programs are measured and the gap is attributed to the
+language. Such a gap also carries the design, the libraries and the skill of their authors.
 
 Building both sides from one specification removes that confound. The comparison is then between
 two encodings of the same design, and the artifact becomes both the contribution and the
@@ -876,14 +917,15 @@ The search returned no study, indexed or grey, that measures the tail-latency be
 Rust and a C++ implementation of the same stateful, concurrent control-plane subsystem under
 overload.
 
-Table~\ref{tab:design} maps each research question to the method, artifact, data and metric that
-answer it. All four chains end in the same place: Section~\ref{sec:rqdiscussion} judges each
-question and Section~\ref{sec:hypotheses} disposes of its hypothesis. RQ1 and RQ3 share H1,
-worded to cover performance equivalence in both the latency and the resource sense. That wording
-turns out to be the hypothesis's main weakness. RQ2 is insensitive to the environment, and RQ4 is
-so except along one axis: build time is a timing measurement like any other, and is therefore read
-as a ratio between two toolchains measured alternately on one machine. RQ1 and RQ3 depend on the
-measurement host and are reported against what it can carry (Section~\ref{sec:testbed}).
+Table~\ref{tab:design} maps each research question to the method, artifact, data and metric
+that answer it. All four chains end in the same place. Section~\ref{sec:rqdiscussion} judges
+each question and Section~\ref{sec:hypotheses} disposes of its hypothesis. RQ1 and RQ3 share
+H1, worded to cover performance equivalence in both the latency and the resource sense. That
+wording turns out to be the hypothesis's main weakness. RQ2 is insensitive to the
+environment. RQ4 is so except along one axis: build time is a timing measurement like any
+other, and is therefore read as a ratio between two toolchains measured alternately on one
+machine. RQ1 and RQ3 depend on the measurement host and are reported against what it can carry
+(Section~\ref{sec:testbed}).
 
 \begin{table}[H]
 \centering
@@ -918,99 +960,104 @@ seam size, \texttt{unsafe} scope, per-call interop cost \\
 \end{table}
 
 \section{Methods per research question, in outline}\label{sec:methodbrief}
-RQ1 and RQ3 are answered by an
-open-loop load sweep from light load to well past saturation, with the four build variants
-interleaved inside every repeat, and by a second measurement that separates the operation from
-the cross-thread handoff around it, because the end-to-end round-trip bundles two costs of
-different character and only one of them can differ between the languages. A third isolates the contended queue and completion primitives
-on their own, so the overload attribution can be tested and not merely argued.
+RQ1 and RQ3 are answered by an open-loop load sweep from light load to well past saturation.
+The four build variants are interleaved inside every repeat. A second measurement separates the
+operation from the cross-thread handoff around it. The end-to-end round-trip bundles two costs
+of different character, and only one of them can differ between the languages. A third
+isolates the contended queue and completion primitives on their own, so the overload
+attribution can be tested and not merely argued.
 
 RQ2 is answered by controlled fault injection. Each defect class is written as a small
-self-contained program in both languages, the C++ side built and run under AddressSanitizer,
-ThreadSanitizer and UndefinedBehaviorSanitizer, and the safe-Rust side compiled and, where it
-compiles, run under a bounded timeout. No static analyser is run, deliberately, so the C++ columns
-report the tooling this study ran and not a ceiling on what C++ tooling could find. RQ4 is answered by a working migration prototype in the
-direction a real migration takes, a C++ host calling an unmodified Rust core across a C
-application binary interface, with the per-call cost measured on a real operation and not inferred
-from an empty crossing.
+self-contained program in both languages. The C++ side is built and run under
+AddressSanitizer, ThreadSanitizer and UndefinedBehaviorSanitizer. The safe-Rust side is
+compiled and, where it compiles, run under a bounded timeout. No static analyser is run,
+deliberately. The C++ columns therefore report the tooling this study ran and not a ceiling on
+what C++ tooling could find. RQ4 is answered by a working migration prototype in the direction
+a real migration takes: a C++ host calling an unmodified Rust core across a C application
+binary interface. The per-call cost is measured on a real operation and not inferred from an
+empty crossing.
 
 \section{Fairness as a controlled variable}\label{sec:controlsbrief}
-A language comparison is only as good as the variables it holds fixed. The
-specification is frozen before either implementation exists. The concurrency model, the allocator
-and its arena count, the optimisation level, the hash function, the histogram algorithm and the
-load schedule are matched across the two sides, never tuned per side. Where the two languages
-could not be written alike the divergence is logged instead of resolved, and behavioural
-equivalence is established by
-diffing conformance transcripts operation by operation. One row of that table has no control
-against it: one person wrote both implementations and is not equally expert in both, which
-Section~\ref{sec:standing} treats as the study's principal internal threat.
+A language comparison is only as good as the variables it holds fixed. The specification is
+frozen before either implementation exists. The concurrency model, the allocator and its arena
+count, the optimisation level, the hash function, the histogram algorithm and the load schedule
+are matched across the two sides, never tuned per side. Where the two languages could not be
+written alike the divergence is logged instead of resolved. Behavioural equivalence is
+established by diffing conformance transcripts operation by operation. One row of that table
+has no control against it: one person wrote both implementations and is not equally expert in
+both. Section~\ref{sec:standing} treats that as the study's principal internal threat.
 
 \section{Statistical treatment}\label{sec:statsbrief}
-Three commitments of the statistical design are fixed in advance, because the study's credibility
-rests on their having been fixed before any data was seen. The family of tested comparisons is enumerated ahead of the campaign, so an operating
-point identified after seeing a sweep cannot enter it however small its $p$-value would be. Each
+The statistical design is fixed in advance, because the study's credibility rests on that.
+The family of tested comparisons is enumerated ahead of the campaign, so an operating point
+identified after seeing a sweep cannot enter it however small its $p$-value would be. Each
 comparison is an exact paired permutation test over \NRepeats{} interleaved repeats with a
 bootstrap confidence interval, Holm-corrected across the family. The attainable floors
 ($\MinAttainableP$ uncorrected, $\CorrectedFloor$ corrected) are quoted so that a null can be
-distinguished from an arithmetic limit. And two quantities are deliberately excluded from the
-family: inter-operation jitter, which no research question asks for, and the pooled p99.99 far
-tail, whose unit of analysis is the operation and not the run, so it has no across-repeat interval
-to test.
+distinguished from an arithmetic limit. Two quantities are deliberately excluded from the
+family. One is inter-operation jitter, which no research question asks for. The other is the
+pooled p99.99 far tail, whose unit of analysis is the operation and not the run, so it has no
+across-repeat interval to test.
 
 \section{Reproducibility and research artifacts}\label{sec:repro}
-The study is designed so that its results can be regenerated by a third party without access to
-Nokia's proprietary code. Three things make that possible. The implementations are driven
-entirely by the public frozen specification. The benchmarking harness, the fault catalogue and
-its runner, and the FFI prototype are published together with the thesis. And every result table,
-every plot of measured data, and every quoted number in the evaluation is rebuilt by one
-regeneration script in the published package (\texttt{bench/refresh\_thesis.sh}) directly from the
-raw logs. The scope of that claim is worth stating precisely, because two things it might be read to
-cover are outside it. The hand-drawn schematics that explain a concept rather than report a result
-are authored and not generated. And running the same scripts over another host's campaign
-regenerates the artifacts by the same procedure and not with the same values. What the script
-guarantees is that no figure, table, or sentence can hold a value the logs no longer support.
+A third party can regenerate the results without access to Nokia's proprietary code, for
+three reasons. The implementations are driven entirely by the public frozen specification. The
+benchmarking harness, the fault catalogue and its runner, and the FFI prototype are published
+together with the thesis. Every result table, every plot of measured data, and every quoted
+number in the evaluation is rebuilt by one regeneration script in the published package
+(\texttt{bench/refresh\_thesis.sh}) directly from the raw logs. The scope of that claim is
+worth stating precisely. Two things it might be read to cover are outside it. The hand-drawn
+schematics that explain a concept rather than report a result are authored and not generated.
+And running the same scripts over another host's campaign regenerates the artifacts by the
+same procedure and not with the same values. What the script guarantees is that no figure,
+table, or sentence can hold a value the logs no longer support.
 
 The logs that script reads are part of the package. A performance campaign is an append-only
 newline-delimited JavaScript Object Notation (JSON) file, named by the timestamp at which it
-started. The reported sweep and
-the virtualised campaign it replaced both sit under \texttt{bench/results/}, while the second
-bare-metal campaign has a directory of its own. Each campaign has its own script and its own
-macro prefix, so a figure from one cannot reach a sentence about another. The two bare-metal
-campaigns also write a sidecar holding every run's complete histogram buckets, which is what the
-far-tail percentile is computed from and which the virtualised campaign predates. Each run's
-environment is recorded by \texttt{bench/capture\_env.sh} and stored beside the campaign data.
-Three runners write three machine-readable outcome files under \texttt{faults/results/}:
-\texttt{taxonomy.csv}, \texttt{model\_checking.csv}, and \texttt{miri.csv}. Nothing in the
-evaluation chapters is transcribed from those files by hand. The execution environment travels
-with its data, which is what lets the thesis separate environment-sensitive results from
-environment-insensitive ones. Nothing on the path requires proprietary source.
+started. The reported sweep and the virtualised campaign it replaced both sit under
+\texttt{bench/results/}, while the second bare-metal campaign has a directory of its own. Each
+campaign has its own script and its own macro prefix, so a figure from one cannot reach a
+sentence about another. The two bare-metal campaigns also write a sidecar holding every run's
+complete histogram buckets. The far-tail percentile is computed from those buckets, which the
+virtualised campaign predates. Each run's environment is recorded by
+\texttt{bench/capture\_env.sh} and stored beside the campaign data. Three runners write three
+machine-readable outcome files under \texttt{faults/results/}: \texttt{taxonomy.csv},
+\texttt{model\_checking.csv}, and \texttt{miri.csv}. Nothing in the evaluation chapters is
+transcribed from those files by hand. The execution environment travels with its data, which
+is what lets the thesis separate environment-sensitive results from environment-insensitive
+ones. Nothing on the path requires proprietary source.
 
 \section{The two implementations in brief}\label{sec:designbrief}
-The properties of the design and of both implementations that the evaluation depends on are these. Both are built from one frozen specification, written before
-either implementation existed, which fixes the operation set, the state machine and the error
-model before either version could negotiate them. Both use the same
-concurrency structure, a shared-nothing thread-per-shard pool in which each worker owns its slice
-of the UE state outright, reached through a bounded blocking queue of fixed capacity, so no lock
-protects shared mutable state on the hot path in either language. A request crosses that queue as a tagged value carrying a
-one-shot completion handle, which is what makes the end-to-end latency a submit-and-complete
-round-trip and not a function call.
+The properties of the design and of both implementations that the evaluation depends on are
+these. Both are built from one frozen specification, written before either implementation
+existed. That specification fixes the operation set, the state machine and the error model
+before either version could negotiate them. Both use the same concurrency structure: a
+shared-nothing thread-per-shard pool in which each worker owns its slice of the UE state
+outright, reached through a bounded blocking queue of fixed capacity. No lock protects shared
+mutable state on the hot path in either language. A request crosses that queue as a tagged value
+carrying a one-shot completion handle. That is what makes the end-to-end latency a
+submit-and-complete round-trip and not a function call.
 
-Where the two could not be written the same way, the divergence is logged and left unresolved in
-either direction. Two of those divergences carry the overload result of
+Where the two could not be written the same way, the divergence is logged and left unresolved
+in either direction. Two of those divergences carry the overload result of
 Section~\ref{sec:overload}: the bounded queue, hand-written in C++ against Rust's
 \texttt{sync\_channel}, and the completion handle, \texttt{std::promise} against a fresh
 \texttt{mpsc} channel per request. A third carries the operation-level result of
 Section~\ref{sec:budget}, since the per-shard container is each language's own standard hash map
 and those are different data structures. The hash function itself is pinned to the
-Fowler--Noll--Vo hash function (FNV-1a) on both
-sides precisely so that hashing cannot be the explanation. Behavioural equivalence is not assumed
-either: a language-neutral conformance suite drives both through $\ConfHandOps$ hand-written and
-$\ConfGenOps$ generated operations and diffs the canonical transcripts operation by operation.
+Fowler--Noll--Vo hash function (FNV-1a) on both sides precisely so that hashing cannot be the
+explanation. Behavioural equivalence is not assumed either. A language-neutral conformance
+suite drives both through $\ConfHandOps$ hand-written and $\ConfGenOps$ generated operations
+and diffs the canonical transcripts operation by operation.
 
 \chapter{Experimental Setup and Evaluation\label{chapter:eval}}
 
+The chapter first names the machines and the workload, then reports the results. Setup
+questions (what was pinned, what was not) come before any comparison. The findings themselves
+are grouped by research question.
+
 \section{Testbed configuration\label{sec:testbed}}
-This chapter reports two kinds of result. Some follow from the compilers and the source, others
+This chapter reports two kinds of result. Some follow from the compilers and the source. Others
 depend on the machine. Table~\ref{tab:testbed} describes the machines and keeps that split clear.
 
 Every performance number here comes from one dedicated bare-metal server: a single-socket
@@ -2046,9 +2093,9 @@ why it is reported as a paired ratio between two toolchains timed alternately.
 Table~\ref{tab:findings} collects the headline finding for each research question with the
 strength of the current evidence. The safety results (RQ2) do not depend on the measurement
 environment. The migration results (RQ4) depend on it along one axis only, which is why build
-time is reported as a paired ratio. The performance and resource results do, and they now resolve
-on the host of Section~\ref{sec:testbed}, including the far tail below saturation, which the same
-design on the earlier host could not resolve.
+time is reported as a paired ratio. The performance and resource results do depend on the host.
+They now resolve on the host of Section~\ref{sec:testbed}, including the far tail below
+saturation, which the same design on the earlier host could not resolve.
 
 \begin{table}[tp]
 \centering
@@ -2396,10 +2443,10 @@ cost moved from run time to human effort rather than disappearing.
 \chapter{Conclusion and Future Work\label{chapter:conclusions}}
 
 This thesis compared modern C++ and Rust on a UE Context Management service modelled on a real
-Nokia gNB-CU-CP component, along four dimensions: tail-latency predictability, compile-time
-defect prevention, safety-model overhead, and incremental-adoption cost. Built against a single
-frozen specification and driven through identical code paths, the two implementations isolate
-language effects from design and skill differences.
+Nokia gNB-CU-CP component. The comparison has four dimensions: tail-latency predictability,
+compile-time defect prevention, safety-model overhead, and incremental-adoption cost. Built
+against a single frozen specification and driven through identical code paths, the two
+implementations isolate language effects from design and skill differences.
 
 Three conclusions follow from the evidence. First, on safety the difference is one of
 \emph{kind}, and it has a clear boundary. Safe Rust rejects all seven injected memory-safety and
