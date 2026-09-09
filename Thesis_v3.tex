@@ -327,7 +327,6 @@ ownership and borrowing reject the dangling reference. That is why this thesis m
 both \emph{safety} (which defects are prevented, and when) and \emph{predictability}
 (tail latency under overload), not average throughput alone.
 
-% Checked (make sure everything is understandable) 9.9
 \section{Problem statement}
 Two properties of this domain make the language choice consequential. First, manual memory and
 concurrency management in C++ exposes the software to defects such as use-after-free,
@@ -351,6 +350,7 @@ is largely general-purpose and average-case~\cite{balasubramanian2017rust,qin202
 these three questions (predictability, prevented-defect scope, and migration cost) open for a
 representative subsystem. Answering them under controlled, reproducible conditions is the
 problem this thesis sets out to solve.
+% Checked (make sure everything is understandable) 9.9
 
 \section{Research questions and hypotheses}\label{sec:rqs}
 The thesis is organised around four research questions, ordered to put predictability and
