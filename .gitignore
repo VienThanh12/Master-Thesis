@@ -73,6 +73,11 @@ ffi/**/target/
 # Rendered PDF page images (workaround for broken WSL webview preview)
 .pdf-preview/
 
+# Scratch file the prose screens read when a candidate paragraph is being
+# measured before it is offered or pasted. Disposable by design: it holds one
+# paragraph plus the \chapter and \bibliography lines the screens anchor on.
+.prose-scratch/
+
 # Commented PDFs a reviewer returns, read by pdfannots.py. Kept local: a marked-up
 # copy carries the reviewer's own words and may carry Nokia-internal comments.
 docs/review/
