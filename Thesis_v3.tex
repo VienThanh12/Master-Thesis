@@ -253,16 +253,20 @@ multi-vendor software~\cite{polese2023oran}. A latency regression or a
 memory-corruption defect is then a network-wide risk, and the language
 choice is an engineering decision.
 
-The second is that artificial intelligence (AI) is moving from a tool
-used to tune the network into a workload the network is built to carry.
-International Mobile Telecommunications-2030 (IMT-2030), the
-International Telecommunication Union (ITU) framework for 6G, specifies
-it that way~\cite{itu2023imt2030}, and AI-RAN puts both workloads on one
-accelerated infrastructure~\cite{polese2026airan,airan2026orchestrator}.
-The control plane then contends for central processing unit (CPU),
-memory, and cache with inference it does not control. That lowers the
-load at which it saturates, which is where the two languages separate
-most sharply in Chapter~\ref{chapter:eval}.
+The second trend is artificial intelligence (AI), which the network once
+used to tune itself and now carries as a workload in its own
+right~\cite{polese2026airan}. International Mobile
+Telecommunications-2030 (IMT-2030), the 6G framework of the
+International Telecommunication Union (ITU), lists that second role as
+one of its usage scenarios~\cite{itu2023imt2030}. The architecture
+forming around it is AI-RAN, in which AI and radio work share one
+accelerated server~\cite{airan2026orchestrator}. A control plane there
+no longer has the host to itself. It shares the central processing unit
+(CPU), memory, and cache with inference work it does not schedule. When
+that neighbour takes capacity, the control plane saturates sooner: it
+stops keeping up with demand at a lower load than it would alone.
+Chapter~\ref{chapter:eval} finds the widest gap between the two
+languages past that point.
 
 The third is the shift toward memory-safe languages. Large software
 organisations report that the majority of their serious security
