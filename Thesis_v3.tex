@@ -371,26 +371,33 @@ migration ahead of raw average performance:
         software ecosystem?
 \end{description}
 
-Three prior expectations are committed before any measurement, so the evaluation can confirm or
-refute them. \textbf{H1:} For this workload the two languages are performance-equivalent in the
-operationally relevant region below saturation, with any difference confined to the far tail.
-\textbf{H2:} Safe Rust prevents at compile time the memory-safety and concurrency defect classes
-that C++ leaves to best-effort, after-the-fact detection. \textbf{H3:} The run-time cost of
-C++-to-Rust interoperability is negligible relative to the cost of the operations invoked, so
-that the true cost of incremental adoption is engineering effort rather than performance. The
-defect catalogue behind RQ2 spans classes safe Rust is expected to prevent and classes it is
-expected not to, so the study can locate the boundary of the guarantee instead of only confirming
-it. Chapter~\ref{chapter:discussion} revisits all three against the evidence.
+Three prior expectations are committed before any measurement.
+\begin{description}
+  \item[H1] For this workload the two languages are performance-equivalent in the
+        operationally relevant region below saturation, with any difference confined to the
+        far tail.
+  \item[H2] Safe Rust prevents at compile time the memory-safety and concurrency defect
+        classes that C++ leaves to best-effort, after-the-fact detection.
+  \item[H3] The run-time cost of C++-to-Rust interoperability is negligible relative to the
+        cost of the operations invoked, so that the true cost of incremental adoption is
+        engineering effort rather than performance.
+\end{description}
+Chapter~\ref{chapter:discussion} revisits all three against the evidence.
 
-The boundary RQ2 sets out to locate has been estimated once already at the scale of a whole
-weakness taxonomy. Every base entry of the Common Weakness Enumeration (CWE) has been mapped
-onto what safe Rust would prevent, and weighting those classes by the vulnerability history of
-68 open-source C projects puts 58.2\% of the classified vulnerabilities into classes safe Rust
-would have made virtually impossible~\cite{meneely2025justuserust}. The estimate is a best case
-by construction. It assumes the converted code stays safe, and it reads prevention from the
-weakness class rather than from a compiler that refused to build a particular program. RQ2 asks
-the same question of programs that are compiled and run, which is what lets it report at what
-stage and cost the classes outside the guarantee are caught.
+The defect catalogue behind RQ2 spans classes safe Rust is expected to prevent and
+classes it is expected not to. The study can then locate the boundary of the guarantee
+instead of only confirming it.
+
+That boundary has been estimated once already, at the scale of a whole weakness
+taxonomy. Every base entry of the Common Weakness Enumeration (CWE) has been mapped
+onto what safe Rust would prevent. Weighting those classes by the vulnerability history
+of 68 open-source C projects puts 58.2\% of the classified vulnerabilities into classes
+safe Rust would have made virtually impossible~\cite{meneely2025justuserust}. The
+estimate is a best case by construction. It assumes the converted code stays safe. It
+reads prevention from the weakness class, not from a compiler that refused to build a
+particular program. RQ2 asks the same question of programs that are compiled and run.
+That is what lets it report at what stage and cost the classes outside the guarantee are
+caught.
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
 % The class prints the chapter titles in the running head in capitals, where the
