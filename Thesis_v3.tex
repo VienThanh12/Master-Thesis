@@ -244,67 +244,40 @@ deadlines~\cite{dean2013tail,barroso2017microseconds}.
 
 
 \section{Motivation and industrial context}\label{sec:motivation}
-Three trends make this comparison timely. The first is the cloud-native evolution of the RAN
-itself. Moving control-plane functions onto general-purpose servers raises, rather than
-lowers, the premium on software quality: the software is longer-lived, evolves continuously,
-runs at higher concurrency, and must meet its deadlines without the determinism that
-purpose-built hardware once provided. This shift is accelerated by Open-RAN disaggregation,
-which turns the base station into virtualised, multi-vendor software connected by open
-interfaces~\cite{polese2023oran}, so that the control plane a vendor ships increasingly
-competes on software-engineering quality (reliability, predictable timing, security, and the
-ease with which a large codebase can be evolved safely) and no longer on purpose-built hardware. In
-this setting a latency regression or a memory-corruption defect is not a localised bug but a
-network-wide reliability and security risk, and a language-selection question stops being
-academic and becomes a concrete engineering decision.
+Three trends make this comparison timely. The first is the cloud-native
+evolution of the RAN. Control-plane functions now run on general-purpose
+servers, so the software is longer-lived, more concurrent, and must meet
+its deadlines without the determinism of purpose-built hardware.
+Open-RAN disaggregation turns the base station into virtualised,
+multi-vendor software~\cite{polese2023oran}. A latency regression or a
+memory-corruption defect is then a network-wide risk, and the language
+choice is an engineering decision.
 
-The second trend is that artificial intelligence (AI) is moving from a tool used to tune the
-network into a workload the network is built to carry, and the next generation is being
-specified that way from the start. International Mobile Telecommunications-2030 (IMT-2030),
-the International Telecommunication Union (ITU) framework for 6G, lists artificial
-intelligence and communication among its
-six usage scenarios and ubiquitous intelligence among its four design
-principles~\cite{itu2023imt2030}. The architecture forming around that is AI-RAN, in which
-telecommunications and AI workloads are orchestrated together on shared, accelerated
-infrastructure, so the sites that run the radio also host distributed edge AI
-platforms~\cite{polese2026airan}. The AI-RAN Alliance states the operational requirement
-directly: one common infrastructure has to run both kinds of workload concurrently, and their
-service-level agreements may differ~\cite{airan2026orchestrator}. That changes what a language
-choice has to buy for a control plane. Its software no longer has the host to itself. It
-contends for central processing unit (CPU), memory, and cache with inference work whose
-arrival pattern it does not
-control, and a co-tenant that takes capacity away lowers the load at which the control plane
-saturates. Saturation is where the two languages separate most sharply in the measurements of
-Chapter~\ref{chapter:eval}. Memory footprint and behaviour past that point are becoming
-selection criteria in their own right, and neither is settled by the architecture above the
-code.
+The second is that artificial intelligence (AI) is moving from a tool
+used to tune the network into a workload the network is built to carry.
+International Mobile Telecommunications-2030 (IMT-2030), the
+International Telecommunication Union (ITU) framework for 6G, specifies
+it that way~\cite{itu2023imt2030}, and AI-RAN puts both workloads on one
+accelerated infrastructure~\cite{polese2026airan,airan2026orchestrator}.
+The control plane then contends for central processing unit (CPU),
+memory, and cache with inference it does not control. That lowers the
+load at which it saturates, which is where the two languages separate
+most sharply in Chapter~\ref{chapter:eval}.
 
-The third trend is an industry-wide shift toward memory-safe languages. Large
-software organisations report that the majority of their serious security vulnerabilities
-stem from memory-safety errors, and that adopting memory-safe languages measurably reduces
+The third is the shift toward memory-safe languages. Large software
+organisations report that the majority of their serious security
+vulnerabilities stem from memory-safety errors, and that adopting
+memory-safe languages reduces
 them~\cite{msrc2019memory,google2022android,vanderstoep2025android,google2024securebydesign}.
-The case no longer rests on vendor reporting alone: a group spanning academia and industry has
-argued that memory safety now needs standardised terminology and requirements if it is to be
-specified and procured at all~\cite{watson2025memorysafety}. This concern has risen to the level of national
-policy: cybersecurity agencies now urge software manufacturers to publish ``memory-safe
-roadmaps'' and to migrate away from memory-unsafe languages such as C and
-C++~\cite{cisa2023memorysafe,oncd2024building}. In the market this subsystem is sold into it has
-also become a regulatory matter. The European Union (EU) Cyber Resilience Act places secure-by-design and
-lifecycle vulnerability-handling obligations on manufacturers of products with digital elements,
-with the vulnerability-reporting obligations applying from September 2026 and most of the
-remainder from December 2027~\cite{eu2024cra}. It names no programming language, and it would be wrong to read it as
-requiring one. What it changes is that the recurring defect classes of a memory-unsafe language
-become a compliance exposure as well as an engineering one. Rust in particular has moved from a niche
-language into operating-system kernels, cloud infrastructure, and increasingly into
-telecommunications. Production hypervisors such as Amazon Web Services (AWS) Firecracker, which underpins its
-serverless platform, are already written in Rust~\cite{agache2020firecracker}. Yet the evidence base for Rust's suitability rests largely on
-general-purpose software and on average-case performance benchmarks. The specific question a
-telecom vendor must answer, whether Rust can meet the tail-latency and predictability
-requirements of a RAN control plane, whether it genuinely prevents the defect classes that
-plague the existing C++ code, and what it costs to adopt it incrementally inside a large C++
-codebase, has not been answered with direct, controlled evidence. Providing such evidence
-for a representative subsystem is the motivation for this work.
+Independent work argues that memory safety now needs standardised
+requirements if it is to be procured at
+all~\cite{watson2025memorysafety}. Cybersecurity agencies urge a move
+away from C and C++, and the European Union (EU) Cyber Resilience Act
+adds legal duties from September 2026 and December
+2027~\cite{cisa2023memorysafe,oncd2024building,eu2024cra}. The Act names
+no programming language. Direct evidence for a RAN control plane is
+still missing. Providing it is the motivation for this work.
 
-% Checked (make sure everything is understandable)
 \paragraph{Industrial setting.}
 This thesis is carried out at Nokia, one of the small number of vendors that build, maintain,
 and evolve production RAN software end to end. That market is concentrated in very few hands:
@@ -313,6 +286,7 @@ the five largest suppliers took 96\% of worldwide RAN revenue over the first thr
 high~\cite{delloro2025ran3q,delloro2026ran}. The subsystem it studies, UE Context
 Management (UECM), is modelled on a real gNB-CU-CP control-plane component rather than a
 textbook example.
+% Checked (make sure everything is understandable)
 
 The gNB-CU-CP is not a minor component. In the disaggregated architecture of the 3rd
 Generation Partnership Project (3GPP) it is the
