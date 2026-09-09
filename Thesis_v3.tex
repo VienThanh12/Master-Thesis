@@ -445,13 +445,31 @@ stage and cost the classes outside the guarantee are caught.
 % full title of this chapter runs into the margin.
 \chaptermark{Background}
 
-In the next-generation radio access network (NG-RAN) architecture the base station (gNB) is
-split into a central unit and a distributed unit. The central unit is split again into a control plane and a user plane.
-UE Context Management sits in the control plane, the gNB-CU-CP, and talks to its
-neighbours over the standardised F1, E1, and NG interfaces~\cite{3gpp38401}. Uu is the radio
-interface to the UE. The distributed unit terminates its lower layers and the gNB-CU-CP its
-RRC signalling~\cite{3gpp38401}.
-Figure~\ref{fig:ngran} places it there.
+\section{RAN control-plane systems and the gNB-CU-CP}\label{sec:ranarch}
+The next-generation radio access network (NG-RAN) architecture splits the gNB into a central
+unit (gNB-CU) and distributed units, with the control plane (gNB-CU-CP) handling RRC and
+connection management for each UE~\cite{3gpp38401,3gpp38300,3gpp38331}. Such control-plane
+systems must satisfy demanding non-functional requirements: very high event rates (UE
+mobility, signalling storms), strict and predictable latency bounds that the 5G service and
+RAN specifications quantify as key performance indicators
+(KPIs)~\cite{3gpp38913,3gpp22261}, long-lived software with continuously evolving complexity,
+and heavily concurrent workloads. In these systems the worst-case and tail behaviour,
+rather than the average, determines whether deadlines are met, which motivates the
+predictability focus of this thesis.
+
+Functionally, the gNB is disaggregated along two independent axes. The first is a
+\emph{central/distributed} split: a central unit (gNB-CU) hosts the higher layers of the
+protocol stack, while one or more distributed units (gNB-DU) host the lower, more
+time-critical layers close to the radio. The second is a \emph{control/user-plane} split
+inside the central unit, separating the control-plane function (gNB-CU-CP) from the
+user-plane function (gNB-CU-UP). These parts communicate over standardised
+interfaces: NG towards the 5G core, F1 between the CU and the DU, and E1 between the CU-CP and
+the CU-UP~\cite{3gpp38401,3gpp38300,3gpp38463}. Open-RAN initiatives standardise these interfaces
+further so that each part can be supplied by a different vendor and run as software on
+commodity hardware~\cite{polese2023oran}. Figure~\ref{fig:ngran} places the subsystem studied
+in this thesis, UE Context Management (UECM), inside the gNB-CU-CP: it owns the per-UE
+control-plane state and mediates the RRC signalling and mobility procedures, which is why its
+correctness and timing behaviour are representative of the control plane as a whole.
 
 \begin{figure}[ht]
 \centering
@@ -471,17 +489,15 @@ Figure~\ref{fig:ngran} places it there.
   % Control plane, with UE Context Management shown nested inside it
   \node[font=\footnotesize\bfseries] (cpttl) at (7.2,1.7) {gNB-CU-CP};
   \node[uecm] (uecm) at (7.2,0.85) {UE Context\\ Management};
+  \begin{scope}[on background layer]
+    \node[cpbox, fit=(cpttl)(uecm), inner sep=6pt] (cp) {};
+  \end{scope}
   % User plane
   \node[upbox] (up) at (7.2,-0.95) {gNB-CU-UP};
 
-  % The background layer paints in source order and the central unit's fill is opaque, so
-  % the control-plane box has to be drawn after it. Node (cp) carries the geometry that the
-  % central unit and the E1 arrow are measured against.
   \begin{scope}[on background layer]
-    \node[fit=(cpttl)(uecm), inner sep=6pt] (cp) {};
     \node[draw, dashed, rounded corners, fill=gray!3,
           fit=(cp)(up), inner sep=10pt, label={[font=\footnotesize\bfseries]above:gNB-CU}] (cu) {};
-    \node[cpbox, fit=(cp), inner sep=0pt] {};
   \end{scope}
 
   \node[box] (core) at (11.4,0) {5GC};
@@ -494,144 +510,99 @@ Figure~\ref{fig:ngran} places it there.
 \caption[Where the studied subsystem sits in the 5G NG-RAN]{Where the studied subsystem sits in the 5G NG-RAN. The gNB is split into a
 distributed unit (gNB-DU) and a central unit (gNB-CU), and the central unit is split again
 into control-plane (gNB-CU-CP) and user-plane (gNB-CU-UP) functions, connected by the
-standardised F1, E1, and NG interfaces, with Uu the radio interface to the UE. UE Context
-Management (highlighted) is the per-UE control-plane state manager inside the gNB-CU-CP that
-this thesis reimplements and measures.\label{fig:ngran}}
+standardised F1, E1, and NG interfaces. UE Context Management (highlighted) is the per-UE
+control-plane state manager inside the gNB-CU-CP that this thesis reimplements and
+measures.\label{fig:ngran}}
 \end{figure}
 
-Deadlines are met or missed because of predictability, not average speed. The metrics
-that matter are the p99 and p99.9 latencies and the jitter around
-them~\cite{dean2013tail}. They must be measured past the saturation point. They must also
-be recorded without coordinated omission, that is, without letting a load generator that
-has fallen behind hide its own slowest
-requests~\cite{schroeder2006openclosed,tene_hdrhistogram}.
-Figure~\ref{fig:tailconcept} shows why the distance between median and tail matters once
-one procedure runs several operations.
+\section{Predictability and the two languages}\label{sec:bgbrief}
+Four strands of background bear on the comparison, and this section states each as the position
+the study inherits from it. Predictability, not average
+throughput, is the governing property of a latency-critical service, so the quantity to measure
+is the tail of the distribution and not its mean, and measuring it correctly
+constrains the harness as much as the metric: an open-loop schedule is required, because a
+closed-loop one stops issuing requests while a stall is in progress and so never records the
+latency of the stall.
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.78\linewidth]{diagrams/pdf/11_tail_latency_concept.pdf}
-\caption[Why the tail, not the mean, governs RAN deadlines]{Why the tail, not the mean, governs RAN deadlines. On the left, most operations
-finish quickly and a few take far longer, so the p99 and p99.9 percentiles sit well to the
-right of the median. On the right, a procedure such as a call setup runs several operations
-and finishes only when the slowest one does, so a delay hitting one operation in a hundred
-reaches a much larger share of procedures.\label{fig:tailconcept}}
-\end{figure}
+C++ supplies the control the domain demands and leaves memory and concurrency safety to the
+programmer, with sanitisers and review standing in for a guarantee. The standards committee's
+work on enforced safety profiles is neither standardised nor generally implemented. Rust's ownership and borrowing discipline rules out lifetime and
+aliasing errors at compile time, and its \texttt{Send} and \texttt{Sync} traits rule out data
+races. That is a narrower claim than the phrase ``thread safety'' suggests. It says nothing about
+lock-acquisition order, about the atomicity of a composed operation, or about leaks, and it is
+suspended wherever a program writes \texttt{unsafe}. Both languages can express the same
+concurrency structures, and a comparison that lets the structure vary with the language measures
+the structure. The two meet through a C application binary interface, which is the mechanism any
+incremental migration has to use and the reason a seam concentrates whatever \texttt{unsafe} a
+migration needs.
 
-C++ offers abstractions that cost nothing at run time, deterministic cleanup through the
-Resource Acquisition Is Initialization (RAII) idiom, and no garbage collector. Safety remains the programmer's
-responsibility~\cite{szekeres2013sok}. Sanitisers report only the errors that a given
-test run happens to reach.
+\section{Research gap}\label{sec:gap}
+The preceding sections set up the gap. The RAN control plane is a soft-to-firm real-time,
+highly concurrent domain where tail behaviour under overload, not average throughput, governs
+the quality the network delivers. C++ supplies the control and performance the domain demands,
+but leaves whole classes of memory and concurrency defects to best-effort detection after the
+fact. Rust promises to prevent those classes at compile time at no run-time cost, and offers a
+credible incremental adoption path through the C application binary interface (ABI).
 
-Rust has the same run-time model and also no garbage collector. It checks memory safety
-and freedom from data races at compile time, using ownership, borrowing, and thread-safety
-traits such as \texttt{Send}~\cite{klabnik2023rust,jung2021safe}. Code that needs to
-step outside those rules must be marked \texttt{unsafe}. That keeps such code small and
-easy to find. Figure~\ref{fig:borrowuaf} puts the introduction's use-after-free beside its
-C++ form.
+The domain is not unstudied, and the volume of prior work is easy to underestimate because
+almost none of it is indexed. At least five vendor-hosted master's theses, all carried out at
+Ericsson, have compared candidate languages for RAN and telecom software. One weighs runtime
+cost against development efficiency across C++, Rust, and Go~\cite{karlback2021ran}. One asks
+whether Rust could replace C in RAN node management~\cite{olsson2023ranmgmt}. One builds a
+thread-per-core packet processor on asynchronous Rust and measures it against the Data Plane
+Development Kit (DPDK) application it mirrors~\cite{olsson2023asyncpackets}. One measures median and 99th-percentile
+latency for control-plane procedures across five asynchronous programming
+frameworks~\cite{arvidsson2025async}. The last builds matched C++ and Rust implementations of an
+Abstract Syntax Notation One (ASN.1) decompiler and compares them
+statistically~\cite{emberg2023asn1}. All five are directly
+relevant, and two report differences unfavourable to Rust.
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.78\linewidth]{diagrams/pdf/08_borrow_checker_uaf.pdf}
-\caption[The same use-after-free in C++ and in safe Rust]{The same use-after-free defect in C++ and in safe Rust. The stale alias into the
-context map survives the \texttt{erase}/\texttt{remove} that frees it, which in C++ compiles
-and is caught only at runtime, and only under a sanitiser on a path a test exercises. Safe
-Rust's borrow checker rejects it at compile time (\texttt{E0499}), so the defect cannot be
-written at all.\label{fig:borrowuaf}}
-\end{figure}
+Three of them vary the language together with the runtime and the concurrency model, so a
+measured difference cannot be attributed to the language rather than to the framework built on
+it~\cite{karlback2021ran,olsson2023asyncpackets,arvidsson2025async}. The effect sizes reach a
+factor of five, which is an indication of how much of the measurement the runtime owns. The
+remaining two hold the design closer to fixed but report execution time and peak memory rather
+than tail behaviour under rising load~\cite{olsson2023ranmgmt,emberg2023asn1}, and the closest
+of them, Emberg and Wadsten, measures a stateless transformation rather than a stateful,
+concurrent subsystem. Figure~\ref{fig:gapmap} sets the neighbouring studies against the
+properties a controlled answer would require, and the pattern it shows is that each holds some
+of them and none holds all.
 
-The comparison is C++ against Rust. Garbage-collected languages are left out because
-their pauses are incompatible with the latency targets. The concurrency model is held
-fixed in both implementations. The C application binary interface (ABI) is treated as the
-realistic adoption path. No
-earlier study isolates the language this way for a stateful, concurrent
-subsystem~\cite{karlback2021ran,emberg2023asn1}. The five closest studies by domain were
-all carried out at Ericsson, and none is peer-reviewed or
-indexed~\cite{karlback2021ran,olsson2023ranmgmt,olsson2023asyncpackets,arvidsson2025async,emberg2023asn1}.
-Repetition inside one organisation is not generality. Figure~\ref{fig:gapmap} sets those
-five against the properties a controlled answer would need.
+The concentration of that evidence is itself part of the gap. All five studies come from one
+vendor, and their conclusions have never been tested against another organisation's software,
+targets or conventions, so what is known about this question is what one company's frameworks
+report about it. The published record on the other side is emptier: there is no study of Rust
+among the indexed publications of the vendor hosting this work, and the nearest peer-reviewed
+position from that side argues for making memory-error sanitisation practical rather than for
+replacing it with a compile-time guarantee~\cite{gjomemo2016mesc}, which is the strategy this
+thesis tests against. The paragraphs below compare the five with this study directly.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.78\linewidth]{diagrams/pdf/29_research_gap.pdf}
 \caption[What the neighbouring studies control, and what they leave varying]{What the neighbouring studies control, and what they leave varying. Each row is a
-property that a controlled answer to the research questions would need and each column is a
-study, and no column holds all of them. Holding the design and the concurrency model fixed
-for a stateful, concurrent subsystem and then driving it past saturation is what this thesis
-adds, so the contribution is the control and not a new measurement
-technique.\label{fig:gapmap}}
+property that a controlled answer to the research questions would need. Each column is a study.
+The general cross-language comparisons measure the right kind of object but the wrong regime,
+reporting averages on general-purpose workloads. Matched pairs in systems software hold the
+design fixed, but outside this domain and below saturation. The vendor RAN and 5G framework
+studies reach the right domain, and one of them reports the tail, but in all of them the
+language varies together with the runtime and the concurrency model. The one matched telecom
+pair, Emberg and Wadsten, controls the design but measures a stateless transformation. Holding
+the design and the concurrency model fixed for a stateful, concurrent subsystem and then driving
+it past saturation is what this thesis adds. The contribution is the control, not a new
+measurement technique.\label{fig:gapmap}}
 \end{figure}
 
-\chapter{Problem Context: UE Context Management and Predictability\label{chapter:context}}
-\chaptermark{Problem Context}
+What is therefore missing from the literature
+is \emph{direct, controlled} evidence for a representative control-plane subsystem: Whether
+Rust actually holds its tail latency and predictability under overload against modern C++
+\emph{when the concurrency model, algorithms, and data structures are held fixed},
+exactly which defect classes it eliminates and at what stage the remainder are caught, what
+its safety model costs in throughput and resources, and what incremental adoption costs in
+practice. Closing this gap is the purpose of the four research questions. The next chapter
+grounds them in the specific subsystem, defect classes, and timing properties at stake, and
+sets out the methodology by which they are pursued.
 
-UE Context Management owns the lifecycle of one context per connected device. Each
-context moves through four states, Idle, Connected, Reconfiguring, and Released, driven
-by a small set of lifecycle operations. An operation that is illegal in the current
-state returns a typed error. It is not carried out. Figure~\ref{fig:fsm} gives the state
-machine both implementations encode.
-
-\begin{figure}[ht]
-\centering
-\begin{tikzpicture}[
-    ->, >=Stealth, node distance=3.2cm, font=\small,
-    every state/.style={draw, minimum size=1.5cm, fill=blue!6, thick},
-    every edge/.style={draw, thick}
-  ]
-  \node[state, initial, initial text=\scriptsize create] (idle) {Idle};
-  \node[state, right=of idle] (conn) {Connected};
-  \node[state, right=of conn] (reconf) {Reconf.};
-  \node[state, below=1.9cm of conn, fill=gray!10] (rel) {Released};
-
-  \path (idle)  edge node[above,font=\scriptsize]{setup} (conn)
-        (conn)  edge[bend left=18] node[above,font=\scriptsize]{begin} (reconf)
-        (reconf) edge[bend left=18] node[below,font=\scriptsize]{complete / abort} (conn)
-        (conn)  edge node[right,font=\scriptsize,pos=0.45]{release} (rel)
-        (idle)  edge[bend right=32] node[below,font=\scriptsize,pos=0.6]{release} (rel);
-  \path (conn) edge[loop above] node[font=\scriptsize]{signal / add\_drb} (conn);
-\end{tikzpicture}
-\caption[UE-context lifecycle state machine]{UE-context lifecycle state machine, encoded identically by both implementations.
-\texttt{create} allocates a context in \texttt{Idle} and \texttt{setup} connects it,
-\texttt{signal} and \texttt{add\_drb} are handled in place while \texttt{Connected}, a
-reconfiguration moves through \texttt{Reconfiguring} and back on \texttt{complete} or
-\texttt{abort}, and \texttt{release} tears the context down. Operations invalid for the
-current state return an \texttt{OpError} instead of changing state.\label{fig:fsm}}
-\end{figure}
-
-The subsystem was chosen because it is representative and still small enough to keep
-under control. It has mutable state per device, a strict lifecycle, heavy concurrency,
-and hard latency targets~\cite{3gpp38913,3gpp22261}. It is still simple enough to specify
-precisely and to test for identical behaviour in two languages.
-
-Seven defect classes fall inside Rust's guarantee. Each has a natural form in this
-subsystem: use-after-free, double-free, iterator invalidation, data race, unguarded
-shared mutation, use-after-move, and a thread-unsafe handle shared between workers. The
-guarantee rests on aliasing control and data-race freedom~\cite{jung2021safe}. The
-catalogue is this study's own.
-
-Seven further classes are included on purpose from outside that guarantee: a lock-order
-deadlock, a lost update, a leak through a reference cycle, an integer overflow in a
-release build, the blast radius of a failed shard worker, a double release across the
-C-ABI seam, and a lock guard that is never dropped. They keep the study from confirming a
-foregone conclusion. They show where the guarantee stops. Two of them return the opposite
-of the expected result. The C++ tooling reports what Rust's does not.
-
-Scale is what makes the tail matter. One procedure triggers many operations. One site
-serves many devices. A p99.9 measured on a single operation becomes a steady rate of
-degraded procedures in the field~\cite{dean2013tail}. That is why the load sweep is
-pushed past the point where the service starts to fall behind. Figure~\ref{fig:cliff}
-sketches what lies beyond it.
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.70\linewidth]{diagrams/pdf/15_overload_cliff.pdf}
-\caption[The overload cliff]{The overload cliff. Tail latency stays low and flat while offered load is below
-service capacity, then climbs steeply once the system is driven past saturation and requests
-queue behind the bounded, blocking queues. The figure is a schematic of the phenomenon and
-not a plot of this study's data, and whether the two languages differ in where the cliff
-begins or in what they sustain beyond it is what RQ1 asks and
-Chapter~\ref{chapter:eval} answers.\label{fig:cliff}}
-\end{figure}
 
 \chapter{Research Methodology\label{chapter:methodology}}
 
