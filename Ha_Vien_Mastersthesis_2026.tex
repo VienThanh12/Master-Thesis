@@ -617,18 +617,16 @@ migration ahead of raw average performance:
         software ecosystem?
 \end{description}
 
-The questions are approached with three prior expectations, stated here so that the evaluation
-can confirm or refute them instead of merely describing results after the fact. \textbf{H1:} For
-this workload the two languages are performance-equivalent in the operationally relevant region
-below saturation, with any difference confined to the far tail. \textbf{H2:} Safe Rust prevents
-at compile time the memory-safety and concurrency defect classes that C++ leaves to
-best-effort, after-the-fact detection. \textbf{H3:} The run-time cost of C++-to-Rust
-interoperability is negligible relative to the cost of the operations invoked, so that the true
-cost of incremental adoption is engineering effort rather than performance. H2 is stated so that
-it can fail. The defect catalogue behind RQ2 spans classes safe Rust is expected to prevent and
-classes it is expected not to, so the study can locate the boundary of the guarantee instead of
-only confirming it. These hypotheses are revisited against the evidence in
-Section~\ref{sec:hypotheses}.
+Three prior expectations are committed before any measurement, so the evaluation can confirm or
+refute them. \textbf{H1:} For this workload the two languages are performance-equivalent in the
+operationally relevant region below saturation, with any difference confined to the far tail.
+\textbf{H2:} Safe Rust prevents at compile time the memory-safety and concurrency defect classes
+that C++ leaves to best-effort, after-the-fact detection. \textbf{H3:} The run-time cost of
+C++-to-Rust interoperability is negligible relative to the cost of the operations invoked, so
+that the true cost of incremental adoption is engineering effort rather than performance. The
+defect catalogue behind RQ2 spans classes safe Rust is expected to prevent and classes it is
+expected not to, so the study can locate the boundary of the guarantee instead of only confirming
+it. Section~\ref{sec:hypotheses} revisits all three against the evidence.
 
 The boundary RQ2 sets out to locate has been estimated once already at the scale of a whole
 weakness taxonomy. Every base entry of the Common Weakness Enumeration (CWE) has been mapped
