@@ -283,76 +283,56 @@ no programming language. Direct evidence for a RAN control plane is
 still missing. Providing it is the motivation for this work.
 
 \section{Industrial context}\label{sec:industrial}
-This thesis is carried out at Nokia, one of the small number of vendors that build, maintain,
-and evolve production RAN software end to end. That market is concentrated in very few hands:
-the five largest suppliers took 96\% of worldwide RAN revenue over the first three quarters of
-2025, with concentration by Herfindahl--Hirschman Index at a ten-year
-high~\cite{delloro2025ran3q,delloro2026ran}. The subsystem it studies, UE Context
-Management (UECM), is modelled on a real gNB-CU-CP control-plane component rather than a
-textbook example.
-% Checked (make sure everything is understandable)
+This thesis is carried out at Nokia. The company is one of the small number of vendors
+that build, maintain, and evolve production RAN software end to end. The five largest
+suppliers took 96\% of worldwide RAN revenue over the first three quarters of 2025, with
+concentration by Herfindahl--Hirschman Index at a ten-year
+high~\cite{delloro2025ran3q,delloro2026ran}. The subsystem it studies, UECM, is modelled
+on a real gNB-CU-CP component rather than a textbook example.
 
-The gNB-CU-CP is not a minor component. In the disaggregated architecture of the 3rd
-Generation Partnership Project (3GPP) it is the
-control-plane half of the central unit, hosting RRC and managing the UE context
-lifecycle~\cite{3gpp38401,3gpp38331}, under the millisecond-scale procedure budgets the 5G system
-places on control signalling~\cite{3gpp38913} and at the event rates and connected-device counts
-a deployed network sustains. Chapter~\ref{chapter:background} places it in the wider architecture.
-Because it is written in C++, it inherits both that language's performance and its memory-safety
-and concurrency hazards. That is precisely where the three trends above converge, and software of
-this class is shipped, evolved, and operated across live operator networks, so the
-language-selection decision is a production concern rather than a hypothetical one.
+In the architecture of the 3rd Generation Partnership Project (3GPP), the gNB-CU-CP is
+the control-plane half of the central unit. It hosts RRC and manages the UE context
+lifecycle~\cite{3gpp38401,3gpp38331}, under the millisecond-scale budgets the 5G system
+sets for control signalling~\cite{3gpp38913}. Chapter~\ref{chapter:background} places it
+in the wider architecture. Because it is written in C++, it inherits that language's
+performance and its memory-safety and concurrency hazards. The three trends of
+Section~\ref{sec:motivation} meet here. Software of this class runs on live operator
+networks. The language choice is a production concern.
 
-UECM is a deliberate choice of study object within that setting: it is small enough
-to reimplement faithfully and reason about in full, yet it carries the properties
-that make control-plane code hard. The implementation is
-driven entirely by a public, frozen specification rather than by proprietary code, so the
-comparison stays reproducible by readers outside Nokia.
+UECM is small enough to reimplement faithfully and reason about in full. It still
+carries the properties that make control-plane code hard. The implementation follows a
+public, frozen specification, not proprietary code, so readers outside Nokia can
+reproduce the comparison.
 
 \paragraph{A decision with a generational horizon.}
-A language choice in software of this class is not revisited often, and it outlives the
-generation it was made for. The next one is being specified now: 3GPP has allocated Release 20 to
-the 6G studies and Release 21 to the normative work, against an ITU calendar that asks for
-technology proposals in early 2029 and the submitted specifications by
-mid-2030~\cite{3gpp2024road6g}. That work explicitly covers migration from and interworking with
-5G, so a control plane written for the current generation is maintained alongside the next one
-rather than retired when it arrives. Nor do the next generation's objectives relax what motivates
-this comparison. IMT-2030 names security and resilience as one of its four design principles,
-expects the system to be secure by design, defines resilience as the ability to keep operating
-correctly during and after a disruptive event, and carries the ultra-reliable low-latency scenario
-forward in strengthened form~\cite{itu2023imt2030}. Freedom from whole classes of defect and
-predictable behaviour under disturbance are being written into the objectives of the next
-generation rather than left to implementers.
+A language choice in software of this class outlives the generation it was made for.
+3GPP has allocated Release 20 to the 6G studies and Release 21 to the normative work.
+The ITU asks for technology proposals in early 2029 and submitted specifications by
+mid-2030~\cite{3gpp2024road6g}. That work covers migration from 5G and interworking
+with it. A control plane written now is maintained alongside the next generation, not
+retired. IMT-2030 still names security and resilience as a design principle and still
+carries the ultra-reliable low-latency scenario in strengthened
+form~\cite{itu2023imt2030}.
 
-The policy dates named above fall inside the same window. The Cybersecurity and Infrastructure
-Security Agency (CISA) and the Federal Bureau of Investigation (FBI) classify the
-development of new product lines in a memory-unsafe language as a bad practice where the product
-serves critical infrastructure, a scope mobile-network infrastructure sits squarely inside, and
-they exempt an existing product from the memory-safe roadmap expectation only when its announced
-support ends before January 2030~\cite{cisa2025badpractices}. A vendor that defers the language
-question until the next generation is specified will not thereby have avoided making it. It will
-have made it by default, in the incumbent language, for another decade of deployments.
+The Cybersecurity and Infrastructure Security Agency (CISA) and the Federal Bureau of
+Investigation (FBI) classify new product lines in a memory-unsafe language as a bad
+practice where the product serves critical infrastructure. They exempt an existing
+product only when its announced support ends before January 2030~\cite{cisa2025badpractices}.
+Mobile networks sit inside that scope. Waiting for 6G does not avoid the language
+choice. It makes the choice by default, in the incumbent language, for another decade.
 
-What this thesis contributes to that decision is bounded, and the boundary is worth stating
-plainly. The measurements here are taken on a subsystem modelled on a current-generation
-component and evaluated against requirements that are already published. No claim is made about
-requirements that have not yet been written. What crosses the generational boundary is not a
-latency figure but the language-level comparison itself: Which defect classes a compiler can rule
-out, what the safety model costs, and what incremental adoption inside a large C++ codebase
-involves. Those questions have the same answers whichever generation the specification above them
-names, and they are cheapest to answer before the next codebase is started rather than after.
+The measurements here use a current-generation subsystem and published requirements.
+No claim is made about requirements that have not been written.
 
 \paragraph{A concrete failure mode.}
-To make the stakes concrete, consider a mobility storm in which many UEs hand over at once. A
-single mishandled pointer, a UE context freed on release while an in-flight signalling message
-still references it, produces a use-after-free. In C++ this compiles cleanly and may pass
-ordinary testing, only to corrupt an unrelated UE's state or crash the worker thread under
-precisely the high-concurrency conditions the system exists to handle. The same latent race
-can equally show up as an unpredictable tail-latency spike instead of an outright crash. In
-safe Rust the same design does not compile: ownership and borrowing reject the dangling
-reference at build time. This one scenario captures why the thesis measures both
-\emph{safety} (which defects are prevented, and when) and \emph{predictability} (tail
-latency under overload) rather than average throughput alone.
+Consider a mobility storm in which many UEs hand over at once. A UE context freed on
+release while an in-flight signalling message still references it is a use-after-free.
+In C++ that compiles and may pass ordinary tests. It can then corrupt another UE's
+state or crash the worker under high concurrency. The same defect can show up as a
+tail-latency spike instead of a crash. In safe Rust the design does not compile:
+ownership and borrowing reject the dangling reference. That is why this thesis measures
+both \emph{safety} (which defects are prevented, and when) and \emph{predictability}
+(tail latency under overload), not average throughput alone.
 
 \section{Problem statement}
 Two properties of this domain make the language choice consequential. First, manual memory and
