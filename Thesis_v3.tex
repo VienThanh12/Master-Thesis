@@ -314,13 +314,6 @@ retired. IMT-2030 still names security and resilience as a design principle and 
 carries the ultra-reliable low-latency scenario in strengthened
 form~\cite{itu2023imt2030}.
 
-The Cybersecurity and Infrastructure Security Agency (CISA) and the Federal Bureau of
-Investigation (FBI) classify new product lines in a memory-unsafe language as a bad
-practice where the product serves critical infrastructure. They exempt an existing
-product only when its announced support ends before January 2030~\cite{cisa2025badpractices}.
-Mobile networks sit inside that scope. Waiting for 6G does not avoid the language
-choice. It makes the choice by default, in the incumbent language, for another decade.
-
 The measurements here use a current-generation subsystem and published requirements.
 No claim is made about requirements that have not been written.
 
@@ -334,6 +327,7 @@ ownership and borrowing reject the dangling reference. That is why this thesis m
 both \emph{safety} (which defects are prevented, and when) and \emph{predictability}
 (tail latency under overload), not average throughput alone.
 
+% Checked (make sure everything is understandable) 9.9
 \section{Problem statement}
 Two properties of this domain make the language choice consequential. First, manual memory and
 concurrency management in C++ exposes the software to defects such as use-after-free,
