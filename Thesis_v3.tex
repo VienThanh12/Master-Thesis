@@ -26,7 +26,7 @@
 \author{Ha Vien}
 \date{\today}
 \supervisors{Prof. Keijo Heljanko, Christoph Luneburg, Petteri Kotimaa}
-\examiners{Prof. Keijo Heljanko, TBD}
+\examiners{Prof. Keijo Heljanko}
 \keywords{Rust, C++, RAN control plane, tail latency, memory safety, fault injection, incremental adoption}
 \additionalinformation{\translate{\track}}
 
@@ -102,7 +102,7 @@
       (5)~Below overload the full path is a few microseconds faster in Rust. The Rust versions keep up 
       with the offered load to $\TrackingLoadRust$~kops/s, the C++ versions only to $\TrackingLoadCpp$. 
       Once neither can keep up, \OverloadSustainedFaster{} still finishes $\OverloadThrRatio\times$ as 
-      much work as \OverloadSustainedSlower{} in \OverloadThrAgree{} mixed-order repeats with both allocators.
+      much work as \OverloadSustainedSlower{} in \OverloadThrAgree{} interleaved repeats with both allocators.
       
       \noindent\textbf{Conclusions.}
       The main cost of adopting Rust is engineering effort and the learning curve, not run-time
@@ -1038,10 +1038,10 @@ $\BmJeMetadataDelta$~MiB more in arena bookkeeping and $\BmJeAllocatedDelta$~MiB
 \emph{less} in live allocation, and its resident bytes are
 $\BmJeResidentDelta$~MiB lower while the process peak is $\BmJeRssDelta$~MiB
 higher. The footprint then sits outside the allocator, in the runtime a Rust
-process carries before it allocates. CPU inverts with the regime. It is
-marginally lower for Rust while the service copes, by at most
-$\CpuDiffAbsMax$ percentage points, and much higher per completed operation
-once it does not.
+process carries before it allocates. CPU inverts with the regime. At the
+representative load of $\ReprLoad$~kops/s Rust draws at most $\CpuDiffAbsMax$
+percentage points less. Once the service no longer copes, CPU per completed
+operation is much higher.
 
 \begin{figure}[ht]
 \centering
