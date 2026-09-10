@@ -89,32 +89,30 @@ thesis process, which no manuscript can settle. It is reproduced as issued in
 four passes on record, and the build-gate script live in the same skill. Use it for any new
 grading pass so passes stay comparable.
 
-**Current grades are the twenty-first pass's, 7 September 2026: mean 4.83.** Areas 1, 2, 3 and 5
-at 5, areas 4 and 6 at **4.5**. The twentieth pass, 3 September, held 5.00. What moved is not a
-number but a claim: **§6.1, §6.4.5 twice, and `tab:testbed`'s caption say the virtualised campaign
-ran the same toolchain as the reported one, and `\GuestGpp` 15.1.1 against `\MainGpp` 15.2.1 says
-otherwise.** The same table prints both on one row under a caption claiming each adjacent column
-pair isolates one change, and §6.4.7 then hand-types 15.1.1 as *the measurement host's* compiler,
-which is wrong. Nothing measured moves and a GCC patch release confounds nothing, but the `\Bm`
-column already carries this disclosure and the guest column does not. About an hour of editing
-returns both areas to 5.
+**Current grades for the submission draft are the twenty-second pass's, 7 September 2026
+afternoon: mean 4.83.** Areas 1, 2, 3 and 5 at 5, areas 4 and 6 at **4.5**. Caps: three prose
+sites plus `tab:testbed` claiming toolchain parity with the guest (`\GuestGpp` 15.1.1 against
+`\MainGpp` 15.2.1), §6.4.7 hand-typing 15.1.1 as the measurement host's compiler, and
+`tab:findings`' RQ3 cell saying “on bare metal”. The twentieth pass, 3 September, held 5.00.
 
-**Those sites were repaired on 7 September 2026**, in the session that set the acronym list to
-sentence case. §6.1 and the host-comparison opening now disclose the compiler difference, and the
-kernel one beside it. `tab:testbed`'s caption records both exceptions instead of promising one
-change per column pair, and the table grew the **Kernel** row its caption had always claimed to
-generate. §6.4.7 quotes `\MainGpp` where it had hand-typed 15.1.1 as the measurement host's
-compiler. `tab:findings`' RQ3 cell names the second bare-metal host where it read only "on bare
-metal". And §1.4's `is not:` regained a predicate in both documents, as "does not travel", which is
-how §7.2 already words the same claim. An **independent reader given only the artefacts found two
-further defects in those same passages**, both now closed and both of the shapes this file already
-warns about. The enumeration of what the two campaigns differ in omitted the kernel, which the
-container takes from the host, and the hosts differ (`\MainKernel` 6.17.0-23-generic against
-`\GuestKernel` 7.0.2-1.el8.elrepo.x86_64). And `tab:findings`' RQ3 cell read `\CpuDiffAbsMax` as a
-bound over the whole below-saturation regime where `write_generated_macros()` scopes it to the
-representative load alone, which §6.4.3 words correctly and the summary cell did not: **a generated
-macro that is the wrong quantity for the sentence holding it**, for the third time on record. The
-grade is deliberately not restated here, because a remediation pass must not grade its own work.
+**Twenty-third pass, 10 September 2026, graded `Thesis_v3.tex` only, mean 4.83, same split.**
+The skeleton discloses the compiler and kernel difference and no longer carries the §1.4
+“is not:” ellipsis. What holds its 4.5s is the abstract (bare `\FfiOpBoundPct`, “mixed-order”
+for interleaved, full path ranked after the clock is disqualified), `\CpuDiffAbsMax` attached
+to “while the service copes”, and `TBD` on the title page. The full draft was not re-read.
+
+**A remediation of those draft sites was written on 7 September 2026**, in the session that set
+the acronym list to sentence case, and it is **not** a re-grade of the draft. The twenty-second
+pass, the same afternoon, re-read `Ha_Vien_Mastersthesis_2026.tex` and found the four sites still
+present, which is why the standing draft grade remains 4.83. The twenty-third pass found the
+skeleton's testbed prose already discloses the compiler and kernel split, and the §1.4 ellipsis
+gone there. Do not copy the skeleton's closure onto the draft, and do not re-open the skeleton's
+toolchain item. The independent-reader extras from that note still matter for the draft: the
+kernel difference (`\MainKernel` 6.17.0-23-generic against `\GuestKernel`
+7.0.2-1.el8.elrepo.x86_64), and `tab:findings`' RQ3 cell reading `\CpuDiffAbsMax` as a bound over
+the whole below-saturation regime where `write_generated_macros()` scopes it to the representative
+load. **A generated macro that is the wrong quantity for the sentence holding it** is the same
+class the skeleton's resource paragraph still has.
 
 One latent bug surfaced with it. `\GuestKernel` carried a raw `x86_64`, whose underscore is math
 mode, so the macro could not be typeset and no document had ever quoted it. The three kernel grabs

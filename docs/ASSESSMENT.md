@@ -11,14 +11,21 @@ refinement pass. Source material was the thesis PDF and the supporting artefacts
 The thesis source was renamed from `Ha_Vien_Mastersthesis_2026.tex` to `Ha_Vien_Mastersthesis_2026.tex` on
 19 August 2026. Passes recorded before that date read the same document under the older name.
 
-An interactive version of this document exists as a Cursor canvas. The standing one is
-`~/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-sep07.canvas.tsx`.
-This file is the durable copy; keep the two in step if you revise either.
+Interactive canvases live beside this file. The standing full-draft grade is
+`thesis-grade-csm-sep07-rev2.canvas.tsx`. The latest pass, of the supervisor skeleton, is
+`thesis-grade-csm-sep10.canvas.tsx`. This file is the durable copy.
 
-> **Current: twenty-first pass, 7 September 2026, mean 4.83.** Areas 1, 2, 3 and 5 at 5, areas 4
-> and 6 at **4.5**. Canvas: `thesis-grade-csm-sep07.canvas.tsx`. The finding is a claimed toolchain
-> match with the guest that `tab:testbed`'s own Toolchain row refutes (`\GuestGpp` 15.1.1 against
-> `\MainGpp` 15.2.1). See that pass at the end of this file.
+> **Current for the submission draft: twenty-second pass, 7 September 2026 afternoon, mean 4.83.**
+> Areas 1, 2, 3 and 5 at 5, areas 4 and 6 at **4.5**. Caps: toolchain parity at three prose sites
+> plus `tab:testbed`, §6.4.7's hand-typed `g++ 15.1.1`, and `tab:findings`' "on bare metal". Canvas:
+> `thesis-grade-csm-sep07-rev2.canvas.tsx`.
+>
+> **Latest pass: twenty-third, 10 September 2026, of `Thesis_v3.tex` only, mean 4.83.** Same numbers,
+> different caps. The skeleton no longer carries the toolchain or “is not:” defects. What holds 4.5
+> on that PDF is the abstract (bare `\FfiOpBoundPct`, “mixed-order”, full path ranked after the clock
+> is disqualified), `\CpuDiffAbsMax` attached to the coping regime, and `TBD` on the title page.
+> Canvas: `thesis-grade-csm-sep10.canvas.tsx`. The full draft was not re-read and its standing grade
+> is unchanged.
 >
 > **The summary table immediately below is the first pass** and is kept as history, not as the
 > standing view. Twenty-one passes are on record and they do not all agree. Read the passes in
@@ -4398,3 +4405,113 @@ later pass does not relitigate a ruling on unchanged text.
 
 Nothing was edited in the thesis source during this pass. The closed items listed at the end of the
 twenty-first pass remain closed and must not be re-reported as grade caps.
+
+## Twenty-third pass — 10 September 2026
+
+Graded independently against the CSM matrix of 9 April 2024, on **`Thesis_v3.tex` / `Thesis_v3.pdf`**,
+the supervisor-facing eight-chapter argument. Chapter 1 is the draft introduction. Chapters 2 to 8
+are five argument paragraphs each, with twelve figures. **Standard applied:** an examiner who
+received this 57-page PDF, not the 118-page full draft. The five-paragraph contract is named, not
+used as a free pass on level 5 aptness. The full draft was not re-read. Its standing grade remains
+the twenty-second pass.
+
+**Build verified.** `Thesis_v3.tex` 18:15, PDF and `build/Thesis_v3.log` 20:26 on 10 September, so
+the PDF is current. `texaudit.py Thesis_v3.tex --macros figures/gen_macros.tex` exits 0: no LaTeX
+errors, no undefined references or citations, no multiply defined labels, no float too large, **zero
+Overfull of any kind**, 0 underfull, 57 pages. Every float label referenced from the body. 111 bib
+entries, 59 cited in this document (52 uncited, expected on a shared `.bib`), 74 peer-reviewed
+venues (67%). One placeholder warning: `Thesis_v3.tex:29`, `\examiners{Prof. Keijo Heljanko, TBD}`.
+One prose-number hit with a unit: l. 393, Meneely's 58.2%, a literature value.
+
+Canvas: [`thesis-grade-csm-sep10.canvas.tsx`](/home/vienha/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-sep10.canvas.tsx).
+
+| Area | 22nd pass (draft, 7 Sep) | This pass (skeleton) | Clause that sets it |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Level 5 holds. Gap in named flaws of five vendor theses, four RQs, H1 refuted and declared ill-posed, RQ2 two-sided |
+| 2. Scholarly framework and sources | 5 | **5** | Level 5 holds. Contrary results engaged. Background is three sections by contract; the gap section carries the command |
+| 3. Research data and method | 5 | **5** | Level 5 holds. The refusals (no `isolcpus`, 448 described not tested, pooled p99.99 out of the family) are in the five-paragraph method chapter |
+| 4. Presentation of results | 4.5 | **4.5** | Level 5's "well considered and apt". Different sites: abstract (4) vs (5), `\CpuDiffAbsMax` scope, no numeric result table |
+| 5. Discussion and conclusions | 5 | **5** | Level 5 holds. Compressed chapter still revisits H1–H3, names the single-author threat, and refuses the “safe = concurrency-safe” reading |
+| 6. Academic text | 4.5 | **4.5** | Level 4 consistency (mixed-order vs interleaved, bare FFI percentage) and level 5 finishing (`TBD` on the title page). Toolchain prose and the §1.4 ellipsis are **closed** in this PDF |
+| 7. Work during the thesis process | n/a | **n/a** | Not assessable from a manuscript |
+| **Mean of the six assessable** | 4.83 | **4.83** | Same number. The clauses that set 4.5 moved |
+
+### Closed in this PDF, do not re-report as skeleton caps
+
+1. **Toolchain parity with the guest.** The testbed section names `\MainGpp` 15.2.1 against
+   `\GuestGpp` 15.1.1, and the kernel difference beside it. No “same toolchain” sentence survives.
+2. **§1.4 “is not:” with no predicate.** Grep finds no hit. The twenty-second pass still had it at
+   skeleton l. 516 on 7 September.
+3. **`tab:testbed`, §6.4.7, `tab:findings`.** Not in this document. They remain the full draft's
+   caps, last confirmed on the afternoon of 7 September.
+
+### What holds 4.5 on this PDF
+
+1. **Abstract (3).** “any extra time on a real call is at most `\FfiOpBoundPct\%`”. The macro is
+   `100 * op_seam_delta_hi_ns / native`. The figure caption still says “of one operation”. The
+   abstract does not. The twenty-second pass listed this as a lift because it was grading the draft.
+   An examiner of this PDF reads this abstract, so it folds into area 4 and area 6.
+2. **Abstract (5) after (4).** (4) says the round-trip clock cannot attribute a gap to C++ or Rust.
+   (5) then says “Below overload the full path is a few microseconds faster in Rust.” Same clock.
+   The draft's §1.4 joins the two with the test as the subject. This abstract does not.
+3. **“mixed-order repeats”** in the abstract against “interleaved” in the method chapter and the
+   rest of the thesis. Interleaving is a named fairness control.
+4. **`\CpuDiffAbsMax` (5.1 pp)** attached to “while the service copes”.
+   `write_generated_macros()` builds it from `cpu_rows` at `point == "repr"`. Same wrong-scope class
+   as the draft's `tab:findings` RQ3 cell.
+5. **`\examiners{Prof. Keijo Heljanko, TBD}`.** `texaudit.py` flags it as a template leftover. The
+   draft's corresponding line is Heljanko only.
+
+### Mechanical evidence
+
+`.readability.py`: 571 sentences, 8641 words, mean 15.1 ± 8.3, Flesch 55.0, grade 9.3. Short
+sentences 56.7% (target 25–35%), which is the five-paragraph compression. Three paragraphs of three
+or more sentences with no sentence under 15 words, including the research-gap paragraph at l. 518.
+`.aitells.py`: 0 semicolons, both colon checks at 0, 10 dash hits all numeric ranges or compound
+proper names (Herfindahl–Hirschman, Fowler–Noll–Vo). Two counting stubs: l. 239 “Three terms recur
+throughout” (a tell, not a cap) and l. 766 “Both versions follow it” (states the fairness control).
+`.acronyms.py`: not written out at first use 0, five printed waivers.
+
+Headline macros checked against `figures/gen_macros.tex` and siblings, not remembered: tracking
+loads 448 against 392, `\SatKnee` 392 qualified as the lowest of the four, overload `\OverloadThrRatio`
+1.7 with C++ faster in 20/20, `\PFiftyDiffAbsMax` 1.3 µs, RSS 1.4–2.5 against 1.5–2.4 MiB,
+`\BudgetCoreShareMax` 0.250%, `\FfiOpBoundPct` 10.91, `\DeadlockTsanHits` 5 of `\DeadlockTsanRuns`
+12. No measured value is wrong.
+
+### Per-area notes
+
+**1, carries 5.** Untouched. The gap is located rather than asserted. RQ2 still includes classes
+safe Rust is expected not to prevent.
+
+**2, carries 5.** Command of the topic is in the gap section and the introduction, which is what
+this document has. 59 cited keys is enough for the skeleton. A drop for the three-section
+background was considered and rejected: level 5 asks for command and critical maturity, not for a
+page count matching the draft.
+
+**3, carries 5.** The method chapter still states the frozen spec, the Holm family, the floors, the
+448 exclusion, the pooled far tail kept out, and why `isolcpus` is refused.
+
+**4, holds 4.5.** Level 4 holds: findings grouped by RQ, figures with intervals, generalisability
+pondered, no wrong measured value. Level 5 fails on the abstract's two register hits, the CPU
+macro's scope, and the absence of a numeric result table in this PDF.
+
+**5, carries 5.** H1 is allowed to fail and then declared ill-posed. Karlback is reconciled as two
+runtimes. Ethics refuses the marketing reading of RQ2. A drop for missing `tab:threats` was
+considered and rejected: §standing names the three load-bearing threats.
+
+**6, holds 4.5.** Writing and the build read at 5. The toolchain consistency clause that capped the
+draft is **closed** here. What remains is mixed-order vs interleaved, the bare FFI percentage, and
+TBD on the title page. Short-sentence share 56.7% is noted as compression, not as a grammar fail.
+
+### Outstanding on this PDF
+
+1. **Abstract (3), (5), and “mixed-order”.** ~15 minutes. Holds areas 4 and 6 on the skeleton.
+2. **`\CpuDiffAbsMax` scope in the resource paragraph.** ~10 minutes.
+3. **Title-page `TBD`.** ~5 minutes, or name the second examiner.
+4. **The full draft's four standing items**, last confirmed 7 September afternoon. They are not
+   this PDF's caps and were not re-read today.
+
+Nothing was edited in the thesis source during this pass. Do not report the draft's toolchain
+sites as defects in the skeleton, and do not report the skeleton's abstract defects as already
+folded into the draft's grade. They were lifts on 7 September because that pass was grading the
+other file.

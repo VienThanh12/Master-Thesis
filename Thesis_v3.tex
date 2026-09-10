@@ -974,7 +974,9 @@ running $\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s for the C++ variants against
 $\BmFarTailRustLo$--$\BmFarTailRustHi\,\mu$s for the Rust ones, without overlap.
 A second limit is structural. No host would fix it. An end-to-end round-trip is
 $\BudgetCoreShareMax\%$ the work the language performs. The rest is a
-cross-thread handoff charged to the operating system~\cite{zhou2025oltp}. This
+cross-thread handoff charged to the operating system. Once per-operation work is
+small, communication across isolation boundaries
+dominates~\cite{zhou2025oltp}. This
 sweep cannot bound a language effect in either direction, which
 Figure~\ref{fig:budget} sets against what it can resolve. Measured on its own
 the core operation is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster{}.
@@ -1158,7 +1160,8 @@ Figure~\ref{fig:boundary} names the mechanism on each side of that line. Rust
 reasons about aliasing and not about acquisition order. A \texttt{Mutex} guard
 whose lifetime the borrow checker tracks perfectly says nothing about whether
 two threads take their locks in a compatible
-order~\cite{zhang2026deadlock}. The lost update escapes ThreadSanitizer for the
+order. Static deadlock detection for Rust is an active research
+problem~\cite{zhang2026deadlock}. The lost update escapes ThreadSanitizer for the
 same reason it escapes the borrow checker. Where each access is correctly
 synchronised, there is no unsynchronised access to find. In a field study of
 $105$ real concurrency bugs, about a third of the non-deadlock cases violated
