@@ -1,72 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 572" width="860" height="572" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
-  <rect x="0" y="0" width="860" height="572" fill="#ffffff"/>
-  <text x="430" y="34" text-anchor="middle" font-size="23" font-weight="700" fill="#12233a">Where the compile-time guarantee stops</text>
-  <text x="430" y="57" text-anchor="middle" font-size="13.5" fill="#5b6b7b">Rust eliminates data races, not race conditions. Aliasing errors, not lock-ordering errors</text>
-
-  <!-- ==================== INSIDE ==================== -->
-  <rect x="20" y="76" width="400" height="400" rx="12" fill="#f4fbf6" stroke="#2e8b57" stroke-width="2"/>
-  <rect x="20" y="76" width="400" height="42" rx="12" fill="#2e8b57"/>
-  <rect x="20" y="102" width="400" height="16" fill="#2e8b57"/>
-  <text x="220" y="105" text-anchor="middle" font-size="15.5" font-weight="700" fill="#ffffff">INSIDE THE GUARANTEE</text>
-  <text x="220" y="141" text-anchor="middle" font-size="13" fill="#1f6b41">Rejected by the compiler, on every build,</text>
-  <text x="220" y="159" text-anchor="middle" font-size="13" fill="#1f6b41">covering every execution of the program</text>
-
-  <rect x="38" y="176" width="364" height="126" rx="9" fill="#ffffff" stroke="#a8d7bb" stroke-width="1.5"/>
-  <text x="52" y="200" font-size="14" font-weight="700" fill="#12233a">Lifetime and aliasing</text>
-  <text x="52" y="220" font-size="12" fill="#5b6b7b">enforced by ownership and borrowing</text>
-  <g font-size="13" fill="#1f6b41">
-    <rect x="52" y="232" width="162" height="28" rx="5" fill="#d9f0dd"/><text x="133" y="251" text-anchor="middle">Use-after-free</text>
-    <rect x="226" y="232" width="162" height="28" rx="5" fill="#d9f0dd"/><text x="307" y="251" text-anchor="middle">Double-free</text>
-    <rect x="52" y="266" width="336" height="28" rx="5" fill="#d9f0dd"/><text x="220" y="285" text-anchor="middle">Iterator invalidation</text>
-  </g>
-
-  <rect x="38" y="316" width="364" height="126" rx="9" fill="#ffffff" stroke="#a8d7bb" stroke-width="1.5"/>
-  <text x="52" y="340" font-size="14" font-weight="700" fill="#12233a">Unsynchronised access to a location</text>
-  <text x="52" y="360" font-size="12" fill="#5b6b7b">enforced by Send/Sync: these are <tspan font-style="italic">data races</tspan></text>
-  <g font-size="13" fill="#1f6b41">
-    <rect x="52" y="374" width="132" height="28" rx="5" fill="#d9f0dd"/><text x="118" y="393" text-anchor="middle">Data race</text>
-    <rect x="196" y="374" width="192" height="28" rx="5" fill="#d9f0dd"/><text x="292" y="393" text-anchor="middle">Unguarded shared mutation</text>
-  </g>
-  <text x="52" y="428" font-size="12" fill="#8794a3">In C++ both compile. Only ThreadSanitizer reports them.</text>
-
-  <rect x="38" y="452" width="364" height="18" rx="5" fill="#2e8b57" opacity="0.13"/>
-  <text x="220" y="465" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1f6b41">No test coverage required for the guarantee to hold</text>
-
-  <!-- ==================== OUTSIDE ==================== -->
-  <rect x="440" y="76" width="400" height="400" rx="12" fill="#fdf6f5" stroke="#a5281b" stroke-width="2"/>
-  <rect x="440" y="76" width="400" height="42" rx="12" fill="#a5281b"/>
-  <rect x="440" y="102" width="400" height="16" fill="#a5281b"/>
-  <text x="640" y="105" text-anchor="middle" font-size="15.5" font-weight="700" fill="#ffffff">OUTSIDE THE GUARANTEE</text>
-  <text x="640" y="141" text-anchor="middle" font-size="13" fill="#8c2a20">Compiles in safe Rust and misbehaves,</text>
-  <text x="640" y="159" text-anchor="middle" font-size="13" fill="#8c2a20">exactly as its C++ counterpart does</text>
-
-  <rect x="458" y="176" width="364" height="126" rx="9" fill="#ffffff" stroke="#e6b3ad" stroke-width="1.5"/>
-  <text x="472" y="200" font-size="14" font-weight="700" fill="#12233a">Order of lock acquisition</text>
-  <text x="472" y="220" font-size="12" fill="#5b6b7b">not prevented by either compiler</text>
-  <rect x="472" y="232" width="336" height="28" rx="5" fill="#fbdedb"/>
-  <text x="640" y="251" text-anchor="middle" font-size="13" fill="#8c2a20">Lock-order deadlock: hangs</text>
-  <text x="472" y="276" font-size="12" fill="#5b6b7b">The borrow checker tracks a guard&#8217;s lifetime perfectly.</text>
-  <text x="472" y="294" font-size="12" fill="#5b6b7b">That says nothing about the order threads take locks.</text>
-
-  <rect x="458" y="316" width="364" height="126" rx="9" fill="#ffffff" stroke="#e6b3ad" stroke-width="1.5"/>
-  <text x="472" y="340" font-size="14" font-weight="700" fill="#12233a">Atomicity of a composed operation</text>
-  <text x="472" y="360" font-size="12" fill="#5b6b7b">not prevented either: these are <tspan font-style="italic">race conditions</tspan></text>
-  <rect x="472" y="374" width="336" height="28" rx="5" fill="#fbdedb"/>
-  <text x="640" y="393" text-anchor="middle" font-size="13" fill="#8c2a20">Lost update: silently wrong value</text>
-  <text x="472" y="417" font-size="12" fill="#5b6b7b">Every access is correctly synchronised, so there is</text>
-  <text x="472" y="434" font-size="12" fill="#5b6b7b">no race to find: no tool in either toolchain reports it.</text>
-
-  <rect x="458" y="452" width="364" height="18" rx="5" fill="#a5281b" opacity="0.13"/>
-  <text x="640" y="465" text-anchor="middle" font-size="11" font-weight="600" fill="#8c2a20">Fails quietly: a hang or a corrupted counter, not a crash</text>
-
-  <!-- ==================== BOUNDARY ==================== -->
-  <line x1="430" y1="68" x2="430" y2="490" stroke="#12233a" stroke-width="2.5" stroke-dasharray="9 5"/>
-  <rect x="366" y="484" width="128" height="28" rx="14" fill="#12233a"/>
-  <text x="430" y="503" text-anchor="middle" font-size="13.5" font-weight="700" fill="#ffffff">the boundary</text>
-
-  <!-- ==================== FOOTER ==================== -->
-  <rect x="20" y="518" width="820" height="46" rx="8" fill="#f1f4f7" stroke="#d7dde3"/>
-  <text x="430" y="538" text-anchor="middle" font-size="13" fill="#33475b">The phrase &#8220;thread safety&#8221; spans both columns. Rust&#8217;s guarantee covers only the left one.</text>
-  <text x="430" y="557" text-anchor="middle" font-size="12" fill="#33475b">It retires one category of concurrency defect entirely and leaves the other in place, and the one left in place fails silently.</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 400" width="860" height="400" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <rect x="0" y="0" width="860" height="400" fill="#ffffff"/>
+  <rect x="16" y="16" width="400" height="348" rx="11" fill="#f4fbf6" stroke="#2e8b57" stroke-width="2.0"/>
+  <rect x="16" y="16" width="400" height="36" rx="11" fill="#2e8b57"/>
+  <rect x="16" y="41" width="400" height="11" fill="#2e8b57"/>
+  <text x="216.0" y="39.0" font-size="14.5" fill="#ffffff" text-anchor="middle" font-weight="700">Inside the guarantee</text>
+  <text x="216" y="70" font-size="12" fill="#1f6b41" text-anchor="middle">compile error in safe Rust</text>
+  <rect x="34" y="86" width="364" height="118" rx="9" fill="#ffffff" stroke="#a8d7bb" stroke-width="1.5"/>
+  <text x="48" y="108" font-size="13" fill="#12233a" font-weight="700">Lifetime and aliasing</text>
+  <text x="48" y="126" font-size="11" fill="#5b6b7b">ownership and borrowing</text>
+  <rect x="48" y="140" width="162" height="26" rx="5" fill="#d9f0dd"/>
+  <text x="129.0" y="157.32" font-size="12" fill="#1f6b41" text-anchor="middle">Use-after-free</text>
+  <rect x="222" y="140" width="160" height="26" rx="5" fill="#d9f0dd"/>
+  <text x="302.0" y="157.32" font-size="12" fill="#1f6b41" text-anchor="middle">Double-free</text>
+  <rect x="48" y="172" width="334" height="26" rx="5" fill="#d9f0dd"/>
+  <text x="215.0" y="189.32" font-size="12" fill="#1f6b41" text-anchor="middle">Iterator invalidation</text>
+  <rect x="34" y="216" width="364" height="100" rx="9" fill="#ffffff" stroke="#a8d7bb" stroke-width="1.5"/>
+  <text x="48" y="238" font-size="13" fill="#12233a" font-weight="700">Unsynchronised access</text>
+  <text x="48" y="256" font-size="11" fill="#5b6b7b">data races (Send/Sync)</text>
+  <rect x="48" y="274" width="132" height="26" rx="5" fill="#d9f0dd"/>
+  <text x="114.0" y="291.32" font-size="12" fill="#1f6b41" text-anchor="middle">Data race</text>
+  <rect x="192" y="274" width="190" height="26" rx="5" fill="#d9f0dd"/>
+  <text x="287.0" y="290.96" font-size="11" fill="#1f6b41" text-anchor="middle">Unguarded shared mutation</text>
+  <rect x="34" y="328" width="364" height="24" rx="5" fill="#d9f0dd"/>
+  <text x="216" y="345" font-size="11.5" fill="#1f6b41" text-anchor="middle" font-weight="700">No test required</text>
+  <rect x="444" y="16" width="400" height="348" rx="11" fill="#fdf1f0" stroke="#a5281b" stroke-width="2.0"/>
+  <rect x="444" y="16" width="400" height="36" rx="11" fill="#a5281b"/>
+  <rect x="444" y="41" width="400" height="11" fill="#a5281b"/>
+  <text x="644.0" y="39.0" font-size="14.5" fill="#ffffff" text-anchor="middle" font-weight="700">Outside the guarantee</text>
+  <text x="644" y="70" font-size="12" fill="#8c2a20" text-anchor="middle">compiles and misbehaves in both</text>
+  <rect x="462" y="86" width="364" height="118" rx="9" fill="#ffffff" stroke="#e6b3ad" stroke-width="1.5"/>
+  <text x="476" y="108" font-size="13" fill="#12233a" font-weight="700">Order of lock acquisition</text>
+  <text x="476" y="126" font-size="11" fill="#5b6b7b">neither compiler prevents this</text>
+  <rect x="476" y="154" width="336" height="32" rx="5" fill="#fbdedb"/>
+  <text x="644.0" y="174.68" font-size="13" fill="#8c2a20" text-anchor="middle">Lock-order deadlock</text>
+  <rect x="462" y="216" width="364" height="100" rx="9" fill="#ffffff" stroke="#e6b3ad" stroke-width="1.5"/>
+  <text x="476" y="238" font-size="13" fill="#12233a" font-weight="700">Atomicity of a composed operation</text>
+  <text x="476" y="256" font-size="11" fill="#5b6b7b">race conditions</text>
+  <rect x="476" y="276" width="336" height="26" rx="5" fill="#fbdedb"/>
+  <text x="644.0" y="293.68" font-size="13" fill="#8c2a20" text-anchor="middle">Lost update</text>
+  <rect x="462" y="328" width="364" height="24" rx="5" fill="#fbdedb"/>
+  <text x="644" y="345" font-size="11.5" fill="#8c2a20" text-anchor="middle" font-weight="700">Fails quietly</text>
+  <line x1="430" y1="16" x2="430" y2="364" stroke="#12233a" stroke-width="2.2" stroke-dasharray="9 5"/>
+  <rect x="366" y="372" width="128" height="22" rx="11" fill="#12233a"/>
+  <text x="430" y="388" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">the boundary</text>
 </svg>

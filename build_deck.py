@@ -400,15 +400,16 @@ KNOWN_NUMBERS = _known_numbers()
 
 #: SVG text baselines at or above this are the diagram's own title block.
 _TITLE_BAND_Y = 70.0
-_SVG_TEXT_Y_RE = re.compile(r"<text\b[^>]*?\by=\"(-?[\d.]+)\"")
+_TITLE_MIN_SIZE = 18.0
 
 
 def diagram(name):
     """A thesis diagram as (png path, crop fraction hiding its own title block).
 
-    The crop is derived from the artwork rather than tabulated here: the title
-    and subtitle are the only text drawn in the top band, so the band ends just
-    below the lowest baseline found there.
+    The crop is derived from the artwork rather than tabulated here. A large
+    title in the top band means the diagram draws its own heading, so the
+    band (title and subtitle together) is cropped away. Diagrams that open
+    on the content itself, matching the TikZ figures, are left uncropped.
     """
     svg = os.path.join(DIAGRAMS, f"{name}.svg")
     png = os.path.join(DIAGRAMS, "png", f"{name}.png")
@@ -428,8 +429,20 @@ def diagram(name):
                 "The diagram is stale against the campaign; correct the artwork "
                 "before it goes on a slide or into the thesis.")
 
-    band = [float(y) for y in _SVG_TEXT_Y_RE.findall(source) if float(y) <= _TITLE_BAND_Y]
-    crop = (max(band) + 14.0) / height if band else 0.0
+    band, has_title = [], False
+    for tag in re.finditer(r"<text\b([^>]*)>", source):
+        attrs = tag.group(1)
+        y_m = re.search(r'\by="(-?[\d.]+)"', attrs)
+        s_m = re.search(r'\bfont-size="(-?[\d.]+)"', attrs)
+        if not y_m:
+            continue
+        y = float(y_m.group(1))
+        if y > _TITLE_BAND_Y:
+            continue
+        band.append(y)
+        if s_m and float(s_m.group(1)) >= _TITLE_MIN_SIZE:
+            has_title = True
+    crop = (max(band) + 14.0) / height if has_title and band else 0.0
     return png, crop
 
 

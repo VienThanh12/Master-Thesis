@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Build diagrams 20-29, the ones added to fill gaps in the thesis chapters.
+"""Build the generated thesis diagrams.
+
+Diagrams 20-29 were added to fill chapter gaps. 07 (FFI seam) and 17
+(guarantee boundary) join them so their counts and timings come from the
+same generated macros the prose cites, rather than from typed labels.
 
 Each builder emits ``diagrams/NN_name.drawio`` (editable) and
 ``diagrams/NN_name.svg`` (what render.py turns into the included PDF).
@@ -17,13 +21,13 @@ from dsl import (
     BLUE, BLUE_CHIP, BLUE_DEEP, BLUE_EDGE, BLUE_FILL,
     BODY, FAINT, GREY_EDGE, GREY_FILL, MUTED, NAVY, WHITE,
     GREEN, GREEN_CHIP, GREEN_DEEP, GREEN_EDGE, GREEN_FILL,
-    ORANGE_DEEP,
+    ORANGE, ORANGE_CHIP, ORANGE_DEEP, ORANGE_EDGE, ORANGE_FILL,
     RED, RED_CHIP, RED_DEEP, RED_EDGE, RED_FILL,
 )
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FIGURES = os.path.join(HERE, os.pardir, "figures")
-MACRO_FILES = ("gen_macros.tex", "gen_artefacts.tex")
+MACRO_FILES = ("gen_macros.tex", "gen_artefacts.tex", "gen_adoption.tex")
 
 
 def load_macros():
@@ -45,7 +49,8 @@ def load_macros():
     missing = {"NRepeats", "NLoadLevels", "NRuns", "MaxOfferedLoad", "NTests",
                "MinAttainableP", "CorrectedFloor", "FfiOpBoundPct",
                "BudgetCoreShareMax", "FaultClassesPrevented",
-               "FaultClassesBoundary"} - values.keys()
+               "FaultClassesBoundary", "FfiEntryPoints", "FfiUnsafeFns",
+               "FfiOpNative", "FfiOpSeam", "CoreUnsafe"} - values.keys()
     if missing:
         raise SystemExit(f"{' and '.join(MACRO_FILES)} are missing {sorted(missing)}")
     return values
@@ -687,64 +692,167 @@ def contributions():
     return d
 
 
+def _chip_row(d, x, y, items, fill, color, stroke, h=28, gap=16, size=11):
+    """Place labelled chips in a row and return each chip's centre x."""
+    centres = []
+    cx = x
+    for i, (label, w) in enumerate(items):
+        d.chip(cx, y, w, h, label, fill, color, size=size, rx=6, stroke=stroke)
+        centres.append(cx + w / 2)
+        if i < len(items) - 1:
+            mid = y + h / 2
+            d.arrow(cx + w + 2, mid, cx + w + gap - 2, mid, color=color, sw=1.6)
+        cx += w + gap
+    return centres
+
+
+# --------------------------------------------------------------------------
+def ffi_seam():
+    """C++ host, thin seam, unmodified core: where unsafe sits, and the cost."""
+    d = Diagram("07_ffi_seam", 900, 318)
+    entries = M["FfiEntryPoints"]
+    unsafe = M["FfiUnsafeFns"]
+    core_unsafe = M["CoreUnsafe"]
+    native = M["FfiOpNative"]
+    seam = M["FfiOpSeam"]
+
+    d.panel(20, 16, 248, 168, "C++ host", BLUE_FILL, BLUE, header_h=36)
+    d.chip(40, 68, 208, 28, "opaque handle", BLUE_CHIP, BLUE_DEEP, size=12,
+           rx=6, stroke=BLUE_EDGE)
+    d.chip(40, 104, 208, 28, f"{entries} C entry points", BLUE_CHIP, BLUE_DEEP,
+           size=12, rx=6, stroke=BLUE_EDGE)
+    d.chip(40, 140, 208, 28, "status codes only", BLUE_CHIP, BLUE_DEEP, size=12,
+           rx=6, stroke=BLUE_EDGE)
+
+    d.divider(286, 28, 172, color=RED, sw=1.8, dash="7 5")
+    d.text(286, 198, "C ABI", 11, RED, weight=700, anchor="middle")
+
+    d.panel(326, 16, 248, 168, "uecm-ffi", ORANGE_FILL, ORANGE,
+            header_color=ORANGE_DEEP, header_h=36)
+    d.chip(346, 68, 208, 28, f'{entries} extern "C"', ORANGE_CHIP, ORANGE_DEEP,
+           size=12, rx=6, stroke=ORANGE_EDGE)
+    d.chip(346, 104, 208, 28, f"{unsafe} unsafe functions", RED_CHIP, RED_DEEP,
+           size=12, rx=6, weight=700, stroke=RED_EDGE)
+    d.chip(346, 140, 208, 28, "maps errors out", ORANGE_CHIP, ORANGE_DEEP,
+           size=12, rx=6, stroke=ORANGE_EDGE)
+
+    d.panel(632, 16, 248, 168, "uecm core", GREEN_FILL, GREEN, header_h=36)
+    d.chip(652, 68, 208, 28, "unmodified", GREEN_CHIP, GREEN_DEEP, size=12,
+           rx=6, stroke=GREEN_EDGE)
+    d.chip(652, 104, 208, 28, f"{core_unsafe} unsafe", GREEN_CHIP, GREEN_DEEP,
+           size=12, rx=6, weight=700, stroke=GREEN_EDGE)
+    d.chip(652, 140, 208, 28, "safe Rust", GREEN_CHIP, GREEN_DEEP, size=12,
+           rx=6, stroke=GREEN_EDGE)
+
+    d.arrow(272, 100, 318, 100, color=NAVY, sw=2.2)
+    d.arrow(578, 100, 624, 100, color=NAVY, sw=2.2)
+    d.text(601, 90, "safe call", 10.5, BODY, anchor="middle")
+
+    native_us = float(native)
+    seam_us = float(seam)
+    bar_max = 340.0
+    w_seam = bar_max
+    w_native = bar_max * native_us / seam_us
+    d.rect(20, 214, 860, 86, GREY_FILL, GREY_EDGE, rx=10, sw=1.2)
+    d.text(40, 238, "same signalling operation", 12, NAVY, weight=700)
+    d.text(268, 262, "native", 11, BODY, anchor="end")
+    d.rect(280, 251, w_native, 14, BLUE)
+    d.text(280 + w_native + 10, 262, f"{native} \u00b5s", 11, BLUE_DEEP,
+           weight=700)
+    d.text(268, 286, "through the seam", 11, BODY, anchor="end")
+    d.rect(280, 275, w_seam, 14, "#7fa8d4")
+    d.text(280 + w_seam + 10, 286, f"{seam} \u00b5s", 11, BLUE_DEEP, weight=700)
+    return d
+
+
+# --------------------------------------------------------------------------
+def guarantee_boundary():
+    """Two columns: what safe Rust rejects, and what both languages still miss."""
+    d = Diagram("17_guarantee_boundary", 860, 400)
+    d.panel(16, 16, 400, 348, "Inside the guarantee", GREEN_FILL, GREEN,
+            header_h=36)
+    d.text(216, 70, "compile error in safe Rust", 12, GREEN_DEEP,
+           anchor="middle")
+
+    d.rect(34, 86, 364, 118, WHITE, GREEN_EDGE, rx=9, sw=1.5)
+    d.text(48, 108, "Lifetime and aliasing", 13, NAVY, weight=700)
+    d.text(48, 126, "ownership and borrowing", 11, MUTED)
+    d.chip(48, 140, 162, 26, "Use-after-free", GREEN_CHIP, GREEN_DEEP, size=12,
+           rx=5)
+    d.chip(222, 140, 160, 26, "Double-free", GREEN_CHIP, GREEN_DEEP, size=12,
+           rx=5)
+    d.chip(48, 172, 334, 26, "Iterator invalidation", GREEN_CHIP, GREEN_DEEP,
+           size=12, rx=5)
+
+    d.rect(34, 216, 364, 100, WHITE, GREEN_EDGE, rx=9, sw=1.5)
+    d.text(48, 238, "Unsynchronised access", 13, NAVY, weight=700)
+    d.text(48, 256, "data races (Send/Sync)", 11, MUTED)
+    d.chip(48, 274, 132, 26, "Data race", GREEN_CHIP, GREEN_DEEP, size=12, rx=5)
+    d.chip(192, 274, 190, 26, "Unguarded shared mutation", GREEN_CHIP,
+           GREEN_DEEP, size=11, rx=5)
+
+    d.rect(34, 328, 364, 24, GREEN_CHIP, rx=5)
+    d.text(216, 345, "No test required", 11.5, GREEN_DEEP, weight=700,
+           anchor="middle")
+
+    d.panel(444, 16, 400, 348, "Outside the guarantee", RED_FILL, RED,
+            header_h=36)
+    d.text(644, 70, "compiles and misbehaves in both", 12, RED_DEEP,
+           anchor="middle")
+
+    d.rect(462, 86, 364, 118, WHITE, RED_EDGE, rx=9, sw=1.5)
+    d.text(476, 108, "Order of lock acquisition", 13, NAVY, weight=700)
+    d.text(476, 126, "neither compiler prevents this", 11, MUTED)
+    d.chip(476, 154, 336, 32, "Lock-order deadlock", RED_CHIP, RED_DEEP,
+           size=13, rx=5)
+
+    d.rect(462, 216, 364, 100, WHITE, RED_EDGE, rx=9, sw=1.5)
+    d.text(476, 238, "Atomicity of a composed operation", 13, NAVY, weight=700)
+    d.text(476, 256, "race conditions", 11, MUTED)
+    d.chip(476, 276, 336, 26, "Lost update", RED_CHIP, RED_DEEP, size=13, rx=5)
+
+    d.rect(462, 328, 364, 24, RED_CHIP, rx=5)
+    d.text(644, 345, "Fails quietly", 11.5, RED_DEEP, weight=700,
+           anchor="middle")
+
+    d.divider(430, 16, 364, color=NAVY, sw=2.2, dash="9 5")
+    d.rect(366, 372, 128, 22, NAVY, rx=11)
+    d.text(430, 388, "the boundary", 12, WHITE, weight=700, anchor="middle")
+    return d
+
+
 # --------------------------------------------------------------------------
 def workload_timeline():
-    d = Diagram(
-        "27_workload_timeline", 880, 494,
-        "The two workloads, and the lifecycle the mixed one walks",
-        "A fixed draw order makes the per-operation-kind counts identical in "
-        "both languages, so the workload doubles as a parity signal",
+    d = Diagram("27_workload_timeline", 880, 252)
+    d.rect(16, 12, 848, 108, BLUE_FILL, BLUE_EDGE, rx=10, sw=1.5)
+    d.text(36, 36, "signal", 15, BLUE_DEEP, weight=700)
+    d.text(118, 36, "hot path only", 12, MUTED)
+    _chip_row(
+        d, 36, 52,
+        [("signal", 108)] * 5,
+        BLUE_CHIP, BLUE_DEEP, BLUE_EDGE, h=28, gap=16, size=12,
     )
-    d.card(20, 78, 410, 106, "signal: the steady-state hot path", [
-        "Preloads a population of connected UEs and then hammers",
-        "handle_signaling, isolating per-message latency with no",
-        "lifecycle transitions in the way.",
-    ], fill=BLUE_FILL, stroke=BLUE, sw=1.8, rx=10, title_color=BLUE_DEEP,
-        body_size=10.5, pad=15, lh=14, gap=21)
-    d.card(450, 78, 410, 106, "mixed: the full RAN lifecycle", [
-        "A pinned generator that walks each UE through a realistic",
-        "procedure sequence, using a per-slot expected-state model",
-        "so that every operation it emits is valid for that UE.",
-    ], fill=GREEN_FILL, stroke=GREEN, sw=1.8, rx=10, title_color=GREEN_DEEP,
-        body_size=10.5, pad=15, lh=14, gap=21)
+    d.text(340, 102, "Connected, held for the run", 11, MUTED, anchor="middle")
 
-    d.text(440, 220, "The procedure sequence the mixed workload walks, per UE",
-           12, NAVY, weight=700, anchor="middle")
-    seq = [("create", "Idle"), ("setup", "Connected"), ("signal", "Connected"),
-           ("add_drb", "Connected"), ("begin", "Reconfiguring"),
-           ("complete / abort", "Connected"), ("release", "Released")]
-    x = 24
-    for i, (op, state) in enumerate(seq):
-        d.chip(x, 240, 108, 30, op, GREEN_CHIP, GREEN_DEEP, size=10.5, rx=6,
-               stroke=GREEN_EDGE)
-        d.text(x + 54, 290, state, 10, MUTED, anchor="middle")
-        if i < len(seq) - 1:
-            d.arrow(x + 110, 255, x + 122, 255, color=GREEN, sw=1.6)
-        x += 124
-    d.text(24, 310, "resulting state", 9.5, FAINT)
-
-    d.card(20, 328, 410, 108, "Control parameters", [
-        f"5 000 active UEs, and {M['NLoadLevels']} offered-load levels up to",
-        f"{M['MaxOfferedLoad']} kops/s swept from nominal through saturation "
-        f"into",
-        "overload. Open loop against a fixed intended send",
-        "schedule, so latency is measured from the time an",
-        "operation should have been sent rather than was.",
-    ], fill=GREY_FILL, stroke=GREY_EDGE, rx=9, sw=1.5, title_size=12,
-        body_size=10.5, body_color=BODY, pad=15, lh=14, gap=20)
-    d.card(450, 328, 410, 108, "Why the draw order is pinned", [
-        "A fixed SplitMix64 draw order means that for a given",
-        "seed and active-UE population the two implementations",
-        "emit exactly the same count of each operation kind. A",
-        "divergence is therefore a parity failure rather than a",
-        "difference in what the two were asked to do.",
-    ], fill=AMBER_FILL, stroke=AMBER_EDGE, rx=9, sw=1.5, title_size=12,
-        title_color=AMBER_DEEP, body_size=10.5, body_color=BODY, pad=15,
-        lh=14, gap=20)
-
-    d.footer(["The workload is synthetic and specification-justified rather "
-              "than replayed from production traffic, so its operation mix is "
-              "plausible rather than validated."], y=468)
+    d.rect(16, 136, 848, 100, GREEN_FILL, GREEN_EDGE, rx=10, sw=1.5)
+    d.text(36, 160, "mixed", 15, GREEN_DEEP, weight=700)
+    d.text(118, 160, "one pass per UE", 12, MUTED)
+    seq = [
+        ("create", 88, "Idle"),
+        ("setup", 88, "Connected"),
+        ("signal", 88, "Connected"),
+        ("add_drb", 92, "Connected"),
+        ("begin", 80, "Reconf."),
+        ("complete / abort", 124, "Connected"),
+        ("release", 88, "Released"),
+    ]
+    centres = _chip_row(
+        d, 28, 176,
+        [(op, w) for op, w, _ in seq],
+        GREEN_CHIP, GREEN_DEEP, GREEN_EDGE, h=28, gap=14, size=11,
+    )
+    for cx, (_, _, state) in zip(centres, seq):
+        d.text(cx, 222, state, 10, MUTED, anchor="middle")
     return d
 
 
@@ -894,6 +1002,7 @@ def research_gap():
 
 # --------------------------------------------------------------------------
 BUILDERS = [
+    ffi_seam, guarantee_boundary,
     benchmark_harness, evidence_classes, traceability_map, stats_pipeline,
     repro_artifacts, threats_validity, contributions, workload_timeline,
     service_lifecycle, research_gap,

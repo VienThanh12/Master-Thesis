@@ -115,8 +115,8 @@ def main():
     scope = "every diagram" if args.all else f"{checked} reader-visible diagram(s)"
     if hits:
         print(f"\nFAIL: {hits} style breach(es) across {scope}.", file=sys.stderr)
-        print("Fix the diagrams/ source (or diagrams/build_new_diagrams.py for 20-29), "
-              "re-render, and rerun.", file=sys.stderr)
+        print("Fix the diagrams/ source (or diagrams/build_new_diagrams.py "
+              "for generated diagrams), re-render, and rerun.", file=sys.stderr)
         return 1
     print(f"Diagram labels: no em dash, dash aside, or semicolon in {scope}")
     if skipped:
