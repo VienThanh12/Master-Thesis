@@ -36,18 +36,18 @@
 \chapter*{Statement on the Use of AI Tools}
 \markboth{Statement on the Use of AI Tools}{Statement on the Use of AI Tools}
 
-\noindent\textbf{Tool.} Anthropic's Claude Opus~5, through the Cursor development environment,
-is the only generative AI system used in preparing this thesis, from June~2026 until submission.
-University of Helsinki policy forbids naming a language model as an author. It is not cited as a
-source either, which is the author's own choice.
+\noindent\textbf{Tool.} Anthropic's Claude Opus~5 and Cursor Grok~4.6 are the generative AI
+systems used in preparing this thesis. Both ran through the Cursor development environment,
+from June~2026 until submission. University of Helsinki policy forbids naming a language
+model as an author. Neither is cited as a source, which is the author's own choice.
 
-\noindent\textbf{What the assistance covered.} The model drafted and revised
-the running prose, and proposed the order of the arguments. It wrote and refactored both versions
-of the UE Context Management service. It also wrote the load generator, the fault-injection
-catalogue, and the FFI prototype. The analysis behind the bootstrap intervals and the
-paired permutation tests is its work too, as are the figure, build and LaTeX sources. It suggested
-papers to read. The abstract is this programme's maturity test. University policy never permits a
-language model in one.
+\noindent\textbf{What the assistance covered.} The models drafted and revised
+the running prose, and proposed the order of the arguments. They wrote and refactored both
+versions of the UE Context Management service. They also wrote the load generator, the
+fault-injection catalogue, and the FFI prototype. The analysis behind the bootstrap
+intervals and the paired permutation tests is their work too, as are the figure, build and
+LaTeX sources. The abstract is this programme's maturity test. University policy never
+permits a language model in one.
 \ifabstractunaided
 The abstract was written by the author unaided.
 \else
@@ -55,27 +55,25 @@ In this draft it has not yet been rewritten unaided, and this statement will say
 has been.
 \fi
 
-\noindent\textbf{What the model did not settle.} The research problem, the four research questions,
-the three hypotheses, and the study's main control are the author's. That control is one frozen
-language-neutral specification and one concurrency model, so language remains the only planned
-gap between the two versions. The author also chose to carry defect classes from outside Rust's
-compile-time guarantee, which is what keeps RQ2 falsifiable. Every measurement was run by the
-author, on the machines each result names. The quantities the thesis quotes reach the page as
-macros rebuilt from the raw logs. The readings are the author's too. A sweep dominated by
-cross-thread handoff cannot bound a language effect. An unresolved comparison is not a
-demonstration of equivalence. An operating point noticed after the data was in hand is described,
-not tested.
+\noindent\textbf{What the models did not settle.} The research problem, the four research
+questions, the three hypotheses, and the study's main control are the author's. That control
+is one frozen language-neutral specification and one concurrency model, so language remains
+the only planned gap between the two versions. The author also chose to carry defect classes
+from outside Rust's compile-time guarantee, which is what keeps RQ2 falsifiable. Every
+measurement was run by the author, on the machines each result names. The quantities the
+thesis quotes reach the page as macros rebuilt from the raw logs. The readings are the
+author's too.
 
-\noindent\textbf{How the output was checked.} All model output, prose and code, was read by the
-author before it entered the thesis. Every bibliography entry was resolved against Crossref,
+\noindent\textbf{How the output was checked.} All model output, prose and code, was read by
+the author before it entered the thesis. Every bibliography entry was resolved against Crossref,
 DataCite, or the issuing body. An audit then graded how far each claim could be traced. The first
 grade is the page or clause itself. The second is a publisher-deposited record that carries
 the claim. The third is confirmed metadata behind a paywall. An entry whose supporting passage
 was never opened is listed, not absorbed. The audit found four passages that overstated or
 misplaced their source. One was a quotation absent from the work it was attributed to. All four
-were corrected. The audit is kept beside the artefacts. Code was checked against a conformance
-suite whose transcripts are diffed line by line. It was also checked against a fault catalogue
-that fixes each expected outcome before the defect is injected.
+were corrected. Code was checked against a conformance suite whose transcripts are diffed
+line by line. It was also checked against a fault catalogue that fixes each expected outcome
+before the defect is injected.
 
 \noindent\textbf{Responsibility.} The author has reviewed the whole of this thesis and is
 responsible for all of it. Where it is wrong, the error is the author's.
