@@ -468,17 +468,13 @@ correctness and timing behaviour are representative of the control plane as a wh
   \draw[<->] (cu.east |- core) -- node[above,font=\scriptsize]{NG} (core.west);
   \draw[<->] (cp.south) -- node[right,font=\scriptsize]{E1} (up.north);
 \end{tikzpicture}
-\caption[Where the studied subsystem sits in the 5G NG-RAN]{Where the studied subsystem sits in the 5G NG-RAN. The gNB is split into a
-distributed unit (gNB-DU) and a central unit (gNB-CU), and the central unit is split again
-into control-plane (gNB-CU-CP) and user-plane (gNB-CU-UP) functions, connected by the
-standardised F1, E1, and NG interfaces, with Uu the radio interface to the UE. UE Context
-Management (highlighted) is the per-UE control-plane state manager inside the gNB-CU-CP that
-this thesis reimplements and measures.\label{fig:ngran}}
+\caption[Where the studied subsystem sits in the 5G NG-RAN]{Where the studied subsystem sits in the 5G NG-RAN. UE Context Management is
+highlighted inside the gNB-CU-CP.\label{fig:ngran}}
 \end{figure}
 
 \section{Predictability and the two languages}\label{sec:bgbrief}
-Four strands of background bear on the comparison, and this section states each as the position
-the study inherits from it. Predictability, not average
+This section states what the study takes as given.
+Predictability, not average
 throughput, is the governing property of a latency-critical service, so the quantity to measure
 is the tail of the distribution and not its mean, and measuring it correctly
 constrains the harness as much as the metric: an open-loop schedule is required, because a
@@ -542,16 +538,7 @@ thesis tests against. The paragraphs below compare the five with this study dire
 \centering
 \includegraphics[width=0.78\linewidth]{diagrams/pdf/29_research_gap.pdf}
 \caption[What the neighbouring studies control, and what they leave varying]{What the neighbouring studies control, and what they leave varying. Each row is a
-property that a controlled answer to the research questions would need. Each column is a study.
-The general cross-language comparisons measure the right kind of object but the wrong regime,
-reporting averages on general-purpose workloads. Matched pairs in systems software hold the
-design fixed, but outside this domain and below saturation. The vendor RAN and 5G framework
-studies reach the right domain, and one of them reports the tail, but in all of them the
-language varies together with the runtime and the concurrency model. The one matched telecom
-pair, Emberg and Wadsten, controls the design but measures a stateless transformation. Holding
-the design and the concurrency model fixed for a stateful, concurrent subsystem and then driving
-it past saturation is what this thesis adds. The contribution is the control, not a new
-measurement technique.\label{fig:gapmap}}
+property a controlled answer would need, and each column is a study.\label{fig:gapmap}}
 \end{figure}
 
 What is therefore missing from the literature
@@ -678,11 +665,8 @@ first in, first out (FIFO).
       (wn.south) -- ++(0,-0.75) -- (1.4,-2.9) -- ($(pg.south east)+(-0.4,0)$);
   \node[font=\scriptsize] at (5.9,-3.05) {one-shot completion (result $\rightarrow$ waiting producer)};
 \end{tikzpicture}
-\caption[Shared-nothing, thread-per-shard architecture]{Shared-nothing, thread-per-shard architecture. Producers submit request messages to a
-shard's bounded, blocking queue, selected by a pinned hash of the \texttt{ue\_id}, and wait
-on a single-use completion handle. Each shard is read and written by exactly one worker
-thread, so there are no locks on context state, and blocking on a full queue is what makes
-overload observable as tail latency.\label{fig:arch}}
+\caption[Shared-nothing, thread-per-shard architecture]{Shared-nothing, thread-per-shard architecture. Producers submit to a bounded MPSC queue
+per shard, and that shard's worker drains it.\label{fig:arch}}
 \end{figure}
 
 Fairness is enforced below the design as well as in it. Both builds link the same
@@ -743,13 +727,8 @@ the directions survive a change of design.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.78\linewidth]{diagrams/pdf/27_workload_timeline.pdf}
-\caption[The two workloads, and the lifecycle the mixed one walks]{The two workloads. The \emph{signal} workload isolates the steady-state hot path,
-while the \emph{mixed} workload walks each UE through the full RAN procedure sequence, with
-a per-slot expected-state model ensuring that every operation it emits is legal for the
-state its context is actually in. Because the SplitMix64 draw order is pinned, a given seed
-and active-UE population produce identical per-operation-kind counts in both languages, so a
-divergence is a parity failure rather than a difference in what the two implementations were
-asked to do.\label{fig:workload}}
+\caption[The two workloads, and the lifecycle the mixed one walks]{The two workloads, and the lifecycle the mixed one walks. Signal isolates the hot
+path, and mixed walks each UE through the procedure sequence drawn below.\label{fig:workload}}
 \end{figure}
 
 Below saturation the four variants sit within $\PFiftyRange\,\mu$s of one another at the
@@ -780,24 +759,15 @@ about safety.
 \centering
 \includegraphics[width=0.78\linewidth]{figures/fig_load_sweep.pdf}
 \caption[The load sweep: tail latency and achieved throughput]{The load sweep, both panels
-against offered load. \textbf{(a)} Tail latency (p99) for the four build variants on a log
-axis, flat across the whole tracking region and then rising by four orders of magnitude in
-one step of the ladder. \textbf{(b)} Achieved throughput against the dotted ideal, which the
-C++ curves leave after an offered $\TrackingLoadCpp$~kops/s and the Rust curves after
-$\TrackingLoadRust$, so $\KneeGapLoad$~kops/s is the only load in the sweep at which the two
-languages differ in \emph{throughput} with Rust ahead. Lines are medians over \NRepeats{}
-repeats and shaded bands are bootstrap $95\%$ confidence intervals in both
-panels.\label{fig:loadsweep}}
+against offered load. Lines are medians over \NRepeats{} repeats, and the bands are
+bootstrap $95\%$ confidence intervals.\label{fig:loadsweep}}
 \end{figure}
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.78\linewidth]{figures/fig_budget.pdf}
-\caption[The end-to-end operation decomposed, against what the sweep can resolve]{Where an end-to-end operation's cost goes, and why the sweep cannot bound a language
-effect. \textbf{(a)} The round-trip at true proportion, in which the operation the language
-performs is $\BudgetCoreShareMax\%$ of the bar and the remainder is the cross-thread handoff.
-\textbf{(b)} The same quantities on a log axis against the smallest paired difference the
-sweep can resolve, shown as a blind zone that both operation measurements fall inside by a
+\caption[The end-to-end operation decomposed, against what the sweep can resolve]{Where an end-to-end operation's cost goes. \textbf{(a)} The round-trip at true
+proportion. \textbf{(b)} Both operation measurements sit inside the sweep's blind zone by a
 factor of $\BudgetBoundVsCore$.\label{fig:budget}}
 \end{figure}
 
@@ -823,15 +793,9 @@ completing it.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.78\linewidth]{figures/fig_overload.pdf}
-\caption[Divergence past saturation]{Behaviour at $\OverloadLoad$~kops/s offered, the deepest swept load at which every
-variant has stopped meeting the offered rate.
-Bars are medians over \NRepeats{} repeats with bootstrap $95\%$ intervals, grouped so that
-the two bars inside a group differ only in language. \textbf{(a)} What each variant still
-completes, where \OverloadSustainedFaster{} sustains a factor of $\OverloadThrRatio$ more
-than \OverloadSustainedSlower. \textbf{(b)} Total CPU divided by the work that actually
-completed, which is what rules out the reading that the variant delivering less is simply
-doing less. It spends $\OverloadCpuPerOpRatio$ times as much CPU per sustained operation,
-and the CPU figures are summed across threads.\label{fig:overload}}
+\caption[Divergence past saturation]{Behaviour at $\OverloadLoad$~kops/s offered. Bars are medians over \NRepeats{}
+repeats with bootstrap $95\%$ intervals, grouped so the two bars in a group differ only in
+language. CPU in (b) is summed across threads.\label{fig:overload}}
 \end{figure}
 
 Safety is measured by injecting $\FaultClasses$ defects. Seven come from inside the
@@ -844,7 +808,7 @@ there is nothing to detect and the identity is simply lost. All seven boundary c
 compile in safe Rust and misbehave. On two of them the C++ tooling is the one that
 reports. LeakSanitizer flags the reference cycle that Rust leaks in silence.
 UndefinedBehaviorSanitizer flags the overflow that Rust defines to wrap. ThreadSanitizer
-catches the lock-order inversion on some runs and not others, at a rate that is itself
+catches the lock-order inversion in $\DeadlockTsanHits$ of $\DeadlockTsanRuns$ runs, a rate that is itself
 unstable. It builds its lock-order graph from acquisitions that succeed. A run whose first
 inversion blocks never closes the cycle. Two Rust model checkers do report both original
 boundary defects, Loom exploring interleavings soundly and Shuttle sampling the ones Loom
@@ -858,14 +822,8 @@ the whole catalogue as an outcome matrix.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.72\linewidth]{figures/fig_taxonomy.pdf}
-\caption[Where the guarantee stops: the outcome matrix]{The fault-injection outcomes drawn as a matrix, generated from the taxonomy log the
-runner writes. Above the rule the Rust column is a single colour, because every defect there
-is a compile error and none can be written, while the C++ columns are a patchwork that no
-one sanitiser covers and the use-after-move row is covered by none of them. Below the rule
-the Rust column joins them, on the reference-cycle leak and the release-build overflow the
-C++ tooling is ahead, and the lock-order deadlock is the one cell where a tool reports
-intermittently, ThreadSanitizer flagging the inversion in $\DeadlockTsanHits$ of
-$\DeadlockTsanRuns$ runs while the program deadlocks on every one.\label{fig:taxonomy}}
+\caption[Where the guarantee stops: the outcome matrix]{The fault-injection outcomes as a matrix, generated from the taxonomy
+log.\label{fig:taxonomy}}
 \end{figure}
 
 Resource use separates the variants where latency could not. Two effects of comparable
@@ -901,27 +859,18 @@ $\CoreUnsafe$ \texttt{unsafe} sites.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.78\linewidth]{figures/fig_resources.pdf}
-\caption[Resource use, and the two effects inside peak RSS]{Resource use at a sustained offered load of $\ReprLoad$~kops/s, grouped by allocator
-so that the two bars in a group differ only in language and the two groups differ only in
-allocator. Medians over \NRepeats{} repeats with bootstrap $95\%$ intervals.
-\textbf{(a)} Peak resident set size. \textbf{(b)} The two effects it contains, each as a
-paired difference over the same repeats, which on a shared axis are of comparable size here
-and were not on the host this study used first. \textbf{(c)} CPU utilisation, summed across
-threads, where the difference runs the other way and is small.\label{fig:resources}}
+\caption[Resource use, and the two effects inside peak RSS]{Resource use at $\ReprLoad$~kops/s, grouped by allocator. Bars are medians over
+\NRepeats{} repeats with bootstrap $95\%$ intervals, and CPU in (c) is summed across
+threads.\label{fig:resources}}
 \end{figure}
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.78\linewidth]{diagrams/pdf/07_ffi_seam.pdf}
-\caption[The C++-to-Rust FFI migration seam]{The C++-to-Rust FFI migration seam. The C++ host sees only an opaque handle,
-$\FfiEntryPoints$ plain-C entry points, and a status-code convention, while a thin
-\texttt{extern "C"} seam crate concentrates all of the raw-pointer \texttt{unsafe} in
-$\FfiUnsafeFns$ functions and calls the unmodified Rust core, which remains free of
-\texttt{unsafe}. The band along the bottom is the comparison the argument rests on, the same
-signalling operation called natively at $\FfiOpNative$~\textmu s and through the seam at
-$\FfiOpSeam$~\textmu s, whose paired difference is not resolved and is bounded at
-$\FfiOpBoundPct\%$ of one operation. The do-nothing crossing costs $\FfiCrossing$~ns and
-bounds only itself.\label{fig:ffiseam}}
+\caption[The C++-to-Rust FFI migration seam]{The C++-to-Rust FFI migration seam. The same signalling operation costs
+$\FfiOpNative$~\textmu s natively and $\FfiOpSeam$~\textmu s through the seam, a paired
+difference bounded at $\FfiOpBoundPct\%$ of one operation. A do-nothing crossing costs
+$\FfiCrossing$~ns and bounds only itself.\label{fig:ffiseam}}
 \end{figure}
 
 \chapter{Discussion\label{chapter:discussion}}
@@ -965,15 +914,8 @@ without a mechanism behind it leaves each implementation to fail in its own idio
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.78\linewidth]{diagrams/pdf/17_guarantee_boundary.pdf}
-\caption[Where Rust's compile-time guarantee stops]{Where the compile-time guarantee stops. On the left are the classes safe Rust rejects
-outright, grouped by the \emph{mechanism} that rejects them rather than by defect family,
-which is ownership and borrowing for lifetime and aliasing errors and the
-\texttt{Send}/\texttt{Sync} discipline for unsynchronised access to a location. On the right
-are the classes the catalogue included to find the edge, which neither compiler prevents.
-The diagram names one class per mechanism rather than the whole catalogue, the phrase
-``thread safety'' spans both sides of the line, and the line itself moves once more than the
-diagram can show, because a program that writes \texttt{unsafe} crosses it
-voluntarily.\label{fig:boundary}}
+\caption[Where Rust's compile-time guarantee stops]{Where Rust's compile-time guarantee stops, with classes grouped by the mechanism that
+rejects them.\label{fig:boundary}}
 \end{figure}
 
 RQ3 splits by resource and the splits do not point the same way. RQ4 comes out cheap in
