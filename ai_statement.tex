@@ -15,8 +15,7 @@
 %%
 %% The paragraphs cover every item of the University's basic reporting instruction:
 %% which tool, what the use covered, what it was for, how it performed and how its
-%% output was checked, and what the author took from it. Kept short on purpose: the
-%% instruction asks for those five items, not for an essay about them.
+%% output was checked, and what the author took from it.
 
 %% The claim this statement makes about the abstract is gated on the switch below,
 %% so the document can never assert it before it is true. The abstract doubles as
@@ -39,54 +38,49 @@
 
 \noindent\textbf{Tool.} Anthropic's Claude Opus~5, through the Cursor development environment,
 is the only generative AI system used in preparing this thesis, from June~2026 until submission.
-It is named neither as an author, which University of Helsinki policy forbids, nor as a source,
-which is the author's own choice.
+University of Helsinki policy forbids naming a language model as an author. It is not cited as a
+source either, which is the author's own choice.
 
-\noindent\textbf{What the assistance covered.} It was extensive. The model drafted and revised
-the running prose and proposed the order in which the arguments are made. It wrote and refactored
-both implementations of the UE Context Management service, the load generator, the
-fault-injection catalogue, the interoperability prototype, the analysis code behind the bootstrap
-intervals and the paired permutation tests, and the figure-generating, build and LaTeX sources.
-It also suggested candidate literature. The abstract is the one part it must not touch, because it
-is this programme's maturity test, and University of Helsinki policy never permits a language model
-in one.
+\noindent\textbf{What the assistance covered.} The use was extensive. The model drafted and revised
+the running prose, and proposed the order of the arguments. It wrote and refactored both versions
+of the UE Context Management service. It also wrote the load generator, the fault-injection
+catalogue, and the FFI prototype. The analysis behind the bootstrap intervals and the
+paired permutation tests is its work too, as are the figure, build and LaTeX sources. It suggested
+papers to read. The abstract is this programme's maturity test. University policy never permits a
+language model in one.
 \ifabstractunaided
-The abstract was accordingly written by the author unaided.
+The abstract was written by the author unaided.
 \else
 In this draft it has not yet been rewritten unaided, and this statement will say so until it
 has been.
 \fi
 
-\noindent\textbf{What the model did not settle.} The research problem, the four research
-questions, the three hypotheses, and the control on which the study's value rests are the
-author's. That control is one frozen language-neutral specification and one concurrency model, so
-language remains the only systematic difference between the two implementations. The author also
-chose to carry defect classes from outside Rust's compile-time guarantee, which is what keeps RQ2
-falsifiable. Every measurement was run by the author, on the machines each result names, and the
-quantities the thesis quotes reach the page as macros regenerated from the raw logs.
-The readings are the author's too, including the restraints the evidence imposes: a sweep dominated
-by cross-thread handoff cannot bound an effect of the language, an unresolved comparison is not a
-demonstration of equivalence, and an operating point noticed after the data was in hand is described
-rather than tested.
+\noindent\textbf{What the model did not settle.} The research problem, the four research questions,
+the three hypotheses, and the study's main control are the author's. That control is one frozen
+language-neutral specification and one concurrency model, so language remains the only planned
+gap between the two versions. The author also chose to carry defect classes from outside Rust's
+compile-time guarantee, which is what keeps RQ2 falsifiable. Every measurement was run by the
+author, on the machines each result names. The quantities the thesis quotes reach the page as
+macros rebuilt from the raw logs. The readings are the author's too. A sweep dominated by
+cross-thread handoff cannot bound a language effect. An unresolved comparison is not a
+demonstration of equivalence. An operating point noticed after the data was in hand is described,
+not tested.
 
-\noindent\textbf{How the output was checked.} Model output was treated as a draft to be
-falsified, and all of it, prose and code alike, was read by the author before it entered the
-thesis. Every bibliography entry was resolved against Crossref, DataCite, or the issuing body.
-Most were then graded by how far the claim made of it could be traced: to the page or clause itself,
-to a publisher-deposited record carrying it, or no further than confirmed metadata behind a paywall.
-The audit records that grade per entry, so an entry whose supporting passage was never opened is
-listed rather than absorbed. It found four passages that overstated or misplaced their source, one
-a quotation absent from the work it was attributed to, and all four were corrected. The audit is
-kept beside the artefacts. Code was checked by running it against a conformance suite whose
-transcripts are diffed line by line and a fault catalogue that fixes each expected outcome before
-the defect is injected.
+\noindent\textbf{How the output was checked.} All model output, prose and code, was read by the
+author before it entered the thesis. Every bibliography entry was resolved against Crossref,
+DataCite, or the issuing body. An audit then graded how far each claim could be traced. The first
+grade is the page or clause itself. The second is a publisher-deposited record that carries
+the claim. The third is confirmed metadata behind a paywall. An entry whose supporting passage
+was never opened is listed, not absorbed. The audit found four passages that overstated or
+misplaced their source. One was a quotation absent from the work it was attributed to. All four
+were corrected. The audit is kept beside the artefacts. Code was checked against a conformance
+suite whose transcripts are diffed line by line. It was also checked against a fault catalogue
+that fixes each expected outcome before the defect is injected.
 
-\noindent\textbf{What the author took from it.} The model is dependable at mechanical work, at
-transposing an idiom between two languages or keeping a build honest. It is undependable in one
-predictable way: it will supply a plausible citation for a claim and a confident sentence where
-the data supports a hedge. Its fluency is not evidence. The effort saved in drafting is spent
-again in checking, and the defensible parts of this thesis are the parts checked against a source,
-a specification, or a measurement.
+\noindent\textbf{What the author took from it.} The model is dependable at mechanical work. It
+will move an idiom between two languages or keep a build honest. It is not reliable when a
+citation or a hedge is at stake. It will supply a plausible citation for a claim, and a firm
+sentence where the data supports a hedge. Checking takes back the time drafting saved.
 
 \noindent\textbf{Responsibility.} The author has reviewed the whole of this thesis and is
 responsible for all of it. Where it is wrong, the error is the author's.
