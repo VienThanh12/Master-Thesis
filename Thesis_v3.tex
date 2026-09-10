@@ -99,11 +99,11 @@
       spends only $\BudgetCoreShareMax\%$ on language work. Passing work between threads takes the rest, 
       so that clock cannot attribute a gap to C++ or Rust. Timed on its own, Rust’s operation 
       is $\BudgetCoreRatio\times$ faster. 
-      (5)~Below overload the full path is a few microseconds faster in Rust. The Rust versions keep up 
-      with the offered load to $\TrackingLoadRust$~kops/s, the C++ versions only to $\TrackingLoadCpp$. 
-      Once neither can keep up, \OverloadSustainedFaster{} still finishes $\OverloadThrRatio\times$ as 
+      (5)~Below overload the paired test resolves a few microseconds in Rust's favour. The Rust versions keep up
+      with the offered load to $\TrackingLoadRust$~kops/s, the C++ versions only to $\TrackingLoadCpp$.
+      Once neither can keep up, \OverloadSustainedFaster{} still finishes $\OverloadThrRatio\times$ as
       much work as \OverloadSustainedSlower{} in \OverloadThrAgree{} interleaved repeats with both allocators.
-      
+
       \noindent\textbf{Conclusions.}
       The main cost of adopting Rust is engineering effort and the learning curve, not run-time
       performance at nominal load. The gain is freedom from data races, not from concurrency
