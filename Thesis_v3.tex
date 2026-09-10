@@ -26,7 +26,13 @@
 
 \onehalfspacing 
 
-\sloppy 
+\sloppy
+% Sentence-ending punctuation keeps the same interword space as the
+% rest of the line. TeX's default extra glue after `.` is the gap
+% after "gap." in the research-gap paragraph. Attached to babel's
+% English extras so a language switch cannot put the extra glue back.
+\addto\extrasenglish{\frenchspacing}
+\AtBeginDocument{\frenchspacing}
 
 \title{Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia RAN Control-Plane Systems}
 \author{Ha Vien}
@@ -91,8 +97,9 @@
       its safety model, and the cost of incremental adoption.
       
       \noindent\textbf{Methods.}
-      One language-agnostic specification is frozen first, then implemented twice with identical
-      algorithms, concurrency model, allocator, and build settings. A synthetic workload is increased to
+      One language-agnostic specification is frozen first, then implemented twice with matched
+      algorithms, concurrency model, allocator, and build settings, and with forced-idiom gaps logged.
+      A synthetic workload is increased to
       overload, both versions pass the same parity tests, and the evaluation adds fault injection and a
       foreign function interface (FFI) prototype.
       
@@ -101,11 +108,13 @@
       time. In C++ the same seven build cleanly and show up only at runtime, if a sanitiser catches
       them. (2)~Seven further classes fail in both languages. On two of them C++ tooling reports what
       Rust does not. (3)~C++ can call the Rust service through a thin C interface. All \texttt{unsafe} 
-      stays there, and any extra time on a real call is at most $\FfiOpBoundPct\%$. (4)~A full request 
-      spends only $\BudgetCoreShareMax\%$ on language work. Passing work between threads takes the rest, 
-      so that clock cannot attribute a gap to C++ or Rust. Timed on its own, Rust’s operation 
-      is $\BudgetCoreRatio\times$ faster. 
-      (5)~Below overload the paired test resolves a few microseconds in Rust's favour. The Rust versions keep up
+      stays there, and any extra time on a real call is at most $\FfiOpBoundPct\%$ of one operation.
+      (4)~A full request
+      spends only $\BudgetCoreShareMax\%$ on language work. Passing work between threads takes the rest,
+      so that clock cannot attribute a gap to C++ or Rust. Timed on its own, Rust's operation
+      is $\BudgetCoreRatio\times$ faster.
+      (5)~Below saturation the paired test on the end-to-end median resolves $\PFiftyDiffAbsMax\,\mu$s
+      in Rust's favour. That gap is too small to bound a language effect. The Rust versions keep up
       with the offered load to $\TrackingLoadRust$~kops/s, the C++ versions only to $\TrackingLoadCpp$.
       Once neither can keep up, \OverloadSustainedFaster{} still finishes $\OverloadThrRatio\times$ as
       much work as \OverloadSustainedSlower{} in \OverloadThrAgree{} interleaved repeats with both allocators.
@@ -164,6 +173,7 @@ AI & Artificial intelligence \\
 AI-RAN & An architecture in which AI and radio access network workloads share one accelerated infrastructure \\
 API & Application programming interface \\
 CPU & Central processing unit \\
+CVE & Common Vulnerabilities and Exposures \\
 CWE & Common Weakness Enumeration \\
 EU & European Union \\
 FFI & Foreign function interface \\
@@ -528,9 +538,10 @@ factor of five, which is an indication of how much of the measurement the runtim
 remaining two hold the design closer to fixed but report execution time and peak memory rather
 than tail behaviour under rising load~\cite{olsson2023ranmgmt,emberg2023asn1}, and the closest
 of them, Emberg and Wadsten, measures a stateless transformation rather than a stateful,
-concurrent subsystem. Figure~\ref{fig:gapmap} sets the neighbouring studies against the
-properties a controlled answer would require, and the pattern it shows is that each holds some
-of them and none holds all.
+concurrent subsystem. Figure~\ref{fig:gapmap} places the five vendor theses beside the
+general-purpose comparisons~\cite{pereira2017energy} and the matched systems-software
+pairs~\cite{emmerich2019drivers,suchert2023stamp}. The pattern it shows is that each group holds
+some of the properties a controlled answer would need, and none holds all.
 
 The concentration of that evidence is itself part of the gap. All five studies come from one
 vendor, and their conclusions have never been tested against another organisation's software,
@@ -545,7 +556,9 @@ thesis tests against. The paragraphs below compare the five with this study dire
 \centering
 \includegraphics[width=0.78\linewidth]{diagrams/pdf/29_research_gap.pdf}
 \caption[What the neighbouring studies control, and what they leave varying]{What the neighbouring studies control, and what they leave varying. Each row is a
-property a controlled answer would need, and each column is a study.\label{fig:gapmap}}
+property a controlled answer would need, and each column is a group of studies.
+The vendor-RAN column is the five Ericsson theses, including both Olsson
+studies.\label{fig:gapmap}}
 \end{figure}
 
 What is therefore missing from the literature
@@ -1100,14 +1113,14 @@ The migration seam is small on each axis measured: $\FfiEntryPoints$ C entry
 points in $\FfiSeamLines$ lines of Rust. All raw-pointer work is confined to
 $\FfiUnsafeFns$ functions. The core is left free of \texttt{unsafe}. No cost is
 detected against the same operation called directly. That bounds any
-per-operation tax at $\FfiOpBoundPct\%$, and Figure~\ref{fig:ffiseam} shows the
+per-operation tax at $\FfiOpBoundPct\%$ of one operation, and Figure~\ref{fig:ffiseam} shows the
 structure that bound belongs to. Three adoption costs beyond the seam were
 measured as well. Two of them contradict the received objection.
 $\BuildDepShareCpu\%$ of the Rust clean build is third-party code. The project's
 own source compiles in $\BuildAllFirstPartyCpuRatio$ times the CPU \texttt{g++}
 needs. The $\FootShippedRatio\times$ binary-size gap is a linkage policy that
-reverses when the policy is held fixed. The compared component resolves
-$\DepsCore$ crates and contains $\CoreUnsafe$ \texttt{unsafe} sites.
+reverses when the policy is held fixed. The compared component has no third-party crates and
+no \texttt{unsafe} sites ($\DepsCore$ crates, $\CoreUnsafe$ \texttt{unsafe} sites).
 
 \begin{figure}[ht]
 \centering
@@ -1132,7 +1145,7 @@ compile errors in safe Rust. All seven boundary classes compile and
 misbehave in both languages. RQ3 is a memory penalty of
 $\RssLangDiffLo$--$\RssLangDiffHi$~MiB that reproduces under both allocators and
 on all three machines, with CPU that inverts across the two load regimes. RQ4
-is a small seam whose per-call tax is bounded at $\FfiOpBoundPct\%$. The real
+is a small seam whose per-call tax is bounded at $\FfiOpBoundPct\%$ of one operation. The real
 cost is API design and the learning curve.
 
 \section{Discussion on the research questions}\label{sec:rqdiscussion}
@@ -1175,7 +1188,8 @@ the order the programmers intended rather than their
 locking~\cite{lu2008mistakes}. Adopting Rust retires one category of concurrency
 defect and leaves untouched the category that fails silently. A migration plan
 reading ``memory-safe'' as ``concurrency-safe'' would mis-budget its review
-effort. Memory-safety bugs in Rust always involve \texttt{unsafe}~\cite{xu2021rustcve},
+effort. Memory-safety bugs in Rust involve \texttt{unsafe} in every published Common
+Vulnerabilities and Exposures (CVE) entry but one compiler bug~\cite{xu2021rustcve},
 which is why keeping the core \texttt{unsafe}-free matters, and why unsafety
 spreading through dependencies is a review concern~\cite{evans2020rust}.
 
@@ -1216,7 +1230,7 @@ average two regimes that move in opposite directions.
 
 RQ4 comes out cheap in the machine and expensive in the people. A C++ host can
 call an unchanged Rust core across a thin C-ABI seam whose cost on a real
-operation is bounded at $\FfiOpBoundPct\%$. The dominant cost is
+operation is bounded at $\FfiOpBoundPct\%$ of one operation. The dominant cost is
 human~\cite{fulton2021adopting,crichton2024learning}. Confining \texttt{unsafe}
 to the seam bounds what has to be reviewed, not what can be corrupted. Host and
 component share one address
@@ -1248,7 +1262,7 @@ Stating their disposition is what separates a test from a description.
         concurrency correctness at large, and it is a claim about \emph{safe}
         Rust only. The seam case shows the same class returning inside
         \texttt{unsafe}.
-  \item[H3] Any per-operation tax is bounded at $\FfiOpBoundPct\%$, which is
+  \item[H3] Any per-operation tax is bounded at $\FfiOpBoundPct\%$ of one operation, which is
         support from a bound on a cost the measurement could have missed, not
         from the failure to detect one. The accompanying claim, that the real
         cost is design and training, is supported structurally and not
@@ -1319,7 +1333,7 @@ checker's primitives.
 
 On migration the cost is dominated by API design and the learning curve, not by
 any run-time tax. An unchanged Rust core can be driven from C++ across a thin
-seam. The cost on a real operation is bounded at $\FfiOpBoundPct\%$.
+seam. The cost on a real operation is bounded at $\FfiOpBoundPct\%$ of one operation.
 All of the \texttt{unsafe} sits in the seam, and the core is verified free of it.
 Most of the Rust build's extra expense is compiling dependencies, not the
 compiler's own work. The binary-size gap is a linkage policy. The ordering

@@ -838,7 +838,7 @@ def research_gap():
         (308, 131, ["Matched pairs in", "systems software"],
          "Emmerich \u00b7 Suchert"),
         (448, 131, ["Vendor RAN and", "5G frameworks"],
-         "Karlback \u00b7 Arvidsson"),
+         "Five Ericsson theses"),
         (588, 131, ["Matched telecom", "pair"], "Emberg & Wadsten"),
         (728, 131, ["This thesis", ""], ""),
     ]

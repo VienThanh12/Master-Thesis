@@ -103,6 +103,12 @@
 
 %\fussy 
 \sloppy % sloppy and fussy commands can be used to avoid overlong text lines
+% Sentence-ending punctuation keeps the same interword space as the
+% rest of the line. TeX's default extra glue after `.` is the gap
+% after "gap." in the research-gap paragraph. Attached to babel's
+% English extras so a language switch cannot put the extra glue back.
+\addto\extrasenglish{\frenchspacing}
+\AtBeginDocument{\frenchspacing}
 
 \title{Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia RAN Control-Plane Systems}
 \author{Ha Vien}
@@ -1148,7 +1154,7 @@ thesis tests against. Section~\ref{sec:relatedwork} compares the five with this 
 \centering
 \includegraphics[width=0.78\linewidth]{diagrams/pdf/29_research_gap.pdf}
 \caption[What the neighbouring studies control, and what they leave varying]{What the neighbouring studies control, and what they leave varying. Each row is a
-property that a controlled answer to the research questions would need. Each column is a study.
+property that a controlled answer to the research questions would need. Each column is a group of studies.
 The general cross-language comparisons measure the right kind of object but the wrong regime,
 reporting averages on general-purpose workloads. Matched pairs in systems software hold the
 design fixed, but outside this domain and below saturation. The vendor RAN and 5G framework
