@@ -1,4 +1,10 @@
-\documentclass[english,twoside,openright,a4paper,censored,csm,software-track-2020]{HYthesisML}
+% oneside, matching the electronic draft. twoside with openright reserved a
+% right-hand opening for every chapter and list, which inserted a blank verso
+% whenever the previous chapter ended on an odd page.
+% a4paper has to be given here: the template sets it with a \PassOptionsToClass
+% placed after \documentclass, by which time report is already loaded, so the
+% stock template silently produces US Letter pages.
+\documentclass[english,oneside,a4paper,censored,csm,software-track-2020]{HYthesisML}
 
 \usepackage{csquotes}
 
