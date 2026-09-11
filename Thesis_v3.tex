@@ -501,7 +501,7 @@ a stall is in progress. It then never records the delay of that stall.
 C++ gives the control the domain needs. It leaves memory and thread safety to
 the programmer. Sanitisers and review stand in for a guarantee. The standards
 committee's work on enforced safety profiles is not a standard yet. It is not
-widely in use. Rust's ownership and borrowing rules out lifetime and aliasing
+widely in use. Rust's ownership and borrowing rule out lifetime and aliasing
 bugs at compile time. Its \texttt{Send} and \texttt{Sync} traits rule out data
 races. That claim is narrower than ``thread safety''. It says nothing about
 lock order. It says nothing about whether a composed step is atomic. It says
@@ -550,7 +550,8 @@ systems-software pairs~\cite{emmerich2019drivers,suchert2023stamp}. The
 pattern is this. Each group holds some of what a fair test would need. None
 holds all of it.
 
-That bunching is itself part of the gap. All five studies come from one vendor. Their conclusions have never been tested against another
+That bunching is itself part of the gap. All five studies come from one
+vendor. Their conclusions have never been tested against another
 firm's software, targets or house rules. So what is known about this question
 is what one firm's frameworks say about it. The published record on the other
 side is thinner. There is no study of Rust among the indexed papers of the
@@ -643,7 +644,8 @@ programs were run. Section~\ref{sec:safetyresults} reports what each one did.
 The tail is the metric because of two traits of this part. One user-visible
 action, a call setup or a handover, becomes many dependent control-plane
 steps. The slowest member gates completion. A busy site drives thousands of
-such procedures per second. So a far-tail point is reached often enough to matter. The failure shape is the second reason. A
+such procedures per second. So a far-tail point is reached often enough to
+matter. The failure shape is the second reason. A
 service of this design tracks its offered load with flat delay until a worker
 saturates. Then delay jumps by a huge step in one increment of load. That is
 why this study sweeps past saturation.
@@ -664,12 +666,12 @@ language. Such a gap also carries the design, the libraries, and the skill of
 their authors. Building both sides from one spec removes that confound. Where
 a question can be answered with numbers, it uses numbers. Where it cannot, the
 answer is still by a fixed plan, in words. That is how this study treats the
-kind of guarantee in RQ2. RQ4 asks about API design cost. API here is the
-application programming interface.
+kind of guarantee in RQ2. RQ4 asks about the design cost of the application
+programming interface (API).
 
 The closest prior work is the five vendor-hosted theses of
 Section~\ref{sec:gap}. They appear in no citation database. They had to be
-found by searching each university's own store by hand. The same searches
+found by searching each university's own archive by hand. The same searches
 found no Finnish thesis on Rust in a radio-access setting. They found no
 indexed paper mentioning Rust from the vendor hosting this work. The search
 returned no study that measures the tail of a Rust and a C++ version of the
@@ -725,15 +727,15 @@ overload cause can be tested and not merely argued.
 RQ2 is answered by controlled fault injection~\cite{natella2016fault}. Each
 defect class is a small program of its own in both languages.
 The C++ side is built and run under AddressSanitizer. It is also run under
-ThreadSanitizer. It is also run under UndefinedBehaviorSanitizer. The safe-Rust
-side is compiled and, where it compiles, run under a bounded timeout. No static
-analyser is run, on purpose.
+ThreadSanitizer and UndefinedBehaviorSanitizer. The safe-Rust side is compiled
+and, where it compiles, run under a bounded timeout. No static analyser is
+run, on purpose.
 The C++ columns then report the tooling this study ran. They do not report a
 ceiling on what C++ tooling could find. RQ4 is answered by a working
 prototype in the direction a real migration takes. A C++ host calls an
 unchanged Rust core across a C ABI. The per-call cost is measured on a real
-step and not inferred from an empty crossing. Memory bugs that cross a language sit at that
-seam~\cite{li2022crosslang}.
+step and not inferred from an empty crossing. Memory bugs that cross a
+language sit at that seam~\cite{li2022crosslang}.
 
 \section{Fairness as a controlled variable}\label{sec:controlsbrief}
 A language comparison is only as good as the variables it holds fixed. The
@@ -763,9 +765,9 @@ then has no across-repeat interval to test.
 A third party can rebuild the results without access to Nokia's private code.
 The versions are driven entirely by the public frozen spec. The benchmarking
 harness, the fault catalogue and its runner, and the FFI prototype are
-published with the thesis. Each plot of measured data is rebuilt by one script from the raw logs. So is
-each quoted number in the results. The script is
-\texttt{bench/refresh\_thesis.sh}. That claim does not cover the hand-drawn
+published with the thesis. Each plot of measured data is rebuilt by one
+script from the raw logs. So is each quoted number in the results. The script
+is \texttt{bench/refresh\_thesis.sh}. That claim does not cover the hand-drawn
 schematics, which explain a concept rather than report a result. And running
 the same scripts over another host's campaign rebuilds the artefacts by the
 same procedure, not with the same values.
