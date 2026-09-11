@@ -1939,17 +1939,42 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
     ach = [med_at(k, load, thr_kops) for k in variants]
     p99 = [med_at(k, load, p99_us) for k in variants]
     p50 = [med_at(k, load, p50_us) for k in variants]
+
+    def shown(xs, decimals=1):
+        return [float(f"{x:.{decimals}f}") for x in xs]
+
+    def shown_range(xs, decimals=1):
+        """Spread as the reader would subtract it off tab:latency.
+
+        A whole microsecond turned 1.536 into 2. Formatting the raw difference
+        to one decimal would print 1.5 against the table's 73.7 minus 72.1.
+        Subtracting the displayed medians keeps the prose checkable against
+        the table that reports them. The matching percentage uses the same
+        displayed pair, so 1.6 µs and 2.2% are one gap, not two roundings.
+        """
+        rounded = shown(xs, decimals)
+        return max(rounded) - min(rounded)
+
+    def shown_spread_pct(xs, decimals=1):
+        rounded = shown(xs, decimals)
+        return 100.0 * (max(rounded) / min(rounded) - 1)
+
+    def shown_width(lo, hi, decimals=1):
+        return abs(float(f"{hi:.{decimals}f}") - float(f"{lo:.{decimals}f}"))
+
     # Widest 95% CI on any single variant's p99 at the representative load,
     # measured as the full width of the interval, against the spread between
     # variants. When the former exceeds the latter the measurement cannot order
     # the variants at all, which is a finding about the environment rather than
-    # about the languages.
+    # about the languages. Widths are taken from the printed endpoints, the
+    # same rule as shown_range: a whole microsecond turned 0.768 into 1 next
+    # to a 1.6 µs gap.
     p99_ci = []
     for k in variants:
         sub = _subset(rows, k, load)
         if sub:
             _, lo, hi = bootstrap_ci([p99_us(r) for r in sub])
-            p99_ci.append(hi - lo)
+            p99_ci.append(shown_width(lo, hi))
     # Saturation knee: highest achieved throughput anywhere in the sweep, taken as
     # the minimum across variants so the quoted knee holds for all four. That
     # minimum is a floor and not a shared value, and on a host where the two
@@ -1972,17 +1997,6 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
             "knee": min(max(med_at(k, l, thr_kops) for l in loads) for k in keys),
         }
 
-    def shown_range(xs, decimals=1):
-        """Spread as the reader would subtract it off tab:latency.
-
-        A whole microsecond turned 1.536 into 2. Formatting the raw difference
-        to one decimal would print 1.5 against the table's 73.7 minus 72.1.
-        Subtracting the displayed medians keeps the prose checkable against
-        the table that reports them.
-        """
-        rounded = [float(f"{x:.{decimals}f}") for x in xs]
-        return max(rounded) - min(rounded)
-
     macros = {
         "ReprLoad": f"{load / 1000.0:.0f}",
         "ReprLoadAch": f"{statistics.median(ach):.1f}",
@@ -1993,11 +2007,11 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
         "NLoadLevels": str(len(loads)),
         "NVariants": str(len(variants)),
         "NRuns": str(len(rows)),
-        "PNineNineSpread": f"{100.0 * (max(p99) / min(p99) - 1):.0f}",
-        "PFiftySpread": f"{100.0 * (max(p50) / min(p50) - 1):.1f}",
+        "PNineNineSpread": f"{shown_spread_pct(p99):.1f}",
+        "PFiftySpread": f"{shown_spread_pct(p50):.1f}",
         "PFiftyRange": f"{shown_range(p50):.1f}",
         "PNineNineRange": f"{shown_range(p99):.1f}",
-        "PNineNineMaxCI": f"{max(p99_ci):.0f}" if p99_ci else "0",
+        "PNineNineMaxCI": f"{max(p99_ci):.1f}" if p99_ci else "0",
         # The same comparison fig:tailpct panel (b) draws, as one number: the
         # largest ratio of within-variant uncertainty to between-variant spread
         # across the percentile range. Below one at every percentile means the
