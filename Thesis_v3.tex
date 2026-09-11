@@ -896,9 +896,9 @@ after that, one research question at a time.
 \section{Testbed setup\label{sec:testbed}}
 Some numbers in this chapter come from the compilers and the code. Other
 numbers depend on the computer they ran on. Every speed number here comes from
-one dedicated bare-metal server, a single-socket \MainCpu{}. Simultaneous
-multithreading is \MainSmt{}, so two hardware threads never share a core. The
-machine runs \MainHostDistro{} on kernel \MainKernel{}. Linux can raise and
+one dedicated bare-metal server, a single-socket \MainCpu{}. Each core runs one
+thread. Simultaneous multithreading is \MainSmt{}. The machine runs
+\MainHostDistro{} on kernel \MainKernel{}. Linux can raise and
 lower each core's clock as load and temperature change. The clock is held
 fixed: the frequency governor is \MainGovernor{}, and boost is off. The
 benchmark may use only cores \MainPinned{}. There is no hypervisor, so the
@@ -911,8 +911,8 @@ across the allowed cores. Every benchmark thread then lands on one core.
 The compilers are not the ones installed on the server. Both versions are built
 and run inside a container image that carries \MainDistro{} with
 \texttt{g++~\MainGpp} and \texttt{rustc~\MainRustc}. The image pins the
-\texttt{gcc-toolset} major version and not the release within it, so the
-earlier campaign on a virtual machine compiled with \texttt{g++~\GuestGpp},
+\texttt{gcc-toolset} major version and not the release within it. The earlier
+campaign on a virtual machine therefore compiled with \texttt{g++~\GuestGpp},
 one GCC~15 release earlier. A container still uses the kernel of the machine
 it sits on. The two campaigns then differ in the hardware, in the kernel
 (\MainKernel{} against \GuestKernel{}), and in that compiler release.
@@ -930,8 +930,8 @@ change of design rather than a change of machine.
 
 \section[Workload and measurements]{Workload and measurements\label{sec:workload}}
 The workload is made for the experiment. The steps it takes come from the 3GPP
-specifications~\cite{3gpp38401,3gpp38331}. A driver that always sends the same
-sequence walks each UE through the connection lifecycle those specifications
+rules~\cite{3gpp38401,3gpp38331}. A driver that always sends the same
+sequence walks each UE through the connection lifecycle those rules
 define. The \emph{signal} workload first connects a set of UEs, then sends the
 same signalling operation again and again. That isolates the common path. The
 \emph{mixed} workload walks each UE through context creation, setup,
@@ -950,7 +950,7 @@ path, and mixed walks each UE through the procedure sequence drawn
 below.\label{fig:workload}}
 \end{figure}
 
-The sequence of operations matches the specifications. How often each kind
+The sequence of operations matches the 3GPP rules. How often each kind
 appears does not. How often a real cell hands over depends on the site and the
 time of day, and no public figure fixes it. A mix that does not match a real
 cell moves both languages by the same amount. It limits how far the numbers
@@ -982,9 +982,9 @@ medians lie within $\PFiftyRange\,\mu$s of each other, $\PFiftySpread\%$. A
 paired test still finds a difference of $\PFiftyDiffAbsMax\,\mu$s in Rust's
 favour under both allocators. Figure~\ref{fig:loadsweep} shows the sweep behind
 that. Higher percentiles can now be read as well. The widest interval on a
-single variant's own p99 spans $\PNineNineMaxCI\,\mu$s, and the four variants'
-p99 values differ by $\PNineNineRange\,\mu$s, so the noise on one is smaller
-than the gap between them. On the virtual machine the same two quantities were
+single variant's own p99 spans $\PNineNineMaxCI\,\mu$s. The four variants' p99
+values differ by $\PNineNineRange\,\mu$s. So the noise on one is smaller than
+the gap between them. On the virtual machine the same two quantities were
 $\GuestPNineNineMaxCI\,\mu$s against $\GuestPNineNineRange\,\mu$s, the other
 way around.
 
@@ -1024,8 +1024,8 @@ blind zone by a factor of $\BudgetBoundVsCore$.\label{fig:budget}}
 
 \subsection{Past saturation (RQ1)}\label{sec:overload}
 Once the offered rate is higher than the service can handle, the four variants
-stop keeping up at different loads: the Rust versions hold to
-$\TrackingLoadRust$~kops/s and the C++ versions to $\TrackingLoadCpp$. So at
+stop keeping up at different loads. The Rust versions hold to
+$\TrackingLoadRust$~kops/s. The C++ versions hold to $\TrackingLoadCpp$. So at
 $\KneeGapLoad$~kops/s \KneeGapFaster{} still serves $\KneeGapThrFast$~kops/s
 where \KneeGapSlower{} has fallen to $\KneeGapThrSlow$. That load level is
 described and not tested, because it was found after the data was in hand.
@@ -1090,9 +1090,9 @@ the region Rust claims to govern. Seven were chosen because safe Rust is
 expected \emph{not} to prevent them. Each one of the first seven is a compile
 error in Rust. It cannot be written at all. In C++ each is valid code. The
 defect appears only if a test drives it, and no single sanitiser covers them.
-The use-after-move is the case where no sanitiser reports anything: a
-moved-from object is still a valid object whose value is unspecified, so there
-is nothing illegal to detect and the identity is simply lost. All seven
+The use-after-move is the case where no sanitiser reports anything. A
+moved-from object is still a valid object. Its value is unspecified. So there
+is nothing illegal to detect, and the identity is simply lost. All seven
 boundary cases compile in safe Rust and misbehave. On two of them the C++
 tooling is the one that reports. LeakSanitizer flags the reference cycle that
 Rust leaks in silence, because leaking is safe in Rust by explicit
