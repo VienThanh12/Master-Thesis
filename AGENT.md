@@ -95,11 +95,17 @@ sites plus `tab:testbed` claiming toolchain parity with the guest (`\GuestGpp` 1
 `\MainGpp` 15.2.1), §6.4.7 hand-typing 15.1.1 as the measurement host's compiler, and
 `tab:findings`' RQ3 cell saying “on bare metal”. The twentieth pass, 3 September, held 5.00.
 
+**Twenty-fourth pass, 11 September 2026, graded `Thesis_v3.tex` only, mean 5.00, all six
+assessable areas at 5.** The twenty-third pass's 4.5s are closed in that PDF: the abstract
+carries the FFI denominator and writes “interleaved”, point (5) refuses to bound a language
+effect from the end-to-end median, `\CpuDiffAbsMax` is scoped to `\ReprLoad`, the examiners
+line has no `TBD`, and `tab:latency` is in the results chapter. Do not copy this 5.00 onto
+the draft. Do not re-open those skeleton items. The full draft was not re-read.
+
 **Twenty-third pass, 10 September 2026, graded `Thesis_v3.tex` only, mean 4.83, same split.**
-The skeleton discloses the compiler and kernel difference and no longer carries the §1.4
-“is not:” ellipsis. What holds its 4.5s is the abstract (bare `\FfiOpBoundPct`, “mixed-order”
-for interleaved, full path ranked after the clock is disqualified), `\CpuDiffAbsMax` attached
-to “while the service copes”, and `TBD` on the title page. The full draft was not re-read.
+Historical. The skeleton already disclosed the compiler and kernel difference and no longer
+carried the §1.4 “is not:” ellipsis. What held its 4.5s that day is listed in the
+twenty-fourth pass as closed.
 
 **A remediation of those draft sites was written on 7 September 2026**, in the session that set
 the acronym list to sentence case, and it is **not** a re-grade of the draft. The twenty-second
@@ -111,8 +117,9 @@ toolchain item. The independent-reader extras from that note still matter for th
 kernel difference (`\MainKernel` 6.17.0-23-generic against `\GuestKernel`
 7.0.2-1.el8.elrepo.x86_64), and `tab:findings`' RQ3 cell reading `\CpuDiffAbsMax` as a bound over
 the whole below-saturation regime where `write_generated_macros()` scopes it to the representative
-load. **A generated macro that is the wrong quantity for the sentence holding it** is the same
-class the skeleton's resource paragraph still has.
+load. **A generated macro that is the wrong quantity for the sentence holding it** is the class
+the skeleton's resource paragraph *had* on 10 September and no longer has: it now names
+`\ReprLoad`. The draft's `tab:findings` RQ3 cell was not re-read today.
 
 One latent bug surfaced with it. `\GuestKernel` carried a raw `x86_64`, whose underscore is math
 mode, so the macro could not be typeset and no document had ever quoted it. The three kernel grabs

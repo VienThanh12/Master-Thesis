@@ -442,7 +442,7 @@ workload.
 
 Three terms recur throughout. The \emph{gNB-CU-CP} is the control-plane software this work is
 about. \emph{UE Context Management (UECM)} is the specific subsystem reimplemented and measured.
-\emph{Tail latency}, the p99 and p99.9 percentiles rather than the mean, is the property that,
+\emph{Tail latency}, the p99, p99.9 and p99.99 percentiles rather than the mean, is the property that,
 more than average speed, decides whether such a system meets its
 deadlines~\cite{dean2013tail,barroso2017microseconds}. Every acronym is written out where the
 text first uses it, and the \nomname{} in the front matter collects them. The terms that are not
@@ -605,8 +605,8 @@ representative subsystem. Answering them under controlled, reproducible conditio
 problem this thesis sets out to solve.
 
 \section{Research questions and hypotheses}\label{sec:rqs}
-The thesis is organised around four research questions, ordered to put predictability and
-migration ahead of raw average performance:
+The thesis is organised around four research questions. They put latency predictability
+first, then defect scope, then resource cost, then incremental adoption:
 
 \begin{description}
   \item[RQ1] How do Rust and modern C++ compare in latency predictability (median, p99,

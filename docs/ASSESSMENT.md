@@ -13,19 +13,18 @@ The thesis source was renamed from `Ha_Vien_Mastersthesis_2026.tex` to `Ha_Vien_
 
 Interactive canvases live beside this file. The standing full-draft grade is
 `thesis-grade-csm-sep07-rev2.canvas.tsx`. The latest pass, of the supervisor skeleton, is
-`thesis-grade-csm-sep10.canvas.tsx`. This file is the durable copy.
+`thesis-grade-csm-sep11.canvas.tsx`. This file is the durable copy.
 
 > **Current for the submission draft: twenty-second pass, 7 September 2026 afternoon, mean 4.83.**
 > Areas 1, 2, 3 and 5 at 5, areas 4 and 6 at **4.5**. Caps: toolchain parity at three prose sites
 > plus `tab:testbed`, §6.4.7's hand-typed `g++ 15.1.1`, and `tab:findings`' "on bare metal". Canvas:
 > `thesis-grade-csm-sep07-rev2.canvas.tsx`.
 >
-> **Latest pass: twenty-third, 10 September 2026, of `Thesis_v3.tex` only, mean 4.83.** Same numbers,
-> different caps. The skeleton no longer carries the toolchain or “is not:” defects. What holds 4.5
-> on that PDF is the abstract (bare `\FfiOpBoundPct`, “mixed-order”, full path ranked after the clock
-> is disqualified), `\CpuDiffAbsMax` attached to the coping regime, and `TBD` on the title page.
-> Canvas: `thesis-grade-csm-sep10.canvas.tsx`. The full draft was not re-read and its standing grade
-> is unchanged.
+> **Latest pass: twenty-fourth, 11 September 2026, of `Thesis_v3.tex` only, mean 5.00.** All six
+> assessable areas at 5. Yesterday's 4.5s (abstract register, `\CpuDiffAbsMax` scope, title-page
+> `TBD`, no numeric table) were edited closed in the 15:37 source. Canvas:
+> `thesis-grade-csm-sep11.canvas.tsx`. The full draft was not re-read and its standing grade is
+> unchanged.
 >
 > **The summary table immediately below is the first pass** and is kept as history, not as the
 > standing view. Twenty-one passes are on record and they do not all agree. Read the passes in
@@ -4515,3 +4514,117 @@ Nothing was edited in the thesis source during this pass. Do not report the draf
 sites as defects in the skeleton, and do not report the skeleton's abstract defects as already
 folded into the draft's grade. They were lifts on 7 September because that pass was grading the
 other file.
+
+## Twenty-fourth pass — 11 September 2026
+
+Graded independently against the CSM matrix of 9 April 2024, on **`Thesis_v3.tex` / `Thesis_v3.pdf`**,
+the supervisor-facing eight-chapter argument. Chapter 1 is the draft introduction. Chapters 2 to 8
+are five argument paragraphs each, with twelve figures and `tab:latency`. **Standard applied:** an
+examiner who received this 50-page PDF, not the 115-page full draft. The five-paragraph contract is
+named, not used as a free pass on level 5. The full draft was not re-read. Its standing grade
+remains the twenty-second pass.
+
+**Build verified.** `Thesis_v3.tex` 15:37:23, PDF 15:37:46 on 11 September, so the PDF is current.
+`texaudit.py Thesis_v3.tex --macros figures/gen_macros.tex` exits 0: no LaTeX errors, no undefined
+references or citations, no multiply defined labels, no float too large, **zero Overfull of any
+kind** (including `while \output is active`), 0 underfull, 50 pages. Every float label referenced
+from the body. 111 bib entries, 61 cited in this document (50 uncited, expected on a shared `.bib`),
+74 peer-reviewed venues (67%). **No placeholders.** One prose-number hit with a unit: l. 422,
+Meneely's 58.2%, a literature value.
+
+The source was still being edited when the pass started. The grade is of the 15:37 build after it
+had been stable for more than 90 seconds.
+
+Canvas: [`thesis-grade-csm-sep11.canvas.tsx`](/home/vienha/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-sep11.canvas.tsx).
+
+| Area | 23rd pass (skeleton, 10 Sep) | This pass (skeleton) | Clause that sets it |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Hold. Gap in named flaws of five vendor theses, four RQs, H1 refuted and declared ill-posed, RQ2 two-sided |
+| 2. Scholarly framework and sources | 5 | **5** | Hold. Contrary results engaged. Background is three sections by contract |
+| 3. Research data and method | 5 | **5** | Hold. The refusals (no `isolcpus`, 448 described not tested, pooled p99.99 out of the family) are in the five-paragraph method chapter |
+| 4. Presentation of results | 4.5 | **5** | Yesterday's three aptness hits are closed. `tab:latency` is present. `\CpuDiffAbsMax` is scoped to `\ReprLoad`. Abstract (5) refuses to bound a language effect from the end-to-end median |
+| 5. Discussion and conclusions | 5 | **5** | Hold. Compressed chapter still revisits H1–H3, names the single-author threat, and refuses the “safe = concurrency-safe” reading |
+| 6. Academic text | 4.5 | **5** | Yesterday's consistency and finishing hits are closed: interleaved, FFI denominator, no `TBD`, date frozen to 11 September 2026. Toolchain prose and the §1.4 ellipsis stay closed |
+| 7. Work during the thesis process | n/a | **n/a** | Not assessable from a manuscript |
+| **Mean of the six assessable** | 4.83 | **5.00** | Areas 4 and 6 lift. The bar did not move |
+
+### Closed since the twenty-third pass, do not re-report as skeleton caps
+
+1. **Abstract (3) bare `\FfiOpBoundPct`.** Abstract, H3, `fig:ffiseam`, and the conclusion all read
+   “of that call”. The macro is `100 * op_seam_delta_hi_ns / native` (an upper bound). “At most”
+   is the right verb.
+2. **Abstract (5) after (4).** (5) now says the paired median gap of `\PFiftyDiffAbsMax` µs is too
+   small to bound a language effect, then reports tracking loads and overload. The clock (4)
+   disqualified is not the clock (5) uses to rank.
+3. **“mixed-order repeats”.** Abstract and method chapter both write “interleaved”.
+4. **`\CpuDiffAbsMax` (5.1 pp) attached to “while the service copes”.** The resource paragraph now
+   names the representative load of `\ReprLoad` kops/s. That is `write_generated_macros()`'s scope
+   (`cpu_rows` at `point == "repr"`). It matches `tab_significance` (−5.1 / −4.6).
+5. **`\examiners{… TBD}`.** The line is Heljanko only. `\date` is frozen to 11 September 2026.
+   `texaudit.py` reports no placeholders.
+6. **No numeric result table.** `tab:latency` sits in the below-saturation subsection. Its p50
+   cells give C++ 73.7 / 73.5 against Rust 72.4 / 72.1, which is `\PFiftyDiffAbsMax` 1.3 µs. Pooled
+   p99.99 176.4 against 89.5 is `\FarTailRange` 87. Slowest Rust 92.1 against fastest C++ 142.0 is
+   `\FarTailLangSep` 50.
+
+Still closed, as of the twenty-third pass: toolchain disclosure, the §1.4 ellipsis, and the
+absence of the draft's `tab:testbed` / §6.4.7 / `tab:findings` sites from this document.
+
+### Mechanical evidence
+
+`.readability.py`: 690 sentences, 8939 words, mean 13.0 ± 6.5, Flesch 62.4, grade 7.8. Short
+sentences 67.7% (target 25–35%), which is the five-paragraph compression after a shortening pass
+(23rd pass: 15.1 ± 8.3, 56.7% short, Flesch 55.0). No paragraph of three or more sentences lacks a
+sentence under 15 words. `.aitells.py`: 0 semicolons, both colon checks at 0, 10 dash hits all
+numeric ranges or compound proper names (Herfindahl–Hirschman, Fowler–Noll–Vo). Two counting stubs:
+l. 268 “Three terms recur throughout” (a tell, not a cap) and l. 797 “Both versions follow it”
+(states the fairness control). `.acronyms.py`: not written out at first use 0, five printed waivers,
+36 declared (six added since yesterday: ASN.1, DPDK, GCC, KPI, kops/s, KVM).
+
+Headline macros checked against `figures/gen_macros.tex`, `tab_latency.tex`, and siblings, not
+remembered: tracking loads 448 against 392, `\SatKnee` 392 qualified as the lowest of the four,
+overload `\OverloadThrRatio` 1.7 with C++ faster in 20/20 (`\OverloadThrCpp` 147 / `\OverloadThrRust`
+84), `\PFiftyDiffAbsMax` 1.3 µs, RSS 1.4–2.5 against 1.5–2.4 MiB, `\BudgetCoreShareMax` 0.250%,
+`\FfiOpBoundPct` 10.91, `\DeadlockTsanHits` 5 of `\DeadlockTsanRuns` 12, `\NTailSignificant` 4
+(both p99 rows and both p99.9 rows). No measured value is wrong. No remaining comparative claim
+attaches a correct macro to the wrong scope.
+
+### Per-area notes
+
+**1, carries 5.** Untouched. The gap is located rather than asserted. RQ2 still includes classes
+safe Rust is expected not to prevent.
+
+**2, carries 5.** Command of the topic is in the gap section and the introduction. 61 cited keys.
+A drop for the three-section background was considered and rejected, as on 10 September.
+
+**3, carries 5.** The method chapter still states the frozen spec, the Holm family, the floors, the
+448 exclusion, the pooled far tail kept out, and why `isolcpus` is refused. The confirmation sweep
+is now described as those changes together, not as a change of design rather than of machine.
+
+**4, lifts 4.5 → 5.** Level 4 already held yesterday. Level 5's “well considered and apt” failed on
+the abstract's two register hits, the CPU macro's scope, and the absence of a numeric result table.
+All three are closed. Holding 4.5 on the new caption's “sits above” was considered and rejected:
+`\mci` literally prints the median above the interval, which is the draft's layout sentence
+compressed, not a caption refuted by its own cells. The 21st pass's 4.5 needed a wrong
+configuration value. This is not that class.
+
+**5, carries 5.** H1 is allowed to fail and then declared ill-posed. Karlback is reconciled as two
+runtimes. Ethics refuses the marketing reading of RQ2.
+
+**6, lifts 4.5 → 5.** Writing and the build already read at 5 yesterday. Level 4 consistency
+(mixed-order vs interleaved, bare FFI percentage) and level 5 finishing (`TBD`) are closed. Sentence
+stdev 6.5 sits below the house screen's ~8 band, and the design chapter is 89.1% short sentences.
+That is the five-paragraph contract after a shortening pass. The twenty-third pass refused to cap
+on 56.7% short, and this pass does not newly cap on the same contract because the number moved.
+The matrix does not name that screen.
+
+### Outstanding
+
+1. **Optional, this PDF.** `tab:latency` caption: copy the draft's “is printed above its
+   nonparametric bootstrap 95% confidence interval”. Minutes. Does not move an area.
+2. **The full draft's four standing items**, last confirmed 7 September afternoon. They are not
+   this PDF's caps and were not re-read today.
+
+Nothing in `Thesis_v3.tex` was edited by this pass. The closures it confirms were already in the
+15:37 source. Do not copy this 5.00 onto `Ha_Vien_Mastersthesis_2026.tex`. Do not re-open the
+skeleton's abstract, `\CpuDiffAbsMax` scope, mixed-order, or `TBD` items.

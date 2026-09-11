@@ -841,7 +841,7 @@ def workload_timeline():
         ("create", 88, "Idle"),
         ("setup", 88, "Connected"),
         ("signal", 88, "Connected"),
-        ("add_drb", 92, "Connected"),
+        ("add DRB", 92, "Connected"),
         ("begin", 80, "Reconf."),
         ("complete / abort", 124, "Connected"),
         ("release", 88, "Released"),
@@ -946,7 +946,7 @@ def research_gap():
         (308, 131, ["Matched pairs in", "systems software"],
          "Emmerich \u00b7 Suchert"),
         (448, 131, ["Vendor RAN and", "5G frameworks"],
-         "Five Ericsson theses"),
+         "Other Ericsson theses"),
         (588, 131, ["Matched telecom", "pair"], "Emberg & Wadsten"),
         (728, 131, ["This thesis", ""], ""),
     ]

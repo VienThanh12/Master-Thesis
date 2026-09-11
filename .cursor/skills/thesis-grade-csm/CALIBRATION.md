@@ -198,8 +198,15 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
-**Updated at the twenty-first pass, 7 September 2026. Mean 4.83: areas 1, 2, 3 and 5 at 5, areas
-4 and 6 at 4.5.** One live blocker, and it is editing:
+**`Thesis_v3.tex` only, twenty-fourth pass, 11 September 2026. Mean 5.00.** The five clauses that
+held the skeleton at 4.83 on 10 September (bare `\FfiOpBoundPct`, abstract (5) ranking the full
+path, “mixed-order”, `\CpuDiffAbsMax` on the coping regime, title-page `TBD`) were edited closed.
+`tab:latency` is in that PDF. Do not re-report them as skeleton caps. Blockers 3 and 4 below remain
+the **full draft's**.
+
+**Updated at the twenty-first pass, 7 September 2026, for `Ha_Vien_Mastersthesis_2026.tex`. Mean
+4.83: areas 1, 2, 3 and 5 at 5, areas 4 and 6 at 4.5.** One live blocker on the draft, and it is
+editing:
 
 **Blocker 3, OPEN. Toolchain parity with the guest is claimed and false.** `\GuestGpp` is 15.1.1
 and `\MainGpp` is 15.2.1, each generated from its own campaign's environment capture. `rustc`
