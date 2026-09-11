@@ -1065,11 +1065,11 @@ measured. The allocator's was about ten times larger on the virtual machine
 this study used first ($\GuestRssAllocLo$--$\GuestRssAllocHi$~MiB, about
 $\GuestRssAllocOverLang$ times the language effect), so their ratio depends on
 the machine. The language difference is a fixed cost, not a cost per UE. The
-quiet host is where that can be seen. \texttt{jemalloc}'s own counters there
-put $\BmJeMetadataDelta$~MiB more in arena bookkeeping and
-$\BmJeAllocatedDelta$~MiB \emph{less} in live allocation, and its resident
-bytes are $\BmJeResidentDelta$~MiB lower while the process peak is
-$\BmJeRssDelta$~MiB higher. The extra memory then sits outside the allocator,
+quiet host is where that can be seen. \texttt{jemalloc}'s own counters there put
+$\BmJeMetadataDelta$~MiB more in arena bookkeeping and
+$\BmJeAllocatedDelta$~MiB \emph{less} in live allocation. Its resident bytes
+are $\BmJeResidentDelta$~MiB lower. The process peak is $\BmJeRssDelta$~MiB
+higher. The extra memory then sits outside the allocator,
 in the runtime a Rust process carries before it allocates. CPU changes sign
 with the load. At the representative load of $\ReprLoad$~kops/s Rust uses at
 most $\CpuDiffAbsMax$ percentage points less. Once the service no longer keeps
