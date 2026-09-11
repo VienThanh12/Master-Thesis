@@ -1972,6 +1972,17 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
             "knee": min(max(med_at(k, l, thr_kops) for l in loads) for k in keys),
         }
 
+    def shown_range(xs, decimals=1):
+        """Spread as the reader would subtract it off tab:latency.
+
+        A whole microsecond turned 1.536 into 2. Formatting the raw difference
+        to one decimal would print 1.5 against the table's 73.7 minus 72.1.
+        Subtracting the displayed medians keeps the prose checkable against
+        the table that reports them.
+        """
+        rounded = [float(f"{x:.{decimals}f}") for x in xs]
+        return max(rounded) - min(rounded)
+
     macros = {
         "ReprLoad": f"{load / 1000.0:.0f}",
         "ReprLoadAch": f"{statistics.median(ach):.1f}",
@@ -1984,8 +1995,8 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
         "NRuns": str(len(rows)),
         "PNineNineSpread": f"{100.0 * (max(p99) / min(p99) - 1):.0f}",
         "PFiftySpread": f"{100.0 * (max(p50) / min(p50) - 1):.1f}",
-        "PFiftyRange": f"{max(p50) - min(p50):.0f}",
-        "PNineNineRange": f"{max(p99) - min(p99):.0f}",
+        "PFiftyRange": f"{shown_range(p50):.1f}",
+        "PNineNineRange": f"{shown_range(p99):.1f}",
         "PNineNineMaxCI": f"{max(p99_ci):.0f}" if p99_ci else "0",
         # The same comparison fig:tailpct panel (b) draws, as one number: the
         # largest ratio of within-variant uncertainty to between-variant spread
