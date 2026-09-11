@@ -897,23 +897,29 @@ question.
 \section{Testbed setup\label{sec:testbed}}
 Some results follow from the compilers and the source. Others depend on the
 machine. Each performance number here comes from one dedicated bare-metal
-server: a single-socket \MainCpu{}, simultaneous multithreading \MainSmt{},
-running \MainHostDistro{} on kernel \MainKernel{}. The frequency governor is
-fixed at \MainGovernor{} with boost disabled. Cores \MainPinned{} carry the
-benchmark. There is no hypervisor. The kernel runs tickless on the pinned cores
-(\texttt{nohz\_full}). The study does not use \texttt{isolcpus}. That flag also
-drops the cores from each scheduling domain, and the pinned set then collapses
-onto one core.
+server: a single-socket \MainCpu{}. Simultaneous multithreading is \MainSmt{},
+so two hardware threads never share a core. The machine runs \MainHostDistro{}
+on kernel \MainKernel{}. Linux can raise and lower each core's clock as load
+and temperature change. The clock is held fixed: the frequency governor is
+\MainGovernor{}, and boost is off. The benchmark is pinned to cores
+\MainPinned{}. There is no hypervisor, so the program runs on the machine
+itself and not inside a virtual machine. On those cores the kernel turns off
+its periodic timer interrupt (\texttt{nohz\_full}). Those interrupts would
+otherwise appear in the latency numbers. The study does not use
+\texttt{isolcpus}. That flag also drops the cores from each scheduling domain,
+the group of cores the kernel may move threads among. The pinned set then
+collapses onto one core.
 
-The toolchain is not the host's. Both versions are built and run inside a
-pinned container image carrying \MainDistro{} with \texttt{g++~\MainGpp} and \texttt{rustc~\MainRustc}.
-The image pins the \texttt{gcc-toolset} major version and not the release within
-it, so the earlier guest campaign compiled with \texttt{g++~\GuestGpp},
-one GCC~15 release earlier. The container also takes the kernel from its host. The two campaigns then
-differ in the hardware, in the kernel (\MainKernel{} against \GuestKernel{}),
-and in that compiler release.
+The toolchain is not the one installed on the server. Both versions are built
+and run inside a container image that carries \MainDistro{} with
+\texttt{g++~\MainGpp} and \texttt{rustc~\MainRustc}. The image pins the
+\texttt{gcc-toolset} major version and not the release within it, so the
+earlier campaign on a virtual machine compiled with \texttt{g++~\GuestGpp},
+one GCC~15 release earlier. A container still uses the kernel of the machine
+it sits on. The two campaigns then differ in the hardware, in the kernel
+(\MainKernel{} against \GuestKernel{}), and in that compiler release.
 
-Until late in the work the campaign ran on a guest instead: a
+Until late in the work the campaign ran on a virtual machine instead: a
 \GuestCpu{} guest (\GuestVirt{}) with no core isolation. On that host the
 $95\%$ confidence interval on a single variant's p99 spans
 $\GuestPNineNineMaxCI\,\mu$s, while the four variants' p99 values differ by
@@ -921,7 +927,7 @@ $\GuestPNineNineRange\,\mu$s. The spread on one swamped the gap between
 all of them. That campaign is not discarded. It shares this one's design
 exactly, so the two can be set side by side to ask which findings belong to the
 code. A third sweep on a second bare-metal \BmCpu{} uses a different shard
-count, load grid, repeat count and toolchain, so it tests whether the findings
+count, load grid, repeat count and toolchain. It tests whether the findings
 survive a change of design rather than a change of machine.
 
 \section[Workload and measurements]{Workload and measurements\label{sec:workload}}
