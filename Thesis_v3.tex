@@ -1117,7 +1117,7 @@ threads.\label{fig:resources}}
 Safety is measured by injecting $\FaultClasses$ defects. Seven come from inside
 the region Rust claims to govern. Seven were chosen because safe Rust is
 expected \emph{not} to prevent them. Each one of the first seven is a compile
-error in Rust. It cannot be written at all. In C++ each is valid code. The
+error in Rust. In C++ each is valid code. The
 defect appears only if a test drives it, and no single sanitiser covers them.
 The use-after-move is the case where no sanitiser reports anything. A
 moved-from object is still a valid object. Its value is unspecified. So there
