@@ -1,0 +1,64 @@
+\chapter{Kết luận và hướng phát triển\label{chapter:conclusions}}
+
+Luận văn so sánh C++ hiện đại và Rust. Đối tượng là một dịch vụ Quản lý Ngữ cảnh UE mô hình hoá
+theo một thành phần gNB-CU-CP thực của Nokia. Nó nhìn bốn chiều: khả năng dự đoán độ trễ đuôi,
+ngăn lỗi lúc biên dịch, chi phí mô hình an toàn, và chi phí thêm Rust từng phần. Cả hai bản được
+xây trên một đặc tả cố định và được đưa đi theo cùng các đường mã. Đó là điều cho phép tách một
+hiệu ứng ngôn ngữ khỏi một khác biệt thiết kế hay kỹ năng.
+
+Về an toàn, khác biệt là khác biệt về loại và nó có một biên rõ. Rust an toàn từ chối cả bảy
+lớp an toàn bộ nhớ và tranh chấp dữ liệu được tiêm vào tại thời điểm biên dịch. Các mối nguy mà
+C++ chỉ có thể hy vọng bắt dưới một kiểm thử bộ dò lỗi trở thành những chương trình không thể
+viết. Cả bảy lớp biên đều biên dịch và hành xử sai trong Rust an toàn như trong C++. Trên hai
+lớp trong số đó công cụ C++ báo những gì công cụ Rust không báo. Nêu chính xác, Rust loại tranh
+chấp dữ liệu và lỗi aliasing. Nó không loại điều kiện đua, lỗi thứ tự khoá, rò rỉ, số học quấn
+hay phạm vi thiệt hại của một luồng xử lý thất bại, và nó không loại gì bên trong một khối
+\texttt{unsafe}. Nơi các lỗi biên bị bắt, chúng bị bắt lúc kiểm thử. LeakSanitizer và
+UndefinedBehaviorSanitizer báo mà không cần viết lại. Hai bộ kiểm tra mô hình chỉ báo các trường
+hợp tương tranh sau khi lỗi được viết lại vào nguyên thủy của chúng.
+
+Về di trú, chi phí bị chiếm bởi thiết kế API và đường cong học tập, không bởi bất kỳ thuế lúc
+chạy nào. Một lõi Rust không đổi có thể được điều khiển từ C++ qua một đường nối mỏng. Chi phí
+trên một cuộc gọi báo hiệu thực được giới hạn ở $\FfiOpBoundPct\%$ của cuộc gọi đó. Toàn bộ
+\texttt{unsafe} nằm ở đường nối, và lõi được xác nhận không có nó. Phần lớn chi phí thêm của lần
+build Rust là biên dịch phụ thuộc, không phải công việc của chính trình biên dịch. Khoảng cách
+kích thước nhị phân là một chính sách liên kết. Thứ tự phụ thuộc chính sách khớp nào được chọn.
+Nơi C++ dẫn là vòng sửa-biên dịch, và nó chỉ dẫn với các sửa nằm trong một đơn vị dịch.
+
+Về hiệu năng, bằng chứng chia trước theo cái đang được đo. Một vòng khứ hồi đầu-cuối ở đây là
+$\BudgetCoreShareMax\%$ công việc ngôn ngữ. Phần còn lại là bàn giao của hệ điều hành. Đồng hồ
+đó vì vậy không giới hạn gì về trình biên dịch nào. Cùng lõi đo riêng nhanh hơn
+$\BudgetCoreRatio\times$ ở \BudgetCoreFaster{}. Tại tải đại diện $\ReprLoad$~kops/s, kiểm
+định ghép cặp phân giải $\PFiftyDiffAbsMax\,\mu$s nghiêng về Rust, quá nhỏ để một triển khai bận
+tâm ở trung vị. Tại p99.99 biến thể Rust chậm nhất nằm $\FarTailLangSep\,\mu$s dưới biến thể C++
+nhanh nhất. Các nhánh Rust rồi giữ tốc độ đưa vào đến $\TrackingLoadRust$~kops/s đối với
+$\TrackingLoadCpp$. Khi cả bốn đã sụp, \OverloadSustainedFaster{} duy trì
+$\OverloadThrRatio\times$ thông lượng của \OverloadSustainedSlower{}, cái tốn
+$\OverloadCpuPerOpRatio\times$ CPU trên mỗi thao tác nó hoàn thành. Về bộ nhớ, bản build Rust
+mang thêm vài MiB dấu chân cố định dưới cả hai bộ cấp phát, cùng chiều và cùng cỡ trên cả ba máy
+được đo. Lựa chọn bộ cấp phát tốn khoảng chừng đó trên cả hai máy vật lý, và nhiều hơn một bậc
+trên máy ảo nghiên cứu này dùng trước.
+
+Gộp lại, chúng ủng hộ một tuyên bố hẹp. Nó dành cho các dịch vụ mặt điều khiển có trạng thái,
+tương tranh, phân vùng được thuộc loại này. Ở các tải mà dịch vụ vẫn đáp tốc độ đưa vào, lựa
+chọn là những lớp lỗi nào một nhóm muốn làm không thể viết. Nửa kia là liệu nhóm sẽ trả chi phí
+thiết kế và đào tạo để có chúng. Qua điểm đó nó cũng là một quyết định tốc độ. Điều luận văn
+thêm là một dụng cụ đo, không phải một phán quyết. Dụng cụ đó là đặc tả cố định và cặp được kiểm
+thử tương đương. Nó cũng là một khung đo thời gian đi qua điểm gối bão hoà. Một phép tách vòng khứ hồi nói
+ngôn ngữ có thể chịu bao nhiêu phần của những gì khung đo. Một danh mục lỗi vẽ nơi bảo đảm dừng.
+
+Công việc tương lai trả lời các khoảng trống từng cái một. Việc đầu không cần máy mới: đổi
+chính sách transparent hugepage trên một máy chủ với mọi thứ khác giữ cố định. Cả ba máy đồng ý
+rằng bản build Rust mang dấu chân lớn hơn. Chúng không đồng ý về việc đó so với chi phí bộ cấp
+phát thế nào. Máy ảo đặt nó cao hơn một bậc, và không máy vật lý nào làm vậy. Chính sách
+hugepage là ứng viên nghiên cứu này có thể nêu tên nhưng không thử được, vì nó khác giữa các máy
+và chỉ nhánh bộ cấp phát hệ thống thừa hưởng nó. Ngoài ra, phát lại các vết sản xuất đã ẩn danh
+sẽ kiểm hỗn hợp thao tác. Khung cũng có thể nhận thêm phân hệ mặt điều khiển hoặc đường tầng 2
+và tầng vật lý (PHY) nặng dữ liệu. Một phân hệ có trạng thái khả biến dùng chung thực sự sẽ tập
+hai ngôn ngữ khác với một thiết kế không chia sẻ. Thử các thời gian chạy async Rust đối với mô
+hình một luồng mỗi phân mảnh sẽ tách thời gian chạy khỏi ngôn ngữ trong kết quả
+đuôi~\cite{arvidsson2025async}. Đo chi phí cô lập trong tiến trình của hai heap sẽ định giá việc
+bảo vệ một lõi không \texttt{unsafe} đáng
+bao nhiêu~\cite{rivera2021galeed,kirth2022pkrusafe}. Một nghiên cứu tình huống dài hơn theo dõi
+số lỗi và công sức rà soát trong khi thêm Rust từng phần là điều sẽ chốt chi phí con người mà
+nghiên cứu này chỉ có thể nêu tên.

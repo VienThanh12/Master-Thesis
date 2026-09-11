@@ -1,0 +1,190 @@
+\chapter{Giới thiệu}
+
+Mạng di động đang chuyển từ phần cứng chuyên dụng sang phần mềm trên máy chủ thông thường.
+Các chức năng từng chạy trên thiết bị tích hợp theo chiều dọc, chuyên biệt cố định, nay được
+tái hiện thực thành chương trình trên máy tính đa mục đích. Mạng truy nhập vô tuyến (RAN),
+lâu nay là phần phụ thuộc phần cứng nhất trong ngăn xếp, cũng nằm trong xu hướng đó.
+
+Trong 5G, trạm gốc, tên chuẩn là next-generation NodeB (gNB), được tách thành một đơn vị
+trung tâm và một hoặc nhiều đơn vị phân tán. Đơn vị trung tâm lại được tách thành các chức
+năng mặt điều khiển và mặt người dùng~\cite{3gpp38401,3gpp38300}. Open-RAN đẩy cùng ý tưởng
+xa hơn: RAN trở thành phần mềm ảo hoá, đa nhà cung cấp, nối với nhau qua giao diện
+mở~\cite{polese2023oran}. Mặt điều khiển thu được, mặt điều khiển đơn vị trung tâm gNB
+(gNB-CU-CP), là một chương trình lớn, có trạng thái, tương tranh cao. Nó theo dõi mọi thiết bị
+đang kết nối, mỗi thiết bị mà các chuẩn gọi là thiết bị người dùng (UE), chạy báo hiệu Điều
+khiển tài nguyên vô tuyến (Radio Resource Control, RRC)~\cite{3gpp38331}, và điều phối di
+động cùng chuyển giao, tất cả trong giới hạn độ trễ nghiêm ngặt.
+
+
+Tải tại một site bận rộn rất cao. Một site có thể chạy hàng nghìn thủ tục quản lý kết nối và
+di động mỗi giây, mỗi thủ tục phải hoàn thành trong ngân sách cỡ mili giây mà hệ thống 5G đặt
+cho báo hiệu mặt điều khiển~\cite{3gpp38913}. Một mặt điều khiển triển khai có thể theo dõi
+hàng triệu thiết bị hoạt động cùng lúc. Khi RAN chuyển sang triển khai đám mây, tách rời, tính
+đúng đắn, độ tin cậy và thời gian của phần mềm này ngày càng quyết định chất lượng của toàn
+mạng. Một sự cố hoặc một đỉnh độ trễ đuôi ở đây không phải lỗi cục bộ. Mọi thiết bị site phục
+vụ đều bị ảnh hưởng~\cite{dean2013tail,barroso2017microseconds}.
+
+
+Phần mềm mặt điều khiển này, hiện nay, chủ yếu được viết bằng C++. Lựa chọn đó là hợp lý:
+C++ mang lại kiểm soát mức thấp, công cụ trưởng thành và hiệu năng mà hệ thống nhạy độ trễ
+đòi hỏi. Nhưng hiệu năng đó đi kèm chi phí đã được biết. C++ đặt gánh nặng quản lý bộ nhớ và
+tương tranh lên lập trình viên, và hàng thập kỷ kinh nghiệm cho thấy gánh nặng này thường
+xuyên bị xử lý sai, sinh ra lỗi use-after-free, double-free, tranh chấp dữ liệu và các lỗi
+liên quan, tốn kém để tìm, nguy hiểm khi vận hành, và chiếm phần lớn lỗ hổng bảo mật trong
+thực tiễn công nghiệp~\cite{msrc2019memory,google2022android}. Rust đã nổi lên như ngôn ngữ
+hệ thống đại chúng đầu tiên hứa hẹn thoát khỏi đánh đổi này: an toàn bộ nhớ và không tranh
+chấp dữ liệu được thực thi lúc biên dịch trên nền tảng đã được máy
+kiểm~\cite{klabnik2023rust,jung2018rustbelt}, với hiệu năng dự kiến cạnh tranh với
+C++~\cite{balasubramanian2017rust}. Liệu lời hứa đó có đúng với mặt điều khiển cấp viễn thông,
+nhạy độ trễ, nơi khả năng dự đoán khi quá tải quan trọng ngang tốc độ thuần, vẫn chưa được
+hiểu rõ. Luận văn này, thực hiện tại Nokia, trả lời câu hỏi trực tiếp: phát triển hai bản hiện
+thực tương đương về chức năng của một phân hệ RAN đại diện, một dịch vụ Quản lý Ngữ cảnh UE
+mô hình hoá theo một thành phần gNB-CU-CP thật của Nokia, bằng C++ hiện đại và Rust, rồi so
+sánh chúng dưới khối lượng báo hiệu tổng hợp sát thực tế.
+
+
+Ba thuật ngữ lặp lại xuyên suốt. \emph{gNB-CU-CP} là phần mềm mặt điều khiển mà công trình này
+xoay quanh. \emph{Quản lý Ngữ cảnh UE (UECM)} là phân hệ cụ thể được tái hiện thực và đo
+lường. \emph{Độ trễ đuôi}, các phân vị p99, p99.9 và p99.99 chứ không phải trung bình, là thuộc
+tính quyết định, hơn cả tốc độ trung bình, liệu hệ thống như vậy có đáp ứng hạn
+chót~\cite{dean2013tail,barroso2017microseconds}.
+
+
+
+\section{Động lực}\label{sec:motivation}
+Ba xu hướng khiến phép so sánh này đúng thời điểm. Xu hướng thứ nhất là tiến hoá đám mây của
+RAN. Các chức năng mặt điều khiển nay chạy trên máy chủ đa mục đích, nên phần mềm sống lâu
+hơn, tương tranh cao hơn, và phải đáp ứng hạn chót mà không còn tính xác định của phần cứng
+chuyên dụng. Tách rời Open-RAN biến trạm gốc thành phần mềm ảo hoá, đa nhà
+cung cấp~\cite{polese2023oran}. Một hồi quy độ trễ hoặc một lỗi hỏng bộ nhớ khi đó là rủi ro
+toàn mạng, và lựa chọn ngôn ngữ là một quyết định kỹ thuật.
+
+Xu hướng thứ hai là trí tuệ nhân tạo (AI), vốn từng được mạng dùng để tự tinh chỉnh và nay
+được mạng mang như một khối lượng công việc riêng~\cite{polese2026airan}. International
+Mobile Telecommunications-2030 (IMT-2030), khung 6G của Liên minh Viễn thông quốc tế
+(International Telecommunication Union, ITU), liệt kê vai trò thứ hai đó như một kịch bản sử
+dụng~\cite{itu2023imt2030}. Kiến trúc hình thành quanh nó là AI-RAN, trong đó công việc AI và
+vô tuyến dùng chung một máy chủ gia tốc~\cite{airan2026orchestrator}. Mặt điều khiển ở đó
+không còn chiếm trọn máy chủ. Nó chia sẻ bộ xử lý trung tâm (CPU), bộ nhớ và cache với công
+việc suy luận mà nó không lập lịch. Khi hàng xóm đó chiếm dung lượng, mặt điều khiển bão hoà
+sớm hơn: nó ngừng theo kịp nhu cầu ở tải thấp hơn so với khi chạy một mình.
+Chương~\ref{chapter:eval} tìm khoảng cách rộng nhất giữa hai ngôn ngữ sau điểm đó.
+
+Xu hướng thứ ba là chuyển sang ngôn ngữ an toàn bộ nhớ. Các tổ chức phần mềm lớn báo cáo rằng
+phần lớn lỗ hổng bảo mật nghiêm trọng bắt nguồn từ lỗi an toàn bộ nhớ, và việc áp dụng ngôn
+ngữ an toàn bộ nhớ làm giảm chúng~\cite{msrc2019memory,google2022android,vanderstoep2025android,google2024securebydesign}.
+Công trình độc lập lập luận rằng an toàn bộ nhớ nay cần yêu cầu được chuẩn hoá nếu muốn được
+mua sắm~\cite{watson2025memorysafety}. Các cơ quan an ninh mạng kêu gọi rời C và C++, và Đạo
+luật Cyber Resilience của Liên minh châu Âu (EU) thêm nghĩa vụ pháp lý từ tháng 9 năm 2026 và
+tháng 12 năm 2027~\cite{cisa2023memorysafe,oncd2024building,eu2024cra}. Đạo luật không nêu tên
+ngôn ngữ lập trình nào. Bằng chứng trực tiếp cho một mặt điều khiển RAN vẫn còn thiếu. Cung
+cấp bằng chứng đó là động lực của công trình này.
+
+\section{Bối cảnh công nghiệp}\label{sec:industrial}
+Luận văn này được thực hiện tại Nokia. Công ty thuộc số ít nhà cung cấp xây, duy trì và phát
+triển phần mềm RAN sản xuất từ đầu đến cuối. Năm nhà cung cấp lớn nhất chiếm 96\% doanh thu
+RAN toàn cầu trong ba quý đầu năm 2025, với mức tập trung theo chỉ số Herfindahl--Hirschman
+cao nhất trong mười năm~\cite{delloro2025ran3q,delloro2026ran}. Phân hệ được nghiên cứu, UECM,
+được mô hình hoá theo một thành phần gNB-CU-CP thực chứ không phải ví dụ sách giáo khoa.
+
+Trong kiến trúc của 3rd Generation Partnership Project (3GPP), gNB-CU-CP là nửa mặt điều khiển
+của đơn vị trung tâm. Nó lưu RRC và quản lý vòng đời ngữ cảnh
+UE~\cite{3gpp38401,3gpp38331}, dưới ngân sách cỡ mili giây mà hệ thống 5G đặt cho báo hiệu điều
+khiển~\cite{3gpp38913}. Chương~\ref{chapter:background} đặt nó trong kiến trúc rộng hơn. Vì
+được viết bằng C++, nó thừa hưởng hiệu năng của ngôn ngữ đó cùng các mối nguy an toàn bộ nhớ
+và tương tranh. Ba xu hướng của Mục~\ref{sec:motivation} gặp nhau ở đây. Phần mềm lớp này chạy
+trên mạng nhà khai thác đang vận hành. Lựa chọn ngôn ngữ là mối quan tâm sản xuất.
+
+UECM đủ nhỏ để tái hiện thực trung thành và lý giải trọn vẹn. Nó vẫn mang những thuộc tính làm
+mã mặt điều khiển khó. Hiện thực bám theo một đặc tả công khai, đã cố định, không phải mã độc
+quyền, nên độc giả ngoài Nokia có thể tái lập phép so sánh.
+
+\paragraph{Một quyết định có tầm một thế hệ.}
+Một lựa chọn ngôn ngữ trong phần mềm lớp này sống lâu hơn thế hệ mà nó được đưa ra. 3GPP đã
+dành Release 20 cho các nghiên cứu 6G và Release 21 cho công việc chuẩn tắc. ITU yêu cầu đề
+xuất công nghệ vào đầu 2029 và nộp đặc tả vào giữa 2030~\cite{3gpp2024road6g}. Công việc đó
+bao gồm di trú từ 5G và liên vận hành với 5G. Một mặt điều khiển viết hôm nay được duy trì
+cùng thế hệ kế, chứ không bị loại. IMT-2030 vẫn nêu an ninh và khả năng phục hồi như nguyên
+tắc thiết kế và vẫn mang kịch bản độ trễ thấp siêu tin cậy ở dạng được tăng
+cường~\cite{itu2023imt2030}.
+
+Các phép đo ở đây dùng một phân hệ thế hệ hiện tại và các yêu cầu đã công bố. Không tuyên bố
+nào được đưa ra về những yêu cầu chưa được viết.
+
+\paragraph{Một dạng lỗi cụ thể.}
+Hãy xét một cơn bão di động, nhiều UE chuyển giao cùng lúc. Một ngữ cảnh UE được giải phóng
+khi nhả, trong khi một thông điệp báo hiệu đang bay vẫn còn tham chiếu tới nó, là lỗi
+use-after-free. Ở C++ điều đó biên dịch và có thể vượt các kiểm thử thông thường. Nó rồi có
+thể làm hỏng trạng thái của một UE khác hoặc làm sập luồng xử lý dưới tương tranh cao. Cùng
+lỗi đó có thể hiện ra như một đỉnh độ trễ đuôi thay vì một sự cố. Ở Rust an toàn, thiết kế
+không biên dịch: sở hữu và mượn từ chối tham chiếu treo. Đó là lý do luận văn này đo cả
+\emph{an toàn} (những lỗi nào được ngăn, và khi nào) lẫn \emph{khả năng dự đoán} (độ trễ đuôi
+khi quá tải), chứ không chỉ thông lượng trung bình.
+
+\section{Phát biểu bài toán}
+Hai thuộc tính của miền này làm lựa chọn ngôn ngữ mang hệ quả. Thứ nhất, quản lý bộ nhớ và
+tương tranh thủ công trong C++ phơi phần mềm trước các lỗi như use-after-free, double-free,
+tranh chấp dữ liệu và vô hiệu hoá iterator, im lặng lúc biên dịch và tốn kém để tìm và sửa ở
+quy mô viễn thông. Thứ hai, cái quyết định liệu hạn chót RAN có được đáp ứng không phải thông
+lượng trung bình mà là hành vi trường hợp xấu nhất và đuôi dưới tải và quá
+tải~\cite{dean2013tail}, một thuộc tính dễ hồi quy và khó đo đúng. Rust hứa loại lớp lỗi thứ
+nhất tại thời điểm biên dịch trong khi tuyên bố hiệu năng cạnh tranh trên lớp thứ hai, nhưng
+tuyên bố đó chủ yếu dựa trên các benchmark đa mục đích chứ không trên khối lượng viễn thông
+có trạng thái, tương tranh, nhạy độ trễ.
+
+Gộp các mạch đó lại, bài toán cụ thể mà luận văn giải quyết như sau. Các nhà cung cấp viễn
+thông đang chịu áp lực ngày càng lớn, vừa kỹ thuật vừa ngày càng mang tính điều tiết, phải áp
+dụng ngôn ngữ an toàn bộ nhớ, nhưng với mặt điều khiển RAN họ thiếu bằng chứng \emph{trực tiếp,
+có kiểm soát} để dựa vào quyết định đó. Chưa được xác lập liệu một hiện thực Rust của một phân
+hệ mặt điều khiển có trạng thái, tương tranh có thể khớp C++ hiện đại về \emph{độ trễ đuôi và
+khả năng dự đoán khi quá tải} (khác với thông lượng trung bình), liệu các bảo đảm lúc biên
+dịch của Rust có thực sự loại những lớp lỗi cụ thể tác động tới mã C++ sẵn có, và chi phí áp
+dụng tăng dần \emph{tốn} bao nhiêu bên trong một mã nguồn C++ lớn. Bằng chứng sẵn có phần lớn
+là đa mục đích và trường hợp trung
+bình~\cite{balasubramanian2017rust,qin2020rust}, để lại ba câu hỏi này (khả năng dự đoán, phạm
+vi lỗi được ngăn, và chi phí di trú) còn mở cho một phân hệ đại diện. Trả lời chúng trong điều
+kiện có kiểm soát, tái lập được là bài toán luận văn này đặt ra để giải.
+
+\section{Câu hỏi nghiên cứu và giả thuyết}\label{sec:rqs}
+Luận văn được tổ chức quanh bốn câu hỏi nghiên cứu. Chúng đặt khả năng dự đoán độ trễ lên
+trước, rồi phạm vi lỗi, rồi chi phí tài nguyên, rồi áp dụng tăng dần:
+
+\begin{description}
+  \item[RQ1] Rust và C++ hiện đại so sánh thế nào về khả năng dự đoán độ trễ (trung vị, độ trễ
+        đuôi p99, p99.9 và p99.99, và cực đại) cho một khối lượng mặt điều khiển RAN dưới tải
+        tăng dần và quá tải?
+  \item[RQ2] Những lớp lỗi an toàn bộ nhớ và tương tranh xảy ra trong C++ nào bị loại tại thời
+        điểm biên dịch trong hiện thực Rust, và các lớp còn lại được phát hiện ở giai đoạn nào
+        với chi phí nào?
+  \item[RQ3] Chi phí, nếu có, của mô hình an toàn Rust (kiểm biên, bản sao do sở hữu, chi phí
+        trừu tượng) trên thông lượng, mức dùng CPU, và hành vi bộ nhớ là bao nhiêu?
+  \item[RQ4] Những hệ quả thực tiễn (công sức, khả năng tương tác qua giao diện hàm ngoại
+        (FFI), và rủi ro) của việc áp dụng Rust tăng dần trong một hệ sinh thái phần mềm RAN
+        C++ sẵn có là gì?
+\end{description}
+
+Ba giả thuyết được viết ra trước mọi phép đo.
+\begin{description}
+  \item[H1] Với khối lượng này hai ngôn ngữ tương đương về hiệu năng dưới bão hoà, mọi khác
+        biệt nếu có chỉ nằm ở đuôi xa.
+  \item[H2] Rust an toàn ngăn tại thời điểm biên dịch những lớp lỗi an toàn bộ nhớ và tương
+        tranh mà C++ chỉ cố bắt sau khi chương trình đã được xây.
+  \item[H3] Thời gian thêm khi C++ gọi sang Rust nhỏ so với chi phí của chính các thao tác, nên
+        chi phí thực của việc thêm Rust từng phần là công việc kỹ thuật, không phải tốc độ lúc
+        chạy.
+\end{description}
+Chương~\ref{chapter:discussion} xem lại cả ba dựa trên bằng chứng.
+
+Danh mục lỗi cho RQ2 gồm các lớp mà Rust an toàn được kỳ vọng ngăn và các lớp mà nó được kỳ
+vọng không ngăn. Nghiên cứu khi đó có thể tìm nơi bảo đảm an toàn dừng lại, thay vì chỉ cho
+thấy bảo đảm đó giữ.
+
+Một nghiên cứu trước đã ước lượng biên đó từ một danh mục, không từ các chương trình được biên
+dịch. Nó lấy Common Weakness Enumeration (CWE), một danh sách dài các kiểu lỗi, và đánh dấu
+mỗi kiểu là kiểu mà Rust an toàn sẽ ngăn hoặc sẽ không. Nó rồi đếm các lỗ hổng thực trong 68
+dự án C nguồn mở. 58.2\% các lỗ hổng được phân loại nằm ở những kiểu mà Rust an toàn gần như
+đã làm không thể xảy ra~\cite{meneely2025justuserust}. Tỉ lệ đó là trường hợp tốt nhất: nó giả
+định mã mới ở lại trong Rust an toàn. Một kiểu được tính là đã ngăn nếu ánh xạ nói vậy, dù
+không trình biên dịch nào đã từ chối một chương trình. RQ2 hỏi cùng câu hỏi đó với các chương
+trình được biên dịch và chạy. Đó là cách nó có thể nói khi nào các kiểu còn lại bị bắt, và tốn
+gì để bắt chúng.

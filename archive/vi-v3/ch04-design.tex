@@ -1,0 +1,97 @@
+\chapter{Thiết kế và hiện thực\label{chapter:design}}
+\chaptermark{Thiết kế}
+
+Không gì được xây cho đến khi đặc tả được cố định. Nó chốt giao diện lập trình công khai, máy
+trạng thái UE, bố cục dữ liệu và các bước trên đó, khoá và kích thước phân mảnh, và mô hình
+luồng. Cả hai bản đều bám theo nó. Phép thử khi đó đo ngôn ngữ, không phải một khoảng cách thiết
+kế hay kỹ năng. Bản thân đặc tả là một đầu ra của nghiên cứu. Nó là kiểm soát chính chống thiên
+lệch của người viết.
+
+Một mô hình luồng được dùng ở cả hai phía: không chia sẻ trạng thái và một luồng mỗi phân mảnh.
+Bố cục đó được biết là tự nó đổi độ trễ đuôi~\cite{enberg2019threadpercore}. Không gian định
+danh được tách thành các phân mảnh. Mỗi phân mảnh thuộc một luồng xử lý. Chỉ luồng đó đọc hoặc
+đổi nó. Vì vậy không khoá nào canh trạng thái ngữ cảnh. Bên gọi gửi một yêu cầu tới hàng đợi bị
+chặn của phân mảnh sở hữu. Chúng chờ trên một tay cầm trả lời một lần. Hàng đợi chặn khi đầy.
+Điều đó là cố ý. Một quy tắc bỏ sẽ che quá tải. Nghiên cứu này cần quá tải hiện ra như độ trễ.
+Trạng thái khả biến dùng chung duy nhất mà bản nào cho phép là một bộ đếm nguyên tử. Không luồng
+điều khiển nào phụ thuộc giá trị của nó. Hình~\ref{fig:arch} cho thấy luồng dữ liệu. Có một hàng
+đợi nhiều tác nhân sinh, một tác nhân tiêu thụ (MPSC) mỗi phân mảnh. Luồng xử lý của nó rút theo
+vào trước ra trước (FIFO).
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[
+    font=\small,
+    prod/.style={draw, rounded corners, minimum width=2.0cm, minimum height=0.66cm, fill=blue!8},
+    queue/.style={draw, minimum width=2.5cm, minimum height=0.66cm, fill=gray!12},
+    worker/.style={draw, rounded corners, minimum width=2.1cm, minimum height=0.66cm, fill=red!8},
+    store/.style={draw, cylinder, shape border rotate=90, aspect=0.25, minimum width=1.5cm, minimum height=0.85cm, fill=green!8},
+    lane/.style={draw, dotted, rounded corners, inner sep=7pt},
+    >={Stealth[length=2.4mm]}
+  ]
+  \node[prod] (p1) at (0,1.3)  {Tác nhân 1};
+  \node[prod] (p2) at (0,0.0)  {Tác nhân 2};
+  \node[prod] (p3) at (0,-1.3) {Tác nhân $m$};
+  \begin{scope}[on background layer]
+    \node[draw, dashed, rounded corners, fill=blue!3, fit=(p1)(p2)(p3), inner sep=6pt] (pg) {};
+  \end{scope}
+  \node[font=\scriptsize] at (0,-2.15) {bộ sinh tải};
+
+  \node[queue] (q1) at (5.2,1.3)   {Hàng đợi MPSC};
+  \node[worker](w1) at (8.9,1.3)   {Worker 1};
+  \node[store] (s1) at (12.0,1.3)  {Phân mảnh 1};
+  \node[queue] (qn) at (5.2,-1.3)  {Hàng đợi MPSC};
+  \node[worker](wn) at (8.9,-1.3)  {Worker $n$};
+  \node[store] (sn) at (12.0,-1.3) {Phân mảnh $n$};
+  \begin{scope}[on background layer]
+    \node[lane, fit=(q1)(s1)] (lane1) {};
+    \node[lane, fit=(qn)(sn)] (lanen) {};
+  \end{scope}
+  \node[font=\scriptsize] at (8.35,2.35) {luồng sở hữu phân mảnh: không trạng thái khả biến dùng chung, không khoá};
+
+  \node[font=\scriptsize, align=center, fill=white, inner sep=2pt] at (2.85,0) {định tuyến theo\\ hash(\texttt{ue\_id})};
+  \draw[->] (pg.east) -- (q1.west) node[midway, above, sloped, font=\scriptsize]{gửi};
+  \draw[->] (pg.east) -- (qn.west) node[midway, below, sloped, font=\scriptsize]{gửi};
+
+  \draw[->]  (q1) -- node[above, font=\scriptsize]{FIFO} (w1);
+  \draw[->]  (qn) -- node[above, font=\scriptsize]{FIFO} (wn);
+  \draw[<->] (w1) -- node[above, font=\scriptsize]{sở hữu} (s1);
+  \draw[<->] (wn) -- node[above, font=\scriptsize]{sở hữu} (sn);
+
+  \draw[->, dashed, rounded corners=4pt]
+      (wn.south) -- ++(0,-0.75) -- (1.4,-2.9) -- ($(pg.south east)+(-0.4,0)$);
+  \node[font=\scriptsize] at (5.9,-3.05) {hoàn tất một lần (kết quả $\rightarrow$ tác nhân đang chờ)};
+\end{tikzpicture}
+\caption[Kiến trúc không chia sẻ, một luồng mỗi phân mảnh]{Kiến trúc không chia sẻ, một luồng
+mỗi phân mảnh. Các tác nhân sinh gửi vào một hàng đợi MPSC bị chặn mỗi phân mảnh, và luồng xử
+lý của phân mảnh đó rút hàng.\label{fig:arch}}
+\end{figure}
+
+Tính công bằng được giữ dưới thiết kế cũng như trong thiết kế. Cả hai bản build liên kết cùng
+\texttt{jemalloc}. Cả hai giữ một bản build bộ cấp phát hệ thống làm đối chứng. Cả hai biên dịch
+ở cùng mức tối ưu. Cả hai ghi độ trễ qua một bộ histogram dải động cao (HDR) được lập cùng một
+cách~\cite{tene_hdrhistogram}. Băm được chốt ở cả hai phía. SplitMix64 gán phân mảnh. FNV-1a,
+hàm băm Fowler--Noll--Vo, được dùng bên trong bảng. Hàm băm mặc định của C++ trên một số nguyên
+thường chỉ là chính số đó. Của Rust mạnh là cố ý. Để nguyên như chúng đến, hai thư viện chuẩn
+sẽ là phép đo.
+
+Nơi các ngôn ngữ không thể đáp một nhu cầu cùng một cách, khoảng cách được viết vào nhật ký
+thành ngữ bắt buộc rồi được đo. Hai trong số các khoảng cách đó mang kết quả quá tải của
+Mục~\ref{sec:overload}. Một là hàng đợi bị chặn. Rust lấy nó từ \texttt{sync\_channel}. C++23
+vẫn chưa có nguyên thủy đó, nên C++ xây một cái từ một mutex và hai biến điều kiện. Cái kia là
+tay cầm trả lời, \texttt{std::promise} đối với một kênh \texttt{mpsc} mới mỗi yêu cầu. Một
+khoảng cách thứ ba mang kết quả thao tác lõi của Mục~\ref{sec:perfresults}: container mỗi phân
+mảnh là bảng băm chuẩn của chính ngôn ngữ đó. Một khoảng cách thứ tư là mã hoá yêu cầu. C++
+không có kiểu liệt kê mang payload theo thành ngữ này, nên một yêu cầu thành một struct có nhãn
+giữ mỗi trường mà thao tác nào cũng có thể cần, $\CppRequestBytes$~byte đối với
+$\RustRequestBytes$ của Rust. Kết quả ròng là một lõi Rust dài hơn $\NlocRise\%$ về dòng mã. Độ
+phức tạp cyclomatic của nó thấp hơn $\CcnTotalDrop\%$~\cite{lizard}. Thư viện Rust không chứa
+\texttt{unsafe} nào cả.
+
+Tương đương được thử chứ không được giả định. Các vector trung lập ngôn ngữ chạy ở cả hai bản.
+Nhật ký của chúng được diff theo từng thao tác. Một diff chéo không phân biệt ``cả hai đúng''
+với ``cả hai sai cùng một cách''. Một bản thứ ba bằng Python đóng vai tiên tri độc lập. Nó phải
+tái tạo tất cả $\ConfHandOps$ kỳ vọng suy bằng tay trước khi được sinh kỳ vọng của riêng mình.
+Một chiến dịch $\ConfGenOps$ thao tác được sinh không tìm thấy lệch. Phía C++ chạy dưới
+AddressSanitizer, ThreadSanitizer và UndefinedBehaviorSanitizer. Phía Rust chạy dưới Miri. Một
+kết quả bộ dò lỗi sạch bị chặn bởi mã thực sự đã chạy.

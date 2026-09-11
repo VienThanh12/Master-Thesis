@@ -1,0 +1,262 @@
+% Vietnamese translation of Thesis_v3.tex (supervisor skeleton, 11 September 2026).
+% Compile from the repository root with XeLaTeX:
+%   latexmk -xelatex -output-directory=build archive/Thesis_v3-vi.tex
+% Then copy build/Thesis_v3-vi.pdf to archive/.
+%
+% Distinct from archive/thesis-vi.tex, which translates the full draft
+% Ha_Vien_Mastersthesis_2026.tex via archive/vi/. Chapter fragments for this
+% file live in archive/vi-v3/.
+%
+% The class loads graphics and tikz with a hardcoded [pdftex] option, which makes
+% pgf reach for pdfTeX primitives that XeTeX does not have. The drivers therefore
+% have to be pinned here, before \documentclass.
+\RequirePackage[pdftex,xetex]{graphicx}
+\makeatletter\def\Gin@driver{xetex.def}\makeatother
+\def\pgfsysdriver{pgfsys-xetex.def}
+
+% oneside, matching Thesis_v3.tex. a4paper has to be given here: the template
+% sets it with a \PassOptionsToClass placed after \documentclass.
+\documentclass[english,oneside,a4paper,censored,csm,software-track-2020]{HYthesisML}
+
+\usepackage{fontspec}
+\setmainfont{lmroman10-regular.otf}[
+  BoldFont=lmroman10-bold.otf,
+  ItalicFont=lmroman10-italic.otf,
+  BoldItalicFont=lmroman10-bolditalic.otf,
+  SmallCapsFont=lmromancaps10-regular.otf]
+\setsansfont{lmsans10-regular.otf}[
+  BoldFont=lmsans10-bold.otf,
+  ItalicFont=lmsans10-oblique.otf,
+  BoldItalicFont=lmsans10-boldoblique.otf]
+\setmonofont{lmmono10-regular.otf}[
+  ItalicFont=lmmono10-italic.otf]
+
+\usepackage{csquotes}
+
+\usepackage[style=numeric,bibstyle=numeric,backend=biber,natbib=true,
+            sorting=none,sortcites=true,maxbibnames=99,giveninits=true,uniquename=init]{biblatex}
+\addbibresource{bibliography.bib}
+\DeclareNameAlias{sortname}{family-given}
+\DefineBibliographyStrings{english}{bibliography={Tài liệu tham khảo}}
+\defbibheading{bibliography}[\bibname]{%
+  \chapter*{#1}%
+  \markboth{#1}{#1}}
+
+\usepackage[plainpages=false]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{longtable}
+\usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
+\usepackage[section]{placeins}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.75}
+
+\addto\captionsenglish{%
+  \renewcommand{\contentsname}{Mục lục}%
+  \renewcommand{\chaptername}{Chương}%
+  \renewcommand{\appendixname}{Phụ lục}%
+  \renewcommand{\figurename}{Hình}%
+  \renewcommand{\tablename}{Bảng}%
+  \renewcommand{\bibname}{Tài liệu tham khảo}%
+  \renewcommand{\listfigurename}{Danh mục hình}%
+  \renewcommand{\listtablename}{Danh mục bảng}%
+  \renewcommand{\nomname}{Danh mục từ viết tắt}%
+}
+
+\onehalfspacing
+\sloppy
+\addto\extrasenglish{\frenchspacing}
+\AtBeginDocument{\frenchspacing}
+
+\newcommand{\mci}[3]{%
+  \begin{tabular}[t]{@{}r@{}}%
+    $#1$\\[-2pt]{\scriptsize$[#2,\,#3]$}%
+  \end{tabular}}
+
+\title{Hiệu năng, an toàn và đánh đổi kỹ thuật của Rust và C++ trong hệ thống mặt điều khiển RAN của Nokia}
+\author{Ha Vien}
+\date{11 tháng 9 năm 2026}
+\supervisors{Prof. Keijo Heljanko, Christoph Luneburg, Petteri Kotimaa}
+\examiners{Prof. Keijo Heljanko}
+\keywords{Rust, C++, mặt điều khiển RAN, độ trễ đuôi, an toàn bộ nhớ, tiêm lỗi, áp dụng tăng dần}
+\renewcommand{\depositeplace}{Thư viện Đại học Helsinki}
+\additionalinformation{\translate{\track}}
+
+\classification{\protect{\ \\
+\  Software and its engineering $\rightarrow$ Software notations and tools $\rightarrow$ General programming languages\  \\
+\  Computer systems organization $\rightarrow$ Real-time systems $\rightarrow$ Real-time system specification\\
+\  Networks $\rightarrow$ Network types $\rightarrow$ Mobile networks
+}}
+
+\hypersetup{
+    unicode=true,
+    pdftoolbar=true,
+    pdfmenubar=true,
+    pdffitwindow=false,
+    pdfstartview={FitH},
+    pdftitle={Hiệu năng, an toàn và đánh đổi kỹ thuật của Rust và C++ trong hệ thống mặt điều khiển RAN của Nokia},
+    pdfauthor={Ha Vien},
+    pdfsubject={Luận văn thạc sĩ, Khoa học máy tính},
+    pdfcreator={Ha Vien},
+    pdfproducer={XeLaTeX},
+    pdfkeywords={Rust} {C++} {mặt điều khiển RAN} {độ trễ đuôi} {an toàn bộ nhớ},
+    pdfnewwindow=true,
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    filecolor=magenta,
+    urlcolor=cyan
+}
+
+\input{figures/gen_macros.tex}
+\input{figures/gen_complexity.tex}
+\input{figures/gen_artefacts.tex}
+\input{figures/gen_adoption.tex}
+\input{figures/gen_baremetal.tex}
+\input{figures/gen_guest.tex}
+
+\begin{document}
+
+\maketitle
+
+{\singlespacing
+\begin{otherlanguage}{english}
+\begin{abstract}
+      \noindent\textbf{Bối cảnh.}
+      Phần mềm mặt điều khiển của mạng truy nhập vô tuyến (RAN) chủ yếu được viết bằng C++ vì hiệu
+      năng, với cái giá đã biết về an toàn bộ nhớ và tương tranh. Rust hứa hẹn hiệu năng tương đương
+      cùng an toàn tại thời điểm biên dịch, nhưng mức phù hợp cho môi trường nhạy độ trễ này vẫn chưa
+      được chứng minh.
+
+      \noindent\textbf{Mục tiêu.}
+      Luận văn so sánh C++ hiện đại và Rust trên một dịch vụ Quản lý Ngữ cảnh thiết bị người dùng (UE)
+      mô hình hoá theo một thành phần mặt điều khiển trạm gốc 5G thực của Nokia (gNB-CU-CP).
+      So sánh thông lượng trung bình để lại bốn chiều còn mở: độ trễ đuôi, những lớp lỗi C++ mà Rust
+      ngăn khi biên dịch, chi phí mô hình an toàn, và chi phí áp dụng tăng dần.
+
+      \noindent\textbf{Phương pháp.}
+      Một đặc tả độc lập ngôn ngữ được cố định trước, rồi hiện thực hai lần với thuật toán, mô hình
+      tương tranh, bộ cấp phát và cấu hình biên dịch khớp nhau, và các khoảng cách bắt buộc do thành
+      ngữ ngôn ngữ được ghi lại. Một khối lượng công việc tổng hợp được tăng đến quá tải, cả hai bản
+      đều vượt cùng bộ kiểm thử tương đương, và phần đánh giá bổ sung tiêm lỗi cùng một nguyên mẫu
+      giao diện hàm ngoại (FFI).
+
+      \noindent\textbf{Kết quả.}
+      (1)~Rust an toàn từ chối cả bảy lớp lỗi an toàn bộ nhớ và tranh chấp dữ liệu được tiêm vào tại
+      thời điểm biên dịch. Ở C++ cùng bảy lớp đó biên dịch sạch. Chúng chỉ lộ ra lúc chạy, và chỉ khi
+      bộ dò lỗi bắt được. (2)~Bảy lớp nữa thất bại ở cả hai ngôn ngữ. Trên hai lớp trong số đó công cụ
+      C++ báo cáo những gì Rust không báo. (3)~C++ có thể gọi dịch vụ Rust qua một giao diện C mỏng.
+      Toàn bộ mã \texttt{unsafe} nằm ở đó, và mọi thời gian thêm trên một cuộc gọi báo hiệu thực tối đa
+      là $\FfiOpBoundPct\%$ của cuộc gọi đó. (4)~Một yêu cầu đầy đủ chỉ dành $\BudgetCoreShareMax\%$ cho
+      công việc ngôn ngữ. Bàn giao giữa các luồng chiếm phần còn lại, nên đồng hồ đó không thể quy
+      khoảng cách cho C++ hay Rust. Đo riêng, lõi nhanh hơn $\BudgetCoreRatio\times$ ở Rust.
+      (5)~Dưới bão hoà, kiểm định ghép cặp trên trung vị đầu-cuối phân giải $\PFiftyDiffAbsMax\,\mu$s
+      nghiêng về Rust. Khoảng cách đó quá nhỏ để giới hạn một hiệu ứng ngôn ngữ. Các bản Rust theo kịp
+      tải đưa vào đến $\TrackingLoadRust$~kilo-thao-tác mỗi giây (kops/s), các bản C++ chỉ đến
+      $\TrackingLoadCpp$. Khi cả hai đều không theo kịp, \OverloadSustainedFaster{} vẫn hoàn thành
+      $\OverloadThrRatio\times$ khối lượng của \OverloadSustainedSlower{} trong \OverloadThrAgree{}
+      lần lặp đan xen với cả hai bộ cấp phát.
+
+      \noindent\textbf{Kết luận.}
+      Chi phí chính khi áp dụng Rust là công sức kỹ thuật và đường cong học tập, không phải hiệu năng
+      lúc chạy ở tải danh nghĩa. Lợi ích là thoát khỏi tranh chấp dữ liệu, chứ không phải mọi lỗi
+      tương tranh. Một thử nghiệm ở tải danh nghĩa sẽ không lộ ra khoảng cách đó.
+\end{abstract}
+\end{otherlanguage}
+}
+
+\cleardoublepage
+\pagenumbering{roman}
+\setcounter{page}{1}
+\tableofcontents
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{\listfigurename}
+\listoffigures
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{\listtablename}
+\listoftables
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{\nomname}
+\chapter*{\nomname}
+\markboth{\nomname}{\nomname}
+
+\noindent Mỗi từ viết tắt dưới đây cũng được viết đầy đủ tại lần dùng đầu tiên trong văn bản.
+
+\begingroup
+\singlespacing
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{@{}p{0.15\linewidth} p{0.79\linewidth}@{}}
+\hline\hline
+Viết tắt & Dạng đầy đủ \\
+\hline
+\endfirsthead
+\hline\hline
+Viết tắt & Dạng đầy đủ \\
+\hline
+\endhead
+3GPP & 3rd Generation Partnership Project, cơ quan đặc tả các chuẩn 5G \\
+ABI & Application binary interface, giao diện nhị phân ứng dụng \\
+AI & Artificial intelligence, trí tuệ nhân tạo \\
+AI-RAN & Kiến trúc trong đó khối lượng AI và mạng truy nhập vô tuyến dùng chung một hạ tầng gia tốc \\
+API & Application programming interface, giao diện lập trình ứng dụng \\
+ASN.1 & Abstract Syntax Notation One \\
+CPU & Central processing unit, bộ xử lý trung tâm \\
+CVE & Common Vulnerabilities and Exposures, danh mục lỗ hổng phổ biến \\
+CWE & Common Weakness Enumeration, danh mục điểm yếu phổ biến \\
+DPDK & Data Plane Development Kit \\
+EU & European Union, Liên minh châu Âu \\
+FFI & Foreign function interface, giao diện hàm ngoại \\
+FIFO & First in, first out, vào trước ra trước \\
+FNV-1a & Hàm băm Fowler--Noll--Vo, biến thể 1a \\
+GCC & GNU Compiler Collection \\
+gNB & Next-generation NodeB, trạm gốc 5G \\
+gNB-CU & Đơn vị trung tâm gNB \\
+gNB-CU-CP & Mặt điều khiển đơn vị trung tâm gNB: lớp hệ thống được nghiên cứu ở đây \\
+gNB-CU-UP & Mặt người dùng đơn vị trung tâm gNB \\
+gNB-DU & Đơn vị phân tán gNB \\
+HDR & High dynamic range, dải động cao, của histogram độ trễ \\
+IMT-2030 & International Mobile Telecommunications-2030, khung ITU cho 6G \\
+ITU & International Telecommunication Union, Liên minh Viễn thông quốc tế \\
+KPI & Key performance indicator, chỉ số hiệu năng then chốt \\
+kops/s & Kilo-operations per second, kilo-thao-tác mỗi giây \\
+KVM & Kernel-based Virtual Machine \\
+MPSC & Multi-producer, single-consumer, nhiều tác nhân sinh, một tác nhân tiêu thụ \\
+NG-RAN & Next-generation radio access network, mạng truy nhập vô tuyến thế hệ mới \\
+PHY & Physical layer, tầng vật lý \\
+RAII & Resource Acquisition Is Initialization \\
+RAN & Radio access network, mạng truy nhập vô tuyến \\
+RQ & Research question, câu hỏi nghiên cứu \\
+RRC & Radio Resource Control, Điều khiển tài nguyên vô tuyến \\
+RSS & Resident set size, kích thước tập trú \\
+UE & User equipment, thiết bị người dùng như điện thoại hoặc modem \\
+UECM & UE Context Management, phân hệ được tái hiện thực và đo ở đây \\
+\hline
+\end{longtable}
+\endgroup
+
+\cleardoublepage
+\mainmatter
+
+\input{archive/vi-v3/ch01-intro.tex}
+\input{archive/vi-v3/ch02-background.tex}
+\input{archive/vi-v3/ch03-methodology.tex}
+\input{archive/vi-v3/ch04-design.tex}
+\input{archive/vi-v3/ch05-eval.tex}
+\input{archive/vi-v3/ch06-discussion.tex}
+\input{archive/vi-v3/ch07-conclusion.tex}
+
+\input{archive/vi-v3/ai_statement.tex}
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{\bibname}
+\printbibliography
+
+\end{document}

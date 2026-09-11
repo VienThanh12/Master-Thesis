@@ -1,0 +1,53 @@
+% Vietnamese rendering of ai_statement.tex for the Thesis_v3 translation.
+% The English source of truth remains ai_statement.tex at the repository root.
+\newif\ifabstractunaided
+\abstractunaidedtrue
+\ifabstractunaided\else
+  \GenericWarning{}{ai_statement: the abstract has not been rewritten unaided.
+    Not submittable. Set \noexpand\abstractunaidedtrue in ai_statement.tex once it has}%
+\fi
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Tuyên bố về việc dùng công cụ AI}
+\chapter*{Tuyên bố về việc dùng công cụ AI}
+\markboth{Tuyên bố về việc dùng công cụ AI}{Tuyên bố về việc dùng công cụ AI}
+
+\noindent\textbf{Công cụ.} Claude Opus~5 của Anthropic và Cursor Grok~4.6 là các hệ thống AI
+sinh được dùng khi soạn luận văn này. Cả hai chạy qua môi trường phát triển Cursor, từ tháng
+6~2026 đến khi viết luận văn. Chính sách Đại học Helsinki cấm nêu một mô hình ngôn ngữ như một
+tác giả. Không mô hình nào được trích như một nguồn, đó là lựa chọn của tác giả.
+
+\noindent\textbf{Phạm vi hỗ trợ.} Các mô hình soạn thảo và sửa văn xuôi của luận văn, và đề xuất
+thứ tự các lập luận. Chúng viết và tái cấu trúc cả hai bản dịch vụ Quản lý Ngữ cảnh UE. Chúng
+cũng viết bộ sinh tải, danh mục tiêm lỗi, và nguyên mẫu FFI. Phân tích đứng sau các khoảng
+bootstrap và các kiểm định hoán vị ghép cặp cũng là công việc của chúng, cũng như các nguồn hình,
+build và LaTeX. Tóm tắt là bài kiểm tra trưởng thành của chương trình này. Chính sách đại học
+không bao giờ cho phép một mô hình ngôn ngữ trong một bài như vậy.
+\ifabstractunaided
+Tóm tắt do tác giả viết không có hỗ trợ.
+\else
+Trong bản thảo này nó chưa được viết lại không có hỗ trợ, và tuyên bố này sẽ nói vậy cho đến khi
+đã được viết lại.
+\fi
+
+\noindent\textbf{Những gì các mô hình không quyết.} Bài toán nghiên cứu, bốn câu hỏi nghiên cứu,
+ba giả thuyết, và kiểm soát chính của nghiên cứu là của tác giả. Kiểm soát đó là một đặc tả trung
+lập ngôn ngữ đã cố định và một mô hình tương tranh, nên ngôn ngữ vẫn là khoảng cách có kế hoạch
+duy nhất giữa hai bản. Tác giả cũng chọn mang các lớp lỗi từ ngoài bảo đảm lúc biên dịch của
+Rust, điều giữ RQ2 có thể bác bỏ. Mọi phép đo do tác giả chạy, trên các máy mà mỗi kết quả nêu.
+Các đại lượng luận văn trích tới trang như macro được xây lại từ nhật ký thô. Cách đọc cũng là
+của tác giả.
+
+\noindent\textbf{Đầu ra được kiểm thế nào.} Mọi đầu ra của mô hình, văn xuôi và mã, đều được tác
+giả đọc trước khi vào luận văn. Mọi mục thư mục được đối chiếu với Crossref, DataCite, hoặc cơ
+quan phát hành. Một cuộc kiểm rồi chấm mức mỗi tuyên bố truy được. Bậc thứ nhất là chính trang
+hoặc mệnh đề. Bậc thứ hai là hồ sơ nhà xuất bản nộp mang tuyên bố. Bậc thứ ba là siêu dữ liệu đã
+xác nhận sau tường phí. Một mục mà đoạn chống đỡ chưa bao giờ được mở thì được liệt kê, không
+được hấp thụ. Cuộc kiểm tìm bốn đoạn phóng đại hoặc đặt sai nguồn. Một đoạn là một trích dẫn vắng
+trong công trình được gán. Cả bốn đã được sửa. Mã được kiểm đối với một bộ tuân thủ mà bản ghi
+được diff từng dòng. Nó cũng được kiểm đối với một danh mục lỗi chốt mỗi kết cục kỳ vọng trước
+khi lỗi được tiêm.
+
+\noindent\textbf{Trách nhiệm.} Tác giả đã rà toàn bộ luận văn này và chịu trách nhiệm về tất cả.
+Nơi nó sai, lỗi là của tác giả.

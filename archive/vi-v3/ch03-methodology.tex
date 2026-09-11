@@ -1,0 +1,175 @@
+\chapter{Phương pháp nghiên cứu\label{chapter:methodology}}
+\chaptermark{Phương pháp}
+
+Chương trước nêu khoảng trống. Chương này nêu cách nghiên cứu đóng nó.
+
+\section{Phân hệ Quản lý Ngữ cảnh UE}\label{sec:uecm}
+Phần được nghiên cứu là một dịch vụ Quản lý Ngữ cảnh UE. Nó được mô hình hoá theo một dịch vụ
+gNB-CU-CP thực của Nokia, sở hữu vòng đời ngữ cảnh UE, thực thi thủ tục
+RRC~\cite{3gpp38331}, và di động cùng chuyển giao. Đó là các chức năng mà thiết kế 3GPP giao
+cho phần mặt điều khiển của một gNB tách (Mục~\ref{sec:ranarch}). Hình~\ref{fig:fsm} cho thấy
+vòng đời ngữ cảnh UE mà cả hai bản mã hoá cùng một cách. Khối lượng hỗn hợp của
+Mục~\ref{sec:workload} đưa mỗi UE đi qua máy trạng thái đó.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[
+    ->, >=Stealth, node distance=3.2cm, font=\small,
+    every state/.style={draw, minimum size=1.5cm, fill=blue!6, thick},
+    every edge/.style={draw, thick}
+  ]
+  \node[state, initial, initial text=\scriptsize tạo] (idle) {Idle};
+  \node[state, right=of idle] (conn) {Connected};
+  \node[state, right=of conn] (reconf) {Reconf.};
+  \node[state, below=1.9cm of conn, fill=gray!10] (rel) {Released};
+
+  \path (idle)  edge node[above,font=\scriptsize]{setup} (conn)
+        (conn)  edge[bend left=18] node[above,font=\scriptsize]{begin} (reconf)
+        (reconf) edge[bend left=18] node[below,font=\scriptsize]{complete / abort} (conn)
+        (conn)  edge node[right,font=\scriptsize,pos=0.45]{release} (rel)
+        (idle)  edge[bend right=32] node[below,font=\scriptsize,pos=0.6]{release} (rel);
+  \path (conn) edge[loop above] node[font=\scriptsize]{signal / add DRB} (conn);
+\end{tikzpicture}
+\caption[Máy trạng thái vòng đời ngữ cảnh UE]{Máy trạng thái vòng đời ngữ cảnh UE.
+Các thao tác không hợp lệ với trạng thái hiện tại trả về lỗi thay vì đổi
+trạng thái.\label{fig:fsm}}
+\end{figure}
+
+UECM là công việc tầng 3 RAN cốt lõi. Nó có những đặc tính làm mã mặt điều khiển đang chạy trở
+nên khó. Mỗi UE có trạng thái thay đổi. Vòng đời thao tác chặt. Nhiều UE chạy cùng lúc. Mục
+tiêu trễ là những mục tiêu hệ thống 5G đặt cho thủ tục mặt điều
+khiển~\cite{3gpp38913,3gpp22261}. Phát hiện về cách một ngôn ngữ xử lý những đặc tính đó liên
+quan nhất tới các dịch vụ mặt điều khiển nhiều luồng, có trạng thái khác cùng loại. Phần này
+cũng đủ nhỏ để đặc tả trọn vẹn và xây hai lần. Đó là điều làm một phép so sánh có kiểm thử
+tương đương trở nên khả thi.
+
+Giao diện nhỏ và được xây quanh vòng đời. Nó có thể tạo và giải phóng một ngữ cảnh. Nó có thể
+thiết lập một kết nối. Nó có thể xử lý một thông điệp báo hiệu trong phiên. Nó có thể thêm một
+data radio bearer. Nó có thể bắt đầu, hoàn tất, hoặc huỷ một tái cấu hình. Nó có thể tra trạng
+thái của một ngữ cảnh dưới tải. Mỗi thao tác được định nghĩa cho mỗi trạng thái của
+Hình~\ref{fig:fsm}. Một thao tác bất hợp pháp trả về lỗi có kiểu và để ngữ cảnh không đổi. Tập
+đóng đó cho phép cùng các kiểm thử và cùng khối lượng đưa cả hai bản đi theo cùng các đường.
+
+RQ2 cần một danh mục, không phải một danh sách mối nguy lỏng. Một danh mục được xây từ tập thao
+tác này: $\FaultClasses$ lớp trong hai nhóm bảy. Bảy lớp đến từ bên trong vùng mà Rust an toàn
+tuyên bố cai quản. Bảy lớp được chọn vì Rust an toàn được kỳ vọng không ngăn chúng. Mỗi lớp có
+kỳ vọng được ghi trước khi các chương trình chạy. Mục~\ref{sec:safetyresults} báo cáo mỗi lớp
+đã làm gì.
+
+Đuôi là chỉ số vì hai đặc tính của phần này. Một hành động người dùng nhìn thấy, thiết lập cuộc
+gọi hoặc chuyển giao, thành nhiều thao tác mặt điều khiển phụ thuộc nhau. Thành viên chậm nhất
+chặn hoàn tất. Một site bận đưa hàng nghìn thủ tục như vậy mỗi giây. Vì vậy một điểm đuôi xa
+được chạm đủ thường để có ý nghĩa. Dạng thất bại là lý do thứ hai. Một dịch vụ thiết kế này
+theo tải đưa vào với độ trễ phẳng cho đến khi một luồng xử lý bão hoà. Rồi độ trễ nhảy mạnh
+trong một bước tải. Đó là lý do nghiên cứu này quét qua bão hoà.
+
+\section{Hướng tiếp cận nghiên cứu}\label{sec:approach}
+Nghiên cứu chạy thí nghiệm. Nó cũng xây thứ nó đo: một cặp bản khớp nhau, cộng khung đo đưa
+chúng chạy. Cả hai được xây từ một đặc tả cố định. Bằng chứng đến từ ba phương pháp tách biệt.
+Một quét tải trả lời RQ1 và RQ3. Tiêm lỗi có kiểm soát trả lời RQ2. Một nguyên mẫu di trú FFI
+trả lời RQ4. Một điểm yếu ở một trong số chúng, chẳng hạn máy chủ có thể dịch chuyển đuôi bao
+nhiêu, không lan sang phần còn lại của các tuyên bố.
+
+Mỗi câu hỏi hỏi một kết quả phụ thuộc vào một biến, ngôn ngữ. Ngôn ngữ phải là khoảng cách có
+kế hoạch duy nhất giữa hai đối tượng thử. Điều đó loại trừ cách so sánh ngôn ngữ phổ biến nhất.
+Ở dạng đó hai chương trình viết độc lập được đo, và khoảng cách được lấy là ngôn ngữ. Khoảng
+cách đó cũng mang thiết kế, thư viện, và kỹ năng của tác giả. Xây cả hai phía từ một đặc tả loại
+nhiễu loạn đó. Ở nơi câu hỏi trả lời được bằng số, nó dùng số. Ở nơi không thể, câu trả lời vẫn
+theo một kế hoạch cố định, bằng lời. Đó là cách nghiên cứu này xử lý loại bảo đảm trong RQ2.
+RQ4 hỏi về chi phí thiết kế của giao diện lập trình ứng dụng (API).
+
+Công trình trước gần nhất là năm luận văn do nhà cung cấp lưu trữ của
+Mục~\ref{sec:gap}. Chúng không xuất hiện trong cơ sở dữ liệu trích dẫn nào. Chúng phải được tìm
+bằng cách tra kho lưu trữ của từng trường bằng tay. Cùng các tìm kiếm đó không tìm thấy luận
+văn Phần Lan nào về Rust trong bối cảnh truy nhập vô tuyến. Chúng không tìm thấy bài được lập
+chỉ mục nào nhắc Rust từ nhà cung cấp chủ trì công trình này. Tìm kiếm không trả về nghiên cứu
+nào đo đuôi của một bản Rust và một bản C++ của cùng một phần mặt điều khiển nhiều luồng, có
+trạng thái, dưới tải quá lớn.
+
+Bảng~\ref{tab:design} ánh xạ mỗi câu hỏi nghiên cứu tới phương pháp, hiện vật, dữ liệu và chỉ
+số trả lời nó. RQ1 và RQ3 dùng chung H1, diễn đạt để phủ một hoà tốc độ theo cả nghĩa trễ và
+nghĩa tài nguyên. Cách diễn đạt đó hoá ra là điểm yếu chính của giả thuyết. RQ2 không phụ thuộc
+máy chủ. RQ4 phụ thuộc theo một trục. Thời gian biên dịch là một phép đo thời gian. Vì vậy nó
+được đọc như tỉ số giữa hai chuỗi công cụ đo luân phiên trên một máy.
+
+\begin{table}[ht]
+\centering
+\small
+\caption[Cách mỗi câu hỏi nghiên cứu được trả lời]{Cách mỗi câu hỏi nghiên cứu được trả lời.
+RQ1 và RQ3 mang hai phương pháp chứ không phải một: quét đo vòng khứ hồi mà một triển khai sẽ
+trải, và tách lõi khỏi bàn giao đo phần mà ngôn ngữ chịu trách nhiệm.
+\label{tab:design}}
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}p{0.07\linewidth} p{0.27\linewidth} p{0.27\linewidth} p{0.27\linewidth}@{}}
+\hline\hline
+RQ & Phương pháp & Hiện vật / dữ liệu & Chỉ số chính \\
+\hline
+RQ1 & Quét tải tới quá tải, lặp đan xen & Khung đo, histogram độ trễ &
+trung vị, p99/p99.9/p99.99, và cực đại so với tải đưa vào \\
+RQ3 & Cùng quét, thu tài nguyên & Mẫu \texttt{getrusage} mỗi lần chạy &
+kích thước tập trú (RSS) đỉnh, CPU, thông lượng \\
+RQ1, RQ3 & Gọi lõi trực tiếp, rồi qua dịch vụ &
+Cặp microbenchmark khớp &
+thao tác đối với bàn giao giữa luồng \\
+RQ2 & Tiêm lỗi có kiểm soát & Danh mục lỗi, ba bộ dò lỗi C++,
+\texttt{rustc}, Loom/Shuttle, Miri &
+biên dịch / lúc chạy / không phát hiện \\
+RQ4 & Nguyên mẫu di trú FFI & Máy chủ C++ $+$ đường nối C-ABI Rust &
+kích thước đường nối, phạm vi \texttt{unsafe}, chi phí mỗi lần gọi \\
+\hline
+\end{tabular}
+\end{table}
+
+\section[Phương pháp theo từng câu hỏi]{Phương pháp theo từng câu hỏi nghiên cứu, tóm tắt}\label{sec:methodbrief}
+RQ1 và RQ3 được trả lời bằng một quét tải vòng hở từ tải nhẹ đến vượt xa bão hoà. Vòng hở nghĩa
+là bộ sinh giữ lịch gửi của nó thay vì chờ trả
+lời~\cite{schroeder2006openclosed}. Bốn biến thể build được đan xen trong mỗi lần lặp. Một phép
+đo thời gian thứ hai tách thao tác lõi khỏi bàn giao giữa luồng quanh nó. Vòng khứ hồi đầu-cuối
+gói hai chi phí thuộc hai loại. Chỉ một trong hai có thể khác giữa các ngôn ngữ. Một phép đo
+thứ ba lấy hàng đợi tranh chấp và tay cầm trả lời riêng. Vì vậy nguyên nhân quá tải có thể được
+thử chứ không chỉ được lập luận.
+
+RQ2 được trả lời bằng tiêm lỗi có kiểm soát~\cite{natella2016fault}. Mỗi lớp lỗi là một chương
+trình nhỏ riêng ở cả hai ngôn ngữ. Phía C++ được xây và chạy dưới AddressSanitizer. Nó cũng
+chạy dưới ThreadSanitizer và UndefinedBehaviorSanitizer. Phía Rust an toàn được biên dịch và,
+nơi nó biên dịch, chạy dưới một hạn thời gian bị chặn. Không bộ phân tích tĩnh nào được chạy,
+cố ý. Các cột C++ khi đó báo cáo công cụ mà nghiên cứu này đã chạy. Chúng không báo cáo trần
+của những gì công cụ C++ có thể tìm. RQ4 được trả lời bằng một nguyên mẫu chạy được theo hướng
+một cuộc di trú thực đi. Một máy chủ C++ gọi một lõi Rust không đổi qua ABI C. Chi phí mỗi lần
+gọi được đo trên một thao tác thực chứ không suy từ một lần vượt trống. Lỗi bộ nhớ vượt ngôn
+ngữ nằm ở đường nối đó~\cite{li2022crosslang}.
+
+\section{Tính công bằng như một biến được kiểm soát}\label{sec:controlsbrief}
+Một phép so sánh ngôn ngữ chỉ tốt bằng các biến nó giữ cố định. Đặc tả được cố định trước khi
+bản nào tồn tại. Mô hình luồng, bộ cấp phát và số arena của nó, mức tối ưu, hàm băm, phương
+pháp histogram và lịch tải được khớp giữa hai phía. Chúng không bao giờ được tinh chỉnh theo
+từng phía. Nơi hai ngôn ngữ không thể viết giống nhau, khoảng cách được ghi lại chứ không được
+hoà. Hai phía được chứng minh khớp bằng cách diff nhật ký khớp theo từng thao tác. Một hàng của
+bảng đó không có đối chứng. Một người viết cả hai bản và không thành thạo như nhau ở cả hai.
+Mục~\ref{sec:standing} coi đó là mối đe dọa nội tại chính của nghiên cứu.
+
+\section{Xử lý thống kê}\label{sec:statsbrief}
+Thiết kế thống kê được cố định trước. Họ các phép so sánh được thử được liệt kê trước chiến
+dịch. Vì vậy một mức tải chọn sau khi nhìn một quét không thể vào họ. Mỗi phép so sánh là một
+kiểm định hoán vị ghép cặp chính xác trên \NRepeats{} lần lặp đan xen, với khoảng tin cậy
+bootstrap~\cite{efron1993bootstrap}, hiệu chỉnh Holm trên cả
+họ~\cite{holm1979simple}. Các sàn mà kiểm định có thể đạt ($\MinAttainableP$ chưa hiệu chỉnh,
+$\CorrectedFloor$ đã hiệu chỉnh) được nêu để một kết quả null phân biệt được với một giới hạn
+toán. Hai đại lượng được giữ ngoài họ. Một là độ dao động từ lần gọi này sang lần gọi khác, mà
+không câu hỏi nghiên cứu nào hỏi. Đại lượng kia là đuôi xa p99.99 gộp. Đơn vị của nó là thao
+tác, không phải lần chạy. Nó khi đó không có khoảng giữa các lần lặp để thử.
+
+\section{Tái lập và hiện vật nghiên cứu}\label{sec:repro}
+Một bên thứ ba có thể xây lại kết quả mà không cần mã riêng của Nokia. Các bản được đưa chạy
+hoàn toàn bởi đặc tả công khai đã cố định. Khung đo, danh mục lỗi và bộ chạy của nó, và nguyên
+mẫu FFI được công bố cùng luận văn. Mỗi hình dữ liệu đo được một kịch bản xây lại từ nhật ký
+thô. Mỗi số được trích trong kết quả cũng vậy. Kịch bản đó là
+\texttt{bench/refresh\_thesis.sh}. Tuyên bố đó không phủ các sơ đồ vẽ tay, vốn giải thích một
+khái niệm chứ không báo cáo một kết quả. Và chạy cùng các kịch bản trên chiến dịch của một máy
+khác xây lại hiện vật theo cùng thủ tục, không với cùng giá trị.
+
+Các nhật ký mà kịch bản đọc là một phần của gói. Mỗi chiến dịch có kịch bản riêng và tiền tố
+macro riêng, nên một hình từ chiến dịch này không thể chạm một câu về chiến dịch kia. Thiết lập
+máy chủ của mỗi lần chạy được ghi và lưu cạnh dữ liệu chiến dịch. Không gì trong các chương kết
+quả được gõ từ những tệp đó bằng tay.
