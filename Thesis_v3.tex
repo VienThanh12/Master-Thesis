@@ -1217,9 +1217,10 @@ CPUs~\cite{balasubramanian2017rust,emmerich2019drivers}. It is also weaker than
 it looks. The core operation is $\BudgetCoreShareMax\%$ of what the sweep
 measures.
 
-On safety the difference is one of kind. The boundary is reported as a
-first-class result, not as a caveat. A compiler that refuses to build a program
-rules the defect out of each execution. A sanitiser rules it out only of the
+On safety some defects cannot reach a binary at all. The seven classes Rust
+does not prevent are part of the answer, not a warning added afterwards. A
+compiler that refuses to build a program rules the defect out of each
+execution. A sanitiser rules it out only of the
 runs a sanitiser test happens to take. What is absolute there is the
 execution coverage, not the breadth of the catalogue.
 Figure~\ref{fig:boundary} names the mechanism on each side of that line. Rust
