@@ -643,8 +643,7 @@ programs were run. Section~\ref{sec:safetyresults} reports what each one did.
 The tail is the metric because of two traits of this part. One user-visible
 action, a call setup or a handover, becomes many dependent control-plane
 steps. The slowest member gates completion. A busy site drives thousands of
-such procedures per second. So a percentile far out in the distribution is
-reached often enough to matter. The failure shape is the second reason. A
+such procedures per second. So a far-tail point is reached often enough to matter. The failure shape is the second reason. A
 service of this design tracks its offered load with flat delay until a worker
 saturates. Then delay jumps by a huge step in one increment of load. That is
 why this study sweeps past saturation.
@@ -655,22 +654,22 @@ pair of versions, plus the harness that drives them. Both are built from one
 frozen spec. Evidence comes from three separate methods. A load sweep answers
 RQ1 and RQ3. Controlled fault injection answers RQ2. An FFI migration
 prototype answers RQ4. A weakness in one of them, such as how much the host
-can move the tail, does not carry into the conclusions as a whole.
+can move the tail, does not carry into the rest of the claims.
 
 Each question asks how one outcome depends on one variable, the language. The
 language has to be the only planned gap between the two objects under test.
-That rules out the commonest form of language comparison. In that form two
+That rules out the most common way to compare languages. In that form two
 programs written on their own are measured, and the gap is taken to be the
 language. Such a gap also carries the design, the libraries, and the skill of
 their authors. Building both sides from one spec removes that confound. Where
 a question can be answered with numbers, it uses numbers. Where it cannot, the
 answer is still by a fixed plan, in words. That is how this study treats the
-kind of guarantee in RQ2 and the application programming interface (API)
-design effort in RQ4.
+kind of guarantee in RQ2. RQ4 asks about API design cost. API here is the
+application programming interface.
 
 The closest prior work is the five vendor-hosted theses of
 Section~\ref{sec:gap}. They appear in no citation database. They had to be
-found by searching the institutional repositories directly. The same searches
+found by searching each university's own store by hand. The same searches
 found no Finnish thesis on Rust in a radio-access setting. They found no
 indexed paper mentioning Rust from the vendor hosting this work. The search
 returned no study that measures the tail of a Rust and a C++ version of the
@@ -732,8 +731,8 @@ The C++ columns then report the tooling this study ran. They do not report a
 ceiling on what C++ tooling could find. RQ4 is answered by a working
 prototype in the direction a real migration takes. A C++ host calls an
 unchanged Rust core across a C ABI. The per-call cost is measured on a real
-step and not inferred from an empty crossing. Cross-language memory bugs
-concentrate at that seam~\cite{li2022crosslang}.
+step and not inferred from an empty crossing. Memory bugs that cross a language sit at that
+seam~\cite{li2022crosslang}.
 
 \section{Fairness as a controlled variable}\label{sec:controlsbrief}
 A language comparison is only as good as the variables it holds fixed. The
