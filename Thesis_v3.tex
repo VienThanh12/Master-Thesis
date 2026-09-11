@@ -421,32 +421,33 @@ types are caught, and what it costs to catch them.
 \chaptermark{Background}
 
 \section{RAN control-plane systems and the gNB-CU-CP}\label{sec:ranarch}
-The next-generation radio access network (NG-RAN) architecture splits the gNB into a central
-unit (gNB-CU) and distributed units, with the control plane (gNB-CU-CP) handling RRC and
-connection management for each UE~\cite{3gpp38401,3gpp38300,3gpp38331}. Such control-plane
-systems must satisfy demanding non-functional requirements: very high event rates (UE
-mobility, signalling storms), strict and predictable latency bounds that the 5G service and
-RAN specifications quantify as key performance indicators
-(KPIs)~\cite{3gpp38913,3gpp22261}, long-lived software with continuously evolving complexity,
-and heavily concurrent workloads. In these systems the worst-case and tail behaviour,
-rather than the average, determines whether deadlines are met, which motivates the
-predictability focus of this thesis.
+The next-generation radio access network (NG-RAN) splits the gNB. One part is a
+central unit (gNB-CU). The other parts are distributed units (gNB-DU). The
+control plane (gNB-CU-CP) handles RRC and connection handling for each
+UE~\cite{3gpp38401,3gpp38300,3gpp38331}. These systems face extra hard goals.
+Event rates are high: UEs move, and signalling can spike. Delay bounds are
+tight and must stay stable. The 5G service and RAN specs state them as key
+performance indicators (KPIs)~\cite{3gpp38913,3gpp22261}. The software lives
+for a long time and keeps growing. Many threads run at once. Here the worst
+case and the tail matter more than the mean. That is why this thesis measures
+the tail.
 
 % Checked (make sure everything is understandable) 10.9
 
-Functionally, the gNB is disaggregated along two independent axes. The first is a
-\emph{central/distributed} split: a central unit (gNB-CU) hosts the higher layers of the
-protocol stack, while one or more distributed units (gNB-DU) host the lower, more
-time-critical layers close to the radio. The second is a \emph{control/user-plane} split
-inside the central unit, separating the control-plane function (gNB-CU-CP) from the
-user-plane function (gNB-CU-UP). These parts communicate over standardised
-interfaces: NG towards the 5G core, F1 between the CU and the DU, and E1 between the CU-CP and
-the CU-UP~\cite{3gpp38401,3gpp38300,3gpp38463}. Open-RAN initiatives standardise these interfaces
-further so that each part can be supplied by a different vendor and run as software on
-commodity hardware~\cite{polese2023oran}. Figure~\ref{fig:ngran} places the subsystem studied
-in this thesis, UE Context Management (UECM), inside the gNB-CU-CP: it owns the per-UE
-control-plane state and mediates the RRC signalling and mobility procedures, which is why its
-correctness and timing behaviour are representative of the control plane as a whole.
+The gNB is split on two axes. The first split is central versus distributed. A
+central unit (gNB-CU) hosts the higher layers of the stack. One or more
+distributed units (gNB-DU) host the lower layers. Those layers sit close to
+the radio and are tight on time. The second split is control versus user
+plane, inside the central unit. It splits the control-plane function
+(gNB-CU-CP) from the user-plane function (gNB-CU-UP). These parts talk over
+standard links. NG goes toward the 5G core. F1 sits between the CU and the DU.
+E1 sits between the CU-CP and the CU-UP~\cite{3gpp38401,3gpp38300,3gpp38463}.
+Open-RAN pushes the same links further. Each part can then come from a
+different vendor and run as software on ordinary
+machines~\cite{polese2023oran}. Figure~\ref{fig:ngran} places the part studied
+here, UE Context Management (UECM), inside the gNB-CU-CP. UECM owns the per-UE
+control-plane state. It also handles RRC signalling and mobility. That is why
+its correctness and timing stand in for the control plane as a whole.
 
 \begin{figure}[ht]
 \centering
@@ -491,67 +492,72 @@ highlighted inside the gNB-CU-CP.\label{fig:ngran}}
 \end{figure}
 
 \section{Predictability and the two languages}\label{sec:bgbrief}
-This section states what the study takes as given.
-Predictability, not average
-throughput, is the governing property of a latency-critical service, so the quantity to measure
-is the tail of the distribution and not its mean, and measuring it correctly
-constrains the harness as much as the metric: an open-loop schedule is required, because a
-closed-loop one stops issuing requests while a stall is in progress and so never records the
-latency of the stall.
+This section states what the study takes as given. Stable delay, not mean
+throughput, is the main property of a delay-critical service. So the quantity
+to measure is the tail, not the mean. Measuring the tail well also shapes the
+harness. The send schedule must be open-loop. A closed-loop sender stops while
+a stall is in progress. It then never records the delay of that stall.
 
-C++ supplies the control the domain demands and leaves memory and concurrency safety to the
-programmer, with sanitisers and review standing in for a guarantee. The standards committee's
-work on enforced safety profiles is neither standardised nor generally implemented. Rust's ownership and borrowing discipline rules out lifetime and
-aliasing errors at compile time, and its \texttt{Send} and \texttt{Sync} traits rule out data
-races. That is a narrower claim than the phrase ``thread safety'' suggests. It says nothing about
-lock-acquisition order, about the atomicity of a composed operation, or about leaks, and it is
-suspended wherever a program writes \texttt{unsafe}. Both languages can express the same
-concurrency structures, and a comparison that lets the structure vary with the language measures
-the structure. The two meet through a C application binary interface, which is the mechanism any
-incremental migration has to use and the reason a seam concentrates whatever \texttt{unsafe} a
-migration needs.
+C++ gives the control the domain needs. It leaves memory and thread safety to
+the programmer. Sanitisers and review stand in for a guarantee. The standards
+committee's work on enforced safety profiles is not a standard yet. It is not
+widely in use. Rust's ownership and borrowing rules out lifetime and aliasing
+bugs at compile time. Its \texttt{Send} and \texttt{Sync} traits rule out data
+races. That claim is narrower than ``thread safety''. It says nothing about
+lock order. It says nothing about whether a composed step is atomic. It says
+nothing about leaks. And it is off wherever a program writes \texttt{unsafe}.
+Both languages can express the same thread structures. A comparison that lets
+the structure change with the language then measures the structure, not the
+language. The two meet through a C application binary interface. That is the
+path any step-by-step migration has to use. It is also why a seam holds the
+\texttt{unsafe} a migration needs.
 
 \section{Research gap}\label{sec:gap}
-The preceding sections set up the gap. The RAN control plane is a soft-to-firm real-time,
-highly concurrent domain where tail behaviour under overload, not average throughput, governs
-the quality the network delivers. C++ supplies the control and performance the domain demands,
-but leaves whole classes of memory and concurrency defects to best-effort detection after the
-fact. Rust promises to prevent those classes at compile time at no run-time cost, and offers a
-credible incremental adoption path through the C application binary interface (ABI).
+The sections above set up the gap. The RAN control plane has many threads and
+tight delay bounds. Tail delay under too much load, not mean throughput, sets
+the quality the network delivers. C++ gives the control and speed the domain
+needs. But it leaves whole classes of memory and thread bugs to detection
+after the fact. Rust promises to block those classes at compile time at no
+run-time cost. It also offers a step-by-step adoption path through the C
+application binary interface (ABI).
 
-The domain is not unstudied, and the volume of prior work is easy to underestimate because
-almost none of it is indexed. At least five vendor-hosted master's theses, all carried out at
-Ericsson, have compared candidate languages for RAN and telecom software. One weighs runtime
-cost against development efficiency across C++, Rust, and Go~\cite{karlback2021ran}. One asks
-whether Rust could replace C in RAN node management~\cite{olsson2023ranmgmt}. One builds a
-thread-per-core packet processor on asynchronous Rust and measures it against the Data Plane
-Development Kit (DPDK) application it mirrors~\cite{olsson2023asyncpackets}. One measures median and 99th-percentile
-latency for control-plane procedures across five asynchronous programming
-frameworks~\cite{arvidsson2025async}. The last builds matched C++ and Rust implementations of an
-Abstract Syntax Notation One (ASN.1) decompiler and compares them
-statistically~\cite{emberg2023asn1}. All five are directly
-relevant, and two report differences unfavourable to Rust.
+The domain is not unstudied. The volume of prior work is easy to miss, because
+almost none of it is indexed. At least five vendor-hosted master's theses, all
+done at Ericsson, have compared candidate languages for RAN and telecom
+software. One weighs run-time cost against how fast people can build, across
+C++, Rust, and Go~\cite{karlback2021ran}. One asks whether Rust could replace
+C in RAN node management~\cite{olsson2023ranmgmt}. One builds a packet
+processor, one thread per core, in async Rust. It measures that processor
+against the Data Plane Development Kit (DPDK) program it
+mirrors~\cite{olsson2023asyncpackets}. One measures median and p99 delay for
+control-plane steps across five async
+frameworks~\cite{arvidsson2025async}. The last builds matched C++ and Rust
+versions of an Abstract Syntax Notation One (ASN.1) decompiler. It compares
+them with stats~\cite{emberg2023asn1}. All five are directly relevant. Two
+report gaps that do not favour Rust.
 
-Three of them vary the language together with the runtime and the concurrency model, so a
-measured difference cannot be attributed to the language rather than to the framework built on
-it~\cite{karlback2021ran,olsson2023asyncpackets,arvidsson2025async}. The effect sizes reach a
-factor of five, which is an indication of how much of the measurement the runtime owns. The
-remaining two hold the design closer to fixed but report execution time and peak memory rather
-than tail behaviour under rising load~\cite{olsson2023ranmgmt,emberg2023asn1}, and the closest
-of them, Emberg and Wadsten, measures a stateless transformation rather than a stateful,
-concurrent subsystem. Figure~\ref{fig:gapmap} places the five vendor theses beside the
-general-purpose comparisons~\cite{pereira2017energy} and the matched systems-software
-pairs~\cite{emmerich2019drivers,suchert2023stamp}. The pattern it shows is that each group holds
-some of the properties a controlled answer would need, and none holds all.
+Three of them change the language together with the run-time and the thread
+model. A measured gap then cannot be blamed on the language rather than on the
+framework~\cite{karlback2021ran,olsson2023asyncpackets,arvidsson2025async}.
+The effect sizes reach a factor of five. That shows how much of the
+measurement the run-time owns. The other two hold the design closer to fixed.
+But they report run time and peak memory, not tail delay under rising
+load~\cite{olsson2023ranmgmt,emberg2023asn1}. The closest of them, Emberg and
+Wadsten, measures a stateless transform. It is not a stateful multi-thread
+part. Figure~\ref{fig:gapmap} places the five vendor theses beside the
+general-purpose comparisons~\cite{pereira2017energy} and the matched
+systems-software pairs~\cite{emmerich2019drivers,suchert2023stamp}. The
+pattern is this. Each group holds some of what a fair test would need. None
+holds all of it.
 
-The concentration of that evidence is itself part of the gap. All five studies come from one
-vendor, and their conclusions have never been tested against another organisation's software,
-targets or conventions, so what is known about this question is what one company's frameworks
-report about it. The published record on the other side is emptier: there is no study of Rust
-among the indexed publications of the vendor hosting this work, and the nearest peer-reviewed
-position from that side argues for making memory-error sanitisation practical rather than for
-replacing it with a compile-time guarantee~\cite{gjomemo2016mesc}, which is the strategy this
-thesis tests against. The paragraphs below compare the five with this study directly.
+That bunching is itself part of the gap. All five studies come from one vendor. Their conclusions have never been tested against another
+firm's software, targets or house rules. So what is known about this question
+is what one firm's frameworks say about it. The published record on the other
+side is thinner. There is no study of Rust among the indexed papers of the
+vendor hosting this work. The nearest peer-reviewed stance from that side
+argues for making memory-error sanitisation practical. It does not argue for
+replacing it with a compile-time guarantee~\cite{gjomemo2016mesc}. That is the
+strategy this thesis tests against.
 
 \begin{figure}[ht]
 \centering
@@ -562,34 +568,30 @@ The vendor-RAN column is the five Ericsson theses, including both Olsson
 studies.\label{fig:gapmap}}
 \end{figure}
 
-What is therefore missing from the literature
-is \emph{direct, controlled} evidence for a representative control-plane subsystem: Whether
-Rust actually holds its tail latency and predictability under overload against modern C++
-\emph{when the concurrency model, algorithms, and data structures are held fixed},
-exactly which defect classes it eliminates and at what stage the remainder are caught, what
-its safety model costs in throughput and resources, and what incremental adoption costs in
-practice. Closing this gap is the purpose of the four research questions. The next chapter
-grounds them in the specific subsystem, defect classes, and timing properties at stake, and
-sets out the methodology by which they are pursued.
+What is missing from prior work is a direct, controlled test of a typical
+control-plane part. The open questions are these. Does Rust hold its tail
+delay under too much load against modern C++ when the thread model, steps, and
+data layout stay fixed? Which bug classes does it remove, and at what stage
+are the rest caught? What does its safety model cost in throughput and in CPU
+and memory? What does step-by-step adoption cost in practice? Closing this gap
+is the purpose of the four research questions. The next chapter grounds them
+in the part under study, the bug classes, and the timing at stake. It also
+sets out the method.
 
 
 \chapter{Research Methodology\label{chapter:methodology}}
 \chaptermark{Methodology}
 
-The preceding chapter set out the gap this study closes. This one sets out how.
-It begins with the subsystem the work is carried out on. It then states the
-research strategy, the method for each question, the controls that keep the
-comparison fair, the statistical treatment, and how a third party can rebuild
-the results.
+The last chapter set out the gap. This chapter says how the study closes it.
 
 \section{The UE Context Management subsystem}\label{sec:uecm}
-The subsystem under study is a UE Context Management service. It is modelled on a
-real Nokia gNB-CU-CP service domain that owns the UE context lifecycle, RRC
-procedure execution~\cite{3gpp38331}, and mobility and handover. Those are the
-functions the 3GPP architecture assigns to the control-plane part of a
-disaggregated gNB (Section~\ref{sec:ranarch}). Figure~\ref{fig:fsm} shows the
-UE-context lifecycle both versions encode the same way. The mixed workload
-of Section~\ref{sec:workload} walks each UE through that machine.
+The part under study is a UE Context Management service. It is modelled on a
+real Nokia gNB-CU-CP service that owns the UE context lifecycle, RRC procedure
+execution~\cite{3gpp38331}, and mobility and handover. Those are the functions
+the 3GPP design assigns to the control-plane part of a split gNB
+(Section~\ref{sec:ranarch}). Figure~\ref{fig:fsm} shows the UE-context
+lifecycle both versions encode the same way. The mixed workload of
+Section~\ref{sec:workload} walks each UE through that machine.
 
 \begin{figure}[ht]
 \centering
@@ -615,72 +617,70 @@ Operations invalid for the current state return an error instead of changing
 state.\label{fig:fsm}}
 \end{figure}
 
-UECM is core RAN layer-3 work. It carries the properties that make
-live control-plane code hard: per-UE mutable state, a strict
-operation lifecycle, high concurrency across UEs, and the latency targets the 5G
-system sets for control-plane procedures~\cite{3gpp38913,3gpp22261}. Conclusions
-about how a language handles those properties transfer to other
-stateful, concurrent control-plane services. The subsystem is also small enough
-to specify in full and implement twice. That is what makes a parity-tested
-comparison possible.
+UECM is core RAN layer-3 work. It has the traits that make live control-plane
+code hard. Each UE has state that changes. The operation lifecycle is strict.
+Many UEs run at once. Delay targets are the ones the 5G system sets for
+control-plane steps~\cite{3gpp38913,3gpp22261}. Findings about how a language
+handles those traits transfer to other stateful, multi-thread control-plane
+services. The part is also small enough to specify in full and build twice.
+That is what makes a parity-tested comparison possible.
 
-The interface is small and built around the lifecycle. It can create and release a
-context, set up a connection, handle an in-session signalling message, add a
-data radio bearer, begin, complete, or abort a reconfiguration, and look up a
-context's state under load. Each operation is defined for each state of
-Figure~\ref{fig:fsm}. An illegal operation returns a typed error and leaves the
-context unchanged. That closed set lets the same tests and the same workload
-drive both versions along the same paths.
+The interface is small and built around the lifecycle. It can create and
+release a context. It can set up a connection. It can handle an in-session
+signalling message. It can add a data radio bearer. It can begin, complete, or
+abort a reconfiguration. It can look up a context's state under load. Each
+step is defined for each state of Figure~\ref{fig:fsm}. An illegal step
+returns a typed error and leaves the context unchanged. That closed set lets
+the same tests and the same workload drive both versions along the same
+paths.
 
 RQ2 needs a catalogue, not a loose list of hazards. One is built from this
-operation set: $\FaultClasses$ classes in two groups of seven. Seven come from
-inside the region safe Rust claims to govern. Seven were chosen because safe
-Rust is expected not to prevent them. Each has its expectation recorded before
-the programs were run. Section~\ref{sec:safetyresults} reports what each one
-did.
+step set: $\FaultClasses$ classes in two groups of seven. Seven come from inside
+the region safe Rust claims to govern. Seven were chosen because safe Rust is
+expected not to prevent them. Each has its expectation recorded before the
+programs were run. Section~\ref{sec:safetyresults} reports what each one did.
 
-The tail is the metric because of two properties of this subsystem. One
-user-visible action, a call setup or a handover, becomes many dependent
-control-plane operations. The slowest member gates completion. A busy site
-drives thousands of such procedures per second, so a percentile far out in the
-distribution is reached often enough to matter. The failure shape is the second
-reason. A service of this design tracks its offered load with flat latency until
-a worker saturates. Then latency jumps by a huge step in one
-increment of load. That is why this study sweeps past saturation.
+The tail is the metric because of two traits of this part. One user-visible
+action, a call setup or a handover, becomes many dependent control-plane
+steps. The slowest member gates completion. A busy site drives thousands of
+such procedures per second. So a percentile far out in the distribution is
+reached often enough to matter. The failure shape is the second reason. A
+service of this design tracks its offered load with flat delay until a worker
+saturates. Then delay jumps by a huge step in one increment of load. That is
+why this study sweeps past saturation.
 
 \section{Research approach}\label{sec:approach}
-The study runs experiments. It also builds the thing it measures: a matched pair
-of versions, plus the harness that drives them. Both are built from one
-frozen specification. Evidence comes from three separate methods. A load
-sweep answers RQ1 and RQ3. Controlled fault injection answers RQ2. An FFI
-migration prototype answers RQ4. A weakness in one of them, such as how
-much the host can move the tail, does not carry into the
-conclusions as a whole.
+The study runs experiments. It also builds the thing it measures: a matched
+pair of versions, plus the harness that drives them. Both are built from one
+frozen spec. Evidence comes from three separate methods. A load sweep answers
+RQ1 and RQ3. Controlled fault injection answers RQ2. An FFI migration
+prototype answers RQ4. A weakness in one of them, such as how much the host
+can move the tail, does not carry into the conclusions as a whole.
 
-Each question asks how one outcome depends on one variable, the
-language. The language has to be the only planned gap
-between the two objects under test. That rules out the commonest form of
-language comparison, where two programs written on their own are measured and
-the gap is taken to be the language. Such a gap also carries the design, the
-libraries, and the skill of their authors. Building both sides from one
-specification removes that confound. Where a question can be answered with
-numbers, it uses numbers. Where it cannot, the answer is still by a fixed
-plan, in words. That is how this study treats the kind of guarantee in RQ2
-and the application programming interface (API) design effort in RQ4.
+Each question asks how one outcome depends on one variable, the language. The
+language has to be the only planned gap between the two objects under test.
+That rules out the commonest form of language comparison. In that form two
+programs written on their own are measured, and the gap is taken to be the
+language. Such a gap also carries the design, the libraries, and the skill of
+their authors. Building both sides from one spec removes that confound. Where
+a question can be answered with numbers, it uses numbers. Where it cannot, the
+answer is still by a fixed plan, in words. That is how this study treats the
+kind of guarantee in RQ2 and the application programming interface (API)
+design effort in RQ4.
 
 The closest prior work is the five vendor-hosted theses of
-Section~\ref{sec:gap}. They appear in no citation database. They had to be found
-by searching the institutional repositories directly. The same searches found no
-Finnish thesis on Rust in a radio-access setting, and no indexed publication
-mentioning Rust from the vendor hosting this work. The search returned no study
-that measures the tail of a Rust and a C++ version of the same stateful,
-concurrent control-plane subsystem under overload.
+Section~\ref{sec:gap}. They appear in no citation database. They had to be
+found by searching the institutional repositories directly. The same searches
+found no Finnish thesis on Rust in a radio-access setting. They found no
+indexed paper mentioning Rust from the vendor hosting this work. The search
+returned no study that measures the tail of a Rust and a C++ version of the
+same stateful, multi-thread control-plane part under too much load.
 
-Table~\ref{tab:design} maps each research question to the method, artefact, data
-and metric that answer it. RQ1 and RQ3 share H1, worded to cover a speed tie in both the latency
-and the resource sense. That wording turns out to be the hypothesis's main
-weakness. RQ2 does not depend on the host. RQ4 depends on it along one
-axis: build time is a timing, and so it is read as a ratio between two
+Table~\ref{tab:design} maps each research question to the method, artefact,
+data and metric that answer it. RQ1 and RQ3 share H1, worded to cover a speed
+tie in both the delay and the resource sense. That wording turns out to be the
+hypothesis's main weakness. RQ2 does not depend on the host. RQ4 depends on it
+along one axis. Build time is a timing. So it is read as a ratio between two
 toolchains measured in turn on one machine.
 
 \begin{table}[ht]
@@ -714,92 +714,89 @@ seam size, \texttt{unsafe} scope, per-call cost \\
 \end{table}
 
 \section[Methods per research question]{Methods per research question, in outline}\label{sec:methodbrief}
-RQ1 and RQ3 are answered by an open-loop load sweep from light load to well past
-saturation. Open-loop means the generator keeps to its send schedule instead of
-waiting for replies~\cite{schroeder2006openclosed}. The four build variants are
-interleaved inside each repeat. A second timing splits the core
-operation from the cross-thread handoff around it. The end-to-end round-trip
-bundles two costs of two kinds, and only one of them can differ
-between the languages. A third timing takes the contended queue and
-completion primitives on their own, so the overload cause can be tested
-and not merely argued.
+RQ1 and RQ3 are answered by an open-loop load sweep from light load to well
+past saturation. Open-loop means the generator keeps to its send schedule
+instead of waiting for replies~\cite{schroeder2006openclosed}. The four build
+variants take turns inside each repeat. A second timing splits the core step
+from the cross-thread handoff around it. The end-to-end round-trip bundles two
+costs of two kinds. Only one of them can differ between the languages. A third
+timing takes the contended queue and the reply handle on their own. So the
+overload cause can be tested and not merely argued.
 
 RQ2 is answered by controlled fault injection~\cite{natella2016fault}. Each
 defect class is written as a small self-contained program in both languages.
 The C++ side is built and run under AddressSanitizer, ThreadSanitizer and
 UndefinedBehaviorSanitizer. The safe-Rust side is compiled and, where it
 compiles, run under a bounded timeout. No static analyser is run, on purpose.
-The C++ columns then report the tooling this study ran and not a ceiling on
-what C++ tooling could find. RQ4 is answered by a working prototype in the
-direction a real migration takes: a C++ host calling an unchanged Rust core
-across a C ABI. The per-call cost is measured on a real operation and not
-inferred from an empty crossing. Cross-language memory-management defects
+The C++ columns then report the tooling this study ran. They do not report a
+ceiling on what C++ tooling could find. RQ4 is answered by a working
+prototype in the direction a real migration takes. A C++ host calls an
+unchanged Rust core across a C ABI. The per-call cost is measured on a real
+step and not inferred from an empty crossing. Cross-language memory bugs
 concentrate at that seam~\cite{li2022crosslang}.
 
 \section{Fairness as a controlled variable}\label{sec:controlsbrief}
 A language comparison is only as good as the variables it holds fixed. The
-specification is frozen before either version exists. The concurrency
-model, the allocator and its arena count, the optimisation level, the hash
-function, the histogram algorithm and the load schedule are matched across the
-two sides, never tuned per side. Where the two languages could not be written
-alike, the gap is logged instead of resolved. The two sides are shown to
-match by diffing conformance transcripts operation by operation. One row
-of that table has no control against it: one person wrote both versions
-and is not equally expert in both. Section~\ref{sec:standing} treats that as the
-study's main internal threat.
+spec is frozen before either version exists. The thread model, the allocator
+and its arena count, the opt level, the hash function, the histogram method
+and the load schedule are matched across the two sides. They are never tuned
+per side. Where the two languages could not be written alike, the gap is
+logged instead of resolved. The two sides are shown to match by diffing match
+logs step by step. One row of that table has no control against it. One
+person wrote both versions and is not equally expert in both.
+Section~\ref{sec:standing} treats that as the study's main internal threat.
 
 \section{Statistical treatment}\label{sec:statsbrief}
-The statistical design is fixed in advance. The family of tested comparisons is
-listed ahead of the campaign, so a load picked after seeing
-a sweep cannot enter it. Each comparison is an exact paired permutation test
-over \NRepeats{} interleaved repeats with a bootstrap confidence
+The stats design is fixed in advance. The family of tested comparisons is
+listed ahead of the campaign. So a load picked after seeing a sweep cannot
+enter it. Each comparison is an exact paired permutation test over \NRepeats{}
+repeats that take turns, with a bootstrap confidence
 interval~\cite{efron1993bootstrap}, Holm-corrected across the
 family~\cite{holm1979simple}. The floors the test can reach ($\MinAttainableP$
 uncorrected, $\CorrectedFloor$ corrected) are quoted so that a null can be
-told apart from a math limit. Two quantities are kept out of the
-family. One is jitter from one call to the next, which no research question asks for.
-The other is the pooled p99.99 far tail. Its unit is the operation, not the run.
-It then has no across-repeat interval to test.
+told apart from a math limit. Two quantities are kept out of the family. One
+is jitter from one call to the next, which no research question asks for. The
+other is the pooled p99.99 far tail. Its unit is the step, not the run. It
+then has no across-repeat interval to test.
 
 \section{Reproducibility and research artifacts}\label{sec:repro}
-A third party can rebuild the results without access to Nokia's private
-code. The versions are driven entirely by the public frozen
-specification. The benchmarking harness, the fault catalogue and its runner, and
-the FFI prototype are published with the thesis. Each plot of measured data,
-and each quoted number in the results, is rebuilt by one
-script (\texttt{bench/refresh\_thesis.sh}) directly from the raw logs. That
-claim does not cover the hand-drawn schematics, which explain a concept rather
-than report a result. And running the same scripts over another host's campaign
-rebuilds the artefacts by the same procedure, not with the same values.
+A third party can rebuild the results without access to Nokia's private code.
+The versions are driven entirely by the public frozen spec. The benchmarking
+harness, the fault catalogue and its runner, and the FFI prototype are
+published with the thesis. Each plot of measured data, and each quoted number
+in the results, is rebuilt by one script (\texttt{bench/refresh\_thesis.sh})
+directly from the raw logs. That claim does not cover the hand-drawn
+schematics, which explain a concept rather than report a result. And running
+the same scripts over another host's campaign rebuilds the artefacts by the
+same procedure, not with the same values.
 
 The logs that script reads are part of the package. Each campaign has its own
 script and its own macro prefix, so a figure from one cannot reach a sentence
-about another. Each run's host setup is recorded and stored beside the campaign
-data. Nothing in the results chapters is transcribed from those files by
+about another. Each run's host setup is recorded and stored beside the
+campaign data. Nothing in the results chapters is typed from those files by
 hand.
 
 \chapter{Design and Implementation\label{chapter:design}}
 \chaptermark{Design}
 
-Nothing is built until the specification is frozen. It fixes the public
-API, the UE state machine, the data structures and their algorithms,
-the locking and shard grain, and the concurrency model. Both
-versions follow it. The test then times the language, not a
-gap of design or of skill. The specification is itself a deliverable. It
-is the study's main control against writer bias.
+Nothing is built until the spec is frozen. It fixes the public API, the UE
+state machine, the data layout and the steps on it, the locks and shard size,
+and the thread model. Both versions follow it. The test then times the
+language, not a gap of design or of skill. The spec is itself an output of the
+study. It is the main control against writer bias.
 
-One concurrency model is used on both sides, shared-nothing and
-thread-per-shard. That structuring is known to change tail latency by
-itself~\cite{enberg2019threadpercore}. The identifier space is partitioned into
-shards. Each shard is owned by a single worker thread that alone reads or
-mutates it, so no lock guards context state. Callers submit a request to the
-owning shard's bounded queue and wait on a single-use completion handle. The
-queue blocks when it is full. That is deliberate. A drop policy would hide
-overload, and this study needs overload to appear as latency. The only shared
-mutable state either version permits is one atomic counter. No control flow
-depends on its value. Figure~\ref{fig:arch} shows the resulting data flow, with
-one multi-producer, single-consumer (MPSC) queue per shard that its worker
-drains first in, first out (FIFO).
+One thread model is used on both sides: shared-nothing and thread-per-shard.
+That layout is known to change tail delay by
+itself~\cite{enberg2019threadpercore}. The id space is split into shards. Each
+shard is owned by one worker thread. That thread alone reads or changes it.
+So no lock guards context state. Callers send a request to the owning shard's
+bounded queue. They wait on a one-shot reply handle. The queue blocks when it
+is full. That is on purpose. A drop rule would hide overload. This study needs
+overload to show up as delay. The only shared mutable state either version
+allows is one atomic counter. No control flow depends on its value.
+Figure~\ref{fig:arch} shows the data flow. There is one multi-producer,
+single-consumer (MPSC) queue per shard. Its worker drains it first in, first
+out (FIFO).
 
 \begin{figure}[ht]
 \centering
@@ -850,42 +847,40 @@ thread-per-shard architecture. Producers submit to a bounded MPSC queue per
 shard, and that shard's worker drains it.\label{fig:arch}}
 \end{figure}
 
-Fairness is enforced below the design as well as in it. Both builds link the
-same \texttt{jemalloc} and keep a system-allocator build as a control. Both
-compile at matched optimisation. Both record latency through one
-high-dynamic-range (HDR) histogram algorithm set up the same
-way~\cite{tene_hdrhistogram}. Hashing is pinned on both sides, SplitMix64
-for shard assignment and FNV-1a, the Fowler--Noll--Vo hash, inside the map.
-C++'s default hash of an integer is often just the number itself. Rust's is
-strong on purpose. Left as they came, the two standard libraries would
-have been the measurement.
+Fairness is kept below the design as well as in it. Both builds link the same
+\texttt{jemalloc}. Both keep a system-allocator build as a control. Both
+compile at the same opt level. Both record delay through one high-dynamic-range
+(HDR) histogram set up the same way~\cite{tene_hdrhistogram}. Hashing is pinned
+on both sides. SplitMix64 assigns the shard. FNV-1a, the Fowler--Noll--Vo hash,
+is used inside the map. C++'s default hash of an integer is often just the
+number itself. Rust's is strong on purpose. Left as they came, the two
+standard libraries would have been the measurement.
 
-Where the languages cannot satisfy a requirement the same way, the gap is
-written into a forced-idiom log and then measured. Two of those gaps carry the
-overload result of Section~\ref{sec:overload}. One is the bounded queue,
-hand-written in C++ against Rust's \texttt{sync\_channel}. The other is the
-completion handle, \texttt{std::promise} against a fresh \texttt{mpsc} channel
-per request.
-A third carries the core-operation result of Section~\ref{sec:perfresults},
-since the per-shard container is each language's own standard hash map. Rust
-takes its bounded blocking queue from \texttt{sync\_channel}. C++ through C++23
-has no such primitive, so it assembles one from a mutex and two condition
-variables. C++ has no payload-carrying enumeration in this idiom either. A
-request becomes a tagged struct holding each argument field any operation might
-need, $\CppRequestBytes$~bytes against Rust's $\RustRequestBytes$. The net
-result is a Rust core $\NlocRise\%$ longer in code lines whose total cyclomatic
-complexity is $\CcnTotalDrop\%$ lower~\cite{lizard}. The Rust library contains
-no \texttt{unsafe} at all.
+Where the languages cannot meet a need the same way, the gap is written into a
+forced-idiom log and then measured. Two of those gaps carry the overload
+result of Section~\ref{sec:overload}. One is the bounded queue, hand-written
+in C++ against Rust's \texttt{sync\_channel}. The other is the reply handle,
+\texttt{std::promise} against a fresh \texttt{mpsc} channel per request. A
+third carries the core-step result of Section~\ref{sec:perfresults}, since the
+per-shard container is each language's own standard hash map. Rust takes its
+bounded blocking queue from \texttt{sync\_channel}. C++ through C++23 has no
+such primitive, so it builds one from a mutex and two condition variables. C++
+has no payload-carrying enumeration in this idiom either. A request becomes a
+tagged struct holding each field any step might need, $\CppRequestBytes$~bytes
+against Rust's $\RustRequestBytes$. The net result is a Rust core
+$\NlocRise\%$ longer in code lines. Its total path count through the code is
+$\CcnTotalDrop\%$ lower~\cite{lizard}. The Rust library contains no
+\texttt{unsafe} at all.
 
 Parity is tested and not assumed. Language-neutral vectors run in both
-versions and their transcripts are diffed operation by operation. A
-cross-diff cannot tell ``both correct'' from ``both wrong in the same way''. A
-third version in Python acts as an independent oracle. It has to
-reproduce all $\ConfHandOps$ hand-derived expectations before it may generate
-any of its own. A campaign of roughly $\ConfGenOps$ generated operations found
-no divergence. The C++ side runs under AddressSanitizer, ThreadSanitizer and
-UndefinedBehaviorSanitizer. The Rust side runs under Miri. A clean sanitiser
-result is bounded by the code that actually ran.
+versions. Their logs are diffed step by step. A cross-diff cannot tell ``both
+correct'' from ``both wrong in the same way''. A third version in Python acts
+as an independent oracle. It has to reproduce all $\ConfHandOps$ hand-derived
+expectations before it may generate any of its own. A campaign of roughly
+$\ConfGenOps$ generated steps found no mismatch. The C++ side runs under
+AddressSanitizer, ThreadSanitizer and UndefinedBehaviorSanitizer. The Rust
+side runs under Miri. A clean sanitiser result is bounded by the code that
+actually ran.
 
 \chapter{Experimental Setup and Evaluation\label{chapter:eval}}
 \chaptermark{Evaluation}
