@@ -57,12 +57,12 @@ The PDFs in this repository do not share a status and are not interchangeable.
 | Document | Status | Role |
 | -------- | ------ | ---- |
 | `Thesis_Plan_v2.pdf` | Reviewed, supervisor-facing | Approved plan: gap, RQs, methodology, timeline, contributions |
-| `Thesis_v3.pdf` | Reviewed, supervisor-facing | Supervisor read-through: Chapter 1 is the full draft introduction, chapters 2--8 keep five argument paragraphs each in plain prose. All eight chapters match the full draft's chapter list since 26 August 2026, and the results paragraphs quote the generated macros rather than carrying their own numbers |
-| `Ha_Vien_Mastersthesis_2026.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, a full argument, and everything in it still need review. The name is the UH submission format (`Lastname_Firstname_Mastersthesis_Year`, ASCII) and says nothing about review status. It was `Thesis_POC` until 19 August 2026 |
-| `Ha_Vien_Mastersthesis_2026_short.pdf` | Compression pass, in progress | A shorter cut of the full draft, built from the same class, macros, figures and bibliography. It declares 55 pages against the draft's 97, with the same 12 appendix pages, and it is `oneside` where the draft is `twoside,openright`. The material it sheds is relocated to appendices or merged rather than deleted, and [`.compress/shortcheck.py`](.compress/shortcheck.py) is what checks that nothing was lost. Not supervisor-facing and not a submission candidate |
+| `Thesis_v3.pdf` | Reviewed, supervisor-facing | Supervisor read-through: Chapter 1 is the full draft introduction, chapters 2--8 keep five argument paragraphs each in plain prose. All eight chapters match the full draft's chapter list since 26 August 2026, the results paragraphs quote the generated macros rather than carrying their own numbers, and the abstract is written (11 September 2026). Called `Thesis_v2` until 8 September 2026 |
+| `Ha_Vien_Mastersthesis_2026.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, a full argument, and everything in it still needs review. The name is the UH submission format (`Lastname_Firstname_Mastersthesis_Year`, ASCII) and says nothing about review status. It was `Thesis_POC` until 19 August 2026 |
+| `Ha_Vien_Mastersthesis_2026_short.pdf` | Compression pass, in progress | A shorter cut of the full draft, built from the same class, macros, figures and bibliography. It declares 55 pages against the draft's 97, with the same 12 appendix pages. Both documents are `oneside`, matching electronic submission. The material it sheds is relocated to appendices or merged rather than deleted, and [`.compress/shortcheck.py`](.compress/shortcheck.py) is what checks that nothing was lost. Not supervisor-facing and not a submission candidate |
 | `source_audit.pdf` | Generated citation audit | Every bibliography entry, ordered as in the full draft's reference list, with the citing sentence beside the source's own words. Built by [`.bibaudit/build_audit.py`](.bibaudit/build_audit.py). Do not hand-edit `source_audit.tex`, with one exception: the last column of Part 1 is the author's review tick, and turning a `$\square$` into a `$\blacksquare$` is how the source-checking pass records progress. The generator reads those ticks back out of the old document before overwriting it, mirrors them to `.bibaudit/reviewed.txt`, and prints how many it carried. Read that line after every rebuild, because a regeneration silently wiped 22 of them on 1 September 2026 |
-| `ai_statement.tex` | Declaration in the author's name | Statement on generative-AI use, shared by both thesis documents |
-| [`archive/`](archive/) | Superseded, not maintained | Earlier variants kept for reference only: `plain_thesis.tex`, `thesis-vi.tex` (renders its citations as `[?]`), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, and the v1 plan PDF. They read relative paths from the repository root, so they no longer build where they sit |
+| `ai_statement.tex` | Declaration in the author's name | Statement on generative-AI use, shared by the full draft, the supervisor skeleton, and the short cut. Edit this file, never a copy |
+| [`archive/`](archive/) | Superseded, not maintained | Earlier variants kept for reference only. See [`archive/README.md`](archive/README.md). Includes `plain_thesis.tex`, `thesis-vi.tex` (Vietnamese full-draft translation, citations as `[?]`), `Thesis_v3-vi.tex` (Vietnamese skeleton snapshot of 11 September 2026), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF, the retired `UH_DS_MSc.cls`, and the dated `rollback-20260827-220354/` snapshot. They read relative paths from the repository root, so they no longer build where they sit |
 
 [`AGENT.md`](AGENT.md) is the working contract for the repository: document roles, the grade
 criteria every edit has to protect, the scientific commitments that must not be weakened, and the
@@ -113,7 +113,7 @@ reader-facing view of that record.
 │   ├── reloc.py, movapp.py   Move a body block into the appendices, or reorder appendices
 │   ├── strip.py, deref.py, retarget.py   Delete relocated material and repoint what referenced it
 │   └── drafts/            Rewritten chapter candidates and the pre-relocation backup
-├── archive/           Superseded document variants and retired assets, kept for reference; not maintained, do not build
+├── archive/           Superseded document variants and retired assets (including `Thesis_v3-vi.tex`), kept for reference; not maintained, do not build
 ├── template/          Assets HYthesisML.cls loads by path (cover-page dictionaries, HY logo)
 │   └── upstream/          Pristine CSM thesis template the class was taken from
 ├── build/             latexmk intermediates (.aux, .log, .bbl); gitignored, safe to delete
@@ -123,18 +123,19 @@ reader-facing view of that record.
 ├── Thesis_v3.tex      Supervisor-facing chapter skeleton
 ├── Thesis_Plan_v2.tex Revised thesis plan
 ├── source_audit.tex   Generated citation audit. Only the Part 1 review tick is hand-edited. Rebuild with `.bibaudit/build_audit.py && latexmk -pdf source_audit.tex`
-├── ai_statement.tex  Declaration on generative-AI use, shared by both thesis documents
+├── ai_statement.tex  Declaration on generative-AI use, shared by the full draft, the skeleton, and the short cut
 ├── AGENT.md           Working rules: document roles, grade criteria, verification workflow
 ├── bibliography.bib
 ├── build_deck.py      Nokia-branded slide-deck generator (reads figures/ + faults/ results)
 ├── pdfpreview.py      Rasterise PDF pages into .pdf-preview/, since the WSL webview shows none
 ├── pdfannots.py       Pull a reviewer's highlights and notes out of a commented PDF in docs/review/
-└── .aitells.py, .vocab.py, .readability.py, .acronyms.py    Prose checks. `.acronyms.py` is a gate, not a count
+└── .aitells.py, .vocab.py, .b2.py, .readability.py, .acronyms.py    Prose checks. `.acronyms.py` is a gate, not a count. `.b2.py` is a frequency companion to `.vocab.py`
 ```
 
 The PDFs stay beside their sources, so `Ha_Vien_Mastersthesis_2026.pdf` and the SyncTeX index land
 at the root where the editor expects them. Only the intermediates go to `build/`, which
-`.latexmkrc` sets.
+`.latexmkrc` sets. An editor that overrides the aux directory will still drop `.aux` and `.log`
+files at the root. `bench/refresh_thesis.sh` already falls back to those copies.
 
 **The document sources have to stay at the root**, which is worth knowing before anyone tidies them
 into a subdirectory. Every one of them resolves `figures/`, `diagrams/pdf/`, `template/figures/` and
@@ -311,7 +312,8 @@ colloquium deck via `build_deck.py`, and calls `latexmk -pdf Ha_Vien_Mastersthes
 Campaign summary numbers land in `figures/gen_macros.tex`, and both the prose and the slides
 refer to them by macro name, so text, slides, and data stay in step. The generated
 `figures/gen_*.tex` files are never hand-edited. The citation audit is a separate document and
-is not rebuilt here.
+is not rebuilt here. Neither are `Thesis_v3.pdf` and `Thesis_Plan_v2.pdf`: rebuild those with
+`latexmk` after the macros move.
 
 Without `--campaign`, the refresh takes the newest log in `bench/results/`. Pass the reported
 campaign explicitly if that directory holds anything else:
@@ -354,14 +356,15 @@ slide deck, and each carries its own gate because none of them can see the other
 
 ```bash
 ./.aitells.py Ha_Vien_Mastersthesis_2026.tex   # LaTeX sources, and the default if none is given
-python3 .vocab.py                              # hard Latinate vocabulary
+python3 .vocab.py                              # hard Latinate vocabulary (hand-written list)
+python3 .b2.py                                 # CEFR-frequency vocabulary (companion to .vocab.py)
 python3 .readability.py                        # sentence and paragraph load
 ./.acronyms.py                                 # every front-matter acronym written out at first use
 diagrams/check_labels.py                       # diagram labels, also run by refresh_thesis.sh
 python3 build_deck.py                          # the deck checks its own slides on save
 ```
 
-The three count scripts report frequency rather than errors, so read the language-model fingerprints
+The count scripts report frequency rather than errors, so read the language-model fingerprints
 (transition openers, promotional adjectives, uniform sentence length) as frequency and aim low
 rather than at zero. `.acronyms.py` is a gate: it exits non-zero if a listed acronym is not written
 out at first use. Four of `.aitells.py`'s checks are house rules where zero is the target: em
@@ -412,17 +415,20 @@ from `diagrams/png/`, which `diagrams/render.py` writes.
 | RQ2 (safety) | Final. Fault-injection taxonomy complete across fourteen defect classes, seven inside the guarantee and seven outside it, plus Loom and Shuttle on the two concurrency boundary classes and Miri on the unsafe one |
 | RQ4 (migration) | Final. FFI prototype, interleaved native-vs-seam measurement of one real operation, seam size, and the three adoption-cost axes beyond the seam (build time, static footprint, third-party surface) |
 | RQ1/RQ3 (performance) | Complete. The matched bare-metal campaign ran on 27 August 2026 and is the reported dataset, so the per-language saturation limits, the overload divergence, the resource comparisons and the far tail below saturation are all resolved on one host at the canonical design. Rust's pooled p99.99 sits below C++'s at every load the two separate. Jitter and the p99.99 column are reported. One question the data raised remains open: whether the peak-RSS allocator effect tracks the transparent-hugepage policy |
-| Sources | 109 bibliography entries, every one of them cited. `docs/Sources_evidence.md` records per entry what claim the citation carries and where the supporting passage was read, and `source_audit.pdf` is the reader-facing view of it. 29 entries were ticked as read against the source itself at 2 September 2026 |
-| Writing | `Ha_Vien_Mastersthesis_2026.pdf` builds clean with zero LaTeX errors and no undefined references. It is a full draft awaiting review. The printed abstract matches the tables, and the AI declaration records that it was written unaided. Both thesis documents carry a front-matter list of acronyms as of 4 September 2026, so an acronym added to either needs a row there as well as the expansion at its first use. `Thesis_v3.pdf` is the eight-chapter supervisor read-through (full Chapter 1, five prose paragraphs in each of chapters 2--8), and its abstract is still the template placeholder |
+| Sources | 111 bibliography entries, every one of them cited. `docs/Sources_evidence.md` records per entry what claim the citation carries and where the supporting passage was read, and `source_audit.pdf` is the reader-facing view of it. 29 entries were ticked as read against the source itself at 2 September 2026 |
+| Writing | `Ha_Vien_Mastersthesis_2026.pdf` builds clean with zero LaTeX errors and no undefined references. It is a full draft awaiting review. The printed abstract matches the tables, and the AI declaration records that it was written unaided. The draft and the skeleton carry a front-matter list of acronyms as of 4 September 2026, so an acronym added to either needs a row there as well as the expansion at its first use. `Thesis_v3.pdf` is the eight-chapter supervisor read-through (full Chapter 1, five prose paragraphs in each of chapters 2--8). Its abstract is written, dated 11 September 2026, and the twenty-fourth grading pass of that day put all six assessable areas at 5. That grade is the skeleton's, not the draft's |
 
-The self-assessment in [`docs/ASSESSMENT.md`](docs/ASSESSMENT.md) puts areas 1, 2, 3 and 5 at 5
-and areas 4 and 6 at **4.5** as of its twenty-first pass, 7 September 2026 (mean **4.83**). It is
-the author's own reading against the CSM matrix rather than a mark. What moved is not a measured
-value: four sites say the virtualised campaign ran the same toolchain as the reported one, and
-`\GuestGpp` 15.1.1 against `\MainGpp` 15.2.1 says otherwise. The repair is disclosure, about an
-hour of editing, listed as items **O** to **S** in [`docs/TODO.md`](docs/TODO.md). What earned the
-rest was reviewers who were told nothing about what had changed: they found 49 of the 69 recorded
-defects, all of them prose disagreeing with an artefact that was itself correct.
+The self-assessment in [`docs/ASSESSMENT.md`](docs/ASSESSMENT.md) records two current grades, and
+they are not interchangeable. The submission draft stands at the twenty-second pass, 7 September
+2026 afternoon: areas 1, 2, 3 and 5 at 5, areas 4 and 6 at **4.5**, mean **4.83**. The supervisor
+skeleton stands at the twenty-fourth pass, 11 September 2026: all six assessable areas at **5**.
+Do not copy that 5 onto the draft. The draft's remaining caps are disclosure, listed as items
+**O** to **S** in [`docs/TODO.md`](docs/TODO.md): three prose sites plus `tab:testbed` claiming
+toolchain parity with the guest (`\GuestGpp` 15.1.1 against `\MainGpp` 15.2.1), §6.4.7 hand-typing
+the guest's compiler as the measurement host's, and the RQ3 cell of `tab:findings` saying "on bare
+metal". Those items are closed in the skeleton. What earned the rest was reviewers who were told
+nothing about what had changed: they found 49 of the 69 recorded defects, all of them prose
+disagreeing with an artefact that was itself correct.
 
 Every campaign summary number quoted in the thesis prose (representative load, saturation
 knee, repeat count, p99 spread) is generated into `figures/gen_macros.tex` by
