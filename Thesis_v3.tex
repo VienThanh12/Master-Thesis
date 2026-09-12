@@ -891,56 +891,56 @@ actually ran.
 \chapter{Experimental Setup and Evaluation\label{chapter:eval}}
 \chaptermark{Evaluation}
 
-This chapter starts with the test machines and the workload. The results then follow by
-load regime, then by the remaining research questions.
+This chapter starts with the test hosts and the work they run. Results then
+follow by load, then by the rest of the questions.
 
 \section{Testbed setup\label{sec:testbed}}
-Some numbers in this chapter come from the compilers and the code. Other
-numbers depend on the computer they ran on. Every speed number here comes from
-one dedicated bare-metal server, a single-socket \MainCpu{}. Each core runs one
-thread. Simultaneous multithreading is \MainSmt{}. The machine runs
+Some numbers in this chapter come from the tools and the code. Other
+numbers depend on the host they ran on. Each speed number here comes from
+one bare-metal host, a single-socket \MainCpu{}. Each core runs one
+thread. Extra threads on a core are \MainSmt{}. The host runs
 \MainHostDistro{} on kernel \MainKernel{}. Linux can raise and
-lower each core's clock as load and temperature change. The clock is held
-fixed: the frequency governor is \MainGovernor{}, and boost is off. The
-benchmark may use only cores \MainPinned{}. There is no hypervisor, so the
-program runs on the machine itself and not inside a virtual machine. On those
-cores the kernel turns off its periodic timer interrupt (\texttt{nohz\_full}).
-Those interrupts would otherwise appear in the latency numbers. The study does
-not use \texttt{isolcpus}. That flag also stops the kernel spreading work
-across the allowed cores. Every benchmark thread then lands on one core.
+lower each core's clock as load and heat change. The clock is held
+fixed. The governor is \MainGovernor{}, and boost is off. The
+test may use only cores \MainPinned{}. There is no hypervisor. The
+program runs on the host itself, not inside a virtual machine. On those
+cores the kernel turns off its timer tick (\texttt{nohz\_full}).
+If left on, those ticks would show up in the delay numbers. The study does
+not use \texttt{isolcpus}. That flag also stops the kernel sharing work
+across the allowed cores. Each test thread then lands on one core.
 
-The compilers are not the ones installed on the server. Both versions are built
-and run inside a container image that carries \MainDistro{} with
+The build tools are not the ones on the host. Both sides are built
+and run inside an image that carries \MainDistro{} with
 \texttt{g++~\MainGpp} and \texttt{rustc~\MainRustc}. The image pins the
-\texttt{gcc-toolset} major version and not the release within it. The earlier
-campaign on a virtual machine therefore compiled with \texttt{g++~\GuestGpp},
-one GNU Compiler Collection (GCC)~15 release earlier. A container still uses the kernel of the machine
-it sits on. The two campaigns then differ in the hardware, in the kernel
+\texttt{gcc-toolset} major and not the point release. The earlier
+sweep on a virtual machine then built with \texttt{g++~\GuestGpp},
+one GNU Compiler Collection (GCC)~15 release earlier. An image still uses the kernel of the host
+it sits on. The two sweeps then differ in the hardware, in the kernel
 (\MainKernel{} against \GuestKernel{}), and in that compiler release.
 
-Until late in the work the campaign ran on a virtual machine instead:
+Until late in the work the sweep ran on a virtual machine instead:
 Kernel-based Virtual Machine (KVM) on an \GuestCpu{}, with none of the core
 controls above. On that
-host the $95\%$ confidence interval on a single variant's p99 spans
-$\GuestPNineNineMaxCI\,\mu$s, while the four variants' p99 values differ by
-$\GuestPNineNineRange\,\mu$s. The noise on one variant was larger than the gap
-between all four. That campaign is kept. It uses the same design as
-this one, so the two can be compared to ask which findings belong to the code.
-A third sweep on a second bare-metal \BmCpu{} uses a different shard count, load
-grid, repeat count and compilers. It tests whether the findings survive those
-changes together, not any one of them in isolation.
+host the $95\%$ band on one arm's p99 spans
+$\GuestPNineNineMaxCI\,\mu$s. The four arms' p99 values differ by
+$\GuestPNineNineRange\,\mu$s. The noise on one arm was larger than the gap
+between all four. That sweep is kept. It uses the same design as
+this one. The two can then be set next to each other to ask which findings belong to the code.
+A third sweep on a second bare-metal \BmCpu{} uses a new shard count, load
+grid, run count and tools. It tests whether the findings hold under those
+changes as a set, not any one of them on its own.
 
 \section[Workload and measurements]{Workload and measurements\label{sec:workload}}
-The workload is made for the experiment. The steps it takes come from the 3GPP
+The work is made for the test. The steps it takes come from the 3GPP
 rules~\cite{3gpp38401,3gpp38331}. A driver that always sends the same
-sequence walks each UE through the connection lifecycle those rules
-define. The \emph{signal} workload first connects a set of UEs, then sends the
-same signalling operation again and again. That isolates the common path. The
-\emph{mixed} workload walks each UE through context creation, setup,
-signalling, bearer setup, reconfiguration or handover, and release. A fixed
-random order makes both languages see the same counts of each operation kind
-for a given seed. That is also a check that the two versions did the same
-work. Figure~\ref{fig:workload} shows the two workloads and the sequence the
+steps walks each UE through the connection lifecycle those rules
+define. The \emph{signal} work first connects a set of UEs, then sends the
+same signal call again and again. That picks out the common path. The
+\emph{mixed} work walks each UE through context creation, setup,
+signal, bearer setup, reconfiguration or handover, and release. A fixed
+random order makes both sides see the same counts of each call kind
+for a given seed. That is also a check that the two sides did the same
+work. Figure~\ref{fig:workload} shows the two loads and the steps the
 mixed one walks.
 
 \begin{figure}[ht]
@@ -952,46 +952,46 @@ path, and mixed walks each UE through the procedure sequence drawn
 below.\label{fig:workload}}
 \end{figure}
 
-The sequence of operations matches the 3GPP rules. How often each kind
-appears does not. How often a real cell hands over depends on the site and the
+The steps match the 3GPP rules. How often each kind shows up does not.
+How often a real cell hands over rests on the site and the
 time of day, and no public figure fixes it. A mix that does not match a real
-cell moves both languages by the same amount. It limits how far the numbers
-travel. It does not make the comparison unfair. The sender keeps to its
-schedule even if the service is late (open-loop), and the histogram is
-corrected, so a stall does not hide missing replies (coordinated-omission
-bias)~\cite{schroeder2006openclosed}. Each load level is
-repeated \NRepeats{} times. The four language and allocator variants are interleaved
-inside each repeat. Each reported point is a median with a bootstrap $95\%$
-confidence interval~\cite{georges2007rigorous,efron1993bootstrap}.
+cell moves both sides by the same amount. It limits how far the numbers
+travel. It does not make the test unfair. The sender keeps to its
+plan even if the service is late (open-loop). The histogram is
+corrected so a stall does not hide missing replies (coordinated-omission
+bias)~\cite{schroeder2006openclosed}. Each load is
+run \NRepeats{} times. The four language and heap arms are interleaved
+inside each run. Each point is a median with a bootstrap $95\%$
+band~\cite{georges2007rigorous,efron1993bootstrap}.
 
 The load used for the resource plots is $\ReprLoad$~kilo-operations per second
 (kops/s). It is a chosen
-value, not one computed from the sweep. The first rule this study used was the
-busiest load whose p99 stayed under $5$~ms. On the virtual machine that rule
-landed on the noise of the host. On a quiet machine it climbs until the service
-can no longer keep up. It is kept only as a check. The lowest throughput
-plateau among the four variants is $\SatKnee$~kops/s, reached when the offered
+value, not one made from the sweep. The first rule this study used was the
+peak load whose p99 stayed under $5$~ms. On the virtual machine that rule
+landed on the noise of the host. On a quiet host it climbs until the service
+can no longer keep up. It is kept only as a check. The lowest rate
+plateau among the four arms is $\SatKnee$~kops/s, reached when the sent
 load is $\TrackingLoad$~kops/s.
 
 \section{Results}
-The safety results and most of the migration results do not depend on which
-computer was used. The speed and memory results do. Each figure below was
-measured on the host of Section~\ref{sec:testbed} unless the caption says
-otherwise.
+The safe code results and most of the migration results do not depend on which
+host was used. The speed and RSS results do. Each figure below was
+timed on the host of Section~\ref{sec:testbed} unless the caption says
+so.
 
 \subsection{Below saturation (RQ1, RQ3)}\label{sec:perfresults}
-When the service still keeps up with the offered load, the four variants'
+When the service still keeps up with the sent load, the four arms'
 medians lie within $\PFiftyRange\,\mu$s of each other, $\PFiftySpread\%$. A
-paired test still finds a difference of $\PFiftyDiffAbsMax\,\mu$s in Rust's
-favour under both allocators. Figure~\ref{fig:loadsweep} shows the sweep behind
-that. Higher percentiles can now be read as well. The widest interval on a
-single variant's own p99 spans $\PNineNineMaxCI\,\mu$s. The four variants' p99
+paired test still finds a gap of $\PFiftyDiffAbsMax\,\mu$s in Rust's
+favour under both heaps. Figure~\ref{fig:loadsweep} shows the sweep behind
+that. Higher tails can now be read as well. The widest band on
+one arm's own p99 spans $\PNineNineMaxCI\,\mu$s. The four arms' p99
 values differ by $\PNineNineRange\,\mu$s. So the noise on one is smaller than
-the gap between them. On the virtual machine the same two quantities were
+the gap between them. On the virtual machine the same two sizes were
 $\GuestPNineNineMaxCI\,\mu$s against $\GuestPNineNineRange\,\mu$s, the other
 way around. Both p99 rows and both p99.9 rows clear the Holm correction,
-\NTailSignificant{} rows in all, in the same direction as the median.
-Table~\ref{tab:latency} reports p99.9 and the maximum at the representative
+\NTailSignificant{} rows in all, in the same way as the median.
+Table~\ref{tab:latency} reports p99.9 and the maximum at the chosen
 load. The maximum is kept out of the tested family, as the pooled p99.99 is.
 
 \begin{table}[ht]
@@ -1019,23 +1019,23 @@ both panels against offered load. Lines are medians over \NRepeats{} repeats,
 and the bands are bootstrap $95\%$ confidence intervals.\label{fig:loadsweep}}
 \end{figure}
 
-The far tail can be read here too. The repeats' histograms are pooled, which
-gives \FarTailSamplesMin{} to \FarTailSamplesMax{} operations per variant. The
-two \FarTailLower{} variants sit below both C++ variants. The widest pair
-differs by $\FarTailRange\,\mu$s. The slowest Rust variant still sits
+The far tail can be read here too. The runs' histograms are pooled, which
+gives \FarTailSamplesMin{} to \FarTailSamplesMax{} calls per arm. The
+two \FarTailLower{} arms sit below both C++ arms. The widest pair
+differs by $\FarTailRange\,\mu$s. The slowest Rust arm still sits
 $\FarTailLangSep\,\mu$s below the fastest C++ one. A second bare-metal host at another shard count agrees,
-running $\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s for the C++ variants against
-$\BmFarTailRustLo$--$\BmFarTailRustHi\,\mu$s for the Rust ones, with no overlap.
-A second limit does not come from the machine. No host would remove it. An
+running $\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s for the C++ arms against
+$\BmFarTailRustLo$--$\BmFarTailRustHi\,\mu$s for the Rust ones, and the ranges do not meet.
+A second limit does not come from the host. No host would remove it. An
 end-to-end round-trip spends only $\BudgetCoreShareMax\%$ of its time on the
-work the language performs. The rest is passing the request to another thread,
+work the language does. The rest is passing the request to another thread,
 and that time is charged to the operating system. When the work inside the
-language is this small, time spent crossing thread boundaries
-dominates~\cite{zhou2025oltp}. This sweep cannot bound a language effect in
-either direction, which Figure~\ref{fig:budget} sets beside what the sweep can
-still show. Timed on its own, the core operation is $\BudgetCoreRatio\times$
-faster in \BudgetCoreFaster{}. The likely cause is how the standard hash map is
-laid out, not the safety model.
+language is this small, time spent crossing from thread to thread
+dominates~\cite{zhou2025oltp}. This sweep cannot bound a language effect
+either way, which Figure~\ref{fig:budget} sets beside what the sweep can
+still show. Timed on its own, the core call is $\BudgetCoreRatio\times$
+faster in \BudgetCoreFaster{}. The likely cause is how the stock hash map is
+laid out, not the safe code model.
 
 \begin{figure}[ht]
 \centering
@@ -1047,26 +1047,26 @@ blind zone by a factor of $\BudgetBoundVsCore$.\label{fig:budget}}
 \end{figure}
 
 \subsection{Past saturation (RQ1)}\label{sec:overload}
-Once the offered rate is higher than the service can handle, the four variants
-stop keeping up at different loads. The Rust versions hold to
+Once the sent rate is higher than the service can handle, the four arms
+stop keeping up at loads that do not match. The Rust versions hold to
 $\TrackingLoadRust$~kops/s. The C++ versions hold to $\TrackingLoadCpp$. So at
 $\KneeGapLoad$~kops/s \KneeGapFaster{} still serves $\KneeGapThrFast$~kops/s
-where \KneeGapSlower{} has fallen to $\KneeGapThrSlow$. That load level is
-described and not tested, because it was found after the data was in hand.
+where \KneeGapSlower{} has fallen to $\KneeGapThrSlow$. That load is
+shown and not tested, because it was found after the data was in hand.
 
-Deeper, at $\OverloadLoad$~kops/s offered, the ordering reverses.
+Deeper, at $\OverloadLoad$~kops/s sent, the order flips.
 \OverloadSustainedFaster{} still finishes $\OverloadThrCpp$~kops/s where
 \OverloadSustainedSlower{} finishes $\OverloadThrRust$, a factor of
-$\OverloadThrRatio$, in \OverloadThrAgree{} repeats under both allocators. The
-Holm-corrected $p$ is as small as this test family can go. The slower variant
-is not simply doing less work. It uses $\OverloadCpuPerOpRatio$ times the CPU
-for each operation it finishes, which is the mark of effort spent without
-finishing anything. When the bounded queue and the completion handle are
-measured by themselves, that ordering is not significant, so the cause sits in
+$\OverloadThrRatio$, in \OverloadThrAgree{} runs under both heaps. The
+Holm-corrected $p$ is as small as this test family can go. The slower arm
+is not just doing less work. It uses $\OverloadCpuPerOpRatio$ times the CPU
+for each call it finishes, which is the mark of effort spent without
+finishing anything. When the bounded queue and the done handle are
+timed by themselves, that order is not significant, so the cause sits in
 the wider path that passes work between threads. This is the largest language
-effect in the tested family. A comparison that stopped at a load the service
+effect in the tested family. A test that stopped at a load the service
 still meets would have pointed the other way. Figure~\ref{fig:overload} sets
-what each variant still finishes beside what it spends finishing it.
+what each arm still finishes beside what it spends finishing it.
 
 \begin{figure}[ht]
 \centering
@@ -1078,25 +1078,25 @@ intervals, grouped so the two bars in a group differ only in language. CPU in
 \end{figure}
 
 \subsection{Resource use (RQ3)}\label{sec:resources}
-Memory and CPU separate the variants where latency could not. Two effects of
-similar size sit in peak RSS. The Rust build uses
-$\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak memory than the C++ build
-under either allocator. Linking \texttt{jemalloc} at all costs
+RAM and CPU split the arms where delay could not. Two effects that
+match in size sit in peak RSS. The Rust build uses
+$\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak RAM than the C++ build
+under either heap. Linking \texttt{jemalloc} at all costs
 $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB in either language. Both are real, and
 Figure~\ref{fig:resources} puts the pair beside the peak RSS they add up to.
-The language effect keeps its direction and size on all three machines
-measured. The allocator's was $\GuestRssAllocOverLang$ times the language effect on the virtual machine
-this study used first ($\GuestRssAllocLo$--$\GuestRssAllocHi$~MiB), so their ratio depends on
-the machine. The language difference is a fixed cost, not a cost per UE. The
-quiet host is where that can be seen. \texttt{jemalloc}'s own counters there put
+The language effect keeps its sign and size on all three hosts
+timed. The \texttt{jemalloc} extra was $\GuestRssAllocOverLang$ times the language effect on the virtual machine
+this study used first ($\GuestRssAllocLo$--$\GuestRssAllocHi$~MiB), so their ratio hangs on
+the host. The language gap is a fixed cost, not a cost per UE. The
+quiet host is where that can be seen. \texttt{jemalloc}'s own counts there put
 $\BmJeMetadataDelta$~MiB more in arena bookkeeping and
-$\BmJeAllocatedDelta$~MiB \emph{less} in live allocation. Its resident bytes
+$\BmJeAllocatedDelta$~MiB \emph{less} in live bytes. Its resident bytes
 are $\BmJeResidentDelta$~MiB lower. The process peak is $\BmJeRssDelta$~MiB
-higher. The extra memory then sits outside the allocator,
-in the runtime a Rust process carries before it allocates. CPU changes sign
-with the load. At the representative load of $\ReprLoad$~kops/s Rust uses at
+higher. The extra RAM then sits past the heap,
+in the runtime a Rust process carries before it gets RAM. CPU changes sign
+with the load. At the chosen load of $\ReprLoad$~kops/s Rust uses at
 most $\CpuDiffAbsMax$ percentage points less. Once the service no longer keeps
-up, CPU per finished operation is much higher.
+up, CPU per finished call is much higher.
 
 \begin{figure}[ht]
 \centering
@@ -1108,37 +1108,37 @@ threads.\label{fig:resources}}
 \end{figure}
 
 \subsection{Safety via fault injection (RQ2)}\label{sec:safetyresults}
-Safety is measured by injecting $\FaultClasses$ defects. Seven come from inside
-the region Rust claims to govern. Seven were chosen because safe Rust is
-expected \emph{not} to prevent them. Each one of the first seven is a compile
+Safe code is checked by putting $\FaultClasses$ defects in. Seven come from inside
+the zone Rust claims to govern. Seven were chosen because safe Rust is
+meant \emph{not} to stop them. Each one of the first seven is a compile
 error in Rust. In C++ each is valid code. The
-defect appears only if a test drives it, and no single sanitiser covers them.
-The use-after-move is the case where no sanitiser reports anything. A
-moved-from object is still a valid object. Its value is unspecified. So there
-is nothing illegal to detect, and the identity is simply lost. All seven
-boundary cases compile in safe Rust and misbehave. On two of them the C++
-tooling is the one that reports. LeakSanitizer flags the reference cycle that
-Rust leaks in silence, because leaking is safe in Rust by explicit
+defect shows up only if a test drives it, and no single sanitiser hits them
+all. The use-after-move is the case where no sanitiser flags anything. A
+moved-from object is still a valid object. Its value is unset. So there
+is nothing wrong to detect, and the name is just lost. All seven
+boundary cases compile in safe Rust and fail. On two of them the C++
+tools are the ones that flag. LeakSanitizer flags the ref cycle that
+Rust leaks in silence, because leaks are safe in Rust by
 design~\cite{hughes2025gcrust,cui2024rcanary}. UndefinedBehaviorSanitizer flags
 the overflow that Rust defines to wrap. ThreadSanitizer catches the lock-order
-inversion in $\DeadlockTsanHits$ of $\DeadlockTsanRuns$ runs, a rate that is
-itself unstable. It records lock orders only from locks that succeed. If the
-first inversion waits forever, the cycle is never closed, so the tool never
-reports it.
+inversion in $\DeadlockTsanHits$ of $\DeadlockTsanRuns$ runs, a rate that
+itself jumps. It logs lock orders only from locks that work. If the
+first inversion waits and never returns, the cycle is never closed, so the tool never
+flags it.
 
-The seam double-free is the in-guarantee double-free rewritten through
-\texttt{unsafe}, not a new class. Its C++ half is unchanged, so only the Rust
-column moves. Two Rust model checkers do report both original boundary defects.
-Loom explores thread interleavings in a sound way. Shuttle samples the ones
+The seam double-free is the in-guarantee double-free recast through
+\texttt{unsafe}, not a new class. Its C++ half is the same, so only the Rust
+column moves. Two Rust model checkers do flag both original boundary defects.
+Loom explores thread orders in a sound way. Shuttle picks the ones
 Loom cannot reach~\cite{bornholt2021shardstore}. Each had to be written using
-the checker's own primitives first, and shrunk to model size. Miri reports the
-seam double-free, but it interprets Rust and cannot run the C++ host the
-defect sits behind. LeakSanitizer and UndefinedBehaviorSanitizer report without
-a rewrite. The two model checkers report the concurrency boundary cases only
-after the defect is rewritten into their primitives. Figure~\ref{fig:taxonomy} draws the
-whole catalogue as an outcome matrix. Resource Acquisition Is Initialization
-(RAII) removes the ordinary missed-unlock. It does not remove the class: both
-forgotten-guard programs hang, and neither language's tooling said so.
+the checker's own parts first, and shrunk to model size. Miri flags the
+seam double-free, but it reads Rust and cannot run the C++ host the
+defect sits behind. LeakSanitizer and UndefinedBehaviorSanitizer flag without
+a rewrite. The two model checkers flag the concurrency boundary cases only
+after the defect is recast into their parts. Figure~\ref{fig:taxonomy} draws the
+whole list as an outcome matrix. Resource Acquisition Is Initialization
+(RAII) removes the plain missed-unlock. It does not remove the class: both
+forgotten-guard programs hang, and no side's tools said so.
 
 \begin{figure}[ht]
 \centering
@@ -1148,18 +1148,18 @@ outcomes as a matrix, generated from the taxonomy log.\label{fig:taxonomy}}
 \end{figure}
 
 \subsection{Migration (RQ4)}\label{sec:migrationresults}
-The migration seam is small on each axis measured: $\FfiEntryPoints$ C entry
-points in $\FfiSeamLines$ lines of Rust. All raw-pointer work is confined to
+The move seam is small on each axis timed: $\FfiEntryPoints$ C entry
+points in $\FfiSeamLines$ lines of Rust. All raw-pointer work is kept in
 $\FfiUnsafeFns$ functions. The core is left free of \texttt{unsafe}. No extra
-cost is detected against the same signalling call made directly. That bounds any
+cost is seen against the same signal call made directly. That bounds any
 per-call tax at $\FfiOpBoundPct\%$ of that call, and
 Figure~\ref{fig:ffiseam} shows the structure that bound belongs to. Three
 adoption costs beyond the seam were measured as well, and two of them
-contradict the usual objection to adopting Rust.
+go against the usual worry about taking Rust.
 $\BuildDepShareCpu\%$ of the Rust clean build is third-party code. The project's
-own source compiles in $\BuildAllFirstPartyCpuRatio$ times the CPU \texttt{g++}
-needs. The $\FootShippedRatio\times$ binary-size gap is a linkage policy that
-reverses when the policy is held fixed. The compared component has no
+own source builds in $\BuildAllFirstPartyCpuRatio$ times the CPU \texttt{g++}
+needs. The $\FootShippedRatio\times$ size gap is a linkage policy that
+flips when the policy is held fixed. The compared part has no
 third-party crates and no \texttt{unsafe} sites ($\DepsCore$ crates,
 $\CoreUnsafe$ \texttt{unsafe} sites).
 
@@ -1176,64 +1176,64 @@ $\FfiCrossing$~ns and bounds only itself.\label{fig:ffiseam}}
 \chapter{Discussion\label{chapter:discussion}}
 
 \section{Summary of findings}
-The answer to RQ1 divides at saturation. Below it the variants agree to
-$\PFiftyRange\,\mu$s at the median, and the far tail resolves in \FarTailLower{}'s favour. The end-to-end round-trip is only $\BudgetCoreShareMax\%$ language work, so it cannot bound a language effect.
-The same operation timed apart is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster{}. Past saturation they diverge in both directions. The Rust
-arms hold their offered rate to $\TrackingLoadRust$~kops/s against
-$\TrackingLoadCpp$. At $\OverloadLoad$~kops/s \OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{}.
+The answer to RQ1 splits at saturation. Below it the arms agree to
+$\PFiftyRange\,\mu$s at the median, and the far tail lands on \FarTailLower{}'s side. The end-to-end round-trip is only $\BudgetCoreShareMax\%$ language work, so it cannot bound a language effect.
+The same core timed apart is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster{}. Past saturation they split both ways. The Rust
+arms hold their sent rate to $\TrackingLoadRust$~kops/s against
+$\TrackingLoadCpp$. At $\OverloadLoad$~kops/s \OverloadSustainedFaster{} holds $\OverloadThrRatio\times$ the rate of \OverloadSustainedSlower{}.
 RQ2 is final and does not depend on the host. All seven in-guarantee classes are
 compile errors in safe Rust. All seven boundary classes compile and
-misbehave in both languages. RQ3 is a memory penalty of
-$\RssLangDiffLo$--$\RssLangDiffHi$~MiB that reproduces under both allocators and
-on all three machines, with CPU that inverts across the two load regimes. RQ4
+fail in Rust and in C++. RQ3 is a RAM cost of
+$\RssLangDiffLo$--$\RssLangDiffHi$~MiB that holds under both heaps and
+on all three hosts, with CPU that flips across the two load bands. RQ4
 is a small seam whose per-call tax is bounded at $\FfiOpBoundPct\%$ of that call. The real
 cost is API design and the learning curve.
 
 \section{Discussion on the research questions}\label{sec:rqdiscussion}
-What a deployment should do with RQ1 depends on where it expects to sit, not on
-a single ranking. A service sized to run below each arm's knee should prefer
-the arm that holds its offered rate further. One that a signalling storm will
-drive past each knee should prefer the arm that still completes more work
-afterwards. Those two preferences point at opposite languages. Only the second
-is tested. The first is descriptive, for the reason Section~\ref{sec:overload}
-gives. A comparison that stopped at a load the service still meets would have read the
-opposite with the same apparatus.
+What a live system should do with RQ1 rests on where it expects to sit, not on
+a single rank. A service sized to run below each arm's knee should pick
+the arm that holds its sent rate further. One that a signal storm will
+drive past each knee should pick the arm that still does more work
+then. Those two picks point at opposite sides. Only the second
+is tested. The first is shown, not tested, for the reason Section~\ref{sec:overload}
+gives. A test that stopped at a load the service still meets would have read the
+reverse with the same setup.
 
-The closest prior work measures this quantity for 5G control-plane procedures.
-It finds the same shape and traces it to stackless \texttt{async}/\texttt{await}~\cite{arvidsson2025async}. That attribution is
-accepted here. The shape appeared with no asynchronous runtime on either side
-and the concurrency model held fixed. A runtime cannot be the only place such an
-effect originates. The prediction registered in advance also named where to
+The closest prior work times this split for 5G control-plane steps.
+It finds the same shape and traces it to stackless \texttt{async}/\texttt{await}~\cite{arvidsson2025async}. That claim is
+accepted here. The shape showed up with no async runtime on either side
+and the thread model held fixed. A runtime cannot be the only place such an
+effect starts. The prediction logged in advance also named where to
 look first, bounds and overflow checking~\cite{zhang2022runtime,harris2023morello}.
-That part of it was wrong. The median gap is consistent with evidence that
-Rust's safety checks are largely absorbed by modern out-of-order
+That part of it was wrong. The median gap fits data that
+Rust's safe checks are mostly absorbed by modern out-of-order
 CPUs~\cite{balasubramanian2017rust,emmerich2019drivers}. It is also weaker than
-it looks. The core operation is $\BudgetCoreShareMax\%$ of what the sweep
-measures.
+it looks. The core call is $\BudgetCoreShareMax\%$ of what the sweep
+times.
 
-On safety some defects are compile errors, so they never become a runnable program. The seven classes Rust
-does not prevent are part of the answer, not a warning added afterwards. A
-compiler that refuses to build a program rules the defect out of each
-execution. A sanitiser rules it out only of the
-runs a sanitiser test happens to take. What is absolute there is the
-execution coverage, not the breadth of the catalogue.
-Figure~\ref{fig:boundary} names the mechanism on each side of that line. Rust
-reasons about aliasing and not about acquisition order. A \texttt{Mutex} guard
-whose lifetime the borrow checker tracks perfectly says nothing about whether
-two threads take their locks in a compatible
-order. Static deadlock detection for Rust is an active research
-problem~\cite{zhang2026deadlock}. The lost update escapes ThreadSanitizer for the
-same reason it escapes the borrow checker. Where each access is correctly
-synchronised, there is no unsynchronised access to find. In a field study of
-$105$ real concurrency bugs, about a third of the non-deadlock cases violated
-the order the programmers intended rather than their
-locking~\cite{lu2008mistakes}. Adopting Rust retires one category of concurrency
-defect and leaves untouched the category that fails silently. A migration plan
-reading ``memory-safe'' as ``concurrency-safe'' would mis-budget its review
-effort. Memory-safety bugs in Rust involve \texttt{unsafe} in every published Common
-Vulnerabilities and Exposures (CVE) entry but one compiler bug~\cite{xu2021rustcve},
-which is why keeping the core \texttt{unsafe}-free matters, and why unsafety
-spreading through dependencies is a review concern~\cite{evans2020rust}.
+On safe code some defects are compile errors, so they never become a program that can run. The seven classes Rust
+does not stop are part of the answer, not a warning added then. A
+compiler that will not build a program rules the defect out of each
+run. A sanitiser rules it out only of the
+runs a sanitiser test happens to take. What is fixed there is the
+run coverage, not the breadth of the list.
+Figure~\ref{fig:boundary} names the way on each side of that line. Rust
+reasons about aliasing and not about lock order. A \texttt{Mutex} guard
+whose life the borrow checker tracks well says nothing about whether
+two threads take their locks in a matching
+order. Static deadlock checks for Rust are an open research
+problem~\cite{zhang2026deadlock}. The lost update misses ThreadSanitizer for the
+same reason it misses the borrow checker. Where each access is synced
+right, there is no unsynced access to find. In a field study of
+$105$ real concurrency bugs, about a third of the cases that were not deadlocks broke
+the order the writers meant, not their
+locking~\cite{lu2008mistakes}. Taking Rust drops one class of concurrency
+defect and leaves in place the class that fails in silence. A plan to move that
+reads ``memory-safe'' as ``concurrency-safe'' would mis-budget its review
+effort. Memory safety bugs in Rust involve \texttt{unsafe}. That holds for each published Common
+Vulnerabilities and Exposures (CVE) entry but one compiler bug~\cite{xu2021rustcve}.
+That is why keeping the core free of \texttt{unsafe} matters. It is also why unsafe
+spreading through crates is a review concern~\cite{evans2020rust}.
 
 \begin{figure}[ht]
 \centering
@@ -1243,49 +1243,49 @@ guarantee stops, with classes grouped by the mechanism that rejects
 them.\label{fig:boundary}}
 \end{figure}
 
-One case reaches past the injected programs. A specification gap let an
-operation be submitted outside the service's running window. It survived each
+One case reaches past the fault programs. A spec gap let a
+call be sent outside the service running window. It passed each
 test, each parity vector and all three sanitisers because nothing ever called
-that path. What turned undefined behaviour into a diagnosable failure on the
-Rust side was an ordinary bounds check, not a proof. The property worth
-budgeting for is ``checked by default'', not ``ruled out at compile time''. The
-root cause belongs to the method. A prohibition stated without a mechanism
+that path. What turned undefined behaviour into a catchable failure on the
+Rust side was a plain bounds check, not a proof. The thing worth
+planning for is ``checked by default'', not ``ruled out at compile time''. The
+root cause belongs to the method. A ban stated without a way
 behind it leaves each version to fail in its own idiom.
 
-RQ3 splits by resource and the splits do not point the same way. The memory
-penalty reproduces under both allocators and on a second machine with a
-different compiler. Peak resident set is a run-level maximum, so the jitter that
-destroys a p99 does not touch it. Sized against the allocator's own effect, the
+RQ3 splits by resource and the splits do not point the same way. The RAM
+cost holds under both heaps and on a second host with a
+new compiler. Peak RSS is a max for the whole run, so the jitter that
+destroys a p99 does not touch it. Sized against the heap's own effect, the
 two are of the same order on both bare-metal hosts. On the guest the
-allocator's was an order of magnitude larger. The language effect travels. The
-ratio does not. The quiet host also locates the cost outside the allocator, by
-the allocator's own accounting. One close study reports the opposite sign, with
-Rust lowest and the gap widening as concurrency rises~\cite{karlback2021ran}.
-Those two findings agree once the arms are read as two concurrency runtimes.
-Their C++ runs on Boost.Fibers, which allocates a stack per fiber. Their Rust
-runs on Tokio, where a task is a small heap-allocated future. What they
-measured is the per-context cost of two concurrency runtimes.
-Two further studies agree with the direction found
-here~\cite{olsson2023ranmgmt,sundvisson2026drivers}. On CPU the sign depends on
-the load. A single number for ``the CPU cost of Rust's safety model'' would
-average two regimes that move in opposite directions.
+heap's was an order of magnitude larger. The language effect travels. The
+ratio does not. The quiet host also puts the cost past the heap, by
+the heap's own counts. One close study reports the other sign, with
+Rust lowest and the gap growing as concurrency rises~\cite{karlback2021ran}.
+Those two findings agree once the arms are read as two concurrency runtimes, not two sides.
+Their C++ runs on Boost.Fibers, which gets a stack per fiber. Their Rust
+runs on Tokio, where a task is a small future on the heap. What they
+timed is the per-task cost of two concurrency runtimes.
+Two further studies agree with the way found
+here~\cite{olsson2023ranmgmt,sundvisson2026drivers}. On CPU the sign hangs on
+the load. A single number for ``the CPU cost of Rust's safe code model'' would
+mix two loads that move in opposite ways.
 
-RQ4 comes out cheap in the machine and expensive in the people. A C++ host can
+RQ4 comes out cheap in the machine and costly in the people. A C++ host can
 call an unchanged Rust core across a thin C-ABI seam whose cost on a real
-signalling call is bounded at $\FfiOpBoundPct\%$ of that call. The dominant cost is
-human~\cite{fulton2021adopting,crichton2024learning}. Confining \texttt{unsafe}
-to the seam bounds what has to be reviewed, not what can be corrupted. Host and
-component share one address
+signal call is bounded at $\FfiOpBoundPct\%$ of that call. The main cost is
+human~\cite{fulton2021adopting,crichton2024learning}. Keeping \texttt{unsafe}
+at the seam bounds what has to be checked, not what can be corrupted. Host and
+part share one address
 space~\cite{rivera2021galeed,kirth2022pkrusafe}. The build and footprint axes
 point the same way as the seam. A vendor worried about either should
-audit its dependency budget before blaming the compiler. The one axis where C++
-leads outright is the edit-compile loop for changes that stay inside a
-translation unit. The $\FootShippedRatio\times$ binary-size figure compares two
-linkage policies, and the ordering reverses when the policy is held fixed.
+audit its crate budget before blaming the compiler. The one axis where C++
+leads outright is the edit and compile loop for changes that stay inside one
+source file. The $\FootShippedRatio\times$ size figure sets two
+linkage policies, and the order flips when the policy is held fixed.
 
 \section{Revisiting the hypotheses}\label{sec:hypotheses}
-Section~\ref{sec:rqs} committed to three hypotheses before any measurement.
-Stating their disposition is what separates a test from a description.
+Section~\ref{sec:rqs} set three hypotheses before any run.
+Saying how they came out is what sets a test apart from a sketch.
 
 \begin{description}
   \item[H1] The median clause holds in the practical sense. The paired test
@@ -1314,45 +1314,45 @@ Stating their disposition is what separates a test from a description.
 \end{description}
 
 \section{Engineering guidelines for incremental adoption}\label{sec:guidelines}
-The guidelines are the practical form of the findings, and each carries the
-limit of the finding behind it. Choose a first component for the narrowness of
-its interface, not for its size. The redesign of a rich interface is the
-schedule risk. The boundary itself is not. Keep the C ABI in its own crate and
-the core free of \texttt{unsafe}. That keeps unsafety out of the dependency
-chains it otherwise propagates through~\cite{evans2020rust}. Leave the
+The rules are the practical form of the findings, and each carries the
+limit of the finding behind it. Choose a first part for how thin its API is,
+not for its size. The rewrite of a rich interface is the
+schedule risk. The edge itself is not. Keep the C ABI in its own crate and
+the core free of \texttt{unsafe}. That keeps unsafe out of the crate
+chains it spreads through~\cite{evans2020rust}. Leave the
 concurrency review budget where it is. Prefer a shared-nothing structure in
 either language. The strongest concurrency result here belongs to the design and
-to neither compiler. Plan the learning curve as a training cost and instrument
-it. Measure the component as well as the round-trip. Sweep past the point where
-the service stops coping. That is the guideline this study would most like to
-have followed from the start.
+to neither compiler. Plan the learning curve as a training cost and track
+it. Time the part as well as the round-trip. Sweep past the point where
+the service stops coping. That is the rule this study would most like to
+have used from the start.
 
 \section[Where this study sits]{Where this study sits, and what it cannot support}\label{sec:standing}
 The studies closest to this one are the five vendor-hosted theses of
-Section~\ref{sec:gap}. Their verdicts contradict each other in each direction.
-The one reporting the opposite sign on peak memory reconciles with this study
-once its arms are read as two concurrency runtimes rather than two languages.
-Three threats stay load-bearing, and the first is that one author wrote both
-versions. The same failure mode reversed a published verdict in this
-industry: comparable after a code review and then Rust worse by $85$--$91\%$
-after further optimisation~\cite{emberg2023asn1}. The parity suite bounds
-behaviour and not performance. The end-to-end instrument measures the design
-faithfully and the language barely at all. The overload divergence is replicated
-here with its mechanism narrowed and not closed, and no peer-reviewed study
-reports the same reversal.
+Section~\ref{sec:gap}. Their verdicts clash with each other in each way.
+The one with the other sign on peak RAM fits this study
+once its arms are read as two concurrency runtimes, not two sides.
+Three threats still matter, and the first is that one author wrote both
+versions. The same failure mode flipped a printed verdict in this
+field: comparable after a code review and then Rust worse by $85$--$91\%$
+after more speed work~\cite{emberg2023asn1}. The parity suite bounds
+what the code does and not speed. The end-to-end clock times the design
+faithfully and the language hardly at all. The overload split is seen again
+here with its way cut down and not closed, and no peer-reviewed study
+reports the same flip.
 
 \section{Ethical and professional reflection}
-The study processes no personal, subscriber, or operator-confidential data. All
-traffic is synthetic and the subsystem is modelled on live code rather
-than copied from it, so the artefacts can be released openly. The first
-responsibility is not to over-claim. A vendor could read the RQ2 result as
-licence to describe a migrated component as ``safe'', and the boundary cases are
+The study uses no personal data, no subscriber data, and no operator secrets. All
+traffic is made for the test. The service is based on live code, not
+copied from it, so the artefacts can be shared in public. The first
+duty is not to claim too much. A vendor could read the RQ2 result as
+licence to describe a moved part as ``safe'', and the boundary cases are
 why that reading would be wrong. A deadlocked control plane is an outage. A
-silently lost counter update can misinform a mobility decision. Nothing
-demonstrated here prevents either. The second responsibility is how far the
-evidence reaches. Tail-latency numbers from any single machine are a narrower
-basis for a production commitment than they look. That is why the earlier
-guest campaign is reported rather than discarded.
+lost counter update that stays silent can misinform a mobility decision. Nothing
+shown here stops either. The second duty is how far the data reaches.
+Tail delay numbers from any single host are a thinner
+basis for a production roll-out than they look. That is why the earlier
+guest sweep is kept, not dropped.
 
 \chapter{Conclusion and Future Work\label{chapter:conclusions}}
 
