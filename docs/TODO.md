@@ -808,6 +808,9 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       `bench/refresh_thesis.sh` (item **M**). Citation-next-to-clause read is item **L**.
 - [x] `archive/Thesis_v3-vi.tex` - Vietnamese snapshot of the 11 September 2026 skeleton. Not a
       deliverable. Distinct from `archive/thesis-vi.tex`. See `archive/README.md`.
+- [ ] `Ha_Vien_Mastersthesis_2026_short.tex` - compression pass, in progress. Same class, macros,
+      figures and bibliography as the draft. Not supervisor-facing and not a submission
+      candidate. Run `.compress/shortcheck.py` after every edit.
 - [ ] `Thesis_Plan_v2.tex` - the plan, dated **28 August 2026**, estimated completion 11 November
       2026. Status table matches the repo on the campaigns. The September timeline row still
       says "Abstract, full proofread, draft to supervisors", which is open-work item **J** now

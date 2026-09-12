@@ -52,7 +52,7 @@ DOCUMENTS = [
     ("Thesis_Plan_v2.tex", "plan", "Plan"),
 ]
 
-# The audit covers the canonical draft by default. It cites all 109 entries, so scoping to it
+# The audit covers the canonical draft by default. It cites all 111 entries, so scoping to it
 # loses no entry, and the numbers a reader checks against are the submission document's own.
 # --all-documents widens to the skeleton and the plan, which number the same works differently.
 ACTIVE = DOCUMENTS[:1]
