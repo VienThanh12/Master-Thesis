@@ -1356,80 +1356,81 @@ guest sweep is kept, not dropped.
 
 \chapter{Conclusion and Future Work\label{chapter:conclusions}}
 
-The thesis compared modern C++ and Rust. The object is a UE Context Management
-service modelled on a real Nokia gNB-CU-CP component. It looked at four dimensions:
-tail-latency predictability, compile-time defect prevention, safety-model
-overhead, and cost of adding Rust a piece at a time. Both versions were built against
-one frozen specification and driven along the same code paths. That is what
-lets a language effect be told apart from a difference of design or of skill.
+The thesis set modern C++ against Rust. The object is a UE Context Management
+service based on a real Nokia gNB-CU-CP part. It looked at four things. Two of them are
+how late the tail is, and which defects a compile step can stop. The other two are the
+cost of the safe code model and the cost of adding Rust a piece at a time. Both
+sides were built against one frozen spec. They were driven along the same code
+paths. That is what lets a language effect be told apart from a gap of design or
+of skill.
 
-On safety the difference is one of kind and it has a clear boundary. Safe Rust
-rejects all seven injected memory-safety and data-race classes at compile time.
+On safety the gap is one of kind, and it has a clear edge. Safe Rust
+rejects all seven injected memory safety and data race classes at compile time.
 Hazards that C++ can only hope to catch under a sanitiser test become programs
-that cannot be written. All seven boundary classes compile and misbehave in safe
-Rust as they do in C++. On two of them the C++ tooling reports what Rust's does
-not. Stated precisely, Rust eliminates data races and aliasing errors. It does
-not eliminate race conditions, lock-ordering errors, leaks, wrapping arithmetic
-or the blast radius of a failed worker, and it eliminates nothing inside an \texttt{unsafe} block.
+that cannot be written. All seven boundary classes compile and fail in safe
+Rust as they do in C++. On two of them the C++ tools flag what Rust's do
+not. Stated with care, Rust drops data races and aliasing errors. It does
+not drop race conditions, lock order errors, leaks, wrapping arithmetic
+or the blast radius of a failed worker. It drops nothing inside an \texttt{unsafe} block.
 Where the boundary defects are caught, they are caught at test time.
-LeakSanitizer and UndefinedBehaviorSanitizer report without a rewrite. The two
-model checkers report the concurrency cases only after the defect is rewritten
-into their primitives.
+LeakSanitizer and UndefinedBehaviorSanitizer flag without a rewrite. The two
+model checkers flag the concurrency cases only after the defect is recast
+into their parts.
 
-On migration the cost is dominated by API design and the learning curve, not by
+On migration the cost is led by API design and the learning curve. It is not led by
 any run-time tax. An unchanged Rust core can be driven from C++ across a thin
-seam. The cost on a real signalling call is bounded at $\FfiOpBoundPct\%$ of that call.
-All of the \texttt{unsafe} sits in the seam, and the core is verified free of it.
-Most of the Rust build's extra expense is compiling dependencies, not the
-compiler's own work. The binary-size gap is a linkage policy. The ordering
-depends on which matched policy is chosen. Where C++ leads is the edit-compile
-loop, and it leads only for edits that stay inside a translation unit.
+seam. The cost on a real signal call is bounded at $\FfiOpBoundPct\%$ of that call.
+All of the \texttt{unsafe} sits in the seam, and the core is checked free of it.
+Most of the Rust build's extra cost is building crates, not the
+compiler's own work. The size gap is a linkage policy. The order
+rests on which matched policy is chosen. Where C++ leads is the edit and compile
+loop. It leads only for edits that stay inside one source file.
 
-On performance the evidence first divides by what is being measured. An
+On speed the data first splits by what is being timed. An
 end-to-end round-trip here is $\BudgetCoreShareMax\%$ language work. The rest is an
-operating-system handoff. That clock therefore bounds nothing about either
+operating system handoff. So that clock bounds nothing about either
 compiler. The same core timed apart is $\BudgetCoreRatio\times$ faster
-in \BudgetCoreFaster{}. At the representative load of $\ReprLoad$~kops/s the paired test resolves
-$\PFiftyDiffAbsMax\,\mu$s in Rust's favour, too small for a deployment to care
-about at the median. At p99.99 the slowest Rust variant sits
+in \BudgetCoreFaster{}. At the chosen load of $\ReprLoad$~kops/s the paired test finds
+$\PFiftyDiffAbsMax\,\mu$s in Rust's favour. That gap is too small for a live system to care
+about at the median. At p99.99 the slowest Rust arm sits
 $\FarTailLangSep\,\mu$s below the fastest C++ one. The Rust arms then hold their
-offered rate to $\TrackingLoadRust$~kops/s against $\TrackingLoadCpp$. Once all
-four have collapsed, \OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$
-the throughput of \OverloadSustainedSlower{}, which spends
-$\OverloadCpuPerOpRatio\times$ the CPU on each operation it completes. On memory
-the Rust build carries a few MiB more fixed footprint under both allocators, in
-the same direction and scale on all three machines measured. The
-allocator choice costs about as much on both bare-metal hosts, and an order of
+sent rate to $\TrackingLoadRust$~kops/s against $\TrackingLoadCpp$. Once all
+four have fallen, \OverloadSustainedFaster{} holds $\OverloadThrRatio\times$
+the rate of \OverloadSustainedSlower{}. \OverloadSustainedSlower{} spends
+$\OverloadCpuPerOpRatio\times$ the CPU per finished call. On RAM
+the Rust build carries a few MiB more fixed footprint under both heaps. It does so in
+the same way and scale on all three hosts timed. The
+heap choice costs about as much on both bare-metal hosts, and an order of
 magnitude more on the guest this study used first.
 
-Taken together these support a narrow claim. It is for stateful, concurrent,
-partitionable control-plane services of this kind. At the loads where the
-service still meets its offered rate, the choice is which classes of defect a
-team wants to make unwritable. The other half is whether it will pay the
+Taken as a set these support a narrow claim. It is for stateful, concurrent,
+partitionable control plane services of this kind. At the loads where the
+service still meets its sent rate, the choice is which classes of defect a
+team wants to make impossible to write. The other half is whether it will pay the
 design and training cost of getting them. Past that point it is a speed
-decision as well. What the thesis adds is an instrument, not a verdict. That
-instrument is the frozen specification and the parity-tested pair. It is also a
-timing framework that reaches past the saturation knee. A split of the
+choice as well. What the thesis adds is not a verdict. It is the frozen spec
+and the parity tested pair. It is also a
+timing harness that reaches past the saturation knee. A split of the
 round-trip says how much of what it times the language can own. A defect
-catalogue maps where the guarantee stops.
+list maps where the guarantee stops.
 
 Future work answers the gaps one at a time. The first job needs
-no new machine: vary the transparent-hugepage policy on one host with everything
+no new host. It is to vary the transparent hugepage policy on one host with all
 else held fixed. All three hosts agree that the Rust build carries the larger
-footprint. They disagree about how that compares against the cost of the
-allocator. The guest put it an order of magnitude higher, and neither
+footprint. They disagree about how that sits against the cost of the
+heap. The guest put it an order of magnitude higher, and neither
 bare-metal host does. The hugepage policy is the candidate this study
-can name but not test, because it differed between the hosts and only the
-system-allocator arm inherits it. Beyond that, replaying anonymised production
-traces would check the operation mix. The framework can also take further
-control-plane subsystems or the data-heavy layer-2 and physical layer (PHY)
-path. A subsystem with truly shared mutable state would exercise the two
-languages differently than a shared-nothing design does. Testing Rust async runtimes against the thread-per-shard model
-would separate the runtime from the language in the tail
-result~\cite{arvidsson2025async}. Timing what in-process isolation of the two
-heaps costs would price what protecting an \texttt{unsafe}-free core is
-worth~\cite{rivera2021galeed,kirth2022pkrusafe}. A longer case study tracking
-defect counts and review effort while adding Rust a piece at a time is what would
+can name but not test, because it was not the same on each host and only the
+system allocator arm gets it. Beyond that, replaying anonymised production
+traces would check the call mix. The harness can also take further
+control plane parts or the data heavy layer-2 and physical layer (PHY)
+path. A part with truly shared mutable state would work the two
+sides in a way a shared-nothing design does not. Testing Rust async runtimes against the thread per shard model
+would split the runtime from the language in the tail
+result~\cite{arvidsson2025async}. Timing what a split of the two
+heaps in one process costs would price what keeping a core free of \texttt{unsafe} is
+worth~\cite{rivera2021galeed,kirth2022pkrusafe}. A longer case study would track
+defect counts and review effort while adding Rust a piece at a time. That is what would
 settle the human cost this study can only name.
 
 % Declaration of generative-AI use, required by the University when a language model has
