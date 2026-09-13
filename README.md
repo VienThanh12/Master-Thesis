@@ -67,6 +67,8 @@ The PDFs in this repository do not share a status and are not interchangeable.
 [`AGENT.md`](AGENT.md) is the working contract for the repository: document roles, the grade
 criteria every edit has to protect, the scientific commitments that must not be weakened, and the
 verification workflow. Read it before touching thesis text, figures, or artefacts.
+[`docs/guide/README.md`](docs/guide/README.md) is a file-by-file encyclopedia of the same tree
+(documents, evidence, campaigns, generated macros, prose screens, tooling).
 [`docs/ASSESSMENT.md`](docs/ASSESSMENT.md) holds the criterion-by-criterion self-assessment and
 [`docs/TODO.md`](docs/TODO.md) the phase checklist and open items. The durable citation-audit
 record is [`docs/Sources_evidence.md`](docs/Sources_evidence.md). `source_audit.pdf` is the
@@ -100,10 +102,13 @@ reader-facing view of that record.
 ├── figures/           Generated figures, LaTeX tables, and generated macros consumed by the thesis
 ├── diagrams/          Source diagrams (SVG, drawio) and their rendered PDF/PNG. Diagrams 20--29 are generated. `check_labels.py` is the prose-style gate
 ├── docs/              Reference notes that are not part of any document
+│   ├── README.md          Index of this folder
+│   ├── guide/             Encyclopedia: every artefact, campaign, screen, and rule
 │   ├── ASSESSMENT.md      Criterion-by-criterion self-assessment
 │   ├── TODO.md            Phase checklist and open items
 │   ├── LITERATURE_NOTES.md, Sources_evidence.md   Citation audit trail. `source_audit.pdf` is the reader-facing view
 │   ├── citation.md        Citation conventions
+│   ├── CHAPTER_READABILITY.md   Per-chapter Flesch table (generated)
 │   └── review/            Commented PDFs a reviewer returns, read by pdfannots.py. Gitignored, create it locally
 ├── .bibaudit/         Generates `source_audit.tex` from `bibliography.bib`, the `.bbl`, and the evidence notes
 │   └── reviewed.txt       Mirror of Part 1's review ticks, so they survive a regeneration of the document
@@ -129,7 +134,7 @@ reader-facing view of that record.
 ├── build_deck.py      Nokia-branded slide-deck generator (reads figures/ + faults/ results)
 ├── pdfpreview.py      Rasterise PDF pages into .pdf-preview/, since the WSL webview shows none
 ├── pdfannots.py       Pull a reviewer's highlights and notes out of a commented PDF in docs/review/
-└── .aitells.py, .vocab.py, .b2.py, .readability.py, .acronyms.py    Prose checks. `.acronyms.py` is a gate, not a count. `.b2.py` is a frequency companion to `.vocab.py`
+└── .aitells.py, .vocab.py, .b2.py, .readability.py, .acronyms.py, .chapter_readability.py    Prose checks. `.acronyms.py` is a gate, not a count. `.b2.py` is a frequency companion to `.vocab.py`. `.chapter_readability.py` writes `docs/CHAPTER_READABILITY.md`
 ```
 
 The PDFs stay beside their sources, so `Ha_Vien_Mastersthesis_2026.pdf` and the SyncTeX index land

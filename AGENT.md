@@ -922,6 +922,7 @@ which is criterion 1's blocker.
 
 | File | Use |
 | --- | --- |
+| `docs/guide/` | File-by-file encyclopedia of the repository (documents, evidence, campaigns, generated macros, prose screens, tooling). Does not replace this file. |
 | `docs/ASSESSMENT.md` | Full criterion-by-criterion grading notes and blockers |
 | `.cursor/skills/thesis-grade-csm/` | Grading skill: the official seven-area CSM matrix, calibration anchors and discounted false positives from past passes, and `scripts/texaudit.py` for build, cross-reference, bibliography and placeholder gates |
 | `docs/TODO.md` | Phase checklist, bare-metal prep, post-campaign re-check list |
