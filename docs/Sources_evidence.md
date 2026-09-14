@@ -157,7 +157,8 @@ the wrong scope, and it belongs beside it.
 `.bibaudit/build_audit.py` writes **`source_audit.tex`**, and `source_audit.pdf` is the
 reader-facing form of this file: all 109 entries ordered by the number each carries in the full
 draft's reference list, every citing sentence printed as it stands beside the source's own words
-and page. Three properties make it trustworthy rather than merely convenient.
+and page. `--document v3` writes **`source_audit_v3.tex`** the same way, numbered as in
+`Thesis_v3`. Three properties make it trustworthy rather than merely convenient.
 
 - References print through `\fullcite` from `bibliography.bib`, so the document cannot disagree
   with the thesis bibliography about what a work is.
