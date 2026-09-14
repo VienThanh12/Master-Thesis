@@ -674,7 +674,8 @@ wins: the bare-metal tail campaign that criteria 3 and 4 wait on will *add* resu
 discussion, and it should be added without first hunting for pages to sacrifice. Report the new
 `\pagesCount` and let the author decide whether to spend the difference.
 
-Two traps, both found by measurement on 19 August 2026:
+Three traps. The first two were found by measurement on 19 August 2026. The
+third is the last-in-chapter float, closed in `Thesis_v3.tex` on 14 September 2026:
 
 - **Line spacing cannot be set in the preamble.** The class's `\maketitle` calls
   `\onehalfspacing` itself, so a preamble setting is silently overwritten and the PDF comes out
@@ -699,6 +700,16 @@ Two traps, both found by measurement on 19 August 2026:
   the overflow is three lines on a tail page instead. Appendix D is 13 pages either way, and
   closing that tail page would cost three lines of the allocation-profile paragraph, which is a
   negative result the thesis argues from.
+- **A figure last in a chapter can be flushed onto an empty float page.** `[ht]`
+  defers it when the leftover is short of the diagram plus caption. `\chapter`
+  then `\clearpage`s it onto its own page, centred. `[section]{placeins}` does
+  the same at the next `\section`. The fix is local: `\enlargethispage{...}`
+  plus `[!ht]`, sized to the shortfall, then rebuild and check the folio. Two
+  sites in `Thesis_v3.tex`: `fig:ngran` (`12pt`, placeins) and `fig:ffiseam`
+  (`52pt`, 14 September 2026, `\chapter{Discussion}`). Do not `\newpage` the
+  subsection (the hole moves to the page before) and do not reach for `[H]`
+  (the table trap above). Cursor rule:
+  `.cursor/rules/thesis-float-last-in-chapter.mdc`.
 
 Measured cost of the layout settings, cumulative, at unchanged content: 1.5 spacing 22 pages,
 full-width figures 4, `twoside,openright` 15 blank versos, loose heading and float gaps 3, and a
