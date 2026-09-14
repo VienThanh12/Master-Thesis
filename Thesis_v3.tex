@@ -83,9 +83,16 @@
 
 \maketitle
 
+% The abstract form is a fixed 12 cm box that also has to hold the CCS paths, so
+% it is set single-spaced as in the template. The \singlespacing here is what
+% undoes the 1.5 spacing that the class applies in \maketitle. Overflow is
+% neither clipped nor reported: it overprints the keyword heading. The class
+% sets 2ex between the five blocks. That is more than this text leaves for the
+% CCS paths, so parskip is 1ex here. Look at page 3 after editing.
 {\singlespacing
 \begin{otherlanguage}{english}
 \begin{abstract}
+      \setlength{\parskip}{1ex}
       \noindent\textbf{Context.}
       Radio access network (RAN) control planes are written mostly in C++ for performance, at a
       well-known cost in memory safety and concurrency. Rust promises comparable performance with
