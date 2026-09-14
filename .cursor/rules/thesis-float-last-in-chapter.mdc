@@ -1,0 +1,39 @@
+---
+description: Keep a last-in-chapter or last-in-section figure with the citing prose. If a figure sits alone on a centred float page, use enlargethispage plus [!ht], not [H] or a newpage.
+globs: "*.tex"
+alwaysApply: false
+---
+
+# Last-in-chapter floats stay with the citing text
+
+## Symptom
+
+The citing subsection ends a page with leftover whitespace. The next folio is only the figure, vertically centred. The following `\chapter` (or `\section`) starts one page later.
+
+## Cause
+
+`[ht]` cannot fit the diagram plus caption in the leftover. `\chapter` issues `\clearpage`, and `[section]{placeins}` does the same at `\section`. The pending float is shipped onto its own float page. A short diagram still gets that page, because `\clearpage` flushes it rather than waiting for `\floatpagefraction`.
+
+## Fix
+
+Local enlarge plus here-placement, sized to the shortfall, then rebuild and look at the folio. Two sites in `Thesis_v3.tex`:
+
+| Figure | Enlarge | What flushed it |
+| --- | --- | --- |
+| `fig:ngran` | `12pt` | `[section]{placeins}` |
+| `fig:ffiseam` | `52pt` (14 Sep 2026) | `\chapter{Discussion}` |
+
+```latex
+% leftover is short of the diagram plus caption, so [ht] defers it
+\enlargethispage{52pt}
+\begin{figure}[!ht]
+```
+
+Confirm: heading, citing paragraph, and figure share one folio. Caption not clipped. No Overfull `\vbox`. Page numbers live in the header in this class, so a modest bottom enlarge is safe.
+
+## Do not
+
+- `[H]` as the first try. That is a per-table lever in `AGENT.md` and strands short pages when the float still does not fit.
+- `\newpage` before the subsection. The hole moves to the page before.
+- Shrink every figure to `0.62\linewidth`. Measured, saves 0 pages.
+- Drop the caption's measured numbers to save lines. Those macros stay.
