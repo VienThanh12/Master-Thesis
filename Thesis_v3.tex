@@ -507,29 +507,8 @@ its correctness and timing stand in for the control plane as a whole.
 highlighted inside the gNB-CU-CP.\label{fig:ngran}}
 \end{figure}
 
-\section{Predictability and the two languages}\label{sec:bgbrief}
-This section states what the study takes as given. Stable delay, not mean
-throughput, is the main property of a delay-critical service. So the quantity
-to measure is the tail, not the mean. Measuring the tail well also shapes the
-harness. The send schedule must be open-loop. A closed-loop sender stops while
-a stall is in progress. It then never records the delay of that stall.
-
-C++ gives the control the domain needs. It leaves memory and thread safety to
-the programmer. Sanitisers and review stand in for a guarantee. The standards
-committee's work on enforced safety profiles is not a standard yet. It is not
-widely in use. Rust's ownership and borrowing rule out lifetime and aliasing
-bugs at compile time. Its \texttt{Send} and \texttt{Sync} traits rule out data
-races. That claim is narrower than ``thread safety''. It says nothing about
-lock order, whether a composed step is atomic, or leaks. It is off wherever a
-program writes \texttt{unsafe}.
-Both languages can express the same thread structures. A comparison that lets
-the structure change with the language then measures the structure, not the
-language. The two meet through a C application binary interface. That is the
-path any step-by-step migration has to use. It is also why a seam holds the
-\texttt{unsafe} a migration needs.
-
 \section{Research gap}\label{sec:gap}
-The sections above set up the gap. The RAN control plane has many threads and
+The RAN control plane has many threads and
 tight delay bounds. Tail delay under too much load, not mean throughput, sets
 the quality the network delivers. C++ gives the control and speed the domain
 needs. But it leaves whole classes of memory and thread bugs to detection
