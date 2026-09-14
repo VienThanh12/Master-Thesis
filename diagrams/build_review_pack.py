@@ -1204,6 +1204,644 @@ def claim_register():
 
 
 # --------------------------------------------------------------------------
+def ngran_two_splits():
+    d = Diagram(
+        "48_ngran_two_splits", 880, 560,
+        "The gNB is split twice. UECM sits in one of those boxes.",
+        "The first split is central versus distributed. The second is "
+        "control versus user plane inside the central unit.",
+    )
+    d.chip(20, 76, 72, 88, "UE", GREY_FILL, NAVY, size=16, weight=700, rx=10,
+           stroke=GREY_EDGE)
+    d.chip(140, 76, 100, 88, "gNB-DU", BLUE_CHIP, BLUE_DEEP, size=15,
+           weight=700, rx=10, stroke=BLUE)
+    d.arrow(96, 120, 136, 120)
+
+    d.rect(280, 68, 380, 200, GREY_FILL, GREY_EDGE, rx=12, sw=1.6, dashed=True)
+    d.text(470, 90, "gNB-CU", 13, FAINT, weight=700, anchor="middle")
+    d.card(300, 104, 340, 72, "gNB-CU-CP  (this thesis)", [
+        "RRC, mobility, UE context.",
+        "UE Context Management lives here.",
+    ], fill=BLUE_FILL, stroke=BLUE, sw=1.8, rx=8, title_color=BLUE_DEEP,
+        body_size=12, pad=12, gap=18, lh=15)
+    d.card(300, 184, 340, 68, "gNB-CU-UP", [
+        "User-plane forwarding. Not measured.",
+    ], fill=GREEN_FILL, stroke=GREEN_EDGE, rx=8, title_color=GREEN_DEEP,
+        body_size=12, pad=12, gap=18, lh=15)
+
+    d.chip(700, 76, 160, 88, "5G Core", GREY_FILL, NAVY, size=15, weight=700,
+           rx=10, stroke=GREY_EDGE)
+    d.arrow(244, 120, 276, 120)
+    d.arrow(664, 120, 696, 120)
+    d.text(118, 178, "Uu", 11, MUTED, anchor="middle")
+    d.text(258, 178, "F1", 11, MUTED, anchor="middle")
+    d.text(682, 178, "NG", 11, MUTED, anchor="middle")
+    d.text(470, 268, "E1 between CU-CP and CU-UP", 11, MUTED, anchor="middle")
+
+    d.card(20, 300, 270, 168, "Why this part", [
+        "UECM owns per-UE control state.",
+        "Many UEs at once. Strict lifecycle.",
+        "Millisecond-scale signalling budgets.",
+        "Small enough to specify in full and",
+        "build twice. Hard enough to stand in",
+        "for this class of service.",
+    ], fill=WHITE, stroke=BLUE_EDGE, rx=9, title_color=BLUE_DEEP,
+        body_size=12, pad=14, lh=16, gap=20)
+    d.card(306, 300, 270, 168, "What the splits buy", [
+        "DU sits close to the radio.",
+        "CU-CP can run on ordinary servers.",
+        "Open-RAN lets each box come from",
+        "a different vendor.",
+        "A defect here is then network-wide,",
+        "not local to one vendor's metal.",
+    ], fill=WHITE, stroke=AMBER_EDGE, rx=9, title_color=AMBER_DEEP,
+        body_size=12, pad=14, lh=16, gap=20)
+    d.card(592, 300, 268, 168, "What this is not", [
+        "Not the user plane.",
+        "Not PHY or layer 2.",
+        "Not a packet processor.",
+        "Findings travel to other stateful,",
+        "partitionable control-plane",
+        "services of this kind.",
+    ], fill=WHITE, stroke=RED_EDGE, rx=9, title_color=RED_DEEP,
+        body_size=12, pad=14, lh=16, gap=20)
+    d.footer([
+        "Figure ngran in the thesis is the compact form. This page is the "
+        "reading aid for the two-axis split.",
+    ], y=536)
+    return d
+
+
+# --------------------------------------------------------------------------
+def open_loop():
+    d = Diagram(
+        "49_open_loop", 880, 560,
+        "The sender keeps to its plan, even when the service is late",
+        "A closed-loop sender stops while a stall is in progress. It then "
+        "never records the delay of that stall.",
+    )
+    d.panel(16, 76, 416, 280, "CLOSED LOOP  (not used)", RED_FILL, RED,
+            header_h=34)
+    d.lines(36, 128, [
+        "1. Send a request.",
+        "2. Wait for the reply.",
+        "3. Only then send the next one.",
+    ], 13, BODY, lh=22)
+    d.card(36, 210, 376, 120, "What goes wrong", [
+        "During a stall the sender is idle.",
+        "The histogram never sees the wait.",
+        "Overload looks milder than it is.",
+        "That is coordinated omission.",
+    ], fill=WHITE, stroke=RED_EDGE, rx=8, title_color=RED_DEEP,
+        body_size=12, pad=12, lh=16, gap=18)
+
+    d.panel(448, 76, 416, 280, "OPEN LOOP  (this study)", GREEN_FILL, GREEN,
+            header_h=34)
+    d.lines(468, 128, [
+        "1. Keep the send times on a schedule.",
+        "2. Do not wait for replies.",
+        "3. Time from the intended send time.",
+    ], 13, BODY, lh=22)
+    d.card(468, 210, 376, 120, "What that records", [
+        "A stall still occupies its slot.",
+        "The HDR histogram is corrected so",
+        "missing replies cannot hide delay.",
+        "Overload shows up as delay.",
+    ], fill=WHITE, stroke=GREEN_EDGE, rx=8, title_color=GREEN_DEEP,
+        body_size=12, pad=12, lh=16, gap=18)
+
+    d.rect(16, 376, 848, 124, BLUE_FILL, BLUE, rx=9, sw=1.6)
+    d.text(32, 400, "The queue is bounded on purpose", 13, BLUE_DEEP,
+           weight=700)
+    d.lines(32, 424, [
+        "When it is full the caller blocks. A drop rule would hide overload.",
+        "This study needs overload to show up as delay, not as lost work the",
+        "histogram never sees. The same reason the send schedule is open-loop.",
+    ], 12.5, BODY, lh=18)
+    d.footer([
+        "Schroeder and Harchol-Balter: an open arrival process is what a "
+        "control plane under a storm actually looks like.",
+    ], y=536)
+    return d
+
+
+# --------------------------------------------------------------------------
+def request_path():
+    d = Diagram(
+        "50_request_path", 880, 520,
+        "One request, from the producer to the reply",
+        "Most of this path is passing work between threads. That is why the "
+        "end-to-end clock cannot bound a language effect.",
+    )
+    steps = [
+        ("Producer", "Load generator.\nHashes ue_id.\nWaits on a one-shot\nreply handle."),
+        ("MPSC queue", "Bounded. FIFO.\nBlocks when full.\nOne queue per shard."),
+        ("Worker", "The only thread\nthat may touch this\nshard. No lock on\ncontext state."),
+        ("Shard map", "Language's own\nhash map. This is\nthe core the second\nclock times."),
+        ("Reply", "Result goes back\non the one-shot\nhandle. Producer\nunblocks."),
+    ]
+    xs = [16, 188, 360, 532, 704]
+    for x, (title, body) in zip(xs, steps):
+        d.card(x, 88, 160, 188, title, body.split("\n"), fill=BLUE_FILL,
+               stroke=BLUE, sw=1.7, rx=10, title_color=BLUE_DEEP,
+               body_size=11.5, pad=12, lh=16, gap=20)
+    for x in xs[:-1]:
+        d.arrow(x + 164, 182, x + 184, 182)
+
+    d.rect(16, 300, 332, 140, GREEN_FILL, GREEN, rx=9, sw=1.6)
+    d.text(32, 324, "Timed apart: the core", 13, GREEN_DEEP, weight=700)
+    d.lines(32, 348, [
+        "Shard map only. No queue.",
+        f"{M['BudgetCoreFaster']} is {M['BudgetCoreRatio']}x faster.",
+        f"{M['BudgetCoreShareMax']}% of the round-trip.",
+        "Likely hash-map layout.",
+    ], 12, BODY, lh=18)
+
+    d.rect(364, 300, 500, 140, AMBER_FILL, AMBER_EDGE, rx=9, sw=1.6)
+    d.text(380, 324, "Timed together: the round-trip", 13, AMBER_DEEP,
+           weight=700)
+    d.lines(380, 348, [
+        "Producer to queue to worker to map to reply.",
+        f"Paired median gap {M['PFiftyDiffAbsMax']} us. Real, too small to attribute.",
+        "The rest is operating-system handoff.",
+        "That clock answers a vendor sizing a node, not a language comparison.",
+    ], 12, BODY, lh=18)
+    d.footer([
+        "The only shared mutable state either version allows is one atomic "
+        "counter. No control flow depends on its value.",
+    ], y=496)
+    return d
+
+
+# --------------------------------------------------------------------------
+def one_repeat():
+    d = Diagram(
+        "51_one_repeat", 880, 500,
+        "Inside one repeat the four arms run back to back",
+        f"{M['NRepeats']} repeats. {M['NLoadLevels']} loads. "
+        f"{M['NRuns']} measured runs. Interleaving makes host noise common "
+        "to a block.",
+    )
+    d.text(440, 88, "ONE REPEAT, ONE LOAD", 12, FAINT, weight=700,
+           anchor="middle")
+    arms = [
+        (40, BLUE, BLUE_FILL, BLUE_DEEP, "C++  jemalloc"),
+        (250, BLUE, BLUE_CHIP, BLUE_DEEP, "C++  system"),
+        (460, GREEN, GREEN_FILL, GREEN_DEEP, "Rust  jemalloc"),
+        (670, GREEN, GREEN_CHIP, GREEN_DEEP, "Rust  system"),
+    ]
+    for x, stroke, fill, deep, title in arms:
+        d.card(x, 104, 190, 80, title, ["same seed, same ops"], fill=fill,
+               stroke=stroke, sw=1.7, rx=9, title_color=deep, body_size=12,
+               pad=12, gap=18, lh=16)
+    for x in (234, 444, 654):
+        d.arrow(x, 144, x + 12, 144)
+
+    d.card(40, 212, 400, 160, "What pairing can cancel", [
+        "A noisy minute of the host hits all four",
+        "arms in that block. The paired test then",
+        "sees the language difference, not the",
+        "noise. That is why the family is exact",
+        f"permutation tests over {M['NRepeats']} pairs.",
+    ], fill=GREEN_FILL, stroke=GREEN, rx=9, sw=1.6, title_color=GREEN_DEEP,
+        body_size=12.5, pad=14, lh=17, gap=21)
+    d.card(460, 212, 380, 160, "What pairing cannot cancel", [
+        "A stall that hits only the high tail of",
+        "one arm. p99 is computed from exactly",
+        "those operations. The far tail is pooled",
+        "across repeats, so it has no across-run",
+        "interval and stays out of the family.",
+    ], fill=AMBER_FILL, stroke=AMBER_EDGE, rx=9, sw=1.6,
+        title_color=AMBER_DEEP, body_size=12.5, pad=14, lh=17, gap=21)
+    d.footer([
+        "A load picked after seeing the sweep cannot enter the family. That "
+        f"is why the tracking gap at {M['KneeGapLoad']} kops/s is shown and not tested.",
+    ], y=476)
+    return d
+
+
+# --------------------------------------------------------------------------
+def three_concurrency_words():
+    d = Diagram(
+        "52_three_concurrency_words", 880, 560,
+        "Three words that are not synonyms",
+        "Taking Rust drops one class of concurrency defect and leaves in "
+        "place the class that fails in silence.",
+    )
+    d.card(16, 76, 272, 300, "Data race", [
+        "Two threads, one location,",
+        "no synchronisation, one write.",
+        "",
+        "Safe Rust: compile error",
+        "(Send / Sync).",
+        "C++: TSan, if the test hits it.",
+        "",
+        "This is inside the guarantee.",
+        "H2 holds here.",
+    ], fill=GREEN_FILL, stroke=GREEN, sw=1.8, rx=10, title_color=GREEN_DEEP,
+        body_size=12.5, pad=14, lh=17, gap=22)
+    d.card(304, 76, 272, 300, "Race condition", [
+        "Each access is synced. The",
+        "composed step is still not atomic.",
+        "Example: lost update.",
+        "",
+        "The borrow checker is silent.",
+        "TSan is silent. There is no",
+        "unsynced access to find.",
+        "",
+        "Outside the guarantee.",
+        "H2's looser reading fails here.",
+    ], fill=AMBER_FILL, stroke=AMBER_EDGE, sw=1.8, rx=10,
+        title_color=AMBER_DEEP, body_size=12.5, pad=14, lh=17, gap=22)
+    d.card(592, 76, 272, 300, "Lock-order deadlock", [
+        "Two threads take two locks",
+        "in opposite orders and wait.",
+        "",
+        "A Mutex guard whose life the",
+        "borrow checker tracks well",
+        "says nothing about order.",
+        "",
+        f"TSan hit {M['DeadlockTsanHits']} of "
+        f"{M['DeadlockTsanRuns']} runs.",
+        "Do not quote that rate from",
+        "memory. It jumps.",
+    ], fill=RED_FILL, stroke=RED, sw=1.8, rx=10, title_color=RED_DEEP,
+        body_size=12.5, pad=14, lh=17, gap=22)
+
+    d.rect(16, 396, 848, 104, GREY_FILL, GREY_EDGE, rx=9, sw=1.5)
+    d.text(32, 420, "A plan that reads memory-safe as concurrency-safe", 13,
+           NAVY, weight=700)
+    d.lines(32, 440, [
+        "would mis-budget its review effort. About a third of the non-deadlock",
+        "concurrency bugs in Lu's field study broke the order the writers meant,",
+        "not their locking. Static deadlock checks for Rust are still open research.",
+    ], 12, BODY, lh=16)
+    d.footer([
+        "Leave the concurrency review budget where it is. That is guideline 3.",
+    ], y=536)
+    return d
+
+
+# --------------------------------------------------------------------------
+def checked_by_default():
+    d = Diagram(
+        "53_checked_by_default", 880, 520,
+        "One case reached past the fault programs",
+        "A spec gap let a call be sent outside the service running window. "
+        "Every test missed it, because nothing ever called that path.",
+    )
+    d.card(16, 80, 200, 220, "1.  Spec gap", [
+        "A call was legal in the",
+        "written spec at a time",
+        "the service was not",
+        "running.",
+        "",
+        "Both versions inherited",
+        "the hole. The method",
+        "left each to fail in its",
+        "own idiom.",
+    ], fill=GREY_FILL, stroke=GREY_EDGE, sw=1.6, rx=10, title_color=NAVY,
+        body_size=12, pad=14, lh=16, gap=20)
+    d.card(232, 80, 200, 220, "2.  What missed it", [
+        "Parity vectors.",
+        "Generated campaign.",
+        "ASan, TSan, UBSan.",
+        "Miri.",
+        "",
+        "Nothing called that",
+        "path, so nothing had",
+        "a failure to report.",
+    ], fill=AMBER_FILL, stroke=AMBER_EDGE, sw=1.6, rx=10,
+        title_color=AMBER_DEEP, body_size=12, pad=14, lh=16, gap=20)
+    d.card(448, 80, 200, 220, "3.  What caught it", [
+        "A plain bounds check",
+        "on the Rust side.",
+        "Undefined behaviour",
+        "became a catchable",
+        "failure.",
+        "",
+        "Not a proof.",
+        "Checked by default.",
+    ], fill=GREEN_FILL, stroke=GREEN, sw=1.6, rx=10, title_color=GREEN_DEEP,
+        body_size=12, pad=14, lh=16, gap=20)
+    d.card(664, 80, 200, 220, "4.  What to plan for", [
+        "Do not budget as if",
+        "compile time had ruled",
+        "the hole out.",
+        "",
+        "A ban stated without a",
+        "way behind it leaves",
+        "each version to fail in",
+        "its own idiom.",
+    ], fill=BLUE_FILL, stroke=BLUE, sw=1.6, rx=10, title_color=BLUE_DEEP,
+        body_size=12, pad=14, lh=16, gap=20)
+    for x in (220, 436, 652):
+        d.arrow(x, 190, x + 8, 190)
+
+    d.rect(16, 324, 848, 128, RED_FILL, RED, rx=9, sw=1.6)
+    d.text(32, 348, "The root cause belongs to the method", 13, RED_DEEP,
+           weight=700)
+    d.lines(32, 372, [
+        "Parity bounds the paths the suite drives. A clean sanitiser result is "
+        "bounded by the code that actually ran.",
+        "RQ2's injected catalogue is still final for the fourteen programs. This "
+        "case is why the thesis also talks about checked-by-default,",
+        "not only ruled-out-at-compile-time.",
+    ], 12.5, BODY, lh=18)
+    d.footer([
+        "Chapter 6, after the guarantee-boundary figure. It is part of the "
+        "answer to RQ2, not a footnote.",
+    ], y=496)
+    return d
+
+
+# --------------------------------------------------------------------------
+def testbed_protocol():
+    d = Diagram(
+        "54_testbed_protocol", 880, 560,
+        "What the measurement host does, and what it refuses",
+        f"One socket, {M['MainCpu']}. The program runs on the machine "
+        "itself, not inside a virtual machine.",
+    )
+    d.panel(16, 76, 420, 320, "DONE", GREEN_FILL, GREEN, header_h=34)
+    y = 126
+    for item in [
+        f"SMT {M['MainSmt']}. One thread per core.",
+        f"Governor {M['MainGovernor']}. Boost off.",
+        "nohz_full on the pinned cores.",
+        f"{M['MainPinnedCount']} pinned cores, 2 to 17.",
+        "Clock held fixed.",
+        "Rocky image pins gcc-toolset major.",
+        f"g++ {M['MainGpp']}, rustc {M['MainRustc']}.",
+    ]:
+        d.chip(36, y, 380, 28, item, WHITE, GREEN_DEEP, size=12, rx=6,
+               stroke=GREEN_EDGE)
+        y += 34
+
+    d.panel(452, 76, 412, 320, "REFUSED", RED_FILL, RED, header_h=34)
+    d.card(470, 126, 376, 100, "isolcpus", [
+        "It also stops the kernel sharing work",
+        "across the allowed cores. Each test",
+        "thread then lands on one core. An",
+        "earlier campaign ran that way. Void.",
+    ], fill=WHITE, stroke=RED_EDGE, rx=8, title_color=RED_DEEP,
+        body_size=12, pad=12, lh=16, gap=18)
+    d.card(470, 240, 376, 130, "A derived representative load", [
+        "The old rule took the busiest load",
+        "holding p99 under 5 ms. On the guest",
+        "that was the host noise floor. On a",
+        f"quiet host it climbs to the knee.",
+        f"ReprLoad is pinned at {M['ReprLoad']} kops/s.",
+    ], fill=WHITE, stroke=RED_EDGE, rx=8, title_color=RED_DEEP,
+        body_size=12, pad=12, lh=16, gap=18)
+
+    d.rect(16, 416, 848, 84, AMBER_FILL, AMBER_EDGE, rx=9, sw=1.6)
+    d.text(32, 440, "The image still uses the kernel of the host it sits on",
+           13, AMBER_DEEP, weight=700)
+    d.lines(32, 460, [
+        "So the guest sweep and the reported sweep differ in hardware, kernel,",
+        "and one GCC 15 point release. Do not write that they share a toolchain.",
+    ], 12, BODY, lh=16)
+    d.footer([
+        "bench/TESTBED.md is scripted and published. Executing the protocol "
+        "and rerunning the same scripts is the only step between hosts.",
+    ], y=536)
+    return d
+
+
+# --------------------------------------------------------------------------
+def list_vs_built():
+    d = Diagram(
+        "55_list_vs_built", 880, 520,
+        "A list of bug types is not a program that was built",
+        "Meneely mapped CWE types onto what safe Rust would stop. This thesis "
+        "asks the same question of programs that compile and run.",
+    )
+    d.card(16, 80, 400, 280, "Prior estimate (a list)", [
+        "Take the Common Weakness Enumeration.",
+        "Mark each type as one safe Rust would",
+        "stop, or would not.",
+        "Count real product bugs in 68 open-",
+        "source C projects.",
+        "",
+        "58.2% sat in types that safe Rust would",
+        "have made almost impossible.",
+        "",
+        "That share is a best case. It assumes",
+        "the new code stays in safe Rust. A type",
+        "counts as stopped if the mapping says so.",
+    ], fill=AMBER_FILL, stroke=AMBER_EDGE, sw=1.8, rx=10,
+        title_color=AMBER_DEEP, body_size=12.5, pad=16, lh=17, gap=22)
+    d.card(448, 80, 416, 280, "This thesis (programs)", [
+        f"{M['FaultClasses']} small programs, two groups of seven.",
+        "Each expectation recorded before the run.",
+        "C++ built and run under three sanitisers.",
+        "Safe Rust compiled, and run if it builds.",
+        "",
+        "The study can then say when the types",
+        "still open are caught, and what it costs",
+        "to catch them.",
+        "",
+        "That is why RQ2 is two-sided. A one-sided",
+        "catalogue can only confirm the guarantee.",
+    ], fill=GREEN_FILL, stroke=GREEN, sw=1.8, rx=10, title_color=GREEN_DEEP,
+        body_size=12.5, pad=16, lh=17, gap=22)
+    d.rect(16, 380, 848, 80, BLUE_FILL, BLUE, rx=9, sw=1.6)
+    d.text(32, 404, "What this adds", 13, BLUE_DEEP, weight=700)
+    d.text(32, 428, "Not a larger percentage. A stage and a cost for each "
+                    "class that still compiles: sanitiser, model checker after "
+                    "a rewrite, or undetected.", 12.5, BODY)
+    d.footer([
+        "Chapter 1, after the hypotheses. The 58.2% figure is theirs. Do not "
+        "treat it as a result of this study.",
+    ], y=496)
+    return d
+
+
+# --------------------------------------------------------------------------
+def one_address_space():
+    d = Diagram(
+        "56_one_address_space", 880, 520,
+        "Keeping unsafe at the seam bounds review, not corruption",
+        "Host and part share one address space. A compile-time property of "
+        "the Rust core bounds nothing at run time once a pointer has crossed.",
+    )
+    d.panel(16, 76, 260, 250, "C++ HOST", BLUE_FILL, BLUE, header_h=34)
+    d.chip(36, 128, 220, 36, "opaque handle", BLUE_CHIP, BLUE_DEEP, size=13,
+           rx=6, stroke=BLUE_EDGE)
+    d.chip(36, 176, 220, 36, "status codes only", BLUE_CHIP, BLUE_DEEP,
+           size=13, rx=6, stroke=BLUE_EDGE)
+    d.chip(36, 224, 220, 36, "same process", BLUE_CHIP, BLUE_DEEP, size=13,
+           rx=6, stroke=BLUE_EDGE)
+
+    d.panel(310, 76, 260, 250, "SEAM  (unsafe lives here)", ORANGE_FILL,
+            ORANGE, header_color=ORANGE_DEEP, header_h=34)
+    d.chip(330, 128, 220, 36, f"{M['FfiEntryPoints']} C entry points",
+           WHITE, ORANGE_DEEP, size=13, rx=6, stroke=ORANGE_EDGE)
+    d.chip(330, 176, 220, 36, f"{M['FfiUnsafeFns']} unsafe functions",
+           WHITE, ORANGE_DEEP, size=13, rx=6, stroke=ORANGE_EDGE)
+    d.chip(330, 224, 220, 36, f"{M['FfiSeamLines']} lines of Rust",
+           WHITE, ORANGE_DEEP, size=13, rx=6, stroke=ORANGE_EDGE)
+
+    d.panel(604, 76, 260, 250, "RUST CORE", GREEN_FILL, GREEN, header_h=34)
+    d.chip(624, 128, 220, 36, f"{M['CoreUnsafe']} unsafe sites", GREEN_CHIP,
+           GREEN_DEEP, size=13, rx=6, stroke=GREEN_EDGE)
+    d.chip(624, 176, 220, 36, "unchanged by the host", GREEN_CHIP, GREEN_DEEP,
+           size=13, rx=6, stroke=GREEN_EDGE)
+    d.chip(624, 224, 220, 36, "Send / Sync still apply", GREEN_CHIP,
+           GREEN_DEEP, size=13, rx=6, stroke=GREEN_EDGE)
+
+    d.arrow(280, 200, 306, 200, color=RED, sw=2.2)
+    d.arrow(574, 200, 600, 200, color=RED, sw=2.2)
+    d.text(440, 348, "one address space", 12, RED, weight=700, anchor="middle")
+
+    d.rect(16, 372, 848, 88, RED_FILL, RED, rx=9, sw=1.6)
+    d.text(32, 396, "What a vendor could misread", 13, RED_DEEP, weight=700)
+    d.lines(32, 420, [
+        "The RQ2 result is not a licence to describe a moved part as safe. "
+        "The seam double-free is the in-guarantee class returning inside unsafe.",
+        "Guideline 2 keeps the C ABI in its own crate so unsafe does not spread "
+        "through crate chains. It does not sandbox the host.",
+    ], 12, BODY, lh=18)
+    d.footer([
+        f"Per-call tax bounded at {M['FfiOpBoundPct']}% of a real signal call. "
+        f"A do-nothing crossing bounds only itself.",
+    ], y=496)
+    return d
+
+
+# --------------------------------------------------------------------------
+def findings_one_page():
+    d = Diagram(
+        "57_findings_one_page", 880, 560,
+        "What each research question returned",
+        "The answer to RQ1 splits at saturation. RQ2 is final. RQ3 splits by "
+        "resource. RQ4 is cheap in the machine.",
+    )
+    d.card(16, 76, 416, 200, "RQ1  Latency", [
+        f"Below saturation: medians within {M['PFiftyRange']} us.",
+        f"Paired gap {M['PFiftyDiffAbsMax']} us. Too small to bound.",
+        f"Far tail: Rust lower by {M['FarTailLangSep']} us, pooled.",
+        f"Rust tracks to {M['TrackingLoadRust']} kops/s, C++ to "
+        f"{M['TrackingLoadCpp']}.",
+        f"At {M['OverloadLoad']} kops/s, C++ finishes "
+        f"{M['OverloadThrRatio']}x as much.",
+        "Those two picks point at opposite sides.",
+    ], fill=BLUE_FILL, stroke=BLUE, sw=1.7, rx=10, title_color=BLUE_DEEP,
+        body_size=12, pad=14, lh=17, gap=21)
+    d.card(448, 76, 416, 200, "RQ2  Defects", [
+        f"All {M['FaultClassesPrevented']} in-guarantee classes: compile error.",
+        f"All {M['FaultClassesBoundary']} boundary classes: compile and fail.",
+        "On two of them C++ tools flag what Rust's do not.",
+        "Rust drops data races and aliasing errors.",
+        "It does not drop race conditions, lock order,",
+        "leaks, wrapping, or a failed worker's blast.",
+    ], fill=GREEN_FILL, stroke=GREEN, sw=1.7, rx=10, title_color=GREEN_DEEP,
+        body_size=12, pad=14, lh=17, gap=21)
+    d.card(16, 292, 416, 176, "RQ3  Resources", [
+        f"Language RSS {M['RssLangDiffLo']} to {M['RssLangDiffHi']} MiB, all hosts.",
+        f"Allocator {M['RssAllocDiffLo']} to {M['RssAllocDiffHi']} MiB, either language.",
+        "Comparable on bare metal. Guest ratio does not travel.",
+        f"CPU at {M['ReprLoad']} kops/s: Rust at most "
+        f"{M['CpuDiffAbsMax']} pp less.",
+        "CPU past saturation: sign flips. Do not mix the two.",
+    ], fill=AMBER_FILL, stroke=AMBER_EDGE, sw=1.7, rx=10,
+        title_color=AMBER_DEEP, body_size=12, pad=14, lh=17, gap=21)
+    d.card(448, 292, 416, 176, "RQ4  Adoption", [
+        f"Seam: {M['FfiEntryPoints']} entries, "
+        f"{M['FfiUnsafeFns']} unsafe functions.",
+        f"Per-call bound {M['FfiOpBoundPct']}% of a real signal.",
+        f"{M['BuildDepShareCpu']}% of the Rust build is crates.",
+        "Size gap is a linkage policy. Order flips if matched.",
+        "C++ leads the single-file edit and compile loop.",
+    ], fill=ORANGE_FILL, stroke=ORANGE, sw=1.7, rx=10, title_color=ORANGE_DEEP,
+        body_size=12, pad=14, lh=17, gap=21)
+    d.footer([
+        "Taken as a set these support a narrow claim, for stateful, concurrent, "
+        "partitionable control-plane services of this kind.",
+    ], y=536)
+    return d
+
+
+# --------------------------------------------------------------------------
+def instrument_not_verdict():
+    d = Diagram(
+        "58_instrument_not_verdict", 880, 500,
+        "What the thesis adds is an instrument, not a verdict",
+        "At loads where the service still meets its sent rate, the choice is "
+        "which defects a team will make impossible to write.",
+    )
+    items = [
+        ("Frozen spec", "The main control against writer bias. Public. Both sides follow it."),
+        ("Parity-tested pair", "Same paths, same seeds, a Python oracle, sanitisers on the path taken."),
+        ("Harness past the knee", "Open-loop, interleaved, Holm family fixed before the campaign."),
+        ("A split of the round-trip", "Says how much of what it times the language can own."),
+        ("A defect catalogue", "Maps where the guarantee stops, with a stage and a cost."),
+        ("A thin C-ABI seam", "Shows a C++ host can drive an unchanged Rust core."),
+    ]
+    y = 80
+    n = 1
+    for title, body in items:
+        d.badge(40, y + 18, 14, str(n), fill=BLUE, color=WHITE, size=11)
+        d.card(64, y, 796, 48, title, wrap(body, 88), fill=WHITE,
+               stroke=BLUE_EDGE, rx=7, title_size=13, body_size=12,
+               pad=10, gap=16, lh=14)
+        y += 56
+        n += 1
+    d.footer([
+        "Past the knee it is a speed choice as well. A nominal-load test "
+        "would not have exposed the gap.",
+    ], y=476)
+    return d
+
+
+# --------------------------------------------------------------------------
+def guest_could_not_resolve():
+    d = Diagram(
+        "59_guest_could_not_resolve", 880, 520,
+        "The guest could not resolve the far tail. Bare metal can.",
+        "The earlier KVM sweep is kept so host-owned findings have a "
+        "counter-example sitting beside them.",
+    )
+    d.card(16, 80, 416, 280, "KVM guest", [
+        f"p99 noise on one arm: {M['GuestPNineNineMaxCI']} us.",
+        f"Gap between all four arms: {M['GuestPNineNineRange']} us.",
+        "Noise on one arm was larger than the",
+        "gap between all four. The far tail could",
+        "not be read.",
+        "",
+        f"g++ {M['GuestGpp']}. Same rustc.",
+        "No core controls. Hypervisor in the way.",
+        "Kept, not dropped. Same design, same code.",
+    ], fill=AMBER_FILL, stroke=AMBER_EDGE, sw=1.8, rx=10,
+        title_color=AMBER_DEEP, body_size=13, pad=16, lh=18, gap=22)
+    d.card(448, 80, 416, 280, "Bare metal (reported)", [
+        f"p99 noise on one arm: {M['PNineNineMaxCI']} us.",
+        f"Gap between all four arms: {M['PNineNineRange']} us.",
+        "Noise is smaller than the gap. Both p99",
+        "rows and both p99.9 rows clear Holm,",
+        f"{M['NTailSignificant']} rows in all.",
+        "",
+        f"Far tail pooled, {M['FarTailSamplesMin']} to "
+        f"{M['FarTailSamplesMax']} calls.",
+        f"Slowest Rust arm {M['FarTailLangSep']} us below fastest C++.",
+        "A second bare-metal host agrees.",
+    ], fill=GREEN_FILL, stroke=GREEN, sw=1.8, rx=10, title_color=GREEN_DEEP,
+        body_size=13, pad=16, lh=18, gap=22)
+    d.rect(16, 380, 848, 80, BLUE_FILL, BLUE, rx=9, sw=1.6)
+    d.text(32, 404, "What this licences", 13, BLUE_DEEP, weight=700)
+    d.lines(32, 424, [
+        "Speed and RSS results name the host. RQ2 and the seam structure do not.",
+        "Tail delay numbers from any single host are a thinner basis for a roll-out than they look.",
+    ], 12.5, BODY, lh=16)
+    d.footer([
+        "That is why the earlier guest sweep is kept, not dropped. "
+        "Chapter 6, ethical and professional reflection.",
+    ], y=496)
+    return d
+
+
+# --------------------------------------------------------------------------
 PAGES = [
     ("How to read Thesis_v3", how_to_read),
     ("Three trends", three_trends),
@@ -1223,7 +1861,122 @@ PAGES = [
     ("Engineering guidelines", guidelines),
     ("Limits and next work", cannot_support),
     ("Claim register", claim_register),
+    ("gNB two splits", ngran_two_splits),
+    ("Open loop", open_loop),
+    ("One request path", request_path),
+    ("One interleaved repeat", one_repeat),
+    ("Three concurrency words", three_concurrency_words),
+    ("Checked by default", checked_by_default),
+    ("Testbed protocol", testbed_protocol),
+    ("List versus programs", list_vs_built),
+    ("One address space", one_address_space),
+    ("Findings one page", findings_one_page),
+    ("Instrument, not verdict", instrument_not_verdict),
+    ("Guest could not resolve", guest_could_not_resolve),
 ]
+
+
+def write_gallery(built):
+    """A browser page so the diagrams are pictures, not XML."""
+    cards = []
+    for i, (title, d) in enumerate(built, 1):
+        cards.append(
+            f'<section class="page" id="{escape(d.name)}">'
+            f'<h2><span class="n">{i:02d}</span> {escape(title)}</h2>'
+            f'<p class="file">{escape(d.name)}.png</p>'
+            f'<img src="png/{escape(d.name)}.png" alt="{escape(title)}">'
+            f"</section>"
+        )
+    nav = " ".join(
+        f'<a href="#{escape(d.name)}">{i:02d}</a>'
+        for i, (title, d) in enumerate(built, 1)
+    )
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thesis_v3 diagram review</title>
+<style>
+  :root {{
+    --navy: #12233a;
+    --body: #33475b;
+    --muted: #5b6b7b;
+    --line: #d7dde3;
+    --chip: #eef3fa;
+  }}
+  * {{ box-sizing: border-box; }}
+  body {{
+    margin: 0;
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    color: var(--navy);
+    background: #f7f9fb;
+  }}
+  header {{
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    padding: 16px 24px 12px;
+  }}
+  h1 {{ margin: 0 0 6px; font-size: 22px; }}
+  .lead {{ margin: 0 0 12px; color: var(--muted); font-size: 14px; }}
+  nav {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }}
+  nav a {{
+    display: inline-block;
+    padding: 4px 8px;
+    background: var(--chip);
+    color: var(--navy);
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+  }}
+  nav a:hover {{ background: #dce8f7; }}
+  main {{ max-width: 960px; margin: 0 auto; padding: 16px 16px 64px; }}
+  .page {{
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 20px 0;
+  }}
+  h2 {{ margin: 0 0 4px; font-size: 18px; }}
+  h2 .n {{ color: #2f6db3; margin-right: 8px; }}
+  .file {{ margin: 0 0 12px; color: var(--muted); font-size: 12px; }}
+  img {{
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+  }}
+</style>
+</head>
+<body>
+<header>
+  <h1>Thesis_v3 diagram review</h1>
+  <p class="lead">
+    {len(built)} pages. Scroll, or use the numbers to jump.
+    This pack is not in the PDF. The .drawio files are for editing.
+  </p>
+  <nav>{nav}</nav>
+</header>
+<main>
+{"".join(cards)}
+</main>
+</body>
+</html>
+"""
+    path = os.path.join(OUT, "index.html")
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(html)
+    return path
 
 
 def as_mxfile(pages):
@@ -1301,6 +2054,8 @@ def main():
         png_path = os.path.join(png_dir, d.name + ".png")
         cairosvg.svg2png(url=svg_path, write_to=png_path, scale=2.0)
         print(f"rendered {d.name}.png")
+    gallery = write_gallery(built)
+    print(f"gallery -> {gallery}")
     return 0
 
 

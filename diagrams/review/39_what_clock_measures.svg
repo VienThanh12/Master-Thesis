@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 560" width="880" height="560" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <rect x="0" y="0" width="880" height="560" fill="#ffffff"/>
+  <text x="440.0" y="32" font-size="22" fill="#12233a" text-anchor="middle" font-weight="700">What the end-to-end clock can and cannot say</text>
+  <text x="440.0" y="54" font-size="12.5" fill="#5b6b7b" text-anchor="middle">An operation in this design is a fraction of a percent of the round-trip. That clock cannot bound a language effect.</text>
+  <rect x="16" y="76" width="848" height="160" rx="11" fill="#eef3fa" stroke="#2f6db3" stroke-width="2.0"/>
+  <rect x="16" y="76" width="848" height="34" rx="11" fill="#2f6db3"/>
+  <rect x="16" y="99" width="848" height="11" fill="#2f6db3"/>
+  <text x="440.0" y="98.0" font-size="14.5" fill="#ffffff" text-anchor="middle" font-weight="700">ONE END-TO-END ROUND-TRIP</text>
+  <text x="36" y="132" font-size="12" fill="#1c4e86" font-weight="700">Language work (the core)</text>
+  <rect x="36" y="144" width="8" height="28" rx="3" fill="#2e8b57"/>
+  <text x="52" y="162" font-size="12" fill="#1f6b41" font-weight="700">0.250% of the sweep</text>
+  <text x="36" y="196" font-size="12" fill="#1c4e86" font-weight="700">Cross-thread handoff (operating system)</text>
+  <rect x="36" y="208" width="790" height="14" rx="3" fill="#2f6db3"/>
+  <text x="36" y="236" font-size="12" fill="#5b6b7b">the remaining 99.750%</text>
+  <rect x="16" y="256" width="270" height="200" rx="9" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.6"/>
+  <text x="30" y="280.325" font-size="11.5" fill="#1c4e86" font-weight="700">What the sweep times</text>
+  <text x="30" y="301.325" font-size="11.5" fill="#5b6b7b">Producer to shard queue to worker</text>
+  <text x="30" y="316.325" font-size="11.5" fill="#5b6b7b">to one-shot reply. Most of that time</text>
+  <text x="30" y="331.325" font-size="11.5" fill="#5b6b7b">is passing work between threads.</text>
+  <text x="30" y="346.325" font-size="11.5" fill="#5b6b7b"></text>
+  <text x="30" y="361.325" font-size="11.5" fill="#5b6b7b">Paired median gap: 1.3 us.</text>
+  <text x="30" y="376.325" font-size="11.5" fill="#5b6b7b">Real, and too small to attribute.</text>
+  <rect x="304" y="256" width="270" height="200" rx="9" fill="#f4fbf6" stroke="#2e8b57" stroke-width="1.6"/>
+  <text x="318" y="280.325" font-size="11.5" fill="#1f6b41" font-weight="700">What the microbench times</text>
+  <text x="318" y="301.325" font-size="11.5" fill="#5b6b7b">The core called directly, with no</text>
+  <text x="318" y="316.325" font-size="11.5" fill="#5b6b7b">queue and no reply handle.</text>
+  <text x="318" y="331.325" font-size="11.5" fill="#5b6b7b"></text>
+  <text x="318" y="346.325" font-size="11.5" fill="#5b6b7b">Rust is 1.6x faster.</text>
+  <text x="318" y="361.325" font-size="11.5" fill="#5b6b7b">Likely cause: stock hash-map layout,</text>
+  <text x="318" y="376.325" font-size="11.5" fill="#5b6b7b">not the safe-code model.</text>
+  <text x="318" y="391.325" font-size="11.5" fill="#5b6b7b"></text>
+  <text x="318" y="406.325" font-size="11.5" fill="#5b6b7b">Both sit inside the sweep's blind</text>
+  <text x="318" y="421.325" font-size="11.5" fill="#5b6b7b">zone by a factor of 38.</text>
+  <rect x="592" y="256" width="272" height="200" rx="9" fill="#fdf1f0" stroke="#a5281b" stroke-width="1.6"/>
+  <text x="606" y="280.325" font-size="11.5" fill="#8c2a20" font-weight="700">What this forbids</text>
+  <text x="606" y="301.325" font-size="11.5" fill="#5b6b7b">Bounding a language effect from</text>
+  <text x="606" y="316.325" font-size="11.5" fill="#5b6b7b">the end-to-end median.</text>
+  <text x="606" y="331.325" font-size="11.5" fill="#5b6b7b"></text>
+  <text x="606" y="346.325" font-size="11.5" fill="#5b6b7b">Calling the two languages</text>
+  <text x="606" y="361.325" font-size="11.5" fill="#5b6b7b">equivalent because the sweep</text>
+  <text x="606" y="376.325" font-size="11.5" fill="#5b6b7b">cannot tell them apart.</text>
+  <text x="606" y="391.325" font-size="11.5" fill="#5b6b7b"></text>
+  <text x="606" y="406.325" font-size="11.5" fill="#5b6b7b">cannot tell is not equivalent.</text>
+  <text x="440.0" y="536" font-size="11.5" fill="#8794a3" text-anchor="middle">Point (5) of the abstract is written this way on purpose: the paired gap is reported, then refused as a bound.</text>
+</svg>

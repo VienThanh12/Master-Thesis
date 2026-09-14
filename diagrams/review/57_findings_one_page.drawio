@@ -1,0 +1,27 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="560" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="What each research question returned" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="224.18" y="11.1" width="431.64" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n3" value="The answer to RQ1 splits at saturation. RQ2 is final. RQ3 splits by resource. RQ4 is cheap in the machine." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="78.94" y="42.12" width="722.13" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n12" value="&lt;b&gt;RQ1  Latency&lt;/b&gt;&lt;br&gt;&lt;br&gt;Below saturation: medians within 1.6 us.&lt;br&gt;Paired gap 1.3 us. Too small to bound.&lt;br&gt;Far tail: Rust lower by 50 us, pooled.&lt;br&gt;Rust tracks to 448 kops/s, C++ to 392.&lt;br&gt;At 784 kops/s, C++ finishes 1.7x as much.&lt;br&gt;Those two picks point at opposite sides." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.7;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="16" y="76" width="416" height="200" as="geometry"/>
+    </mxCell>
+    <mxCell id="n21" value="&lt;b&gt;RQ2  Defects&lt;/b&gt;&lt;br&gt;&lt;br&gt;All 7 in-guarantee classes: compile error.&lt;br&gt;All 7 boundary classes: compile and fail.&lt;br&gt;On two of them C++ tools flag what Rust's do not.&lt;br&gt;Rust drops data races and aliasing errors.&lt;br&gt;It does not drop race conditions, lock order,&lt;br&gt;leaks, wrapping, or a failed worker's blast." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#f4fbf6;strokeColor=#2e8b57;strokeWidth=1.7;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="448" y="76" width="416" height="200" as="geometry"/>
+    </mxCell>
+    <mxCell id="n29" value="&lt;b&gt;RQ3  Resources&lt;/b&gt;&lt;br&gt;&lt;br&gt;Language RSS 1.4 to 2.5 MiB, all hosts.&lt;br&gt;Allocator 1.5 to 2.4 MiB, either language.&lt;br&gt;Comparable on bare metal. Guest ratio does not travel.&lt;br&gt;CPU at 56 kops/s: Rust at most 5.1 pp less.&lt;br&gt;CPU past saturation: sign flips. Do not mix the two." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#fdf6e9;strokeColor=#c8860d;strokeWidth=1.7;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="16" y="292" width="416" height="176" as="geometry"/>
+    </mxCell>
+    <mxCell id="n37" value="&lt;b&gt;RQ4  Adoption&lt;/b&gt;&lt;br&gt;&lt;br&gt;Seam: 11 entries, 9 unsafe functions.&lt;br&gt;Per-call bound 10.91% of a real signal.&lt;br&gt;54% of the Rust build is crates.&lt;br&gt;Size gap is a linkage policy. Order flips if matched.&lt;br&gt;C++ leads the single-file edit and compile loop." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#fff3ec;strokeColor=#d35400;strokeWidth=1.7;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="448" y="292" width="416" height="176" as="geometry"/>
+    </mxCell>
+    <mxCell id="n38" value="Taken as a set these support a narrow claim, for stateful, concurrent, partitionable control-plane services of this kind." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="60.82" y="525.08" width="758.37" height="17.25" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

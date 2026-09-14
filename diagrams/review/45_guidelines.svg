@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 560" width="880" height="560" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <rect x="0" y="0" width="880" height="560" fill="#ffffff"/>
+  <text x="440.0" y="32" font-size="22" fill="#12233a" text-anchor="middle" font-weight="700">Engineering guidelines, each carrying the limit of its finding</text>
+  <text x="440.0" y="54" font-size="12.5" fill="#5b6b7b" text-anchor="middle">These are the practical form of Chapter 6, not a vendor playbook detached from the evidence</text>
+  <circle cx="40" cy="102" r="16" fill="#2f6db3"/>
+  <text x="40" y="106.44" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">1</text>
+  <rect x="68" y="78" width="792" height="60" rx="8" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="80" y="101.15" font-size="13" fill="#12233a" font-weight="700">Choose a first part for how thin its API is, not for its size.</text>
+  <text x="80" y="118.15" font-size="12" fill="#5b6b7b">The rewrite of a rich interface is the schedule risk. The edge itself is not.</text>
+  <circle cx="40" cy="170" r="16" fill="#2f6db3"/>
+  <text x="40" y="174.44" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">2</text>
+  <rect x="68" y="146" width="792" height="60" rx="8" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="80" y="169.15" font-size="13" fill="#12233a" font-weight="700">Keep the C ABI in its own crate and the core free of unsafe.</text>
+  <text x="80" y="186.15" font-size="12" fill="#5b6b7b">That keeps unsafe out of the crate chains it spreads through.</text>
+  <circle cx="40" cy="238" r="16" fill="#2f6db3"/>
+  <text x="40" y="242.44" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">3</text>
+  <rect x="68" y="214" width="792" height="60" rx="8" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="80" y="237.15" font-size="13" fill="#12233a" font-weight="700">Leave the concurrency review budget where it is.</text>
+  <text x="80" y="254.15" font-size="12" fill="#5b6b7b">Taking Rust drops data races. It leaves the class that fails in silence.</text>
+  <circle cx="40" cy="306" r="16" fill="#2f6db3"/>
+  <text x="40" y="310.44" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">4</text>
+  <rect x="68" y="282" width="792" height="60" rx="8" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="80" y="305.15" font-size="13" fill="#12233a" font-weight="700">Prefer a shared-nothing structure in either language.</text>
+  <text x="80" y="322.15" font-size="12" fill="#5b6b7b">The strongest concurrency result here belongs to the design and to neither compiler.</text>
+  <circle cx="40" cy="374" r="16" fill="#2f6db3"/>
+  <text x="40" y="378.44" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">5</text>
+  <rect x="68" y="350" width="792" height="60" rx="8" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="80" y="373.15" font-size="13" fill="#12233a" font-weight="700">Plan the learning curve as a training cost and track it.</text>
+  <text x="80" y="390.15" font-size="12" fill="#5b6b7b">H3's human-cost claim is structural, not statistical.</text>
+  <circle cx="40" cy="442" r="16" fill="#2f6db3"/>
+  <text x="40" y="446.44" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">6</text>
+  <rect x="68" y="418" width="792" height="60" rx="8" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="80" y="441.15" font-size="13" fill="#12233a" font-weight="700">Time the part as well as the round-trip. Sweep past the knee.</text>
+  <text x="80" y="458.15" font-size="12" fill="#5b6b7b">The rule this study would most like to have used from the start.</text>
+  <text x="440.0" y="536" font-size="11.5" fill="#8794a3" text-anchor="middle">A plan that reads memory-safe as concurrency-safe would mis-budget its review effort. Memory-safety bugs in Rust involve unsafe.</text>
+</svg>

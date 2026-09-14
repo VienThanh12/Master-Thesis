@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 580" width="880" height="580" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <rect x="0" y="0" width="880" height="580" fill="#ffffff"/>
+  <text x="440.0" y="32" font-size="22" fill="#12233a" text-anchor="middle" font-weight="700">RQ4: cheap in the machine, costly in the people</text>
+  <text x="440.0" y="54" font-size="12.5" fill="#5b6b7b" text-anchor="middle">A C++ host can call an unchanged Rust core. All unsafe stays in 9 functions. The core has 0 unsafe sites.</text>
+  <rect x="16" y="76" width="200" height="300" rx="10" fill="#f4fbf6" stroke="#2e8b57" stroke-width="1.8"/>
+  <text x="28" y="98.325" font-size="11.5" fill="#1f6b41" font-weight="700">Seam structure</text>
+  <text x="28" y="118.325" font-size="10.5" fill="#5b6b7b">11 C entry points in</text>
+  <text x="28" y="132.325" font-size="10.5" fill="#5b6b7b">231 lines of Rust.</text>
+  <text x="28" y="146.325" font-size="10.5" fill="#5b6b7b">9 functions hold all</text>
+  <text x="28" y="160.325" font-size="10.5" fill="#5b6b7b">raw pointers. Core is clean.</text>
+  <text x="28" y="174.325" font-size="10.5" fill="#5b6b7b"></text>
+  <text x="28" y="188.325" font-size="10.5" fill="#5b6b7b">Final. Read off the code.</text>
+  <text x="28" y="202.325" font-size="10.5" fill="#5b6b7b">Does not depend on host.</text>
+  <rect x="232" y="76" width="200" height="300" rx="10" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.8"/>
+  <text x="244" y="98.325" font-size="11.5" fill="#1c4e86" font-weight="700">Per-call tax</text>
+  <text x="244" y="118.325" font-size="10.5" fill="#5b6b7b">Native 12.3 us.</text>
+  <text x="244" y="132.325" font-size="10.5" fill="#5b6b7b">Through the seam 12.7 us.</text>
+  <text x="244" y="146.325" font-size="10.5" fill="#5b6b7b">Bound: 10.91% of that call.</text>
+  <text x="244" y="160.325" font-size="10.5" fill="#5b6b7b"></text>
+  <text x="244" y="174.325" font-size="10.5" fill="#5b6b7b">Timed on a real signal, not</text>
+  <text x="244" y="188.325" font-size="10.5" fill="#5b6b7b">an empty crossing. A no-op</text>
+  <text x="244" y="202.325" font-size="10.5" fill="#5b6b7b">crossing bounds itself.</text>
+  <rect x="448" y="76" width="200" height="300" rx="10" fill="#fdf6e9" stroke="#c8860d" stroke-width="1.8"/>
+  <text x="460" y="98.325" font-size="11.5" fill="#a5700c" font-weight="700">Build time</text>
+  <text x="460" y="118.325" font-size="10.5" fill="#5b6b7b">54% of the Rust clean</text>
+  <text x="460" y="132.325" font-size="10.5" fill="#5b6b7b">build is third-party code.</text>
+  <text x="460" y="146.325" font-size="10.5" fill="#5b6b7b">Own source builds in</text>
+  <text x="460" y="160.325" font-size="10.5" fill="#5b6b7b">0.8x the CPU g++ needs.</text>
+  <text x="460" y="174.325" font-size="10.5" fill="#5b6b7b"></text>
+  <text x="460" y="188.325" font-size="10.5" fill="#5b6b7b">The host-sensitive axis.</text>
+  <text x="460" y="202.325" font-size="10.5" fill="#5b6b7b">Quote the paired ratio.</text>
+  <rect x="664" y="76" width="200" height="300" rx="10" fill="#fff3ec" stroke="#d35400" stroke-width="1.8"/>
+  <text x="676" y="98.325" font-size="11.5" fill="#a04000" font-weight="700">Shipped size</text>
+  <text x="676" y="118.325" font-size="10.5" fill="#5b6b7b">The 6.8x gap compares</text>
+  <text x="676" y="132.325" font-size="10.5" fill="#5b6b7b">two linkage policies. Order</text>
+  <text x="676" y="146.325" font-size="10.5" fill="#5b6b7b">flips if policy is matched.</text>
+  <text x="676" y="160.325" font-size="10.5" fill="#5b6b7b"></text>
+  <text x="676" y="174.325" font-size="10.5" fill="#5b6b7b">Compared part: 0 crates,</text>
+  <text x="676" y="188.325" font-size="10.5" fill="#5b6b7b">0 unsafe sites. Never</text>
+  <text x="676" y="202.325" font-size="10.5" fill="#5b6b7b">quote that ratio alone.</text>
+  <rect x="16" y="396" width="848" height="120" rx="9" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.5"/>
+  <text x="32" y="420" font-size="13" fill="#12233a" font-weight="700">Where C++ still leads, and the limit of the seam</text>
+  <text x="32" y="444" font-size="12" fill="#33475b">The edit and compile loop for a change that stays inside one source file is faster in C++. That is the one axis of outright lead.</text>
+  <text x="32" y="462" font-size="12" fill="#33475b">Keeping unsafe at the seam bounds what has to be checked, not what can be corrupted. Host and part share one address space.</text>
+  <text x="32" y="480" font-size="12" fill="#33475b">A vendor worried about build time or footprint should audit its crate budget (54% of CPU is dependencies) before blaming the compiler.</text>
+  <text x="440.0" y="556" font-size="11.5" fill="#8794a3" text-anchor="middle">The C++ unsafe cell stays blank on purpose. The language marks no such region.</text>
+</svg>

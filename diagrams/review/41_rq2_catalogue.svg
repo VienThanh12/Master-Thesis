@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 700" width="880" height="700" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <rect x="0" y="0" width="880" height="700" fill="#ffffff"/>
+  <text x="440.0" y="32" font-size="22" fill="#12233a" text-anchor="middle" font-weight="700">RQ2 is two-sided: seven inside the guarantee, seven outside it</text>
+  <text x="440.0" y="54" font-size="12.5" fill="#5b6b7b" text-anchor="middle">The seam double-free is the in-guarantee double-free rewritten through unsafe, not a new class</text>
+  <rect x="16" y="72" width="420" height="430" rx="11" fill="#f4fbf6" stroke="#2e8b57" stroke-width="2.0"/>
+  <rect x="16" y="72" width="420" height="36" rx="11" fill="#2e8b57"/>
+  <rect x="16" y="97" width="420" height="11" fill="#2e8b57"/>
+  <text x="226.0" y="95.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="700">INSIDE: compile error in safe Rust</text>
+  <rect x="34" y="124" width="384" height="48" rx="6" fill="#ffffff" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="44" y="144.6" font-size="12" fill="#12233a" font-weight="700">Use-after-free</text>
+  <text x="44" y="159.6" font-size="10.5" fill="#5b6b7b">C++: ASan + TSan at runtime</text>
+  <rect x="34" y="176" width="384" height="48" rx="6" fill="#ffffff" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="44" y="196.6" font-size="12" fill="#12233a" font-weight="700">Double-free</text>
+  <text x="44" y="211.6" font-size="10.5" fill="#5b6b7b">C++: ASan at runtime</text>
+  <rect x="34" y="228" width="384" height="48" rx="6" fill="#ffffff" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="44" y="248.6" font-size="12" fill="#12233a" font-weight="700">Iterator invalidation</text>
+  <text x="44" y="263.6" font-size="10.5" fill="#5b6b7b">C++: ASan + TSan at runtime</text>
+  <rect x="34" y="280" width="384" height="48" rx="6" fill="#ffffff" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="44" y="300.6" font-size="12" fill="#12233a" font-weight="700">Data race</text>
+  <text x="44" y="315.6" font-size="10.5" fill="#5b6b7b">C++: TSan at runtime</text>
+  <rect x="34" y="332" width="384" height="48" rx="6" fill="#ffffff" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="44" y="352.6" font-size="12" fill="#12233a" font-weight="700">Unguarded shared mutation</text>
+  <text x="44" y="367.6" font-size="10.5" fill="#5b6b7b">C++: TSan at runtime</text>
+  <rect x="34" y="384" width="384" height="48" rx="6" fill="#ffffff" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="44" y="404.6" font-size="12" fill="#12233a" font-weight="700">Use-after-move</text>
+  <text x="44" y="419.6" font-size="10.5" fill="#5b6b7b">C++: no sanitiser flags it. A moved-from object is</text>
+  <text x="44" y="432.6" font-size="10.5" fill="#5b6b7b">still valid.</text>
+  <rect x="34" y="436" width="384" height="48" rx="6" fill="#ffffff" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="44" y="456.6" font-size="12" fill="#12233a" font-weight="700">Thread-unsafe handle shared</text>
+  <text x="44" y="471.6" font-size="10.5" fill="#5b6b7b">C++: TSan at runtime</text>
+  <rect x="452" y="72" width="412" height="430" rx="11" fill="#fdf1f0" stroke="#a5281b" stroke-width="2.0"/>
+  <rect x="452" y="72" width="412" height="36" rx="11" fill="#a5281b"/>
+  <rect x="452" y="97" width="412" height="11" fill="#a5281b"/>
+  <text x="658.0" y="95.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="700">OUTSIDE: compiles and fails in both</text>
+  <rect x="470" y="124" width="376" height="48" rx="6" fill="#ffffff" stroke="#e6b3ad" stroke-width="1.0"/>
+  <text x="480" y="144.6" font-size="12" fill="#12233a" font-weight="700">Lock-order deadlock</text>
+  <text x="480" y="159.6" font-size="10.5" fill="#5b6b7b">TSan hit 5 of 12 runs. Rate jumps. Do not quote</text>
+  <text x="480" y="172.6" font-size="10.5" fill="#5b6b7b">it from memory.</text>
+  <rect x="470" y="176" width="376" height="48" rx="6" fill="#ffffff" stroke="#e6b3ad" stroke-width="1.0"/>
+  <text x="480" y="196.6" font-size="12" fill="#12233a" font-weight="700">Lost update</text>
+  <text x="480" y="211.6" font-size="10.5" fill="#5b6b7b">Each access is synced, so TSan has no race to</text>
+  <text x="480" y="224.6" font-size="10.5" fill="#5b6b7b">find. Silent in both.</text>
+  <rect x="470" y="228" width="376" height="48" rx="6" fill="#ffffff" stroke="#e6b3ad" stroke-width="1.0"/>
+  <text x="480" y="248.6" font-size="12" fill="#12233a" font-weight="700">Reference-cycle leak</text>
+  <text x="480" y="263.6" font-size="10.5" fill="#5b6b7b">Leaks are safe in Rust by design. LeakSanitizer</text>
+  <text x="480" y="276.6" font-size="10.5" fill="#5b6b7b">flags C++.</text>
+  <rect x="470" y="280" width="376" height="48" rx="6" fill="#ffffff" stroke="#e6b3ad" stroke-width="1.0"/>
+  <text x="480" y="300.6" font-size="12" fill="#12233a" font-weight="700">Integer overflow (release)</text>
+  <text x="480" y="315.6" font-size="10.5" fill="#5b6b7b">Rust defines wrap. UBSan flags C++.</text>
+  <rect x="470" y="332" width="376" height="48" rx="6" fill="#ffffff" stroke="#e6b3ad" stroke-width="1.0"/>
+  <text x="480" y="352.6" font-size="12" fill="#12233a" font-weight="700">Worker-failure blast radius</text>
+  <text x="480" y="367.6" font-size="10.5" fill="#5b6b7b">A failed worker takes its shard. Undetected on</text>
+  <text x="480" y="380.6" font-size="10.5" fill="#5b6b7b">both sides.</text>
+  <rect x="470" y="384" width="376" height="48" rx="6" fill="#ffffff" stroke="#e6b3ad" stroke-width="1.0"/>
+  <text x="480" y="404.6" font-size="12" fill="#12233a" font-weight="700">Forgotten lock guard</text>
+  <text x="480" y="419.6" font-size="10.5" fill="#5b6b7b">RAII removes the plain missed-unlock. Both</text>
+  <text x="480" y="432.6" font-size="10.5" fill="#5b6b7b">forgotten-guard programs hang.</text>
+  <rect x="470" y="436" width="376" height="48" rx="6" fill="#ffffff" stroke="#e6b3ad" stroke-width="1.0"/>
+  <text x="480" y="456.6" font-size="12" fill="#12233a" font-weight="700">Seam double-free</text>
+  <text x="480" y="471.6" font-size="10.5" fill="#5b6b7b">Same C++ half. Only the Rust column moves. Miri</text>
+  <text x="480" y="484.6" font-size="10.5" fill="#5b6b7b">flags it. The C++ host is out of Miri's reach.</text>
+  <rect x="16" y="518" width="848" height="128" rx="9" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.5"/>
+  <text x="32" y="542" font-size="13" fill="#12233a" font-weight="700">How the rest are caught, when they are caught</text>
+  <rect x="32" y="558" width="260" height="72" rx="7" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="42" y="578.6" font-size="12" fill="#12233a" font-weight="700">Without a rewrite</text>
+  <text x="42" y="594.6" font-size="11" fill="#5b6b7b">LeakSanitizer and UBSan flag on</text>
+  <text x="42" y="608.6" font-size="11" fill="#5b6b7b">the C++ programs as written.</text>
+  <rect x="308" y="558" width="260" height="72" rx="7" fill="#ffffff" stroke="#c8860d" stroke-width="1.0"/>
+  <text x="318" y="578.6" font-size="12" fill="#12233a" font-weight="700">After a recast</text>
+  <text x="318" y="594.6" font-size="11" fill="#5b6b7b">Loom and Shuttle flag the two</text>
+  <text x="318" y="608.6" font-size="11" fill="#5b6b7b">concurrency boundary cases only</text>
+  <text x="318" y="622.6" font-size="11" fill="#5b6b7b">once rewritten into their parts.</text>
+  <rect x="584" y="558" width="260" height="72" rx="7" fill="#ffffff" stroke="#e6b3ad" stroke-width="1.0"/>
+  <text x="594" y="578.6" font-size="12" fill="#12233a" font-weight="700">What this is not</text>
+  <text x="594" y="594.6" font-size="11" fill="#5b6b7b">Rust does not drop race conditions,</text>
+  <text x="594" y="608.6" font-size="11" fill="#5b6b7b">lock order, leaks, wrapping, or the</text>
+  <text x="594" y="622.6" font-size="11" fill="#5b6b7b">blast radius of a failed worker.</text>
+  <text x="440.0" y="678" font-size="11.5" fill="#8794a3" text-anchor="middle">A compiler that will not build a program rules the defect out of each run. A sanitiser rules it out only of the runs a sanitiser test happens to take.</text>
+</svg>

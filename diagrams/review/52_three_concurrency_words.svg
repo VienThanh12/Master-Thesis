@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 560" width="880" height="560" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <rect x="0" y="0" width="880" height="560" fill="#ffffff"/>
+  <text x="440.0" y="32" font-size="22" fill="#12233a" text-anchor="middle" font-weight="700">Three words that are not synonyms</text>
+  <text x="440.0" y="54" font-size="12.5" fill="#5b6b7b" text-anchor="middle">Taking Rust drops one class of concurrency defect and leaves in place the class that fails in silence.</text>
+  <rect x="16" y="76" width="272" height="300" rx="10" fill="#f4fbf6" stroke="#2e8b57" stroke-width="1.8"/>
+  <text x="30" y="100.325" font-size="11.5" fill="#1f6b41" font-weight="700">Data race</text>
+  <text x="30" y="122.325" font-size="12.5" fill="#5b6b7b">Two threads, one location,</text>
+  <text x="30" y="139.325" font-size="12.5" fill="#5b6b7b">no synchronisation, one write.</text>
+  <text x="30" y="156.325" font-size="12.5" fill="#5b6b7b"></text>
+  <text x="30" y="173.325" font-size="12.5" fill="#5b6b7b">Safe Rust: compile error</text>
+  <text x="30" y="190.325" font-size="12.5" fill="#5b6b7b">(Send / Sync).</text>
+  <text x="30" y="207.325" font-size="12.5" fill="#5b6b7b">C++: TSan, if the test hits it.</text>
+  <text x="30" y="224.325" font-size="12.5" fill="#5b6b7b"></text>
+  <text x="30" y="241.325" font-size="12.5" fill="#5b6b7b">This is inside the guarantee.</text>
+  <text x="30" y="258.325" font-size="12.5" fill="#5b6b7b">H2 holds here.</text>
+  <rect x="304" y="76" width="272" height="300" rx="10" fill="#fdf6e9" stroke="#c8860d" stroke-width="1.8"/>
+  <text x="318" y="100.325" font-size="11.5" fill="#a5700c" font-weight="700">Race condition</text>
+  <text x="318" y="122.325" font-size="12.5" fill="#5b6b7b">Each access is synced. The</text>
+  <text x="318" y="139.325" font-size="12.5" fill="#5b6b7b">composed step is still not atomic.</text>
+  <text x="318" y="156.325" font-size="12.5" fill="#5b6b7b">Example: lost update.</text>
+  <text x="318" y="173.325" font-size="12.5" fill="#5b6b7b"></text>
+  <text x="318" y="190.325" font-size="12.5" fill="#5b6b7b">The borrow checker is silent.</text>
+  <text x="318" y="207.325" font-size="12.5" fill="#5b6b7b">TSan is silent. There is no</text>
+  <text x="318" y="224.325" font-size="12.5" fill="#5b6b7b">unsynced access to find.</text>
+  <text x="318" y="241.325" font-size="12.5" fill="#5b6b7b"></text>
+  <text x="318" y="258.325" font-size="12.5" fill="#5b6b7b">Outside the guarantee.</text>
+  <text x="318" y="275.325" font-size="12.5" fill="#5b6b7b">H2's looser reading fails here.</text>
+  <rect x="592" y="76" width="272" height="300" rx="10" fill="#fdf1f0" stroke="#a5281b" stroke-width="1.8"/>
+  <text x="606" y="100.325" font-size="11.5" fill="#8c2a20" font-weight="700">Lock-order deadlock</text>
+  <text x="606" y="122.325" font-size="12.5" fill="#5b6b7b">Two threads take two locks</text>
+  <text x="606" y="139.325" font-size="12.5" fill="#5b6b7b">in opposite orders and wait.</text>
+  <text x="606" y="156.325" font-size="12.5" fill="#5b6b7b"></text>
+  <text x="606" y="173.325" font-size="12.5" fill="#5b6b7b">A Mutex guard whose life the</text>
+  <text x="606" y="190.325" font-size="12.5" fill="#5b6b7b">borrow checker tracks well</text>
+  <text x="606" y="207.325" font-size="12.5" fill="#5b6b7b">says nothing about order.</text>
+  <text x="606" y="224.325" font-size="12.5" fill="#5b6b7b"></text>
+  <text x="606" y="241.325" font-size="12.5" fill="#5b6b7b">TSan hit 5 of 12 runs.</text>
+  <text x="606" y="258.325" font-size="12.5" fill="#5b6b7b">Do not quote that rate from</text>
+  <text x="606" y="275.325" font-size="12.5" fill="#5b6b7b">memory. It jumps.</text>
+  <rect x="16" y="396" width="848" height="104" rx="9" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.5"/>
+  <text x="32" y="420" font-size="13" fill="#12233a" font-weight="700">A plan that reads memory-safe as concurrency-safe</text>
+  <text x="32" y="440" font-size="12" fill="#33475b">would mis-budget its review effort. About a third of the non-deadlock</text>
+  <text x="32" y="456" font-size="12" fill="#33475b">concurrency bugs in Lu's field study broke the order the writers meant,</text>
+  <text x="32" y="472" font-size="12" fill="#33475b">not their locking. Static deadlock checks for Rust are still open research.</text>
+  <text x="440.0" y="536" font-size="11.5" fill="#8794a3" text-anchor="middle">Leave the concurrency review budget where it is. That is guideline 3.</text>
+</svg>

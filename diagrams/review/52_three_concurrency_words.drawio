@@ -1,0 +1,39 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="560" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="Three words that are not synonyms" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="242.16" y="11.1" width="395.67" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n3" value="Taking Rust drops one class of concurrency defect and leaves in place the class that fails in silence." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="92.56" y="42.12" width="694.88" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n15" value="&lt;b&gt;Data race&lt;/b&gt;&lt;br&gt;&lt;br&gt;Two threads, one location,&lt;br&gt;no synchronisation, one write.&lt;br&gt;&lt;br&gt;Safe Rust: compile error&lt;br&gt;(Send / Sync).&lt;br&gt;C++: TSan, if the test hits it.&lt;br&gt;&lt;br&gt;This is inside the guarantee.&lt;br&gt;H2 holds here." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#f4fbf6;strokeColor=#2e8b57;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="16" y="76" width="272" height="300" as="geometry"/>
+    </mxCell>
+    <mxCell id="n28" value="&lt;b&gt;Race condition&lt;/b&gt;&lt;br&gt;&lt;br&gt;Each access is synced. The&lt;br&gt;composed step is still not atomic.&lt;br&gt;Example: lost update.&lt;br&gt;&lt;br&gt;The borrow checker is silent.&lt;br&gt;TSan is silent. There is no&lt;br&gt;unsynced access to find.&lt;br&gt;&lt;br&gt;Outside the guarantee.&lt;br&gt;H2's looser reading fails here." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#fdf6e9;strokeColor=#c8860d;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="304" y="76" width="272" height="300" as="geometry"/>
+    </mxCell>
+    <mxCell id="n41" value="&lt;b&gt;Lock-order deadlock&lt;/b&gt;&lt;br&gt;&lt;br&gt;Two threads take two locks&lt;br&gt;in opposite orders and wait.&lt;br&gt;&lt;br&gt;A Mutex guard whose life the&lt;br&gt;borrow checker tracks well&lt;br&gt;says nothing about order.&lt;br&gt;&lt;br&gt;TSan hit 5 of 12 runs.&lt;br&gt;Do not quote that rate from&lt;br&gt;memory. It jumps." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#fdf1f0;strokeColor=#a5281b;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="592" y="76" width="272" height="300" as="geometry"/>
+    </mxCell>
+    <mxCell id="n42" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#f1f4f7;strokeColor=#d7dde3;strokeWidth=1.5;" vertex="1" parent="1">
+      <mxGeometry x="16" y="396" width="848" height="104" as="geometry"/>
+    </mxCell>
+    <mxCell id="n43" value="A plan that reads memory-safe as concurrency-safe" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=13;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="32" y="407.65" width="347.17" height="19.5" as="geometry"/>
+    </mxCell>
+    <mxCell id="n44" value="would mis-budget its review effort. About a third of the non-deadlock" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="428.6" width="451.26" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n45" value="concurrency bugs in Lu's field study broke the order the writers meant," style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="444.6" width="464.34" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n46" value="not their locking. Static deadlock checks for Rust are still open research." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="460.6" width="490.5" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n47" value="Leave the concurrency review budget where it is. That is guideline 3." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="223.77" y="525.08" width="432.46" height="17.25" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

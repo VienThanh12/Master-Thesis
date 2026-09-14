@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 620" width="880" height="620" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <rect x="0" y="0" width="880" height="620" fill="#ffffff"/>
+  <text x="440.0" y="32" font-size="22" fill="#12233a" text-anchor="middle" font-weight="700">RQ1 splits at saturation, then splits again past it</text>
+  <text x="440.0" y="54" font-size="12.5" fill="#5b6b7b" text-anchor="middle">Four operating points, two of them tested, one shown because it was found after the data was in hand</text>
+  <rect x="40" y="110" width="800" height="8" rx="4" fill="#d7dde3"/>
+  <rect x="72" y="106" width="16" height="16" rx="8" fill="#2e8b57"/>
+  <rect x="36" y="84" width="88" height="22" rx="5" fill="#ffffff" stroke="#2e8b57" stroke-width="1.0"/>
+  <text x="80.0" y="98.6" font-size="10" fill="#2e8b57" text-anchor="middle" font-weight="700">56 kops/s</text>
+  <rect x="272" y="106" width="16" height="16" rx="8" fill="#2f6db3"/>
+  <rect x="236" y="84" width="88" height="22" rx="5" fill="#ffffff" stroke="#2f6db3" stroke-width="1.0"/>
+  <text x="280.0" y="98.6" font-size="10" fill="#2f6db3" text-anchor="middle" font-weight="700">392 kops/s</text>
+  <rect x="492" y="106" width="16" height="16" rx="8" fill="#a5700c"/>
+  <rect x="456" y="84" width="88" height="22" rx="5" fill="#ffffff" stroke="#a5700c" stroke-width="1.0"/>
+  <text x="500.0" y="98.6" font-size="10" fill="#a5700c" text-anchor="middle" font-weight="700">448 kops/s</text>
+  <rect x="752" y="106" width="16" height="16" rx="8" fill="#a5281b"/>
+  <rect x="716" y="84" width="88" height="22" rx="5" fill="#ffffff" stroke="#a5281b" stroke-width="1.0"/>
+  <text x="760.0" y="98.6" font-size="10" fill="#a5281b" text-anchor="middle" font-weight="700">784 kops/s</text>
+  <rect x="40" y="160" width="196" height="252" rx="9" fill="#f4fbf6" stroke="#2e8b57" stroke-width="1.8"/>
+  <text x="52" y="182.6" font-size="12" fill="#1f6b41" font-weight="700">A.  Below saturation</text>
+  <text x="52" y="202.6" font-size="10.5" fill="#5b6b7b">Four medians within 1.6 us</text>
+  <text x="52" y="216.6" font-size="10.5" fill="#5b6b7b">(2.2%). Paired test still</text>
+  <text x="52" y="230.6" font-size="10.5" fill="#5b6b7b">finds 1.3 us for Rust.</text>
+  <text x="52" y="244.6" font-size="10.5" fill="#5b6b7b">Too small to bound a language</text>
+  <text x="52" y="258.6" font-size="10.5" fill="#5b6b7b">effect. Far tail: slowest Rust</text>
+  <text x="52" y="272.6" font-size="10.5" fill="#5b6b7b">arm is 50 us below the</text>
+  <text x="52" y="286.6" font-size="10.5" fill="#5b6b7b">fastest C++ one. Pooled, not a</text>
+  <text x="52" y="300.6" font-size="10.5" fill="#5b6b7b">median of per-run p99.99.</text>
+  <rect x="252" y="160" width="196" height="252" rx="9" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.8"/>
+  <text x="264" y="182.6" font-size="12" fill="#1c4e86" font-weight="700">B.  C++ knee</text>
+  <text x="264" y="202.6" font-size="10.5" fill="#5b6b7b">C++ holds to 392</text>
+  <text x="264" y="216.6" font-size="10.5" fill="#5b6b7b">kops/s. Rust still tracks.</text>
+  <text x="264" y="230.6" font-size="10.5" fill="#5b6b7b"></text>
+  <text x="264" y="244.6" font-size="10.5" fill="#5b6b7b">SatKnee is the min across arms</text>
+  <text x="264" y="258.6" font-size="10.5" fill="#5b6b7b">(392). Do not quote it as</text>
+  <text x="264" y="272.6" font-size="10.5" fill="#5b6b7b">where an arm stops coping.</text>
+  <text x="264" y="286.6" font-size="10.5" fill="#5b6b7b">Quote each language's tracking</text>
+  <text x="264" y="300.6" font-size="10.5" fill="#5b6b7b">load instead.</text>
+  <rect x="464" y="160" width="196" height="252" rx="9" fill="#fdf6e9" stroke="#c8860d" stroke-width="1.8"/>
+  <text x="476" y="182.6" font-size="12" fill="#a5700c" font-weight="700">C.  Descriptive gap</text>
+  <text x="476" y="202.6" font-size="10.5" fill="#5b6b7b">At 448 kops/s offered,</text>
+  <text x="476" y="216.6" font-size="10.5" fill="#5b6b7b">Rust still serves</text>
+  <text x="476" y="230.6" font-size="10.5" fill="#5b6b7b">448 where C++</text>
+  <text x="476" y="244.6" font-size="10.5" fill="#5b6b7b">has fallen to 162.</text>
+  <text x="476" y="258.6" font-size="10.5" fill="#5b6b7b"></text>
+  <text x="476" y="272.6" font-size="10.5" fill="#5b6b7b">Shown, not tested. Found after</text>
+  <text x="476" y="286.6" font-size="10.5" fill="#5b6b7b">the data, so it cannot enter</text>
+  <text x="476" y="300.6" font-size="10.5" fill="#5b6b7b">the Holm family.</text>
+  <rect x="676" y="160" width="164" height="252" rx="9" fill="#fdf1f0" stroke="#a5281b" stroke-width="1.8"/>
+  <text x="688" y="182.6" font-size="12" fill="#8c2a20" font-weight="700">D.  Overload flip</text>
+  <text x="688" y="202.6" font-size="10.5" fill="#5b6b7b">At 784 kops/s,</text>
+  <text x="688" y="216.6" font-size="10.5" fill="#5b6b7b">C++ finishes</text>
+  <text x="688" y="230.6" font-size="10.5" fill="#5b6b7b">1.7x as much as</text>
+  <text x="688" y="244.6" font-size="10.5" fill="#5b6b7b">Rust.</text>
+  <text x="688" y="258.6" font-size="10.5" fill="#5b6b7b"></text>
+  <text x="688" y="272.6" font-size="10.5" fill="#5b6b7b">20/20 repeats,</text>
+  <text x="688" y="286.6" font-size="10.5" fill="#5b6b7b">both heaps. Holm p</text>
+  <text x="688" y="300.6" font-size="10.5" fill="#5b6b7b">at the family floor.</text>
+  <rect x="40" y="430" width="800" height="128" rx="9" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.5"/>
+  <text x="56" y="454" font-size="13" fill="#12233a" font-weight="700">Two deployment picks, pointing at opposite sides</text>
+  <rect x="56" y="472" width="372" height="70" rx="7" fill="#ffffff" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="68" y="494.6" font-size="12" fill="#12233a" font-weight="700">Sized to run below each arm's knee</text>
+  <text x="68" y="511.6" font-size="11" fill="#5b6b7b">Pick the arm that holds its sent rate further.</text>
+  <text x="68" y="525.6" font-size="11" fill="#5b6b7b">That pick is shown, not tested.</text>
+  <rect x="448" y="472" width="376" height="70" rx="7" fill="#ffffff" stroke="#e6b3ad" stroke-width="1.0"/>
+  <text x="460" y="494.6" font-size="12" fill="#12233a" font-weight="700">A signal storm will drive past each knee</text>
+  <text x="460" y="511.6" font-size="11" fill="#5b6b7b">Pick the arm that still finishes more work then.</text>
+  <text x="460" y="525.6" font-size="11" fill="#5b6b7b">That pick is tested. It is C++ here.</text>
+  <text x="440.0" y="596" font-size="11.5" fill="#8794a3" text-anchor="middle">A test that stopped at a load the service still meets would have pointed the other way with the same setup.</text>
+</svg>

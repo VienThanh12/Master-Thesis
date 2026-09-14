@@ -1,0 +1,90 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="520" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="One request, from the producer to the reply" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="182.21" y="11.1" width="515.57" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n3" value="Most of this path is passing work between threads. That is why the end-to-end clock cannot bound a language effect." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="48.28" y="42.12" width="783.44" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n10" value="&lt;b&gt;Producer&lt;/b&gt;&lt;br&gt;&lt;br&gt;Load generator.&lt;br&gt;Hashes ue_id.&lt;br&gt;Waits on a one-shot&lt;br&gt;reply handle." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.7;align=left;verticalAlign=top;spacingLeft=8;spacingTop=2;spacingRight=6;fontSize=11.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="16" y="88" width="160" height="188" as="geometry"/>
+    </mxCell>
+    <mxCell id="n16" value="&lt;b&gt;MPSC queue&lt;/b&gt;&lt;br&gt;&lt;br&gt;Bounded. FIFO.&lt;br&gt;Blocks when full.&lt;br&gt;One queue per shard." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.7;align=left;verticalAlign=top;spacingLeft=8;spacingTop=2;spacingRight=6;fontSize=11.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="188" y="88" width="160" height="188" as="geometry"/>
+    </mxCell>
+    <mxCell id="n23" value="&lt;b&gt;Worker&lt;/b&gt;&lt;br&gt;&lt;br&gt;The only thread&lt;br&gt;that may touch this&lt;br&gt;shard. No lock on&lt;br&gt;context state." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.7;align=left;verticalAlign=top;spacingLeft=8;spacingTop=2;spacingRight=6;fontSize=11.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="360" y="88" width="160" height="188" as="geometry"/>
+    </mxCell>
+    <mxCell id="n30" value="&lt;b&gt;Shard map&lt;/b&gt;&lt;br&gt;&lt;br&gt;Language's own&lt;br&gt;hash map. This is&lt;br&gt;the core the second&lt;br&gt;clock times." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.7;align=left;verticalAlign=top;spacingLeft=8;spacingTop=2;spacingRight=6;fontSize=11.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="532" y="88" width="160" height="188" as="geometry"/>
+    </mxCell>
+    <mxCell id="n37" value="&lt;b&gt;Reply&lt;/b&gt;&lt;br&gt;&lt;br&gt;Result goes back&lt;br&gt;on the one-shot&lt;br&gt;handle. Producer&lt;br&gt;unblocks." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.7;align=left;verticalAlign=top;spacingLeft=8;spacingTop=2;spacingRight=6;fontSize=11.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="704" y="88" width="160" height="188" as="geometry"/>
+    </mxCell>
+    <mxCell id="n38" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="180" y="182" as="sourcePoint"/>
+        <mxPoint x="200" y="182" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n39" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="352" y="182" as="sourcePoint"/>
+        <mxPoint x="372" y="182" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n40" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="524" y="182" as="sourcePoint"/>
+        <mxPoint x="544" y="182" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n41" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="696" y="182" as="sourcePoint"/>
+        <mxPoint x="716" y="182" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n42" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#f4fbf6;strokeColor=#2e8b57;strokeWidth=1.6;" vertex="1" parent="1">
+      <mxGeometry x="16" y="300" width="332" height="140" as="geometry"/>
+    </mxCell>
+    <mxCell id="n43" value="Timed apart: the core" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=13;fontColor=#1f6b41;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="32" y="311.65" width="148.79" height="19.5" as="geometry"/>
+    </mxCell>
+    <mxCell id="n44" value="Shard map only. No queue." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="336.6" width="163.5" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n45" value="Rust is 1.6x faster." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="354.6" width="130.8" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n46" value="0.250% of the round-trip." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="372.6" width="163.5" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n47" value="Likely hash-map layout." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="390.6" width="150.42" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n48" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#fdf6e9;strokeColor=#c8860d;strokeWidth=1.6;" vertex="1" parent="1">
+      <mxGeometry x="364" y="300" width="500" height="140" as="geometry"/>
+    </mxCell>
+    <mxCell id="n49" value="Timed together: the round-trip" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=13;fontColor=#a5700c;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="380" y="311.65" width="212.55" height="19.5" as="geometry"/>
+    </mxCell>
+    <mxCell id="n50" value="Producer to queue to worker to map to reply." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="380" y="336.6" width="287.76" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n51" value="Paired median gap 1.3 us. Real, too small to attribute." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="380" y="354.6" width="359.7" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n52" value="The rest is operating-system handoff." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="380" y="372.6" width="241.98" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n53" value="That clock answers a vendor sizing a node, not a language comparison." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="380" y="390.6" width="451.26" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n54" value="The only shared mutable state either version allows is one atomic counter. No control flow depends on its value." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="89.02" y="485.07" width="701.96" height="17.25" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

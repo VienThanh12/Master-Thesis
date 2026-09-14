@@ -1,0 +1,30 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="560" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="Peak RSS: two real effects of the same order on bare metal" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="92.29" y="11.1" width="695.42" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n3" value="Never write that the allocator effect is the larger one. Never quote their ratio without naming a host." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="89.16" y="42.12" width="701.69" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n15" value="&lt;b&gt;Language effect (travels)&lt;/b&gt;&lt;br&gt;&lt;br&gt;Rust uses 1.4 to 2.5 MiB more&lt;br&gt;peak RAM than C++ under either heap.&lt;br&gt;Same sign and size on all three hosts.&lt;br&gt;&lt;br&gt;It is a fixed cost, not a cost per UE. The&lt;br&gt;quiet host is where that can be seen.&lt;br&gt;jemalloc's own counts put the extra past&lt;br&gt;the heap, in the runtime a Rust process&lt;br&gt;carries before it gets RAM." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#f4fbf6;strokeColor=#2e8b57;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=12;spacingTop=6;spacingRight=6;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="16" y="76" width="416" height="220" as="geometry"/>
+    </mxCell>
+    <mxCell id="n28" value="&lt;b&gt;Allocator effect (host-dependent ratio)&lt;/b&gt;&lt;br&gt;&lt;br&gt;Linking jemalloc at all costs 1.5 to&lt;br&gt;2.4 MiB in either language.&lt;br&gt;&lt;br&gt;On the guest that extra was 13 times the&lt;br&gt;language effect. On both bare-metal hosts&lt;br&gt;the two are comparable.&lt;br&gt;&lt;br&gt;The transparent hugepage policy is the&lt;br&gt;named candidate. The study does not claim&lt;br&gt;causation. Future work can vary it." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#fdf6e9;strokeColor=#c8860d;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=12;spacingTop=6;spacingRight=6;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="448" y="76" width="416" height="220" as="geometry"/>
+    </mxCell>
+    <mxCell id="n35" value="&lt;b&gt;CPU below saturation&lt;/b&gt;&lt;br&gt;&lt;br&gt;At 56 kops/s Rust uses at&lt;br&gt;most 5.1 percentage points&lt;br&gt;less. Scoped to that load, not to&lt;br&gt;the whole below-saturation band." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="16" y="314" width="270" height="160" as="geometry"/>
+    </mxCell>
+    <mxCell id="n42" value="&lt;b&gt;CPU past saturation&lt;/b&gt;&lt;br&gt;&lt;br&gt;The slower arm spends 1.8x&lt;br&gt;the CPU per finished call. That is&lt;br&gt;effort spent without finishing.&lt;br&gt;The sign of CPU hangs on the load." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#fdf1f0;strokeColor=#a5281b;strokeWidth=1.6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="304" y="314" width="270" height="160" as="geometry"/>
+    </mxCell>
+    <mxCell id="n49" value="&lt;b&gt;A contrary result, reread&lt;/b&gt;&lt;br&gt;&lt;br&gt;Karlbäck reports Rust lowest on&lt;br&gt;RAM. Those arms are two&lt;br&gt;concurrency runtimes (Boost.Fibers&lt;br&gt;vs Tokio), not two languages." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#ffffff;strokeColor=#d7dde3;strokeWidth=1.6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="592" y="314" width="272" height="160" as="geometry"/>
+    </mxCell>
+    <mxCell id="n50" value="A single number for the CPU cost of Rust's safe-code model would mix two loads that move in opposite ways." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="107.82" y="525.08" width="664.36" height="17.25" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

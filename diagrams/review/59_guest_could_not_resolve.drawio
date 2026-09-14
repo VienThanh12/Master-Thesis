@@ -1,0 +1,33 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="520" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="The guest could not resolve the far tail. Bare metal can." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="98.28" y="11.1" width="683.43" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n3" value="The earlier KVM sweep is kept so host-owned findings have a counter-example sitting beside them." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="113.0" y="42.12" width="654.0" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n15" value="&lt;b&gt;KVM guest&lt;/b&gt;&lt;br&gt;&lt;br&gt;p99 noise on one arm: 1480 us.&lt;br&gt;Gap between all four arms: 293 us.&lt;br&gt;Noise on one arm was larger than the&lt;br&gt;gap between all four. The far tail could&lt;br&gt;not be read.&lt;br&gt;&lt;br&gt;g++ 15.1.1. Same rustc.&lt;br&gt;No core controls. Hypervisor in the way.&lt;br&gt;Kept, not dropped. Same design, same code." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#fdf6e9;strokeColor=#c8860d;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=12;spacingTop=6;spacingRight=6;fontSize=13;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="16" y="80" width="416" height="280" as="geometry"/>
+    </mxCell>
+    <mxCell id="n27" value="&lt;b&gt;Bare metal (reported)&lt;/b&gt;&lt;br&gt;&lt;br&gt;p99 noise on one arm: 0.8 us.&lt;br&gt;Gap between all four arms: 1.6 us.&lt;br&gt;Noise is smaller than the gap. Both p99&lt;br&gt;rows and both p99.9 rows clear Holm,&lt;br&gt;4 rows in all.&lt;br&gt;&lt;br&gt;Far tail pooled, 3,360,051 to 3,360,084 calls.&lt;br&gt;Slowest Rust arm 50 us below fastest C++.&lt;br&gt;A second bare-metal host agrees." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#f4fbf6;strokeColor=#2e8b57;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=12;spacingTop=6;spacingRight=6;fontSize=13;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="448" y="80" width="416" height="280" as="geometry"/>
+    </mxCell>
+    <mxCell id="n28" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.6;" vertex="1" parent="1">
+      <mxGeometry x="16" y="380" width="848" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="n29" value="What this licences" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=13;fontColor=#1c4e86;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="32" y="391.65" width="127.53" height="19.5" as="geometry"/>
+    </mxCell>
+    <mxCell id="n30" value="Speed and RSS results name the host. RQ2 and the seam structure do not." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="412.12" width="483.69" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n31" value="Tail delay numbers from any single host are a thinner basis for a roll-out than they look." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="428.12" width="613.13" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n32" value="That is why the earlier guest sweep is kept, not dropped. Chapter 6, ethical and professional reflection." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="110.96" y="485.07" width="658.09" height="17.25" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

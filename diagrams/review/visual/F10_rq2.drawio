@@ -1,0 +1,66 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="360" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="Where the guarantee stops" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="290.12" y="11.1" width="299.75" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n7" value="" style="rounded=1;absoluteArcSize=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#f4fbf6;strokeColor=#2e8b57;strokeWidth=2.0;verticalAlign=top;align=center;" vertex="1" parent="1">
+      <mxGeometry x="16" y="72" width="416" height="250" as="geometry"/>
+    </mxCell>
+    <mxCell id="n8" value="Safe Rust rejects" style="rounded=1;absoluteArcSize=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#2e8b57;strokeColor=none;align=center;verticalAlign=middle;fontSize=14;fontColor=#ffffff;fontStyle=1;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="16" y="72" width="416" height="32" as="geometry"/>
+    </mxCell>
+    <mxCell id="n11" value="Use-after-free" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#d9f0dd;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=12;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="36" y="118" width="376" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n14" value="Double-free" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#d9f0dd;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=12;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="36" y="146" width="376" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n17" value="Iterator invalidation" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#d9f0dd;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=12;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="36" y="174" width="376" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n20" value="Data race" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#d9f0dd;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=12;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="36" y="202" width="376" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n23" value="Unguarded mutation" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#d9f0dd;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=12;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="36" y="230" width="376" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n26" value="Use-after-move" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#d9f0dd;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=12;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="36" y="258" width="376" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n29" value="Unsafe handle shared" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#d9f0dd;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=12;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="36" y="286" width="376" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n34" value="" style="rounded=1;absoluteArcSize=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#fdf1f0;strokeColor=#a5281b;strokeWidth=2.0;verticalAlign=top;align=center;" vertex="1" parent="1">
+      <mxGeometry x="448" y="72" width="416" height="250" as="geometry"/>
+    </mxCell>
+    <mxCell id="n35" value="Both still miss" style="rounded=1;absoluteArcSize=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#a5281b;strokeColor=none;align=center;verticalAlign=middle;fontSize=14;fontColor=#ffffff;fontStyle=1;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="448" y="72" width="416" height="32" as="geometry"/>
+    </mxCell>
+    <mxCell id="n38" value="Lock-order deadlock" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbdedb;strokeColor=#e6b3ad;align=center;verticalAlign=middle;fontSize=12;fontColor=#8c2a20;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="468" y="118" width="376" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n41" value="Lost update" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbdedb;strokeColor=#e6b3ad;align=center;verticalAlign=middle;fontSize=12;fontColor=#8c2a20;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="468" y="146" width="376" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n44" value="Ref-cycle leak" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbdedb;strokeColor=#e6b3ad;align=center;verticalAlign=middle;fontSize=12;fontColor=#8c2a20;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="468" y="174" width="376" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n47" value="Integer overflow" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbdedb;strokeColor=#e6b3ad;align=center;verticalAlign=middle;fontSize=12;fontColor=#8c2a20;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="468" y="202" width="376" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n50" value="Worker blast radius" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbdedb;strokeColor=#e6b3ad;align=center;verticalAlign=middle;fontSize=12;fontColor=#8c2a20;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="468" y="230" width="376" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n53" value="Forgotten guard" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbdedb;strokeColor=#e6b3ad;align=center;verticalAlign=middle;fontSize=12;fontColor=#8c2a20;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="468" y="258" width="376" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n56" value="Seam double-free (unsafe)" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbdedb;strokeColor=#e6b3ad;align=center;verticalAlign=middle;fontSize=12;fontColor=#8c2a20;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="468" y="286" width="376" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n57" value="Seven and seven. Seam is a rewrite, not a new class." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=13;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="255.79" y="331.65" width="368.42" height="19.5" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

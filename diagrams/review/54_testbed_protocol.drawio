@@ -1,0 +1,66 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="560" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="What the measurement host does, and what it refuses" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="134.25" y="11.1" width="611.49" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n3" value="One socket, AMD EPYC 7443. The program runs on the machine itself, not inside a virtual machine." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="113.0" y="42.12" width="654.0" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n8" value="" style="rounded=1;absoluteArcSize=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#f4fbf6;strokeColor=#2e8b57;strokeWidth=2.0;verticalAlign=top;align=center;" vertex="1" parent="1">
+      <mxGeometry x="16" y="76" width="420" height="320" as="geometry"/>
+    </mxCell>
+    <mxCell id="n9" value="DONE" style="rounded=1;absoluteArcSize=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#2e8b57;strokeColor=none;align=center;verticalAlign=middle;fontSize=14.5;fontColor=#ffffff;fontStyle=1;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="16" y="76" width="420" height="34" as="geometry"/>
+    </mxCell>
+    <mxCell id="n12" value="SMT off. One thread per core." style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=12;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="36" y="126" width="380" height="28" as="geometry"/>
+    </mxCell>
+    <mxCell id="n15" value="Governor performance. Boost off." style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=12;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="36" y="160" width="380" height="28" as="geometry"/>
+    </mxCell>
+    <mxCell id="n18" value="nohz_full on the pinned cores." style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=12;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="36" y="194" width="380" height="28" as="geometry"/>
+    </mxCell>
+    <mxCell id="n21" value="16 pinned cores, 2 to 17." style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=12;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="36" y="228" width="380" height="28" as="geometry"/>
+    </mxCell>
+    <mxCell id="n24" value="Clock held fixed." style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=12;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="36" y="262" width="380" height="28" as="geometry"/>
+    </mxCell>
+    <mxCell id="n27" value="Rocky image pins gcc-toolset major." style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=12;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="36" y="296" width="380" height="28" as="geometry"/>
+    </mxCell>
+    <mxCell id="n30" value="g++ 15.2.1, rustc 1.97.1." style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#a8d7bb;align=center;verticalAlign=middle;fontSize=12;fontColor=#1f6b41;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="36" y="330" width="380" height="28" as="geometry"/>
+    </mxCell>
+    <mxCell id="n35" value="" style="rounded=1;absoluteArcSize=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#fdf1f0;strokeColor=#a5281b;strokeWidth=2.0;verticalAlign=top;align=center;" vertex="1" parent="1">
+      <mxGeometry x="452" y="76" width="412" height="320" as="geometry"/>
+    </mxCell>
+    <mxCell id="n36" value="REFUSED" style="rounded=1;absoluteArcSize=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#a5281b;strokeColor=none;align=center;verticalAlign=middle;fontSize=14.5;fontColor=#ffffff;fontStyle=1;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="452" y="76" width="412" height="34" as="geometry"/>
+    </mxCell>
+    <mxCell id="n43" value="&lt;b&gt;isolcpus&lt;/b&gt;&lt;br&gt;&lt;br&gt;It also stops the kernel sharing work&lt;br&gt;across the allowed cores. Each test&lt;br&gt;thread then lands on one core. An&lt;br&gt;earlier campaign ran that way. Void." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=16;fillColor=#ffffff;strokeColor=#e6b3ad;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=8;spacingTop=2;spacingRight=6;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="470" y="126" width="376" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="n51" value="&lt;b&gt;A derived representative load&lt;/b&gt;&lt;br&gt;&lt;br&gt;The old rule took the busiest load&lt;br&gt;holding p99 under 5 ms. On the guest&lt;br&gt;that was the host noise floor. On a&lt;br&gt;quiet host it climbs to the knee.&lt;br&gt;ReprLoad is pinned at 56 kops/s." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=16;fillColor=#ffffff;strokeColor=#e6b3ad;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=8;spacingTop=2;spacingRight=6;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="470" y="240" width="376" height="130" as="geometry"/>
+    </mxCell>
+    <mxCell id="n52" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#fdf6e9;strokeColor=#c8860d;strokeWidth=1.6;" vertex="1" parent="1">
+      <mxGeometry x="16" y="416" width="848" height="84" as="geometry"/>
+    </mxCell>
+    <mxCell id="n53" value="The image still uses the kernel of the host it sits on" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=13;fontColor=#a5700c;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="32" y="427.65" width="382.59" height="19.5" as="geometry"/>
+    </mxCell>
+    <mxCell id="n54" value="So the guest sweep and the reported sweep differ in hardware, kernel," style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="448.6" width="451.26" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n55" value="and one GCC 15 point release. Do not write that they share a toolchain." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="464.6" width="464.34" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n56" value="bench/TESTBED.md is scripted and published. Executing the protocol and rerunning the same scripts is the only step between hosts." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="35.75" y="525.08" width="808.51" height="17.25" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

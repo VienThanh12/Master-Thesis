@@ -1,0 +1,84 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="700" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="RQ2 is two-sided: seven inside the guarantee, seven outside it" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="68.31" y="11.1" width="743.38" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n3" value="The seam double-free is the in-guarantee double-free rewritten through unsafe, not a new class" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="119.81" y="42.12" width="640.38" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n8" value="" style="rounded=1;absoluteArcSize=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#f4fbf6;strokeColor=#2e8b57;strokeWidth=2.0;verticalAlign=top;align=center;" vertex="1" parent="1">
+      <mxGeometry x="16" y="72" width="420" height="430" as="geometry"/>
+    </mxCell>
+    <mxCell id="n9" value="INSIDE: compile error in safe Rust" style="rounded=1;absoluteArcSize=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#2e8b57;strokeColor=none;align=center;verticalAlign=middle;fontSize=13;fontColor=#ffffff;fontStyle=1;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="16" y="72" width="420" height="36" as="geometry"/>
+    </mxCell>
+    <mxCell id="n13" value="&lt;b&gt;Use-after-free&lt;/b&gt;&lt;br&gt;&lt;br&gt;C++: ASan + TSan at runtime" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;fillColor=#ffffff;strokeColor=#a8d7bb;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="34" y="124" width="384" height="48" as="geometry"/>
+    </mxCell>
+    <mxCell id="n17" value="&lt;b&gt;Double-free&lt;/b&gt;&lt;br&gt;&lt;br&gt;C++: ASan at runtime" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;fillColor=#ffffff;strokeColor=#a8d7bb;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="34" y="176" width="384" height="48" as="geometry"/>
+    </mxCell>
+    <mxCell id="n21" value="&lt;b&gt;Iterator invalidation&lt;/b&gt;&lt;br&gt;&lt;br&gt;C++: ASan + TSan at runtime" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;fillColor=#ffffff;strokeColor=#a8d7bb;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="34" y="228" width="384" height="48" as="geometry"/>
+    </mxCell>
+    <mxCell id="n25" value="&lt;b&gt;Data race&lt;/b&gt;&lt;br&gt;&lt;br&gt;C++: TSan at runtime" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;fillColor=#ffffff;strokeColor=#a8d7bb;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="34" y="280" width="384" height="48" as="geometry"/>
+    </mxCell>
+    <mxCell id="n29" value="&lt;b&gt;Unguarded shared mutation&lt;/b&gt;&lt;br&gt;&lt;br&gt;C++: TSan at runtime" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;fillColor=#ffffff;strokeColor=#a8d7bb;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="34" y="332" width="384" height="48" as="geometry"/>
+    </mxCell>
+    <mxCell id="n34" value="&lt;b&gt;Use-after-move&lt;/b&gt;&lt;br&gt;&lt;br&gt;C++: no sanitiser flags it. A moved-from object is&lt;br&gt;still valid." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;fillColor=#ffffff;strokeColor=#a8d7bb;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="34" y="384" width="384" height="48" as="geometry"/>
+    </mxCell>
+    <mxCell id="n38" value="&lt;b&gt;Thread-unsafe handle shared&lt;/b&gt;&lt;br&gt;&lt;br&gt;C++: TSan at runtime" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;fillColor=#ffffff;strokeColor=#a8d7bb;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="34" y="436" width="384" height="48" as="geometry"/>
+    </mxCell>
+    <mxCell id="n43" value="" style="rounded=1;absoluteArcSize=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#fdf1f0;strokeColor=#a5281b;strokeWidth=2.0;verticalAlign=top;align=center;" vertex="1" parent="1">
+      <mxGeometry x="452" y="72" width="412" height="430" as="geometry"/>
+    </mxCell>
+    <mxCell id="n44" value="OUTSIDE: compiles and fails in both" style="rounded=1;absoluteArcSize=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#a5281b;strokeColor=none;align=center;verticalAlign=middle;fontSize=13;fontColor=#ffffff;fontStyle=1;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="452" y="72" width="412" height="36" as="geometry"/>
+    </mxCell>
+    <mxCell id="n49" value="&lt;b&gt;Lock-order deadlock&lt;/b&gt;&lt;br&gt;&lt;br&gt;TSan hit 5 of 12 runs. Rate jumps. Do not quote&lt;br&gt;it from memory." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;fillColor=#ffffff;strokeColor=#e6b3ad;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="470" y="124" width="376" height="48" as="geometry"/>
+    </mxCell>
+    <mxCell id="n54" value="&lt;b&gt;Lost update&lt;/b&gt;&lt;br&gt;&lt;br&gt;Each access is synced, so TSan has no race to&lt;br&gt;find. Silent in both." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;fillColor=#ffffff;strokeColor=#e6b3ad;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="470" y="176" width="376" height="48" as="geometry"/>
+    </mxCell>
+    <mxCell id="n59" value="&lt;b&gt;Reference-cycle leak&lt;/b&gt;&lt;br&gt;&lt;br&gt;Leaks are safe in Rust by design. LeakSanitizer&lt;br&gt;flags C++." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;fillColor=#ffffff;strokeColor=#e6b3ad;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="470" y="228" width="376" height="48" as="geometry"/>
+    </mxCell>
+    <mxCell id="n63" value="&lt;b&gt;Integer overflow (release)&lt;/b&gt;&lt;br&gt;&lt;br&gt;Rust defines wrap. UBSan flags C++." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;fillColor=#ffffff;strokeColor=#e6b3ad;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="470" y="280" width="376" height="48" as="geometry"/>
+    </mxCell>
+    <mxCell id="n68" value="&lt;b&gt;Worker-failure blast radius&lt;/b&gt;&lt;br&gt;&lt;br&gt;A failed worker takes its shard. Undetected on&lt;br&gt;both sides." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;fillColor=#ffffff;strokeColor=#e6b3ad;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="470" y="332" width="376" height="48" as="geometry"/>
+    </mxCell>
+    <mxCell id="n73" value="&lt;b&gt;Forgotten lock guard&lt;/b&gt;&lt;br&gt;&lt;br&gt;RAII removes the plain missed-unlock. Both&lt;br&gt;forgotten-guard programs hang." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;fillColor=#ffffff;strokeColor=#e6b3ad;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="470" y="384" width="376" height="48" as="geometry"/>
+    </mxCell>
+    <mxCell id="n78" value="&lt;b&gt;Seam double-free&lt;/b&gt;&lt;br&gt;&lt;br&gt;Same C++ half. Only the Rust column moves. Miri&lt;br&gt;flags it. The C++ host is out of Miri's reach." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;fillColor=#ffffff;strokeColor=#e6b3ad;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="470" y="436" width="376" height="48" as="geometry"/>
+    </mxCell>
+    <mxCell id="n79" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#f1f4f7;strokeColor=#d7dde3;strokeWidth=1.5;" vertex="1" parent="1">
+      <mxGeometry x="16" y="518" width="848" height="128" as="geometry"/>
+    </mxCell>
+    <mxCell id="n80" value="How the rest are caught, when they are caught" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=13;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="32" y="529.65" width="318.83" height="19.5" as="geometry"/>
+    </mxCell>
+    <mxCell id="n85" value="&lt;b&gt;Without a rewrite&lt;/b&gt;&lt;br&gt;&lt;br&gt;LeakSanitizer and UBSan flag on&lt;br&gt;the C++ programs as written." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;fillColor=#ffffff;strokeColor=#bcd0e8;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=11;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="558" width="260" height="72" as="geometry"/>
+    </mxCell>
+    <mxCell id="n91" value="&lt;b&gt;After a recast&lt;/b&gt;&lt;br&gt;&lt;br&gt;Loom and Shuttle flag the two&lt;br&gt;concurrency boundary cases only&lt;br&gt;once rewritten into their parts." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;fillColor=#ffffff;strokeColor=#c8860d;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=11;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="308" y="558" width="260" height="72" as="geometry"/>
+    </mxCell>
+    <mxCell id="n97" value="&lt;b&gt;What this is not&lt;/b&gt;&lt;br&gt;&lt;br&gt;Rust does not drop race conditions,&lt;br&gt;lock order, leaks, wrapping, or the&lt;br&gt;blast radius of a failed worker." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;fillColor=#ffffff;strokeColor=#e6b3ad;strokeWidth=1.0;align=left;verticalAlign=top;spacingLeft=6;spacingTop=0;spacingRight=6;fontSize=11;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="584" y="558" width="260" height="72" as="geometry"/>
+    </mxCell>
+    <mxCell id="n98" value="A compiler that will not build a program rules the defect out of each run. A sanitiser rules it out only of the runs a sanitiser test happens to take." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="-30.06" y="667.08" width="940.12" height="17.25" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

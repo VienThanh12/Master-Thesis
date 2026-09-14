@@ -1,0 +1,45 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="560" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="Three methods, one planned variable: the language" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="146.25" y="11.1" width="587.51" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n3" value="A weakness in one method does not carry into the rest of the claims" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="211.78" y="42.12" width="456.44" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n6" value="RQ1 and RQ3" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6db3;align=center;verticalAlign=middle;fontSize=11;fontColor=#1c4e86;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="16" y="76" width="108" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n21" value="&lt;b&gt;Load sweep&lt;/b&gt;&lt;br&gt;&lt;br&gt;Open-loop send schedule from light&lt;br&gt;load to well past saturation.&lt;br&gt;4 variants interleaved inside&lt;br&gt;each of 20 repeats.&lt;br&gt;&lt;br&gt;A second timing splits the core&lt;br&gt;operation from the cross-thread&lt;br&gt;handoff. A third times the contended&lt;br&gt;queue and the reply handle alone.&lt;br&gt;&lt;br&gt;Metric: median, p99, p99.9, p99.99,&lt;br&gt;maximum, peak RSS, CPU, throughput." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=11;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="16" y="108" width="268" height="336" as="geometry"/>
+    </mxCell>
+    <mxCell id="n24" value="RQ2" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2e8b57;align=center;verticalAlign=middle;fontSize=11;fontColor=#1f6b41;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="306" y="76" width="108" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n39" value="&lt;b&gt;Fault injection&lt;/b&gt;&lt;br&gt;&lt;br&gt;14 small programs, one per&lt;br&gt;class, in both languages.&lt;br&gt;&lt;br&gt;C++ under AddressSanitizer,&lt;br&gt;ThreadSanitizer, and&lt;br&gt;UndefinedBehaviorSanitizer.&lt;br&gt;Safe Rust compiled, and run under a&lt;br&gt;bounded timeout where it builds.&lt;br&gt;&lt;br&gt;No static analyser is run, on purpose.&lt;br&gt;The C++ columns report the tooling&lt;br&gt;this study ran, not a ceiling on C++." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#f4fbf6;strokeColor=#2e8b57;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=11;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="306" y="108" width="268" height="336" as="geometry"/>
+    </mxCell>
+    <mxCell id="n42" value="RQ4" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d35400;align=center;verticalAlign=middle;fontSize=11;fontColor=#a04000;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="596" y="76" width="108" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="n56" value="&lt;b&gt;FFI prototype&lt;/b&gt;&lt;br&gt;&lt;br&gt;A C++ host calls an unchanged Rust&lt;br&gt;core across a C ABI, the direction a&lt;br&gt;real migration takes.&lt;br&gt;&lt;br&gt;Per-call cost is measured on a real&lt;br&gt;signalling operation, not inferred&lt;br&gt;from an empty crossing.&lt;br&gt;&lt;br&gt;Memory bugs that cross a language&lt;br&gt;sit at that seam. All unsafe stays&lt;br&gt;there. The core is left free of it." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#fff3ec;strokeColor=#d35400;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=11;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="596" y="108" width="268" height="336" as="geometry"/>
+    </mxCell>
+    <mxCell id="n57" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=16;fillColor=#fdf6e9;strokeColor=#c8860d;strokeWidth=1.6;" vertex="1" parent="1">
+      <mxGeometry x="16" y="460" width="848" height="58" as="geometry"/>
+    </mxCell>
+    <mxCell id="n58" value="The common control" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#a5700c;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="32" y="466.12" width="122.63" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n59" value="both versions are built from one frozen spec. A gap between two" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=11.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="196" y="463.07" width="394.85" height="17.25" as="geometry"/>
+    </mxCell>
+    <mxCell id="n60" value="independently written programs would also carry design, libraries, and skill." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=11.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="196" y="478.07" width="482.6" height="17.25" as="geometry"/>
+    </mxCell>
+    <mxCell id="n61" value="Where a question can be answered with numbers, it uses numbers. Where it cannot, the answer is still by a fixed plan, in words." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="42.01" y="531.08" width="795.97" height="17.25" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

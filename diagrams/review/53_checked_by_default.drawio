@@ -1,0 +1,60 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="520" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="One case reached past the fault programs" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="200.2" y="11.1" width="479.6" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n3" value="A spec gap let a call be sent outside the service running window. Every test missed it, because nothing ever called that path." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="10.81" y="42.12" width="858.38" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n15" value="&lt;b&gt;1.  Spec gap&lt;/b&gt;&lt;br&gt;&lt;br&gt;A call was legal in the&lt;br&gt;written spec at a time&lt;br&gt;the service was not&lt;br&gt;running.&lt;br&gt;&lt;br&gt;Both versions inherited&lt;br&gt;the hole. The method&lt;br&gt;left each to fail in its&lt;br&gt;own idiom." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#f1f4f7;strokeColor=#d7dde3;strokeWidth=1.6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="16" y="80" width="200" height="220" as="geometry"/>
+    </mxCell>
+    <mxCell id="n26" value="&lt;b&gt;2.  What missed it&lt;/b&gt;&lt;br&gt;&lt;br&gt;Parity vectors.&lt;br&gt;Generated campaign.&lt;br&gt;ASan, TSan, UBSan.&lt;br&gt;Miri.&lt;br&gt;&lt;br&gt;Nothing called that&lt;br&gt;path, so nothing had&lt;br&gt;a failure to report." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#fdf6e9;strokeColor=#c8860d;strokeWidth=1.6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="232" y="80" width="200" height="220" as="geometry"/>
+    </mxCell>
+    <mxCell id="n37" value="&lt;b&gt;3.  What caught it&lt;/b&gt;&lt;br&gt;&lt;br&gt;A plain bounds check&lt;br&gt;on the Rust side.&lt;br&gt;Undefined behaviour&lt;br&gt;became a catchable&lt;br&gt;failure.&lt;br&gt;&lt;br&gt;Not a proof.&lt;br&gt;Checked by default." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#f4fbf6;strokeColor=#2e8b57;strokeWidth=1.6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="448" y="80" width="200" height="220" as="geometry"/>
+    </mxCell>
+    <mxCell id="n48" value="&lt;b&gt;4.  What to plan for&lt;/b&gt;&lt;br&gt;&lt;br&gt;Do not budget as if&lt;br&gt;compile time had ruled&lt;br&gt;the hole out.&lt;br&gt;&lt;br&gt;A ban stated without a&lt;br&gt;way behind it leaves&lt;br&gt;each version to fail in&lt;br&gt;its own idiom." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="664" y="80" width="200" height="220" as="geometry"/>
+    </mxCell>
+    <mxCell id="n49" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="220" y="190" as="sourcePoint"/>
+        <mxPoint x="228" y="190" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n50" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="436" y="190" as="sourcePoint"/>
+        <mxPoint x="444" y="190" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n51" value="" style="html=1;rounded=0;strokeColor=#2f6db3;strokeWidth=2.0;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="652" y="190" as="sourcePoint"/>
+        <mxPoint x="660" y="190" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="n52" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#fdf1f0;strokeColor=#a5281b;strokeWidth=1.6;" vertex="1" parent="1">
+      <mxGeometry x="16" y="324" width="848" height="128" as="geometry"/>
+    </mxCell>
+    <mxCell id="n53" value="The root cause belongs to the method" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=13;fontColor=#8c2a20;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="32" y="335.65" width="255.06" height="19.5" as="geometry"/>
+    </mxCell>
+    <mxCell id="n54" value="Parity bounds the paths the suite drives. A clean sanitiser result is bounded by the code that actually ran." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="360.12" width="735.75" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n55" value="RQ2's injected catalogue is still final for the fourteen programs. This case is why the thesis also talks about checked-by-default," style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="378.12" width="892.44" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n56" value="not only ruled-out-at-compile-time." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="396.12" width="238.44" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n57" value="Chapter 6, after the guarantee-boundary figure. It is part of the answer to RQ2, not a footnote." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="139.16" y="485.07" width="601.68" height="17.25" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

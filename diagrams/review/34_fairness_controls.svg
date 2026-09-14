@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 580" width="880" height="580" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <rect x="0" y="0" width="880" height="580" fill="#ffffff"/>
+  <text x="440.0" y="32" font-size="22" fill="#12233a" text-anchor="middle" font-weight="700">Fairness is a controlled variable, not a claim after the fact</text>
+  <text x="440.0" y="54" font-size="12.5" fill="#5b6b7b" text-anchor="middle">The spec is frozen before either version exists. Where the languages cannot be written alike, the gap is logged.</text>
+  <rect x="16" y="76" width="430" height="380" rx="11" fill="#eef3fa" stroke="#2f6db3" stroke-width="2.0"/>
+  <rect x="16" y="76" width="430" height="34" rx="11" fill="#2f6db3"/>
+  <rect x="16" y="99" width="430" height="11" fill="#2f6db3"/>
+  <text x="231.0" y="98.0" font-size="14.5" fill="#ffffff" text-anchor="middle" font-weight="700">MATCHED ACROSS BOTH SIDES</text>
+  <rect x="34" y="126" width="394" height="48" rx="7" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="46" y="148.6" font-size="12" fill="#12233a" font-weight="700">Public API and state machine</text>
+  <text x="46" y="164.6" font-size="11" fill="#5b6b7b">Same operations, same illegal-op errors</text>
+  <rect x="34" y="180" width="394" height="48" rx="7" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="46" y="202.6" font-size="12" fill="#12233a" font-weight="700">Thread model</text>
+  <text x="46" y="218.6" font-size="11" fill="#5b6b7b">Shared-nothing, thread-per-shard, bounded MPSC</text>
+  <rect x="34" y="234" width="394" height="48" rx="7" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="46" y="256.6" font-size="12" fill="#12233a" font-weight="700">Allocator and arena count</text>
+  <text x="46" y="272.6" font-size="11" fill="#5b6b7b">jemalloc on both, system allocator as control</text>
+  <rect x="34" y="288" width="394" height="48" rx="7" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="46" y="310.6" font-size="12" fill="#12233a" font-weight="700">Optimisation level</text>
+  <text x="46" y="326.6" font-size="11" fill="#5b6b7b">Never tuned per side</text>
+  <rect x="34" y="342" width="394" height="48" rx="7" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="46" y="364.6" font-size="12" fill="#12233a" font-weight="700">Hashing</text>
+  <text x="46" y="380.6" font-size="11" fill="#5b6b7b">SplitMix64 for the shard, FNV-1a inside the map</text>
+  <rect x="34" y="396" width="394" height="48" rx="7" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="46" y="418.6" font-size="12" fill="#12233a" font-weight="700">Histogram and load schedule</text>
+  <text x="46" y="434.6" font-size="11" fill="#5b6b7b">One HDR setup, one open-loop send plan</text>
+  <rect x="462" y="76" width="402" height="232" rx="11" fill="#fdf6e9" stroke="#c8860d" stroke-width="2.0"/>
+  <rect x="462" y="76" width="402" height="34" rx="11" fill="#a5700c"/>
+  <rect x="462" y="99" width="402" height="11" fill="#a5700c"/>
+  <text x="663.0" y="98.0" font-size="14.5" fill="#ffffff" text-anchor="middle" font-weight="700">LOGGED, NOT RESOLVED</text>
+  <rect x="480" y="126" width="366" height="40" rx="6" fill="#ffffff" stroke="#c8860d" stroke-width="1.0"/>
+  <text x="490" y="144.2" font-size="10.5" fill="#33475b">Bounded queue: Rust sync_channel. C++ mutex and</text>
+  <text x="490" y="157.2" font-size="10.5" fill="#33475b">two condition variables.</text>
+  <rect x="480" y="170" width="366" height="40" rx="6" fill="#ffffff" stroke="#c8860d" stroke-width="1.0"/>
+  <text x="490" y="188.2" font-size="10.5" fill="#33475b">Reply handle: std::promise against a fresh mpsc</text>
+  <text x="490" y="201.2" font-size="10.5" fill="#33475b">channel per request.</text>
+  <rect x="480" y="214" width="366" height="40" rx="6" fill="#ffffff" stroke="#c8860d" stroke-width="1.0"/>
+  <text x="490" y="232.2" font-size="10.5" fill="#33475b">Per-shard map: Each language's own standard hash</text>
+  <text x="490" y="245.2" font-size="10.5" fill="#33475b">map.</text>
+  <rect x="480" y="258" width="366" height="40" rx="6" fill="#ffffff" stroke="#c8860d" stroke-width="1.0"/>
+  <text x="490" y="276.2" font-size="10.5" fill="#33475b">Request encoding: C++ tagged struct 160 B, Rust</text>
+  <text x="490" y="289.2" font-size="10.5" fill="#33475b">enum 96 B.</text>
+  <rect x="462" y="324" width="402" height="132" rx="11" fill="#fdf1f0" stroke="#a5281b" stroke-width="2.0"/>
+  <rect x="462" y="324" width="402" height="34" rx="11" fill="#a5281b"/>
+  <rect x="462" y="347" width="402" height="11" fill="#a5281b"/>
+  <text x="663.0" y="346.0" font-size="14.5" fill="#ffffff" text-anchor="middle" font-weight="700">NOT CONTROLLED</text>
+  <text x="480" y="376" font-size="11.5" fill="#33475b">One person wrote both versions and is</text>
+  <text x="480" y="392" font-size="11.5" fill="#33475b">not equally expert in both. Parity bounds</text>
+  <text x="480" y="408" font-size="11.5" fill="#33475b">what the code does. It does not bound</text>
+  <text x="480" y="424" font-size="11.5" fill="#33475b">speed. This is the main internal threat.</text>
+  <text x="440.0" y="556" font-size="11.5" fill="#8794a3" text-anchor="middle">The two overload-carrying gaps are the queue and the reply handle. The core-operation gap is the hash map. Rust is 18% longer and 15% simpler.</text>
+</svg>

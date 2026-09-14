@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 560" width="880" height="560" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <rect x="0" y="0" width="880" height="560" fill="#ffffff"/>
+  <text x="440.0" y="32" font-size="22" fill="#12233a" text-anchor="middle" font-weight="700">The sender keeps to its plan, even when the service is late</text>
+  <text x="440.0" y="54" font-size="12.5" fill="#5b6b7b" text-anchor="middle">A closed-loop sender stops while a stall is in progress. It then never records the delay of that stall.</text>
+  <rect x="16" y="76" width="416" height="280" rx="11" fill="#fdf1f0" stroke="#a5281b" stroke-width="2.0"/>
+  <rect x="16" y="76" width="416" height="34" rx="11" fill="#a5281b"/>
+  <rect x="16" y="99" width="416" height="11" fill="#a5281b"/>
+  <text x="224.0" y="98.0" font-size="14.5" fill="#ffffff" text-anchor="middle" font-weight="700">CLOSED LOOP  (not used)</text>
+  <text x="36" y="128" font-size="13" fill="#33475b">1. Send a request.</text>
+  <text x="36" y="150" font-size="13" fill="#33475b">2. Wait for the reply.</text>
+  <text x="36" y="172" font-size="13" fill="#33475b">3. Only then send the next one.</text>
+  <rect x="36" y="210" width="376" height="120" rx="8" fill="#ffffff" stroke="#e6b3ad" stroke-width="1.0"/>
+  <text x="48" y="232.325" font-size="11.5" fill="#8c2a20" font-weight="700">What goes wrong</text>
+  <text x="48" y="250.325" font-size="12" fill="#5b6b7b">During a stall the sender is idle.</text>
+  <text x="48" y="266.325" font-size="12" fill="#5b6b7b">The histogram never sees the wait.</text>
+  <text x="48" y="282.325" font-size="12" fill="#5b6b7b">Overload looks milder than it is.</text>
+  <text x="48" y="298.325" font-size="12" fill="#5b6b7b">That is coordinated omission.</text>
+  <rect x="448" y="76" width="416" height="280" rx="11" fill="#f4fbf6" stroke="#2e8b57" stroke-width="2.0"/>
+  <rect x="448" y="76" width="416" height="34" rx="11" fill="#2e8b57"/>
+  <rect x="448" y="99" width="416" height="11" fill="#2e8b57"/>
+  <text x="656.0" y="98.0" font-size="14.5" fill="#ffffff" text-anchor="middle" font-weight="700">OPEN LOOP  (this study)</text>
+  <text x="468" y="128" font-size="13" fill="#33475b">1. Keep the send times on a schedule.</text>
+  <text x="468" y="150" font-size="13" fill="#33475b">2. Do not wait for replies.</text>
+  <text x="468" y="172" font-size="13" fill="#33475b">3. Time from the intended send time.</text>
+  <rect x="468" y="210" width="376" height="120" rx="8" fill="#ffffff" stroke="#a8d7bb" stroke-width="1.0"/>
+  <text x="480" y="232.325" font-size="11.5" fill="#1f6b41" font-weight="700">What that records</text>
+  <text x="480" y="250.325" font-size="12" fill="#5b6b7b">A stall still occupies its slot.</text>
+  <text x="480" y="266.325" font-size="12" fill="#5b6b7b">The HDR histogram is corrected so</text>
+  <text x="480" y="282.325" font-size="12" fill="#5b6b7b">missing replies cannot hide delay.</text>
+  <text x="480" y="298.325" font-size="12" fill="#5b6b7b">Overload shows up as delay.</text>
+  <rect x="16" y="376" width="848" height="124" rx="9" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.6"/>
+  <text x="32" y="400" font-size="13" fill="#1c4e86" font-weight="700">The queue is bounded on purpose</text>
+  <text x="32" y="424" font-size="12.5" fill="#33475b">When it is full the caller blocks. A drop rule would hide overload.</text>
+  <text x="32" y="442" font-size="12.5" fill="#33475b">This study needs overload to show up as delay, not as lost work the</text>
+  <text x="32" y="460" font-size="12.5" fill="#33475b">histogram never sees. The same reason the send schedule is open-loop.</text>
+  <text x="440.0" y="536" font-size="11.5" fill="#8794a3" text-anchor="middle">Schroeder and Harchol-Balter: an open arrival process is what a control plane under a storm actually looks like.</text>
+</svg>

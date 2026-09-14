@@ -1,0 +1,48 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="560" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="What the end-to-end clock can and cannot say" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="176.22" y="11.1" width="527.56" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n3" value="An operation in this design is a fraction of a percent of the round-trip. That clock cannot bound a language effect." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="44.87" y="42.12" width="790.25" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n8" value="" style="rounded=1;absoluteArcSize=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=2.0;verticalAlign=top;align=center;" vertex="1" parent="1">
+      <mxGeometry x="16" y="76" width="848" height="160" as="geometry"/>
+    </mxCell>
+    <mxCell id="n9" value="ONE END-TO-END ROUND-TRIP" style="rounded=1;absoluteArcSize=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#2f6db3;strokeColor=none;align=center;verticalAlign=middle;fontSize=14.5;fontColor=#ffffff;fontStyle=1;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="16" y="76" width="848" height="34" as="geometry"/>
+    </mxCell>
+    <mxCell id="n10" value="Language work (the core)" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#1c4e86;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="36" y="120.6" width="156.96" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n11" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=6;fillColor=#2e8b57;strokeColor=none;" vertex="1" parent="1">
+      <mxGeometry x="36" y="144" width="8" height="28" as="geometry"/>
+    </mxCell>
+    <mxCell id="n12" value="0.250% of the sweep" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#1f6b41;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="52" y="150.6" width="124.26" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n13" value="Cross-thread handoff (operating system)" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#1c4e86;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="36" y="184.6" width="255.06" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n14" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=6;fillColor=#2f6db3;strokeColor=none;" vertex="1" parent="1">
+      <mxGeometry x="36" y="208" width="790" height="14" as="geometry"/>
+    </mxCell>
+    <mxCell id="n15" value="the remaining 99.750%" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="36" y="224.6" width="137.34" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n24" value="&lt;b&gt;What the sweep times&lt;/b&gt;&lt;br&gt;&lt;br&gt;Producer to shard queue to worker&lt;br&gt;to one-shot reply. Most of that time&lt;br&gt;is passing work between threads.&lt;br&gt;&lt;br&gt;Paired median gap: 1.3 us.&lt;br&gt;Real, and too small to attribute." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#ffffff;strokeColor=#bcd0e8;strokeWidth=1.6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=11.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="16" y="256" width="270" height="200" as="geometry"/>
+    </mxCell>
+    <mxCell id="n36" value="&lt;b&gt;What the microbench times&lt;/b&gt;&lt;br&gt;&lt;br&gt;The core called directly, with no&lt;br&gt;queue and no reply handle.&lt;br&gt;&lt;br&gt;Rust is 1.6x faster.&lt;br&gt;Likely cause: stock hash-map layout,&lt;br&gt;not the safe-code model.&lt;br&gt;&lt;br&gt;Both sit inside the sweep's blind&lt;br&gt;zone by a factor of 38." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#f4fbf6;strokeColor=#2e8b57;strokeWidth=1.6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=11.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="304" y="256" width="270" height="200" as="geometry"/>
+    </mxCell>
+    <mxCell id="n47" value="&lt;b&gt;What this forbids&lt;/b&gt;&lt;br&gt;&lt;br&gt;Bounding a language effect from&lt;br&gt;the end-to-end median.&lt;br&gt;&lt;br&gt;Calling the two languages&lt;br&gt;equivalent because the sweep&lt;br&gt;cannot tell them apart.&lt;br&gt;&lt;br&gt;cannot tell is not equivalent." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#fdf1f0;strokeColor=#a5281b;strokeWidth=1.6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;spacingRight=6;fontSize=11.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="592" y="256" width="272" height="200" as="geometry"/>
+    </mxCell>
+    <mxCell id="n48" value="Point (5) of the abstract is written this way on purpose: the paired gap is reported, then refused as a bound." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="95.29" y="525.08" width="689.42" height="17.25" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

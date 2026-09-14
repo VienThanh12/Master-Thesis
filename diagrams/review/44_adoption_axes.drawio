@@ -1,0 +1,42 @@
+<mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="580" math="0" shadow="0" adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="n2" value="RQ4: cheap in the machine, costly in the people" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=22;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="158.24" y="11.1" width="563.53" height="33.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n3" value="A C++ host can call an unchanged Rust core. All unsafe stays in 9 functions. The core has 0 unsafe sites." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=12.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="82.34" y="42.12" width="715.31" height="18.75" as="geometry"/>
+    </mxCell>
+    <mxCell id="n13" value="&lt;b&gt;Seam structure&lt;/b&gt;&lt;br&gt;&lt;br&gt;11 C entry points in&lt;br&gt;231 lines of Rust.&lt;br&gt;9 functions hold all&lt;br&gt;raw pointers. Core is clean.&lt;br&gt;&lt;br&gt;Final. Read off the code.&lt;br&gt;Does not depend on host." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#f4fbf6;strokeColor=#2e8b57;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=8;spacingTop=2;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="16" y="76" width="200" height="300" as="geometry"/>
+    </mxCell>
+    <mxCell id="n23" value="&lt;b&gt;Per-call tax&lt;/b&gt;&lt;br&gt;&lt;br&gt;Native 12.3 us.&lt;br&gt;Through the seam 12.7 us.&lt;br&gt;Bound: 10.91% of that call.&lt;br&gt;&lt;br&gt;Timed on a real signal, not&lt;br&gt;an empty crossing. A no-op&lt;br&gt;crossing bounds itself." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=8;spacingTop=2;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="232" y="76" width="200" height="300" as="geometry"/>
+    </mxCell>
+    <mxCell id="n33" value="&lt;b&gt;Build time&lt;/b&gt;&lt;br&gt;&lt;br&gt;54% of the Rust clean&lt;br&gt;build is third-party code.&lt;br&gt;Own source builds in&lt;br&gt;0.8x the CPU g++ needs.&lt;br&gt;&lt;br&gt;The host-sensitive axis.&lt;br&gt;Quote the paired ratio." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#fdf6e9;strokeColor=#c8860d;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=8;spacingTop=2;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="448" y="76" width="200" height="300" as="geometry"/>
+    </mxCell>
+    <mxCell id="n43" value="&lt;b&gt;Shipped size&lt;/b&gt;&lt;br&gt;&lt;br&gt;The 6.8x gap compares&lt;br&gt;two linkage policies. Order&lt;br&gt;flips if policy is matched.&lt;br&gt;&lt;br&gt;Compared part: 0 crates,&lt;br&gt;0 unsafe sites. Never&lt;br&gt;quote that ratio alone." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#fff3ec;strokeColor=#d35400;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=8;spacingTop=2;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="664" y="76" width="200" height="300" as="geometry"/>
+    </mxCell>
+    <mxCell id="n44" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#f1f4f7;strokeColor=#d7dde3;strokeWidth=1.5;" vertex="1" parent="1">
+      <mxGeometry x="16" y="396" width="848" height="120" as="geometry"/>
+    </mxCell>
+    <mxCell id="n45" value="Where C++ still leads, and the limit of the seam" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=13;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="32" y="407.65" width="340.08" height="19.5" as="geometry"/>
+    </mxCell>
+    <mxCell id="n46" value="The edit and compile loop for a change that stays inside one source file is faster in C++. That is the one axis of outright lead." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="432.6" width="843.66" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n47" value="Keeping unsafe at the seam bounds what has to be checked, not what can be corrupted. Host and part share one address space." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="450.6" width="804.42" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n48" value="A vendor worried about build time or footprint should audit its crate budget (54% of CPU is dependencies) before blaming the compiler." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="32" y="468.6" width="876.36" height="18.0" as="geometry"/>
+    </mxCell>
+    <mxCell id="n49" value="The C++ unsafe cell stays blank on purpose. The language marks no such region." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="195.57" y="545.08" width="488.87" height="17.25" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

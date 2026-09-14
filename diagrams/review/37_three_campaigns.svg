@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 600" width="880" height="600" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <rect x="0" y="0" width="880" height="600" fill="#ffffff"/>
+  <text x="440.0" y="32" font-size="22" fill="#12233a" text-anchor="middle" font-weight="700">Three campaigns, kept apart by prefix</text>
+  <text x="440.0" y="54" font-size="12.5" fill="#5b6b7b" text-anchor="middle">A sentence that quotes the wrong prefix is wrong in a way no build gate catches</text>
+  <rect x="16" y="76" width="268" height="420" rx="10" fill="#f4fbf6" stroke="#2e8b57" stroke-width="1.8"/>
+  <text x="30" y="100.875" font-size="12.5" fill="#1f6b41" font-weight="700">CANONICAL  (unprefixed)</text>
+  <text x="30" y="122.875" font-size="11" fill="#5b6b7b">Bare metal, AMD EPYC 7443.</text>
+  <text x="30" y="137.875" font-size="11" fill="#5b6b7b">SMT off. Governor performance.</text>
+  <text x="30" y="152.875" font-size="11" fill="#5b6b7b">Boost off. nohz_full. No hypervisor.</text>
+  <text x="30" y="167.875" font-size="11" fill="#5b6b7b">isolcpus is refused: it pinned a whole</text>
+  <text x="30" y="182.875" font-size="11" fill="#5b6b7b">earlier campaign onto one core.</text>
+  <text x="30" y="197.875" font-size="11" fill="#5b6b7b"></text>
+  <text x="30" y="212.875" font-size="11" fill="#5b6b7b">g++ 15.2.1, rustc 1.97.1.</text>
+  <text x="30" y="227.875" font-size="11" fill="#5b6b7b">The image pins the gcc-toolset major,</text>
+  <text x="30" y="242.875" font-size="11" fill="#5b6b7b">not the point release.</text>
+  <text x="30" y="257.875" font-size="11" fill="#5b6b7b"></text>
+  <text x="30" y="272.875" font-size="11" fill="#5b6b7b">Role: every result the thesis reports.</text>
+  <text x="30" y="287.875" font-size="11" fill="#5b6b7b">This is the only dataset in Chapter 5</text>
+  <text x="30" y="302.875" font-size="11" fill="#5b6b7b">unless a caption says otherwise.</text>
+  <rect x="306" y="76" width="268" height="420" rx="10" fill="#fdf6e9" stroke="#c8860d" stroke-width="1.8"/>
+  <text x="320" y="100.875" font-size="12.5" fill="#a5700c" font-weight="700">GUEST  (Guest*)</text>
+  <text x="320" y="122.875" font-size="11" fill="#5b6b7b">KVM on Intel(R) Xeon(R) CPU E5-2680 v4.</text>
+  <text x="320" y="137.875" font-size="11" fill="#5b6b7b">Same design, same code.</text>
+  <text x="320" y="152.875" font-size="11" fill="#5b6b7b">g++ 15.1.1, one GCC 15 release</text>
+  <text x="320" y="167.875" font-size="11" fill="#5b6b7b">earlier. rustc matches.</text>
+  <text x="320" y="182.875" font-size="11" fill="#5b6b7b"></text>
+  <text x="320" y="197.875" font-size="11" fill="#5b6b7b">On that host the 95% band on one</text>
+  <text x="320" y="212.875" font-size="11" fill="#5b6b7b">arm's p99 was larger than the gap</text>
+  <text x="320" y="227.875" font-size="11" fill="#5b6b7b">between all four arms.</text>
+  <text x="320" y="242.875" font-size="11" fill="#5b6b7b"></text>
+  <text x="320" y="257.875" font-size="11" fill="#5b6b7b">Role: measurement-validity</text>
+  <text x="320" y="272.875" font-size="11" fill="#5b6b7b">comparison. It could not resolve</text>
+  <text x="320" y="287.875" font-size="11" fill="#5b6b7b">the far tail. It is kept, not dropped,</text>
+  <text x="320" y="302.875" font-size="11" fill="#5b6b7b">so host-owned findings have a</text>
+  <text x="320" y="317.875" font-size="11" fill="#5b6b7b">counter-example sitting beside them.</text>
+  <rect x="596" y="76" width="268" height="420" rx="10" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.8"/>
+  <text x="610" y="100.875" font-size="12.5" fill="#1c4e86" font-weight="700">SECOND HOST  (Bm*)</text>
+  <text x="610" y="122.875" font-size="11" fill="#5b6b7b">Bare metal, AMD EPYC 7443P.</text>
+  <text x="610" y="137.875" font-size="11" fill="#5b6b7b">New shard count, load grid, run</text>
+  <text x="610" y="152.875" font-size="11" fill="#5b6b7b">count, and compiler as a set.</text>
+  <text x="610" y="167.875" font-size="11" fill="#5b6b7b"></text>
+  <text x="610" y="182.875" font-size="11" fill="#5b6b7b">Role: whether findings survive those</text>
+  <text x="610" y="197.875" font-size="11" fill="#5b6b7b">changes together, not any one of</text>
+  <text x="610" y="212.875" font-size="11" fill="#5b6b7b">them on its own.</text>
+  <text x="610" y="227.875" font-size="11" fill="#5b6b7b"></text>
+  <text x="610" y="242.875" font-size="11" fill="#5b6b7b">The far-tail ranges do not meet.</text>
+  <text x="610" y="257.875" font-size="11" fill="#5b6b7b">The language RSS gap keeps its</text>
+  <text x="610" y="272.875" font-size="11" fill="#5b6b7b">sign and size. The allocator-to-</text>
+  <text x="610" y="287.875" font-size="11" fill="#5b6b7b">language RSS ratio does not travel.</text>
+  <text x="440.0" y="576" font-size="11.5" fill="#8794a3" text-anchor="middle">Do not write that the guest and the reported campaign share a toolchain. An image still uses the kernel of the host it sits on.</text>
+</svg>
