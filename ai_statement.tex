@@ -35,9 +35,13 @@
 \addcontentsline{toc}{chapter}{Statement on the Use of AI Tools}
 \chapter*{Statement on the Use of AI Tools}
 \markboth{Statement on the Use of AI Tools}{Statement on the Use of AI Tools}
+% Keep the declaration on one folio. The last line of Responsibility
+% otherwise ships onto an empty page under this class's chapter skip.
+% Page numbers live in the header, so a modest bottom enlarge is safe.
+\enlargethispage{3\baselineskip}
 
 \noindent\textbf{Tool.} Anthropic's Claude Opus~5 and Cursor Grok~4.6 are the generative AI
-systems used in preparing this thesis. Both ran through the Cursor development environment,
+systems used in preparing this thesis. Both ran through the Cursor development environment
 from June~2026 through the writing of this thesis. University of Helsinki policy forbids naming a language
 model as an author. Neither is cited as a source, which is the author's own choice.
 

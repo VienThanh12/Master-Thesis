@@ -520,8 +520,8 @@ committee's work on enforced safety profiles is not a standard yet. It is not
 widely in use. Rust's ownership and borrowing rule out lifetime and aliasing
 bugs at compile time. Its \texttt{Send} and \texttt{Sync} traits rule out data
 races. That claim is narrower than ``thread safety''. It says nothing about
-lock order. It says nothing about whether a composed step is atomic. It says
-nothing about leaks. And it is off wherever a program writes \texttt{unsafe}.
+lock order, whether a composed step is atomic, or leaks. It is off wherever a
+program writes \texttt{unsafe}.
 Both languages can express the same thread structures. A comparison that lets
 the structure change with the language then measures the structure, not the
 language. The two meet through a C application binary interface. That is the
