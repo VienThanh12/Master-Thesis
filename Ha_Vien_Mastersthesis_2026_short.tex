@@ -2479,11 +2479,11 @@ that the Rust build carries the larger footprint and disagree about how that com
 allocator cost. The hugepage policy differed between those hosts, and only the system-allocator
 arm inherits it. A single machine and two settings settle whether a footprint claim of this kind
 belongs to an allocator or to a kernel setting. Beyond that, the framework can take captured
-anonymised traces in place of the synthetic workload. It can also take further control-plane
+anonymised traces in place of the synthetic workload, further control-plane
 subsystems or the data-heavy layer-2 and physical layer (PHY) path, and a whole-program model
-checker covering foreign dependencies~\cite{pearce2026rustmc}. It can compare Rust async
+checker covering foreign dependencies~\cite{pearce2026rustmc}. It can also compare Rust async
 runtimes against the thread-per-shard model, which would separate the tail divergence Arvidsson
-and Kaller attribute to \texttt{async}/\texttt{await}~\cite{arvidsson2025async}. It can measure
+and Kaller attribute to \texttt{async}/\texttt{await}~\cite{arvidsson2025async}, measure
 in-process isolation of the two heaps at the seam~\cite{rivera2021galeed,kirth2022pkrusafe},
 and track defect density and review effort as Rust is adopted in a production RAN codebase.
 

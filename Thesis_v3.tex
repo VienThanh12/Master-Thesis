@@ -452,8 +452,8 @@ distributed units (gNB-DU) host the lower layers. Those layers sit close to
 the radio and are tight on time. The second split is control versus user
 plane, inside the central unit. It splits the control-plane function
 (gNB-CU-CP) from the user-plane function (gNB-CU-UP). These parts talk over
-standard links. NG goes toward the 5G core. F1 sits between the CU and the DU.
-E1 sits between the CU-CP and the CU-UP~\cite{3gpp38401,3gpp38300,3gpp38463}.
+standard links. NG goes toward the 5G core, F1 sits between the CU and the DU,
+and E1 sits between the CU-CP and the CU-UP~\cite{3gpp38401,3gpp38300,3gpp38463}.
 Open-RAN pushes the same links further. Each part can then come from a
 different vendor and run as software on ordinary
 machines~\cite{polese2023oran}. Figure~\ref{fig:ngran} places the part studied
@@ -613,8 +613,8 @@ state.\label{fig:fsm}}
 \end{figure}
 
 UECM is core RAN layer-3 work. It has the traits that make live control-plane
-code hard. Each UE has state that changes. The operation lifecycle is strict.
-Many UEs run at once. Delay targets are the ones the 5G system sets for
+code hard. Each UE has state that changes, the operation lifecycle is strict,
+and many UEs run at once. Delay targets are the ones the 5G system sets for
 control-plane procedures~\cite{3gpp38913,3gpp22261}. Findings about how a language
 handles those traits are most relevant to other stateful, multi-thread
 control-plane services of this kind. The part is also small enough to specify in full and build twice.
@@ -647,8 +647,8 @@ why this study sweeps past saturation.
 \section{Research approach}\label{sec:approach}
 The study runs experiments. It also builds the thing it measures: a matched
 pair of versions, plus the harness that drives them. Both are built from one
-frozen spec. Evidence comes from three separate methods. A load sweep answers
-RQ1 and RQ3. Controlled fault injection answers RQ2. An FFI migration
+frozen spec. Evidence comes from three separate methods: a load sweep answers
+RQ1 and RQ3, controlled fault injection answers RQ2, and an FFI migration
 prototype answers RQ4. A weakness in one of them, such as how much the host
 can move the tail, does not carry into the rest of the claims.
 
@@ -1424,9 +1424,9 @@ partitionable control plane services of this kind. At the loads where the
 service still meets its sent rate, the choice is which classes of defect a
 team wants to make impossible to write. The other half is whether it will pay the
 design and training cost of getting them. Past that point it is a speed
-choice as well. What the thesis adds is not a verdict. It is the frozen spec
-and the parity tested pair. It is also a
-timing harness that reaches past the saturation knee. A split of the
+choice as well. What the thesis adds is not a verdict. It is the frozen spec,
+the parity tested pair, and a timing harness that reaches past the saturation
+knee. A split of the
 round-trip says how much of what it times the language can own. A defect
 list maps where the guarantee stops.
 
