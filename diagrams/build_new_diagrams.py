@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the generated thesis diagrams.
 
-Diagrams 20-29 were added to fill chapter gaps. 07 (FFI seam) and 17
+Diagrams 20-31 were added to fill chapter gaps. 07 (FFI seam) and 17
 (guarantee boundary) join them so their counts and timings come from the
 same generated macros the prose cites, rather than from typed labels.
 
@@ -17,7 +17,7 @@ import sys
 
 from dsl import (
     Diagram,
-    AMBER_CHIP, AMBER_DEEP, AMBER_EDGE, AMBER_FILL,
+    AMBER, AMBER_CHIP, AMBER_DEEP, AMBER_EDGE, AMBER_FILL,
     BLUE, BLUE_CHIP, BLUE_DEEP, BLUE_EDGE, BLUE_FILL,
     BODY, FAINT, GREY_EDGE, GREY_FILL, MUTED, NAVY, WHITE,
     GREEN, GREEN_CHIP, GREEN_DEEP, GREEN_EDGE, GREEN_FILL,
@@ -48,9 +48,13 @@ def load_macros():
                     values[m.group(1)] = m.group(2)
     missing = {"NRepeats", "NLoadLevels", "NRuns", "MaxOfferedLoad", "NTests",
                "MinAttainableP", "CorrectedFloor", "FfiOpBoundPct",
-               "BudgetCoreShareMax", "FaultClassesPrevented",
+               "BudgetCoreShareMax", "BudgetCoreShareRest", "BudgetCoreRatio",
+               "BudgetCoreFaster", "FaultClassesPrevented",
                "FaultClassesBoundary", "FfiEntryPoints", "FfiUnsafeFns",
-               "FfiOpNative", "FfiOpSeam", "CoreUnsafe"} - values.keys()
+               "FfiOpNative", "FfiOpSeam", "CoreUnsafe", "ReprLoad",
+               "TrackingLoadCpp", "TrackingLoadRust", "KneeGapLoad",
+               "KneeGapThrFast", "KneeGapThrSlow", "OverloadLoad",
+               "OverloadThrCpp", "OverloadThrRust"} - values.keys()
     if missing:
         raise SystemExit(f"{' and '.join(MACRO_FILES)} are missing {sorted(missing)}")
     return values
@@ -706,6 +710,104 @@ def _chip_row(d, x, y, items, fill, color, stroke, h=28, gap=16, size=11):
     return centres
 
 
+def _thru_bar(d, x, y, w, h, fill, stroke, label, color, size=12):
+    """A throughput bar with its label to the right, width already scaled."""
+    d.rect(x, y, max(w, 4), h, fill, stroke, rx=4, sw=1.4)
+    d.text(x + max(w, 4) + 10, y + h * 0.72, label, size, color, weight=700)
+
+
+# --------------------------------------------------------------------------
+def load_regimes():
+    """Four operating points on the offered-load axis, plus finished throughput.
+
+    Spacing is schematic. The ticks and bar lengths come from the same macros
+    the prose cites. The $\\KneeGapLoad$ comparison is shown and not tested.
+    """
+    d = Diagram("30_load_regimes", 880, 280)
+
+    d.rect(40, 48, 800, 18, GREY_FILL, rx=9)
+    d.rect(40, 48, 280, 18, GREEN, rx=9)
+    d.rect(320, 48, 140, 18, BLUE, rx=0)
+    d.rect(460, 48, 160, 18, AMBER, rx=0)
+    d.rect(620, 48, 220, 18, RED, rx=9)
+
+    ticks = [
+        (80, M["ReprLoad"], GREEN_DEEP),
+        (360, M["TrackingLoadCpp"], BLUE_DEEP),
+        (520, M["TrackingLoadRust"], AMBER_DEEP),
+        (760, M["OverloadLoad"], RED_DEEP),
+    ]
+    for x, lab, color in ticks:
+        d.rect(x - 1, 44, 3, 26, color)
+        d.text(x, 36, lab, 12, color, weight=700, anchor="middle")
+
+    d.chip(50, 88, 200, 36, "below saturation", GREEN_CHIP, GREEN_DEEP,
+           size=13, rx=8, stroke=GREEN_EDGE)
+    d.chip(300, 88, 160, 36, "C++ knee", BLUE_CHIP, BLUE_DEEP, size=13,
+           rx=8, stroke=BLUE)
+    d.chip(470, 88, 150, 36, "shown, not tested", AMBER_CHIP, AMBER_DEEP,
+           size=12, rx=8, stroke=AMBER_EDGE)
+    d.chip(640, 88, 180, 36, "overload flip", RED_CHIP, RED_DEEP, size=13,
+           rx=8, stroke=RED)
+
+    d.text(40, 156, "kops/s finished", 12, FAINT)
+
+    fast = float(M["KneeGapThrFast"])
+    slow = float(M["KneeGapThrSlow"])
+    gap_w = 180.0
+    d.text(40, 186, f"at {M['KneeGapLoad']} (shown)", 12, AMBER_DEEP)
+    _thru_bar(d, 220, 172, gap_w, 18, GREEN, GREEN,
+              f"Rust  {M['KneeGapThrFast']}", GREEN_DEEP)
+    _thru_bar(d, 220, 196, gap_w * slow / fast, 18, BLUE, BLUE,
+              f"C++  {M['KneeGapThrSlow']}", BLUE_DEEP)
+
+    cpp = float(M["OverloadThrCpp"])
+    rust = float(M["OverloadThrRust"])
+    over_w = 110.0
+    d.text(500, 186, f"at {M['OverloadLoad']} (tested)", 12, RED_DEEP)
+    _thru_bar(d, 680, 172, over_w, 18, BLUE, BLUE,
+              f"C++  {M['OverloadThrCpp']}", BLUE_DEEP)
+    _thru_bar(d, 680, 196, over_w * rust / cpp, 18, GREEN, GREEN,
+              f"Rust  {M['OverloadThrRust']}", GREEN_DEEP)
+    return d
+
+
+def e2e_clock():
+    """End-to-end round-trip, then the core call alone.
+
+    The language sliver is drawn wide enough to see. Its share is the label,
+    $\\BudgetCoreShareMax$, not the pixel width. The core-only pair is duration,
+    so the slower language is the longer bar.
+    """
+    d = Diagram("31_e2e_clock", 880, 240)
+    rest = M["BudgetCoreShareRest"]
+    ratio = float(M["BudgetCoreRatio"])
+    faster = M["BudgetCoreFaster"]
+
+    d.text(40, 48, "round-trip", 13, NAVY, weight=700)
+    bar_x, bar_y, bar_w, bar_h = 160, 36, 680, 22
+    core_w = 6
+    d.rect(bar_x, bar_y, core_w, bar_h, GREEN, rx=2)
+    d.rect(bar_x + core_w, bar_y, bar_w - core_w, bar_h, BLUE, rx=2)
+    d.text(bar_x + 20, 26, f"language  {M['BudgetCoreShareMax']}%", 12,
+           GREEN_DEEP, weight=700)
+    d.text(bar_x + 340, 26, f"handoff  {rest}%", 12, BLUE_DEEP, weight=700)
+
+    d.text(40, 116, "core only", 13, NAVY, weight=700)
+    rust_w = 200
+    cpp_w = rust_w * ratio
+    d.text(160, 104, "Rust", 12, GREEN_DEEP)
+    d.rect(210, 90, rust_w, 20, GREEN, rx=4)
+    d.text(160, 136, "C++", 12, BLUE_DEEP)
+    d.rect(210, 122, cpp_w, 20, BLUE, rx=4)
+    d.text(210 + cpp_w + 12, 138,
+           f"{faster} {M['BudgetCoreRatio']}\u00d7 faster", 13, GREEN_DEEP,
+           weight=700)
+    d.text(440, 196, "That clock cannot bound a language effect", 14, BODY,
+           anchor="middle")
+    return d
+
+
 # --------------------------------------------------------------------------
 def ffi_seam():
     """C++ host, thin seam, unmodified core: where unsafe sits, and the cost."""
@@ -1006,6 +1108,7 @@ BUILDERS = [
     benchmark_harness, evidence_classes, traceability_map, stats_pipeline,
     repro_artifacts, threats_validity, contributions, workload_timeline,
     service_lifecycle, research_gap,
+    load_regimes, e2e_clock,
 ]
 
 
