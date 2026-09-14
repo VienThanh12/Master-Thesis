@@ -1048,7 +1048,8 @@ blind zone by a factor of $\BudgetBoundVsCore$.\label{fig:budget}}
 \subsection{Past saturation (RQ1)}\label{sec:overload}
 Once the sent rate is higher than the service can handle, the four variants
 stop keeping up at loads that do not match. The Rust versions hold to
-$\TrackingLoadRust$~kops/s. The C++ versions hold to $\TrackingLoadCpp$. So at
+$\TrackingLoadRust$~kops/s. The C++ versions hold to $\TrackingLoadCpp$. Those two loads are the
+knees, the points where the service stops keeping up. So at
 $\KneeGapLoad$~kops/s \KneeGapFaster{} still serves $\KneeGapThrFast$~kops/s
 where \KneeGapSlower{} has fallen to $\KneeGapThrSlow$. That load is
 shown and not tested, because it was found after the data was in hand.
