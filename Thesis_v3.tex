@@ -621,9 +621,9 @@ control-plane services of this kind. The part is also small enough to specify in
 That is what makes a parity-tested comparison possible.
 
 The interface is small and built around the lifecycle. It can create and
-release a context. It can set up a connection. It can handle an in-session
-signalling message. It can add a data radio bearer. It can begin, complete, or
-abort a reconfiguration. It can look up a context's state under load. Each
+release a context, set up a connection, handle an in-session signalling
+message, add a data radio bearer, begin, complete, or abort a
+reconfiguration, and look up a context's state under load. Each
 operation is defined for each state of Figure~\ref{fig:fsm}. An illegal operation
 returns a typed error and leaves the context unchanged. That closed set lets
 the same tests and the same workload drive both versions along the same
