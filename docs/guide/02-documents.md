@@ -49,6 +49,7 @@ matched eight-chapter lists since 26 August 2026.
 | File | Role |
 | --- | --- |
 | `source_audit.pdf` | Every bibliography entry, ordered as in the full draft's reference list, with the citing sentence beside the source's own words. Built by `.bibaudit/build_audit.py`. See [07 Tooling](07-tooling.md). |
+| `source_audit_v3.pdf` | The same audit scoped to `Thesis_v3`: 61 cited works with that document's numbering, and the 50 shared-`.bib` entries it does not cite. `--document v3`. |
 | `Rust_vs_Cpp_Nokia_RAN_thesis.pptx` | Colloquium deck. Gitignored. Built by `build_deck.py`. |
 
 ## How to rebuild
@@ -58,6 +59,7 @@ latexmk -pdf Ha_Vien_Mastersthesis_2026.tex   # full draft
 latexmk -pdf Thesis_v3.tex                    # supervisor skeleton
 latexmk -pdf Thesis_Plan_v2.tex               # plan
 .bibaudit/build_audit.py && latexmk -pdf source_audit.tex
+.bibaudit/build_audit.py --document v3 && latexmk -pdf source_audit_v3.tex
 bench/refresh_thesis.sh                       # regenerate figures + macros + full-draft PDF + deck
 ```
 

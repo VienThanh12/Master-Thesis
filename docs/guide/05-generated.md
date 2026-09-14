@@ -28,8 +28,8 @@ or a fault-injection run:
 8. `build_deck.py`.
 9. `latexmk -pdf Ha_Vien_Mastersthesis_2026.tex`.
 
-It does **not** rebuild `Thesis_v3.pdf`, `Thesis_Plan_v2.pdf`, or
-`source_audit.pdf`.
+It does **not** rebuild `Thesis_v3.pdf`, `Thesis_Plan_v2.pdf`,
+`source_audit.pdf`, or `source_audit_v3.pdf`.
 
 ## `figures/` — plots, tables, macros
 
