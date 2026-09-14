@@ -59,7 +59,7 @@ python3 "$here/baremetal_facts.py" >/dev/null || echo "  WARN: bare-metal macros
 echo "== regenerating virtualised-host comparison macros =="
 python3 "$here/guest_facts.py" >/dev/null || echo "  WARN: guest macros not regenerated"
 
-# Diagrams 20-29 quote campaign numbers straight out of figures/gen_macros.tex,
+# Diagrams 20-31 quote campaign numbers straight out of figures/gen_macros.tex,
 # so they are rebuilt here for the same reason the prose is: a fresh campaign
 # must not leave a stale figure behind. Diagrams 01-19 are hand-authored SVG
 # and are only re-rendered, not regenerated.
