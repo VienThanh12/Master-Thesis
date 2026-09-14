@@ -1042,11 +1042,21 @@ end-to-end round-trip spends only $\BudgetCoreShareMax\%$ of its time on the
 work the language does. The rest is passing the request to another thread,
 and that time is charged to the operating system. When the work inside the
 language is this small, time spent crossing from thread to thread
-dominates~\cite{zhou2025oltp}. This sweep cannot bound a language effect
+dominates~\cite{zhou2025oltp}. Figure~\ref{fig:e2eclock} draws that split.
+This sweep cannot bound a language effect
 either way, which Figure~\ref{fig:budget} sets beside what the sweep can
 still show. Timed on its own, the core call is $\BudgetCoreRatio\times$
 faster in \BudgetCoreFaster{}. The likely cause is how the stock hash map is
 laid out, not the safe code model.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/31_e2e_clock.pdf}
+\caption[Where the end-to-end clock goes]{Where an end-to-end
+round-trip's clock goes. The language share is
+$\BudgetCoreShareMax\%$. A clock that spends the rest on handoff cannot bound
+a language effect.\label{fig:e2eclock}}
+\end{figure}
 
 \begin{figure}[ht]
 \centering
@@ -1064,6 +1074,19 @@ $\TrackingLoadRust$~kops/s. The C++ versions hold to $\TrackingLoadCpp$. So at
 $\KneeGapLoad$~kops/s \KneeGapFaster{} still serves $\KneeGapThrFast$~kops/s
 where \KneeGapSlower{} has fallen to $\KneeGapThrSlow$. That load is
 shown and not tested, because it was found after the data was in hand.
+Figure~\ref{fig:loadmap} maps the representative load, both knees, and the
+overload point.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\linewidth]{diagrams/pdf/30_load_regimes.pdf}
+\caption[Load regimes on the offered-load axis]{Four operating points on
+the offered-load axis, spaced for reading, not to scale. Ticks are
+$\ReprLoad$, $\TrackingLoadCpp$, $\TrackingLoadRust$ and
+$\OverloadLoad$~kops/s. The comparison at $\KneeGapLoad$ is shown and not
+tested. Bars are finished throughput there and at
+$\OverloadLoad$~kops/s.\label{fig:loadmap}}
+\end{figure}
 
 Deeper, at $\OverloadLoad$~kops/s sent, the order flips.
 \OverloadSustainedFaster{} still finishes $\OverloadThrCpp$~kops/s where
