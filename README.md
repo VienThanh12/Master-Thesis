@@ -61,6 +61,7 @@ The PDFs in this repository do not share a status and are not interchangeable.
 | `Ha_Vien_Mastersthesis_2026.pdf` | Full draft, not final | The canonical long-form thesis. Rich figures, generated numbers, a full argument, and everything in it still needs review. The name is the UH submission format (`Lastname_Firstname_Mastersthesis_Year`, ASCII) and says nothing about review status. It was `Thesis_POC` until 19 August 2026 |
 | `Ha_Vien_Mastersthesis_2026_short.pdf` | Compression pass, in progress | A shorter cut of the full draft, built from the same class, macros, figures and bibliography. It declares 55 pages against the draft's 97, with the same 12 appendix pages. Both documents are `oneside`, matching electronic submission. The material it sheds is relocated to appendices or merged rather than deleted, and [`.compress/shortcheck.py`](.compress/shortcheck.py) is what checks that nothing was lost. Not supervisor-facing and not a submission candidate |
 | `source_audit.pdf` | Generated citation audit | Every bibliography entry, ordered as in the full draft's reference list, with the citing sentence beside the source's own words. Built by [`.bibaudit/build_audit.py`](.bibaudit/build_audit.py). Do not hand-edit `source_audit.tex`, with one exception: the last column of Part 1 is the author's review tick, and turning a `$\square$` into a `$\blacksquare$` is how the source-checking pass records progress. The generator reads those ticks back out of the old document before overwriting it, mirrors them to `.bibaudit/reviewed.txt`, and prints how many it carried. Read that line after every rebuild, because a regeneration silently wiped 22 of them on 1 September 2026 |
+| `source_audit_v3.pdf` | Generated citation audit of `Thesis_v3` | The same document scoped to the supervisor skeleton: 61 cited works, numbered as in `Thesis_v3.pdf`, plus the 50 shared-`.bib` entries that this PDF does not cite. Rebuild with `.bibaudit/build_audit.py --document v3 && latexmk -pdf source_audit_v3.tex`. Tick column mirrors to `.bibaudit/reviewed_v3.txt`. Do not copy ticks from the draft audit: compression can leave a key attached to a different clause |
 | `ai_statement.tex` | Declaration in the author's name | Statement on generative-AI use, shared by the full draft, the supervisor skeleton, and the short cut. Edit this file, never a copy |
 | [`archive/`](archive/) | Superseded, not maintained | Earlier variants kept for reference only. See [`archive/README.md`](archive/README.md). Includes `plain_thesis.tex`, `thesis-vi.tex` (Vietnamese full-draft translation, citations as `[?]`), `Thesis_v3-vi.tex` (Vietnamese skeleton snapshot of 11 September 2026), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF, the retired `UH_DS_MSc.cls`, and the dated `rollback-20260827-220354/` snapshot. They read relative paths from the repository root, so they no longer build where they sit |
 
@@ -110,8 +111,9 @@ reader-facing view of that record.
 │   ├── citation.md        Citation conventions
 │   ├── CHAPTER_READABILITY.md   Per-chapter Flesch table (generated)
 │   └── review/            Commented PDFs a reviewer returns, read by pdfannots.py. Gitignored, create it locally
-├── .bibaudit/         Generates `source_audit.tex` from `bibliography.bib`, the `.bbl`, and the evidence notes
-│   └── reviewed.txt       Mirror of Part 1's review ticks, so they survive a regeneration of the document
+├── .bibaudit/         Generates `source_audit.tex` (full draft) and `source_audit_v3.tex` (`--document v3`) from `bibliography.bib`, the `.bbl`, and the evidence notes
+│   ├── reviewed.txt       Mirror of Part 1's review ticks for the draft audit
+│   └── reviewed_v3.txt    Same sidecar for the `Thesis_v3` audit
 ├── .compress/         One-shot tools for the short cut of the full draft. Run them from the repository root, as with bench/
 │   ├── lengthprice.py     Price prose words, floats and page span per chapter, section and subsection
 │   ├── shortcheck.py      Report citation keys, labels, references and macros the short cut dropped
@@ -127,7 +129,8 @@ reader-facing view of that record.
 ├── Ha_Vien_Mastersthesis_2026_short.tex   Shorter cut of the same draft, in progress. Tooling in `.compress/`
 ├── Thesis_v3.tex      Supervisor-facing chapter skeleton
 ├── Thesis_Plan_v2.tex Revised thesis plan
-├── source_audit.tex   Generated citation audit. Only the Part 1 review tick is hand-edited. Rebuild with `.bibaudit/build_audit.py && latexmk -pdf source_audit.tex`
+├── source_audit.tex   Generated citation audit of the full draft. Only the Part 1 review tick is hand-edited. Rebuild with `.bibaudit/build_audit.py && latexmk -pdf source_audit.tex`
+├── source_audit_v3.tex   Same audit scoped to `Thesis_v3`. Rebuild with `.bibaudit/build_audit.py --document v3 && latexmk -pdf source_audit_v3.tex`
 ├── ai_statement.tex  Declaration on generative-AI use, shared by the full draft, the skeleton, and the short cut
 ├── AGENT.md           Working rules: document roles, grade criteria, verification workflow
 ├── bibliography.bib
@@ -159,7 +162,7 @@ Each component directory (`spec/conformance/`, `cpp/`, `rust/`, `bench/`, `fault
 | C++23 compiler (g++ 13+ / clang 17+, `std::expected` is required), CMake 3.20+, Ninja | [`cpp/`](cpp/) |
 | Rust stable, edition 2021 (developed on 1.97), `cargo` | [`rust/`](rust/) |
 | jemalloc (`libjemalloc`) | the jemalloc arms of the benchmark (`-DUECM_USE_JEMALLOC=ON`, `cargo --features jemalloc`) |
-| `latexmk`, TeX Live, bundled `HYthesisML.cls` | `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v3.tex`, `Thesis_Plan_v2.tex`, `source_audit.tex` |
+| `latexmk`, TeX Live, bundled `HYthesisML.cls` | `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v3.tex`, `Thesis_Plan_v2.tex`, `source_audit.tex`, `source_audit_v3.tex` |
 | Python 3 + `matplotlib` | [`bench/`](bench/) plotting (`pip install -r bench/requirements.txt`) |
 | AddressSanitizer / ThreadSanitizer / UBSan (`g++`) | [`faults/`](faults/), `cpp/sanitise.sh` |
 
@@ -333,12 +336,13 @@ To build a document alone:
 latexmk -pdf Ha_Vien_Mastersthesis_2026.tex   # the thesis
 latexmk -pdf Thesis_v3.tex                    # supervisor skeleton
 latexmk -pdf Thesis_Plan_v2.tex               # thesis plan
-.bibaudit/build_audit.py && latexmk -pdf source_audit.tex   # citation audit
+.bibaudit/build_audit.py && latexmk -pdf source_audit.tex   # citation audit (full draft)
+.bibaudit/build_audit.py --document v3 && latexmk -pdf source_audit_v3.tex   # citation audit (Thesis_v3)
 ```
 
 The audit generator takes printed numbers from the thesis `.bbl` and refuses to run when that
 file disagrees with the source's cite keys, so a stale numbering cannot reach the page.
-Everything in `source_audit.tex` is derived and a hand edit to it is lost on the next run, apart
+Everything in `source_audit.tex` and `source_audit_v3.tex` is derived and a hand edit to either is lost on the next run, apart
 from the review tick described above.
 
 For thesis-grade performance numbers, provision a clean testbed and run the full measurement
