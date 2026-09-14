@@ -1903,7 +1903,7 @@ submit and never shared. Latency is measured across the whole path.\label{fig:re
   \begin{scope}[on background layer]
     \node[draw, dashed, rounded corners, fill=blue!3, fit=(p1)(p2)(p3), inner sep=6pt] (pg) {};
   \end{scope}
-  \node[font=\scriptsize] at (0,-2.15) {load generators};
+  \node[font=\scriptsize, anchor=north] at ([xshift=-0.32cm,yshift=-3pt]pg.south) {load generators};
 
   % two representative shard lanes; spacing leaves room for the inline edge labels
   \node[queue] (q1) at (5.2,1.3)   {MPSC queue};
@@ -1931,7 +1931,7 @@ submit and never shared. Latency is measured across the whole path.\label{fig:re
 
   % one-shot completion: clean orthogonal return path below everything
   \draw[->, dashed, rounded corners=4pt]
-      (wn.south) -- ++(0,-0.75) -- (1.4,-2.9) -- ($(pg.south east)+(-0.4,0)$);
+      (wn.south) -- ++(0,-0.75) -- (2.5,-2.9) -| (pg.south east);
   \node[font=\scriptsize] at (5.9,-3.05) {one-shot completion (result $\rightarrow$ waiting producer)};
 \end{tikzpicture}
 \caption[Shared-nothing, thread-per-shard architecture]{Shared-nothing, thread-per-shard architecture. Producers submit request messages to a
