@@ -1,6 +1,6 @@
 # Chapter readability: `Thesis_v3.tex`
 
-Generated 2026-09-13 by `.chapter_readability.py`. Same counters as `.readability.py`.
+Generated 2026-09-14 by `.chapter_readability.py`. Same counters as `.readability.py`.
 Floats, tables, and lists are dropped. Syllables are vowel groups, so a few
 technical words are over-counted.
 
@@ -12,21 +12,21 @@ python3 .chapter_readability.py Thesis_v3.tex -o docs/CHAPTER_READABILITY.md
 
 ## Whole document
 
-- Sentences: 709
-- Words: 9095
-- **Flesch Reading Ease: 71.4** (fairly easy)
-- Flesch-Kincaid grade: 6.5
-- Gunning Fog: 9.0
-- Mean sentence length: 12.8 words (stdev 6.3)
-- Mean syllables per word: 1.448
-- Short sentences (<15 words): 68.4%
-- 3+ syllable words: 9.7%
+- Sentences: 766
+- Words: 9234
+- **Flesch Reading Ease: 78.1** (fairly easy)
+- Flesch-Kincaid grade: 5.4
+- Gunning Fog: 7.6
+- Mean sentence length: 12.0 words (stdev 5.1)
+- Mean syllables per word: 1.378
+- Short sentences (<15 words): 72.7%
+- 3+ syllable words: 6.9%
 
 ## Per chapter
 
 | # | Chapter | Flesch | Band | FK | Fog | Sent. | Words | ASL | ASW | Short | 3+ syl |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 1 | Introduction | 42.9 | difficult | 11.6 | 15.3 | 96 | 1694 | 17.5 | 1.728 | 45.8% | 20.8% |
+| 1 | Introduction | 80.2 | easy (80+) | 5.0 | 7.2 | 153 | 1833 | 11.9 | 1.354 | 75.8% | 6.2% |
 | 2 | Background: Systems Languages for Latency-Critical Software | 72.3 | fairly easy | 5.8 | 8.7 | 98 | 1047 | 10.6 | 1.462 | 79.6% | 11.2% |
 | 3 | Research Methodology | 69.0 | standard | 6.5 | 9.0 | 123 | 1437 | 11.7 | 1.489 | 78.9% | 10.7% |
 | 4 | Design and Implementation | 71.8 | fairly easy | 5.6 | 7.6 | 55 | 530 | 9.6 | 1.481 | 89.1% | 9.4% |
@@ -83,16 +83,16 @@ of points apart, because the syllable term dominates:
 
 | | ASL | ASW | Sentence term `1.015 * ASL` | Syllable term `84.6 * ASW` | Flesch |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Introduction | 17.5 | 1.728 | 17.7 | 146.2 | 42.9 |
+| Introduction | 11.9 | 1.354 | 12.1 | 114.6 | 80.2 |
 | Conclusion | 13.4 | 1.337 | 13.6 | 113.1 | 80.2 |
 
 Plug the introduction in:
 
 ```
-206.835 - 17.7 - 146.2 = 42.9
+206.835 - 12.1 - 114.6 = 80.2
 ```
 
-The syllable term alone is 146 in the introduction and 113 in
+The syllable term alone is 115 in the introduction and 113 in
 the conclusion. That gap is almost the whole difference. The Flesch
 column uses the unrounded means, so a calculator that starts from the
 one-decimal ASL in the table can be off by 0.1.
