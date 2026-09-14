@@ -100,7 +100,7 @@ Reported as `jitter_ns: {p50, p99, p999, max, mean, stdev, n}`.
 peak RSS rises by roughly `producers × 264 KiB` — the same order as the language
 RSS difference RQ3 reports. Both languages allocate exactly the same amount and
 only when the flag is given, so the *comparison* is unaffected and the flag is
-uniform across a campaign's four arms. Absolute peak RSS is therefore not
+uniform across a campaign's four variants. Absolute peak RSS is therefore not
 comparable between campaigns run with and without it; `campaign.sh --no-jitter`
 reproduces the older footprint when a campaign's purpose is absolute RSS.
 
@@ -304,7 +304,7 @@ the visit rather than debugged during it.
 
 ```bash
 bench/alloc_profile.sh --check    # tool availability
-bench/alloc_profile.sh            # matched profile of both jemalloc arms
+bench/alloc_profile.sh            # matched profile of both jemalloc variants
 bench/alloc_profile.sh --raw-ok   # collect dumps even without jeprof
 python3 bench/parse_jeprof.py --self-test
 ```
@@ -315,7 +315,7 @@ accounts for ~40 kB at 5000 active UEs, three orders of magnitude short of the g
 so what is missing is *where the memory goes*.
 
 **One tool, both languages:** jemalloc's own `prof`, run against the two jemalloc
-arms that already exist, which needs the opt-in `jemalloc-prof` Cargo feature on the
+variants that already exist, which needs the opt-in `jemalloc-prof` Cargo feature on the
 Rust side. Profiling C++ with heaptrack and Rust with dhat would measure the two
 sides with different instruments, different sampling, and different notions of a
 call site, and the entire point is a comparison; this mirrors the choice already
@@ -323,7 +323,7 @@ made for the complexity proxies, where one tool measures both languages. If prof
 unavailable the script names the per-language fallbacks together with the caveat
 that they do not form a matched pair and must not be differenced.
 
-Prof support is detected **functionally** — run the arm's own binary with profiling
+Prof support is detected **functionally** — run the variant's own binary with profiling
 on and check a dump lands — rather than by matching jemalloc's diagnostics, since a
 build without `--enable-prof` says `Invalid conf pair` while a syntax error says
 `Malformed conf string`, and treating the absence of one wording as success is how a

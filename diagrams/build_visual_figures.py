@@ -196,7 +196,7 @@ def workloads():
 
 # --------------------------------------------------------------------------
 def four_arms():
-    d = Diagram("F06_four_arms", 880, 280, "Four arms, interleaved")
+    d = Diagram("F06_four_arms", 880, 280, "Four variants, interleaved")
     d.text(250, 88, "jemalloc", 13, FAINT, weight=700, anchor="middle")
     d.text(630, 88, "system (control)", 13, FAINT, weight=700, anchor="middle")
     d.text(40, 140, "C++", 16, BLUE_DEEP, weight=700, anchor="middle")
@@ -209,7 +209,7 @@ def four_arms():
            size=16, weight=700, rx=10, stroke=GREEN)
     d.chip(470, 188, 320, 48, "Rust  +  system", GREEN_CHIP, GREEN_DEEP,
            size=16, weight=700, rx=10, stroke=GREEN_EDGE)
-    d.text(440, 256, f"{M['NRepeats']} repeats, four arms back to back", 13,
+    d.text(440, 256, f"{M['NRepeats']} repeats, four variants back to back", 13,
            BODY, anchor="middle")
     return d
 
@@ -372,7 +372,7 @@ def ffi():
 # --------------------------------------------------------------------------
 def interleave():
     d = Diagram("F12_interleave", 880, 220,
-                f"One repeat, {M['NVariants']} arms back to back")
+                f"One repeat, {M['NVariants']} variants back to back")
     colors = [
         (BLUE_FILL, BLUE, "C++ je"),
         (BLUE_CHIP, BLUE_EDGE, "C++ sys"),
@@ -487,7 +487,7 @@ PAGES = [
     ("Shared-nothing shards", shards),
     ("One request", request_flow),
     ("Two workloads", workloads),
-    ("Four arms", four_arms),
+    ("Four variants", four_arms),
     ("Open loop", open_loop),
     ("Load regimes", load_map),
     ("What the clock times", budget),

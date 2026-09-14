@@ -88,10 +88,10 @@ quantitative result and it survived a change of host, kernel, core count and com
 patch level.
 
 **The allocator effect did not reproduce in magnitude and that is unexplained.** The
-reported campaign separates the jemalloc arms from the system arms by about 33 MiB, and
-here the same two arms sit 2 MiB apart. It is not a configuration slip: the environment
+reported campaign separates the jemalloc variants from the system variants by about 33 MiB, and
+here the same two variants sit 2 MiB apart. It is not a configuration slip: the environment
 capture shows `MALLOC_CONF` and `_RJEM_MALLOC_CONF` both pinned to
-`thp:never,narenas:16`, the C++ arm links `/lib64/libjemalloc.so.2` and the Rust arm
+`thp:never,narenas:16`, the C++ variant links `/lib64/libjemalloc.so.2` and the Rust variant
 builds its own, exactly as on the measurement host. The leading suspect is the host
 hugepage policy, `always` on the KVM guest against `madvise` here, since jemalloc's own
 `thp:never` governs its advice and not what the kernel does with a mapping it was never
@@ -102,9 +102,9 @@ is a host property then §7.5.4 is describing the guest and not the allocator.
 ## What this run says about the host, which is the point of the protocol
 
 The below-saturation numbers are not usable and the harness shows why rather than hiding
-it. At 28 kops/s offered the reported campaign puts all four arms at about 90 µs median
+it. At 28 kops/s offered the reported campaign puts all four variants at about 90 µs median
 with 63 to 65% CPU. The same point here gives medians of 200, 467, 1123 and 212 µs across
-the four arms, with 235 to 335% CPU. A spread of five times between arms that the
+the four variants, with 235 to 335% CPU. A spread of five times between variants that the
 measurement host separates by a percent, at three to five times the CPU for identical
 work, is a host artefact and nothing else. Read `tab_latency.tex` in
 `docker/validation/` as a demonstration of what the protocol excludes, not as a result.

@@ -161,7 +161,7 @@ Each component directory (`spec/conformance/`, `cpp/`, `rust/`, `bench/`, `fault
 | ---- | -------- |
 | C++23 compiler (g++ 13+ / clang 17+, `std::expected` is required), CMake 3.20+, Ninja | [`cpp/`](cpp/) |
 | Rust stable, edition 2021 (developed on 1.97), `cargo` | [`rust/`](rust/) |
-| jemalloc (`libjemalloc`) | the jemalloc arms of the benchmark (`-DUECM_USE_JEMALLOC=ON`, `cargo --features jemalloc`) |
+| jemalloc (`libjemalloc`) | the jemalloc variants of the benchmark (`-DUECM_USE_JEMALLOC=ON`, `cargo --features jemalloc`) |
 | `latexmk`, TeX Live, bundled `HYthesisML.cls` | `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v3.tex`, `Thesis_Plan_v2.tex`, `source_audit.tex`, `source_audit_v3.tex` |
 | Python 3 + `matplotlib` | [`bench/`](bench/) plotting (`pip install -r bench/requirements.txt`) |
 | AddressSanitizer / ThreadSanitizer / UBSan (`g++`) | [`faults/`](faults/), `cpp/sanitise.sh` |

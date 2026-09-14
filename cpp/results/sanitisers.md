@@ -22,5 +22,5 @@ reported anywhere in the C++ implementation across the parity suite.
 This is a negative result and is worth exactly what a negative result is
 worth: sanitisers observe the executions that happen, so this covers the
 paths the suite drives and says nothing about paths it does not. It is not
-the compile-time guarantee the Rust arm has, and the distinction is the
+the compile-time guarantee the Rust variant has, and the distinction is the
 point -- the coverage-bounded version of the same property.

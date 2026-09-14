@@ -72,7 +72,7 @@ Options:
 ```
 
 `sanitise.sh` is evidence rather than hygiene. Safe Rust carries data-race and
-memory-safety freedom by construction, so unless the C++ arm is checked for them
+memory-safety freedom by construction, so unless the C++ variant is checked for them
 too, "the two implementations behave identically" rests on the C++ side merely not
 having failed yet. `faults/` shows the tools catch these defects when injected
 deliberately; this shows they find nothing in the real implementation. Current

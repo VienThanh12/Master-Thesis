@@ -118,7 +118,7 @@ Three datasets now have distinct jobs and the prefixes keep them apart:
 
 **Repair first, then process.** Items **O** to **S** still hold the *draft's* areas 4 and 6 at 4.5
 until a reader re-grades. The current source already carries the disclosure. That does not move
-the standing grade. A new campaign, a new probe arm, or a new optional citation can reopen the
+the standing grade. A new campaign, a new probe variant, or a new optional citation can reopen the
 sync failure that cost a grade point twice in two days (macros regenerate, sentences around them
 are not re-read). Put a finding on this list only if you have already decided to spend that sync
 pass.
@@ -131,7 +131,7 @@ rebuilt by `refresh_thesis.sh` (**M**, **J**). The colloquium is a date, not a b
 Your proofread is the only remaining risk no agent can take (**D**).
 
 **Scoped separately, in *Going deeper* below.** The attribution probes, the dispatch and
-request-size probe, the clang++ arm, the second workload and the independent implementation review
+request-size probe, the clang++ variant, the second workload and the independent implementation review
 are ranked there against what each buys and what each costs. None of them holds a grade, and one
 of them is the deepest work left in the project.
 
@@ -193,7 +193,7 @@ the far tail belongs in 250 words is your call (open-work item **K**).
 
 E is worth an hour because it is the only question this study raised and did not answer: transparent
 hugepages differed between the hosts (`always` on the guest, `madvise` on both bare-metal ones) and
-only the system-allocator arm inherits the policy, which makes it the named candidate for the
+only the system-allocator variant inherits the policy, which makes it the named candidate for the
 allocator effect collapsing from 32.5–34.3 MiB to 1.5–2.4 MiB. **The thesis correctly claims no
 causation without it**, so this would convert a named candidate into a finding rather than repair a
 defect. Chapter 8 already lists it as the immediate priority.
@@ -224,13 +224,13 @@ its own paragraph.
 > the numbers **in the thesis's favour**: the between-variant range went from 52 to 87 µs.
 
 **The overload divergence reproduces on a third machine**, 1.7× against the guest's 1.8× and the
-26 August 1.64×, always with the same arm ahead.
+26 August 1.64×, always with the same variant ahead.
 
 **RQ3's headline ordering reversed, and this is the finding to remember.** The peak-RSS *language*
 effect is stable on all three hosts at 1.4–3.5 MiB. The *allocator* effect measured 32.5–34.3 MiB on
 the guest and 1.5–2.4 MiB on both bare-metal hosts, so the two are comparable on adequate hardware
 and the guest is the outlier of three. Transparent hugepages were `always` on the guest and
-`madvise` on both bare-metal hosts, and only the system-allocator arm inherits that policy, so it is
+`madvise` on both bare-metal hosts, and only the system-allocator variant inherits that policy, so it is
 the named candidate. **The study never varied it with everything else fixed, so the thesis does not
 claim causation.** `AGENT.md` non-negotiable #5 is rewritten accordingly. Chapter 8 now names that
 experiment as the immediate priority.
@@ -408,14 +408,14 @@ it conceded. At Nokia both experts are in the building.
 
 ### D3. Does the ordering travel
 
-Three arms, cheapest first. Each carries the same sync cost as D1.
+Three variants, cheapest first. Each carries the same sync cost as D1.
 
 - **A second workload.** `signal` exists in both benches and has never been run as a campaign, so it
   costs one flag. It preloads and then hammers `handle_signaling`, against the mixed lifecycle the
   sweep uses, so it drives a different operation mix through the same handoff.
 - **A queue-capacity sweep.** `tab:params` pins it at 1024. It is the knob that interacts directly
   with the overload hypothesis, because a bounded blocking queue is what makes overload observable.
-- **A clang++ and libc++ arm.** `tab:threats` has no row separating the language from its toolchain.
+- **A clang++ and libc++ variant.** `tab:threats` has no row separating the language from its toolchain.
   Part of this arrived by accident and is worth claiming: the campaigns spanned g++ 13.3 to 15.1 and
   rustc 1.97 to 1.98, and every finding survived.
 
@@ -532,7 +532,7 @@ latexmk -C                   # clean build artifacts
 - [x] Miri UB/data-race pass (`rust/miri.sh`, nightly + `miri` component). Clean: 14 tests,
       zero undefined-behaviour reports, Stacked Borrows with strict provenance. Confirms rather
       than discovers, since the core has no `unsafe`; its value is symmetry with `cpp/sanitise.sh`
-      so neither arm is the one without dynamic-analysis evidence attached.
+      so neither variant is the one without dynamic-analysis evidence attached.
 - [x] Run against shared parity-test contract (spec §11): `conformance_runner` passes all 7 vectors; transcript matches C++ byte-for-byte
 
 ## Phase 5 - Parity verification
@@ -572,7 +572,7 @@ latexmk -C                   # clean build artifacts
       is not a resting state. C++ is now 6 test binaries, Rust 25 tests.
 - [x] **Dynamic analysis of the parity suite.** `cpp/sanitise.sh` runs every test binary and every
       vector under ASan+UBSan, TSan and UBSan: all clean. This matters for fairness — safe Rust
-      carries the property by construction, so without it the C++ arm's equivalent rests on not
+      carries the property by construction, so without it the C++ variant's equivalent rests on not
       having failed yet. `rust/miri.sh` is the Rust counterpart.
 - [x] **Coverage measured, because a sanitiser only reports on code that runs.** 94.6% of C++
       library lines (`cpp/coverage.sh`, gcov) and 98.2% of Rust library lines (`rust/coverage.sh`,
@@ -614,7 +614,7 @@ latexmk -C                   # clean build artifacts
       bucket-aligned `max` on both sides (the crate returns `highest_equivalent`, the C++ port
       returned the exact sample), and `stdev` computed by the crate's own convention.
       Note `--jitter` costs ~264 KiB per producer of peak RSS, equally in both languages and
-      uniform across a campaign's arms, so within-campaign RQ3 comparisons are unaffected but
+      uniform across a campaign's variants, so within-campaign RQ3 comparisons are unaffected but
       absolute RSS is not comparable against a campaign run without it (`--no-jitter`).
 - [x] Decompose the end-to-end latency into the operation's own work and the cross-thread
       handoff, in both languages, at the sweep's shard count and population
@@ -646,19 +646,19 @@ latexmk -C                   # clean build artifacts
       §`sec:baremetal`. Watch out when editing that table row: `tab:threats` is the densest table in
       the thesis and sits within a few points of its page, so a longer cell overflows it.
 - [~] Allocation profile per variant: **`bench/alloc_profile.sh` written** (Aug 2026), to be *run*
-      on the testbed visit. Uses jemalloc's own `prof` on **both** jemalloc arms rather than
+      on the testbed visit. Uses jemalloc's own `prof` on **both** jemalloc variants rather than
       heaptrack for C++ and dhat for Rust, so the two sides are measured by one instrument with
       one notion of a call site (the same choice already made for the complexity proxies, where
       `lizard` measures both languages); a mismatched pair could not be differenced, which is the
       whole question. Needs the new opt-in `jemalloc-prof` Cargo feature. Prof support is detected
       functionally, by checking a dump actually lands, since a build without `--enable-prof` says
       `Invalid conf pair` while a syntax error says `Malformed conf string` and matching on
-      wording is how a false positive survives to the testbed. Verified on this host: both arms
+      wording is how a false positive survives to the testbed. Verified on this host: both variants
       dump, only `jeprof` is missing, and `--raw-ok` collects dumps plus their binaries for later
       symbolisation so a one-off visit is never wasted. Parsing is in `bench/parse_jeprof.py` with
       `--self-test`.
 - [x] **Collected 26 Aug 2026.** `bench/results-baremetal/alloc_profile-20260826-110718/` holds
-      40 interval heap dumps per arm, both stderr transcripts, the C++ allocation trajectory as a
+      40 interval heap dumps per variant, both stderr transcripts, the C++ allocation trajectory as a
       TSV, and the Rust binary kept for later symbolisation. The instrument the thesis has said it
       lacked since the first grading pass now exists as data.
 - [x] **ANALYSED 26 Aug 2026 night, negative result, written into §`sec:hostcompare`.** The
@@ -674,14 +674,14 @@ latexmk -C                   # clean build artifacts
 - [x] **The profile would have come back empty, and that is now fixed** (20 Aug 2026, found by
       running it in the container rather than on the testbed). Three defects, all in the
       instrument and none of them visible without running it end to end: the distribution
-      jemalloc the Rocky host links is built *without* `--enable-prof`, so the C++ arm had
-      nothing to profile with and the script correctly refuses to profile one arm alone;
+      jemalloc the Rocky host links is built *without* `--enable-prof`, so the C++ variant had
+      nothing to profile with and the script correctly refuses to profile one variant alone;
       backtraces at `-O2` stopped inside the allocator, so not one application site appeared;
       and `prof_final` dumps the live heap *at exit*, after teardown, which measured 92 kB
       (C++) and 640 bytes (Rust) against 2.3 MB live mid-run. Fixed by a dedicated profiling
       build tree with frame pointers, a prof-enabled jemalloc built from the same source the
-      Rust arm links (`docker/Dockerfile`), and interval dumps with peak selection. Verified:
-      both arms now attribute, C++ 61% cumulative to `ShardCore::create_context` under
+      Rust variant links (`docker/Dockerfile`), and interval dumps with peak selection. Verified:
+      both variants now attribute, C++ 61% cumulative to `ShardCore::create_context` under
       `worker_loop`, Rust 65% under `Service::start` with 8% in the `sync_channel<Request>`
       slot array. Recorded in spec §12. **`jeprof` no longer needs installing on the host:**
       the image carries it.
@@ -689,8 +689,8 @@ latexmk -C                   # clean build artifacts
       sampled stack, so the *flat* column collapses onto `prof_backtrace_impl` and the
       cumulative column carries the attribution (totals are unaffected). Building the
       profiling jemalloc with `--enable-prof-libunwind` would put application sites back in
-      the flat column for the C++ arm, but `tikv-jemalloc-sys` exposes no hook to do the same
-      for Rust, so it would make the two arms use different unwinders. That cuts against the
+      the flat column for the C++ variant, but `tikv-jemalloc-sys` exposes no hook to do the same
+      for Rust, so it would make the two variants use different unwinders. That cuts against the
       one-instrument principle the matched profile rests on, which is why it is not done.
 ### 7b. Fault-injection study (RQ2 safety)
 - [x] Inject C++ defect catalogue (use-after-free, double-free, iterator invalidation,
@@ -900,8 +900,8 @@ Section numbers below use the full draft's current eight-chapter numbering, not 
       is true and incomplete. Three sites state the finding as a bare "order of magnitude" with no
       host attached: §1.4, `tab:findings`'s RQ3 row, and the conclusion. **Attach a host to that
       phrase.** The non-negotiable claim is untouched: both effects are real and the allocator's is
-      still larger. Note the confound worth naming while writing it: the C++ arm links the
-      distribution jemalloc, which is 5.2.x on Rocky and 5.3.x on Ubuntu, and the Rust arm builds
+      still larger. Note the confound worth naming while writing it: the C++ variant links the
+      distribution jemalloc, which is 5.2.x on Rocky and 5.3.x on Ubuntu, and the Rust variant builds
       5.3.1 from source on both.
       **Overturned 27 Aug 2026 by the canonical repeat.** The two effects are comparable on both
       bare-metal hosts (language 1.4--3.5 MiB, allocator 1.5--2.4 MiB). The guest's
@@ -973,7 +973,7 @@ landed and are marked DONE in their sections.
 > Items 5, 5b and 7 are done. Item 3's jemalloc accounting is in `tab:resident`. Item 4's
 > Loom/Shuttle half is done. Item 8's equivalence table is placed. Still open as optional
 > enrichment: item 1's paired re-run of the three probes on the measurement host, item 6's
-> clang++ arm, item 9's knob sweep, item 11's DOI archive, and the hugepage experiment in *Do now*.
+> clang++ variant, item 9's knob sweep, item 11's DOI archive, and the hugepage experiment in *Do now*.
 > The 14 Aug note below is kept as the record of what had started that day.
 
 ### 1. Decompose "language" into language and standard library
@@ -993,7 +993,7 @@ standard-library data structures, and neither attribution is measured:
 Counters would be *observational* evidence for both. Swapping the structure is a *controlled*
 experiment, it is strictly stronger, and it does not need a PMU.
 
-**What to build.** Two probe arms, each behind a build flag, each required to stay
+**What to build.** Two probe variants, each behind a build flag, each required to stay
 conformance-clean:
 
 - C++ `-DUECM_FLAT_MAP=ON`: an open-addressed intra-shard map using the same pinned FNV-1a hash.
@@ -1003,7 +1003,7 @@ conformance-clean:
   replacing `sync_channel` in `Service`. Re-run the overload point only (not the whole sweep).
   If the $\OverloadThrRatio\times$ divergence collapses, the mechanism is localised.
 
-**What must not happen.** These are *additional* arms, not a replacement for the measured pair.
+**What must not happen.** These are *additional* variants, not a replacement for the measured pair.
 The fairness argument is explicitly "each language as a developer actually finds it", and the
 reported comparison has to keep the standard containers on both sides. The probe answers a
 different question: how much of the measured difference is the language and how much is the
@@ -1026,7 +1026,7 @@ to "localised", closing the residual `tab:threats` names as its most exposed.
       reasoning are recorded in `spec/SPECIFICATION.md` §12 under "Attribution probes".
 - [x] **Third probe added: C++ preallocated ring queue** (`-DUECM_RING_QUEUE=ON`,
       `cpp/include/uecm/ring_queue.hpp`), because the Rust queue probe could not
-      support the conclusion drawn from it. It matched the C++ arm's synchronisation but
+      support the conclusion drawn from it. It matched the C++ variant's synchronisation but
       not its buffer: `std::queue` is deque-backed and allocates a node every third push
       (verified at 1008 allocations per 3000 pushes, zero for the ring), while a
       `VecDeque` allocates nothing after warm-up. The contended-primitive microbenchmark
@@ -1055,7 +1055,7 @@ to "localised", closing the residual `tab:threats` names as its most exposed.
       section and the `tab:threats` row for its attribution can now name the queue as
       ruled out rather than as a candidate, which narrows the residual to dispatch and
       request size.
-- [ ] **Consider a third arm for the map**, a production flat map
+- [ ] **Consider a third variant for the map**, a production flat map
       (`boost::unordered_flat_map` or `absl::flat_hash_map`), since the probe uses plain
       linear probing where `hashbrown` probes sixteen slots at a time with SIMD. That
       bounds how much of the remaining gap is container quality rather than language.
@@ -1096,7 +1096,7 @@ attached, against ~17 observations per run today.
 
 **Watch.** `--jitter` costs ~264 KiB per producer of peak RSS. Absolute RSS from this campaign is
 therefore not comparable against the Aug 12 numbers, so either re-run RQ3 from the same campaign
-or keep the arms consistent. `NTests` must still read 14; jitter stays descriptive, out of the
+or keep the variants consistent. `NTests` must still read 14; jitter stays descriptive, out of the
 Holm family, for the reason §5.5 already gives.
 
 - [x] **The harness for this is proven end to end** (20 Aug 2026, `docker/VALIDATION.md`): a
@@ -1143,13 +1143,13 @@ the whole measured allocator effect ($\RssAllocDiffLo$-$\RssAllocDiffHi$ MiB). I
 turn out to be runs where fewer arenas were ever touched, `stats.metadata` will show it directly,
 and a named cause is worth more than the current "instrumentation work" placeholder.
 
-**Note.** Only the two jemalloc arms can report this. The system-allocator arms emit nulls, never
+**Note.** Only the two jemalloc variants can report this. The system-allocator variants emit nulls, never
 zeros - the same convention `counters.sh` already uses.
 
 - [x] **Instrumented in both languages and verified.** `cpp/bench/jestats.hpp` (weak
       `mallctl`, no dev header needed) and `je_stats()` in `rust/examples/bench.rs`
       (`tikv-jemalloc-ctl` with its `stats` feature). Both emit a `je` object in the run
-      JSON and a line in the human-readable output; both system-allocator arms emit
+      JSON and a line in the human-readable output; both system-allocator variants emit
       nulls. Recorded in spec §12.
 - [x] **First reading, and it answers the question.** Under the campaign's own allocator
       configuration (`thp:never,narenas:16`) at 7 shards and 5000 active UEs: C++ holds
@@ -1161,9 +1161,9 @@ zeros - the same convention `counters.sh` already uses.
       testbed.
 - [x] **DONE 26 Aug 2026, night.** Read, aggregated and written into §`sec:baremetal` as
       `tab:resident`, from `je_facts()` in `bench/baremetal_facts.py`. The twelfth grading pass found it: `je` is a top-level field in all 960
-      bare-metal records, 480 of which carry values (the system arms emit nulls, correctly), and
+      bare-metal records, 480 of which carry values (the system variants emit nulls, correctly), and
       **nothing reads it**. Meanwhile §7.2 declares the split it measures unresolved and pins it on
-      an allocation profile. Medians over the 90 runs per arm at steady state, jemalloc arms, MiB:
+      an allocation profile. Medians over the 90 runs per variant at steady state, jemalloc variants, MiB:
 
       | Field | C++ | Rust | Rust − C++ |
       | --- | --- | --- | --- |
@@ -1183,7 +1183,7 @@ zeros - the same convention `counters.sh` already uses.
       peak RSS is a `getrusage` maximum while the `je` figures are sampled at a point, so the two are
       not strictly commensurable and the write-up has to say so.
 - [x] **First of the two follow-ups answered, in the negative, which is the useful outcome.** The
-      30 MiB bimodality does not appear on bare metal at all: no arm's peak RSS spans more than
+      30 MiB bimodality does not appear on bare metal at all: no variant's peak RSS spans more than
       1.7 MiB across its repeats, so the defect belonged to the host and not to the allocator. That
       is now the third reading in §`sec:baremetal` and it retrospectively supports the §`sec:stats`
       reading rule, which assumed exactly this without being able to show it. The guest campaign
@@ -1191,8 +1191,8 @@ zeros - the same convention `counters.sh` already uses.
 - [ ] **Second follow-up still open.** Whether `metadata` explains the allocator effect falling from
       ~33 MiB on the guest to ~2.5 MiB on bare metal. Only the bare-metal side can be measured, so
       this is a partial answer at best, and the two hosts link different jemalloc builds.
-- [ ] **Name the confound when writing it up.** The C++ arm links the distribution's
-      jemalloc while the Rust arm builds 5.3.1 from source, so part of a metadata
+- [ ] **Name the confound when writing it up.** The C++ variant links the distribution's
+      jemalloc while the Rust variant builds 5.3.1 from source, so part of a metadata
       difference is two builds of the allocator, not two programs. Pinning `narenas`
       removes the larger part but not the version difference.
 - [x] **Aggregated, and it became a subsection of its own rather than a column.** `tab:resource` is
@@ -1391,11 +1391,11 @@ were borrow-checker diagnostics while the prose claimed two mechanisms.
       `DEADLOCK_REPEATS` to 60 would estimate a rate; it is not required. Never quote the rate
       from memory.
 
-### 6. One robustness arm against the compiler, not just the language
+### 6. One robustness variant against the compiler, not just the language
 
 `tab:threats` has no row separating the language from its toolchain. Every performance number is
 g++ / libstdc++ against rustc, so "C++ is slower on the core operation" is, strictly, a
-statement about one implementation of each. A single clang++ / libc++ arm at the representative
+statement about one implementation of each. A single clang++ / libc++ variant at the representative
 load and the overload point would bound that confound. Same for `-O3` / `opt-level = 3` and LTO,
 which test whether the matched `-O2` choice is load-bearing. Cheap, and it either adds a
 robustness sentence or finds something.
@@ -1407,8 +1407,8 @@ robustness sentence or finds something.
 > thesis. It is also a fifth difference between the two campaigns that §`sec:baremetal` does not
 > name while claiming the campaign "changes one thing that matters, the machine", and
 > `tab:testbed`'s caption says the confirmation host met a protocol column that asks for the same
-> toolchain. **Either name it as a robustness arm or stop claiming one variable moved.** The clang
-> arm would still be worth having, and it is now less urgent.
+> toolchain. **Either name it as a robustness variant or stop claiming one variable moved.** The clang
+> variant would still be worth having, and it is now less urgent.
 
 ### 7. The RQ4 cost axes that were never measured — DONE (21 Aug 2026)
 
@@ -1440,7 +1440,7 @@ Table 8.1's RQ4 row, §8.4's RQ4 paragraph, §5.4's method description, and the 
       (`\FootSharedCpp` vs `\FootSharedRust` KiB) so the row cannot be read as the std being free.
 - [x] **Dependency and `unsafe` supply chain.** `\DepsCore` transitive crates and `\CoreUnsafe`
       `unsafe` sites in the compared component, which turns spec §12's dependency-free assertion
-      into a measurement. The allocator arm resolves `\DepsJemalloc` (`\DepsJemallocShipping`
+      into a measurement. The allocator variant resolves `\DepsJemalloc` (`\DepsJemallocShipping`
       shipping, `\DepsJemallocBuildOnly` build-only, a distinction that matters because a
       build-dependency ships nothing and still executes on the build machine) and the benchmark
       harness `\DepsHarness`, holding `\DepsUnsafeJemalloc` and `\DepsUnsafeHarness` `unsafe`

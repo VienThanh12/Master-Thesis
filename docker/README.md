@@ -50,11 +50,11 @@ on the image is one patch level newer than that guest record:
 | C++ | g++ (GCC) 15.1.1 | g++ (GCC) 15.2.1, `gcc-toolset-15` |
 | Rust | rustc 1.97.1 | rustc 1.97.1 |
 | cmake | 3.30.2 | 3.30.2 |
-| jemalloc (C++ arm) | 5.2.1, distribution build | 5.2.1-3.el8, same EPEL build |
+| jemalloc (C++ variant) | 5.2.1, distribution build | 5.2.1-3.el8, same EPEL build |
 
 The GCC patch level is the one difference, and it is recorded on both sides
 rather than smoothed over. The 27 August campaign's own capture records the
-image's 15.2.1, not the guest's 15.1.1. The Rust arm builds its own jemalloc 5.3.1 from source
+image's 15.2.1, not the guest's 15.1.1. The Rust variant builds its own jemalloc 5.3.1 from source
 through `tikv-jemallocator` in both cases, which is the version confound
 `docs/TODO.md` §3 already names.
 
@@ -156,11 +156,11 @@ without running it end to end. They are fixed, and recorded in `spec/SPECIFICATI
 §12 and `docs/TODO.md`.
 
 - The distribution jemalloc is built without `--enable-prof`, on this image and on
-  the measurement host. The C++ arm had nothing to profile with, and the script
-  refuses to profile one arm alone, correctly, since one language's heap cannot
+  the measurement host. The C++ variant had nothing to profile with, and the script
+  refuses to profile one variant alone, correctly, since one language's heap cannot
   attribute a difference between two. The image builds a prof-enabled jemalloc
-  from the same source the Rust arm links, and only the profiling build tree links
-  it, by absolute path. The campaign's own arm still links `/lib64/libjemalloc.so.2`.
+  from the same source the Rust variant links, and only the profiling build tree links
+  it, by absolute path. The campaign's own variant still links `/lib64/libjemalloc.so.2`.
 - Backtraces at `-O2` stopped inside the allocator, so not a single application
   site appeared. The profiling tree keeps frame pointers on both sides.
 - `prof_final` dumps the live heap at process *exit*, after the contexts and shard
@@ -168,7 +168,7 @@ without running it end to end. They are fixed, and recorded in `spec/SPECIFICATI
   2.3 MB live mid-run. The script now dumps on an allocation interval and keeps the
   dump with the highest live byte count, with the whole series beside it.
 
-With those in place both arms attribute: C++ 61% cumulative to
+With those in place both variants attribute: C++ 61% cumulative to
 `ShardCore::create_context` under `worker_loop`, Rust 65% under `Service::start`
 with 8% in the `sync_channel<Request>` slot array.
 

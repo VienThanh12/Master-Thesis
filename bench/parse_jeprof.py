@@ -87,7 +87,7 @@ def summarise(outdir, top=25):
     for lang in ("cpp", "rust"):
         prof_path = os.path.join(outdir, f"{lang}.jeprof.txt")
         if not os.path.exists(prof_path):
-            sys.exit(f"missing {prof_path}: both arms are needed to attribute a difference")
+            sys.exit(f"missing {prof_path}: both variants are needed to attribute a difference")
         sites, reported = parse_jeprof(open(prof_path).read())
         if not sites:
             sys.exit(f"{prof_path} contains no attributable sites; the profile is empty")

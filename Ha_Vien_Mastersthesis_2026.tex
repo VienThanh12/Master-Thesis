@@ -254,7 +254,7 @@ them. Seven further classes fail in both languages. On two of them C++ tooling r
 Rust does not. The seam to C++ leaves the core \texttt{unsafe}-free and costs at most
 $\FfiOpBoundPct\%$ of one operation. Performance changes at saturation. Below it the test resolves a few microseconds in Rust's favour, yet an end-to-end call spends only $\BudgetCoreShareMax\%$ on language
 work. Cross-thread handoff takes the rest, so the sweep reflects the design more than the
-language. Timed alone, Rust's operation is $\BudgetCoreRatio\times$ faster. The Rust arms still meet their offered rate to $\TrackingLoadRust$~kops/s, the C++ arms only to $\TrackingLoadCpp$~kops/s. After both have stopped tracking, \OverloadSustainedFaster{} holds
+language. Timed alone, Rust's operation is $\BudgetCoreRatio\times$ faster. The Rust variants still meet their offered rate to $\TrackingLoadRust$~kops/s, the C++ variants only to $\TrackingLoadCpp$~kops/s. After both have stopped tracking, \OverloadSustainedFaster{} holds
 $\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{} in \OverloadThrAgree{}
 interleaved repeats with both allocators. 
 
@@ -693,8 +693,8 @@ over \FarTailSamplesMin{} to \FarTailSamplesMax{} operations per variant, the tw
 values do not meet, and the widest gap between variants is $\FarTailRange\,\mu$s. A second
 bare-metal campaign at another shard count agrees on the direction
 (Section~\ref{sec:hostcompare}). Past saturation the ordering reverses, and where each
-implementation stops meeting its offered rate is itself a difference: the Rust arms track to
-$\TrackingLoadRust$~kops/s and the C++ arms to $\TrackingLoadCpp$. Deeper still, where all four have
+implementation stops meeting its offered rate is itself a difference: the Rust variants track to
+$\TrackingLoadRust$~kops/s and the C++ variants to $\TrackingLoadCpp$. Deeper still, where all four have
 collapsed, the C++ build sustains $\OverloadThrRatio\times$ the throughput of the Rust
 build in \OverloadThrAgree{} interleaved repeats under both allocators, and the Rust build spends
 $\OverloadCpuPerOpRatio\times$ the CPU on each operation it does complete, which is what rules out
@@ -2586,7 +2586,7 @@ unit its own magnitude calls for: the two terms differ by more than two orders o
 which is the point of the table. $p$ is the exact two-sided paired permutation test of C++
 against Rust on the repeat-wise differences. The handoff is obtained as the difference between
 the two measured rows, so it carries the uncertainty of both. It predates the move to bare metal and
-carries no environment record, so the absolute nanoseconds name no host. Both arms ran alternately in
+carries no environment record, so the absolute nanoseconds name no host. Both variants ran alternately in
 one session, which is what the share and the ratio rest on.\label{tab:budget}}
 \begin{tabular}{@{}l r r r@{}}
 \hline\hline
@@ -2699,7 +2699,7 @@ more informative of the two, because an average over a whole run is far less sen
 a percentile to interference landing on individual operations. All four variants track the ideal
 offered-equals-achieved line up to an offered $\TrackingLoad$~kops/s, and the lowest plateau any of
 them reaches is $\SatKnee$~kops/s. Each knee is bracketed by the rate ladder of offered-load
-levels and not pinned by it: the next rung is where an arm stops tracking, so its true
+levels and not pinned by it: the next rung is where a variant stops tracking, so its true
 saturation point lies between the two and
 the sweep steps over it. Achieved throughput matches offered load below the knee to within
 $\ReprLoadShortfall\%$, so the operating point of Table~\ref{tab:latency} is a genuinely
@@ -2707,8 +2707,8 @@ $\ReprLoadShortfall\%$, so the operating point of Table~\ref{tab:latency} is a g
 already-queueing system.
 
 The knee does \emph{not} sit at the same place for all four variants, and that is worth stating
-plainly because the identical thread-per-shard structure predicts that it should. The two C++ arms
-stop meeting their offered rate after $\TrackingLoadCpp$~kops/s and the two Rust arms carry one rung
+plainly because the identical thread-per-shard structure predicts that it should. The two C++ variants
+stop meeting their offered rate after $\TrackingLoadCpp$~kops/s and the two Rust variants carry one rung
 further, to $\TrackingLoadRust$. The separation is by language and not by allocator, as it is
 everywhere else in this regime. At the rung between the two limits, $\KneeGapLoad$~kops/s, the
 consequence is the largest throughput gap anywhere in the sweep: \KneeGapFaster{} still serves
@@ -2906,7 +2906,7 @@ the bounded queue and completion primitives alone, with \ContentionProducers{} c
 and queue capacity $1\,024$. Values are medians over \ContentionRepeats{} interleaved repeats above
 bootstrap $95\%$ confidence intervals. The paired test compares C++ against Rust on sustained
 throughput (kops/s). Like Table~\ref{tab:budget} it predates the move to bare metal and carries no
-environment record, so the comparison between the two alternately measured arms is what this section
+environment record, so the comparison between the two alternately measured variants is what this section
 uses.\label{tab:contention}}
 \begin{tabular}{@{}l r r r@{}}
 \hline\hline
@@ -3065,8 +3065,8 @@ the footprint was a property of that machine.
 The mechanism is not established, and the honest form of the finding is the comparison rather than
 an explanation of it. One host property is a candidate and is recorded in both captures: transparent
 hugepages were set to \GuestThp{} on the guest and \MainThp{} here, and the campaign pins
-\texttt{thp:never} for \texttt{jemalloc} while the system-allocator arm inherits whatever the kernel
-does, so the two arms were not treated alike by a policy neither of them chose. This study did not
+\texttt{thp:never} for \texttt{jemalloc} while the system-allocator variant inherits whatever the kernel
+does, so the two variants were not treated alike by a policy neither of them chose. This study did not
 vary that policy with everything else held fixed, so it cannot attribute the difference to it. What
 it can say is that a second bare-metal host at a different shard count measured
 $\BmRssAllocLo$--$\BmRssAllocHi$~MiB, which agrees with the figure here and not with the guest's,
@@ -3097,8 +3097,8 @@ Direction survived a change of shard count, load grid, repeat count and compiler
 RSS remains significant, with the two effects of the same size class as on the main campaign.
 The overload ratio is $\BmOverloadThrRatio$ against the $\OverloadThrRatio$ of
 Section~\ref{sec:overload}. Three hosts put that ratio between $\BmOverloadThrRatio$ and
-$\GuestOverloadThrRatio$, always with the same arm ahead. At \BmMetastableLoad{}~kops/s the
-Rust arms are bimodal across repeats and that load must not be quoted.
+$\GuestOverloadThrRatio$, always with the same variant ahead. At \BmMetastableLoad{}~kops/s the
+Rust variants are bimodal across repeats and that load must not be quoted.
 
 \paragraph{A mechanism, from hardware counters.}
 Section~\ref{sec:perfresults} attributes the operation-level difference to the forced idioms of
@@ -3115,7 +3115,7 @@ to miss cache more often, so the two are related in the opposite direction.
 Section~\ref{sec:resources} establishes that the peak-RSS difference is a fixed cost by
 elimination, since the measured struct layout accounts for orders of magnitude too little. Both
 benches also read \texttt{jemalloc}'s own accounting, and every one of the \BmJeRuns{} runs on the
-two \texttt{jemalloc} arms carries it, so the composition can be read instead of inferred.
+two \texttt{jemalloc} variants carries it, so the composition can be read instead of inferred.
 Table~\ref{tab:resident} in Appendix~\ref{appendix:config} gives it. Three readings, in the order
 they change the claim.
 
@@ -3138,16 +3138,16 @@ than an exact quantity.
 
 The third reading is a negative result about the guest. The measurement defect that cost peak RSS
 under \texttt{jemalloc} its place in the virtualised campaign's significance family, a handful of
-runs reporting a resident set $\GuestRssLowRunOffset$~MiB low, does not appear here: no arm's peak
+runs reporting a resident set $\GuestRssLowRunOffset$~MiB low, does not appear here: no variant's peak
 RSS spans more than $\BmRssSpreadMax$~MiB across its repeats. That bimodality belonged to the host.
 
 \paragraph{The allocation profile, and what it cannot attribute.}
 A matched pair of \texttt{jemalloc} heap profiles was taken to name the call sites behind the
 resident-set difference. They do not name them. Peak RSS in the profiled run is
 $\BmProfRssDelta$~MiB higher in the \BmProfRssHigher{} build, where the campaign's own
-\texttt{jemalloc} arms put \BmProfCampaignHigher{} higher. No effect can be attributed in a
-configuration that reverses its sign, and the arm under profile is not the arm the campaign
-measured. Two results survive. Both arms allocate $\BmProfHistCpp$~MiB for the latency
+\texttt{jemalloc} variants put \BmProfCampaignHigher{} higher. No effect can be attributed in a
+configuration that reverses its sign, and the variant under profile is not the variant the campaign
+measured. Two results survive. Both variants allocate $\BmProfHistCpp$~MiB for the latency
 histogram, equal to the byte. At the first dump of the series, the worker path holds
 $\BmProfWorkerRust$~MiB in the Rust build against $\BmProfWorkerCpp$~MiB in the C++ one, which
 is the container difference of Section~\ref{sec:budget} visible in allocation as well as in
@@ -3308,7 +3308,7 @@ already a panic, from the ordinary bounds check on the same indexing operation, 
 designed for it.
 
 What makes the case evidentially different is where it came from, not how severe it is. It sat in
-code written to be correct, in the arm whose safety claim rests on ThreadSanitizer, reachable
+code written to be correct, in the variant whose safety claim rests on ThreadSanitizer, reachable
 through the public API by calling documented operations in a documented order. It also survived
 every check this study runs: $\CppTestBinaries$ C++ test binaries, $\RustTests$ Rust tests,
 $\ConfHandOps$ hand-written and $\ConfGenOps$ generated conformance operations, and three
@@ -3424,7 +3424,7 @@ three rows are the direct comparison: one signalling operation on the same servi
 configuration and the same loop, invoked natively and then through the seam, so the
 difference isolates what the boundary adds rather than what the operation
 costs. Like the other paired experiments it predates the move to bare metal and carries no
-environment record, so the bound is a ratio between two alternately measured arms and not a claim
+environment record, so the bound is a ratio between two alternately measured variants and not a claim
 about a host.\label{tab:ffi}}
 \begin{tabular}{l r}
 \hline\hline
@@ -3601,7 +3601,7 @@ pooled p99.99 of the two \FarTailLower{} variants below both of the others by up
 $\FarTailRange\,\mu$s. The end-to-end number is
 only $\BudgetCoreShareMax\%$ operation, so it cannot bound a language effect in any case, while
 the operation measured apart is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster. Past
-saturation they diverge decisively, and in both directions: the Rust arms hold their offered rate
+saturation they diverge decisively, and in both directions: the Rust variants hold their offered rate
 one load level further, to $\TrackingLoadRust$~kops/s against $\TrackingLoadCpp$, while at
 $\OverloadLoad$~kops/s, where all four have collapsed,
 \OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$ the throughput of
@@ -3639,11 +3639,11 @@ ordering reverses with the linkage policy, and the compared component resolves $
 \section{Discussion on the research questions}\label{sec:rqdiscussion}
 \paragraph{RQ1 (predictability).} The two load-dependent effects point at opposite languages,
 and that is why a single verdict here would be false. A service sized to run below its knee
-should prefer the arm that holds its offered rate further, to $\TrackingLoadRust$~kops/s
+should prefer the variant that holds its offered rate further, to $\TrackingLoadRust$~kops/s
 against $\TrackingLoadCpp$. One that a signalling storm will drive past every knee should
-prefer the arm that still completes more work afterwards, by $\OverloadThrRatio$ at
+prefer the variant that still completes more work afterwards, by $\OverloadThrRatio$ at
 $\OverloadLoad$~kops/s, at the corrected floor of the whole test family, while the slower
-arm spends more CPU on each operation it does complete (Section~\ref{sec:overload}). Only
+variant spends more CPU on each operation it does complete (Section~\ref{sec:overload}). Only
 the second of those is tested. The first is descriptive, for the reason
 Section~\ref{sec:perfresults} gives. A comparison that stopped at nominal load, as most in
 this literature do, would have concluded the opposite with the same apparatus.
@@ -4389,7 +4389,7 @@ two, by $\BudgetCoreRatio\times$, for reasons that trace to the standard library
 layout and not to anything about safety. At the representative load the paired test
 resolves $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators, too small for a
 deployment to care about at the median, while at p99.99 the slowest Rust variant sits
-$\FarTailLangSep\,\mu$s below the fastest C++ one. The Rust arms then hold their offered
+$\FarTailLangSep\,\mu$s below the fastest C++ one. The Rust variants then hold their offered
 rate to $\TrackingLoadRust$~kops/s against $\TrackingLoadCpp$. Beyond that, the C++ build
 sustains $\OverloadThrRatio\times$ the throughput of the Rust build, in \OverloadThrAgree{}
 interleaved repeats under both allocators, while the Rust build spends
@@ -4415,7 +4415,7 @@ Several directions extend the work. The immediate priority needs no new machine:
 transparent-hugepage policy on one host with everything else held fixed. Three hosts agree that
 the Rust build carries the larger footprint and disagree about how that compares against the
 allocator cost (Section~\ref{sec:hostcompare}). The hugepage policy differed between those hosts
-and only the system-allocator arm inherits it. A single machine and two settings settle whether
+and only the system-allocator variant inherits it. A single machine and two settings settle whether
 a footprint claim of this kind belongs to an allocator or to a kernel setting. Beyond that, the
 framework can take captured anonymised traces in place of the synthetic workload, further
 control-plane subsystems or the data-heavy L2/PHY path, and a whole-program model checker
@@ -4589,7 +4589,7 @@ second bare-metal host. The fault catalogue was compiled and run on the developm
 whose toolchain its own caption records. Of the adoption-cost axes only build time is
 host-sensitive, which is why that one is reported as a paired ratio while the footprint and
 dependency figures are deterministic. The three small paired experiments predate the move to
-bare metal and carry no environment record, so each supports a ratio between two arms measured
+bare metal and carry no environment record, so each supports a ratio between two variants measured
 alternately in one session. Section~\ref{sec:evaldata} points here for the field-by-field
 record of what each campaign captured. Every column reports what was measured, and the protocol
 they are read against is published as \texttt{bench/TESTBED.md}. Table~\ref{tab:params} gathers
@@ -4639,7 +4639,7 @@ Kernel & \MainKernel{} & \GuestKernel{} & \BmKernel{} \\
 Hypervisor & \MainVirt{}. Governor \MainGovernor{}, boost off, verified on the machine & \GuestVirt{}. Frequency and turbo host-controlled, unobservable from inside & \BmVirt{}. Governor \BmGovernor{}, verified on the machine \\
 CPU steal & None: no hypervisor to lose a timeslice to & Not characterised. The capture's single one-second sample read \GuestSteal{}, and no steal probe was run on this host & \BmStealWithSteal{} of \BmStealIntervals{} intervals on \BmStealCores{} pinned cores \\
 Isolation & \texttt{nohz\_full} \MainNohzFull{}. \texttt{isolcpus} \MainIsolcpus{}, omitted on purpose (\S\ref{sec:threats}) & \texttt{isolcpus} \GuestIsolcpus{}, \texttt{nohz\_full} \GuestNohzFull{} & \texttt{isolcpus} \BmIsolcpus{}, \texttt{nohz\_full} \BmNohzFull{}. \emph{Short of protocol} \\
-Hugepages & \MainThp{} & \GuestThp{}, and only the system-allocator arm inherits it & \BmThp{} \\
+Hugepages & \MainThp{} & \GuestThp{}, and only the system-allocator variant inherits it & \BmThp{} \\
 Toolchain & \texttt{g++~\MainGpp}, \texttt{rustc~\MainRustc}, pinned in a container image & \texttt{g++~\GuestGpp}, \texttt{rustc~\GuestRustc} & \texttt{g++~\BmGpp}, \texttt{rustc~\BmRustc}, so a compiler change is tested too \\
 Pinning & Cores \MainPinned{}, $7$ shards, $7$ producers & Cores $2$--$15$, \GuestShards{} shards, \GuestProducers{} producers & Cores \BmPinned{}, \BmShards{} shards, \BmProducers{} producers \\
 SMT & \MainSmt{}, verified & Absent from the topology the guest is shown, and decided on the host & \BmSmt{}, verified \\
@@ -4683,7 +4683,7 @@ Workloads & signal, mixed & mixed walks the full RAN lifecycle \\
 Active UEs & \SweepUes{} & \\
 Offered-load levels & \NLoadLevels{} & up to $\MaxOfferedLoad$~kops/s \\
 Representative load & $\ReprLoad$~kops/s & fixed, see caption \\
-Measured throughput plateau & $\SatKnee$~kops/s achieved & the lowest of the four, reached at an offered $\TrackingLoad$~kops/s. The Rust arms track one load level further, to $\TrackingLoadRust$ \\
+Measured throughput plateau & $\SatKnee$~kops/s achieved & the lowest of the four, reached at an offered $\TrackingLoad$~kops/s. The Rust variants track one load level further, to $\TrackingLoadRust$ \\
 Load model & open loop, fixed intended schedule & latency measured from intended send time \\
 \hline
 \multicolumn{3}{@{}l}{\emph{Campaign}} \\
@@ -4707,8 +4707,8 @@ distribution from the HDR histogram (mean, standard deviation, the quartiles, p5
 p99.9, p99.99 and the maximum, in nanoseconds), a shorter block for inter-operation delay
 variation (mean, standard deviation, p50, p99, p99.9, the maximum and a sample count), the
 resource counters from \texttt{getrusage} (peak resident set size, user and system CPU seconds,
-CPU utilisation), and the per-operation-kind counts. A \texttt{jemalloc} arm adds that
-allocator's own accounting. A system-allocator arm stores those fields as unavailable rather than
+CPU utilisation), and the per-operation-kind counts. A \texttt{jemalloc} variant adds that
+allocator's own accounting. A system-allocator variant stores those fields as unavailable rather than
 as zero, on the same principle as the governor and turbo state. The kind counts are what makes a
 divergence between the languages show up as a parity failure (Section~\ref{sec:parity}) instead
 of a performance difference. Each run also persists its complete HDR bucket contents to a sidecar,
@@ -4722,7 +4722,7 @@ the operation called directly and once through the threaded service. A third dat
 shape over \ContentionRepeats{} repeats records sustained throughput through the bounded queue and
 completion primitives alone (Section~\ref{sec:contention}). The FFI comparison of
 Section~\ref{sec:migrationresults} has that structure over \FfiOpRepeats{} repeats. All three
-predate the environment record, which is why each is read as a ratio between its two arms.
+predate the environment record, which is why each is read as a ratio between its two variants.
 
 Build time is the one RQ4 axis that is a timing measurement. It is recorded over
 \AdoptRepeats{} interleaved repeats at \AdoptJobs{} parallel jobs on the development machine,
@@ -4775,7 +4775,7 @@ Variant & p50 & p99 & p99.9 & max \\
 \small
 \caption[The resident set decomposed by the allocator]{Where the peak resident set goes on the
 second bare-metal host, from \texttt{jemalloc}'s own accounting in each of the \BmJeRuns{} runs of
-the two \texttt{jemalloc} arms. Medians in MiB over the steady-state loads, with the paired language
+the two \texttt{jemalloc} variants. Medians in MiB over the steady-state loads, with the paired language
 difference in the last column. The two rows below the rule are the argument: the allocator holds
 \emph{less} in the Rust build, and the process holds more, so the difference is outside the
 allocator. The final row is the quantity the other rows decompose. The derived row is the median of
@@ -4797,9 +4797,9 @@ explain why it cannot. The first profile ran closed loop at $\BmProfThroughput$~
 plateau bracketed at $\BmKneeLo$--$\BmKneeHi$~kops/s. Repeating it at a swept load below saturation
 shrank the discrepancy by most of its size and did not remove it. What remains is that
 profiling requires an allocator built to sample every allocation and record a backtrace, so the
-arm under profile is not the arm the campaign measured. Each symbolised profile puts almost all
+variant under profile is not the variant the campaign measured. Each symbolised profile puts almost all
 of its flat bytes on a frame that allocates nothing, $\BmProfFlatCppPct\%$ on a deallocation
-symbol in the C++ arm and $\BmProfFlatRustPct\%$ on the allocator's own backtrace routine in the
+symbol in the C++ variant and $\BmProfFlatRustPct\%$ on the allocator's own backtrace routine in the
 Rust one. Attributing the footprint would need a profile taken at a swept load, on a build
 whose peak RSS reproduces the campaign's ordering.
 

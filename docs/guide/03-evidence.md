@@ -33,7 +33,7 @@ implementation in `src/`, parity runner in `tools/`, benchmark driver in
 | `cpp/coverage.sh` | gcov line coverage of the parity suite. |
 
 Pinned: C++23 (`std::expected`), matched `-O2`, SplitMix64 shard selection,
-FNV-1a key hashing, jemalloc as a campaign arm (`-DUECM_USE_JEMALLOC=ON`).
+FNV-1a key hashing, jemalloc as a campaign variant (`-DUECM_USE_JEMALLOC=ON`).
 
 Details: [`cpp/README.md`](../../cpp/README.md).
 

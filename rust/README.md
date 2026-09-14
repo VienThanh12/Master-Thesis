@@ -58,7 +58,7 @@ cargo fmt --check
 ```
 
 Miri confirms rather than discovers, since the core has no `unsafe`; it exists so
-that both language arms are checked by the strongest dynamic tool each offers and
+that both language variants are checked by the strongest dynamic tool each offers and
 the remaining asymmetry is one of what the tools can guarantee, not of whether
 anyone looked. Current result: **clean**, no undefined behaviour under Stacked
 Borrows with strict provenance.
@@ -75,7 +75,7 @@ Not comparable with the C++ figure — different tools counting different things
   with only the atomic `activity_seq` shared through an `Arc<AtomicU64>`.
 - **Safety**: the crate contains **zero `unsafe`**. Safe Rust guarantees data-race freedom at
   compile time (`Send`/`Sync`), so no ThreadSanitizer run is needed. Miri has been run anyway
-  (`./miri.sh`) and is clean, so the C++ arm is not the only one with dynamic-analysis evidence.
+  (`./miri.sh`) and is clean, so the C++ variant is not the only one with dynamic-analysis evidence.
 - **Dependency-freedom is deliberate and is kept.** The Loom and Shuttle models of the RQ2
   boundary defect classes live in a separate crate, `faults/rust-model-checking/`, rather than as
   dev-dependencies here: the dependency-free core is load-bearing for the RQ4 supply-chain

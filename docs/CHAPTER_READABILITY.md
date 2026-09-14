@@ -12,27 +12,27 @@ python3 .chapter_readability.py Thesis_v3.tex -o docs/CHAPTER_READABILITY.md
 
 ## Whole document
 
-- Sentences: 766
-- Words: 9234
-- **Flesch Reading Ease: 78.1** (fairly easy)
-- Flesch-Kincaid grade: 5.4
-- Gunning Fog: 7.6
-- Mean sentence length: 12.0 words (stdev 5.1)
-- Mean syllables per word: 1.378
-- Short sentences (<15 words): 72.7%
-- 3+ syllable words: 6.9%
+- Sentences: 674
+- Words: 8878
+- **Flesch Reading Ease: 71.2** (fairly easy)
+- Flesch-Kincaid grade: 6.6
+- Gunning Fog: 9.0
+- Mean sentence length: 13.1 words (stdev 6.4)
+- Mean syllables per word: 1.446
+- Short sentences (<15 words): 66.2%
+- 3+ syllable words: 9.5%
 
 ## Per chapter
 
 | # | Chapter | Flesch | Band | FK | Fog | Sent. | Words | ASL | ASW | Short | 3+ syl |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 1 | Introduction | 80.2 | easy (80+) | 5.0 | 7.2 | 153 | 1833 | 11.9 | 1.354 | 75.8% | 6.2% |
-| 2 | Background: Systems Languages for Latency-Critical Software | 72.3 | fairly easy | 5.8 | 8.7 | 98 | 1047 | 10.6 | 1.462 | 79.6% | 11.2% |
-| 3 | Research Methodology | 69.0 | standard | 6.5 | 9.0 | 123 | 1437 | 11.7 | 1.489 | 78.9% | 10.7% |
-| 4 | Design and Implementation | 71.8 | fairly easy | 5.6 | 7.6 | 55 | 530 | 9.6 | 1.481 | 89.1% | 9.4% |
-| 5 | Experimental Setup and Evaluation | 83.9 | easy (80+) | 4.7 | 6.8 | 156 | 1951 | 12.5 | 1.303 | 67.3% | 4.5% |
-| 6 | Discussion | 81.0 | easy (80+) | 5.3 | 7.3 | 114 | 1543 | 13.5 | 1.325 | 62.3% | 4.7% |
-| 7 | Conclusion and Future Work | 80.2 | easy (80+) | 5.4 | 7.4 | 67 | 893 | 13.4 | 1.337 | 61.2% | 5.0% |
+| 1 | Introduction | 44.2 | difficult | 11.4 | 15.1 | 97 | 1698 | 17.3 | 1.715 | 46.4% | 20.3% |
+| 2 | Background: Systems Languages for Latency-Critical Software | 72.9 | fairly easy | 6.0 | 8.7 | 70 | 817 | 11.6 | 1.444 | 71.4% | 10.3% |
+| 3 | Research Methodology | 67.8 | standard | 6.9 | 9.4 | 113 | 1430 | 12.7 | 1.492 | 74.3% | 10.8% |
+| 4 | Design and Implementation | 72.1 | fairly easy | 5.6 | 7.6 | 55 | 530 | 9.6 | 1.477 | 89.1% | 9.2% |
+| 5 | Experimental Setup and Evaluation | 83.1 | easy (80+) | 4.7 | 6.8 | 159 | 1970 | 12.4 | 1.314 | 67.9% | 4.6% |
+| 6 | Discussion | 80.7 | easy (80+) | 5.4 | 7.3 | 114 | 1543 | 13.5 | 1.330 | 62.3% | 4.7% |
+| 7 | Conclusion and Future Work | 79.7 | fairly easy | 5.5 | 7.4 | 66 | 890 | 13.5 | 1.340 | 59.1% | 5.1% |
 
 ## What the columns are
 
@@ -83,16 +83,16 @@ of points apart, because the syllable term dominates:
 
 | | ASL | ASW | Sentence term `1.015 * ASL` | Syllable term `84.6 * ASW` | Flesch |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Introduction | 11.9 | 1.354 | 12.1 | 114.6 | 80.2 |
-| Conclusion | 13.4 | 1.337 | 13.6 | 113.1 | 80.2 |
+| Introduction | 17.3 | 1.715 | 17.6 | 145.1 | 44.2 |
+| Conclusion | 13.5 | 1.340 | 13.7 | 113.4 | 79.7 |
 
 Plug the introduction in:
 
 ```
-206.835 - 12.1 - 114.6 = 80.2
+206.835 - 17.6 - 145.1 = 44.2
 ```
 
-The syllable term alone is 115 in the introduction and 113 in
+The syllable term alone is 145 in the introduction and 113 in
 the conclusion. That gap is almost the whole difference. The Flesch
 column uses the unrounded means, so a calculator that starts from the
 one-decimal ASL in the table can be off by 0.1.
@@ -119,7 +119,7 @@ one long one on this counter.
 
 ### Same claim, two wordings
 
-`The Rust arms hold their sent rate.` Seven words, seven syllables,
+`The Rust variants hold their sent rate.` Seven words, seven syllables,
 ASW 1.0.
 
 `The variants maintain their offered throughput.` Six words, about 13

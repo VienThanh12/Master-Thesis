@@ -15,7 +15,7 @@ Two design rules carried over from the rest of the harness.
 
 *One instrument, both languages.* The same clock, the same job count and the
 same interleaving are applied to both build systems, for the reason `lizard`
-measures both cores and jemalloc's own `prof` profiles both arms: a pair
+measures both cores and jemalloc's own `prof` profiles both variants: a pair
 measured by two tools cannot be differenced.
 
 *Substitute everything the candidate mechanism covers.* Specification section 12
@@ -157,7 +157,7 @@ def measure_build_times(root, repeats, jobs, warmup=1, verbose=True):
     """One interleaved repeat measures every scope in both languages.
 
     Interleaving rather than batching, for the reason campaign.sh interleaves:
-    thermal and background drift then lands on both arms of a comparison instead
+    thermal and background drift then lands on both variants of a comparison instead
     of biasing whichever ran second.
 
     The first repeats are discarded, for the reason the campaign discards its
@@ -286,7 +286,7 @@ def measure_footprint(root, jobs):
 
         # The same sources and flags, with the standard library linked in.
         # Built directly rather than through a cmake option, because adding one
-        # would put a configuration in the build system that no reported arm uses.
+        # would put a configuration in the build system that no reported variant uses.
         cpp = os.path.join(root, "cpp")
         exe = os.path.join(cb, "conformance_runner_static")
         subprocess.run(
@@ -642,7 +642,7 @@ def main():
         ("\\multicolumn{3}{@{}l}{\\emph{Third-party code resolved}}", "", ""),
         ("\\quad Transitive crates, compared component", "0",
          f"{chain['core']['crates']}"),
-        ("\\quad Transitive crates, matched-allocator arm", "0",
+        ("\\quad Transitive crates, matched-allocator variant", "0",
          f"{chain['jemalloc']['crates']}"),
         ("\\quad Transitive crates, benchmark harness", "0",
          f"{chain['harness']['crates']}"),
@@ -724,7 +724,7 @@ def main():
         "DepsUnsafeJemalloc": chain["jemalloc"]["unsafe"],
         "DepsUnsafeHarness": chain["harness"]["unsafe"],
         "CoreUnsafe": chain["first_party_unsafe"],
-        # Of the allocator arm's crates, the ones that reach the artefact against
+        # Of the allocator variant's crates, the ones that reach the artefact against
         # the ones that only run while it is built.
         "DepsJemallocShipping": chain["jemalloc"]["shipping_crates"],
         "DepsJemallocBuildOnly": chain["jemalloc"]["build_only_crates"],

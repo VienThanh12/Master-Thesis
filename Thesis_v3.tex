@@ -910,9 +910,9 @@ it sits on. The two sweeps then differ in the hardware, in the kernel
 Until late in the work the sweep ran on a virtual machine instead:
 Kernel-based Virtual Machine (KVM) on an \GuestCpu{}, with none of the core
 controls above. On that
-host the $95\%$ band on one arm's p99 spans
-$\GuestPNineNineMaxCI\,\mu$s. The four arms' p99 values differ by
-$\GuestPNineNineRange\,\mu$s. The noise on one arm was larger than the gap
+host the $95\%$ band on one variant's p99 spans
+$\GuestPNineNineMaxCI\,\mu$s. The four variants' p99 values differ by
+$\GuestPNineNineRange\,\mu$s. The noise on one variant was larger than the gap
 between all four. That sweep is kept. It uses the same design as
 this one. The two can then be set next to each other to ask which findings belong to the code.
 A third sweep on a second bare-metal \BmCpu{} uses a new shard count, load
@@ -949,7 +949,7 @@ travel. It does not make the test unfair. The sender keeps to its
 plan even if the service is late (open-loop). The histogram is
 corrected so a stall does not hide missing replies (coordinated-omission
 bias)~\cite{schroeder2006openclosed}. Each load is
-run \NRepeats{} times. The four language and heap arms are interleaved
+run \NRepeats{} times. The four language and heap variants are interleaved
 inside each run. Each point is a median with a bootstrap $95\%$
 band~\cite{georges2007rigorous,efron1993bootstrap}.
 
@@ -959,7 +959,7 @@ value, not one made from the sweep. The first rule this study used was the
 peak load whose p99 stayed under $5$~ms. On the virtual machine that rule
 landed on the noise of the host. On a quiet host it climbs until the service
 can no longer keep up. It is kept only as a check. The lowest finished rate
-among the four arms is $\SatKnee$~kops/s, reached when the sent
+among the four variants is $\SatKnee$~kops/s, reached when the sent
 load is $\TrackingLoad$~kops/s.
 
 \section{Results}
@@ -969,12 +969,12 @@ timed on the host of Section~\ref{sec:testbed} unless the caption says
 so.
 
 \subsection{Below saturation (RQ1, RQ3)}\label{sec:perfresults}
-When the service still keeps up with the sent load, the four arms'
+When the service still keeps up with the sent load, the four variants'
 medians lie within $\PFiftyRange\,\mu$s of each other, $\PFiftySpread\%$. A
 paired test still finds a gap of $\PFiftyDiffAbsMax\,\mu$s in Rust's
 favour under both heaps. Figure~\ref{fig:loadsweep} shows the sweep behind
 that. Higher tails can now be read as well. The widest band on
-one arm's own p99 spans $\PNineNineMaxCI\,\mu$s. The four arms' p99
+one variant's own p99 spans $\PNineNineMaxCI\,\mu$s. The four variants' p99
 values differ by $\PNineNineRange\,\mu$s. So the noise on one is smaller than
 the gap between them. On the virtual machine the same two sizes were
 $\GuestPNineNineMaxCI\,\mu$s against $\GuestPNineNineRange\,\mu$s, the other
@@ -1009,11 +1009,11 @@ and the bands are bootstrap $95\%$ confidence intervals.\label{fig:loadsweep}}
 \end{figure}
 
 The far tail can be read here too. The runs' histograms are pooled, which
-gives \FarTailSamplesMin{} to \FarTailSamplesMax{} calls per arm. The
-two \FarTailLower{} arms sit below both C++ arms. The widest pair
-differs by $\FarTailRange\,\mu$s. The slowest Rust arm still sits
+gives \FarTailSamplesMin{} to \FarTailSamplesMax{} calls per variant. The
+two \FarTailLower{} variants sit below both C++ variants. The widest pair
+differs by $\FarTailRange\,\mu$s. The slowest Rust variant still sits
 $\FarTailLangSep\,\mu$s below the fastest C++ one. A second bare-metal host at another shard count agrees,
-running $\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s for the C++ arms against
+running $\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s for the C++ variants against
 $\BmFarTailRustLo$--$\BmFarTailRustHi\,\mu$s for the Rust ones, and the ranges do not meet.
 A second limit does not come from the host. No host would remove it. An
 end-to-end round-trip spends only $\BudgetCoreShareMax\%$ of its time on the
@@ -1046,7 +1046,7 @@ blind zone by a factor of $\BudgetBoundVsCore$.\label{fig:budget}}
 \end{figure}
 
 \subsection{Past saturation (RQ1)}\label{sec:overload}
-Once the sent rate is higher than the service can handle, the four arms
+Once the sent rate is higher than the service can handle, the four variants
 stop keeping up at loads that do not match. The Rust versions hold to
 $\TrackingLoadRust$~kops/s. The C++ versions hold to $\TrackingLoadCpp$. So at
 $\KneeGapLoad$~kops/s \KneeGapFaster{} still serves $\KneeGapThrFast$~kops/s
@@ -1070,7 +1070,7 @@ Deeper, at $\OverloadLoad$~kops/s sent, the order flips.
 \OverloadSustainedFaster{} still finishes $\OverloadThrCpp$~kops/s where
 \OverloadSustainedSlower{} finishes $\OverloadThrRust$, a factor of
 $\OverloadThrRatio$, in \OverloadThrAgree{} runs under both heaps. The
-Holm-corrected $p$ is as small as this test family can go. The slower arm
+Holm-corrected $p$ is as small as this test family can go. The slower variant
 is not just doing less work. It uses $\OverloadCpuPerOpRatio$ times the CPU
 for each call it finishes, which is the mark of effort spent without
 finishing anything. When the bounded queue and the done handle are
@@ -1078,7 +1078,7 @@ timed by themselves, that order is not significant, so the cause sits in
 the wider path that passes work between threads. This is the largest language
 effect in the tested family. A test that stopped at a load the service
 still meets would have pointed the other way. Figure~\ref{fig:overload} sets
-what each arm still finishes beside what it spends finishing it.
+what each variant still finishes beside what it spends finishing it.
 
 \begin{figure}[ht]
 \centering
@@ -1090,8 +1090,8 @@ intervals, grouped so the two bars in a group differ only in language. CPU in
 \end{figure}
 
 \subsection{Resource use (RQ3)}\label{sec:resources}
-RAM and CPU split the arms where delay could not. Two effects that
-match in size sit in peak RSS. The Rust build uses
+The four variants look the same in delay. They do not in RAM or CPU.
+Two effects that match in size sit in peak RSS. The Rust build uses
 $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak RAM than the C++ build
 under either heap. Linking \texttt{jemalloc} at all costs
 $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB in either language. Both are real, and
@@ -1192,10 +1192,10 @@ $\FfiCrossing$~ns and bounds only itself.\label{fig:ffiseam}}
 \chapter{Discussion\label{chapter:discussion}}
 
 \section{Summary of findings}
-The answer to RQ1 splits at saturation. Below it the arms agree to
+The answer to RQ1 splits at saturation. Below it the variants agree to
 $\PFiftyRange\,\mu$s at the median, and the far tail lands on \FarTailLower{}'s side. The end-to-end round-trip is only $\BudgetCoreShareMax\%$ language work, so it cannot bound a language effect.
 The same core timed apart is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster{}. Past saturation they split both ways. The Rust
-arms hold their sent rate to $\TrackingLoadRust$~kops/s against
+variants hold their sent rate to $\TrackingLoadRust$~kops/s against
 $\TrackingLoadCpp$. At $\OverloadLoad$~kops/s \OverloadSustainedFaster{} holds $\OverloadThrRatio\times$ the rate of \OverloadSustainedSlower{}.
 RQ2 is final and does not depend on the host. All seven in-guarantee classes are
 compile errors in safe Rust. All seven boundary classes compile and
@@ -1207,9 +1207,9 @@ cost is API design and the learning curve.
 
 \section{Discussion on the research questions}\label{sec:rqdiscussion}
 What a live system should do with RQ1 rests on where it expects to sit, not on
-a single rank. A service sized to run below each arm's knee should pick
-the arm that holds its sent rate further. One that a signal storm will
-drive past each knee should pick the arm that still does more work
+a single rank. A service sized to run below each variant's knee should pick
+the variant that holds its sent rate further. One that a signal storm will
+drive past each knee should pick the variant that still does more work
 then. Those two picks point at opposite sides. Only the second
 is tested. The first is shown, not tested, for the reason Section~\ref{sec:overload}
 gives. A test that stopped at a load the service still meets would have read the
@@ -1277,7 +1277,7 @@ heap's was an order of magnitude larger. The language effect travels. The
 ratio does not. The quiet host also puts the cost past the heap, by
 the heap's own counts. One close study reports the other sign, with
 Rust lowest and the gap growing as concurrency rises~\cite{karlback2021ran}.
-Those two findings agree once the arms are read as two concurrency runtimes, not two sides.
+Those two findings agree once the variants are read as two concurrency runtimes, not two sides.
 Their C++ runs on Boost.Fibers, which gets a stack per fiber. Their Rust
 runs on Tokio, where a task is a small future on the heap. What they
 timed is the per-task cost of two concurrency runtimes.
@@ -1347,7 +1347,7 @@ have used from the start.
 The studies closest to this one are the five vendor-hosted theses of
 Section~\ref{sec:gap}. Their verdicts clash with each other in each way.
 The one with the other sign on peak RAM fits this study
-once its arms are read as two concurrency runtimes, not two sides.
+once its variants are read as two concurrency runtimes, not two sides.
 Three threats still matter, and the first is that one author wrote both
 versions. The same failure mode flipped a printed verdict in this
 field: comparable after a code review and then Rust worse by $85$--$91\%$
@@ -1408,8 +1408,8 @@ operating system handoff. So that clock bounds nothing about either
 compiler. The same core timed apart is $\BudgetCoreRatio\times$ faster
 in \BudgetCoreFaster{}. At the chosen load of $\ReprLoad$~kops/s the paired test finds
 $\PFiftyDiffAbsMax\,\mu$s in Rust's favour. That gap is too small for a live system to care
-about at the median. At p99.99 the slowest Rust arm sits
-$\FarTailLangSep\,\mu$s below the fastest C++ one. The Rust arms then hold their
+about at the median. At p99.99 the slowest Rust variant sits
+$\FarTailLangSep\,\mu$s below the fastest C++ one. The Rust variants then hold their
 sent rate to $\TrackingLoadRust$~kops/s against $\TrackingLoadCpp$. Once all
 four have fallen, \OverloadSustainedFaster{} holds $\OverloadThrRatio\times$
 the rate of \OverloadSustainedSlower{}. \OverloadSustainedSlower{} spends
@@ -1437,7 +1437,7 @@ footprint. They disagree about how that sits against the cost of the
 heap. The guest put it an order of magnitude higher, and neither
 bare-metal host does. The hugepage policy is the candidate this study
 can name but not test, because it was not the same on each host and only the
-system allocator arm gets it. Beyond that, replaying anonymised production
+system allocator variant gets it. Beyond that, replaying anonymised production
 traces would check the call mix. The harness can also take further
 control plane parts or the data heavy layer-2 and physical layer (PHY)
 path. A part with truly shared mutable state would work the two

@@ -23,7 +23,7 @@
   <text x="52" y="230.6" font-size="10.5" fill="#5b6b7b">finds 1.3 us for Rust.</text>
   <text x="52" y="244.6" font-size="10.5" fill="#5b6b7b">Too small to bound a language</text>
   <text x="52" y="258.6" font-size="10.5" fill="#5b6b7b">effect. Far tail: slowest Rust</text>
-  <text x="52" y="272.6" font-size="10.5" fill="#5b6b7b">arm is 50 us below the</text>
+  <text x="52" y="272.6" font-size="10.5" fill="#5b6b7b">variant is 50 us below the</text>
   <text x="52" y="286.6" font-size="10.5" fill="#5b6b7b">fastest C++ one. Pooled, not a</text>
   <text x="52" y="300.6" font-size="10.5" fill="#5b6b7b">median of per-run p99.99.</text>
   <rect x="252" y="160" width="196" height="252" rx="9" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.8"/>
@@ -31,9 +31,9 @@
   <text x="264" y="202.6" font-size="10.5" fill="#5b6b7b">C++ holds to 392</text>
   <text x="264" y="216.6" font-size="10.5" fill="#5b6b7b">kops/s. Rust still tracks.</text>
   <text x="264" y="230.6" font-size="10.5" fill="#5b6b7b"></text>
-  <text x="264" y="244.6" font-size="10.5" fill="#5b6b7b">SatKnee is the min across arms</text>
+  <text x="264" y="244.6" font-size="10.5" fill="#5b6b7b">SatKnee is the min of four</text>
   <text x="264" y="258.6" font-size="10.5" fill="#5b6b7b">(392). Do not quote it as</text>
-  <text x="264" y="272.6" font-size="10.5" fill="#5b6b7b">where an arm stops coping.</text>
+  <text x="264" y="272.6" font-size="10.5" fill="#5b6b7b">where a variant stops coping.</text>
   <text x="264" y="286.6" font-size="10.5" fill="#5b6b7b">Quote each language's tracking</text>
   <text x="264" y="300.6" font-size="10.5" fill="#5b6b7b">load instead.</text>
   <rect x="464" y="160" width="196" height="252" rx="9" fill="#fdf6e9" stroke="#c8860d" stroke-width="1.8"/>
@@ -59,12 +59,12 @@
   <rect x="40" y="430" width="800" height="128" rx="9" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.5"/>
   <text x="56" y="454" font-size="13" fill="#12233a" font-weight="700">Two deployment picks, pointing at opposite sides</text>
   <rect x="56" y="472" width="372" height="70" rx="7" fill="#ffffff" stroke="#a8d7bb" stroke-width="1.0"/>
-  <text x="68" y="494.6" font-size="12" fill="#12233a" font-weight="700">Sized to run below each arm's knee</text>
-  <text x="68" y="511.6" font-size="11" fill="#5b6b7b">Pick the arm that holds its sent rate further.</text>
+  <text x="68" y="494.6" font-size="12" fill="#12233a" font-weight="700">Sized to run below each variant's knee</text>
+  <text x="68" y="511.6" font-size="11" fill="#5b6b7b">Pick the variant that holds its sent rate further.</text>
   <text x="68" y="525.6" font-size="11" fill="#5b6b7b">That pick is shown, not tested.</text>
   <rect x="448" y="472" width="376" height="70" rx="7" fill="#ffffff" stroke="#e6b3ad" stroke-width="1.0"/>
   <text x="460" y="494.6" font-size="12" fill="#12233a" font-weight="700">A signal storm will drive past each knee</text>
-  <text x="460" y="511.6" font-size="11" fill="#5b6b7b">Pick the arm that still finishes more work then.</text>
+  <text x="460" y="511.6" font-size="11" fill="#5b6b7b">Pick the variant that still finishes more work then.</text>
   <text x="460" y="525.6" font-size="11" fill="#5b6b7b">That pick is tested. It is C++ here.</text>
   <text x="440.0" y="596" font-size="11.5" fill="#8794a3" text-anchor="middle">A test that stopped at a load the service still meets would have pointed the other way with the same setup.</text>
 </svg>

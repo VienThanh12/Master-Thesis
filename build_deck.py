@@ -1273,7 +1273,7 @@ add_caption(s, Cm(11.35), size=11, text=
 # Slide 24: The resident set decomposed
 # =====================================================================
 s = headline(1, "Where the extra resident set actually sits",
-             f"jemalloc's own accounting, read in each of the {M('BmJeRuns')} runs of the two jemalloc arms")
+             f"jemalloc's own accounting, read in each of the {M('BmJeRuns')} runs of the two jemalloc variants")
 _, tbl_bottom = add_data_table(
     s,
     [("Component of the footprint, median MiB", "C++", "Rust", "Difference")] + RESIDENT,

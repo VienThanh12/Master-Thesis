@@ -208,7 +208,7 @@ prohibited submitting an operation outside the service's running window — befo
 `start()`, or after `shutdown()` — while neither implementation checked for it. The
 prohibition was addressed to the caller with no mechanism behind it.
 
-**How the two arms failed.** `Service::submit` indexes the shard vector that
+**How the two variants failed.** `Service::submit` indexes the shard vector that
 `shutdown()` clears:
 
 | Call | C++ (`cpp/`) | Rust (`rust/`) |
@@ -217,7 +217,7 @@ prohibition was addressed to the caller with no mechanism behind it.
 | operation before `start()` | **SEGV** on the zero page | panic: index out of bounds |
 
 **Why it carries evidence an injected case cannot.** It was in code written to be
-correct, in the arm whose safety claim rests on ThreadSanitizer, and reachable
+correct, in the variant whose safety claim rests on ThreadSanitizer, and reachable
 through the public API by calling documented operations in a documented order. It
 survived six C++ test binaries, twenty-five Rust tests, 223 hand-written and 9 006
 generated conformance operations, and three clean sanitizer configurations — because

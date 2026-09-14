@@ -456,7 +456,7 @@ def parity_oracle():
 def four_variants():
     d = Diagram(
         "36_four_variants", 880, 520,
-        "Four arms, interleaved so host noise is shared",
+        "Four variants, interleaved so host noise is shared",
         f"{M['NLoadLevels']} offered-load levels up to {M['MaxOfferedLoad']} "
         f"kops/s, {M['NRepeats']} repeats, {M['NRuns']} measured runs",
     )
@@ -493,7 +493,7 @@ def four_variants():
         dashed=True)
 
     d.rect(80, 380, 720, 80, AMBER_FILL, AMBER_EDGE, rx=9, sw=1.6)
-    d.text(96, 404, "Inside each repeat the four arms run back to back", 13,
+    d.text(96, 404, "Inside each repeat the four variants run back to back", 13,
            AMBER_DEEP, weight=700)
     d.lines(96, 426, [
         "Interference common to a block is then shared rather than assigned "
@@ -539,8 +539,8 @@ def three_campaigns():
             "earlier. rustc matches.",
             "",
             "On that host the 95% band on one",
-            "arm's p99 was larger than the gap",
-            "between all four arms.",
+            "variant's p99 was larger than the gap",
+            "between all four variants.",
             "",
             "Role: measurement-validity",
             "comparison. It could not resolve",
@@ -586,7 +586,7 @@ def load_regimes():
     d.rect(40, 110, 800, 8, GREY_EDGE, rx=4)
     points = [
         (80, f"{M['ReprLoad']}", "Chosen load", "Below saturation. Medians agree. Far tail readable.", GREEN),
-        (280, f"{M['TrackingLoadCpp']}", "C++ tracks to here", "C++ arms stop keeping up.", BLUE),
+        (280, f"{M['TrackingLoadCpp']}", "C++ tracks to here", "C++ variants stop keeping up.", BLUE),
         (500, f"{M['TrackingLoadRust']}", "Rust tracks to here", "Shown, not tested. Found after seeing the sweep.", AMBER_DEEP),
         (760, f"{M['OverloadLoad']}", "Deep overload", "Order flips. Largest tested language effect.", RED),
     ]
@@ -602,7 +602,7 @@ def load_regimes():
             f"finds {M['PFiftyDiffAbsMax']} us for Rust.",
             "Too small to bound a language",
             "effect. Far tail: slowest Rust",
-            f"arm is {M['FarTailLangSep']} us below the",
+            f"variant is {M['FarTailLangSep']} us below the",
             "fastest C++ one. Pooled, not a",
             "median of per-run p99.99.",
         ]),
@@ -610,9 +610,9 @@ def load_regimes():
             f"C++ holds to {M['TrackingLoadCpp']}",
             "kops/s. Rust still tracks.",
             "",
-            f"SatKnee is the min across arms",
+            "SatKnee is the min of four",
             f"({M['SatKnee']}). Do not quote it as",
-            "where an arm stops coping.",
+            "where a variant stops coping.",
             "Quote each language's tracking",
             "load instead.",
         ]),
@@ -645,13 +645,13 @@ def load_regimes():
     d.rect(40, 430, 800, 128, GREY_FILL, GREY_EDGE, rx=9, sw=1.5)
     d.text(56, 454, "Two deployment picks, pointing at opposite sides", 13,
            NAVY, weight=700)
-    d.card(56, 472, 372, 70, "Sized to run below each arm's knee", [
-        "Pick the arm that holds its sent rate further.",
+    d.card(56, 472, 372, 70, "Sized to run below each variant's knee", [
+        "Pick the variant that holds its sent rate further.",
         "That pick is shown, not tested.",
     ], fill=WHITE, stroke=GREEN_EDGE, rx=7, title_size=12, body_size=11,
         pad=12, gap=17, lh=14)
     d.card(448, 472, 376, 70, "A signal storm will drive past each knee", [
-        "Pick the arm that still finishes more work then.",
+        "Pick the variant that still finishes more work then.",
         "That pick is tested. It is C++ here.",
     ], fill=WHITE, stroke=RED_EDGE, rx=7, title_size=12, body_size=11,
         pad=12, gap=17, lh=14)
@@ -950,7 +950,7 @@ def rss_two_effects():
     ], fill=BLUE_FILL, stroke=BLUE, rx=9, sw=1.6, title_color=BLUE_DEEP,
         body_size=12, pad=14, lh=16, gap=21)
     d.card(304, 314, 270, 160, "CPU past saturation", [
-        f"The slower arm spends "
+        f"The slower variant spends "
         f"{M['OverloadCpuPerOpRatio']}x",
         "the CPU per finished call. That is",
         "effort spent without finishing.",
@@ -959,7 +959,7 @@ def rss_two_effects():
         body_size=12, pad=14, lh=16, gap=21)
     d.card(592, 314, 272, 160, "A contrary result, reread", [
         "Karlbäck reports Rust lowest on",
-        "RAM. Those arms are two",
+        "RAM. Those variants are two",
         "concurrency runtimes (Boost.Fibers",
         "vs Tokio), not two languages.",
     ], fill=WHITE, stroke=GREY_EDGE, rx=9, sw=1.6, title_color=NAVY,
@@ -1377,20 +1377,20 @@ def request_path():
 def one_repeat():
     d = Diagram(
         "51_one_repeat", 880, 500,
-        "Inside one repeat the four arms run back to back",
+        "Inside one repeat the four variants run back to back",
         f"{M['NRepeats']} repeats. {M['NLoadLevels']} loads. "
         f"{M['NRuns']} measured runs. Interleaving makes host noise common "
         "to a block.",
     )
     d.text(440, 88, "ONE REPEAT, ONE LOAD", 12, FAINT, weight=700,
            anchor="middle")
-    arms = [
+    variants = [
         (40, BLUE, BLUE_FILL, BLUE_DEEP, "C++  jemalloc"),
         (250, BLUE, BLUE_CHIP, BLUE_DEEP, "C++  system"),
         (460, GREEN, GREEN_FILL, GREEN_DEEP, "Rust  jemalloc"),
         (670, GREEN, GREEN_CHIP, GREEN_DEEP, "Rust  system"),
     ]
-    for x, stroke, fill, deep, title in arms:
+    for x, stroke, fill, deep, title in variants:
         d.card(x, 104, 190, 80, title, ["same seed, same ops"], fill=fill,
                stroke=stroke, sw=1.7, rx=9, title_color=deep, body_size=12,
                pad=12, gap=18, lh=16)
@@ -1399,7 +1399,7 @@ def one_repeat():
 
     d.card(40, 212, 400, 160, "What pairing can cancel", [
         "A noisy minute of the host hits all four",
-        "arms in that block. The paired test then",
+        "variants in that block. The paired test then",
         "sees the language difference, not the",
         "noise. That is why the family is exact",
         f"permutation tests over {M['NRepeats']} pairs.",
@@ -1407,7 +1407,7 @@ def one_repeat():
         body_size=12.5, pad=14, lh=17, gap=21)
     d.card(460, 212, 380, 160, "What pairing cannot cancel", [
         "A stall that hits only the high tail of",
-        "one arm. p99 is computed from exactly",
+        "one variant. p99 is computed from exactly",
         "those operations. The far tail is pooled",
         "across repeats, so it has no across-run",
         "interval and stays out of the family.",
@@ -1804,9 +1804,9 @@ def guest_could_not_resolve():
         "counter-example sitting beside them.",
     )
     d.card(16, 80, 416, 280, "KVM guest", [
-        f"p99 noise on one arm: {M['GuestPNineNineMaxCI']} us.",
-        f"Gap between all four arms: {M['GuestPNineNineRange']} us.",
-        "Noise on one arm was larger than the",
+        f"p99 noise on one variant: {M['GuestPNineNineMaxCI']} us.",
+        f"Gap between all four variants: {M['GuestPNineNineRange']} us.",
+        "Noise on one variant was larger than the",
         "gap between all four. The far tail could",
         "not be read.",
         "",
@@ -1816,15 +1816,15 @@ def guest_could_not_resolve():
     ], fill=AMBER_FILL, stroke=AMBER_EDGE, sw=1.8, rx=10,
         title_color=AMBER_DEEP, body_size=13, pad=16, lh=18, gap=22)
     d.card(448, 80, 416, 280, "Bare metal (reported)", [
-        f"p99 noise on one arm: {M['PNineNineMaxCI']} us.",
-        f"Gap between all four arms: {M['PNineNineRange']} us.",
+        f"p99 noise on one variant: {M['PNineNineMaxCI']} us.",
+        f"Gap between all four variants: {M['PNineNineRange']} us.",
         "Noise is smaller than the gap. Both p99",
         "rows and both p99.9 rows clear Holm,",
         f"{M['NTailSignificant']} rows in all.",
         "",
         f"Far tail pooled, {M['FarTailSamplesMin']} to "
         f"{M['FarTailSamplesMax']} calls.",
-        f"Slowest Rust arm {M['FarTailLangSep']} us below fastest C++.",
+        f"Slowest Rust variant {M['FarTailLangSep']} us below fastest C++.",
         "A second bare-metal host agrees.",
     ], fill=GREEN_FILL, stroke=GREEN, sw=1.8, rx=10, title_color=GREEN_DEEP,
         body_size=13, pad=16, lh=18, gap=22)

@@ -349,7 +349,7 @@ def overload_facts(macros):
         macros["BmKneeLo"] = fmt(max(tracking) / 1000) if tracking else "0"
         macros["BmKneeHi"] = fmt(min(collapsed) / 1000)
 
-    # Deep overload is the load where every arm has stopped tracking and each
+    # Deep overload is the load where every variant has stopped tracking and each
     # one's own repeats agree. That second condition is what the first collapsed
     # load fails.
     def spread(load):
@@ -398,7 +398,7 @@ def overload_facts(macros):
 #
 # It need not be. Both benches read jemalloc's own accounting through mallctl
 # (cpp/bench/jestats.hpp) and tikv-jemalloc-ctl (je_stats() in the Rust bench),
-# and every run of the two jemalloc arms carries it. The system-allocator arms
+# and every run of the two jemalloc variants carries it. The system-allocator variants
 # emit nulls, never zeros, so they are skipped rather than counted as empty.
 #
 # One quantity here is derived rather than read, and it carries the finding:
@@ -448,7 +448,7 @@ def je_facts(macros, below):
     macros["BmJeOutsideRust"] = fmt(out_rust, 1)
     macros["BmJeOutsideDelta"] = f"{out_rust - out_cpp:+.1f}"
 
-    # The peak-RSS language effect on these same two arms, so the decomposition
+    # The peak-RSS language effect on these same two variants, so the decomposition
     # can be read against the quantity it decomposes rather than against the
     # both-allocator range BmRssLang* reports.
     def rss(lang):
@@ -477,7 +477,7 @@ def je_facts(macros, below):
     if drift:
         macros["BmJeMetaDrift"] = fmt(max(drift), 1)
 
-    # The widest within-arm spread of peak RSS at steady state, which says
+    # The widest within-variant spread of peak RSS at steady state, which says
     # whether the bimodality that costs the guest its jemalloc row appears here.
     spreads = []
     for lang in ("cpp", "rust"):
@@ -592,7 +592,7 @@ def jitter_facts(macros, below):
 # explanation of it.
 # --------------------------------------------------------------------------- #
 #: jeprof names the histogram constructor differently on each side, and the two
-#: arms share no call sites, so the symbols are declared rather than matched.
+#: variants share no call sites, so the symbols are declared rather than matched.
 #: A missing one is reported as a skip instead of quietly leaving a stale macro.
 PROF_HIST = {"cpp": "HdrHistogram::HdrHistogram", "rust": "new_with_bounds"}
 
@@ -612,7 +612,7 @@ def alloc_profile_facts(macros, below):
             return [f"allocation profile has no {lang} run record"]
         run[lang] = json.loads(open(path, encoding="utf-8").read().strip())
 
-    # 1. The sign reversal. Compared against the campaign's jemalloc arms,
+    # 1. The sign reversal. Compared against the campaign's jemalloc variants,
     #    because the profile ran jemalloc on both sides.
     delta = (run["rust"]["rss_peak_kb"] - run["cpp"]["rss_peak_kb"]) / KB_PER_MIB
     macros["BmProfRssDelta"] = fmt(abs(delta), 1)
@@ -661,7 +661,7 @@ def alloc_profile_facts(macros, below):
 
         # 4. The dump that got symbolised is the first of the series, taken
         #    while the service is still filling. How far that sits above steady
-        #    state decides whether the two arms describe the same phase.
+        #    state decides whether the two variants describe the same phase.
         traj = os.path.join(outdir, f"{lang}.trajectory.tsv")
         series = []
         for line in open(traj, encoding="utf-8"):

@@ -1980,7 +1980,7 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
     # minimum is a floor and not a shared value, and on a host where the two
     # languages saturate at different loads it conceals the difference, so the
     # per-language figures below are emitted beside it and the prose quotes those
-    # when it describes where each arm stops coping.
+    # when it describes where each variant stops coping.
     knee = min(max(med_at(k, l, thr_kops) for l in loads) for k in variants)
 
     def tracks(keys, l):
@@ -2054,7 +2054,7 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
             if tracking else "0"
         ),
         # Where each language stops meeting its offered rate, and what it peaks
-        # at. Quoted instead of SatKnee wherever the prose says where an arm
+        # at. Quoted instead of SatKnee wherever the prose says where a variant
         # stops coping, because SatKnee is a minimum across all four.
         "TrackingLoadCpp": f"{by_lang['cpp']['tracking'] / 1000.0:.0f}" if "cpp" in by_lang else "0",
         "TrackingLoadRust": f"{by_lang['rust']['tracking'] / 1000.0:.0f}" if "rust" in by_lang else "0",
@@ -2154,7 +2154,7 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
             "FarTailSamplesMin": f"{min(samples):,}".replace(",", "\\,"),
             "FarTailSamplesMax": f"{max(samples):,}".replace(",", "\\,"),
             # Whether the two languages separate at this percentile with no
-            # overlap between their arms, which is what licenses an ordering from
+            # overlap between their variants, which is what licenses an ordering from
             # a statistic that carries no interval.
             "FarTailByLang": (
                 "yes" if max(pooled[k]["p9999"] for k in pooled if k[0] == "rust")

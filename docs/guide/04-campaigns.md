@@ -61,7 +61,7 @@ campaign: it refuses to start below 150% `cpu_pct` on a probe (broken reads
   the host comparison.
 - Past saturation the languages diverge. They stop meeting the offered rate at
   different loads: quote `\TrackingLoadRust` and `\TrackingLoadCpp`, not
-  `\SatKnee` (a `min` across variants) for where an arm stops coping.
+  `\SatKnee` (a `min` across variants) for where a variant stops coping.
 - Peak RSS: a real **language** effect (about 1.4-3.5 MiB on all three hosts)
   plus a real **allocator** effect. Never write that the allocator effect is
   the larger one. On both bare-metal hosts they are comparable. The guest's

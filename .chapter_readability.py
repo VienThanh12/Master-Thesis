@@ -337,7 +337,7 @@ def how_computed(rows: list[dict]) -> list[str]:
         "",
         "### Same claim, two wordings",
         "",
-        "`The Rust arms hold their sent rate.` Seven words, seven syllables,",
+        "`The Rust variants hold their sent rate.` Seven words, seven syllables,",
         "ASW 1.0.",
         "",
         "`The variants maintain their offered throughput.` Six words, about 13",

@@ -42,7 +42,7 @@ draft for the long argument. Rebuild the affected PDFs.
 6. Far tail is **pooled**, never a median of per-run p99.99. No fallback to
    the per-run field. That column is outside the Holm family.
 7. Saturation is not a shared knee. Quote `\TrackingLoadRust` and
-   `\TrackingLoadCpp`, not `\SatKnee`, for where an arm stops coping.
+   `\TrackingLoadCpp`, not `\SatKnee`, for where a variant stops coping.
 8. Peak RSS: language effect on all three hosts, allocator effect
    host-dependent. Never write that the allocator effect is the larger one
    without naming a host. Do not claim hugepage causation.
