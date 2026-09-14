@@ -411,22 +411,26 @@ Three hypotheses are written down before any measurement.
         operations themselves, so the real cost of adding Rust a piece at a time is
         engineering work, not run-time speed.
 \end{description}
-Chapter~\ref{chapter:discussion} revisits all three against the evidence.
+Chapter~\ref{chapter:discussion} revisits all three against the facts.
 
 The defect list for RQ2 includes classes safe Rust is expected to prevent and classes it
 is expected not to. The study can then find where the safety guarantee ends, instead of
 only showing that it holds.
 
-A previous study already estimated that boundary from a catalogue, not from
-compiled programs. It took the Common Weakness Enumeration (CWE), a long list of
-bug types, and marked each type as one that safe Rust would prevent or would not.
-It then counted real vulnerabilities in 68 open-source C projects. 58.2\% of
-those classified vulnerabilities sat in types that safe Rust would have made
-almost impossible~\cite{meneely2025justuserust}. That share is a best case: it
-assumes the new code stays in safe Rust. A type counts as prevented if the mapping
-says so, even if no compiler has rejected a program. RQ2 asks the same question
-of programs that are compiled and run. That is how it can say when the remaining
-types are caught, and what it costs to catch them.
+A previous study already estimated that boundary from a list, not from
+programs that were built.
+It took the Common Weakness Enumeration (CWE), a long list of bug
+types.
+It marked each type as one that safe Rust would stop or would not.
+It then counted real product bugs in 68 open-source C projects.
+58.2\% of those classified bugs sat in types that safe Rust would have
+made almost impossible~\cite{meneely2025justuserust}.
+That share is a best case: it assumes the new code stays in safe Rust.
+A type counts as stopped if the mapping says so, even if no compiler
+has rejected a program.
+RQ2 asks the same question of programs that are built and run.
+That is how it can say when the types still open are caught, and what
+it costs to catch them.
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
 % The class prints the chapter titles in the running head in capitals, where the
