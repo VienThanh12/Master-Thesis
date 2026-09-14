@@ -1174,7 +1174,11 @@ flips when the policy is held fixed. The compared part has no
 third-party crates and no \texttt{unsafe} sites ($\DepsCore$ crates,
 $\CoreUnsafe$ \texttt{unsafe} sites).
 
-\begin{figure}[ht]
+% After the paragraph the leftover is short of the diagram plus caption, so
+% [ht] defers it and \chapter flushes it onto an empty float page. A page
+% enlarge plus [!ht] keeps the figure with the subsection that cites it.
+\enlargethispage{52pt}
+\begin{figure}[!ht]
 \centering
 \includegraphics[width=0.78\linewidth]{diagrams/pdf/07_ffi_seam.pdf}
 \caption[The C++-to-Rust FFI migration seam]{The C++-to-Rust FFI migration seam.
