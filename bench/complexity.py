@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Measure the software-quality proxies the evaluation reports for the two cores.
 
-Section 7.3 commits to reporting lines of code and cyclomatic complexity as
+Section 7.3 commits to reporting lines of code and branching complexity as
 proxies alongside the performance and safety results. Both are produced here, by
 one tool applied identically to both implementations, so the comparison is not
 confounded by two languages' native tooling counting different things: `lizard`
@@ -233,7 +233,7 @@ def main():
         ("Functions", f"{cpp['functions']}", f"{rust['functions']}"),
         ("Lines of code (blank and comment lines excluded)",
          f"{cpp['nloc']}", f"{rust['nloc']}"),
-        ("Total cyclomatic complexity",
+        ("Total branching complexity",
          f"{cpp['ccn_total']}", f"{rust['ccn_total']}"),
         ("Mean complexity per function",
          f"{cpp['ccn_mean']:.1f}", f"{rust['ccn_mean']:.1f}"),

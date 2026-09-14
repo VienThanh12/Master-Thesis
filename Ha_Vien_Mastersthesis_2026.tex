@@ -169,7 +169,7 @@
     $#1$\\[-2pt]{\scriptsize$[#2,\,#3]$}%
   \end{tabular}}
 
-% Size and cyclomatic-complexity proxies for the two cores, measured by
+% Size and branching-complexity proxies for the two cores, measured by
 % bench/complexity.py with one tool applied identically to both languages.
 \input{figures/gen_complexity.tex}
 
@@ -2078,12 +2078,12 @@ C++'s does not.
 
 Counting lines, however, answers only half the question a reviewer of either codebase would
 ask, because it treats a line of boilerplate and a line of branching as the same thing.
-Table~\ref{tab:complexity} therefore adds cyclomatic complexity, measured by
+Table~\ref{tab:complexity} therefore adds branching complexity, measured by
 \texttt{lizard}~\cite{lizard} over both cores. One tool applied to both languages is what makes
 the figures comparable, because it uses the same definition of a decision point on each side.
 Each language's own tooling would count somewhat different things. The two measures then
 point in opposite directions. Rust is $\NlocRise\%$ longer than C++ by code lines, but its
-total cyclomatic complexity is $\CcnTotalDrop\%$ \emph{lower}, $\RustCcnTotal$ against
+total branching complexity is $\CcnTotalDrop\%$ \emph{lower}, $\RustCcnTotal$ against
 $\CppCcnTotal$, spread over slightly more functions ($\RustFuncs$ against $\CppFuncs$). Both
 cores are undemanding by the usual thresholds, and both have a median per-function complexity
 of one, so a small number of functions at the top carry the aggregate.
@@ -2101,7 +2101,7 @@ by reading two files lives inside exactly the function this measurement flags.
 \begin{table}[H]
 \centering
 \small
-\caption[Size and cyclomatic-complexity proxies for the two cores]{Size and cyclomatic-complexity proxies for the two cores, measured with
+\caption[Size and branching-complexity proxies for the two cores]{Size and branching-complexity proxies for the two cores, measured with
 \texttt{lizard}~\cite{lizard} applied identically to both languages. Benchmark drivers, tests,
 conformance runners, the FFI seam, and the probe-conditional blocks of
 Section~\ref{sec:idioms} are excluded. Only the compared code the parity contract constrains is

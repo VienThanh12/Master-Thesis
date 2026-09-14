@@ -995,7 +995,7 @@ _chart_top = tbl_bottom + Cm(0.45)
 add_bar_chart(s, Cm(1.3), _chart_top, Cm(11.0), "Code size (lines of code)",
               [("C++", float(M("CppNloc")), M("CppNloc"), BLUE),
                ("Rust", float(M("RustNloc")), M("RustNloc"), ORANGE)])
-add_bar_chart(s, Cm(13.1), _chart_top, Cm(11.0), "Branching (cyclomatic complexity)",
+add_bar_chart(s, Cm(13.1), _chart_top, Cm(11.0), "Branching complexity",
               [("C++", float(M("CppCcnTotal")), M("CppCcnTotal"), BLUE),
                ("Rust", float(M("RustCcnTotal")), M("RustCcnTotal"), ORANGE)])
 add_textbox(s, Cm(1.3), Cm(12.35), Cm(22.8), Cm(0.7),
