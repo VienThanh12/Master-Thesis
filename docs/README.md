@@ -26,4 +26,5 @@ Related files that are **not** in this folder, on purpose:
 | --- | --- |
 | [`../README.md`](../README.md) | Public map of the thesis and how to build it. |
 | [`../AGENT.md`](../AGENT.md) | Working contract for anyone who edits. Read it before touching thesis text, figures, or artefacts. |
-| [`../source_audit.pdf`](../source_audit.pdf) | Reader-facing citation audit. Generated from `.bibaudit/`. |
+| [`../source_audit.pdf`](../source_audit.pdf) | Reader-facing citation audit of the full draft. Generated from `.bibaudit/`. |
+| [`../source_audit_v3.pdf`](../source_audit_v3.pdf) | Same audit scoped to `Thesis_v3`. |
