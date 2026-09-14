@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Generate source_audit.tex: every cited work, the sentence citing it, and the source's words.
+"""Generate a citation-audit document: every cited work, the sentence citing it, and the source's words.
 
 The document exists so a reader can check a citation without opening the paper: block [17]
-carries reference [17] of the full draft, the sentence that cites it, and the passage in the
+carries reference [17] of the scoped thesis, the sentence that cites it, and the passage in the
 source that was read to support that sentence.
 
 Nothing here is transcribed. References are printed by biblatex from bibliography.bib through
@@ -10,9 +10,10 @@ Nothing here is transcribed. References are printed by biblatex from bibliograph
 from the .tex sources, and the per-entry evidence comes from docs/Sources_evidence.md with
 docs/LITERATURE_NOTES.md as the fallback. A key with no record is reported as having none.
 
-    .bibaudit/build_audit.py                  # write source_audit.tex
-    .bibaudit/build_audit.py --dump records   # inspect the parsed evidence records
-    .bibaudit/build_audit.py --dump sites     # inspect cite sites and printed numbers
+    .bibaudit/build_audit.py                     # write source_audit.tex (full draft)
+    .bibaudit/build_audit.py --document v3       # write source_audit_v3.tex (Thesis_v3)
+    .bibaudit/build_audit.py --dump records      # inspect the parsed evidence records
+    .bibaudit/build_audit.py --dump sites        # inspect cite sites and printed numbers
 
 Exit status is 1 when a .bbl disagrees with its source's cite keys, because the printed
 numbers would then be stale and the whole point of the document is that its numbers match.
@@ -31,13 +32,11 @@ ROOT = Path(__file__).resolve().parent.parent
 BIB = ROOT / "bibliography.bib"
 EVIDENCE = ROOT / "docs" / "Sources_evidence.md"
 SWEEPS = ROOT / "docs" / "LITERATURE_NOTES.md"
-OUT = ROOT / "source_audit.tex"
+HERE = Path(__file__).resolve().parent
 
 # Part 1's tick column is the one thing in the generated document a human writes, so it is the
 # one thing a regeneration must not destroy. The ticks are read back out of the previous
-# source_audit.tex and mirrored here, so an accidental delete or a checkout does not lose them.
-REVIEWED = Path(__file__).resolve().parent / "reviewed.txt"
-
+# audit .tex and mirrored to a sidecar, so an accidental delete or a checkout does not lose them.
 REVIEWED_KEYS: set[str] = set()
 
 # Matches a Part 1 row far enough to recover its key and its tick, and nothing else.
@@ -45,27 +44,68 @@ TICK_ROW = re.compile(r"(?m)^\d+ [^\n]*?\\texttt\{\\small ([^}]+)\}[^\n]*?"
                       r"\$\\(square|blacksquare)\$ \\\\$")
 
 # The three documents that cite this bibliography, with the short label used in the audit and
-# the .bbl that fixes their printed numbering. Order matters: the first is the audit's spine.
+# the .bbl that fixes their printed numbering. The first of ACTIVE is the audit's spine: its
+# printed numbers are the ones in square brackets, and its citing sentences are the ones shown.
 DOCUMENTS = [
     ("Ha_Vien_Mastersthesis_2026.tex", "draft", "Full draft"),
     ("Thesis_v3.tex", "v3", "Thesis_v3"),
     ("Thesis_Plan_v2.tex", "plan", "Plan"),
 ]
+BY_TAG = {tag: doc for doc in DOCUMENTS for tag in [doc[1]]}
+AUDIT_OUT = {
+    "draft": ROOT / "source_audit.tex",
+    "v3": ROOT / "source_audit_v3.tex",
+    "plan": ROOT / "source_audit_plan.tex",
+}
+AUDIT_REVIEWED = {
+    "draft": HERE / "reviewed.txt",
+    "v3": HERE / "reviewed_v3.txt",
+    "plan": HERE / "reviewed_plan.txt",
+}
+COL_HEADER = {"draft": "dr", "v3": "v3", "plan": "pl"}
 
 # The audit covers the canonical draft by default. It cites all 111 entries, so scoping to it
 # loses no entry, and the numbers a reader checks against are the submission document's own.
-# --all-documents widens to the skeleton and the plan, which number the same works differently.
+# --document v3 (or plan) scopes the spine to that file and writes a sibling audit beside it.
+# --all-documents widens to the other two, which number the same works differently.
 ACTIVE = DOCUMENTS[:1]
+OUT = AUDIT_OUT["draft"]
+REVIEWED = AUDIT_REVIEWED["draft"]
+SPINE_TAG = "draft"
+N_BIB = 0
 
 
 def multi() -> bool:
     return len(ACTIVE) > 1
 
 
+def other_docs() -> list:
+    """Documents in DOCUMENTS that are not the spine, in the table's usual order."""
+    return [d for d in DOCUMENTS if d[1] != SPINE_TAG]
+
+
+def configure(tag: str, all_documents: bool) -> None:
+    """Set the spine document, the output path, and which sources contribute citing sentences."""
+    global ACTIVE, OUT, REVIEWED, SPINE_TAG
+    if tag not in BY_TAG:
+        raise SystemExit(f"unknown --document {tag!r}; choose from {', '.join(BY_TAG)}")
+    spine = BY_TAG[tag]
+    rest = [d for d in DOCUMENTS if d[1] != tag]
+    ACTIVE = [spine] + rest if all_documents else [spine]
+    OUT = AUDIT_OUT[tag]
+    REVIEWED = AUDIT_REVIEWED[tag]
+    SPINE_TAG = tag
+
+
+def rebuild_cmd() -> str:
+    flag = "" if SPINE_TAG == "draft" else f" --document {SPINE_TAG}"
+    return f".bibaudit/build_audit.py{flag} && latexmk -pdf {OUT.name}"
+
+
 def read_review_marks() -> set[str]:
     """Recover the author's review ticks from the document about to be overwritten.
 
-    The previous source_audit.tex wins when it exists, because that is where the ticks are
+    The previous audit .tex wins when it exists, because that is where the ticks are
     made and it is the only copy that can record one being taken back. The sidecar is the
     fallback, for when the document has been deleted rather than edited.
     """
@@ -86,9 +126,9 @@ def read_review_marks() -> set[str]:
 
 
 def write_review_marks(keys: set[str]) -> None:
-    header = ("# Entries ticked as reviewed in Part 1 of source_audit.tex.\n"
+    header = (f"# Entries ticked as reviewed in Part 1 of {OUT.name}.\n"
               "# Mirrored by .bibaudit/build_audit.py so the ticks survive the document being\n"
-              "# regenerated or deleted. Edit the tick in source_audit.tex, not here.\n")
+              f"# regenerated or deleted. Edit the tick in {OUT.name}, not here.\n")
     REVIEWED.write_text(header + "".join(k + "\n" for k in sorted(keys)), encoding="utf-8")
 
 CITE = re.compile(r"\\(?:cite|citep|citet|textcite|parencite|autocite|footcite)\*?"
@@ -886,6 +926,28 @@ claim sits in the source}
 """
 
 
+def emit_preamble() -> str:
+    """The LaTeX header. The draft path returns the template unchanged so a default
+    regeneration cannot drift from the document already on disk."""
+    if SPINE_TAG == "draft":
+        return PREAMBLE
+    stem = ACTIVE[0][0].replace(".tex", "").replace("_", r"\_")
+    text = PREAMBLE
+    text = text.replace(
+        ".bibaudit/build_audit.py && latexmk -pdf source_audit.tex",
+        rebuild_cmd())
+    text = text.replace(".bibaudit/reviewed.txt", f".bibaudit/{REVIEWED.name}")
+    text = text.replace(
+        r"\fancyhead[L]{\small Citation audit}",
+        r"\fancyhead[L]{\small Citation audit of " + ACTIVE[0][2].replace("_", r"\_") + "}")
+    text = text.replace(
+        "\\title{Citation audit\\\\[2pt]\\large Every cited work, the sentence citing it, and where the\n"
+        "claim sits in the source}",
+        "\\title{Citation audit of \\texttt{" + stem + "}\\\\[2pt]\\large Every work it "
+        "cites, the sentence citing it, and where the\nclaim sits in the source}")
+    return text
+
+
 def tex_escape_plain(s: str) -> str:
     for ch in ("\\", "&", "%", "#", "_", "{", "}"):
         s = s.replace(ch, {"\\": "\\textbackslash{}"}.get(ch, "\\" + ch))
@@ -893,7 +955,7 @@ def tex_escape_plain(s: str) -> str:
 
 
 def build_document(bib, records, sites_by_doc, numbering, spine) -> str:
-    out = [PREAMBLE, f"\\date{{Generated {date.today().isoformat()}}}",
+    out = [emit_preamble(), f"\\date{{Generated {date.today().isoformat()}}}",
            "", "\\begin{document}", "\\maketitle", ""]
 
     total_sites = Counter()
@@ -931,21 +993,64 @@ def status_of(rec) -> str:
 
 
 def part0(bib, spine, numbering, levels, unlocated) -> str:
-    scope = (r"""Where a work is also cited by
-\texttt{Thesis\_v3} or by the plan, the number it carries in those documents is given as well,
-because their lists are shorter and number the same work differently."""
-             if multi() else
-             r"""It covers
+    if multi():
+        others = " or ".join(r"\texttt{" + tex_escape_plain(d[0].replace(".tex", "")) + "}"
+                             for d in other_docs())
+        scope = (rf"""Where a work is also cited by
+{others}, the number it carries in those documents is given as well,
+because their lists are shorter and number the same work differently.""")
+        opener = (r"""This document lists every work in \texttt{bibliography.bib}. It is ordered by the number the
+work carries in the thesis's reference list, so entry \textbf{[17]} here is reference
+\textbf{[17]} there and the two can be read side by side. """)
+    elif SPINE_TAG == "draft":
+        scope = (r"""It covers
 \texttt{Ha\_Vien\_Mastersthesis\_2026} alone, which is the submission document and the only one
 that cites every entry, so a number here is always that document's number and never needs
 translating.""")
+        opener = (r"""This document lists every work in \texttt{bibliography.bib}. It is ordered by the number the
+work carries in the thesis's reference list, so entry \textbf{[17]} here is reference
+\textbf{[17]} there and the two can be read side by side. """)
+    else:
+        stem = tex_escape_plain(ACTIVE[0][0].replace(".tex", ""))
+        n_unused = N_BIB - len(spine)
+        scope = (rf"""It covers
+\texttt{{{stem}}} alone. The shared \texttt{{bibliography.bib}} holds {N_BIB} entries and this
+document cites {len(spine)} of them. The remaining {n_unused} are used by the full draft and
+biblatex keeps them out of this PDF's reference list. A number here is always that document's
+number and never needs translating.""")
+        opener = (rf"""This document lists every work that \texttt{{{stem}}} cites. It is ordered by the number the
+work carries in that document's reference list, so entry \textbf{{[17]}} here is reference
+\textbf{{[17]}} there and the two can be read side by side. """)
+
+    regen = (rebuild_cmd().replace("_", r"\_").replace("&", r"\&")
+             .replace("--", r"-{}-"))
+    coverage = (f"{len(spine)} entries, every one of them cited in the thesis.\n"
+                f"{levels['A']} at level~A, {levels['B']} at level~B, {levels['C']} at level~C, and\n"
+                f"{len(unlocated)} with no located passage.\n")
+    if SPINE_TAG != "draft":
+        coverage = (f"{len(spine)} entries cited in this document, out of {N_BIB} in the shared "
+                    f"bibliography.\n"
+                    f"{levels['A']} at level~A, {levels['B']} at level~B, {levels['C']} at level~C, and\n"
+                    f"{len(unlocated)} with no located passage.\n")
+    extra = ""
+    if multi():
+        extra = "".join(
+            f"\\texttt{{{tex_escape_plain(label)}}} cites {len(numbering.get(tag, {}))} of them. "
+            if tag != SPINE_TAG else ""
+            for _, tag, label in other_docs()
+        )
+        extra = extra.replace(". ", ".\n") if extra else extra
+        # Keep the historical two-document sentence when the spine is the draft.
+        if SPINE_TAG == "draft":
+            extra = (f"""\\texttt{{Thesis\\_v3}} cites
+{len(numbering.get('v3', {}))} of them and the plan {len(numbering.get('plan', {}))}.
+""")
+
     return r"""
 \section*{How to read this document}
 \addcontentsline{toc}{section}{How to read this document}
 
-This document lists every work in \texttt{bibliography.bib}. It is ordered by the number the
-work carries in the thesis's reference list, so entry \textbf{[17]} here is reference
-\textbf{[17]} there and the two can be read side by side. """ + scope + r"""
+""" + opener + scope + r"""
 
 Each entry answers three questions in order. What is the source. Which sentences cite it, printed
 as they stand in the thesis with the citation shown as \citemark{n}. And what the source itself
@@ -979,7 +1084,7 @@ shows the value. Evidence comes from \texttt{docs/Sources\_evidence.md}, with
 Regenerate with:
 
 \begin{quote}\ttfamily\small
-.bibaudit/build\_audit.py \&\& latexmk -pdf source\_audit.tex
+""" + regen + r"""
 \end{quote}
 
 \textbf{One note on punctuation.} The thesis style forbids em dashes and prose semicolons
@@ -988,12 +1093,7 @@ from cited sources keep their original punctuation, because altering a quotation
 Any dash or semicolon below therefore sits inside quoted source material and is deliberate.
 
 \vspace{0.6em}
-\textbf{Coverage.} """ + f"""{len(spine)} entries, every one of them cited in the thesis.
-{levels['A']} at level~A, {levels['B']} at level~B, {levels['C']} at level~C, and
-{len(unlocated)} with no located passage.
-""" + ("" if not multi() else f"""\\texttt{{Thesis\\_v3}} cites
-{len(numbering.get('v3', {}))} of them and the plan {len(numbering.get('plan', {}))}.
-""")
+\textbf{Coverage.} """ + coverage + extra
 
 
 RIGHT = ">{\\raggedleft\\arraybackslash}"
@@ -1005,7 +1105,8 @@ def part1(bib, records, spine, numbering, total_sites) -> str:
     # exist when more than one document is in scope. The freed width goes to the key.
     cols = [(RIGHT + "p{7mm}", r"\textbf{\#}")]
     if multi():
-        cols += [(RIGHT + "p{6mm}", r"\textbf{v3}"), (RIGHT + "p{6mm}", r"\textbf{pl}")]
+        for _, tag, _ in other_docs():
+            cols.append((RIGHT + "p{6mm}", r"\textbf{" + COL_HEADER[tag] + "}"))
     cols += [("p{%dmm}" % (44 if multi() else 50), r"\textbf{key}"),
              ("p{%dmm}" % (25 if multi() else 31), r"\textbf{source}"),
              ("p{20mm}", r"\textbf{kind}"),
@@ -1023,9 +1124,9 @@ def part1(bib, records, spine, numbering, total_sites) -> str:
         # A blank cell says "not cited by that document" and "no level assigned". A dash would
         # read as punctuation, and this repository reserves that mark for ranges and names.
         level = rec["level"] if rec and rec["level"] else ""
-        cells = [str(numbering["draft"][key])]
+        cells = [str(numbering[SPINE_TAG][key])]
         if multi():
-            for tag in ("v3", "plan"):
+            for _, tag, _ in other_docs():
                 n = numbering.get(tag, {}).get(key)
                 cells.append(str(n) if n else "")
         cells += [
@@ -1039,12 +1140,19 @@ def part1(bib, records, spine, numbering, total_sites) -> str:
         ]
         rows.append(" & ".join(cells) + r" \\")
 
-    scope = (r"""\textbf{v3} and \textbf{pl} give
+    if multi() and SPINE_TAG == "draft":
+        scope = (r"""\textbf{v3} and \textbf{pl} give
 the number the same work carries in \texttt{Thesis\_v3} and in the plan, and a blank means that
 document does not cite it. \textbf{cit} counts the places the work is cited across all three
-documents."""
-             if multi() else
-             r"""\textbf{cit} counts the places the thesis cites it.""")
+documents.""")
+    elif multi():
+        bits = " and ".join(r"\textbf{" + COL_HEADER[tag] + "}" for _, tag, _ in other_docs())
+        scope = (bits + r""" give
+the number the same work carries in the other documents, and a blank means that
+document does not cite it. \textbf{cit} counts the places the work is cited across all three
+documents.""")
+    else:
+        scope = r"""\textbf{cit} counts the places the thesis cites it."""
     return (r"""
 \clearpage
 \section*{Part 1. Master checklist}
@@ -1088,11 +1196,11 @@ each located by the chapter or section it sits in.
     for key in spine:
         entry = bib[key]
         rec = records.get(key)
-        num = numbering["draft"][key]
+        num = numbering[SPINE_TAG][key]
         also = []
-        for tag, label in (("v3", "Thesis\\_v3"), ("plan", "Plan")):
+        for _, tag, label in other_docs():
             if key in numbering.get(tag, {}):
-                also.append(f"{label} [{numbering[tag][key]}]")
+                also.append(f"{tex_escape_plain(label)} [{numbering[tag][key]}]")
         badge = tex_escape_plain(source_kind(entry))
         if rec and rec["level"]:
             badge += f", level~{rec['level']}"
@@ -1268,9 +1376,9 @@ def part3(bib, records, spine, numbering, unlocated, level_c) -> str:
         if not keys:
             return "None."
         items = []
-        for k in sorted(keys, key=lambda k: numbering["draft"][k]):
-            marks = f"[{numbering['draft'][k]}]"
-            if k in numbering.get("v3", {}):
+        for k in sorted(keys, key=lambda k: numbering[SPINE_TAG][k]):
+            marks = f"[{numbering[SPINE_TAG][k]}]"
+            if SPINE_TAG == "draft" and k in numbering.get("v3", {}):
                 marks += f", v3 [{numbering['v3'][k]}]"
             items.append(f"\\item \\texttt{{{tex_escape_plain(k)}}}\\hfill {marks}")
         return ("\\begin{itemize}[leftmargin=1.4em,itemsep=0pt,topsep=2pt]\n"
@@ -1280,17 +1388,50 @@ def part3(bib, records, spine, numbering, unlocated, level_c) -> str:
     for keys, where, why, fix in ATTACHMENT_DEFECTS:
         nums = []
         for k in [x.strip() for x in keys.split(",")]:
-            if k in numbering.get("v3", {}):
-                nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, \\texttt{{Thesis\\_v3}} "
-                            f"[{numbering['v3'][k]}], thesis [{numbering['draft'][k]}]")
+            if SPINE_TAG == "draft":
+                if k in numbering.get("v3", {}):
+                    nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, \\texttt{{Thesis\\_v3}} "
+                                f"[{numbering['v3'][k]}], thesis [{numbering['draft'][k]}]")
+                else:
+                    nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, thesis [{numbering['draft'][k]}]")
             else:
-                nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, thesis [{numbering['draft'][k]}]")
+                n = numbering.get(SPINE_TAG, {}).get(k)
+                if n:
+                    nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, this document [{n}]")
+                else:
+                    nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, not cited in this document")
         defects.append(f"\\item \\textbf{{{where}.}}\\par {'. '.join(nums)}.\\par {why}"
                        f"\\par\\textit{{Closed.}} {fix}")
 
     benign = "\n".join(f"\\item \\textbf{{{name}.}} {text}" for name, text in BENIGN)
 
     v3_unlocated = [k for k in unlocated if k in numbering.get("v3", {})]
+    if not unlocated:
+        unlocated_blurb = "None. This list is closed."
+    elif SPINE_TAG == "draft":
+        unlocated_blurb = (
+            f'''These {len(unlocated)} entries carry a sweep note rather than a located passage, so no page or
+clause is given and no evidence level is assigned. {len(v3_unlocated)} of them are cited by
+\\texttt{{Thesis\\_v3}}.''')
+    else:
+        unlocated_blurb = (
+            f'''These {len(unlocated)} entries carry a sweep note rather than a located passage, so no page or
+clause is given and no evidence level is assigned.''')
+
+    if SPINE_TAG == "draft" or "bugden2022rust" in numbering.get(SPINE_TAG, {}):
+        preprint = r"""
+\subsection*{The one preprint still load-bearing}
+
+\texttt{bugden2022rust} is the last arXiv-only entry carrying weight. It is cited twice and both
+times beside a peer-reviewed source. Replacing it with a peer-reviewed equivalent is optional.
+"""
+    else:
+        preprint = r"""
+\subsection*{The one preprint still load-bearing}
+
+\texttt{bugden2022rust} is the last arXiv-only entry carrying weight in the full draft. This
+document does not cite it.
+"""
     return (r"""
 \clearpage
 \section*{Part 3. Findings and open items}
@@ -1316,10 +1457,7 @@ what each surviving citation now sits next to.""" + r"""
 
 \subsection*{Entries whose supporting passage was never located}
 
-""" + f"""{'None. This list is closed.' if not unlocated else
-f'''These {len(unlocated)} entries carry a sweep note rather than a located passage, so no page or
-clause is given and no evidence level is assigned. {len(v3_unlocated)} of them are cited by
-\\texttt{{Thesis\\_v3}}.'''}
+""" + unlocated_blurb + r"""
 
 The list was six entries until 31 August 2026, all of them student theses or a paywalled paper, and
 three of the defects above sat on three of those keys. Where nobody had written down what the
@@ -1336,12 +1474,7 @@ is nothing short of the full text to read. Three have no DOI because the claim i
 clause or a book chapter rather than a finding, and in each of those the citation sits beside a
 verified one that carries the same point.
 
-""" + keylist(level_c) + r"""
-
-\subsection*{The one preprint still load-bearing}
-
-\texttt{bugden2022rust} is the last arXiv-only entry carrying weight. It is cited twice and both
-times beside a peer-reviewed source. Replacing it with a peer-reviewed equivalent is optional.
+""" + keylist(level_c) + preprint + r"""
 
 \subsection*{Differences that look like defects and are not}
 
@@ -1361,6 +1494,55 @@ def part4(bib, records, spine, numbering, levels, total_sites, n_commands) -> st
     # A citation command can name several works, so the two counts differ and the difference
     # is the number of grouped citations.
     key_occurrences = sum(total_sites.values())
+    unused = [k for k in bib if k not in numbering.get(SPINE_TAG, {})]
+    if unused:
+        cite_para = (
+            f"The shared bibliography holds {N_BIB} entries. This document cites {len(spine)} of "
+            f"them, so there is no citation without an entry. The remaining {len(unused)} stay out "
+            f"of the printed list, which is what biblatex is meant to do on a shared "
+            f"\\texttt{{.bib}}. The document carries {n_commands} citation commands naming "
+            f"{key_occurrences} works between them, since one command often cites several.\n"
+            f"{peer} of the cited entries ({100 * peer / len(spine):.0f}\\,\\%) are in "
+            f"peer-reviewed venues.\n")
+        unused_rows = "\n".join(
+            "\\texttt{\\small " + tex_escape_plain(k) + "} & {\\small " +
+            source_kind(bib[k]) + "} & {\\small " + checklist_label(k, bib[k]) + r"} \\"
+            for k in unused)
+        unused_block = r"""
+\vspace{1em}
+\subsection*{Not cited in this document}
+The """ + str(len(unused)) + r""" keys below are in \texttt{bibliography.bib} and the full draft
+cites every one of them. They do not appear in this document's reference list.
+
+\begin{small}
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{@{}p{58mm}p{28mm}p{70mm}@{}}
+\toprule
+\textbf{key} & \textbf{kind} & \textbf{source} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{key} & \textbf{kind} & \textbf{source} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+""" + unused_rows + r"""
+\end{longtable}
+\end{small}
+"""
+    else:
+        cite_para = (
+            f"Every entry in the bibliography is cited, so there is no orphan and no citation "
+            f"without an\nentry. The thesis carries {n_commands} citation commands naming "
+            f"{key_occurrences} works between\nthem, since one command often cites several.\n"
+            f"{peer} entries ({100 * peer / len(spine):.0f}\\,\\%) are in peer-reviewed venues.\n")
+        unused_block = ""
+    extra = ""
+    if multi() and SPINE_TAG == "draft":
+        extra = (f"""\\texttt{{Thesis\\_v3}} cites
+{len(numbering.get('v3', {}))} of the {len(spine)} and the plan {len(numbering.get('plan', {}))}.
+""")
     return (r"""
 \clearpage
 \section*{Part 4. Coverage}
@@ -1393,13 +1575,7 @@ No located passage & {levels['none'] + levels['absent']} \\\\
 
 \\vspace{{1em}}
 
-Every entry in the bibliography is cited, so there is no orphan and no citation without an
-entry. The thesis carries {n_commands} citation commands naming {key_occurrences} works between
-them, since one command often cites several.
-{peer} entries ({100 * peer / len(spine):.0f}\\,\\%) are in peer-reviewed venues.
-""" + ("" if not multi() else f"""\\texttt{{Thesis\\_v3}} cites
-{len(numbering.get('v3', {}))} of the {len(spine)} and the plan {len(numbering.get('plan', {}))}.
-"""))
+""" + cite_para + extra + unused_block)
 
 
 # --------------------------------------------------------------------------- main
@@ -1410,15 +1586,19 @@ def main() -> int:
     ap.add_argument("--dump", choices=["records", "sites"], help="inspect parsed input")
     ap.add_argument("--allow-stale", action="store_true",
                     help="emit even when a .bbl disagrees with its source (numbers may be wrong)")
+    ap.add_argument("--document", choices=[d[1] for d in DOCUMENTS], default="draft",
+                    help="spine document whose printed numbers the audit uses "
+                         "(default: draft, writes source_audit.tex)")
     ap.add_argument("--all-documents", action="store_true",
-                    help="also cover Thesis_v3 and the plan, with their own printed numbers")
+                    help="also cover the other thesis documents, with their own printed numbers")
     args = ap.parse_args()
 
-    global ACTIVE
-    ACTIVE = DOCUMENTS if args.all_documents else DOCUMENTS[:1]
+    configure(args.document, args.all_documents)
 
+    global N_BIB
     bib = parse_bib(read(BIB))
     bib_keys = list(bib)
+    N_BIB = len(bib_keys)
 
     sites_by_doc, numbering, stale = {}, {}, []
     for tex_name, tag, label in ACTIVE:
@@ -1452,7 +1632,10 @@ def main() -> int:
         print("WARNING: " + line, file=sys.stderr)
 
     records = build_records(bib)
-    spine = sorted(bib_keys, key=lambda k: numbering["draft"].get(k, 10**6))
+    if SPINE_TAG == "draft":
+        spine = sorted(bib_keys, key=lambda k: numbering["draft"].get(k, 10**6))
+    else:
+        spine = [k for k, _ in sorted(numbering[SPINE_TAG].items(), key=lambda kv: kv[1])]
 
     if args.dump == "records":
         origins = Counter(r["origin"] for r in records.values())
@@ -1482,14 +1665,17 @@ def main() -> int:
     write_review_marks(REVIEWED_KEYS)
     n_rec = sum(1 for k in spine if k in records)
     scope = ", ".join(label for _, _, label in ACTIVE)
+    n_unused = N_BIB - len(spine)
     print(f"wrote {OUT.relative_to(ROOT)}: {len(spine)} entries, {n_rec} with an evidence record, "
-          f"{sum(len(v) for v in sites_by_doc.values())} citation sites")
+          f"{sum(len(v) for v in sites_by_doc.values())} citation sites"
+          + (f", {n_unused} in the shared bibliography but not cited here" if n_unused else ""))
     carried = len(REVIEWED_KEYS & set(spine))
     held = len(REVIEWED_KEYS) - carried
     print(f"review ticks: {carried} of {len(spine)} entries marked reviewed, carried over"
           + (f" ({held} held for keys not currently cited)" if held else ""))
+    others = ", ".join(label for _, tag, label in other_docs())
     print(f"scope: {scope}"
-          + ("" if multi() else "  (pass --all-documents to add Thesis_v3 and the plan)"))
+          + ("" if multi() else f"  (pass --all-documents to add {others})"))
     print(f"prose style: {DASH_KEPT} dashes and {SEMI_KEPT} semicolons left standing inside "
           f"quoted source material, where rewriting them would misquote the source")
     return 0
