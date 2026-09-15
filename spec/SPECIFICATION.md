@@ -1,7 +1,7 @@
 # Shared Specification: UE Context Management Service
 
-**Version:** 0.1 (DRAFT, not yet frozen)
-**Status:** Draft for supervisor review. Once approved, bump to 1.0 and tag `spec-v1.0`.
+**Version:** 1.0
+**Status:** Frozen. Supervisor review is complete. Tag: `spec-v1.0`. Changes after this version are versioned amendments.
 **Applies to:** the C++ (`cpp/`) and Rust (`rust/`) implementations.
 
 > This document is the *fairness baseline* of the thesis. Both implementations MUST
@@ -518,8 +518,9 @@ The model also records, in its own header, the four places where this document u
 behaviour and an independent reader could reasonably have written something else: the three
 error precedences named above, plus `abort_reconfigure` restoring `state` but not
 `serving_cell_id`. §5.2 calls the abort path "state restored", which reads as though the cell
-should roll back too; it does not, in either implementation, and `states.vec` pins that. **If
-this specification is amended before the v1.0 freeze, §5.2's wording is the item to settle.**
+should roll back too; it does not, in either implementation, and `states.vec` pins that. The
+v1.0 freeze keeps that wording: abort restores `state` only, as the table in §5.2 and the
+notes in §4.3/§6.5 already state. Later amendments are versioned.
 
 ### 11.5 Dynamic analysis and coverage (added 2026-08)
 
@@ -819,7 +820,11 @@ that produced the misleading ratios would not have been reportable.
 
 ## 13. Freeze checklist
 
-- [ ] Supervisor review of data model, state machine, and API. *(Internal design review of
+Frozen 2026-09-15 as v1.0, tag `spec-v1.0`. Changes after this version are versioned
+amendments (1.1, 1.2, ...) with a dated note in this section. Do not silently edit a
+frozen requirement.
+
+- [x] Supervisor review of data model, state machine, and API. *(Internal design review of
       §4–§6 carried out 2026-08-17 against both implementations. It found no defect in the
       state machine or the error model, and six places where this document did not describe
       what the code does; all six are now fixed here: `ReconfigParams` was undefined (§4.3);
@@ -829,24 +834,26 @@ that produced the misleading ratios would not have been reportable.
       `count()` had no stated return type, atomicity, or snapshot semantics (§6.7); and §7.1
       prohibited submits outside the running window without a mechanism, which was a
       heap-use-after-free in C++ and a panic in Rust — now guarded in both. **Supervisor
-      sign-off still pending.**)*
-- [ ] Confirm concurrency model (thread-per-shard + bounded blocking queue) is acceptable.
-- [ ] Confirm default parameters and sweep ranges with the evaluation plan.
-- [x] Confirm the conformance-vector format and seed an initial suite. *(Format + `basic.vec`/`shards.vec` seeded; shared runner passes for both implementations. Supervisor sign-off on the format still pending.)*
-- [ ] On approval: set Version 1.0, tag `spec-v1.0`, and treat changes as versioned amendments.
+      sign-off recorded 2026-09-15.**)*
+- [x] Confirm concurrency model (thread-per-shard + bounded blocking queue) is acceptable.
+- [x] Confirm default parameters and sweep ranges with the evaluation plan.
+- [x] Confirm the conformance-vector format and seed an initial suite. *(Format + `basic.vec`/`shards.vec` seeded; shared runner passes for both implementations. Supervisor sign-off on the format recorded 2026-09-15 with the rest of the freeze.)*
+- [x] On approval: set Version 1.0, tag `spec-v1.0`, and treat changes as versioned amendments. *(Done 2026-09-15.)*
 
 ---
 
-## Appendix A: Open decisions to confirm
+## Appendix A: Frozen design decisions
 
-1. **Reconfiguration richness.** The state machine includes a `Reconfiguring` state with
-   begin/complete/abort. If the supervisor prefers a leaner model, `Reconfiguring` can be
-   dropped, leaving `Idle`/`Connected` only. (Kept for now because handover is central to
-   UE context management and gives the workload a non-trivial procedure.)
-2. **Queue policy under overload.** Currently *bounded + blocking* (backpressure). The
-   alternative (bounded + reject with `CapacityExceeded`) would measure loss instead of
-   latency growth. Blocking is chosen to make tail latency the observable.
-3. **`std::expected` availability.** Requires C++23; if the pinned compiler lacks it, fall
-   back to a small hand-rolled `Expected`/status type (recorded in §12).
-4. **DRB list dynamic vs fixed.** Chosen dynamic to exercise the allocator for RQ3; can be
-   switched to a fixed inline array if allocator noise is undesirable.
+These four choices were open at v0.1 and are locked at v1.0. They record what was
+confirmed, not options still on the table.
+
+1. **Reconfiguration richness.** The `Reconfiguring` state with begin/complete/abort is
+   kept. Handover is central to UE context management and gives the workload a
+   non-trivial procedure.
+2. **Queue policy under overload.** Bounded + blocking (backpressure) is kept. Blocking
+   makes tail latency the observable. The reject-with-`CapacityExceeded` alternative would
+   have measured loss instead of latency growth.
+3. **`std::expected` availability.** C++23 is the pinned language, and `std::expected` is
+   used. No hand-rolled fallback was needed.
+4. **DRB list dynamic vs fixed.** Dynamic (`std::vector` / `Vec`) is kept, so the
+   allocator study (RQ3) observes realistic per-context allocation.

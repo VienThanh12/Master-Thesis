@@ -8,7 +8,7 @@ trees. Run instructions live in each directory's own `README.md`.
 
 | Path | Role |
 | --- | --- |
-| `spec/SPECIFICATION.md` | Language-neutral specification of the UECM service. Both implementations must conform. Forced-idiom divergences are logged. Still v0.1 pending supervisor freeze. |
+| `spec/SPECIFICATION.md` | Language-neutral specification of the UECM service. Both implementations must conform. Forced-idiom divergences are logged. Frozen at v1.0 (tag `spec-v1.0`). |
 | `spec/conformance/model.py` | Independent Python reference model. **Never** derive its expectations from `cpp/` or `rust/`. |
 | `spec/conformance/genvec.py` | Generated-vector campaign. |
 | `spec/conformance/vectors/` | Hand-written parity vectors. |

@@ -80,7 +80,7 @@ reader-facing view of that record.
 ```
 .
 ├── spec/              Frozen specification + language-neutral conformance suite (the fairness baseline)
-│   ├── SPECIFICATION.md   The fairness baseline (v0.1 draft, pending supervisor freeze)
+│   ├── SPECIFICATION.md   The fairness baseline (v1.0, tag spec-v1.0)
 │   └── conformance/       Independent Python reference model, vector generator, 3-phase parity harness
 ├── cpp/               C++23 implementation of the UECM service (also sanitise.sh, coverage.sh)
 ├── rust/              Rust implementation, byte-for-byte parity with cpp/ (also miri.sh, coverage.sh)
@@ -420,7 +420,7 @@ from `diagrams/png/`, which `diagrams/render.py` writes.
 
 | Area | State |
 | ---- | ----- |
-| Specification + parity | Both languages pass and agree byte-for-byte on the shared conformance suite: hand-written vectors plus a generated campaign whose expectations come from an independent Python model, with mirrored per-language invariant and concurrency suites. Spec is v0.1 draft, pending supervisor freeze |
+| Specification + parity | Both languages pass and agree byte-for-byte on the shared conformance suite: hand-written vectors plus a generated campaign whose expectations come from an independent Python model, with mirrored per-language invariant and concurrency suites. Spec is frozen at v1.0 (tag `spec-v1.0`) |
 | RQ2 (safety) | Final. Fault-injection taxonomy complete across fourteen defect classes, seven inside the guarantee and seven outside it, plus Loom and Shuttle on the two concurrency boundary classes and Miri on the unsafe one |
 | RQ4 (migration) | Final. FFI prototype, interleaved native-vs-seam measurement of one real operation, seam size, and the three adoption-cost axes beyond the seam (build time, static footprint, third-party surface) |
 | RQ1/RQ3 (performance) | Complete. The matched bare-metal campaign ran on 27 August 2026 and is the reported dataset, so the per-language saturation limits, the overload divergence, the resource comparisons and the far tail below saturation are all resolved on one host at the canonical design. Rust's pooled p99.99 sits below C++'s at every load the two separate. Jitter and the p99.99 column are reported. One question the data raised remains open: whether the peak-RSS allocator effect tracks the transparent-hugepage policy |

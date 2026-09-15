@@ -94,7 +94,7 @@ Three datasets now have distinct jobs and the prefixes keep them apart:
 | --- | --- | --- | --- |
 | **A** | ~~Rewrite the abstract yourself, then set `\abstractunaidedtrue`~~ **Done** (19th pass, 31 Aug afternoon). Printed statement matches. A model may not flip the switch; it was not flipped by one | — | Closed |
 | **A2** | ~~Short optional title on §2.2~~ **Done.** Header now reads `2.2. LATENCY AND PREDICTABILITY`. Zero `Overfull` during `\output` | — | Closed |
-| **B** | Send **spec + plan** to supervisors; settle Nokia "what can be published". Same meeting freezes the spec: Appendix A is still open (reconfiguration richness, overload queue policy, `std::expected`, DRB list), and Phase 2 still waits on `spec-v1.0` | Email + meeting | You |
+| **B** | ~~Send spec + plan to supervisors and freeze the spec.~~ **Spec freeze done** (15 Sep 2026): v1.0, tag `spec-v1.0`, Appendix A locked. Remaining: settle Nokia "what can be published" | Email | You |
 | **C** | ~~Companion docs: fate of `archive/thesis-vi`~~ **Done** (18 Aug). Decided against as a deliverable; citations-as-`[?]` is why | — | Closed |
 | **D** | Full proofread pass | Half day+ | You |
 | **E** | Transparent-hugepage experiment, the one open question the data raised | 1 machine-hour | You or agent |
@@ -125,7 +125,7 @@ pass.
 
 **Do put here (now in the table above).** The toolchain disclosure and the three companion edits
 are one pass (**O**, **P**, **Q**, **R**), then the detector so they do not come back (**S**).
-The supervisor send and spec freeze are one meeting (**B**). The skeleton abstract is written
+The spec freeze is done (**B**, tag `spec-v1.0`). Nokia publishability is still open. The skeleton abstract is written
 (**I**). The citation-next-to-clause read is now due (**L**). The two supervisor PDFs are not
 rebuilt by `refresh_thesis.sh` (**M**, **J**). The colloquium is a date, not a build (**N**).
 Your proofread is the only remaining risk no agent can take (**D**).
@@ -506,8 +506,8 @@ latexmk -C                   # clean build artifacts
       op, `ue_id==0` on all ten ops, payload boundary, error precedence), `capacity.vec`
       (per-shard `CapacityExceeded`), `routing.vec` (§10.1 I1), `shards13.vec`
       (non-power-of-two shard count). Both impls pass all seven and agree byte-for-byte.
-- [ ] Review spec DRAFT v0.1 with supervisors; resolve Appendix A open decisions
-- [ ] On approval: bump to v1.0 and tag `spec-v1.0` (FREEZE)
+- [x] Review spec DRAFT v0.1 with supervisors; resolve Appendix A open decisions *(Done 15 Sep 2026: Appendix A locked as frozen design decisions)*
+- [x] On approval: bump to v1.0 and tag `spec-v1.0` (FREEZE) *(Done 15 Sep 2026)*
 
 ## Phase 3 - C++ implementation
 - [x] Scaffold CMake project (C++23, STL, standard threading) + smoke tests (2/2 pass)
@@ -812,9 +812,9 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       figures and bibliography as the draft. Not supervisor-facing and not a submission
       candidate. Run `.compress/shortcheck.py` after every edit.
 - [ ] `Thesis_Plan_v2.tex` - the plan, dated **28 August 2026**, estimated completion 11 November
-      2026. Status table matches the repo on the campaigns. The September timeline row still
+      2026. Status table: spec row frozen at v1.0 (15 Sep 2026). The September timeline row still
       says "Abstract, full proofread, draft to supervisors", which is open-work item **J** now
-      that both abstracts are done. Rebuild when the row moves.
+      that both abstracts are done. Rebuild when the September row moves.
 - [x] Title-page fields agree across the two live documents: both use `HYthesisML.cls` with
       `\supervisors{Prof. Keijo Heljanko, Christoph Luneburg, Petteri Kotimaa}` and
       `\examiners{Prof. Keijo Heljanko}`. The class prints examiners nowhere. Fill the second
@@ -1584,7 +1584,7 @@ by "the artefacts" once the repository keeps moving after submission.
 ### Notes / open questions
 - Timeline: writing, implementation, and both bare-metal campaigns are complete (26 and 27 August),
   ahead of the plan's September slot. Remaining work is the draft's editing items (**O**–**S**,
-  source remediating, grade waits on a re-read), spec freeze on supervisor review, the citation
+  source remediating, grade waits on a re-read), the citation
   re-read (**L**), the author's proofread, sending the bundle, and submission.
   `Thesis_Plan_v2.tex` is dated 28 August. Its September row still says "Abstract"; that is
   open-work item **J**.
@@ -1596,7 +1596,7 @@ by "the artefacts" once the repository keeps moving after submission.
   measurement: do not re-run it on a loaded machine without restoring `ffi/results/` afterwards
   (AGENT.md §5).
 - **Remaining critical path:** (0) re-grade the draft after the O–S remediation, then the detector
-  (**S**), (1) send spec + plan, freeze spec Appendix A, settle Nokia publishability (**B**),
+  (**S**), (1) settle Nokia publishability (**B**),
   (2) re-read `Thesis_v3` citations against the clauses they now sit next to (**L**), (3) rebuild
   the two supervisor PDFs and fix the plan's September row (**M**, **J**), (4) full proofread
   (**D**), (5) optional hugepage experiment (**E**), (6) colloquium date (**N**), (7) final PDF +
