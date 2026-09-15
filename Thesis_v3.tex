@@ -604,7 +604,7 @@ Section~\ref{sec:workload} walks each UE through that machine.
         (conn)  edge[bend left=18] node[above,font=\scriptsize]{begin} (reconf)
         (reconf) edge[bend left=18] node[below,font=\scriptsize]{complete / abort} (conn)
         (conn)  edge node[right,font=\scriptsize,pos=0.45]{release} (rel)
-        (idle)  edge[bend right=32] node[below,font=\scriptsize,pos=0.6]{release} (rel);
+        (idle)  edge[bend right=32] node[below=8pt,font=\scriptsize,pos=0.55]{release} (rel);
   \path (conn) edge[loop above] node[font=\scriptsize]{signal / add DRB} (conn);
 \end{tikzpicture}
 \caption[UE-context lifecycle state machine]{UE-context lifecycle state machine.
