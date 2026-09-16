@@ -83,6 +83,13 @@ run is a statement about the lines the suite reaches. Current result: **94.6%** 
 library lines, with `ShardCore` and `Service` at 100%. Not comparable with the
 Rust figure — different tools counting different things.
 
+An agent pass on 16 September 2026 is in [`docs/CODE_REVIEW.md`](../docs/CODE_REVIEW.md).
+It does not close TODO item D2 (independent expert review). Edges the suite does not
+exercise: `shard_index(_, 0)` is `% 0` (undefined behaviour; `Service` clamps
+`n_shards` to 1), and concurrent `shutdown()` while another thread is still submitting
+races on the plain `running_` flag. Sequential lifecycle misuse is guarded. Benches
+join producers before shutdown.
+
 ## Benchmark (spec §3/§10)
 ```bash
 cmake --build build --target bench
