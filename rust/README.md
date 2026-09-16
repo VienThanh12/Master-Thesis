@@ -69,17 +69,26 @@ Not comparable with the C++ figure — different tools counting different things
 
 ## Notes on parity with C++
 - **Hashing** is bit-for-bit identical: `hash.rs` forces little-endian byte order so the
-  `HashMap` hasher agrees with `fnv1a_64` (checked in `conformance.rs`).
+  `HashMap` hasher agrees with `fnv1a_64` (checked in `conformance.rs`). The free function
+  `shard_index(_, 0)` panics. `Service` clamps `n_shards == 0` to 1. Conformance vectors
+  never pass 0.
 - **Concurrency**: bounded blocking backpressure via `std::sync::mpsc::sync_channel`; one-shot
   completions via a per-request `channel()`; each worker owns its `ShardCore` (shared-nothing),
-  with only the atomic `activity_seq` shared through an `Arc<AtomicU64>`.
-- **Safety**: the crate contains **zero `unsafe`**. Safe Rust guarantees data-race freedom at
-  compile time (`Send`/`Sync`), so no ThreadSanitizer run is needed. Miri has been run anyway
-  (`./miri.sh`) and is clean, so the C++ variant is not the only one with dynamic-analysis evidence.
+  with only the atomic `activity_seq` shared through an `Arc<AtomicU64>`. At
+  `queue_capacity == 0` this is a rendezvous channel. C++ `BoundedQueue` clamps 0 to 1, and
+  so does the mutex-queue probe. Default and campaign capacity is 1024.
+- **Safety**: `src/` contains **zero `unsafe`**. `src/lib.rs` does not currently carry
+  `#![forbid(unsafe_code)]`, so a later `unsafe` block would compile until that attribute is
+  added. Safe Rust guarantees data-race freedom at compile time (`Send`/`Sync`), so no
+  ThreadSanitizer run is needed. Miri has been run anyway (`./miri.sh`) and is clean, so the
+  C++ variant is not the only one with dynamic-analysis evidence.
 - **Dependency-freedom is deliberate and is kept.** The Loom and Shuttle models of the RQ2
   boundary defect classes live in a separate crate, `faults/rust-model-checking/`, rather than as
   dev-dependencies here: the dependency-free core is load-bearing for the RQ4 supply-chain
   argument and should not be weakened for models that never touch the library.
+
+An agent pass on 16 September 2026 is in [`docs/CODE_REVIEW.md`](../docs/CODE_REVIEW.md). It
+does not close TODO item D2 (independent expert review).
 
 ## Benchmark (spec §3/§10)
 The benchmark lives as an example (so the library stays dependency-free) and uses the
