@@ -64,6 +64,17 @@ vectors pin that agreement so a later change on one side cannot drift silently.
 target, which `lookup` reports. Both are now stated normatively in §4.3/§6.5 of the
 specification rather than being inferable only from these vectors.
 
+Two configuration edges are **not** in this family, and the 16 September 2026
+implementation review recorded them (`docs/CODE_REVIEW.md`, spec §12):
+
+- `n_shards=0`. The `shard` op uses the raw config value. `Service` clamps to 1.
+  The free `shard_index` does not.
+- `queue_capacity=0`. C++ clamps to 1. The compared Rust arm is a rendezvous
+  channel. Default and campaign capacity is 1024.
+
+`genvec.py` never draws either value. Do not add a vector that would make the two
+runners disagree until the compared Rust arm clamps, if it ever does.
+
 Properties that a sequential transcript cannot express — the queue and completion
 machinery of §7, FIFO execution (§10.2 O1), the fields `lookup` does not print,
 and the activity-sequence discipline of §10.3 — are covered instead by the
