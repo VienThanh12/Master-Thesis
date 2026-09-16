@@ -73,7 +73,9 @@ verification workflow. Read it before touching thesis text, figures, or artefact
 [`docs/ASSESSMENT.md`](docs/ASSESSMENT.md) holds the criterion-by-criterion self-assessment and
 [`docs/TODO.md`](docs/TODO.md) the phase checklist and open items. The durable citation-audit
 record is [`docs/Sources_evidence.md`](docs/Sources_evidence.md). `source_audit.pdf` is the
-reader-facing view of that record.
+reader-facing view of that record. [`docs/CODE_REVIEW.md`](docs/CODE_REVIEW.md) is an agent
+pass over the production C++ and Rust cores (16 September 2026). It is not the independent
+expert review in TODO item D2.
 
 ## Repository layout
 
@@ -110,6 +112,7 @@ reader-facing view of that record.
 │   ├── LITERATURE_NOTES.md, Sources_evidence.md   Citation audit trail. `source_audit.pdf` is the reader-facing view
 │   ├── citation.md        Citation conventions
 │   ├── CHAPTER_READABILITY.md   Per-chapter Flesch table (generated)
+│   ├── CODE_REVIEW.md     Agent pass over production C++ and Rust UECM, 16 Sep 2026. Not D2
 │   └── review/            Commented PDFs a reviewer returns, read by pdfannots.py. Gitignored, create it locally
 ├── .bibaudit/         Generates `source_audit.tex` (full draft) and `source_audit_v3.tex` (`--document v3`) from `bibliography.bib`, the `.bbl`, and the evidence notes
 │   ├── reviewed.txt       Mirror of Part 1's review ticks for the draft audit
@@ -420,7 +423,7 @@ from `diagrams/png/`, which `diagrams/render.py` writes.
 
 | Area | State |
 | ---- | ----- |
-| Specification + parity | Both languages pass and agree byte-for-byte on the shared conformance suite: hand-written vectors plus a generated campaign whose expectations come from an independent Python model, with mirrored per-language invariant and concurrency suites. Spec is frozen at v1.0 (tag `spec-v1.0`) |
+| Specification + parity | Both languages pass and agree byte-for-byte on the shared conformance suite: hand-written vectors plus a generated campaign whose expectations come from an independent Python model, with mirrored per-language invariant and concurrency suites. Spec is frozen at v1.0 (tag `spec-v1.0`). An agent pass on 16 September 2026 found no production defect on the measured path. The recorded `queue_capacity == 0` mismatch sits outside the suite (`docs/CODE_REVIEW.md`). That pass does not close TODO item D2 |
 | RQ2 (safety) | Final. Fault-injection taxonomy complete across fourteen defect classes, seven inside the guarantee and seven outside it, plus Loom and Shuttle on the two concurrency boundary classes and Miri on the unsafe one |
 | RQ4 (migration) | Final. FFI prototype, interleaved native-vs-seam measurement of one real operation, seam size, and the three adoption-cost axes beyond the seam (build time, static footprint, third-party surface) |
 | RQ1/RQ3 (performance) | Complete. The matched bare-metal campaign ran on 27 August 2026 and is the reported dataset, so the per-language saturation limits, the overload divergence, the resource comparisons and the far tail below saturation are all resolved on one host at the canonical design. Rust's pooled p99.99 sits below C++'s at every load the two separate. Jitter and the p99.99 column are reported. One question the data raised remains open: whether the peak-RSS allocator effect tracks the transparent-hugepage policy |
