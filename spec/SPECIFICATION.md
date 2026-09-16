@@ -587,7 +587,9 @@ during implementation, with the requirement id and the reason. Examples that wil
 - One-shot completion: a fresh `std::sync::mpsc::channel()` per request; caller blocks on
   `recv()` (the analog of `std::future::get`).
 - Bounded blocking queue: `std::sync::mpsc::sync_channel(capacity)` (blocking `send` gives
-  the same backpressure as the C++ hand-written queue).
+  the same backpressure as the C++ hand-written queue). At `capacity == 0` this is a
+  rendezvous channel. C++ `BoundedQueue` clamps 0 to 1. The compared campaign uses 1024.
+  See the 2026-09-16 recording below.
 - Lifecycle precondition (§7.1): `shard_tx()` and `count()` assert `running`. Before the
   assertion existed the violation was already a panic — the slice index into a cleared `shards`
   vector — so the change makes the diagnostic explicit rather than changing the outcome. The
@@ -596,11 +598,12 @@ during implementation, with the requirement id and the reason. Examples that wil
 - Intra-shard map: `std::collections::HashMap<UeId, UeContext, FnvBuildHasher>`, where
   `FnvBuildHasher` hashes the key as 8 little-endian bytes so the digest is bit-identical to
   the pinned FNV-1a (verified by a test against `fnv1a_64`).
-- `unsafe`: none (`#![forbid]`-clean; verified by grep). Safe Rust guarantees data-race
-  freedom at compile time via `Send`/`Sync`, so no runtime sanitizer is required (stronger than
-  the C++ TSan check). Miri has since been run as well (`rust/miri.sh`, §11.5): clean, which
-  confirms the property rather than discovering it, and keeps the two arms symmetrically
-  evidenced.
+- `unsafe`: none in `rust/src` (verified by grep). The crate does not currently carry
+  `#![forbid(unsafe_code)]`, so a later `unsafe` block would compile until that attribute is
+  added. Safe Rust guarantees data-race freedom at compile time via `Send`/`Sync`, so no
+  runtime sanitizer is required (stronger than the C++ TSan check). Miri has since been run
+  as well (`rust/miri.sh`, §11.5): clean, which confirms the property rather than discovering
+  it, and keeps the two arms symmetrically evidenced.
 - Dependency-freedom is preserved deliberately. The Loom and Shuttle models of the RQ2 boundary
   classes live in a **separate crate**, `faults/rust-model-checking/`, rather than as
   dev-dependencies of `rust/`: the dependency-free core is load-bearing for the RQ4 supply-chain
@@ -816,6 +819,27 @@ that produced the misleading ratios would not have been reportable.
   is a `dev-dependency` and the bench lives under `examples/` so only the benchmark,
   not the library, pulls it in.
 
+**Implementation review (recorded 2026-09-16, `docs/CODE_REVIEW.md`):**
+
+An agent pass of production `cpp/`, `rust/src`, and `ffi/` against this specification found
+no logic, memory, or state-machine defect on the path the thesis measures. It does not
+close the independent two-expert review in `docs/TODO.md` item D2. Three edges sit
+outside the campaign and the seven-vector suite:
+
+- `QUEUE_CAPACITY == 0`. C++ `BoundedQueue` clamps 0 to 1. The Rust mutex-queue probe
+  does the same. The compared Rust arm uses `sync_channel(capacity)`, and
+  `sync_channel(0)` is a rendezvous channel. Default and campaign capacity is 1024.
+- Public `shard_index(_, 0)`. `Service` clamps `N_SHARDS == 0` to 1. The free function
+  in §8.1 does not: C++ `% 0` is undefined behaviour, Rust panics. Conformance vectors
+  never pass 0. The `shard` op in both runners uses the raw config value.
+- Concurrent `shutdown()` while another thread is still submitting. Sequential misuse
+  is guarded (§7.1). C++ `running_` is a plain `bool`, so that aliasing is a data race.
+  Rust `shutdown` takes `&mut self` and the aliasing does not compile. Benches join
+  producers before shutdown.
+
+The Rust `unsafe` bullet above is corrected in the same pass: `rust/src` has no `unsafe`
+(grep), and `rust/src/lib.rs` does not currently carry `#![forbid(unsafe_code)]`.
+
 ---
 
 ## 13. Freeze checklist
@@ -839,6 +863,11 @@ frozen requirement.
 - [x] Confirm default parameters and sweep ranges with the evaluation plan.
 - [x] Confirm the conformance-vector format and seed an initial suite. *(Format + `basic.vec`/`shards.vec` seeded; shared runner passes for both implementations. Supervisor sign-off on the format recorded 2026-09-15 with the rest of the freeze.)*
 - [x] On approval: set Version 1.0, tag `spec-v1.0`, and treat changes as versioned amendments. *(Done 2026-09-15.)*
+
+**Amendment 2026-09-16 (recording only, requirements unchanged).** §12 now records three
+configuration and lifecycle edges found by the 16 September implementation review, and
+corrects the Rust `unsafe` line: no `unsafe` in `rust/src`, crate attribute absent.
+Details in `docs/CODE_REVIEW.md`. Version remains 1.0. Tag `spec-v1.0` is unchanged.
 
 ---
 
