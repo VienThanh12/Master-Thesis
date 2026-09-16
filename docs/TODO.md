@@ -133,7 +133,8 @@ Your proofread is the only remaining risk no agent can take (**D**).
 **Scoped separately, in *Going deeper* below.** The attribution probes, the dispatch and
 request-size probe, the clang++ variant, the second workload and the independent implementation review
 are ranked there against what each buys and what each costs. None of them holds a grade, and one
-of them is the deepest work left in the project.
+of them is the deepest work left in the project. An agent pass of the two cores on 16 September
+2026 is `docs/CODE_REVIEW.md`. It does not close D2.
 
 **Leave in Phase 11 as a menu.** A DOI archive, a power calculation, the 3GPP-anchored rate
 calibration, raising `DEADLOCK_REPEATS`, and re-measuring `latency_budget.json` on bare metal. That
@@ -406,6 +407,12 @@ validity, it lands no new numbers unless a proposal is adopted, and the negative
 publishable: two experts found nothing that moves the result closes the threat rather than leaving
 it conceded. At Nokia both experts are in the building.
 
+**Agent pass, 16 September 2026. Does not close this item.** Production `cpp/`, `rust/src`, and
+`ffi/` were read against the frozen spec. Verdict and findings are in `docs/CODE_REVIEW.md`. No
+production defect was found on the measured path. The only accidental library mismatch is
+`queue_capacity == 0` on Rust's compared `sync_channel`. That pass is not the two-expert,
+pre-committed protocol above: it cannot close the skill-asymmetry threat Emberg demonstrates.
+
 ### D3. Does the ordering travel
 
 Three variants, cheapest first. Each carries the same sync cost as D1.
@@ -451,7 +458,7 @@ submission, where new numbers cost nothing.
 | Item | What it buys | New numbers | When |
 | --- | --- | --- | --- |
 | **D0** | Removes a live contradiction in an attribution | No | **Done 1 Sep 2026** |
-| **D2** | Closes the one threat no statistic reaches | Only if a proposal is adopted | Before submission. Cheapest real gain |
+| **D2** | Closes the one threat no statistic reaches | Only if a proposal is adopted | Before submission. Cheapest real gain. An agent pass on 16 Sep is in `docs/CODE_REVIEW.md` and does not close this |
 | **D1** | Explains the strongest result end to end, or bounds it honestly | Yes | Before submission only with the sync budget |
 | **D3** | Bounds external validity instead of conceding it | Yes | After D1, or after submission |
 | **D4** | New research questions | Yes | After submission. Paper or doctoral |
@@ -525,7 +532,9 @@ latexmk -C                   # clean build artifacts
 - [x] Implement ShardCore: sharded context store + UE state machine per spec (single-threaded)
 - [x] Implement threaded service: thread-per-shard + bounded `sync_channel` backpressure + typed one-shot completions (spec §7)
 - [x] Implement signaling/message handling + concurrent lookup at service level
-- [x] Record location + justification of any `unsafe` blocks (result: **zero `unsafe`**, safe Rust is data-race-free by construction)
+- [x] Record location + justification of any `unsafe` blocks (result: **zero `unsafe`** in
+      `rust/src`, safe Rust is data-race-free by construction). The crate does not currently
+      carry `#![forbid(unsafe_code)]`. Spec §12 and `docs/CODE_REVIEW.md` record that drift.
 - [x] Unit/conformance tests green (16/16 across `conformance.rs`, `invariants.rs`,
       `concurrency.rs`); `cargo clippy --all-targets -D warnings` clean; `cargo fmt` applied
 - [x] Wire jemalloc allocator (`--features jemalloc`, `tikv-jemallocator` global allocator) + HdrHistogram (`hdrhistogram` crate) in `rust/examples/bench.rs`
@@ -543,7 +552,10 @@ latexmk -C                   # clean build artifacts
       per-shard capacity, cross-shard isolation, and a non-power-of-two shard count. **No
       divergence found**: every expectation was derived from the spec by hand and both
       implementations matched it on the first run, including the error-precedence cases
-      §6 leaves unordered (now pinned so they cannot drift).
+      §6 leaves unordered (now pinned so they cannot drift). **One configuration edge sits
+      outside that suite (16 Sep 2026):** `queue_capacity == 0` is a 1-slot buffer in C++
+      and a rendezvous channel in the compared Rust arm. Default and campaign capacity is
+      1024. Recorded in spec §12 and `docs/CODE_REVIEW.md`.
 - [x] Mirrored per-language suites for the properties a sequential `.vec` transcript cannot
       express: `test_invariants`/`invariants.rs` (§6.1 no mutation on error, §10.3/§11.2
       activity-sequence discipline, `security_key`/`rrc_transaction_id`/per-DRB round-trip,
