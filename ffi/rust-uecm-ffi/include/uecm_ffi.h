@@ -49,7 +49,8 @@ int32_t uecm_release_context(UecmService* h, uint64_t ue_id);
 int32_t uecm_lookup(UecmService* h, uint64_t ue_id, uint8_t* out_state,
                     uint64_t* out_messages_handled);
 
-/* Total live contexts across all shards. */
+/* Total live contexts across all shards. A null handle returns 0, the same
+ * as an empty service. Other entry points return UECM_ERR_NULL for null. */
 uint64_t uecm_count(UecmService* h);
 
 /* Raw boundary-cost probe: crosses the C ABI and returns x+1. Lets the host
