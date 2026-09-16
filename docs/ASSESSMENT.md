@@ -4754,3 +4754,150 @@ it.
 This pass did not edit `Thesis_v3.tex`. Do not copy this 5.00 onto `Ha_Vien_Mastersthesis_2026.tex`.
 Do not re-open the skeleton's abstract, `\CpuDiffAbsMax` scope, mixed-order, or `TBD` items. They
 are still closed after the wording pass.
+
+## Twenty-sixth pass — 16 September 2026
+
+Graded independently against the CSM matrix of 9 April 2024, on **`Thesis_v3.tex` / `Thesis_v3.pdf`**,
+the supervisor-facing eight-chapter argument. Chapter 1 is the draft introduction. Remaining
+chapters are compressed, with fourteen figures and `tab:latency`. **Standard applied:** an examiner
+who received this 48-page PDF, not the 115-page full draft. The full draft was not re-read. Its
+standing grade remains the twenty-second pass.
+
+**What is new.** Fifteen commits after `1c3e97b` (the 14 September morning record of the
+twenty-fifth pass) added `fig:e2eclock` and `fig:loadmap`, removed the uncited
+`Predictability and the two languages` background section, renamed arm to variant, clarified
+the saturation knee and the workload mix, fitted the abstract form, and kept the FFI figure
+with its subsection. That is the class this repository introduces defects with. The pass
+formed its view from the current PDF before reading the twenty-fifth pass, then reconciled.
+
+**Build verified.** `Thesis_v3.tex` 11:17:56, PDF and `build/Thesis_v3.log` 11:18:28 on 15
+September, so the PDF is current. The root-level `Thesis_v3.log` is stale (14 September 15:59)
+and was ignored; `.latexmkrc` writes the log to `build/`. `texaudit.py Thesis_v3.tex --macros figures/gen_macros.tex`
+exits 0: no LaTeX errors, no undefined references or citations, no multiply defined labels, no
+float too large, **zero Overfull of any kind** (including `while \output is active`), 48 pages.
+Every float label referenced from the body. 111 bib entries, 61 cited in this document
+(50 uncited, expected on a shared `.bib`), 74 peer-reviewed venues (67%). **No placeholders.** One
+prose-number hit with a unit: l. 426, Meneely's 58.2%, a literature value.
+
+Compiler versions checked by hand, because the heuristic needs a unit: `\MainGpp` 15.2.1,
+`\GuestGpp` 15.1.1, `\BmGpp` 13.3.0. The testbed names all three. No site types 15.1.1 as the
+measurement host's compiler.
+
+Page 3 of the PDF was rendered and read: the abstract form fits, CCS paths and the keyword
+heading are both visible, and `(3)` still writes `10.91% of that call`. Body page 23 carries
+the FFI subsection with its figure. `diagrams/check_labels.py` is clean on the 21 included
+drawings.
+
+Canvas: [`thesis-grade-csm-sep16.canvas.tsx`](/home/vienha/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-sep16.canvas.tsx).
+
+| Area | 25th pass (skeleton, 14 Sep) | This pass (skeleton) | Clause that sets it |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Hold. Gap in named flaws of five vendor theses, four RQs, H1 refuted and declared ill-posed, RQ2 two-sided |
+| 2. Scholarly framework and sources | 5 | **5** | Hold. Contrary results engaged. A drop for chapter 2 now having two sections was considered and rejected: the deleted section carried no citations |
+| 3. Research data and method | 5 | **5** | Hold. The refusals (no `isolcpus`, 448 described not tested, pooled p99.99 out of the family) are in the method chapter |
+| 4. Presentation of results | 5 | **5** | Hold. Headline numbers and both new diagrams still match. A 4.5 for “look the same in delay” was considered and rejected |
+| 5. Discussion and conclusions | 5 | **5** | Hold. H1–H3 still revisited. Scored from the discussion chapter, so the resource-section opener is not counted twice |
+| 6. Academic text | 5 | **5** | Hold. Build and house screens still pass. Abstract form fits. Dual register and stdev 6.4 remain the compression contract |
+| 7. Work during the thesis process | n/a | **n/a** | Not assessable from a manuscript |
+| **Mean of the six assessable** | 5.00 | **5.00** | Hold. The bar did not move |
+
+**Agreement with the twenty-fifth pass.** All six assessable areas agree. The twenty-fifth pass
+graded a 50-page PDF of 13 September. This pass grades a 48-page PDF of 15 September with two
+added figures and one fewer background section. The descriptor clauses that held 5 still hold.
+The five precision losses it listed are still present and still not caps. Three new ones join
+them, all from the 14–15 September edits.
+
+### Mechanical evidence
+
+`.readability.py`: 675 sentences, 8859 words, mean 13.1 ± 6.4, Flesch 71.2, grade 6.6 (25th pass:
+12.8 ± 6.3, Flesch 71.4, grade 6.5). Short sentences 66.2% (target 25–35%). No paragraph of three
+or more sentences lacks a sentence under 15 words. `.aitells.py`: 0 semicolons, both colon checks
+at 0, 10 dash hits all numeric ranges or compound proper names (Herfindahl–Hirschman,
+Fowler–Noll–Vo). Two counting stubs: l. 269 “Three terms recur throughout” and l. 780 “Both
+versions follow it” (the fairness control). `.acronyms.py`: not written out at first use 0, five
+printed waivers, 36 declared. `.vocab.py`: 0 replaceable hard words.
+
+Headline macros checked against `figures/gen_macros.tex`, `tab_latency.tex`, `gen_guest.tex`,
+`gen_baremetal.tex`, `gen_adoption.tex`, `gen_artefacts.tex`, and the SVG text of
+`diagrams/30_load_regimes.svg` and `diagrams/31_e2e_clock.svg`, not remembered: tracking loads
+448 against 392, `\SatKnee` 392 qualified as the lowest of the four, overload `\OverloadThrRatio`
+1.7 with C++ faster in 20/20 (`\OverloadThrCpp` 147 / `\OverloadThrRust` 84), `\PFiftyDiffAbsMax`
+1.3 µs (max of the paired differences; the jemalloc column medians differ by 1.4, which is a
+different statistic), RSS 1.4–2.5 against 1.5–2.4 MiB, guest allocator-over-language
+`\GuestRssAllocOverLang` 13, confirmation far-tail ranges 147–228 against 88–115 µs and they do
+not meet, `\BudgetCoreShareMax` 0.250%, `\FfiOpBoundPct` 10.91 of that call at every site,
+`\CpuDiffAbsMax` 5.1 pp scoped to `\ReprLoad`, `\DeadlockTsanHits` 5 of `\DeadlockTsanRuns` 12,
+`\NTailSignificant` 4, `\BuildAllFirstPartyCpuRatio` 0.8. Load-regime ticks 56, 392, 448, 784 and
+bars 448/162 and 147/84 match the macros. No measured value is wrong. No remaining comparative
+claim attaches a correct macro to the wrong load, host, or family.
+
+### Precision losses, not scored
+
+The first three are new since 14 September. The rest are carried from the twenty-fifth pass.
+
+1. **Meneely “vulnerabilities” became “product bugs”** in §1.4 (`f8d3951`). The source estimates
+   58.2% of historical vulnerabilities, and the classified denominator is 2,257 CWE-tagged
+   vulns. `docs/Sources_evidence.md` already tells the thesis to write “classified
+   vulnerabilities”. The number and the citation still match. Restore the noun.
+2. **“The four variants look the same in delay”** opens §5.3.3 (`da95c18`). At `\ReprLoad` the
+   paired median gap is 1.3 µs and `tab:latency`'s p99.99 still splits 50 µs. A 4.5 on area 4's
+   aptness clause was considered and rejected: it is a contrastive opener for RSS/CPU, not a
+   tabulated claim, and the previous subsection already reports the far-tail split. Restore a
+   scoped opener if an opponent has the table open.
+3. **`fig:e2eclock` is not at true proportion.** The labels read 0.250% / 99.750% correctly. The
+   6 px language bar is about 0.9% of the drawn bar. `fig:loadmap`'s caption says “not to scale”;
+   this one does not, and it sits on the same folio as `fig:budget` (a), which is at true
+   proportion. The exaggeration weakens the author's point rather than reversing it. Add the
+   four words.
+4. **“Translation unit” became “one source file”** at the two RQ4 summary sites. Unchanged
+   since the twenty-fifth pass.
+5. **Arvidsson “times this split”.** Unchanged since the twenty-fifth pass.
+6. **Moved-from “unspecified” became “unset”.** Unchanged since the twenty-fifth pass.
+7. **Contention microbenchmark omits the sign reversal.** Unchanged since the twenty-fifth pass.
+8. **Conclusion opens “how late the tail is”.** Unchanged since the twenty-fifth pass.
+
+### Per-area notes
+
+**1, carries 5.** Untouched. The gap is located rather than asserted. RQ2 still includes classes
+safe Rust is expected not to prevent.
+
+**2, carries 5.** Command of the topic is in the gap section and the introduction. 61 cited keys.
+The deleted background section stated open-loop sending, the Send/Sync limit, and the C ABI
+with no citations. Those points still sit next to Schroeder, Zhang, and the RQ4 discussion.
+`source_audit_v3` still lists the six detached-citation defects as closed.
+
+**3, carries 5.** The method chapter still states the frozen spec, the Holm family, the floors, the
+448 exclusion, the pooled far tail kept out, and why `isolcpus` is refused. Toolchain and kernel
+differences stay disclosed. The knee sentence now names `\SatKnee` as the lowest of the four
+and the per-language tracking loads as the knees. That is the clarification, not a new claim.
+
+**4, carries 5.** Level 5's aptness held on 11 September because `tab:latency` was present and the
+macros matched. They still match, and the two new diagrams match as well. The wording “look
+the same in delay” is listed above and was not scored.
+
+**5, carries 5.** H1 is allowed to fail and then declared ill-posed. Karlback is reconciled as two
+runtimes. Ethics refuses the marketing reading of RQ2. The resource-section opener lives in
+the results chapter, so it is not an area-5 finding counted twice.
+
+**6, carries 5.** Writing and the build already read at 5 on 11 September. This pass confirmed the
+abstract form fits and that last-in-chapter floats stay with the citing text. The class prints
+the build day (15 September) on the title page rather than the unused `\date{11 September 2026}`
+in the source. Title and abstract form agree with each other, so it is not a three-dates
+defect. Sentence stdev 6.4 sits below the house screen's ~8 band. The matrix does not name it.
+
+### Outstanding
+
+1. **Optional, this PDF.** Restore “classified vulnerabilities” in the Meneely paragraph, scope
+   the resource opener, and add “not to scale” to `fig:e2eclock`. Minutes. Does not move an area.
+2. **Optional, this PDF.** Restore “translation unit” (or “implementation file, not a header”) at
+   the two RQ4 summary sites, and “unspecified” for the moved-from object. Carried from the
+   twenty-fifth pass.
+3. **Optional, this PDF.** `tab:latency` caption: copy the draft's “is printed above its
+   nonparametric bootstrap 95% confidence interval”. Generate `fig:loadmap` tick and bar labels
+   from the macros so a campaign move cannot stale the SVG.
+4. **The full draft's four standing items**, last confirmed 7 September afternoon. They are not
+   this PDF's caps and were not re-read today.
+
+This pass did not edit `Thesis_v3.tex`. Do not copy this 5.00 onto `Ha_Vien_Mastersthesis_2026.tex`.
+Do not re-open the skeleton's abstract, `\CpuDiffAbsMax` scope, mixed-order, or `TBD` items. They
+are still closed after the 14–15 September edits.
