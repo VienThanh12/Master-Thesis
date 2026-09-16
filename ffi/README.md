@@ -38,7 +38,12 @@ ffi/
   again inside.
 - **Thread-safe handle.** The service is internally thread-per-shard; because
   every entry point is a submit + blocking completion, several C++ threads may
-  share one handle. The host demonstrates this with a 4-thread load.
+  share one handle. The host demonstrates this with a 4-thread load. Destroy is
+  not in that set: `uecm_service_destroy` is `Box::from_raw` with no
+  synchronisation, exactly once, with nobody else using the handle
+  (`uecm_ffi.h`).
+- **`uecm_count(null)` returns 0.** That is indistinguishable from an empty
+  service. Other entry points return `UECM_ERR_NULL` (`-1`) for a null handle.
 
 ## Running
 
