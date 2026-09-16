@@ -3,6 +3,9 @@
 Modern C++ (C++23) implementation of the UE Context Management service defined in
 [`../spec/SPECIFICATION.md`](../spec/SPECIFICATION.md).
 
+New to this tree: a chaptered reading path is [`../docs/cpp-guide/`](../docs/cpp-guide/README.md).
+It starts at the spec, then `ShardCore`, then `Service`. Do not start in `bench/`.
+
 ## Layout
 ```
 cpp/

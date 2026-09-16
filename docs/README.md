@@ -7,11 +7,13 @@ They are long, dated, and meant to be appended, not rewritten from scratch.
 
 **The guide** (`guide/`) is a map of the whole repository: what each file is,
 what it is for, and which other file is the source of truth. Start there if
-the question is "what is this?".
+the question is "what is this?". **The C++ reading path** (`cpp-guide/`) is
+how to learn `cpp/` in order, as if the tree were new.
 
 | File | Kind | What it is |
 | --- | --- | --- |
-| [`guide/README.md`](guide/README.md) | Guide | Index of the encyclopedia. Start here. |
+| [`guide/README.md`](guide/README.md) | Guide | Index of the encyclopedia. Start here if the question is "what is this file?". |
+| [`cpp-guide/README.md`](cpp-guide/README.md) | Guide | Chaptered reading path for `cpp/`, written for a first look at the C++ tree. |
 | [`ASSESSMENT.md`](ASSESSMENT.md) | Working note | Criterion-by-criterion grading record (Finnish 1-5). Two current grades: the full draft and the supervisor skeleton are not interchangeable. |
 | [`TODO.md`](TODO.md) | Working note | Phase checklist, dataset status, and open items **O** to **S**. |
 | [`LITERATURE_NOTES.md`](LITERATURE_NOTES.md) | Working note | Literature sweeps and candidate sources. |

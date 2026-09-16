@@ -31,6 +31,8 @@ component.
 | [07 Tooling](07-tooling.md) | LaTeX, Docker, the slide deck, citation audit, short-cut compression, Cursor rules and skills, PDF helpers. |
 | [08 Rules of the house](08-rules.md) | Non-negotiable claims in short form, and the edit/sync rule. |
 
+A separate reading path, not part of this encyclopedia: [`../cpp-guide/`](../cpp-guide/README.md) walks `cpp/` chapter by chapter for a first look at the C++ service. Use that when the question is "how does this code work?". Use this encyclopedia when the question is "what is this file allowed to claim?".
+
 ## What this thesis is
 
 A University of Helsinki master's thesis by **Ha Vien**, Software study track,

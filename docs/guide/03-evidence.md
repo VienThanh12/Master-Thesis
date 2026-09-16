@@ -39,7 +39,7 @@ Sequential lifecycle misuse is guarded. Concurrent `shutdown()` while another
 thread is still submitting is a C++ data race on `running_`. Rust cannot express
 that aliasing. See [`CODE_REVIEW.md`](../CODE_REVIEW.md).
 
-Details: [`cpp/README.md`](../../cpp/README.md).
+Details: [`cpp/README.md`](../../cpp/README.md). First reading path: [`../cpp-guide/`](../cpp-guide/README.md).
 
 ## `rust/` — Rust core
 

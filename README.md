@@ -156,7 +156,8 @@ different reason: `bench/refresh_thesis.sh`, `diagrams/check_labels.py`, the gra
 `.cursor/rules/thesis-quality.mdc` all name them by path.
 
 Each component directory (`spec/conformance/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/`,
-`docker/`) has its own `README.md` with build and run instructions.
+`docker/`) has its own `README.md` with build and run instructions. A chaptered first reading
+of the C++ tree is [`docs/cpp-guide/`](docs/cpp-guide/README.md).
 
 ## Prerequisites
 
