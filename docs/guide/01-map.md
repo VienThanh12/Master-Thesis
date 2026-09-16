@@ -50,7 +50,7 @@ Each of `spec/conformance/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/`, and
 
 | Path | What it is |
 | --- | --- |
-| `docs/` | This documentation folder. See [`../README.md`](../README.md). |
+| `docs/` | This documentation folder. See [`../README.md`](../README.md). Working notes include the grading record, the open-work list, and `CODE_REVIEW.md` (agent pass, 16 September 2026; not TODO item D2). |
 | `archive/` | Superseded variants. Not maintained. See `archive/README.md`. |
 | `template/` | Cover-page dictionaries and HY logo that `HYthesisML.cls` loads by path. `template/upstream/` is the pristine CSM template the class was taken from. |
 | `build/` | latexmk intermediates. Gitignored. Safe to delete. |

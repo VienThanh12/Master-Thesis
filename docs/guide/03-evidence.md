@@ -35,6 +35,10 @@ implementation in `src/`, parity runner in `tools/`, benchmark driver in
 Pinned: C++23 (`std::expected`), matched `-O2`, SplitMix64 shard selection,
 FNV-1a key hashing, jemalloc as a campaign variant (`-DUECM_USE_JEMALLOC=ON`).
 
+Sequential lifecycle misuse is guarded. Concurrent `shutdown()` while another
+thread is still submitting is a C++ data race on `running_`. Rust cannot express
+that aliasing. See [`CODE_REVIEW.md`](../CODE_REVIEW.md).
+
 Details: [`cpp/README.md`](../../cpp/README.md).
 
 ## `rust/` — Rust core
@@ -49,7 +53,14 @@ mirror `cpp/tests/` case for case.
 | `rust/coverage.sh` | Needs `cargo-llvm-cov`. |
 | `rust/examples/bench.rs` | Campaign driver, counterpart of `cpp/bench/bench.cpp`. |
 
-The core library stays `unsafe`-free. FFI `unsafe` lives in `ffi/rust-uecm-ffi/`.
+The core library stays `unsafe`-free (grep of `rust/src`). `rust/src/lib.rs` does
+not currently carry `#![forbid(unsafe_code)]`. FFI `unsafe` lives in
+`ffi/rust-uecm-ffi/`.
+
+An agent pass on 16 September 2026 is in [`CODE_REVIEW.md`](../CODE_REVIEW.md).
+It does not close TODO item D2. The only accidental library mismatch it found is
+`queue_capacity == 0` on the compared Rust `sync_channel` (C++ clamps to 1).
+Default and campaign capacity is 1024.
 
 Details: [`rust/README.md`](../../rust/README.md).
 
@@ -138,5 +149,10 @@ JSON with whatever host it ran on. After a build-only check:
 ```bash
 git checkout -- ffi/results/metrics.json ffi/results/op_cost.jsonl
 ```
+
+Ops on a shared handle are intended to be safe. Destroy is exactly once, with
+nobody else using the handle. `uecm_count(null)` returns 0, the same as an
+empty service. Other entry points return `UECM_ERR_NULL`. See
+[`CODE_REVIEW.md`](../CODE_REVIEW.md).
 
 Details: [`ffi/README.md`](../../ffi/README.md).
