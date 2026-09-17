@@ -10,17 +10,17 @@ using UeId = std::uint64_t;  // primary key; 0 is reserved/invalid (§4.1)
 
 // UE lifecycle states (§5.1).
 enum class UeState : std::uint8_t {
-  Idle = 0,
-  Connected = 1,
-  Reconfiguring = 2,
+  Idle = 0, // UE is not connected to the network
+  Connected = 1, // UE is connected to the network
+  Reconfiguring = 2, // transitioning to this state indicates a reconfiguration is in progress
   Released = 3,  // transient-terminal: reaching it removes the context
 };
 
 // Data radio bearer entry (§4.2).
 struct DrbEntry {
-  std::uint8_t  drb_id = 0;
-  std::uint8_t  qos_flow_id = 0;
-  std::uint32_t teid = 0;
+  std::uint8_t  drb_id = 0; // DRB ID, unique within the UE
+  std::uint8_t  qos_flow_id = 0; // QoS flow ID, unique within the DRB
+  std::uint32_t teid = 0; // TEID, unique within the UE
 };
 
 // Creation parameters (§4.3).
