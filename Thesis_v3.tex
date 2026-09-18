@@ -124,8 +124,9 @@
       (5)~Below saturation the paired test on the end-to-end median resolves $\PFiftyDiffAbsMax\,\mu$s
       in Rust's favour. That gap is too small to bound a language effect. The Rust versions keep up
       with the offered load to $\TrackingLoadRust$~kilo-operations per second (kops/s), the C++ versions only to $\TrackingLoadCpp$.
-      Once neither can keep up, \OverloadSustainedFaster{} still finishes $\OverloadThrRatio\times$ as
-      much work as \OverloadSustainedSlower{} in \OverloadThrAgree{} interleaved repeats with both allocators.
+      Once neither language keeps up with the offered load, \OverloadSustainedFaster{}
+      still holds $\OverloadThrRatio\times$ the rate of \OverloadSustainedSlower{}.
+      That order holds in \OverloadThrAgree{} paired repeats under both allocators.
 
       \noindent\textbf{Conclusions.}
       The main cost of adopting Rust is engineering effort and the learning curve, not run-time
@@ -236,8 +237,7 @@ connected device, each of which the standards call a user equipment (UE), runs R
 Control (RRC) signalling~\cite{3gpp38331}, and coordinates mobility and handovers, all within
 strict latency limits.
 
-
-Load at a busy site is high. A single site can run thousands of connection-management and
+A single site can run thousands of connection-management and
 mobility procedures per second, each of which has to complete within the millisecond-scale
 budget the 5G system sets for control-plane signalling~\cite{3gpp38913}. A deployed control plane may track millions of active
 devices at once. As the RAN moves to cloud-native, disaggregated deployments, the
