@@ -99,8 +99,8 @@
       compile-time safety, but its fit for this latency-critical setting is unproven.
       
       \noindent\textbf{Objective.}
-      The thesis compares modern C++ and Rust on a user equipment (UE) Context Management service
-      modelled on a real Nokia 5G base-station control-plane component (gNB-CU-CP).
+      The thesis compares modern C++ and Rust on a user equipment (UE) Context Management service.
+      The service keeps per-device state, as a 5G base-station control plane (gNB-CU-CP) does.
       Average-throughput comparisons leave four dimensions open: tail latency, the C++ defect classes Rust prevents at compile time, the overhead of
       its safety model, and the cost of incremental adoption.
       
@@ -192,7 +192,7 @@ FNV-1a & Fowler--Noll--Vo hash function, variant 1a \\
 GCC & GNU Compiler Collection \\
 gNB & Next-generation NodeB, the 5G base station \\
 gNB-CU & gNB central unit \\
-gNB-CU-CP & gNB central unit control plane: the system class studied here \\
+gNB-CU-CP & gNB central unit control plane, the domain this work sits in \\
 gNB-CU-UP & gNB central unit user plane \\
 gNB-DU & gNB distributed unit \\
 HDR & High dynamic range, of the latency histogram \\
@@ -261,13 +261,13 @@ competitive with C++~\cite{balasubramanian2017rust}. Whether that promise holds 
 telecom-grade, latency-critical control plane, where predictability under overload matters
 as much as raw speed, is not well understood. This thesis, carried out at Nokia, addresses
 the question directly: it develops two functionally equivalent implementations of a
-representative RAN subsystem, a UE Context Management service modelled on a real Nokia
-gNB-CU-CP component, in modern C++ and in Rust, and compares them under a realistic
+representative RAN subsystem, a UE Context Management service that keeps per-device
+state, as a gNB-CU-CP does, in modern C++ and in Rust, and compares them under a realistic
 synthetic signalling workload.
 
 
-Three terms recur throughout. The \emph{gNB-CU-CP} is the control-plane software this work is
-about. \emph{UE Context Management (UECM)} is the specific subsystem reimplemented and measured.
+Three terms recur throughout. The \emph{gNB-CU-CP} is the control-plane class this work sits in.
+\emph{UE Context Management (UECM)} is the compact service reimplemented and measured.
 \emph{Tail latency}, the p99, p99.9 and p99.99 percentiles rather than the mean, is the property that,
 more than average speed, decides whether such a system meets its
 deadlines~\cite{dean2013tail,barroso2017microseconds}.
@@ -318,8 +318,8 @@ This thesis is carried out at Nokia. The company is one of the small number of v
 that build, maintain, and evolve production RAN software end to end. The five largest
 suppliers took 96\% of worldwide RAN revenue over the first three quarters of 2025, with
 concentration by Herfindahl--Hirschman Index at a ten-year
-high~\cite{delloro2025ran3q,delloro2026ran}. The subsystem it studies, UECM, is modelled
-on a real gNB-CU-CP component rather than a textbook example.
+high~\cite{delloro2025ran3q,delloro2026ran}. The subsystem it studies, UECM, is a compact model of the per-UE state work a
+gNB-CU-CP does.
 
 In the architecture of the 3rd Generation Partnership Project (3GPP), the gNB-CU-CP is
 the control-plane half of the central unit. It hosts RRC and manages the UE context
@@ -580,10 +580,9 @@ sets out the method.
 The last chapter set out the gap. This chapter says how the study closes it.
 
 \section{The UE Context Management subsystem}\label{sec:uecm}
-The part under study is a UE Context Management service. It is modelled on a
-real Nokia gNB-CU-CP service that owns the UE context lifecycle, RRC procedure
-execution~\cite{3gpp38331}, and mobility and handover. Those are the functions
-the 3GPP design assigns to the control-plane part of a split gNB
+The part under study is a UE Context Management service. Its operations follow the
+UE-context lifecycle, RRC procedure execution~\cite{3gpp38331}, and mobility and
+handover that the 3GPP design assigns to the control-plane part of a split gNB
 (Section~\ref{sec:ranarch}). Figure~\ref{fig:fsm} shows the UE-context
 lifecycle both versions encode the same way. The mixed workload of
 Section~\ref{sec:workload} walks each UE through that machine.
@@ -783,7 +782,8 @@ study. It is the main control against writer bias.
 
 One thread model is used on both sides: shared-nothing and thread-per-shard.
 That layout is known to change tail delay by
-itself~\cite{enberg2019threadpercore}. The id space is split into shards. Each
+itself~\cite{enberg2019threadpercore}. The layout is held fixed as a fairness
+control. A production gNB-CU-CP schedules UE work differently. The id space is split into shards. Each
 shard is owned by one worker thread. That thread alone reads or changes it.
 So no lock guards context state. Callers send a request to the owning shard's
 bounded queue. They wait on a one-shot reply handle. The queue blocks when it
@@ -1374,7 +1374,7 @@ guest sweep is kept, not dropped.
 \chapter{Conclusion and Future Work\label{chapter:conclusions}}
 
 The thesis set modern C++ against Rust. The object is a UE Context Management
-service based on a real Nokia gNB-CU-CP part. It looked at four things. Two of them are
+service. It keeps per-device state, as a gNB-CU-CP does. It looked at four things. Two of them are
 how late the tail is, and which defects a compile step can stop. The other two are the
 cost of the safe code model and the cost of adding Rust a piece at a time. Both
 sides were built against one frozen spec. They were driven along the same code
