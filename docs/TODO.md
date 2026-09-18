@@ -503,7 +503,10 @@ latexmk -C                   # clean build artifacts
 
 ## Phase 1 - Literature & background solidification
 - [x] Collect and read the core references (3GPP 38.401/38.300, RustBelt, MSRC, Google Android, Pereira energy study, HdrHistogram/coordinated omission). Search protocol in Appendix B. Durable citation record in `docs/Sources_evidence.md` and `source_audit.pdf`
-- [ ] Confirm gNB-CU-CP / UE Context Management framing with Nokia supervisors
+- [x] Confirm gNB-CU-CP / UE Context Management framing with Nokia supervisors
+      *(18 Sep 2026: checked against the Nokia gNB tree. Verdict 2: UECM is a
+      3GPP-shaped model of CU-CP UE-context work, not a reduced product module.
+      UECM is a thesis name. Public prose no longer says ``real Nokia component''.)*
 - [ ] Note any Nokia-internal constraints (what can/cannot be published)
 
 ## Phase 2 - Shared specification (FAIRNESS BASELINE - freeze first)
