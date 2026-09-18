@@ -83,7 +83,7 @@
 claim sits in the source}
 \author{Ha Vien}
 
-\date{Generated 2026-09-08}
+\date{Generated 2026-09-18}
 
 \begin{document}
 \maketitle
@@ -348,7 +348,7 @@ each located by the chapter or section it sits in.
 \begin{citedsentence}\textbf{\small Chapter 1.}\enspace It tracks every connected device, each of which the standards call a user equipment (UE), runs Radio Resource Control (RRC) signalling~\citemark{4}, and coordinates mobility and handovers, all within strict latency limits.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 1.1.}\enspace In the disaggregated architecture of the 3rd Generation Partnership Project (3GPP) it is the control-plane half of the central unit, hosting RRC and managing the UE context lifecycle~\citemark{1, 4}, under the millisecond-scale procedure budgets the 5G system places on control signalling~\citemark{5} and at the event rates and connected-device counts a deployed network sustains.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 2.1.}\enspace The next-generation radio access network (NG-RAN) architecture splits the gNB into a central unit (gNB-CU) and distributed units, with the control plane (gNB-CU-CP) handling RRC and connection management for each UE~\citemark{1, 2, 4}.\end{citedsentence}
-\begin{citedsentence}\textbf{\small Section 3.1.}\enspace It is modelled on a real Nokia gNB-CU-CP service domain that owns the UE context lifecycle, RRC procedure execution~\citemark{4}, and mobility/handover, which are the functions the 3GPP architecture assigns to the control-plane part of a disaggregated gNB (Section~\refmark{sec:ranarch}).\end{citedsentence}
+\begin{citedsentence}\textbf{\small Section 3.1.}\enspace Its operations follow the UE-context lifecycle, RRC procedure execution~\citemark{4}, and mobility and handover that the 3GPP architecture assigns to the control-plane part of a disaggregated gNB (Section~\refmark{sec:ranarch}).\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 6.2.}\enspace It is the RRC connection lifecycle the 3GPP specifications define for a UE, from establishment through in-session signalling and bearer setup to reconfiguration and release~\citemark{1, 4}.\end{citedsentence}
 \afield{Claim it carries}{RRC signalling procedures and the UE lifecycle from establishment to release}
 \afield{Source says}{}
@@ -375,7 +375,7 @@ each located by the chapter or section it sits in.
 \afield{Entry}{DOI \href{https://doi.org/10.1145/2408776.2408794}{\texttt{10.1145/2408776.2408794}}.}
 \afield{Cited in}{7 places.}
 \begin{citedsentence}\textbf{\small Chapter 1.}\enspace Every device the site serves is affected~\citemark{6, 7}.\end{citedsentence}
-\begin{citedsentence}\textbf{\small Chapter 1.}\enspace emph{Tail latency}, the p99 and p99.9 percentiles rather than the mean, is the property that, more than average speed, decides whether such a system meets its deadlines~\citemark{6, 7}.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Chapter 1.}\enspace emph{Tail latency}, the p99, p99.9 and p99.99 percentiles rather than the mean, is the property that, more than average speed, decides whether such a system meets its deadlines~\citemark{6, 7}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 1.2.}\enspace Second, what governs whether RAN deadlines are met is not average throughput but worst-case and tail behaviour under load and overload~\citemark{6}, a property that is easy to regress and hard to measure correctly.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 2.2.}\enspace At the scale of a network, tail latency dominates user-visible behaviour: when a single user action fans out into many internal operations, the slowest of them sets the response time, so rare per-operation delays become common per-request delays~\citemark{6}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 2.4.}\enspace Java, C\# and Go achieve memory safety through a runtime and garbage collection, which is an excellent trade for much software and a poor one for a tail-latency-critical control plane: collection pauses are a recognised source of tail latency in large systems~\citemark{6}, and a managed runtime gives up the control over memory layout and scheduling this domain relies on.\end{citedsentence}
@@ -392,7 +392,7 @@ each located by the chapter or section it sits in.
 \afield{Entry}{DOI \href{https://doi.org/10.1145/3015146}{\texttt{10.1145/3015146}}.}
 \afield{Cited in}{4 places.}
 \begin{citedsentence}\textbf{\small Chapter 1.}\enspace Every device the site serves is affected~\citemark{6, 7}.\end{citedsentence}
-\begin{citedsentence}\textbf{\small Chapter 1.}\enspace emph{Tail latency}, the p99 and p99.9 percentiles rather than the mean, is the property that, more than average speed, decides whether such a system meets its deadlines~\citemark{6, 7}.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Chapter 1.}\enspace emph{Tail latency}, the p99, p99.9 and p99.99 percentiles rather than the mean, is the property that, more than average speed, decides whether such a system meets its deadlines~\citemark{6, 7}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Section 2.2.}\enspace Modern data-centre and networking software increasingly operates in a regime where the relevant latencies are measured in microseconds, a range in which conventional operating-system and software overheads are no longer negligible~\citemark{7}.\end{citedsentence}
 \begin{citedsentence}\textbf{\small Appendix B.}\enspace The fourth strand is the domain and the method: the tail-latency and microsecond-scale literature~\citemark{6, 7, 31, 106}, thread-per-core structuring moving the tail in its own right~\citemark{46}, O-RAN disaggregation~\citemark{3}, control-plane latency as an active target in the core network too~\citemark{107, 108}, adoption evidence pointing at the learning curve rather than run-time cost~\citemark{80, 81, 109}, and standard guidance on repeat-based evaluation and fault injection~\citemark{33, 60}.\end{citedsentence}
 \afield{Claim it carries}{at microsecond scale, conventional OS and software overheads stop being negligible}
@@ -1123,8 +1123,8 @@ each located by the chapter or section it sits in.
 \afield{Reference}{\fullcite{lizard}}
 \afield{Entry}{\href{https://github.com/terryyin/lizard}{source page}. Version 1.23.0. Accessed August 2026.}
 \afield{Cited in}{2 places.}
-\begin{citedsentence}\textbf{\small Section 5.4.4.}\enspace Table~\refmark{tab:complexity} therefore adds cyclomatic complexity, measured by \texttt{lizard}~\citemark{65} over both cores.\end{citedsentence}
-\begin{citedsentence}\textbf{\small Section 5.4.4, caption.}\enspace Size and cyclomatic-complexity proxies for the two cores, measured with \texttt{lizard}~\citemark{65} applied identically to both languages.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Section 5.4.4.}\enspace Table~\refmark{tab:complexity} therefore adds branching complexity, measured by \texttt{lizard}~\citemark{65} over both cores.\end{citedsentence}
+\begin{citedsentence}\textbf{\small Section 5.4.4, caption.}\enspace Size and branching-complexity proxies for the two cores, measured with \texttt{lizard}~\citemark{65} applied identically to both languages.\end{citedsentence}
 \afield{Claim it carries}{cyclomatic complexity measured with one tool applied identically to both languages}
 \afield{Source says}{}
 \begin{saidquote}Registry record as above.\end{saidquote}
@@ -1690,11 +1690,11 @@ verified one that carries the same point.
 \item \texttt{mo2023rustshyper}\hfill [95]
 \item \texttt{xiao2024rpkt}\hfill [96]
 \end{itemize}
-
 \subsection*{The one preprint still load-bearing}
 
 \texttt{bugden2022rust} is the last arXiv-only entry carrying weight. It is cited twice and both
 times beside a peer-reviewed source. Replacing it with a peer-reviewed equivalent is optional.
+
 
 \subsection*{Differences that look like defects and are not}
 
