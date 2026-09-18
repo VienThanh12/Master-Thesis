@@ -444,7 +444,7 @@ Three terms recur throughout. The \emph{gNB-CU-CP} is the control-plane class th
 \emph{UE Context Management (UECM)} is the compact service reimplemented and measured.
 \emph{Tail latency}, the p99, p99.9 and p99.99 percentiles rather than the mean, is the property that,
 more than average speed, decides whether such a system meets its
-deadlines~\cite{dean2013tail,barroso2017microseconds}. Every acronym is written out where the
+latency budgets~\cite{dean2013tail,barroso2017microseconds}. Every acronym is written out where the
 text first uses it, and the \nomname{} in the front matter collects them. The terms that are not
 acronyms are fixed in Appendix~\ref{appendix:terms} for readers outside telecom.
 
@@ -452,7 +452,7 @@ acronyms are fixed in Appendix~\ref{appendix:terms} for readers outside telecom.
 Three trends make this comparison timely. The first is the cloud-native evolution of the RAN
 itself. Moving control-plane functions onto general-purpose servers raises, rather than
 lowers, the premium on software quality: the software is longer-lived, evolves continuously,
-runs at higher concurrency, and must meet its deadlines without the determinism that
+runs at higher concurrency, and must meet its latency budgets without the determinism that
 purpose-built hardware once provided. This shift is accelerated by Open-RAN disaggregation,
 which turns the base station into virtualised, multi-vendor software connected by open
 interfaces~\cite{polese2023oran}, so that the control plane a vendor ships increasingly
@@ -583,7 +583,7 @@ latency under overload) rather than average throughput alone.
 Two properties of this domain make the language choice consequential. First, manual memory and
 concurrency management in C++ exposes the software to defects such as use-after-free,
 double-free, data races, and iterator invalidation, which are silent at compile time and costly
-to find and fix at telecom scale. Second, what governs whether RAN deadlines are met is not
+to find and fix at telecom scale. Second, what governs whether RAN latency budgets are met is not
 average throughput but worst-case and tail behaviour under load and
 overload~\cite{dean2013tail}, a property that is easy to regress and hard to measure correctly.
 Rust promises to remove the first class of defect at compile time while claiming performance

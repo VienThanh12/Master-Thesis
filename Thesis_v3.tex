@@ -270,7 +270,7 @@ Three terms recur throughout. The \emph{gNB-CU-CP} is the control-plane class th
 \emph{UE Context Management (UECM)} is the compact service reimplemented and measured.
 \emph{Tail latency}, the p99, p99.9 and p99.99 percentiles rather than the mean, is the property that,
 more than average speed, decides whether such a system meets its
-deadlines~\cite{dean2013tail,barroso2017microseconds}.
+latency budgets~\cite{dean2013tail,barroso2017microseconds}.
 
 
 
@@ -278,7 +278,7 @@ deadlines~\cite{dean2013tail,barroso2017microseconds}.
 Three trends make this comparison timely. The first is the cloud-native
 evolution of the RAN. Control-plane functions now run on general-purpose
 servers, so the software is longer-lived, more concurrent, and must meet
-its deadlines without the determinism of purpose-built hardware.
+its latency budgets without the determinism of purpose-built hardware.
 Open-RAN disaggregation turns the base station into virtualised,
 multi-vendor software~\cite{polese2023oran}. A latency regression or a
 memory-corruption defect is then a network-wide risk, and the language
@@ -362,7 +362,7 @@ both \emph{safety} (which defects are prevented, and when) and \emph{predictabil
 Two properties of this domain make the language choice consequential. First, manual memory and
 concurrency management in C++ exposes the software to defects such as use-after-free,
 double-free, data races, and iterator invalidation, which are silent at compile time and costly
-to find and fix at telecom scale. Second, what governs whether RAN deadlines are met is not
+to find and fix at telecom scale. Second, what governs whether RAN latency budgets are met is not
 average throughput but worst-case and tail behaviour under load and
 overload~\cite{dean2013tail}, a property that is easy to regress and hard to measure correctly.
 Rust promises to remove the first class of defect at compile time while claiming performance
