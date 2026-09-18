@@ -73,7 +73,7 @@ Details: [`rust/README.md`](../../rust/README.md).
 | `run_bench.sh` | Shorter comparison run. |
 | `load_sweep.sh` | Load sweep helper. |
 | `latency_budget.sh` | Split end-to-end time into work vs cross-thread handoff. |
-| `queue_contention.sh`, `queue_probes.sh` | Isolate the handoff primitives. |
+| `queue_contention.sh`, `queue_probes.sh` | Isolate the handoff primitives. The overload-floor analysis is `docs/OVERLOAD_MECHANISM.md`. |
 | `counters.sh` | Hardware counters. Needs a PMU. Refuses on WSL2. |
 | `alloc_profile.sh` | Attribute peak RSS to allocation sites. Testbed only. |
 | `steal_probe.sh` | CPU steal probe. |
