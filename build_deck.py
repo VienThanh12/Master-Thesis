@@ -845,7 +845,7 @@ add_notes(s, [
      "measurement exists for a RAN control-plane subsystem."),
 ], top=Cm(5.0), height=Cm(4.6), gap=Cm(0.5))
 add_textbox(s, Cm(1.16), Cm(10.3), Cm(23.08), Cm(1.0),
-            "Carried out at Nokia on a subsystem modelled on a real gNB-CU-CP component",
+            "Carried out at Nokia on a compact model of gNB-CU-CP per-UE state work",
             size=13, color=BLUE, bold=True, align=PP_ALIGN.CENTER)
 
 # =====================================================================
