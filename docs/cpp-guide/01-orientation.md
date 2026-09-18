@@ -6,7 +6,7 @@
 
 `cpp/` is one of two language-equivalent encodings of a frozen specification.
 It is a **UE Context Management (UECM)** service: a small, stateful, concurrent
-store of per-device records, modelled on a gNB-CU-CP control-plane component.
+store of per-device records of the kind a gNB-CU-CP holds.
 The thesis compares this tree with `rust/`. Fairness is not "they look similar".
 It is "they implement the same spec, and every forced idiom difference is
 logged".
