@@ -357,13 +357,19 @@ still presents the container as the candidate. If D1 runs, revisit it then.
 
 ### D1. The fourth substitution probe, the last untested candidate
 
+**Read first.** `docs/OVERLOAD_MECHANISM.md` (18 September 2026). The Request-size candidate has
+the wrong sign, and a WSL2 closed-loop run of the full service was tied. Three cheaper probes
+(closed loop, HDR cap off, `sync_channel(1)` completions) should precede this item. None of that
+is measurement-host evidence. Do not quote it in the thesis.
+
 **Why.** The overload divergence is the largest language effect in the tested family and the most
 reproducible effect in the study, and `tab:threats` still concedes it is attributed but not
 localised. Three probes have come back negative. The open-addressed map closes a minority of the
 core-operation gap, the Rust mutex-and-condvar queue closes none of the overload divergence, and the
 C++ preallocated ring closes none either, which exonerates the queue on design and on allocation
 both. `spec/SPECIFICATION.md` §12 names what is left: **the tagged-struct dispatch and the 160-byte
-C++ `Request` against Rust's 96.**
+C++ `Request` against Rust's 96.** The 18 September note argues that entry is the wrong next
+experiment, not that it should never run.
 
 **What to build.** A C++ `Request` carrying only the arguments of the operation in flight, either a
 `std::variant` of per-operation argument structs or a discriminated union, keeping the tagged
