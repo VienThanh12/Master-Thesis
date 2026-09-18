@@ -17,9 +17,9 @@
 
 ## 1. Purpose and scope
 
-The subsystem under study is a **UE Context Management (UECM) service**, modeled on a
-gNB-CU-CP service domain that owns the UE context lifecycle, RRC procedure execution, and
-mobility/handover. This document specifies, in a language-agnostic way:
+The subsystem under study is a **UE Context Management (UECM) service**. It is a compact
+model of the UE-context lifecycle, RRC procedure execution, and mobility/handover of the
+kind a gNB-CU-CP performs. This document specifies, in a language-agnostic way:
 
 - the UE context **data model** (Section 4),
 - the UE **state machine** (Section 5),
@@ -290,8 +290,9 @@ make it atomic — that would introduce shared state the concurrency model forbi
 
 ## 7. Concurrency model: shared-nothing, thread-per-shard
 
-This is the **specified** concurrency model. It mirrors how real RAN L3 partitions UE state
-and is the fairest structure for comparing the two languages' safe-concurrency stories.
+This is the **specified** concurrency model. It is a fairness control for the language
+comparison, not a copy of a production gNB-CU-CP runtime, and it is the fairest structure
+for comparing the two languages' safe-concurrency stories.
 
 1. The UE-id space is partitioned into `N_SHARDS` shards (Section 9).
 2. Each shard is owned by **exactly one worker thread**. Only that worker reads or mutates
@@ -868,6 +869,12 @@ frozen requirement.
 configuration and lifecycle edges found by the 16 September implementation review, and
 corrects the Rust `unsafe` line: no `unsafe` in `rust/src`, crate attribute absent.
 Details in `docs/CODE_REVIEW.md`. Version remains 1.0. Tag `spec-v1.0` is unchanged.
+
+**Amendment 2026-09-18 (wording only, requirements unchanged).** §1 now names UECM as a
+compact model of gNB-CU-CP UE-context work rather than as a production service domain.
+§7 now states that the thread-per-shard layout is a fairness control, not a copy of a
+production runtime. Behaviour, API, and conformance vectors are unchanged.
+Version remains 1.0. Tag `spec-v1.0` is unchanged.
 
 ---
 
