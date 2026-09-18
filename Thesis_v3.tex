@@ -284,13 +284,15 @@ multi-vendor software~\cite{polese2023oran}. A latency regression or a
 memory-corruption defect is then a network-wide risk, and the language
 choice is an engineering decision.
 
-The second trend is artificial intelligence (AI), which the network once
-used to tune itself and now carries as a workload in its own
-right~\cite{polese2026airan}. International Mobile
-Telecommunications-2030 (IMT-2030), the 6G framework of the
-International Telecommunication Union (ITU), lists that second role as
-one of its usage scenarios~\cite{itu2023imt2030}. The architecture
-forming around it is AI-RAN, in which AI and radio work share one
+The second trend is artificial intelligence (AI). AI used to be only a tool.
+It helped choose radio settings, such as how much power to send. That tool did
+not have to run on the radio's own server. Now AI programs also run on that
+server, next to the radio software~\cite{polese2026airan}. Both run at the same
+time, so they share one processor. International Mobile
+Telecommunications-2030 (IMT-2030) is the 6G framework of the
+International Telecommunication Union (ITU). It lists AI together with
+communication as one named job for 6G~\cite{itu2023imt2030}. The architecture
+forming around that job is AI-RAN, in which AI and radio work share one
 accelerated server~\cite{airan2026orchestrator}. A control plane there
 no longer has the host to itself. It shares the central processing unit
 (CPU), memory, and cache with inference work it does not schedule. When
