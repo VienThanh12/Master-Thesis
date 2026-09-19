@@ -456,9 +456,10 @@ on the delay of a signalling call. A late call still misses them when the
 average call is on time. So the worst case and the tail of that delay matter
 more than the mean. That is why this thesis measures the tail.
 
-The gNB is split on two axes. The first split is central versus distributed. A
-central unit (gNB-CU) hosts the higher layers of the protocol stack. One or more
-distributed units (gNB-DU) host the lower layers. Those layers sit close to
+The gNB is split on two axes. The first split is central versus distributed.
+The gNB runs a protocol stack: a set of layered radio protocols from the air
+interface up to RRC signalling. A central unit (gNB-CU) hosts the higher layers.
+One or more distributed units (gNB-DU) host the lower layers. Those layers sit close to
 the radio and are tight on time. The second split is control versus user
 plane, inside the central unit. It splits the control-plane function
 (gNB-CU-CP) from the user-plane function (gNB-CU-UP). These parts talk over
@@ -466,15 +467,15 @@ standard links. NG goes toward the 5G core, F1 sits between the CU and the DU,
 and E1 sits between the CU-CP and the CU-UP~\cite{3gpp38401,3gpp38300,3gpp38463}.
 Open-RAN pushes the same links further. Each part can then come from a
 different vendor and run as software on ordinary
-machines~\cite{polese2023oran}. Figure~\ref{fig:ngran} places the part studied
-here, UE Context Management (UECM), inside the gNB-CU-CP. UECM owns the per-UE
-control-plane state. It also handles RRC signalling and mobility. That is why
-its correctness and timing stand in for the control plane as a whole.
+machines~\cite{polese2023oran}. Figure~\ref{fig:ngran} shows the part studied in this thesis, UE Context Management (UECM), inside the gNB-CU-CP. UECM owns the per-UE
+control-plane state. It also handles RRC signalling and mobility. Those jobs
+are core to the control plane, so this thesis compares the two languages on
+UECM.
 
 % After the two paragraphs the leftover is short of the TikZ plus
 % caption, so [ht] defers it and [section]{placeins} ships the leftover as
 % whitespace. A modest enlarge keeps the figure with the section that cites it.
-\enlargethispage{40pt}
+\enlargethispage{64pt}
 \begin{figure}[!ht]
 \centering
 \begin{tikzpicture}[
