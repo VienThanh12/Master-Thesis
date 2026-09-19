@@ -711,7 +711,7 @@ third is the last-in-chapter float, closed in `Thesis_v3.tex` on 14 September 20
   then `\clearpage`s it onto its own page, centred. `[section]{placeins}` does
   the same at the next `\section`. The fix is local: `\enlargethispage{...}`
   plus `[!ht]`, sized to the shortfall, then rebuild and check the folio. Two
-  sites in `Thesis_v3.tex`: `fig:ngran` (`12pt`, placeins) and `fig:ffiseam`
+  sites in `Thesis_v3.tex`: `fig:ngran` (`64pt`, placeins) and `fig:ffiseam`
   (`52pt`, 14 September 2026, `\chapter{Discussion}`). Do not `\newpage` the
   subsection (the hole moves to the page before) and do not reach for `[H]`
   (the table trap above). Cursor rule:
