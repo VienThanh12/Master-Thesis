@@ -236,13 +236,13 @@ well-known cost in memory safety and concurrency. Rust promises comparable perfo
 compile-time safety, but its fit for this latency-critical setting is unproven.
 
 \noindent\textbf{Objective.}
-The thesis compares modern C++ and Rust on a user equipment (UE) Context Management service.
-The service keeps per-device state, as a 5G base-station control plane (gNB-CU-CP) does.
+The thesis compares modern C++ and Rust on a user equipment (UE) Context Management service
+modelled on a real Nokia 5G base-station control-plane component (gNB-CU-CP).
 Average-throughput comparisons leave four dimensions open: tail latency, the C++ defect classes Rust prevents at compile time, the overhead of
 its safety model, and the cost of incremental adoption.
 
 \noindent\textbf{Methods.}
-One language-agnostic specification is frozen first, then implemented in C++ and Rust with identical
+One language-agnostic specification is frozen first, then implemented twice with identical
 algorithms, concurrency model, allocator, and build settings. A synthetic workload is swept to
 overload, both versions pass the same parity tests, and the evaluation adds fault injection and a
 foreign function interface (FFI) prototype.
@@ -254,9 +254,9 @@ them. Seven further classes fail in both languages. On two of them C++ tooling r
 Rust does not. The seam to C++ leaves the core \texttt{unsafe}-free and costs at most
 $\FfiOpBoundPct\%$ of one operation. Performance changes at saturation. Below it the test resolves a few microseconds in Rust's favour, yet an end-to-end call spends only $\BudgetCoreShareMax\%$ on language
 work. Cross-thread handoff takes the rest, so the sweep reflects the design more than the
-language. Timed alone, Rust's operation is $\BudgetCoreRatio\times$ faster. The Rust variants still meet their offered rate to $\TrackingLoadRust$~kops/s, the C++ variants only to $\TrackingLoadCpp$~kops/s. After both languages fall behind the offered load, \OverloadSustainedFaster{} holds
-$\OverloadThrRatio\times$ the rate of \OverloadSustainedSlower{}.
-That order holds in \OverloadThrAgree{} paired repeats under both allocators. 
+language. Timed alone, Rust's operation is $\BudgetCoreRatio\times$ faster. The Rust variants still meet their offered rate to $\TrackingLoadRust$~kops/s, the C++ variants only to $\TrackingLoadCpp$~kops/s. After both have stopped tracking, \OverloadSustainedFaster{} holds
+$\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{} in \OverloadThrAgree{}
+interleaved repeats with both allocators. 
 
 \noindent\textbf{Conclusions.}
 The main cost of adopting Rust is engineering effort and the learning curve, not run-time
@@ -344,7 +344,7 @@ FIFO & First in, first out \\
 FNV-1a & Fowler--Noll--Vo hash function, variant 1a \\
 gNB & Next-generation NodeB, the 5G base station \\
 gNB-CU & gNB central unit \\
-gNB-CU-CP & gNB central unit control plane, the domain this work sits in \\
+gNB-CU-CP & gNB central unit control plane: the system class studied here \\
 gNB-CU-UP & gNB central unit user plane \\
 gNB-DU & gNB distributed unit \\
 HDR & High dynamic range, of the latency histogram \\
@@ -436,15 +436,15 @@ for a RAN control plane, where keeping latency stable under overload matters
 as much as raw speed, is not well understood. This thesis, carried out at
 Nokia, addresses the question directly. It builds two functionally equivalent
 implementations of a representative RAN subsystem, a UE Context Management
-service that keeps per-device state, as a gNB-CU-CP does, one in modern C++ and
+service modelled on a real Nokia gNB-CU-CP component, one in modern C++ and
 one in Rust. They are compared under a realistic synthetic signalling
 workload.
 
-Three terms recur throughout. The \emph{gNB-CU-CP} is the control-plane class this work sits in.
-\emph{UE Context Management (UECM)} is the compact service reimplemented and measured.
+Three terms recur throughout. The \emph{gNB-CU-CP} is the control-plane software this work is
+about. \emph{UE Context Management (UECM)} is the specific subsystem reimplemented and measured.
 \emph{Tail latency}, the p99, p99.9 and p99.99 percentiles rather than the mean, is the property that,
 more than average speed, decides whether such a system meets its
-latency budgets~\cite{dean2013tail,barroso2017microseconds}. Every acronym is written out where the
+deadlines~\cite{dean2013tail,barroso2017microseconds}. Every acronym is written out where the
 text first uses it, and the \nomname{} in the front matter collects them. The terms that are not
 acronyms are fixed in Appendix~\ref{appendix:terms} for readers outside telecom.
 
@@ -452,7 +452,7 @@ acronyms are fixed in Appendix~\ref{appendix:terms} for readers outside telecom.
 Three trends make this comparison timely. The first is the cloud-native evolution of the RAN
 itself. Moving control-plane functions onto general-purpose servers raises, rather than
 lowers, the premium on software quality: the software is longer-lived, evolves continuously,
-runs at higher concurrency, and must meet its latency budgets without the determinism that
+runs at higher concurrency, and must meet its deadlines without the determinism that
 purpose-built hardware once provided. This shift is accelerated by Open-RAN disaggregation,
 which turns the base station into virtualised, multi-vendor software connected by open
 interfaces~\cite{polese2023oran}, so that the control plane a vendor ships increasingly
@@ -515,7 +515,8 @@ and evolve production RAN software end to end. That market is concentrated in ve
 the five largest suppliers took 96\% of worldwide RAN revenue over the first three quarters of
 2025, with concentration by Herfindahl--Hirschman Index at a ten-year
 high~\cite{delloro2025ran3q,delloro2026ran}. The subsystem it studies, UE Context
-Management (UECM), is a compact model of the per-UE state work a gNB-CU-CP does.
+Management (UECM), is modelled on a real gNB-CU-CP control-plane component rather than a
+textbook example.
 
 The gNB-CU-CP is not a minor component. In the disaggregated architecture of the 3rd
 Generation Partnership Project (3GPP) it is the
@@ -559,8 +560,8 @@ question until the next generation is specified will not thereby have avoided ma
 have made it by default, in the incumbent language, for another decade of deployments.
 
 What this thesis contributes to that decision is bounded, and the boundary is worth stating
-plainly. The measurements here are taken on a compact model of current-generation
-UE-context work and evaluated against requirements that are already published. No claim is made about
+plainly. The measurements here are taken on a subsystem modelled on a current-generation
+component and evaluated against requirements that are already published. No claim is made about
 requirements that have not yet been written. What crosses the generational boundary is not a
 latency figure but the language-level comparison itself: Which defect classes a compiler can rule
 out, what the safety model costs, and what incremental adoption inside a large C++ codebase
@@ -583,7 +584,7 @@ latency under overload) rather than average throughput alone.
 Two properties of this domain make the language choice consequential. First, manual memory and
 concurrency management in C++ exposes the software to defects such as use-after-free,
 double-free, data races, and iterator invalidation, which are silent at compile time and costly
-to find and fix at telecom scale. Second, what governs whether RAN latency budgets are met is not
+to find and fix at telecom scale. Second, what governs whether RAN deadlines are met is not
 average throughput but worst-case and tail behaviour under load and
 overload~\cite{dean2013tail}, a property that is easy to regress and hard to measure correctly.
 Rust promises to remove the first class of defect at compile time while claiming performance
@@ -1179,9 +1180,9 @@ Chapter~\ref{chapter:methodology} sets out the methodology by which they are pur
 \chaptermark{Problem Context}
 
 \section{The UE Context Management subsystem}\label{sec:uecm}
-The subsystem under study is a UE Context Management service. Its operations follow the
-UE-context lifecycle, RRC procedure
-execution~\cite{3gpp38331}, and mobility and handover that the 3GPP architecture
+The subsystem under study is a UE Context Management service. It is modelled on a real Nokia
+gNB-CU-CP service domain that owns the UE context lifecycle, RRC procedure
+execution~\cite{3gpp38331}, and mobility/handover, which are the functions the 3GPP architecture
 assigns to the control-plane part of a disaggregated gNB (Section~\ref{sec:ranarch}).
 
 Figure~\ref{fig:fsm} shows the UE-context lifecycle state machine that both implementations
@@ -1842,8 +1843,7 @@ Two implementations are built against the shared specification, and they do the 
 modern C++ version (C++23, the Standard Template Library (STL), RAII, standard threading) and a
 Rust version (stable toolchain,
 ownership-based memory model, safe concurrency). Both use one concurrency model, described as
-\emph{shared-nothing, thread-per-shard}. The layout is held fixed so the two languages share a
-runtime. A production gNB-CU-CP schedules UE work differently. Async and
+\emph{shared-nothing, thread-per-shard}, which is how real RAN layer 3 divides UE state. Async and
 thread-based models are never mixed, and that is deliberate.
 
 The UE-identifier space is split into $N_{\text{shards}}$ shards, and each shard belongs to
@@ -4327,7 +4327,7 @@ the largest single effect measured here and the finding with the least external 
 
 \section{Ethical and professional reflection}
 The study processes no personal, subscriber, or operator-confidential data. All traffic is
-synthetic and no proprietary source is copied into the implementations, so the
+synthetic and the subsystem is modelled on production code rather than copied from it, so the
 artifacts can be released openly. The \emph{use} of the study is a different matter, because a
 language-selection recommendation in this domain is not a neutral technical output.
 
@@ -4348,8 +4348,8 @@ than disappearing.
 
 \chapter{Conclusion and Future Work\label{chapter:conclusions}}
 
-This thesis compared modern C++ and Rust on a UE Context Management service that keeps
-per-device state, as a gNB-CU-CP does, along four dimensions: tail-latency predictability, compile-time
+This thesis compared modern C++ and Rust on a UE Context Management service modelled on a real
+Nokia gNB-CU-CP component, along four dimensions: tail-latency predictability, compile-time
 defect prevention, safety-model overhead, and incremental-adoption cost. Built against a single
 frozen specification and driven through identical code paths, the two implementations isolate
 language effects from design and skill differences.
