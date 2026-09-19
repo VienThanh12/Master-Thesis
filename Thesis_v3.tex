@@ -451,9 +451,10 @@ The next-generation radio access network (NG-RAN) is the setting for this compar
 Event rates are high: UEs move, and signalling can spike. Delay bounds are
 tight and must stay stable. The 5G service and RAN specs state those bounds as key
 performance indicators (KPIs)~\cite{3gpp38913,3gpp22261}. The software lives
-for a long time and keeps growing. Many threads run at once. Here the worst
-case and the tail matter more than the mean. That is why this thesis measures
-the tail.
+for a long time and keeps growing. Many threads run at once. Those bounds are
+on the delay of a signalling call. A late call still misses them when the
+average call is on time. So the worst case and the tail of that delay matter
+more than the mean. That is why this thesis measures the tail.
 
 The gNB is split on two axes. The first split is central versus distributed. A
 central unit (gNB-CU) hosts the higher layers of the stack. One or more
@@ -470,10 +471,10 @@ here, UE Context Management (UECM), inside the gNB-CU-CP. UECM owns the per-UE
 control-plane state. It also handles RRC signalling and mobility. That is why
 its correctness and timing stand in for the control plane as a whole.
 
-% After the two paragraphs the leftover is a few points short of the TikZ plus
+% After the two paragraphs the leftover is short of the TikZ plus
 % caption, so [ht] defers it and [section]{placeins} ships the leftover as
-% whitespace. A small enlarge keeps the figure with the section that cites it.
-\enlargethispage{12pt}
+% whitespace. A modest enlarge keeps the figure with the section that cites it.
+\enlargethispage{40pt}
 \begin{figure}[!ht]
 \centering
 \begin{tikzpicture}[
