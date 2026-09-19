@@ -468,9 +468,10 @@ and E1 sits between the CU-CP and the CU-UP~\cite{3gpp38401,3gpp38300,3gpp38463}
 Open-RAN pushes the same links further. Each part can then come from a
 different vendor and run as software on ordinary
 machines~\cite{polese2023oran}. Figure~\ref{fig:ngran} shows the part studied in this thesis, UE Context Management (UECM), inside the gNB-CU-CP. UECM owns the per-UE
-control-plane state. It also handles RRC signalling and mobility. Those jobs
-are core to the control plane, so this thesis compares the two languages on
-UECM.
+control-plane state. It also handles RRC signalling and mobility. These are
+integral parts of the control plane functionality, and therefore UECM was
+chosen to study the programming language impact on the control plane as a
+whole.
 
 % After the two paragraphs the leftover is short of the TikZ plus
 % caption, so [ht] defers it and [section]{placeins} ships the leftover as
@@ -539,17 +540,27 @@ mirrors~\cite{olsson2023asyncpackets}. One measures median and p99 delay for
 control-plane steps across five async
 frameworks~\cite{arvidsson2025async}. The last builds matched C++ and Rust
 versions of an Abstract Syntax Notation One (ASN.1) decompiler. It compares
-them with statistical tests~\cite{emberg2023asn1}. All five are directly relevant. Two
-report gaps that do not favour Rust.
+them with statistical tests~\cite{emberg2023asn1}. All five are directly
+relevant. They do not all favour Rust. Olsson and Stenstr\"om's packet
+processor reaches a fifth to a half of DPDK's throughput, with far worse
+latency~\cite{olsson2023asyncpackets}. Arvidsson and Kaller's Rust p99 rises
+more steeply past a threshold rate~\cite{arvidsson2025async}. Karlb\"ack and
+Or\"o pick C++ where speed is critical. They still find Rust lightest on peak
+memory~\cite{karlback2021ran}. Olsson's management software is as fast as C or
+faster. It uses more peak memory~\cite{olsson2023ranmgmt}. Emberg and
+Wadsten's pair is comparable in one session. It is $85$--$91\%$ worse in the
+next~\cite{emberg2023asn1}.
 
 Three of them change the language together with the run-time and the thread
 model. A measured gap then cannot be blamed on the language rather than on the
 framework~\cite{karlback2021ran,olsson2023asyncpackets,arvidsson2025async}.
-The effect sizes reach a factor of five. That shows how much of the
-measurement the run-time owns. The other two hold the design closer to fixed.
-But they report run time and peak memory, not tail delay under rising
-load~\cite{olsson2023ranmgmt,emberg2023asn1}. The closest of them, Emberg and
-Wadsten, measures a stateless transform. It is not a stateful multi-thread
+In that packet-processor study the DPDK program does two to five times as much
+work~\cite{olsson2023asyncpackets}. A compiler does not move throughput that
+far. The run-time does. Olsson's management study and Emberg and Wadsten do
+not change the run-time with the language~\cite{olsson2023ranmgmt,emberg2023asn1}. But they
+report run time and peak memory, not tail delay under rising load. Emberg and
+Wadsten come closest in method to this thesis. They still measure a stateless
+transform. It is not a stateful multi-thread
 part. Figure~\ref{fig:gapmap} places the five vendor theses beside the
 general-purpose comparisons~\cite{pereira2017energy} and the matched
 systems-software pairs~\cite{emmerich2019drivers,suchert2023stamp}. Each group holds some of what a fair test would need. None
@@ -567,7 +578,7 @@ strategy this thesis tests against.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.78\linewidth]{diagrams/pdf/29_research_gap.pdf}
+\includegraphics[width=\linewidth]{diagrams/pdf/29_research_gap.pdf}
 \caption[What the neighbouring studies control, and what they leave varying]{What the neighbouring studies control, and what they leave varying. Each row is a
 property a controlled answer would need, and each column is a group of studies.
 The vendor-RAN column is the Ericsson theses other than Emberg and Wadsten,
