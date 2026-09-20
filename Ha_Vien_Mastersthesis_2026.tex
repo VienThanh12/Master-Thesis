@@ -698,7 +698,7 @@ $\TrackingLoadRust$~kops/s and the C++ variants to $\TrackingLoadCpp$. Deeper st
 collapsed, the C++ build sustains $\OverloadThrRatio\times$ the throughput of the Rust
 build in \OverloadThrAgree{} interleaved repeats under both allocators, and the Rust build spends
 $\OverloadCpuPerOpRatio\times$ the CPU on each operation it does complete, which is what rules out
-the reading that it is simply doing less. On resources the Rust process holds a few MiB more resident memory, again
+the reading that it is simply doing less. That floor is the open-loop fill. On resources the Rust process holds a few MiB more resident memory, again
 under both allocators, in the same direction and the same order of magnitude on all three machines
 measured. How it compares against the cost of the allocator choice does not travel to another
 machine: the two are comparable on bare metal and the allocator's was an order of magnitude
@@ -1562,9 +1562,9 @@ therefore decides whether the result can be interpreted at all. The second level
 a first pass of the campaign, and Section~\ref{sec:threats} records that revision.
 
 \paragraph{Isolating the contended synchronisation primitives.}
-The overload comparison in Section~\ref{sec:overload} attributes its gap to two forced-idiom
+The overload comparison in Section~\ref{sec:overload} first looked at two forced-idiom
 entries where the standard libraries diverge. They are the bounded blocking queue and the
-one-shot completion handle. That attribution is argued from the shape of the full-service
+one-shot completion handle. That reading is argued from the shape of the full-service
 measurement, so a third matched microbenchmark drives those two primitives alone, with no
 \texttt{ShardCore} work in the path, under the same interleaved repeats and paired test.
 Section~\ref{sec:contention} gives its configuration and reports whether the isolated primitives
@@ -2016,9 +2016,9 @@ alias into live shard state, preserving the shared-nothing guarantee.\label{fig:
 
 \subsection{Sharding, the store, and the bounded queue}
 Both sides pin hashing so that neither standard library's hasher becomes a language advantage.
-Shard assignment runs the \texttt{ue\_id} through the SplitMix64 finalizer, then reduces modulo
+Shard assignment runs the \texttt{ue\_id} through the SplitMix64 finalizer~\cite{steele2014splitmix}, then reduces modulo
 the shard count, which spreads sequential identifiers. Inside the shard both maps are keyed
-through a pinned FNV-1a 64-bit hash, and a test checks that the Rust \texttt{BuildHasher} is
+through a pinned FNV-1a 64-bit hash~\cite{rfc9923}, and a test checks that the Rust \texttt{BuildHasher} is
 bit-identical to the reference. Capacity is reserved at start-up. Table~\ref{tab:params} lists
 the rest.
 
@@ -2377,8 +2377,9 @@ The safety and most of the migration results do not depend on the measurement ho
 performance and resource results do, and every figure and table below is measured on the host of
 Section~\ref{sec:testbed} unless stated otherwise. Every comparison on that host resolves, including
 the far tail below saturation. Section~\ref{sec:hostcompare} sets the earlier host beside it.
-The divergence past saturation is resolved as a measurement and not as a mechanism, and
-Section~\ref{sec:contention} reports how far the mechanism could be narrowed.
+The divergence past saturation is resolved as a measurement.
+Section~\ref{sec:overload} now reads it as the open-loop histogram fill, and
+Section~\ref{sec:contention} reports that the isolated primitives do not produce it.
 
 \subsection{Below saturation (RQ1, RQ3)}\label{sec:perfresults}
 The hypothesis under test is H1 (Section~\ref{sec:rqs}): equivalence below saturation, with any
@@ -2844,11 +2845,16 @@ below isolates those primitives, and they do not reproduce the
 full-service ordering at significance. That rules them out \emph{alone} as the whole explanation
 for a $\OverloadThrRatio\times$ gap. As in Section~\ref{sec:budget}, nothing in the safety model
 is implicated.
+A closed loop of the same service, with no send plan, is not a C++ win either.
+The order comes back when senders run open-loop against a missed plan and the histogram fills in the omitted samples.
+It recedes when that fill is turned off.
+That check is a later run on the same CPU family, not the compared campaign.
+The published floor is that instrument, not the languages' maximum rate.
 
 The setting bounds what the finding can support, and Section~\ref{sec:threats} says how far it
 travels. The depth of the collapse depends on one design, one request outstanding per producer and
-a queue bound of $1\,024$, measured with a harness whose producers block per request. What travels is the ordering under collapse, and that the isolated primitives do not produce
-it on their own.
+a queue bound of $1\,024$, measured with a harness whose producers block per request. What travels is that both sides fall below their own tracking rate, and that the isolated primitives do not produce
+it on their own. The depth of the hole is the open-loop fill.
 
 The closest prior work reports a comparable degradation past a threshold request rate and
 attributes it to the asynchronous runtime~\cite{arvidsson2025async}.
@@ -2896,8 +2902,8 @@ Metric & Allocator & Effect (Rust $-$ C++) & Repeats & $p$ & Holm \\
 \end{table}
 
 \paragraph{The contended queue and completion primitives on their own.}\label{sec:contention}
-The overload result attributes its gap to the two forced-idiom synchronisation constructs, but
-that attribution was argued from the shape of the full-service measurement. A microbenchmark
+The overload result was first read as a gap in the two forced-idiom synchronisation constructs.
+That reading was argued from the shape of the full-service measurement. A microbenchmark
 isolates those constructs alone.
 
 \ContentionProducers{} producer threads hammer one bounded queue of capacity $1\,024$ while a
@@ -2933,11 +2939,10 @@ The isolated primitives do not reproduce the overload ordering. C++ sustains
 \ContentionThrCpp{}~kops/s and Rust \ContentionThrRust{}~kops/s, a gap of only
 $\ContentionRatio\times$ with $p = \ContentionP$, where the full service at
 $\OverloadLoad$~kops/s separates by $\OverloadThrRatio\times$ with its corrected $p$ at the
-family floor. So the overload divergence involves extra work the microbenchmark strips away: the
-larger tagged \texttt{Request} on the C++ side, the worker's variant dispatch, and the map
-operations that still execute in the overload regime. An orders-of-magnitude difference in the
-primitives alone is ruled out, which moves the search for the mechanism to the rest of the handoff
-path and not to the safety model.
+family floor. So the overload divergence involves extra work the microbenchmark strips away.
+An orders-of-magnitude difference in the primitives alone is ruled out.
+The later checks place that work in the open-loop histogram fill.
+They do not place it in the safety model.
 
 \subsection{Resource use (RQ3)}\label{sec:resources}
 Table~\ref{tab:resource} reports resource use at the same
@@ -3619,7 +3624,7 @@ $\OverloadLoad$~kops/s, where all four have collapsed,
 \OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$ the throughput of
 \OverloadSustainedSlower{} in \OverloadThrAgree{} repeats under both allocators. & Overload,
 operation and far tail: resolved, and each reproduced at a second shard count.
-Mechanism: tested. Primitives alone insufficient. The saturation-limit gap is descriptive, not
+Mechanism: open-loop histogram fill. Primitives alone insufficient. The saturation-limit gap is descriptive, not
 tested \\
 RQ2 & All seven injected memory-safety and data-race classes are prevented at compile time in
 safe Rust, where in C++ each compiles and is caught, if at all, only at runtime and by no single
@@ -3652,12 +3657,9 @@ ordering reverses with the linkage policy, and the compared component resolves $
 \paragraph{RQ1 (predictability).} The two load-dependent effects point at opposite languages,
 and that is why a single verdict here would be false. A service sized to run below its knee
 should prefer the variant that holds its offered rate further, to $\TrackingLoadRust$~kops/s
-against $\TrackingLoadCpp$. One that a signalling storm will drive past every knee should
-prefer the variant that still completes more work afterwards, by $\OverloadThrRatio$ at
-$\OverloadLoad$~kops/s, at the corrected floor of the whole test family, while the slower
-variant spends more CPU on each operation it does complete (Section~\ref{sec:overload}). Only
-the second of those is tested. The first is descriptive, for the reason
-Section~\ref{sec:perfresults} gives. A comparison that stopped at nominal load, as most in
+against $\TrackingLoadCpp$. That pick is descriptive, for the reason
+Section~\ref{sec:perfresults} gives. Past each knee the published floor is not a language pick
+(Section~\ref{sec:overload}). A comparison that stopped at nominal load, as most in
 this literature do, would have concluded the opposite with the same apparatus.
 
 What a deployment sizes its margin from is the far tail, not the median. At the
@@ -3687,11 +3689,12 @@ fired. A degradation past a threshold rate appeared with the concurrency model h
 asynchronous runtime cannot be the only place such an effect starts. The prediction also
 named where to look first if that happened: bounds and overflow
 checking~\cite{zhang2022runtime,harris2023morello}. That part of it was wrong. The effect
-appears only once the handoff path is contended, which points instead at the two standard
-libraries' blocking primitives recorded in Table~\ref{tab:idioms}. Section~\ref{sec:contention}
-then tests whether those primitives alone explain the gap, and they do not reproduce the
-full-service ordering at significance. That narrows the cause to extra work on the C++ handoff
-path and not to the safety model.
+appears only once senders are late. Section~\ref{sec:contention}
+then tests whether the blocking primitives of Table~\ref{tab:idioms} alone explain the gap, and they do not reproduce the
+full-service ordering at significance. That rules them out alone.
+A closed loop of the same service is not a C++ win.
+The floor gap returns under the open-loop histogram fill and recedes when the fill is off.
+The safety model is not the cause.
 
 \paragraph{RQ2 (safety).} The result does not depend on the environment. What makes it
 interesting is not the half that confirms the expectation, but the half that bounds it. Within
@@ -3900,7 +3903,7 @@ themselves, is what distinguishes a test from a description.
         saturation, and that any difference is confined to the far tail. The first is
         supported. The second is refuted, and not in the direction the wording anticipated,
         for the reasons Section~\ref{sec:rqdiscussion} gives. The largest difference the study
-        found lies in overload, which H1 did not consider at all. The hypothesis as written would
+        found lies in overload, which H1 did not consider at all. That difference is the open-loop fill. The hypothesis as written would
         have led the campaign to look in the wrong place, and the result was found only because the
         sweep was pushed past saturation on methodological grounds rather than in expectation of it.
 
@@ -3961,7 +3964,7 @@ measurement, which says what the language is doing.
 
 Every conclusion drawn while the sweep stopped at nominal load was a null, correct at that
 operating point and silent about the one where the two implementations differ by
-$\OverloadThrRatio\times$ (Section~\ref{sec:overload}). Sweeping past the knee is the other
+$\OverloadThrRatio\times$ (Section~\ref{sec:overload}). That difference is the open-loop fill. Sweeping past the knee is the other
 guideline the study would most like to have followed from the start. The reusable artifact is
 the benchmarking framework and not its current output.
 
@@ -4141,8 +4144,7 @@ honest account of where those controls stop. Table~\ref{tab:threats} maps the th
 kind of inference each endangers, so the remaining risks can be read as a set instead of
 gathered one at a time from the prose that follows. Three are load-bearing. The study cannot rule
 out single-author skill asymmetry. Its end-to-end instrument is the wrong one for part of what RQ1
-and RQ3 ask. And its strongest single finding, the overload divergence, rests on an attribution it
-did not measure directly.
+and RQ3 ask. And its strongest single finding, the overload split, sits in the open-loop histogram fill.
 
 \begin{table}[tp]
 \centering
@@ -4170,7 +4172,7 @@ Implementation bias between the two versions & Frozen specification, shared allo
 \hline
 \multicolumn{3}{@{}l}{\emph{Construct: do the metrics measure what the questions ask?}} \\
 The sweep measures the design, not the language & The operation is measured apart from the handoff and both are reported (\S\ref{sec:budget}) & One operation on one data structure is narrower than the sweep it supplements \\
-The overload result is attributed but not localised & Narrowed to two entries in the forced-idiom log (\S\ref{sec:overload}), and the contended-primitive microbenchmark rules those two out alone (\S\ref{sec:contention}) & The full handoff path under load still includes variant dispatch and larger requests on the C++ side \\
+The published floor is the open-loop histogram fill & Closed loop of the same service is not a C++ win. Dropping the histogram fill removes the floor gap. The isolated queue and completion do not produce it (\S\ref{sec:contention}) & The check is a later run on the same CPU family, not the compared campaign. The published floor row is unchanged \\
 A defect catalogue is a sample the author chose & Seven classes drawn from outside the guarantee, with expectations recorded in advance & Fourteen programs remain fourteen programs \\
 RQ3 captures resource cost, and its origin outside the allocator & The allocator's own accounting, on two bare-metal hosts (\S\ref{sec:hostcompare}) & No call site: the profiling build reverses the sign of the effect (\S\ref{sec:hostcompare}) \\
 RQ4 measures the seam, not the safety of the whole & The distinction is stated wherever the result is quoted & One address space: a compile-time property of the Rust side bounds nothing at run time \\
@@ -4271,9 +4273,8 @@ Third, the overload divergence is measured and replicated, and its mechanism is 
 not only argued. Isolated under the same pattern of \ContentionProducers{} producers, the bounded
 queue and completion primitives do not reproduce the full-service ordering at significance
 ($p = \ContentionP$), which rules those two constructs out alone as the whole explanation even
-though they are where the forced-idiom log predicted contention would matter. The cause is not
-unknowable, and Section~\ref{sec:contention} names the candidates that remain on the C++ handoff
-path.
+though they are where the forced-idiom log predicted contention would matter. The later checks place that work in the open-loop histogram fill.
+They do not place it in the safety model.
 
 \paragraph{External validity: how far do the results travel?}
 The study covers one subsystem, one workload, one concurrency structure, and one machine, and
@@ -4406,7 +4407,9 @@ rate to $\TrackingLoadRust$~kops/s against $\TrackingLoadCpp$. Beyond that, the 
 sustains $\OverloadThrRatio\times$ the throughput of the Rust build, in \OverloadThrAgree{}
 interleaved repeats under both allocators, while the Rust build spends
 $\OverloadCpuPerOpRatio\times$ the CPU on each operation it completes, so what it loses is
-not idleness but effort that finishes nothing. The isolated primitives do not reproduce
+not idleness but effort that finishes nothing.
+That ratio is the open-loop instrument.
+Closed loop of the same service does not show it. The isolated primitives do not reproduce
 that ordering at significance (Section~\ref{sec:contention}). On memory the Rust build
 carries a few MiB more fixed footprint under both allocators, in the same direction and
 the same order of magnitude on every machine measured, while the cost of the allocator
@@ -4415,9 +4418,8 @@ choice moved by more than tenfold between them.
 Taken together these support a narrow claim. For stateful, concurrent, partitionable
 control-plane services of this kind, at the loads where the service still meets its offered
 rate, the choice is which classes of defect an organisation wants to make unwriteable, and
-whether it will pay the engineering and learning cost of getting them. Past that point it
-is a performance decision as well. The reasons for the latter lie in how concurrency is
-implemented and not in either language's guarantees. What this thesis adds is an instrument
+whether it will pay the engineering and learning cost of getting them. Past that point the published floor is the
+open-loop fill. It is not a second language rank. What this thesis adds is an instrument
 and not a verdict: the frozen specification, the parity-tested pair, a measurement
 framework that reaches past the saturation knee, a decomposition that says how much of what
 it measures the language is answerable for, and a defect catalogue that maps where the
@@ -4949,7 +4951,7 @@ what the language is doing.
 \paragraph{Sweep past saturation, because that is where the languages stopped agreeing.}
 Every conclusion drawn about performance while the sweep stopped at nominal load was a null.
 Each was correct at that operating point and silent about the one where the two implementations
-differ by $\OverloadThrRatio\times$ (Section~\ref{sec:overload}). The knee is the region that
+differ by $\OverloadThrRatio\times$ (Section~\ref{sec:overload}). The published floor past it is the open-loop fill. The knee is the region that
 decides whether a signalling storm degrades service or ends it. Sweeping past it costs one more
 afternoon of machine time. The decision the framework should inform is ``measure this on your
 component, and measure it past the point where your component stops coping'', not ``Rust is fast
