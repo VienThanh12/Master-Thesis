@@ -1,18 +1,19 @@
 # Why Rust collapses past saturation
 
-**Date:** 18 September 2026  
-**Status:** working note. Not a thesis claim. Do not copy numbers, ratios, or causal
-sentences from the WSL2 session into `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v3.tex`,
-the deck, or `figures/gen_macros.tex`.  
+**Date:** 18–19 September 2026  
+**Status:** working note. The 19 September Cherry Chicago AMD EPYC 7443P P0/P1/P2
+run is certified. Do not copy its kops/s into `figures/gen_macros.tex` or as
+`\OverloadThr*` values. Those macros still belong to
+`campaign-20260827-151927`. The cause sentence of the overload floor may now
+move. Do not copy WSL2 numbers into the thesis at all.  
 **Question:** the overload floor is the largest language effect in the tested family
 (`\OverloadThrRatio` at `\OverloadLoad` kops/s). The thesis measures it and does not
 localise it. This note separates what the reported campaign already shows from what
-the 18 September session added, ranks the remaining causes, and says which probe
-should run first.
+the 18–19 September probes added.
 
-This is not D1. `docs/TODO.md` D1 is still the Request-size substitution. This note
-argues that D1 is the wrong next experiment, and that three cheaper probes should
-precede it.
+This is not D1. `docs/TODO.md` D1 is still the Request-size substitution. P0, P1,
+and P2 on the 7443P retire it as the mechanism of the floor: the gap vanishes
+when the HDR cap is 0.
 
 ---
 
@@ -115,15 +116,15 @@ indicative only. Direction is what they support. Do not quote the absolute kops/
 | C++ `-DUECM_RING_QUEUE=ON` | `std::queue` → preallocated ring | 1.44× → 1.43× | Queue *allocation* is not the cause. 1008 `new`/`delete` pairs per 3000 pushes went to zero. Throughput did not move. |
 | `queue_contention` | queue + completion, no `ShardCore` | 55 vs 59 kops/s, `p = \ContentionP` | The two primitives alone do not reproduce the ordering. Thesis §`sec:contention`. |
 
-The spec then names the last untested entry in the forced-idiom log: tagged-struct
-dispatch and the 160-byte C++ `Request` (`\CppRequestBytes`) against Rust’s 96
-(`\RustRequestBytes`). That is D1.
+The spec then named the last untested *service-side* entry in the forced-idiom
+log: tagged-struct dispatch and the 160-byte C++ `Request` (`\CppRequestBytes`)
+against Rust’s 96 (`\RustRequestBytes`). That is D1.
 
 **That candidate has the wrong sign.** If moving a larger tagged struct through the
 queue were the overload cost, C++ would be slower. C++ is the side that still
 completes more work. A probe that shrinks the C++ `Request` can still be run, and a
 negative result would be useful, but it cannot be the mechanism of a gap in which
-C++ *wins*.
+C++ *wins*. P0–P2 (§4.5) now sit in front of it.
 
 The same inversion sits in the full-draft discussion
 (`Ha_Vien_Mastersthesis_2026.tex`, RQ1 paragraph after the Arvidsson discussion):
@@ -225,6 +226,85 @@ C++’s promise behind a spinning atomic, produced 39 µs versus 5 µs. That
 comparison does not match the service and is not evidence. `queue_contention` is
 the fair isolation of the same two primitives.
 
+### 4.5 P0, P1, P2 on this host (`bench/overload_probes.sh`)
+
+Eight interleaved repeats, mixed, 7/7, 5 000 active UEs, system allocator,
+2 s measured. P1 and P2 offered 140 kops/s (`--rate 20000` per producer).
+Log: `bench/results/overload_probes-20260918-134345.jsonl`. The script
+refused to certify every phase. Quote ranges, not medians.
+
+| Phase | Arm | Throughput range (kops/s) | CPU cluster | Reading |
+| --- | --- | --- | --- | --- |
+| P0 closed | cpp-closed | 67–100 | ~436% | Overlap with Rust |
+| P0 closed | rust-closed | 67–103 | ~461% | Overlap with C++ |
+| P1 open, cap 10 000 | cpp-open | 47–62 | ~486% | C++ ahead. Ranges do not overlap. |
+| P1 open, cap 10 000 | rust-open | 37–45 | ~538% | Rust slower, busier |
+| P1 open, cap 0 | cpp-cap0 | 42–94 | ~437% | Recovers toward P0. One outlier at 42. |
+| P1 open, cap 0 | rust-cap0 | 42–96 | ~457% | Recovers toward P0. One outlier at 42. C++ advantage gone. |
+| P2 open, cap 10 000 | cpp-open | 51–65 | ~498% | Same instrument as P1 open |
+| P2 open, cap 10 000 | rust-open | 37–46 | ~542% | Same as P1 rust-open |
+| P2 open, cap 10 000 | rust-oneshot | 40–46 | ~544% | Inside the rust-open range. No move. |
+
+Three directional claims survive the refusal to certify.
+
+1. **Closed loop is tied.** The P0 ranges sit on top of each other. That
+   confirms the two-repeat smoke in §4.1 with a proper interleave.
+2. **The open-loop gap is the 10 000-sample backfill on this host.** With the
+   campaign cap, C++’s range sits entirely above Rust’s, and Rust draws more
+   CPU while completing less. With the cap at 0, both arms recover toward the
+   closed-loop band, CPU recedes to the closed-loop cluster, and the language
+   split is no longer visible. Collapsed p50 stays around a second in every
+   open-loop arm, including cap 0: the intended schedule is still the latency
+   origin. Throughput is what moved.
+3. **`sync_channel(1)` is not the floor.** P2 is a clean negative. The 1 KiB
+   list oneshot remains a real allocation tax (§4.3) and does not, in this
+   service, produce the overload ordering.
+
+What this does **not** license: a thesis sentence, a `\OverloadThr*` edit, or
+a claim that the EPYC floor is “just HDR.” This laptop is fully subscribed
+(14 threads on 14 logical CPUs). The reported host pins 16 cores for the
+same 14 threads. The isolated backfill in §4.2 already left a residual
+round-trip gap after subtracting 19 µs and 30 µs. Cap 0 removes the
+histogram cost and whatever else that cost’s cache and scheduling effects
+were doing on a fully subscribed machine. On the EPYC those extras may be
+smaller. That is why the same script has to run there at 784 kops/s offered,
+with enough repeats that the 5% spread check passes.
+
+### 4.6 Certified 7443P (Cherry Chicago, 19 September 2026)
+
+Same script, mixed, 7/7, system allocator, 3 s measured, 10 interleaved
+repeats, 784 kops/s offered on P1/P2, `--pin 2-17` after SMT off. Rocky
+container `g++` 15.2.1 / `rustc` 1.97.1. Host Ubuntu 24.04.4, `virtualisation:
+none`, no `isolcpus`, no `nohz_full`, 512 GB RAM, THP never. This is not
+the Nokia/UH 7443 of the reported campaign. It is the same CPU SKU as the
+26 August confirmation host. Log:
+`bench/results/overload_probes-20260919-153013.jsonl`. Certified: spread
+under 5% on every arm.
+
+| Phase | Arm | Median kops/s | 95% CI | CPU | Reading |
+| --- | --- | --- | --- | --- | --- |
+| P0 closed | cpp-closed | 455 | [454, 458] | ~573% | Rust slightly ahead |
+| P0 closed | rust-closed | 487 | [485, 488] | ~592% | C++/Rust 0.94× |
+| P1 open, cap 10 000 | cpp-open | 138 | [136, 138] | ~632% | Campaign instrument. 1.67× |
+| P1 open, cap 10 000 | rust-open | 83 | [81, 84] | ~650% | Matches `\OverloadThrRust` order |
+| P1 open, cap 0 | cpp-cap0 | 446 | [440, 451] | ~569% | Recovers to P0 |
+| P1 open, cap 0 | rust-cap0 | 467 | [463, 470] | ~585% | C++/Rust 0.95×. Gap gone. |
+| P2 open, cap 10 000 | cpp-open | 138 | [137, 139] | ~632% | Same as P1 open |
+| P2 open, cap 10 000 | rust-open | 83 | [81, 84] | ~650% | Same as P1 rust-open |
+| P2 open, cap 10 000 | rust-oneshot | 83 | [82, 84] | ~651% | No move. |
+
+The WSL2 direction survives on a 24-core 7443P with two spare cores in the
+pin set. The default-cap floor ratio is 1.67× against `\OverloadThrRatio`
+on the reported campaign. Cap 0 returns both languages to the closed-loop
+band. `sync_channel(1)` does not move the floor. Pairwise *p* = 1.95×10⁻³
+on every contrast the script reports (10 paired repeats, the permutation
+floor).
+
+This licenses a cause sentence in the thesis. It does not license a
+`\OverloadThr*` edit. The published floor is still the campaign's 20-repeat
+row. What changes is the attribution: the hole is the 10 000-sample
+backfill on the open-loop producer, not the service's maximum rate.
+
 ---
 
 ## 5. Ranked account
@@ -235,82 +315,49 @@ From what can currently be defended.
 | --- | --- | --- | --- |
 | 1 | The cliff is real, allocator-independent, and reproduced on three hosts. Rust tracks further. The floor favours C++. CPU per completed op favours C++. | **Measured.** Canonical. | Campaign, `tab:overload`, `tab:overloadtest`. |
 | 2 | Shard-queue design, shard-queue allocation, and the two primitives in isolation are not the whole explanation. | **Ruled out** as the whole story. WSL2 for the substitutions, reported `tab:contention` for the isolation. | Spec §12, §`sec:contention`. |
-| 3 | The reversal is specific to open-loop collapse (producers late, capped CO backfill on). Closed-loop max on this laptop is tied. | **Strong hypothesis.** WSL2 only. | §4.1. Needs the EPYC. |
-| 4 | Rust’s histogram crate is ~1.6× slower than the C++ header for a full 10 000-sample backfill (30 µs vs 19 µs). That cost is zero below the knee. | **Measured in isolation.** WSL2. | §4.2. Construct-validity risk for RQ1’s overload half if it survives on the EPYC. |
-| 5 | Per-request unbounded `channel()` is a 31-slot MPMC list, ~1 KiB versus an 88-byte promise. | **Measured in isolation.** Always on. | §4.3. Does not create the gap in `queue_contention` or in closed loop here. |
-| 6 | C++ 160-byte tagged `Request` versus Rust 96-byte enum. | **Weak.** Wrong sign. | Present in closed loop, where this laptop showed no gap. D1 can still falsify it. |
+| 3 | The reversal is specific to open-loop collapse (producers late, capped CO backfill on). Closed-loop max favours Rust slightly (0.94×). | **Certified on 7443P.** WSL2 had the same sign, uncertified. | §4.5, §4.6. |
+| 4 | With the campaign cap, the open-loop floor favours C++ at 1.67×. With the cap at 0, both arms recover to closed loop and the language split reverses to 0.95×. Isolated, the Rust crate is ~1.6× slower than `hdr.hpp` for a full 10 000-sample backfill. | **Certified in-service on 7443P.** Isolated timing remains WSL2. | §4.2, §4.6 P1. RQ1's overload half is this instrument. |
+| 5 | Per-request unbounded `channel()` is a 31-slot MPMC list, ~1 KiB versus an 88-byte promise. Swapping to `sync_channel(1)` does not move the open-loop floor. | **Certified negative on 7443P.** Allocation tax still real. | §4.3, §4.6 P2. |
+| 6 | C++ 160-byte tagged `Request` versus Rust 96-byte enum. | **Weak.** Wrong sign. | Present in closed loop, where Rust is slightly faster. Not the floor. |
 | 7 | Bounds checks, `unsafe`, jemalloc, async runtime. | **Not the cause.** | Campaign plus design. |
 
-A consistent picture, not yet a localisation:
+A consistent picture:
 
 - Below the knee the producer sleeps. Workers own the cores. HDR backfill is ~10 ns.
   The languages agree at the median. Rust’s core is faster, so Rust tracks further.
-- At the first missed interval the producer stops sleeping, the 10 000-sample
+- At the first missed interval the producer stops sleeping, the 10 000-sample
   backfill switches on, and seven extra threads stay in the runnable set between
   park and the next send. Throughput falls *below* the tracking rate. That is
   the cliff.
-- Rust pays more for the backfill and more for each oneshot allocation. On a
-  fully subscribed 14-thread laptop that is enough to open a 1.4× floor gap that
-  closed loop does not show. On the EPYC, with two spare cores, the same pair of
-  taxes may or may not produce `\OverloadThrRatio`. That is the measurement that
-  is missing.
+- On this 7443P, turning the backfill off (P1 cap 0) recovers throughput to
+  the closed-loop band and removes the C++ floor advantage. Swapping the
+  oneshot (P2) does not. The published `\OverloadThrRatio` is the campaign
+  instrument, not the languages' maximum rate.
 
 ---
 
-## 6. What to run, in order
+## 6. What ran, and what remains
 
-All three before D1. Each behind a flag or a one-line cap. Compared pair
-untouched. Interleaved, paired, at `\OverloadLoad` on the measurement host.
-WSL2 numbers stay in this file.
+P0, P1, and P2 exist as `bench/overload_probes.sh`. Compared pair
+untouched. WSL2 numbers stay uncertified. The 7443P run is certified.
 
-**P0. Closed loop, same 7/7 mixed design, no `--rate`.**
+| Probe | WSL2 (uncertified) | 7443P Chicago (certified) |
+| --- | --- | --- |
+| P0 closed-loop ratio | ~1 (range overlap) | 0.94× (Rust ahead) |
+| P1 default-cap ratio | C++ ahead (ranges disjoint) | 1.67×, *p* = 1.95×10⁻³ |
+| P1 cap-0 ratio | ~1 (overlap, both recover) | 0.95×, both at closed-loop band |
+| P2 oneshot ratio | No move | No move (83 vs 83 kops/s) |
 
-If the 1.7× shrinks, most of the published floor is the open-loop / backfill
-regime and not the languages’ maximum rate. That is the cheapest construct check
-in the study. The campaign has never reported it.
+D1 does not explain a gap that is gone at cap 0. It can still run as a
+negative for the forced-idiom log. It is no longer the live candidate for
+the floor.
 
-Throughput is then `ops_total / measured_wall_s` from a long enough `--ops` that
-the measured window is seconds, not the warmup. Cap wall time with `--max-run-s`
-if a producer would otherwise run forever. Do not enable `--rate`.
+The three 2026-08 queue and map substitutions were never re-run on an
+EPYC at 784 kops/s. They stay WSL2. That does not reopen them as the
+floor mechanism.
 
-**P1. Open loop with the backfill cap at 0 or 1.**
-
-Same `--rate` as the reported overload point. If the floor ratio shrinks, the
-`hdrhistogram` crate versus `hdr.hpp` is inside RQ1’s strongest number. The
-defensible thesis sentence becomes: the languages diverge past saturation under
-this open-loop instrument, and the isolated primitives do not. That is weaker
-than “the handoff path” and more honest than D1’s current candidate.
-
-A cap of 0 still records the real sample. It drops only the synthetic backfill.
-The collapsed p50 will change. Throughput is the row that must be compared.
-
-**P2. Completion swap: `sync_channel(1)` instead of `channel()`.**
-
-Array flavour, one slot, still a 1:1 blocking completion, no `unsafe`. Unstable
-`std::sync::oneshot` is that wrapper. Keep the shard queue on `sync_channel(1024)`.
-If the remaining gap after P0/P1 moves, the 31-slot list oneshot was the
-service-side piece.
-
-Do **not** start from `std::sync::oneshot` itself. It is unstable and would pull
-a nightly story into a freeze that currently has none.
-
-**Then D1**, if anything remains. Shrinking the C++ `Request` while keeping tagged
-dispatch. A negative is the likely outcome given the sign, and it is still worth
-having so spec §12 can retire that entry.
-
-Re-run the three existing substitution probes on the EPYC only after P0–P2, and
-only at 784 kops/s, never at 512. Spec §12 already forbids quoting the 512 kops/s
-attempt.
-
-### What each outcome licenses
-
-| P0 closed-loop ratio | P1 HDR-off ratio | P2 oneshot ratio | What the thesis can say |
-| --- | --- | --- | --- |
-| Still ~1.7 |  |  | The floor is the service, not the instrument. Proceed to P2, then D1. |
-| ~1 | Still ~1.7 with HDR on |  | The published floor is an open-loop / backfill effect. RQ1’s overload half has to be scoped to that instrument. |
-| ~1 | ~1 |  | Same, and the crate-versus-header cost was the open-loop piece. |
-| ~1.7 | ~1.7 | ~1 | The 31-slot oneshot was the service-side piece. Forced-idiom log, not “the language.” |
-| ~1.7 | ~1.7 | ~1.7 | Path as a whole. D1 is then the last single-idiom try. A fourth negative retires localisation. |
+Do **not** start from `std::sync::oneshot` itself. It is unstable and would
+pull a nightly story into a freeze that currently has none.
 
 ---
 
@@ -318,6 +365,9 @@ attempt.
 
 - Do not add `isolcpus`. It collapses the pin onto one core.
 - Do not treat a WSL2 kops/s as a `\OverloadThr*` value.
+- Do not treat the 7443P probe kops/s as a `\OverloadThr*` value either.
+  The campaign row stays. The probe licenses the cause, not a replacement
+  floor.
 - Do not describe 448 kops/s as a tested comparison. `\KneeGap*` is shown, not
   tested, because the operating point was found after the data.
 - Do not put the 512 kops/s metastable probe back into circulation.
@@ -331,20 +381,20 @@ attempt.
 
 ---
 
-## 8. Thesis sites that would move, if a probe lands
+## 8. Thesis sites that can move
 
-Only after a measurement-host result, and only the sentence that the result
-actually supports.
+The 7443P run is in the thesis as a cause sentence. Campaign macros were not
+replaced. Sites that now carry that sentence:
 
 - `sec:overload` and `sec:contention` in both `Ha_Vien_Mastersthesis_2026.tex`
   and `Thesis_v3.tex`
-- `tab:threats` construct row (“attributed but not localised”)
-- `tab:findings` RQ1 overload cell
+- `tab:threats` construct row
+- `tab:findings` RQ1 evidence cell
 - Chapter 8 / conclusion overload sentence
-- `spec/SPECIFICATION.md` §12, a new “Attribution probes” entry
-- The inverted “extra work on the C++ handoff path” sentence in the RQ1
+- `spec/SPECIFICATION.md` §12 (updated 19 September 2026)
+- The inverted ``extra work on the C++ handoff path'' sentence in the RQ1
   discussion
-- `docs/TODO.md` D1, if P0–P2 retire or reorder it
+- `docs/TODO.md` D1: no longer the live floor candidate
 
 `bench/refresh_thesis.sh` is not required unless a compared-pair number moves.
 These probes must not move the compared pair.
@@ -364,6 +414,8 @@ These probes must not move the compared pair.
   `cpp/src/service.cpp` (`std::promise`).
 - `rustc` 1.97 mpsc: `$(rustc --print sysroot)/lib/rustlib/src/rust/library/std/src/sync/mpsc.rs`
   and `mpmc/list.rs`.
-- 18 September session: closed/open-loop runs of the Release `bench` binaries on
-  this WSL2 host, plus `/tmp/overload-research/` probes that are disposable and
-  not in the tree.
+- 18 September 2026 WSL2: `bench/results/overload_probes-20260918-134345.jsonl`
+  (uncertified).
+- 19 September 2026: Cherry Chicago AMD EPYC 7443P,
+  `bench/results/overload_probes-20260919-153013.jsonl` (certified, 10
+  repeats, 784 kops/s offered, `--pin 2-17`).
