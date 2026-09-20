@@ -873,10 +873,10 @@ Fairness is kept below the design as well as in it. Both builds link the same
 \texttt{jemalloc}. Both keep a system-allocator build as a control. Both
 compile at the same opt level. Both record delay through one high-dynamic-range
 (HDR) histogram set up the same way~\cite{tene_hdrhistogram}. Hashing is pinned
-on both sides. SplitMix64 assigns the shard. FNV-1a, the Fowler--Noll--Vo hash,
-is used inside the map. C++'s default hash of an integer is often just the
-number itself. Rust's is strong on purpose. Left as they came, the two
-standard libraries would have been the measurement.
+on both sides. SplitMix64 assigns the shard~\cite{steele2014splitmix}. FNV-1a, the
+Fowler--Noll--Vo hash~\cite{rfc9923}, is used inside the map. C++'s default hash of an
+integer is often just the number itself. Rust's is strong on purpose. Left as they came,
+the two standard libraries would have been the measurement.
 
 Where the languages cannot meet a need the same way, the gap is written into a
 forced-idiom log and then measured. Two of those gaps carry the overload
