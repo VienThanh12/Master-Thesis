@@ -198,6 +198,12 @@
 % prefixed Guest for the same reason the bare-metal macros are prefixed Bm.
 \input{figures/gen_guest.tex}
 
+% Two full-grid diagnostics of the coordinated-omission fill. ProbeStart drops
+% the correction and is used only to identify service time. ProbeAfter keeps the
+% intended-send origin and cap, then moves the fill outside the timed window.
+% They are prefixed so neither can be quoted as if it were the compared campaign.
+\input{figures/gen_probes.tex}
+
 % Pulls in a generated table body whose first row may be a \multicolumn section
 % heading. \multicolumn has to be the first token of its alignment cell, and
 % LaTeX's \input is not expandable, so the heading ends up mid-cell and the build
@@ -478,8 +484,9 @@ choice has to buy for a control plane. Its software no longer has the host to it
 contends for central processing unit (CPU), memory, and cache with inference work whose
 arrival pattern it does not
 control, and a co-tenant that takes capacity away lowers the load at which the control plane
-saturates. Saturation is where the two languages separate most sharply in the measurements of
-Chapter~\ref{chapter:eval}. Memory footprint and behaviour past that point are becoming
+saturates. The campaign clock shows its widest language gaps there.
+Chapter~\ref{chapter:eval} reports that later diagnostic sweeps do not reproduce either gap.
+Memory footprint and behaviour past that point are becoming
 selection criteria in their own right, and neither is settled by the architecture above the
 code.
 
@@ -648,17 +655,18 @@ stage and cost the classes outside the guarantee are caught.
 The thesis makes six contributions. Two are artifacts: a reproducible benchmarking framework
 for telecom control-plane workloads, and a frozen shared specification with two parity-tested
 implementations of a RAN control-plane subsystem, one in C++ and one in Rust. Three are
-results, and the first is a comparison of latency and resource behaviour that divides at
-the saturation knee, the load beyond which throughput stops following demand and the
-ordering between the two languages reverses. The second is a
+results, and the first is a comparison of latency and resource behaviour that
+resolves a far-tail gap below saturation and finds an overload-clock ambiguity above
+it. The second is a
 defect-class taxonomy from controlled fault injection that marks where the compile-time
 guarantee stops, in both directions. The third is a bound on what a comparison of this shape can
 attribute to a language at all, obtained by decomposing an end-to-end operation into the work the
 language performs and the cross-thread handoff around it. The last is a set of engineering and
 migration guidelines for language selection in cloud-native RAN evolution
-(Section~\ref{sec:guidelines}). Neither the reversal nor the attribution bound was anticipated.
-Both were found while reading results the study had planned to report differently, and
-Section~\ref{sec:hypotheses} records what the first of them cost H1.
+(Section~\ref{sec:guidelines}). Neither the overload-clock ambiguity nor the
+attribution bound was anticipated. Both were found while reading results the
+study had planned to report differently, and Section~\ref{sec:hypotheses}
+records what this means for H1.
 
 The findings divide three ways. On \emph{safety} (RQ2), every injected memory-safety and
 data-race defect class is prevented at compile time in safe Rust. The same defects all compile
@@ -669,9 +677,10 @@ the C++ tooling is ahead, and on one the defect that safe Rust rules out returns
 program writes \texttt{unsafe}. On \emph{migration} (RQ4), the FFI seam, the thin layer of code
 where the two languages meet, is small and keeps the core free of \texttt{unsafe}. Measured
 against the same operation called natively it costs at most $\FfiOpBoundPct\%$ of one
-operation, so the real adoption cost is application programming
-interface (API) design and not run-time
-overhead. Three costs beyond the seam are measured for the same reason, and two of them come back
+operation. This is a bound on the machine-side call tax, not a measurement of human adoption
+cost. Prior work identifies application programming interface (API) design and learning as
+human costs, but this study does not measure their size. Three machine-side costs beyond the
+seam are measured for the same reason, and two of them come back
 against the received wisdom: most of the Rust build's extra cost is compiling third-party code and
 not the compiler's own work, and the binary-size ordering depends on which linkage policy the two
 toolchains are held to rather than on the languages. Both of these results are final.
@@ -684,23 +693,27 @@ and not the language. The limit holds whichever way such a comparison comes out,
 any study that reports an end-to-end median without measuring the share. Timed apart from the
 handoff, the operation is $\BudgetCoreRatio\times$ faster in Rust, which the sweep cannot see.
 
-The second division is by regime. Below saturation the two implementations are equivalent end to
-end in central behaviour, by a margin no deployment would notice. The paired test does resolve a
-median difference of $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators, on an
-end-to-end round-trip of $\PFiftyMedian\,\mu$s, so the equivalence is practical and not statistical.
+The second division is by regime. At the representative load of
+$\ReprLoad$~kops/s the two implementations are close end to end in central behaviour, but H1
+defined no equivalence margin and equivalence is therefore not established. The paired test
+resolves a median difference of $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators,
+on an end-to-end round-trip of $\PFiftyMedian\,\mu$s.
 The far tail in the same regime resolves on the reported host and favours \FarTailLower{}. Pooled
 over \FarTailSamplesMin{} to \FarTailSamplesMax{} operations per variant, the two languages' p99.99
 values do not meet, and the widest gap between variants is $\FarTailRange\,\mu$s. A second
 bare-metal campaign at another shard count agrees on the direction
-(Section~\ref{sec:hostcompare}). Past saturation the ordering reverses, and where each
-implementation stops meeting its offered rate is itself a difference: the Rust variants track to
-$\TrackingLoadRust$~kops/s and the C++ variants to $\TrackingLoadCpp$. Deeper still, where all four have
-collapsed, the C++ build sustains $\OverloadThrRatio\times$ the throughput of the Rust
-build in \OverloadThrAgree{} interleaved repeats under both allocators, and the Rust build spends
-$\OverloadCpuPerOpRatio\times$ the CPU on each operation it does complete, which is what rules out
-the reading that it is simply doing less. That floor is the open-loop fill. On resources the Rust process holds a few MiB more resident memory, again
-under both allocators, in the same direction and the same order of magnitude on all three machines
-measured. How it compares against the cost of the allocator choice does not travel to another
+(Section~\ref{sec:hostcompare}). Past saturation the campaign clock shows two
+opposite gaps: Rust leads at $\KneeGapLoad$~kops/s offered, then C++ leads by
+$\OverloadThrRatio\times$ at $\OverloadLoad$~kops/s. A deferred-fill diagnostic
+on a different captured setup keeps the intended-send clock and correction cap but does not
+reproduce either gap. This is consistent with recorder work contributing to the campaign pattern,
+but the processor capture and \texttt{nohz\_full} setting also differ, so it does not isolate fill
+timing. Neither overload clock gives service-latency percentiles: the campaign includes recorder
+work and the deferred-fill clock reports schedule drift. On resources the Rust process holds
+$\RssLangDiffLo$--$\RssLangDiffHi$~MiB more resident memory on the campaign host,
+$\GuestRssLangLo$--$\GuestRssLangHi$~MiB on the guest, and
+$\BmRssLangLo$--$\BmRssLangHi$~MiB on the second bare-metal host. How the language effect compares
+against the cost of the allocator choice does not travel to another
 machine: the two are comparable on bare metal and the allocator's was an order of magnitude
 larger on the virtualised
 host this study used first, so the comparison between them is a property of the machine rather
@@ -858,9 +871,10 @@ The distinction beneath this is a modelling one, not an
 implementation detail. In a closed system a new request is triggered only by the completion of a
 previous one, whereas in an open system arrivals are independent of completions, and the two
 produce systematically different response-time behaviour on the same service process, with the
-closed model reporting the lower figures~\cite{schroeder2006openclosed}. Sound measurement
+closed model reporting the lower figures. Sound measurement
 therefore requires an open-loop model with an
-intended schedule, correction for coordinated omission, high-dynamic-range (HDR) latency
+intended schedule and correction for coordinated omission
+~\cite{schroeder2006openclosed,tene_hdrhistogram}. High-dynamic-range (HDR) latency
 histograms that retain resolution across many orders of magnitude, and statistically rigorous reporting
 with repeated runs and confidence intervals rather than single point
 estimates~\cite{georges2007rigorous}. These techniques are applied in
@@ -1413,8 +1427,8 @@ for Datagram Transport Layer Security (DTLS)~\cite{michaelides2026ranlatency}. O
 precisely the procedure family this thesis reimplements, which places these operations in a
 regime where tens of microseconds are an engineering quantity rather than noise.
 
-The study therefore characterises the full latency distribution, focusing on the high
-percentiles (p99, p99.9 and p99.99) and the maximum, and on how these degrade as offered
+The study therefore characterises the latency distribution below saturation, focusing on the high
+percentiles (p99, p99.9 and p99.99) and the maximum, and records how the campaign clock behaves as offered
 load approaches and then exceeds saturation (Chapter~\ref{chapter:eval}). Stopping at nominal
 load would miss the regime that decides service quality, since queueing delay grows
 super-linearly near capacity. It is also the regime in which a difference between two
@@ -1429,8 +1443,9 @@ queue behind the bounded, blocking queues. The operationally decisive behaviour 
 shape of this cliff, which is why the load sweep is pushed beyond the saturation point rather
 than stopping at nominal load. The figure is a schematic of the phenomenon and not a plot of
 this study's data: Whether the two languages differ in where the cliff begins or in what they
-sustain beyond it is exactly what RQ1 asks, and Sections~\ref{sec:perfresults}
-and~\ref{sec:overload} report that they differ in both. How steeply the cliff rises is not compared
+sustain beyond it is exactly what RQ1 asks. The campaign curves appear to
+differ in both. Section~\ref{sec:overload} reports that a later deferred-fill diagnostic does not
+reproduce either gap, while also disclosing that the two captures differ. How steeply the cliff rises is not compared
 between them, for the reason Section~\ref{sec:stats} fixes in
 advance.\label{fig:cliff}}
 \end{figure}
@@ -1568,7 +1583,8 @@ one-shot completion handle. That reading is argued from the shape of the full-se
 measurement, so a third matched microbenchmark drives those two primitives alone, with no
 \texttt{ShardCore} work in the path, under the same interleaved repeats and paired test.
 Section~\ref{sec:contention} gives its configuration and reports whether the isolated primitives
-reproduce the ordering the full service showed.
+reproduce the ordering the full service showed. They do not, so the queue and reply handle are
+ruled-out candidates for the large campaign-clock gap rather than explanations of it.
 
 \subsection{Controlled fault injection (RQ2)}\label{sec:methodfaults}
 RQ2 asks which defect classes a language prevents. Measuring defect-free code cannot answer
@@ -1634,8 +1650,9 @@ points, lines of code and dependencies. The \emph{scope} of \texttt{unsafe} reco
 checked language is left and whether the safety-critical core is affected. The \emph{per-call
 cost} is the price of crossing the boundary, measured against the same operation invoked
 natively so the comparison isolates what the seam adds. The first two are read off the code, the
-third is a matched pair of microbenchmarks. Pairing them separates the run-time cost of
-interoperability from its true cost, which lies in API design and human learning.
+third is a matched pair of microbenchmarks. Pairing them measures the run-time cost of
+interoperability. API design and human learning are separate adoption costs identified in prior
+work, and this study does not measure their size.
 
 Interoperability is one of the three terms RQ4 names, and a prototype answers it alone. Three
 further quantities cover the other two, chosen because a build engineer reaches them before
@@ -1745,11 +1762,17 @@ sidecars have not been pooled loses the column rather than printing the per-run 
 has just called uninterpretable. Jitter is recorded and reported descriptively, because no research
 question asks for it.
 
-Neither p99.99 nor jitter enters the family of paired tests described below, and that follows the
-same rule as the rest of the design rather than any shortage of data. Both are computed from
+Neither pooled p99.99, the per-run maximum, nor jitter enters the family of paired tests described
+below. That follows the same rule as the rest of the design rather than any shortage of data. All
+three are computed from
 precisely the operations that interference lands on, which is the class of statistic pairing does
-not rescue, so a paired interval on them could not be read as a language effect. They belong in a
-descriptive column, and the family stays the size the design committed to.
+not rescue, so a paired interval on them could not be read as a language effect. They are
+descriptive quantities. The below-saturation throughput is also excluded because it is pinned to
+offered load, every overload latency percentile is excluded because a late producer accumulates
+schedule drift, and the post-hoc $\KneeGapLoad$ comparison is descriptive because its operating
+point was selected after the data were seen. The later clock diagnostics answer an instrument
+question on a separate captured setup and do not enter the campaign's pre-committed Holm family.
+The tested family therefore stays the size the design committed to.
 
 Interval estimates alone, however, are a weak basis for a comparison. Two intervals can overlap
 while one variant is ahead in every single repeat, and they can separate on a difference that
@@ -1773,10 +1796,12 @@ The first is which comparisons enter it, and the answer turns on the operating p
 on the metric. Below saturation every variant completes work as fast as it is offered, so achieved
 throughput there is pinned to the offered load by construction and cannot express a language
 effect whatever the languages do. It is reported with its interval instead of tested. Above
-saturation that reasoning inverts, because what each variant still sustains is pinned to nothing
-and becomes the one quantity that can separate them, so a second operating point is fixed in the
-overload region and sustained throughput and CPU utilisation are tested at it
-(Section~\ref{sec:overload}). Two commitments go with that. The overload comparisons join the same
+saturation that reasoning inverts, because what each run still sustains is pinned to nothing.
+A second operating point is therefore fixed in the overload region, where
+sustained throughput and CPU utilisation are tested
+(Section~\ref{sec:overload}). The later clock study shows that these measures
+can separate recorder designs without separating service capacity. Two
+commitments go with the original test. The overload comparisons join the same
 Holm family rather than forming a second one, so the division into two operating points cannot be
 read as a split chosen once the $p$-values were known. And no latency percentile is tested above
 saturation at all, because a producer that cannot keep up with a fixed intended schedule falls
@@ -2372,14 +2397,22 @@ software-quality proxies sit beside the forced-idiom log they explain
 (Table~\ref{tab:complexity}) and beside the FFI seam, the only place either implementation contains
 \texttt{unsafe} (Table~\ref{tab:ffi}).
 
+The two clock diagnostics are full-grid sweeps on a later captured setup, not alternate views of
+the campaign runs. The campaign capture records \MainCpu{} with
+\texttt{nohz\_full} on \texttt{\MainNohzFull}. The diagnostic capture records
+\ProbeAfterCpu{} with \ProbeAfterNohzFull{} for \texttt{nohz\_full}. They hold the pin set,
+allocator pair, load grid and repeat count, but the capture differences mean that their failure
+to reproduce the campaign gaps cannot isolate fill timing.
+
 \section{Evaluation results}
 The safety and most of the migration results do not depend on the measurement host. The
 performance and resource results do, and every figure and table below is measured on the host of
-Section~\ref{sec:testbed} unless stated otherwise. Every comparison on that host resolves, including
-the far tail below saturation. Section~\ref{sec:hostcompare} sets the earlier host beside it.
-The divergence past saturation is resolved as a measurement.
-Section~\ref{sec:overload} now reads it as the open-loop histogram fill, and
-Section~\ref{sec:contention} reports that the isolated primitives do not produce it.
+Section~\ref{sec:testbed} unless stated otherwise. Every campaign comparison on that host resolves,
+including the far tail below saturation. Section~\ref{sec:hostcompare} sets the earlier host beside it.
+The divergence past saturation is a campaign-clock result.
+Section~\ref{sec:overload} reports later diagnostics consistent with recorder work, without
+isolating fill timing, and Section~\ref{sec:contention} reports that the isolated primitives do
+not produce the large gap.
 
 \subsection{Below saturation (RQ1, RQ3)}\label{sec:perfresults}
 The hypothesis under test is H1 (Section~\ref{sec:rqs}): equivalence below saturation, with any
@@ -2392,17 +2425,18 @@ load of Section~\ref{sec:workload}, $\ReprLoad$~kops/s, a point at which all fou
 variants are simultaneously healthy and so a fair place to compare them.
 
 Two readings of that table are worth keeping apart, because they answer different questions. The
-first is magnitude, and it is negligible: the four variants sit within $\PFiftyRange\,\mu$s of one
-another at the median, $\PFiftySpread\%$, which no deployment would notice. The second is
+first is magnitude: at $\ReprLoad$~kops/s the four variants sit within
+$\PFiftyRange\,\mu$s of one another at the median, $\PFiftySpread\%$. The second is
 \emph{ordering}, and it is legible: the two Rust intervals sit below the two C++ intervals with no
 overlap between the languages, while the two allocators of one language overlap each other. So the
 table already suggests what the paired test below confirms. On the previous host it could not, since
 every interval at this percentile overlapped every other, and the ordering had to come from the test
 alone.
 
-That agreement extends up the distribution, and stating why takes one comparison. The p99
-values differ by $\PNineNineRange\,\mu$s across variants while the widest $95\%$ confidence
-interval on a single variant's own p99 spans $\PNineNineMaxCI\,\mu$s, so the uncertainty about one
+That agreement extends up the distribution, and stating why takes one comparison. At
+$\ReprLoad$~kops/s the p99 values differ by $\PNineNineRange\,\mu$s across variants while the
+widest $95\%$ confidence interval on a single variant's own p99 spans
+$\PNineNineMaxCI\,\mu$s, so the uncertainty about one
 variant is smaller than the gap between them. That relation is what justifies an ordering, and it is
 the relation this study could not obtain for most of its life: on the virtualised host the same two
 quantities were $\GuestPNineNineRange\,\mu$s and $\GuestPNineNineMaxCI\,\mu$s, the wrong way round
@@ -2539,8 +2573,8 @@ size goes. Every row is significant here, so the verdict column carries no infor
 margins carry all of it: a resolved difference of a microsecond and a resolved difference of a
 millisecond mean quite different things to a deployment. At the median the effect could be no larger
 than $\EqvBoundPFifty\,\mu$s, and in the tail block no larger than $\EqvBoundTailMax\,\mu$s. Both are
-below anything a procedure budget of a few milliseconds would notice, which is the useful form of
-this result: the differences are real, reproducible, and operationally negligible. That table was
+small against a procedure budget of a few milliseconds. They describe effect size after the fact,
+but cannot establish H1 because no equivalence margin was defined in advance. That table was
 built to report the opposite case, and on the virtualised host it did, with
 \GuestNEqvUnresolved{} of its \GuestNEqvRows{} rows unresolved and a tail margin running out to
 $\GuestEqvBoundTailMax\,\mu$s, which is wider than any difference a deployment would care about and
@@ -2551,7 +2585,8 @@ was the campaign declining to answer.
 \small
 \caption[How large each effect could be]{How large each effect could be. For every comparison at
 $\ReprLoad$~kops/s, the observed effect against the tightest margin within which the two variants
-could be called equivalent, and the verdict Table~\ref{tab:significance} reaches. The two
+could be called equivalent, and the verdict Table~\ref{tab:significance} reaches. These margins
+size the observed effects and were not pre-registered as an equivalence test. The two
 questions are kept in separate tables on purpose: one asks whether a difference is there, this one
 asks how large it could be, and a row can matter in one and not the other. On the host reported
 here every row resolves, so the last column reads the same throughout and the margins are what
@@ -2569,7 +2604,8 @@ Metric & Allocator & $|$Effect$|$ & Equivalent within & Verdict \\
 \end{tabular}
 \end{table}
 
-The median itself is a resolved difference and not a null: $\PFiftyDiffAbsMax\,\mu$s
+At $\ReprLoad$~kops/s the median itself is a resolved difference and not a null:
+$\PFiftyDiffAbsMax\,\mu$s
 in Rust's favour, consistent under both allocators. The interval on it reaches
 $\PFiftyDiffCIMax\,\mu$s against a median of $\PFiftyMedian\,\mu$s, and the temptation is to report
 that as a bound on the language effect. That reading would be wrong, for the reason set out
@@ -2634,8 +2670,8 @@ experience. The limit comes from how the measurement is built and not from the h
 the tail result it will not be fixed by moving to bare metal. It is fixed by measuring the
 component on its own, which is what this decomposition does.
 
-The second is that once the component \emph{is} measured on its own, the languages are not
-equivalent. \BudgetCoreFaster{} runs the bare operation about $\BudgetCoreRatio\times$ faster,
+The second is that once the component \emph{is} measured on its own, the implementations
+differ. \BudgetCoreFaster{} runs the bare operation about $\BudgetCoreRatio\times$ faster,
 the difference shows up in the great majority of repeats, and the paired test puts its $p$ nearly
 three orders of magnitude below the conventional threshold. This decomposition is a separate
 experiment from the sweep and no part of its Holm family. It runs \BudgetRepeats{} repeats
@@ -2719,37 +2755,33 @@ $\ReprLoadShortfall\%$, so the operating point of Table~\ref{tab:latency} is a g
 \emph{sustained} load and not a nominal one, and the latencies reported there are not those of an
 already-queueing system.
 
-The knee does \emph{not} sit at the same place for all four variants, and that is worth stating
-plainly because the identical thread-per-shard structure predicts that it should. The two C++ variants
-stop meeting their offered rate after $\TrackingLoadCpp$~kops/s and the two Rust variants carry one rung
-further, to $\TrackingLoadRust$. The separation is by language and not by allocator, as it is
-everywhere else in this regime. At the rung between the two limits, $\KneeGapLoad$~kops/s, the
-consequence is the largest throughput gap anywhere in the sweep: \KneeGapFaster{} still serves
-$\KneeGapThrFast$~kops/s while \KneeGapSlower{} has already collapsed to $\KneeGapThrSlow$, a factor
-of $\KneeGapRatio$, in \KneeGapAgree{} paired repeats.
+Under the campaign clock, the knee appears at different places for the two
+languages. The C++ variants stop meeting their offered rate after
+$\TrackingLoadCpp$~kops/s and the Rust variants carry one rung further, to
+$\TrackingLoadRust$. At $\KneeGapLoad$~kops/s this produces the largest
+throughput gap in the sweep: \KneeGapFaster{} still serves
+$\KneeGapThrFast$~kops/s while \KneeGapSlower{} has fallen to
+$\KneeGapThrSlow$, a factor of $\KneeGapRatio$. These are campaign-clock
+throughputs and do not by themselves locate either service's capacity.
 
-Three things bound what may be claimed from that rung. It is \emph{not} added to the tested family of
-Section~\ref{sec:stats}, because the operating point was identified after seeing the sweep and the
-family is fixed in advance precisely so that a point chosen that way cannot enter it, whatever its
-$p$-value would be. It is reported descriptively instead, with its per-repeat agreement, and the
-tested comparison remains the pre-committed overload point of Section~\ref{sec:overload}. One rung
-of a geometric ladder is also coarse: the true C++ limit lies between $\TrackingLoadCpp$ and
-$\KneeGapLoad$~kops/s, so the difference in \emph{capacity} is bounded by the ladder's spacing and
-not measured to better than that. And the direction here is the opposite of the direction deeper into
-overload, where C++ sustains more (Section~\ref{sec:overload}). Both are real, they belong to
-different loads, and neither cancels the other.
+The later deferred-fill diagnostic changes that reading. It keeps the intended-send
+clock and correction cap on a different captured setup, and both languages serve the rung at
+$\ProbeAfterKneeThrCpp$ and $\ProbeAfterKneeThrRust$~kops/s. The apparent knee
+gap is therefore consistent with recorder work, but the processor capture and
+\texttt{nohz\_full} setting also changed. Section~\ref{sec:overload} therefore
+does not isolate fill timing. The gap remains visible here because
+Figure~\ref{fig:loadsweep} reports the pre-committed campaign as run.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.78\linewidth]{figures/fig_load_sweep.pdf}
-\caption[The load sweep: tail latency and achieved throughput]{The load sweep, both panels
-against offered load. \textbf{(a)} Tail latency (p99) for the four build variants on a log axis. It
-is flat across the whole tracking region and then rises by four orders of magnitude in one step of
-the ladder. \textbf{(b)} Achieved throughput, with the dotted line marking the ideal
-offered-equals-achieved regime. The C++ curves leave that line after an offered
-$\TrackingLoadCpp$~kops/s and the Rust curves after $\TrackingLoadRust$, so $\KneeGapLoad$~kops/s is
-the only load in the sweep at which the two languages differ in \emph{throughput} with Rust ahead.
-Lines are medians over
+\caption[The campaign load sweep: latency and achieved throughput]{The campaign
+load sweep, with coordinated-omission fill charged inside the timed loop.
+\textbf{(a)} Tail latency (p99) for the four build variants on a log axis.
+\textbf{(b)} Achieved throughput, with the dotted line marking the ideal
+offered-equals-achieved regime. The apparent language gap at
+$\KneeGapLoad$~kops/s is not reproduced by the later deferred-fill diagnostic in
+Figure~\ref{fig:overload}. That diagnostic uses a different captured setup. Lines are medians over
 \NRepeats{} repeats and shaded bands are bootstrap $95\%$ confidence intervals in both panels,
 which share the variant styling of the legend in (a). Throughput is counted over the measured
 phase only, so the warm-up iterations bias neither the numerator nor the
@@ -2800,77 +2832,84 @@ stopped meeting the offered rate, and the metrics are the two that remain interp
 (Section~\ref{sec:stats}). Table~\ref{tab:overload} gives what each variant still sustains and
 Table~\ref{tab:overloadtest} tests the comparison.
 
-\OverloadSustainedFaster{} sustains $\OverloadThrCpp$~kops/s where \OverloadSustainedSlower{}
-sustains $\OverloadThrRust$, a factor of $\OverloadThrRatio$. The paired difference is at least
-$\OverloadThrBound$~kops/s under either allocator, it holds in \OverloadThrAgree{} repeats, and
-its Holm-adjusted $p$ sits at the corrected floor of the whole family of \NTests{} tests. This is
-the largest language effect in the tested family and the most reproducible effect in the study.
-One larger ratio appears in the sweep, at the rung between the two languages' saturation limits
-(Section~\ref{sec:perfresults}), and it runs the other way and is not tested, for the reason given
-there.
+Under the campaign clock, \OverloadSustainedFaster{} sustains
+$\OverloadThrCpp$~kops/s where \OverloadSustainedSlower{} sustains
+$\OverloadThrRust$, a factor of $\OverloadThrRatio$. The paired difference is
+at least $\OverloadThrBound$~kops/s under either heap. It holds in
+\OverloadThrAgree{} repeats. Its Holm-adjusted $p$ sits at the corrected floor
+of the whole family of \NTests{} tests. This is a resolved campaign-clock
+difference, not a service-capacity rank. Later diagnostics do not reproduce
+the gap and are consistent with recorder work contributing to it.
 
-The CPU column rules out the reading that would otherwise be natural, that a variant completing
-less work is simply doing less, whether throttled, blocked or idle. That is not what happens.
-\OverloadSustainedSlower{} draws \emph{more} total CPU than \OverloadSustainedFaster{} here,
-reproducibly and under both allocators, having flipped the sign it carried at the representative
-load in Table~\ref{tab:significance}. Divided through by the work that actually completed, its
-CPU cost per sustained operation is $\OverloadCpuPerOpRatio$ times the other's. Neither
-variant is near the capacity of the machine either, since both sit near six of the
-$\MainPinnedCount$ pinned
-cores. So the gap is not a capacity limit and not idleness. It is effort spent without completing
-operations, which is the signature of a synchronisation path that spins, or parks and
-wakes repeatedly, where the other blocks once and sleeps.
+The CPU column locates where the campaign process spends effort, not the cause. The variant that finishes less
+work draws more total CPU and spends $\OverloadCpuPerOpRatio$ times as much CPU
+per completed call. Its producer performs more histogram correction while the
+measurement is running. The variant is not idle, but the extra work is not part
+of the service either. This evidence does not isolate recorder work from the
+other differences between the captures.
 
-Figure~\ref{fig:overload} puts both halves of that reading side by side, and its grouping adds a
-third: the separation falls almost entirely inside the allocator groups, so the effect
-follows the variable the study manipulates and not the one it controls for.
+Two later sweeps repeated all fourteen loads over $\ProbeAfterRuns$ runs on a
+separate captured setup. They held the pin set, allocator pair and repeat count.
+The campaign capture is \MainCpu{} with \texttt{nohz\_full} on
+\texttt{\MainNohzFull}, while the diagnostics record \ProbeAfterCpu{} with
+\ProbeAfterNohzFull{} for \texttt{nohz\_full}. Clock A times calls from their
+actual send and disables the synthetic fill. Its percentiles are
+coordinated-omission biased by construction and are never used as RQ1 findings.
+Clock B keeps the intended-send origin and the $\ProbeAfterCap$-sample cap,
+then writes the fill after the timed window.
+
+Neither diagnostic reproduces the two large campaign gaps. At
+$\KneeGapLoad$~kops/s, the campaign has
+Rust serving $\KneeGapThrFast$~kops/s where C++ has fallen to
+$\KneeGapThrSlow$. With the fill delayed, C++ serves
+$\ProbeAfterKneeThrCpp$~kops/s and Rust serves $\ProbeAfterKneeThrRust$. At
+$\OverloadLoad$~kops/s the campaign order flips. Under the system allocator,
+Clock B records $\ProbeAfterThrCppSystem$~kops/s for C++ and
+$\ProbeAfterThrRustSystem$ for Rust. The full \ProbeAfterPairsSystem{}-pair
+test leaves that difference unresolved at $p = \ProbeAfterThrPSystem$. Under
+\texttt{jemalloc}, Rust records $\ProbeAfterThrRustJemalloc$~kops/s against
+$\ProbeAfterThrCppJemalloc$ for C++. The full \ProbeAfterPairsJemalloc{}-pair
+test resolves this smaller Rust lead at $p \ProbeAfterThrPJemalloc$.
+Clock B's high-load percentiles are cumulative schedule drift rather than
+service latency, so throughput carries the diagnostic. Figure~\ref{fig:overload}
+shows both loads and keeps the two heaps apart.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.78\linewidth]{figures/fig_overload.pdf}
-\caption[Divergence past saturation]{Behaviour at $\OverloadLoad$~kops/s offered, well beyond the $\SatKnee$~kops/s knee. Bars
-are medians over \NRepeats{} repeats with bootstrap $95\%$ intervals, grouped so that the two
-bars inside a group differ only in language. \textbf{(a)} What each variant still completes:
-\OverloadSustainedFaster{} sustains a factor of $\OverloadThrRatio$ more than
-\OverloadSustainedSlower. \textbf{(b)} Total CPU divided by the work that actually completed,
-which is what rules out the reading that the variant delivering less is simply doing less. It
-spends $\OverloadCpuPerOpRatio$ times as much CPU per sustained operation, and the CPU figures
-are summed across threads.\label{fig:overload}}
+\includegraphics[width=\linewidth]{figures/fig_overload.pdf}
+\caption[Campaign and deferred-fill throughput on two captured setups]{Throughput at the
+two loads where the campaign shows opposite language gaps. Bars are medians
+over \NRepeats{} interleaved repeats with bootstrap $95\%$ intervals. Solid
+bars are the \MainCpu{} campaign with \texttt{nohz\_full} on
+\texttt{\MainNohzFull}. Hatched bars are the later \ProbeAfterCpu{} diagnostic
+with \ProbeAfterNohzFull{} for \texttt{nohz\_full}, where the same fill runs
+after the timed window. Panels keep the two heaps separate. The later setup
+does not reproduce either large campaign gap.\label{fig:overload}}
 \end{figure}
 
-Where that effort goes is narrowed by measurement. Past
-saturation the producers spend almost all their time in two places recorded in
-Table~\ref{tab:idioms}: the bounded blocking queue and the completion handle. The microbenchmark
-below isolates those primitives, and they do not reproduce the
-full-service ordering at significance. That rules them out \emph{alone} as the whole explanation
-for a $\OverloadThrRatio\times$ gap. As in Section~\ref{sec:budget}, nothing in the safety model
-is implicated.
-A closed loop of the same service, with no send plan, is not a C++ win either.
-The order comes back when senders run open-loop against a missed plan and the histogram fills in the omitted samples.
-It recedes when that fill is turned off.
-That check is a later run on the same CPU family, not the compared campaign.
-The published floor is that instrument, not the languages' maximum rate.
+These sweeps change how the overload result is interpreted, not the tail result below saturation.
+The reported campaign stays the primary compared pair because it was pre-committed, not because
+its pooled p99.99 separates more cleanly. The diagnostics do not supply an alternative overload
+service-latency result. The campaign percentiles include recorder work, Clock A is
+coordinated-omission biased, and Clock B reports schedule drift. Overload service latency is
+therefore unresolved. The tables below remain because they report the campaign clock as run.
 
-The setting bounds what the finding can support, and Section~\ref{sec:threats} says how far it
-travels. The depth of the collapse depends on one design, one request outstanding per producer and
-a queue bound of $1\,024$, measured with a harness whose producers block per request. What travels is that both sides fall below their own tracking rate, and that the isolated primitives do not produce
-it on their own. The depth of the hole is the open-loop fill.
-
-The closest prior work reports a comparable degradation past a threshold request rate and
-attributes it to the asynchronous runtime~\cite{arvidsson2025async}.
-Section~\ref{sec:rqdiscussion} takes up what it means that the same shape appeared here with no
-such runtime on either side.
+The closest prior work reports a similar degradation past a threshold request
+rate and attributes it to the asynchronous runtime~\cite{arvidsson2025async}.
+The shape alone does not identify that cause. Neither implementation here uses
+such a runtime, and the later captured setup does not reproduce the shape.
 
 \begin{table}[H]
 \centering
 \small
-\caption[What each variant sustains past saturation]{What each variant still sustains at
-$\OverloadLoad$~kops/s offered, well beyond the $\SatKnee$~kops/s knee: the median over
-\NRepeats{} repeats above its bootstrap $95\%$ confidence interval. Below saturation achieved
-throughput is pinned to the offered rate by construction and can express nothing about the
-languages. Here it is the only thing that can. CPU utilisation exceeds $100\%$ because it is
-summed across threads, so $600\%$ is six busy cores of the $\MainPinnedCount$
-pinned.\label{tab:overload}}
+\caption[What each variant sustains with fill inside the timed loop]{What each
+variant sustains at $\OverloadLoad$~kops/s offered under the campaign clock:
+the median over \NRepeats{} repeats above its bootstrap $95\%$ confidence
+interval. The fill runs on the producer inside this timed window, so these
+values describe the test tool in Figure~\ref{fig:overload}. They do not give
+either service's top rate. CPU utilisation
+exceeds $100\%$ because it is summed across threads, so $600\%$ is six busy
+cores of the $\MainPinnedCount$ pinned.\label{tab:overload}}
 \begin{tabular}{@{}l r r@{}}
 \hline\hline
 Variant & sustained throughput (kops/s) & CPU (\%) \\
@@ -2883,12 +2922,15 @@ Variant & sustained throughput (kops/s) & CPU (\%) \\
 \begin{table}[H]
 \centering
 \small
-\caption[Exact paired test past saturation]{Exact paired permutation test of C++ against Rust at
-$\OverloadLoad$~kops/s, the allocator held fixed, Holm-corrected across the same family of
-\NTests{} tests as Table~\ref{tab:significance} rather than as a family of its own. ``Repeats''
-counts how many of the \NRepeats{} paired differences agree with the sign of the median, which a
-statistic computed from their mean cannot show. No latency percentile is tested here, for the
-reason fixed in advance in Section~\ref{sec:stats}.\label{tab:overloadtest}}
+\caption[Exact paired test with fill inside the timed loop]{Exact paired
+permutation test of C++ against Rust at $\OverloadLoad$~kops/s under the
+campaign clock, the allocator held fixed. Holm correction uses the same family
+of \NTests{} tests as Table~\ref{tab:significance}. ``Repeats'' counts how many
+of the \NRepeats{} paired differences agree with the sign of the median. The
+test establishes the instrument-mediated difference in this campaign and does
+not attribute it to service capacity. No latency percentile is tested here,
+for the reason fixed in advance in Section~\ref{sec:stats}.
+\label{tab:overloadtest}}
 % The generated metric names are long enough that six l/r columns overrun the text
 % block; the first column wraps instead, and the inter-column padding is tightened.
 \setlength{\tabcolsep}{4pt}
@@ -2937,12 +2979,15 @@ Language & Throughput (kops/s) & Mean ns/op & Paired $p$ \\
 
 The isolated primitives do not reproduce the overload ordering. C++ sustains
 \ContentionThrCpp{}~kops/s and Rust \ContentionThrRust{}~kops/s, a gap of only
-$\ContentionRatio\times$ with $p = \ContentionP$, where the full service at
-$\OverloadLoad$~kops/s separates by $\OverloadThrRatio\times$ with its corrected $p$ at the
-family floor. So the overload divergence involves extra work the microbenchmark strips away.
+$\ContentionRatio\times$ with $p = \ContentionP$, where the full service under
+the campaign clock at $\OverloadLoad$~kops/s separates by
+$\OverloadThrRatio\times$ with its corrected $p$ at the family floor. So the
+campaign-clock divergence involves extra work the microbenchmark strips away.
 An orders-of-magnitude difference in the primitives alone is ruled out.
-The later checks place that work in the open-loop histogram fill.
-They do not place it in the safety model.
+The queue and reply handle are therefore ruled-out candidates for the large
+gap. The later checks are consistent with open-loop recorder work, but the
+capture differences prevent them from isolating fill timing. They do not place
+the gap in the safety model.
 
 \subsection{Resource use (RQ3)}\label{sec:resources}
 Table~\ref{tab:resource} reports resource use at the same
@@ -2983,10 +3028,11 @@ such a row against its interval was not needed here, and it stays stated because
 declares its reading rules when they rescue a result is not applying them.
 
 CPU utilisation behaves differently again, and by regime rather than by noise.
-At this below-saturation operating point Rust draws slightly \emph{less} CPU, by
+At $\ReprLoad$~kops/s Rust draws slightly \emph{less} CPU, by
 at most $\CpuDiffAbsMax$ percentage points, consistently under both allocators and clearing the
-correction under both. Section~\ref{sec:overload} finds the sign flipped past saturation and the
-magnitude much larger. Achieved throughput adds nothing here, for the reason
+correction under both. The larger inversion under the campaign overload clock
+is not reproduced on the later captured setup, which is consistent with recorder work but does
+not isolate fill timing (Section~\ref{sec:overload}). Achieved throughput adds nothing here, for the reason
 Section~\ref{sec:stats} gives. At a below-saturation point it is pinned to the offered load, and
 it is reported only to confirm that the point is sustained and not merely nominal, which it is to
 within $\ReprLoadShortfall\%$.
@@ -3003,7 +3049,10 @@ also exposes hardware counters, and decomposes the same gap directly.
 The RQ3 finding is therefore neither the flat ``no resource penalty'' that overlapping intervals
 would suggest nor a general one. Rust costs a few megabytes more of fixed footprint under both
 allocators, comparable to what the allocator choice costs here though not on every host measured
-(Section~\ref{sec:hostcompare}), and its CPU cost changes sign with the load regime.
+(Section~\ref{sec:hostcompare}). Below saturation it also draws slightly less
+CPU at $\ReprLoad$~kops/s. The larger campaign-clock inversion past saturation
+is consistent with recorder work, but the changed diagnostic capture prevents
+a one-variable attribution.
 
 \begin{table}[H]
 \centering
@@ -3054,7 +3103,7 @@ $\GuestPNineNineMaxCI\,\mu$s while the four variants' p99 values differed by
 $\GuestPNineNineRange\,\mu$s. Uncertainty about one variant exceeded the gap between all of them by
 a factor of five, so no ordering could be read at that percentile however many repeats were run.
 Computed identically here, the interval is $\PNineNineMaxCI\,\mu$s against a between-variant range
-of $\PNineNineRange\,\mu$s. The relation inverts. That single change is what moves the far tail
+of $\PNineNineRange\,\mu$s at $\ReprLoad$~kops/s. The relation inverts. That single change is what moves the far tail
 from an open question to a reported result, and it is worth being precise about its cause. At the
 same representative load the median barely moved, from $\GuestPFifty$ to $\PFiftyMedian\,\mu$s,
 while p99 fell from $\GuestPNineNine\,\mu$s to under a hundred. A hypervisor does not slow the common
@@ -3063,13 +3112,18 @@ occasionally stops it, and a percentile computed from exactly the stopped operat
 that records it.
 
 \paragraph{What survived the change of host.}
-The overload divergence did, and it is the strongest claim in the chapter for that reason. The
-ratio of sustained throughput past saturation was $\GuestOverloadThrRatio\times$ on the guest and
-is $\OverloadThrRatio\times$ here, on another vendor's silicon, with the ordering unchanged. The
-saturation knee moved as capacity should, from $\GuestSatKnee$ to $\SatKnee$~kops/s. The peak-RSS
+The campaign-clock overload divergence did. Its ratio was
+$\GuestOverloadThrRatio\times$ on the guest and is
+$\OverloadThrRatio\times$ here, with the ordering unchanged. The later
+deferred-fill diagnostic does not reproduce either campaign gap. This is
+consistent with a common recorder contribution, but the diagnostic capture
+differs from the campaign in its processor and \texttt{nohz\_full} setting.
+The saturation knee moved as
+capacity should, from $\GuestSatKnee$ to $\SatKnee$~kops/s. The peak-RSS
 \emph{language} effect survived too, at $\GuestRssLangLo$--$\GuestRssLangHi$~MiB there against
-$\RssLangDiffLo$--$\RssLangDiffHi$~MiB here, which is the same effect within measurement error on
-two machines, two vendors and two memory subsystems.
+$\RssLangDiffLo$--$\RssLangDiffHi$~MiB here. The second bare-metal host records
+$\BmRssLangLo$--$\BmRssLangHi$~MiB. The sign and MiB scale recur, but each range belongs to its
+own host.
 
 \paragraph{What did not survive, and this is the one to read carefully.}
 The peak-RSS \emph{allocator} effect. On the guest, linking \texttt{jemalloc} cost
@@ -3114,8 +3168,11 @@ Direction survived a change of shard count, load grid, repeat count and compiler
 RSS remains significant, with the two effects of the same size class as on the main campaign.
 The overload ratio is $\BmOverloadThrRatio$ against the $\OverloadThrRatio$ of
 Section~\ref{sec:overload}. Three hosts put that ratio between $\BmOverloadThrRatio$ and
-$\GuestOverloadThrRatio$, always with the same variant ahead. At \BmMetastableLoad{}~kops/s the
-Rust variants are bimodal across repeats and that load must not be quoted.
+$\GuestOverloadThrRatio$, always with the same variant ahead. This agreement
+reproduces a campaign-clock pattern with the same in-run recorder design. It
+does not isolate the fill or establish a language ranking. At
+\BmMetastableLoad{}~kops/s the Rust variants are bimodal
+across repeats and that load must not be quoted.
 
 \paragraph{A mechanism, from hardware counters.}
 Section~\ref{sec:perfresults} attributes the operation-level difference to the forced idioms of
@@ -3612,38 +3669,41 @@ Section~\ref{sec:hostcompare} reports what changed.
 \hline\hline
 RQ & Headline finding & Evidence status \\
 \hline
-RQ1 & The answer divides at saturation. Below it the variants agree to $\PFiftyRange\,\mu$s
+RQ1 & At $\ReprLoad$~kops/s the variants agree to $\PFiftyRange\,\mu$s
 ($\PFiftySpread\%$) at the median, and the far tail resolves in \FarTailLower{}'s favour, with the
 pooled p99.99 of the two \FarTailLower{} variants below both of the others by up to
 $\FarTailRange\,\mu$s. The end-to-end number is
 only $\BudgetCoreShareMax\%$ operation, so it cannot bound a language effect in any case, while
-the operation measured apart is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster. Past
-saturation they diverge decisively, and in both directions: the Rust variants hold their offered rate
-one load level further, to $\TrackingLoadRust$~kops/s against $\TrackingLoadCpp$, while at
-$\OverloadLoad$~kops/s, where all four have collapsed,
-\OverloadSustainedFaster{} sustains $\OverloadThrRatio\times$ the throughput of
-\OverloadSustainedSlower{} in \OverloadThrAgree{} repeats under both allocators. & Overload,
-operation and far tail: resolved, and each reproduced at a second shard count.
-Mechanism: open-loop histogram fill. Primitives alone insufficient. The saturation-limit gap is descriptive, not
-tested \\
+the operation measured apart is $\BudgetCoreRatio\times$ faster in
+\BudgetCoreFaster. Past saturation the campaign shows opposite language gaps
+at $\KneeGapLoad$ and $\OverloadLoad$~kops/s. Moving the same
+coordinated-omission fill after the timed window on a later captured setup
+reproduces neither. This is consistent with recorder work, but does not isolate
+fill timing. Neither clock resolves overload service latency. & Operation and
+far tail: resolved and reproduced at a second shard count. Overload throughput:
+campaign-clock result, with the later diagnostic split between an unresolved
+system-allocator pair and a smaller Rust lead under \texttt{jemalloc}.
+Primitives alone insufficient \\
 RQ2 & All seven injected memory-safety and data-race classes are prevented at compile time in
 safe Rust, where in C++ each compiles and is caught, if at all, only at runtime and by no single
 sanitiser. The guarantee stops there: the seven boundary classes compile in both languages, and
 on the leak and the release-build overflow the C++ tooling reports what Rust's does not. &
 Final \\
-RQ3 & A memory penalty that reproduces: $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak RSS in
-the Rust build under \emph{both} allocators, in the same direction and order of magnitude on all
-three machines measured. The
+RQ3 & A memory penalty that reproduces: $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak RSS on
+the campaign host, $\GuestRssLangLo$--$\GuestRssLangHi$~MiB on the guest, and
+$\BmRssLangLo$--$\BmRssLangHi$~MiB on the second bare-metal host, under \emph{both} allocators. The
 allocator's own $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB is comparable here and was an order of
 magnitude larger on the virtualised host, so their ratio does not travel
-(Section~\ref{sec:hostcompare}). CPU inverts across the regimes: at the representative load Rust
-draws up to $\CpuDiffAbsMax$ percentage points less, and past saturation
-$\OverloadCpuPerOpRatio\times$ more per completed operation. & Memory: resolved, and located outside the allocator by its own
-accounting. CPU: resolved in both regimes, opposite signs, and one sign below saturation on the
-second bare-metal host \\
+(Section~\ref{sec:hostcompare}). At $\ReprLoad$~kops/s Rust draws up to
+$\CpuDiffAbsMax$ percentage points less. The larger CPU inversion past
+saturation is a campaign-clock result that the later captured setup does not
+reproduce. & Memory:
+resolved, and located outside the allocator by its own accounting. CPU below
+saturation: resolved, with the same sign on the second bare-metal host \\
 RQ4 & The seam is small and keeps the core \texttt{unsafe}-free at compile time. Measured against
 the same operation called natively, no cost is detected and any tax is bounded at
-$\FfiOpBoundPct\%$ of an operation. The real cost is API design. The core remains exposed at run
+$\FfiOpBoundPct\%$ of that operation. This is the measured call tax. API design and learning are
+human adoption costs identified in prior work, but their size is not measured here. The core remains exposed at run
 time to memory errors in the C++ host it shares an address space with. On the adoption axes beyond
 the seam, $\BuildDepShareCpu\%$ of the Rust clean build is third-party code and the project's own
 code compiles in $\BuildAllFirstPartyCpuRatio$ times the CPU \texttt{g++} needs, the footprint
@@ -3654,13 +3714,24 @@ ordering reverses with the linkage policy, and the compared component resolves $
 \end{table}
 
 \section{Discussion on the research questions}\label{sec:rqdiscussion}
-\paragraph{RQ1 (predictability).} The two load-dependent effects point at opposite languages,
-and that is why a single verdict here would be false. A service sized to run below its knee
-should prefer the variant that holds its offered rate further, to $\TrackingLoadRust$~kops/s
-against $\TrackingLoadCpp$. That pick is descriptive, for the reason
-Section~\ref{sec:perfresults} gives. Past each knee the published floor is not a language pick
-(Section~\ref{sec:overload}). A comparison that stopped at nominal load, as most in
-this literature do, would have concluded the opposite with the same apparatus.
+\paragraph{RQ1 (predictability).} The two campaign gaps point at opposite
+languages, but neither supports a language pick. Moving the fill after the
+timed window on a later captured setup reproduces neither the Rust lead at the
+knee nor the C++ lead deeper into overload (Section~\ref{sec:overload}). The
+comparison is consistent with recorder work, but the processor capture and
+\texttt{nohz\_full} setting also differ, so it does not isolate fill timing. A comparison that stopped at
+nominal load would miss this instrument failure, while a comparison that
+stopped after the campaign could mistake its clock for service capacity.
+
+After saturation neither available corrected percentile clock estimates
+service latency. The campaign clock includes producer-side recorder work, and
+Clock B measures cumulative schedule drift. Clock A drops the correction, so
+its percentiles are coordinated-omission biased and are not RQ1 findings.
+Overload service latency therefore remains unresolved. Clock B's full
+\ProbeAfterPairsSystem{}-pair throughput test leaves the system-allocator pair
+unresolved at $p = \ProbeAfterThrPSystem$. Its full
+\ProbeAfterPairsJemalloc{}-pair test resolves a smaller Rust lead under
+\texttt{jemalloc} at $p \ProbeAfterThrPJemalloc$.
 
 What a deployment sizes its margin from is the far tail, not the median. At the
 representative load the median gap is a fraction of a $\PFiftyMedian\,\mu$s operation. The
@@ -3675,26 +3746,26 @@ $\BudgetCoreShareMax\%$ of what the sweep measures. An end-to-end comparison in 
 dominated by a cross-thread wakeup therefore says something about the design and not about
 the languages. Measured on its own, the operation differs by $\BudgetCoreRatio\times$.
 
-The overload shape reframes the closest prior work instead of merely agreeing with it. Arvidsson and Kaller
-measure this quantity for 5G control-plane procedures and find Rust's 99th percentile degrading
-faster beyond a threshold request rate. They trace it to stackless
+The overload shape permits only a narrow comparison with the closest prior work. Arvidsson and Kaller
+find Rust's 99th percentile degrading faster beyond a threshold request rate in their five-framework
+5G control-plane study. They trace that result to stackless
 \texttt{async}/\texttt{await}, which permits a context switch immediately before an I/O operation
 begins~\cite{arvidsson2025async}. Section~\ref{sec:relatedwork} accepts that attribution, and
 this study was built to exclude the confound behind it: one worker per shard over a bounded
 blocking queue, and no asynchronous runtime on either side.
 
 Section~\ref{sec:rqs}
-committed in advance to what each outcome would mean, and the second branch is the one that
-fired. A degradation past a threshold rate appeared with the concurrency model held fixed, so the
-asynchronous runtime cannot be the only place such an effect starts. The prediction also
+committed in advance to what each outcome would mean. A campaign-clock degradation past a
+threshold rate appeared with the concurrency model held fixed, but the diagnostics do not support
+reading it as service latency or capacity. The prediction also
 named where to look first if that happened: bounds and overflow
 checking~\cite{zhang2022runtime,harris2023morello}. That part of it was wrong. The effect
 appears only once senders are late. Section~\ref{sec:contention}
 then tests whether the blocking primitives of Table~\ref{tab:idioms} alone explain the gap, and they do not reproduce the
 full-service ordering at significance. That rules them out alone.
 A closed loop of the same service is not a C++ win.
-The floor gap returns under the open-loop histogram fill and recedes when the fill is off.
-The safety model is not the cause.
+The queue and reply handle do not reproduce the large gap, so they are ruled-out candidates.
+The evidence does not assign the campaign gap to the safety model.
 
 \paragraph{RQ2 (safety).} The result does not depend on the environment. What makes it
 interesting is not the half that confirms the expectation, but the half that bounds it. Within
@@ -3703,8 +3774,9 @@ kind and not of degree. A compiler that refuses to build a program rules the def
 every execution. A sanitiser rules it out only of the executions an instrumented test
 happens to take. What is absolute is the execution coverage, not the breadth of the catalogue.
 The scope itself is still the $\FaultClasses$ programs written for it.
-That fits the CVE evidence that Rust memory-safety bugs always involve
-\texttt{unsafe}~\cite{xu2021rustcve}, and the caution that unsafety can still spread
+In the corpus studied by Xu et al., every published Rust CVE memory-safety entry but one compiler
+bug involves \texttt{unsafe}~\cite{xu2021rustcve}. That bounded result fits the catalogue, as does
+the caution that unsafety can still spread
 through dependencies~\cite{evans2020rust}, which is why keeping the core \texttt{unsafe}-free
 matters. The seam double-free is that evidence reproduced under controlled conditions: the one
 class in this catalogue that safe Rust rejects and unsafe Rust does not. It also exercises the
@@ -3783,8 +3855,11 @@ voluntarily.\label{fig:boundary}}
 \end{figure}
 
 \paragraph{RQ3 (overhead).} The answer splits by resource, and the splits do not all point the
-same way. On memory there is a penalty. The Rust build carries a few MiB more peak resident set
-than the C++ build, and it keeps that sign under both allocators. Two things make it credible
+same way. On memory there is a penalty. The Rust build carries
+$\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak RSS on the campaign host,
+$\GuestRssLangLo$--$\GuestRssLangHi$~MiB on the guest, and
+$\BmRssLangLo$--$\BmRssLangHi$~MiB on the second bare-metal host. It keeps
+that sign under both allocators. Two things make it credible
 beyond the $p$-value. Peak RSS is a run-level maximum and not a
 tail statistic, so the scheduling jitter that destroys the p99 does not touch it. And it reproduces
 on a second machine with a different compiler (Section~\ref{sec:baremetal}), which no other
@@ -3792,19 +3867,18 @@ timing-adjacent result in this study can claim. The useful way to size it is aga
 own effect, and that comparison is the part which does \emph{not} travel. The two are of comparable
 size on the reported host and on the second bare-metal one, while on the virtualised host the
 allocator's was an order of magnitude larger, because the allocator effect shrank by more than ten
-times across the change of machine and the language effect did not move. So the language effect
-replicates and its ratio to the allocator's does not. A team choosing between these two languages
-moves a few MiB either way, and whether that is more or less than choosing between these two
+times across the change of machine while the language effect kept its sign and MiB scale. So the language effect
+replicates and its ratio to the allocator's does not. Whether its host-specific range is more or
+less than choosing between these two
 allocators is a question about the machine.
 
-On CPU the answer depends on the load, and that dependence is the finding rather than a
-complication. Below saturation Rust draws slightly \emph{less}, consistently under both
-allocators. Past saturation the sign flips and the magnitude grows
-(Section~\ref{sec:overload}). A single number for ``the CPU cost of
-Rust's safety model'' would therefore average two regimes that behave in opposite directions, and
-neither figure is the safety model in any case. Throughput splits the same way and for the same
-reason. Below saturation there is nothing to measure, because achieved throughput tracks offered
-load by construction. Above it sits the largest effect in the study.
+At $\ReprLoad$~kops/s Rust draws slightly less CPU, consistently under both
+allocators. The campaign clock flips that sign past saturation, but
+Section~\ref{sec:overload} shows that a later captured setup does not reproduce
+the large inversion. This is consistent with recorder work but does not isolate
+fill timing. It is not evidence of a CPU cost from Rust's safety model. Throughput below saturation adds
+nothing because achieved rate tracks offered load by construction. The large
+campaign-clock gap above it does not establish a service-language rank.
 
 Back to the memory penalty, because three things bound what may be concluded from it. It is a fixed cost
 rather than a per-context one, so its share of a deployment's footprint falls as the deployment
@@ -3814,10 +3888,12 @@ the allocator, since the Rust build holds less live data and fewer resident byte
 That is a one-off charge per process, the standard library and the runtime, rather than a tax on
 the work. Nothing here isolates bounds checking or ownership-driven copying as the cause.
 The mechanisms the literature has localised~\cite{zhang2022runtime,harris2023morello} are
-candidates to test, not conclusions to import. Adopting Rust here costs a few megabytes of
-fixed footprint per process, and it gives a faster core operation (Section~\ref{sec:budget})
-that this workload's structure never turns into throughput below saturation, and that turns
-into a deficit above it.
+candidates to test, not conclusions to import. Adopting Rust here costs a few
+megabytes of fixed footprint per process, and it gives a faster core operation
+(Section~\ref{sec:budget}) that this workload's structure never turns into
+throughput below saturation. A later captured setup does not reproduce the
+campaign's apparent deficit above it. This is consistent with recorder work,
+but does not isolate fill timing.
 
 The sign of that result is worth defending, because one of the closest prior works in the domain
 reports the opposite sign, while two others agree with it. Agreement first, since it is quickly
@@ -3847,17 +3923,17 @@ demonstration as the literature offers of why this study holds the concurrency m
 also sharpens the caveat attached to the present number. It shows nothing about Rust's
 memory behaviour under a task-per-UE design, which is a different experiment.
 
-\paragraph{RQ4 (migration).} The prototype shows that incremental adoption is technically
-cheap. A C++ host can call an unmodified Rust core across a thin C-ABI seam whose cost on a
+\paragraph{RQ4 (migration).} The prototype shows that the machine-side seam is
+small. A C++ host can call an unmodified Rust core across a thin C-ABI seam whose cost on a
 real operation is bounded at $\FfiOpBoundPct\%$, and all \texttt{unsafe} stays inside the seam.
 That bound comes from the matched comparison of Section~\ref{sec:migrationresults}, not
 from setting an empty crossing
 against a full round-trip. The two are not the same experiment, and on this host a single
-unpaired pass of each was enough to flip the apparent ordering. The dominant cost is
-therefore human and not machine: designing a C-compatible surface and, as the adoption
-studies report~\cite{fulton2021adopting,crichton2024learning}, climbing Rust's learning curve.
-That makes migration risk an organisational concern and not a performance one, and the two
-largest documented adoptions into existing C and C++ codebases report the same ordering of
+unpaired pass of each was enough to flip the apparent ordering. Designing a
+C-compatible surface and climbing Rust's learning curve are human costs
+reported by adoption studies~\cite{fulton2021adopting,crichton2024learning},
+but this study does not measure their size. Two large documented adoptions into
+existing C and C++ codebases also identify organisational
 costs~\cite{li2026rustlinux,fan2026android}.
 
 One boundary on that result has to be drawn explicitly, because the natural reading overstates
@@ -3898,29 +3974,19 @@ taken. Stating their disposition explicitly, rather than letting the results spe
 themselves, is what distinguishes a test from a description.
 
 \begin{description}
-  \item[H1: supported below saturation, refuted above it.]
-        The hypothesis had two parts: that the languages are performance-equivalent below
-        saturation, and that any difference is confined to the far tail. The first is
-        supported. The second is refuted, and not in the direction the wording anticipated,
-        for the reasons Section~\ref{sec:rqdiscussion} gives. The largest difference the study
-        found lies in overload, which H1 did not consider at all. That difference is the open-loop fill. The hypothesis as written would
-        have led the campaign to look in the wrong place, and the result was found only because the
-        sweep was pushed past saturation on methodological grounds rather than in expectation of it.
-
-        The clause H1 did name is half right. For most of this study the far tail could not be
-        resolved at all, so that part was untestable rather than refuted. It is resolved now, in
-        Rust's favour, at loads where the median difference is about a microsecond on an
-        operation of $\PFiftyMedian\,\mu$s, and a second bare-metal campaign agrees on the
-        direction (Section~\ref{sec:hostcompare}). H1 was right that the far tail is where a
-        below-saturation difference would show up, and wrong that it is the only place any
-        difference shows up.
-
-        A second disposition is that the hypothesis is not well posed.
-        ``Performance-equivalent'' was written as though it named one quantity.
-        Section~\ref{sec:budget} shows it names at least three: the delivered operation below
-        saturation, the code the compilers emit, and sustained work under overload. Those three
-        do not move together. A hypothesis that cannot tell them apart is one this study
-        should have stated more carefully before measuring.
+  \item[H1: not accepted as written.] No equivalence margin was defined, so a
+        small significant difference cannot establish performance equivalence.
+        At $\ReprLoad$~kops/s the paired test resolves
+        $\PFiftyDiffAbsMax\,\mu$s and higher-percentile differences, while the
+        pooled far tail favours Rust. The isolated core favours
+        \BudgetCoreFaster{}. After saturation the available clocks do not
+        provide a valid service-latency ranking. The campaign includes recorder
+        work, Clock A is coordinated-omission biased, and Clock B reports
+        schedule drift. The later diagnostic capture also differs from the
+        campaign in processor and \texttt{nohz\_full} setting, so it does not
+        isolate fill timing. The hypothesis combined the round-trip, core code,
+        recorder work and overload behaviour into one quantity that the method
+        cannot support.
   \item[H2: supported in its precise form, refuted in its loose one.] The hypothesis was
         that safe Rust prevents at compile time ``the memory-safety and concurrency defect
         classes that C++ leaves to best-effort detection''. For the seven injected classes of
@@ -3941,10 +4007,9 @@ themselves, is what distinguishes a test from a description.
         failure to detect a difference. The first version of this measurement did
         not deliver that. It set an empty crossing against a full round-trip and inferred the
         answer, which compares two different experiments and would have given
-        the right conclusion for the wrong reason. The accompanying claim, that the real cost
-        is engineering effort, is supported structurally and not statistically. The seam is
-        small and mechanical, but designing its C-compatible surface was the part of the
-        prototype that took actual design decisions.
+        the right conclusion for the wrong reason. The accompanying claim about
+        design and training is supported by prior literature and by the seam's
+        structure, not by a measurement of human effort in this study.
 \end{description}
 
 \section{Engineering guidelines for incremental adoption}
@@ -3962,11 +4027,15 @@ almost any two competent implementations. A vendor running its own comparison sh
 both: the end-to-end measurement, which says what a deployment will feel, and the component
 measurement, which says what the language is doing.
 
-Every conclusion drawn while the sweep stopped at nominal load was a null, correct at that
-operating point and silent about the one where the two implementations differ by
-$\OverloadThrRatio\times$ (Section~\ref{sec:overload}). That difference is the open-loop fill. Sweeping past the knee is the other
-guideline the study would most like to have followed from the start. The reusable artifact is
-the benchmarking framework and not its current output.
+Every conclusion drawn while the sweep stopped at nominal load was silent
+about whether the instrument remained passive after saturation. It did not.
+The producer charged the coordinated-omission fill inside the timed loop and
+the campaign clock recorded a $\OverloadThrRatio\times$ gap
+(Section~\ref{sec:overload}). A later captured setup does not reproduce that
+gap when the fill is deferred, which is consistent with recorder work. The
+changed processor and \texttt{nohz\_full} setting prevent a one-variable
+diagnosis. The reusable artifact is the framework and the disclosure of that
+limit, not a service-language verdict from the overload output.
 
 \section{Related work}\label{sec:relatedwork}
 Chapter~\ref{chapter:background} set out the ground this work stands on in four strands.
@@ -4011,7 +4080,7 @@ restructuring onto prioritised threads yields response times that match classica
 analysis~\cite{skoudlil2025asyncrust}. Priority scheduling is something an asynchronous Rust runtime
 has to be given by a library~\cite{zhuang2026flowprioritize}. The two studies are complementary.
 Theirs establishes that a tail difference is observable in this domain. This one is built to
-determine whether the language is what causes it.
+repeat the comparison with the concurrency model held fixed.
 
 Emberg and Wadsten are the closest of the five in method: a matched pair, an FFI seam, a
 statistical comparison and an effort measurement, two years earlier~\cite{emberg2023asn1}.
@@ -4082,9 +4151,10 @@ A UE Context Management service built twice from one frozen specification, with 
 model, allocator and build settings fixed &
 Median, p99, p99.9, p99.99 and maximum across a sweep to and beyond saturation, on a bare-metal
 host and reproduced at a second shard count &
-Equivalent at the median below saturation. The far tail there resolves and favours Rust. Past
-saturation \OverloadSustainedFaster{} sustains
-$\OverloadThrRatio\times$ the throughput of \OverloadSustainedSlower{} \\
+At $\ReprLoad$~kops/s the median differs slightly and the far tail favours Rust.
+No equivalence margin was defined. Past saturation the campaign's opposite
+language gaps are not reproduced on a later deferred-fill setup, and overload
+service latency remains unresolved \\
 \hline
 \end{tabular}
 \end{table}
@@ -4144,7 +4214,8 @@ honest account of where those controls stop. Table~\ref{tab:threats} maps the th
 kind of inference each endangers, so the remaining risks can be read as a set instead of
 gathered one at a time from the prose that follows. Three are load-bearing. The study cannot rule
 out single-author skill asymmetry. Its end-to-end instrument is the wrong one for part of what RQ1
-and RQ3 ask. And its strongest single finding, the overload split, sits in the open-loop histogram fill.
+and RQ3 ask. The overload split is a campaign-clock result whose later diagnostic does not reproduce,
+but the captures differ.
 
 \begin{table}[tp]
 \centering
@@ -4172,7 +4243,7 @@ Implementation bias between the two versions & Frozen specification, shared allo
 \hline
 \multicolumn{3}{@{}l}{\emph{Construct: do the metrics measure what the questions ask?}} \\
 The sweep measures the design, not the language & The operation is measured apart from the handoff and both are reported (\S\ref{sec:budget}) & One operation on one data structure is narrower than the sweep it supplements \\
-The published floor is the open-loop histogram fill & Closed loop of the same service is not a C++ win. Dropping the histogram fill removes the floor gap. The isolated queue and completion do not produce it (\S\ref{sec:contention}) & The check is a later run on the same CPU family, not the compared campaign. The published floor row is unchanged \\
+The campaign clock shows opposite high-load gaps & Clock A and Clock B do not reproduce either large gap. The isolated queue and reply handle do not produce the deeper order (\S\ref{sec:contention}) & Campaign and diagnostics use \MainCpu{} against \ProbeAfterCpu{}, and \texttt{nohz\_full} \MainNohzFull{} against \ProbeAfterNohzFull{}. Recorder work is consistent with the evidence, but fill timing is not isolated. Overload service latency remains unresolved \\
 A defect catalogue is a sample the author chose & Seven classes drawn from outside the guarantee, with expectations recorded in advance & Fourteen programs remain fourteen programs \\
 RQ3 captures resource cost, and its origin outside the allocator & The allocator's own accounting, on two bare-metal hosts (\S\ref{sec:hostcompare}) & No call site: the profiling build reverses the sign of the effect (\S\ref{sec:hostcompare}) \\
 RQ4 measures the seam, not the safety of the whole & The distinction is stated wherever the result is quoted & One address space: a compile-time property of the Rust side bounds nothing at run time \\
@@ -4254,7 +4325,7 @@ fully isolated set would not carry. It is bounded and not eliminated, by tickles
 those cores, a fixed governor with boost off, and no hypervisor beneath them
 (Section~\ref{sec:testbed}). The reading rule fixed in Section~\ref{sec:stats} is aimed at exactly
 this residue: peak RSS, CPU and sustained throughput are run-level summaries and come through
-cleanly, while the tail percentiles are computed from precisely the operations any interference
+as run-level summaries, while the tail percentiles are computed from precisely the operations any interference
 falls on, and their intervals are not read as findings for that reason. On this host the rule
 changes no verdict, which is a fact about the machine and not a reason to withdraw the rule. It is
 also why the overload comparison is made on throughput and not on latency.
@@ -4269,12 +4340,16 @@ That row was read from its interval under the rule of Section~\ref{sec:stats}. T
 belonged to that machine (Section~\ref{sec:hostcompare}). The rule is retained because that is
 what a pre-commitment means.
 
-Third, the overload divergence is measured and replicated, and its mechanism is now tested and
-not only argued. Isolated under the same pattern of \ContentionProducers{} producers, the bounded
-queue and completion primitives do not reproduce the full-service ordering at significance
-($p = \ContentionP$), which rules those two constructs out alone as the whole explanation even
-though they are where the forced-idiom log predicted contention would matter. The later checks place that work in the open-loop histogram fill.
-They do not place it in the safety model.
+Third, the overload divergence is measured under the campaign clock. Isolated under the same pattern of
+\ContentionProducers{} producers, the bounded queue and completion primitives
+do not reproduce the full-service ordering at significance
+($p = \ContentionP$). A second full-grid sweep keeps the intended-send clock
+and correction cap, moves the fill after the timed window, and does not
+reproduce either large campaign gap. That sweep records \ProbeAfterCpu{} and
+\ProbeAfterNohzFull{} where the campaign records \MainCpu{} and
+\MainNohzFull{}. The result is consistent with recorder work and rules out the
+isolated queue and reply handle as explanations, but it does not isolate fill
+timing or provide overload service-latency percentiles.
 
 \paragraph{External validity: how far do the results travel?}
 The study covers one subsystem, one workload, one concurrency structure, and one machine, and
@@ -4299,14 +4374,14 @@ mix is plausible but unvalidated. Nothing here speaks to PHY or L2 processing, t
 user plane, or to the operational concerns (upgrade, observability, multi-tenancy) that a
 production deployment would raise.
 
-The defensible claim is therefore narrow and carries a condition. For
-stateful, concurrent, partitionable control-plane services of this kind, and while they are
-meeting their offered load, the language choice is not a performance decision. Once they are not
-meeting it, the language choice is one. And the overload result is the least transferable finding
-in the study rather than the most, because it depends on the queue bound, on one request being
-outstanding per producer, and on two particular standard-library primitives. Extending either
-claim beyond this class means rerunning the framework, which is why the framework and not the
-numbers is offered as the reusable contribution.
+The defensible claim is therefore narrow. For stateful, concurrent,
+partitionable control-plane services of this kind, the end-to-end results do
+not make the language choice a performance decision. The operation measured
+alone and the below-saturation far tail favour Rust, while the overload
+throughput gaps are campaign-clock results that later diagnostics do not
+reproduce. Overload service latency remains unresolved. Extending the claim beyond
+this class means rerunning the corrected framework, which is why the framework
+and not the overload numbers is offered as the reusable contribution.
 
 A final limit on reach is temporal and not structural, and it applies to the comparison
 itself rather than to any one result. One of the two objects being compared is moving. The C++
@@ -4324,19 +4399,20 @@ them.
 \paragraph{Replication status: which findings stand alone.}
 Internal replication is designed into the campaign, in \NRepeats{} interleaved repeats and in
 every comparison being run twice under different allocators. External replication is uneven. Three
-findings have published company: median equivalence below saturation, with matched pairs in three
-settings putting safe Rust within single-digit percentages of its C or C++
+findings have published company: small median differences below saturation, with matched pairs in
+three settings putting safe Rust within single-digit percentages of its C or C++
 counterpart~\cite{emmerich2019drivers,li2021ipc,gonzalez2023rustudp}, a cross-thread handoff
 dominating the end-to-end cost~\cite{zhou2025oltp}, and most of RQ2's boundary classes, which the
-literature already documents. Three findings stand alone. No study located by the protocol of
-Appendix~\ref{appendix:search} reports a load-dependent reversal between the two languages, and the
-one reporting the same shape attributes it to a runtime this design
-excludes~\cite{arvidsson2025async}. None measures the two toolchains' build time with the
+literature already documents. Three findings stand alone. No study located by
+the protocol of Appendix~\ref{appendix:search} reports a diagnostic comparison
+of coordinated-omission fill inside and after a timed producer loop, although one
+reports similar threshold degradation in its five-framework corpus and
+attributes that result to a runtime this design excludes~\cite{arvidsson2025async}.
+None measures the two toolchains' build time with the
 dependency tree separated from the project's own source. The per-operation bound on the seam has
 no published counterpart. Peak resident set size sits between the two groups, with the sign
 found here reported by two neighbouring theses and reversed by a
-third~\cite{olsson2023ranmgmt,sundvisson2026drivers,karlback2021ran}. The overload divergence is
-the largest single effect measured here and the finding with the least external corroboration.
+third~\cite{olsson2023ranmgmt,sundvisson2026drivers,karlback2021ran}.
 
 \section{Ethical and professional reflection}
 The study processes no personal, subscriber, or operator-confidential data. All traffic is
@@ -4382,11 +4458,12 @@ marked \texttt{unsafe}. Where the boundary defects are caught, they are
 caught at test time, in two of the three cases only after being rewritten into a model checker's
 primitives, which is a real cost and a different one from the sanitiser's.
 
-Second, on migration
-the cost is dominated by API design and the learning curve, not by any run-time tax. An
+Second, on migration the measured machine-side cost is the FFI call tax. An
 unmodified Rust core can be driven from C++ across a thin, \texttt{unsafe}-isolated seam whose
 cost on a real operation, measured against the same operation called natively, is bounded at
-$\FfiOpBoundPct\%$. The objections a build engineer raises first do not change that ordering.
+$\FfiOpBoundPct\%$. API design and the learning curve are human adoption costs
+identified in prior work, and this study does not measure their size. The
+machine-side build and footprint axes do not change that distinction.
 Most of the Rust build's extra expense is compiling dependencies and not the compiler's own work,
 the binary-size gap is a linkage policy and the ordering depends on which matched policy is chosen,
 Rust smaller when both standard libraries are linked statically and C++ smaller when both are
@@ -4399,34 +4476,47 @@ operation in this design is $\BudgetCoreShareMax\%$ the work the language perfor
 rest is a cross-thread handoff the operating system performs, so an end-to-end null cannot
 bound a language effect at all. Measured on the operation alone, Rust is the faster of the
 two, by $\BudgetCoreRatio\times$, for reasons that trace to the standard library's hash-map
-layout and not to anything about safety. At the representative load the paired test
-resolves $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators, too small for a
-deployment to care about at the median, while at p99.99 the slowest Rust variant sits
-$\FarTailLangSep\,\mu$s below the fastest C++ one. The Rust variants then hold their offered
-rate to $\TrackingLoadRust$~kops/s against $\TrackingLoadCpp$. Beyond that, the C++ build
-sustains $\OverloadThrRatio\times$ the throughput of the Rust build, in \OverloadThrAgree{}
-interleaved repeats under both allocators, while the Rust build spends
-$\OverloadCpuPerOpRatio\times$ the CPU on each operation it completes, so what it loses is
-not idleness but effort that finishes nothing.
-That ratio is the open-loop instrument.
-Closed loop of the same service does not show it. The isolated primitives do not reproduce
-that ordering at significance (Section~\ref{sec:contention}). On memory the Rust build
-carries a few MiB more fixed footprint under both allocators, in the same direction and
-the same order of magnitude on every machine measured, while the cost of the allocator
-choice moved by more than tenfold between them.
+layout and not to anything about safety. At $\ReprLoad$~kops/s the paired test
+resolves $\PFiftyDiffAbsMax\,\mu$s in Rust's favour under both allocators. No
+equivalence margin was defined. At p99.99 the slowest Rust variant sits
+$\FarTailLangSep\,\mu$s below the fastest C++ one. Under the campaign clock,
+Rust appears to hold its offered rate one rung further, then C++ appears to
+lead by $\OverloadThrRatio\times$ deeper into overload. Moving the same
+correction fill after the timed window on a later captured setup reproduces
+neither gap. At the two rungs the
+deferred-fill sweep records $\ProbeAfterKneeThrCpp$ against
+$\ProbeAfterKneeThrRust$~kops/s. At the top load, the
+\ProbeAfterPairsSystem{}-pair system-allocator test is unresolved at
+$p = \ProbeAfterThrPSystem$, while the \ProbeAfterPairsJemalloc{}-pair
+\texttt{jemalloc} test resolves a smaller Rust lead at
+$p \ProbeAfterThrPJemalloc$. The campaign uses \MainCpu{} with
+\texttt{nohz\_full} on \texttt{\MainNohzFull}, and the diagnostic uses
+\ProbeAfterCpu{} with \ProbeAfterNohzFull{}. The comparison is consistent with
+recorder work but does not isolate fill timing. The campaign percentiles include
+recorder work, Clock A is coordinated-omission biased, and Clock B is schedule
+drift, so overload service latency remains unresolved. The isolated queue and
+reply handle do not reproduce the deeper ordering at significance
+(Section~\ref{sec:contention}). On memory the Rust build
+carries $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more fixed footprint on the
+campaign host, $\GuestRssLangLo$--$\GuestRssLangHi$~MiB on the guest, and
+$\BmRssLangLo$--$\BmRssLangHi$~MiB on the second bare-metal host. The cost of
+the allocator choice moved by more than tenfold between hosts.
 
 Taken together these support a narrow claim. For stateful, concurrent, partitionable
 control-plane services of this kind, at the loads where the service still meets its offered
 rate, the choice is which classes of defect an organisation wants to make unwriteable, and
-whether it will pay the engineering and learning cost of getting them. Past that point the published floor is the
-open-loop fill. It is not a second language rank. What this thesis adds is an instrument
+whether it will pay the engineering and learning cost of getting them. Past
+that point the published floor is a campaign-clock result, and later
+diagnostics do not reproduce its large gaps. It is not a second language rank.
+What this thesis adds is an instrument
 and not a verdict: the frozen specification, the parity-tested pair, a measurement
 framework that reaches past the saturation knee, a decomposition that says how much of what
 it measures the language is answerable for, and a defect catalogue that maps where the
 guarantee stops.
 
-Several directions extend the work. The immediate priority needs no new machine: vary the
-transparent-hugepage policy on one host with everything else held fixed. Three hosts agree that
+Several directions extend the work. The immediate priority is to repeat in-run and deferred fill
+on one captured setup. The next step is to vary the transparent-hugepage policy on one host with
+everything else held fixed. Three hosts agree that
 the Rust build carries the larger footprint and disagree about how that compares against the
 allocator cost (Section~\ref{sec:hostcompare}). The hugepage policy differed between those hosts
 and only the system-allocator variant inherits it. A single machine and two settings settle whether
@@ -4660,7 +4750,7 @@ SMT & \MainSmt{}, verified & Absent from the topology the guest is shown, and de
 Repeats & \NRepeats{} over \NLoadLevels{} loads, \NRuns{} runs & \GuestRepeats{} over \GuestLoadLevels{} loads, \GuestRuns{} runs & \BmRepeats{} over \BmLoadLevels{} loads, \BmRuns{} runs. \emph{Short of protocol} \\
 Instruments & Counters, pooled HDR sidecars, jitter, allocator accounting & None available in the guest & Counters at two scopes, HDR sidecars, allocator accounting \\
 \hline
-Adequate for & Every result reported here & Everything except the far tail below saturation & Confirming each finding survives a change of design \\
+Adequate for & The pre-committed campaign-clock results. Not overload service latency & Everything except the far tail below saturation & Confirming campaign-clock directions survive a change of design \\
 \hline
 \end{tabular}
 \end{table}
@@ -4697,7 +4787,7 @@ Workloads & signal, mixed & mixed walks the full RAN lifecycle \\
 Active UEs & \SweepUes{} & \\
 Offered-load levels & \NLoadLevels{} & up to $\MaxOfferedLoad$~kops/s \\
 Representative load & $\ReprLoad$~kops/s & fixed, see caption \\
-Measured throughput plateau & $\SatKnee$~kops/s achieved & the lowest of the four, reached at an offered $\TrackingLoad$~kops/s. The Rust variants track one load level further, to $\TrackingLoadRust$ \\
+Campaign-clock throughput plateau & $\SatKnee$~kops/s achieved & the apparent language split at $\KneeGapLoad$~kops/s is not reproduced on the later deferred-fill setup (Section~\ref{sec:overload}) \\
 Load model & open loop, fixed intended schedule & latency measured from intended send time \\
 \hline
 \multicolumn{3}{@{}l}{\emph{Campaign}} \\
@@ -4762,6 +4852,19 @@ campaign is kept. The second bare-metal campaign carries the same record shape a
 sweep, including the allocator accounting that lets Section~\ref{sec:baremetal} decompose the
 resident set, but runs a different shard count, load grid, repeat count and toolchain. Each
 campaign has its own generator and macro prefix.
+
+The two clock diagnostics each cover the same fourteen-load, two-language,
+two-allocator grid over \ProbeAfterRuns{} runs, but their environment capture
+is not the campaign capture. The campaign records \MainCpu{} and
+\texttt{nohz\_full} \MainNohzFull{}. The diagnostics record \ProbeAfterCpu{}
+and \texttt{nohz\_full} \ProbeAfterNohzFull{}. Clock A drops the
+coordinated-omission fill and therefore cannot supply RQ1 percentiles. Clock B
+defers the fill, but its overload percentiles are schedule drift. At the top
+load its \ProbeAfterPairsSystem{} system-allocator pairs are unresolved at
+$p = \ProbeAfterThrPSystem$, while its \ProbeAfterPairsJemalloc{}
+\texttt{jemalloc} pairs resolve a smaller Rust lead at
+$p \ProbeAfterThrPJemalloc$. These diagnostics are consistent with recorder
+work but do not isolate fill timing.
 
 The tables that follow are the measurements the main text cites from this appendix.
 
@@ -4933,8 +5036,8 @@ partitioning it turns a class of concurrency defects into a structural impossibi
 languages, and it does so without either compiler's help.
 
 \paragraph{Budget for the learning curve, and measure it.}
-The dominant cost identified here is human, which matches what adoption studies
-report~\cite{fulton2021adopting}. This thesis cannot quantify that cost, because it is a
+Adoption studies identify learning as a human cost~\cite{fulton2021adopting}.
+This thesis cannot quantify that cost, because it is a
 single-author study, so the guideline is correspondingly modest. Treat the first component as a
 training investment with a deliberately generous schedule, and instrument it, recording review
 time and defect density, so the second component can be planned on measured effort instead of
@@ -4948,14 +5051,17 @@ implementations. A vendor running its own comparison should budget for both: the
 measurement, which says what a deployment will feel, and the component measurement, which says
 what the language is doing.
 
-\paragraph{Sweep past saturation, because that is where the languages stopped agreeing.}
-Every conclusion drawn about performance while the sweep stopped at nominal load was a null.
-Each was correct at that operating point and silent about the one where the two implementations
-differ by $\OverloadThrRatio\times$ (Section~\ref{sec:overload}). The published floor past it is the open-loop fill. The knee is the region that
-decides whether a signalling storm degrades service or ends it. Sweeping past it costs one more
-afternoon of machine time. The decision the framework should inform is ``measure this on your
-component, and measure it past the point where your component stops coping'', not ``Rust is fast
-enough, proceed''.
+\paragraph{Sweep past saturation, and check that the instrument stays passive.}
+Every conclusion drawn about performance while the sweep stopped at nominal
+load was silent about the measurement loop under overload. Once senders fell
+behind, the coordinated-omission fill became part of the timed producer work
+and the campaign clock recorded a $\OverloadThrRatio\times$ gap
+(Section~\ref{sec:overload}). A later deferred-fill setup does not reproduce
+that gap, but the capture differences prevent a causal attribution. The knee is
+still the region that decides whether
+a signalling storm degrades service or ends it. The decision the framework
+should inform is ``measure this on your component, past the point where it
+stops coping, and verify that the recorder does not set the result''.
 
 \end{appendices}
 
