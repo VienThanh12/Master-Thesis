@@ -114,30 +114,25 @@
       
       \noindent\textbf{Results.}
       (1)~Safe Rust rejects all seven injected memory-safety and data-race defect classes at compile
-      time. In C++ the same seven build cleanly. They appear only at runtime, and only if a sanitiser
-      catches them. (2)~Seven further classes fail in both languages. On two of them C++ tooling reports what
-      Rust does not. (3)~C++ can call the Rust service through a thin C interface. All of the \texttt{unsafe}
-      code stays there, and any extra time on a real signalling call is at most $\FfiOpBoundPct\%$ of that call.
-      (4)~A full request
-      spends only $\BudgetCoreShareMax\%$ on language work. Passing work between threads takes the rest,
-      so that clock cannot attribute a gap to C++ or Rust. Timed on its own, the core
-      is $\BudgetCoreRatio\times$ faster in Rust.
-      (5)~At $\ReprLoad$~kilo-operations per second (kops/s) the paired test on the end-to-end median
-      resolves $\PFiftyDiffAbsMax\,\mu$s in Rust's favour. That gap is too small to bound a language
-      effect. In the pooled far tail the slowest Rust variant sits $\FarTailLangSep\,\mu$s below the
-      fastest C++ one.
+      time. The same seven build cleanly in C++ and surface only at runtime, if a sanitiser catches
+      them. (2)~Seven boundary classes fail in both languages, and C++ tooling reports two that
+      Rust's does not. (3)~C++ can call the Rust service through a thin C interface that holds all
+      the \texttt{unsafe} code and costs at most $\FfiOpBoundPct\%$ of a real signalling call.
+      (4)~A full request spends only $\BudgetCoreShareMax\%$ on language work, so that clock cannot
+      attribute a gap. Timed alone the core is $\BudgetCoreRatio\times$ faster
+      in Rust. (5)~At $\ReprLoad$~kilo-operations per second (kops/s) the paired median difference is
+      $\PFiftyDiffAbsMax\,\mu$s in Rust's favour, too small to bound a language effect. The pooled far
+      tail puts the slowest Rust variant $\FarTailLangSep\,\mu$s below the fastest C++ one.
       (6)~Past saturation the campaign clock shows a Rust lead at $\KneeGapLoad$~kops/s and a
-      $\OverloadThrRatio\times$ C++ lead at $\OverloadLoad$~kops/s. A later sweep of the same grid,
-      writing the coordinated-omission fill after the timed window instead of inside it, reproduces
-      neither. That sweep also changed processor and kernel controls, so it implicates the recorder
-      without isolating it, and overload service latency is left unresolved.
+      $\OverloadThrRatio\times$ C++ lead at $\OverloadLoad$. Moving the coordinated-omission fill after
+      the timed window reproduces neither, implicating the recorder rather than the services and
+      leaving overload service latency unresolved.
 
       \noindent\textbf{Conclusions.}
-      Below saturation the choice is which defect classes a team wants made impossible to write, not
-      which language runs faster. The gain is freedom from data races, not from concurrency defects
-      in general. The measured cost of adoption is the seam bound above, while design effort and the
-      learning curve are named by prior work and not measured here. A nominal-load test would miss
-      the boundary, and a recorder inside the timed loop can manufacture the gap past it.
+      Below saturation the choice is which defect classes a team wants impossible to write, not
+      which is faster. The gain is freedom from data races, not from concurrency defects generally.
+      Adoption cost is measured at the seam, not in design or training time. A nominal-load test
+      misses the boundary, and a recorder in the timed loop can manufacture the gap past it.
 \end{abstract}
 \end{otherlanguage}
 }

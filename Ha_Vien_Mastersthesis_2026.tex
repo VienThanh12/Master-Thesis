@@ -3489,7 +3489,7 @@ stays free of \texttt{unsafe} and the raw-pointer handling the C ABI requires is
 to the seam crate, in its $\FfiUnsafeFns$ \texttt{unsafe} functions, under a single documented
 safety contract. The C++ side never sees a Rust type.
 
-\begin{table}[H]
+\begin{table}[!ht]
 \centering
 \caption[FFI migration prototype: seam size, safety, and cost]{FFI migration prototype: seam size, safety boundary, and per-call interop cost
 (C++ host calling the Rust component across a C ABI, \texttt{-O2}). The core library is
