@@ -51,6 +51,7 @@ wrong prefix is wrong in a way no build gate catches.**
 | `bench/results/campaign-20260827-151927.jsonl` — bare metal, 7 shards, 7 producers, 20 repeats, 14 loads | **unprefixed**, `gen_macros.tex` | **Canonical. Every result the thesis reports.** AMD EPYC 7443, SMT off, `performance` + boost off, `nohz_full`, no hypervisor, toolchain pinned in the Rocky container |
 | `bench/results/campaign-20260812-154528.jsonl` — KVM guest, identical design | `\Guest*`, `gen_guest.tex` | The measurement-validity comparison in §`sec:hostcompare`. Same code, same design, a host that could not resolve the far tail. `g++` is one patch apart (`\GuestGpp` 15.1.1, `\MainGpp` 15.2.1). `rustc` matches at 1.97.1. Do not write that they share a toolchain |
 | `bench/results-baremetal/campaign-20260826-*.jsonl` — bare metal, 8/8, 15 repeats, 8 loads | `\Bm*`, `gen_baremetal.tex` | Whether findings survive a change of shard count, load grid, repeat count and compiler |
+| `bench/results/fair-start-*.jsonl` and `fair-after-*.jsonl` — canonical 7/7/14/20 grid, 1120 runs each | `\ProbeStart*` and `\ProbeAfter*`, `gen_probes.tex` | **Diagnostics, never the compared pair.** They test whether the high-load split persists when coordinated-omission fill is removed or deferred. Clock A (`\ProbeStartOrigin` origin, cap `\ProbeStartCap`) drops the fill, and its percentiles are **coordinated-omission biased by construction**, so they must never be quoted as a tail result. Clock B (`\ProbeAfterWhen`) keeps the origin and cap and defers the fill, but past saturation its percentiles are **schedule drift in seconds, not service time**. `probe_facts.py` refuses to emit those percentiles and now tests all 20 paired repeats with the campaign's mean-difference statistic. Both probes use a captured setup that differs from the campaign in processor identification and `nohz_full`, so their failure to reproduce the large gaps supports a recorder explanation but does not isolate fill timing. Written by `bench/probe_facts.py`, which `refresh_thesis.sh` runs before the main figure generator |
 
 Host descriptions are generated too: `\Main*` from the reported campaign's own environment capture
 (matched by timestamp, not by taking the newest file), `\Guest*` and `\Bm*` from theirs.
@@ -94,6 +95,19 @@ afternoon: mean 4.83.** Areas 1, 2, 3 and 5 at 5, areas 4 and 6 at **4.5**. Caps
 sites plus `tab:testbed` claiming toolchain parity with the guest (`\GuestGpp` 15.1.1 against
 `\MainGpp` 15.2.1), §6.4.7 hand-typing 15.1.1 as the measurement host's compiler, and
 `tab:findings`' RQ3 cell saying “on bare metal”. The twentieth pass, 3 September, held 5.00.
+
+**Twenty-seventh pass, 21 September 2026, graded `Thesis_v3.tex` only, mean 4.42.** Areas 1 and 2
+remain at 5, area 3 is 4.5, and areas 4 to 6 are 4 after the coordinated-omission diagnostics
+landed. The abstract still presents the two campaign-clock gaps without qualification,
+`probe_facts.py` tests only the first 16 of 20 pairs with a different statistic, the stored
+campaign and diagnostic captures change host and `nohz_full` while the text says only fill timing
+moves, and the result was integrated into the results core but not consistently into the
+motivation, method summary, forced-idiom account, RQ1 verdict, H1 revisit, guidelines, or
+conclusion. Independent readers also found representative-load macros generalized to the whole
+below-saturation regime, one canonical RSS range assigned to all hosts, a singular saturation-knee
+figure title, and the deliberately biased no-fill p99 promoted at three summary sites. The main
+campaign, RQ2 catalogue, pooled far tail, operation timing, and FFI call bound remain intact.
+See the twenty-seventh pass in `docs/ASSESSMENT.md`.
 
 **Twenty-sixth pass, 16 September 2026, graded `Thesis_v3.tex` only, mean 5.00, a hold.** Fifteen
 commits after the twenty-fifth pass (new `fig:e2eclock` and `fig:loadmap`, predictability section
@@ -492,10 +506,12 @@ that cites each figure rather than in the caption, because `.acronyms.py` reads 
 label as a use and the labels come before the caption in source order.
 
 Because the results chapters and now the figure captions quote measured values,
-`Thesis_v3.tex` `\input`s the same six generated macro files as the full draft (`gen_macros`,
-`gen_complexity`, `gen_artefacts`, `gen_adoption`, `gen_baremetal`, `gen_guest`). It therefore
+`Thesis_v3.tex` and the full draft `\input` the same seven generated macro files (`gen_macros`,
+`gen_complexity`, `gen_artefacts`, `gen_adoption`, `gen_baremetal`, `gen_guest`, and
+`gen_probes`, added to the draft on 21 September 2026). The skeleton therefore
 has to be rebuilt whenever those are regenerated, not only when its own source changes, and
-`bench/refresh_thesis.sh` does **not** rebuild it, so that step is manual.
+`bench/refresh_thesis.sh` does **not** rebuild it, so that step is manual. The refresh does
+regenerate `gen_probes.tex` and the two-clock `fig_overload.pdf` from the fixed fair-clock logs.
 
 ---
 
