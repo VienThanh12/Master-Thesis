@@ -12,6 +12,7 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
+#include <utility>
 #include <vector>
 
 namespace bench {
@@ -73,12 +74,16 @@ class HdrHistogram {
   // producer that is already behind, which makes the next value larger still.
   // The cap bounds that feedback; above saturation the reported tail is
   // therefore a lower bound. kMaxCorrectionSamples must match the Rust side.
-  void record_corrected(std::int64_t value, std::int64_t expected_interval) {
+  void record_corrected(std::int64_t value, std::int64_t expected_interval,
+                        std::int64_t max_correction_samples = kMaxCorrectionSamples) {
     record(value);
     if (expected_interval <= 0 || value <= expected_interval) return;
+    // A cap of 0 records the real sample and no synthetics. That is the P1
+    // overload probe: the open-loop schedule stays, the backfill cost does not.
+    if (max_correction_samples <= 0) return;
     std::int64_t emitted = 0;
     for (std::int64_t missing = value - expected_interval;
-         missing >= expected_interval && emitted < kMaxCorrectionSamples;
+         missing >= expected_interval && emitted < max_correction_samples;
          missing -= expected_interval, ++emitted) {
       std::int64_t idx = counts_index_for(missing);
       if (idx < 0) idx = 0;
@@ -86,6 +91,27 @@ class HdrHistogram {
       ++counts_[static_cast<std::size_t>(idx)];
       ++total_;
       sum_ += missing;
+    }
+  }
+
+  // Gil Tene's post-correction: the timed loop records real samples only, then
+  // this walks occupied buckets and adds the same capped synthetic series
+  // record_corrected would have emitted. Throughput is then free of the fill.
+  // The reported tail is still a lower bound above saturation, as with the
+  // at-record path. Probe-only (--correction-when after).
+  void correct_after(std::int64_t expected_interval,
+                     std::int64_t max_correction_samples = kMaxCorrectionSamples) {
+    if (expected_interval <= 0 || max_correction_samples <= 0 || total_ == 0) return;
+    std::vector<std::pair<std::int64_t, std::int64_t>> occ;
+    for_each_recorded([&](std::int64_t v, std::int64_t c) { occ.emplace_back(v, c); });
+    for (const auto& o : occ) {
+      if (o.first <= expected_interval) continue;
+      std::int64_t emitted = 0;
+      for (std::int64_t missing = o.first - expected_interval;
+           missing >= expected_interval && emitted < max_correction_samples;
+           missing -= expected_interval, ++emitted) {
+        add_n(missing, o.second);
+      }
     }
   }
 
@@ -180,6 +206,16 @@ class HdrHistogram {
   }
 
  private:
+  void add_n(std::int64_t value, std::int64_t n) {
+    if (value < 0 || n <= 0) return;
+    std::int64_t idx = counts_index_for(value);
+    if (idx < 0) idx = 0;
+    if (idx >= counts_len_) idx = counts_len_ - 1;
+    counts_[static_cast<std::size_t>(idx)] += n;
+    total_ += n;
+    sum_ += value * n;
+  }
+
   static int clz64(std::int64_t v) {
     return __builtin_clzll(static_cast<unsigned long long>(v));
   }

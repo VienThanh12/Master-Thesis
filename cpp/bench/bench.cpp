@@ -63,6 +63,14 @@ struct Args {
   bool jitter = false;       // record inter-operation jitter (IPDV) as well
   std::string hist_out;      // append the full HDR bucket contents here
   std::string run_id;        // opaque tag echoed into the sidecar (campaign repeat)
+  // Coordinated-omission backfill cap. Default matches kMaxCorrectionSamples.
+  // --correction-cap 0 keeps the real sample and drops the synthetics (P1 probe).
+  std::int64_t correction_cap = bench::kMaxCorrectionSamples;
+  // record: fill during the timed loop (campaign). after: real samples only,
+  // then correct_after once the producer finishes (P3). Probe-only.
+  std::string correction_when = "record";
+  // intended: t_done - t_intended (campaign). start: t_done - t_actual_send (P3).
+  std::string latency_origin = "intended";
 };
 
 std::uint64_t to_u64(const char* s) { return std::strtoull(s, nullptr, 10); }
@@ -86,8 +94,19 @@ Args parse(int argc, char** argv) {
     else if (k == "--jitter") a.jitter = true;
     else if (k == "--hist-out") a.hist_out = val();
     else if (k == "--run-id") a.run_id = val();
+    else if (k == "--correction-cap") a.correction_cap = static_cast<std::int64_t>(to_u64(val()));
+    else if (k == "--correction-when") a.correction_when = val();
+    else if (k == "--latency-origin") a.latency_origin = val();
     else if (k == "--json") a.json = true;
     else { std::fprintf(stderr, "unknown arg: %s\n", k.c_str()); std::exit(2); }
+  }
+  if (a.correction_when != "record" && a.correction_when != "after") {
+    std::fprintf(stderr, "--correction-when must be record or after\n");
+    std::exit(2);
+  }
+  if (a.latency_origin != "intended" && a.latency_origin != "start") {
+    std::fprintf(stderr, "--latency-origin must be intended or start\n");
+    std::exit(2);
   }
   if (a.producers == 0) a.producers = a.shards;
   if (a.warmup == 0) {
@@ -305,12 +324,14 @@ int main(int argc, char** argv) {
             ++counts[static_cast<std::size_t>(op.kind)];
             ++local_measured;
             std::int64_t lat;
-            if (interval_ns > 0)
+            if (interval_ns > 0 && a.latency_origin != "start")
               lat = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - intended).count();
             else
               lat = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
             if (lat < 1) lat = 1;
-            if (interval_ns > 0) hist.record_corrected(lat, interval_ns);
+            const bool fill_now = interval_ns > 0 && a.latency_origin != "start"
+                                  && a.correction_when == "record";
+            if (fill_now) hist.record_corrected(lat, interval_ns, a.correction_cap);
             else hist.record(lat);
             // Inter-operation jitter (IPDV, RFC 3393): the absolute difference
             // between consecutive measured latencies within this producer. Never
@@ -330,6 +351,8 @@ int main(int argc, char** argv) {
         }
         meas_end[p] = clock_type::now();
         meas_ops[p] = local_measured;
+        if (interval_ns > 0 && a.latency_origin != "start" && a.correction_when == "after")
+          hist.correct_after(interval_ns, a.correction_cap);
         errors.fetch_add(local_errors, std::memory_order_relaxed);
         std::lock_guard<std::mutex> lk(merge_mtx);
         merged.add(hist);
@@ -394,14 +417,16 @@ int main(int argc, char** argv) {
   if (a.json) {
     std::printf(
         "{\"lang\":\"cpp\",\"alloc\":\"%s\",\"workload\":\"%s\",\"shards\":%llu,\"producers\":%llu,"
-        "\"rate\":%.1f,\"ops_total\":%lld,\"errors\":%llu,\"wall_s\":%.6f,"
+        "\"rate\":%.1f,\"correction_cap\":%lld,\"correction_when\":\"%s\",\"latency_origin\":\"%s\","
+        "\"ops_total\":%lld,\"errors\":%llu,\"wall_s\":%.6f,"
         "\"measured_wall_s\":%.6f,\"throughput_ops_s\":%.1f,"
         "\"lat_ns\":{\"p25\":%lld,\"p50\":%lld,\"p75\":%lld,\"p90\":%lld,\"p99\":%lld,"
         "\"p999\":%lld,\"p9999\":%lld,\"max\":%lld,\"mean\":%.1f,\"stdev\":%.1f}%s,"
         "\"rss_peak_kb\":%ld,\"cpu_user_s\":%.3f,\"cpu_sys_s\":%.3f,"
         "\"cpu_pct\":%.1f,%s,\"kinds\":{",
         alloc, a.workload.c_str(), (unsigned long long)a.shards, (unsigned long long)a.producers,
-        a.rate, (long long)total_ops, (unsigned long long)errors.load(), wall_s, measured_wall_s,
+        a.rate, (long long)a.correction_cap, a.correction_when.c_str(), a.latency_origin.c_str(),
+        (long long)total_ops, (unsigned long long)errors.load(), wall_s, measured_wall_s,
         thr, (long long)p25, (long long)p50, (long long)p75, (long long)p90, (long long)p99,
         (long long)p999, (long long)p9999, (long long)merged.max(), merged.mean(), merged.stdev(),
         jitter_json.c_str(), rss_peak_kb, cpu_user_s, cpu_sys_s, cpu_pct, je_json.c_str());
