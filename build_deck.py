@@ -14,7 +14,7 @@ is a slide they are not listening through.
 
 Every measured number is read at build time from the artefacts that
 bench/refresh_thesis.sh regenerates: figures/gen_macros.tex,
-figures/gen_complexity.tex, figures/gen_baremetal.tex, the figures/tab_*.tex
+figures/gen_complexity.tex, figures/gen_baremetal.tex, figures/gen_probes.tex, the figures/tab_*.tex
 table bodies the thesis itself \\input, faults/results/taxonomy.csv, and the
 environment capture belonging to the campaign the figures were plotted from.
 Nothing is transcribed, so a rerun of the campaign cannot leave the deck
@@ -120,7 +120,8 @@ def read_macros(*paths):
 MACROS = read_macros(os.path.join(FIGURES, "gen_macros.tex"),
                      os.path.join(FIGURES, "gen_complexity.tex"),
                      os.path.join(FIGURES, "gen_baremetal.tex"),
-                     os.path.join(FIGURES, "gen_guest.tex"))
+                     os.path.join(FIGURES, "gen_guest.tex"),
+                     os.path.join(FIGURES, "gen_probes.tex"))
 
 
 def M(name):
@@ -262,9 +263,12 @@ def read_env():
     stamp = re.search(r"campaign-(\d{8}-\d{6})", os.path.basename(campaigns[-1]))
     if not stamp:
         raise SystemExit(f"cannot read a timestamp from {os.path.basename(campaigns[-1])}")
-    caps = sorted(p for p in glob.glob(os.path.join(results, "env-*.txt"))
-                  if re.search(r"env-(\d{8}-\d{6})", os.path.basename(p)).group(1)
-                  <= stamp.group(1))
+    caps = []
+    for p in glob.glob(os.path.join(results, "env-*.txt")):
+        m = re.search(r"env-(\d{8}-\d{6})", os.path.basename(p))
+        if m and m.group(1) <= stamp.group(1):
+            caps.append(p)
+    caps.sort()
     if not caps:
         raise SystemExit(
             f"no bench/results/env-*.txt written at or before campaign {stamp.group(1)}: "
@@ -1152,22 +1156,20 @@ add_notes(s, [
 ], top=Cm(10.55), height=Cm(2.4))
 
 # =====================================================================
-# Slide 20: Past saturation (two generated figures)
+# Slide 20: Past saturation (generated instrument comparison)
 # =====================================================================
-s = headline(1, "RQ1 past saturation: the languages are not equivalent",
-             f"The full sweep to {M('MaxOfferedLoad')} kops/s offered, well beyond the {M('SatKnee')} kops/s knee")
-add_figure(s, result_figure("fig_throughput_vs_load"), left=Cm(1.5), top=Cm(3.4),
-           width=Cm(10.9), height=Cm(7.0))
-add_figure(s, result_figure("fig_latency_vs_load"), left=Cm(13.0), top=Cm(3.4),
-           width=Cm(10.9), height=Cm(7.0))
+s = headline(1, "The timed histogram fill creates both overload gaps",
+             "The intended-send clock and correction cap stay fixed. Only when the fill runs changes")
+add_figure(s, result_figure("fig_overload"), top=Cm(3.25), height=Cm(7.15))
 add_notes(s, [
-    (f"{M('OverloadSustainedFaster')} sustains {M('OverloadThrRatio')}\u00d7",
-     f"the throughput of {M('OverloadSustainedSlower')} at {M('OverloadLoad')} kops/s, "
-     f"agreeing in {M('OverloadThrAgree')} repeats under both allocators."),
-    (f"Holm p = {M('OverloadThrHolm')}",
-     "the corrected floor of the whole family: the strongest result in the campaign."),
-    (f"{M('OverloadCpuPerOpRatio')}\u00d7 the CPU per operation",
-     "Effort spent without completing work, not idleness. The slower side is busier."),
+    (f"{M('KneeGapLoad')} kops/s: {M('KneeGapRatio')}\u00d7 becomes "
+     f"{M('ProbeAfterKneeThrCpp')} vs {M('ProbeAfterKneeThrRust')}",
+     "Rust's campaign lead disappears."),
+    (f"{M('OverloadLoad')} kops/s: {M('OverloadThrRatio')}\u00d7 becomes "
+     f"{M('ProbeAfterThrCpp')} vs {M('ProbeAfterThrRust')}",
+     "C++'s campaign lead disappears."),
+    ("One fix removes both",
+     "The timed recorder, not service capacity, creates the gaps."),
 ], top=Cm(10.6), height=Cm(2.4))
 
 # =====================================================================
@@ -1187,15 +1189,15 @@ add_bar_chart(s, Cm(1.3), tbl_bottom + Cm(0.6), Cm(15.0),
               "Gap between the languages, where 1.0\u00d7 is no difference",
               [("primitives in isolation", float(M("ContentionRatio")),
                 f"{M('ContentionRatio')}\u00d7 ({M('ContentionFaster')})", GREEN),
-               ("the full service past saturation", float(M("OverloadThrRatio")),
+               ("campaign clock past saturation", float(M("OverloadThrRatio")),
                 f"{M('OverloadThrRatio')}\u00d7 ({M('OverloadSustainedFaster')})", RED)],
               baseline=1.0, label_w=Cm(6.6), value_w=Cm(2.6))
 add_caption(s, Cm(10.1), size=11, text=
             f"The overload gap was attributed to the bounded queue and the completion handle. Isolated, they do "
             f"not reproduce it: {M('ContentionThrCpp')} against {M('ContentionThrRust')} kops/s is only "
-            f"{M('ContentionRatio')}\u00d7 at p = {M('ContentionP')}. So the mechanism involves more of the handoff "
-            "path than these two primitives, and nothing here implicates the borrow checker, bounds "
-            "checking, or ownership.")
+            f"{M('ContentionRatio')}\u00d7 at p = {M('ContentionP')}. A closed loop of the same service is not a "
+            f"C++ win. Deferring the same fill removes both campaign gaps. Nothing here points at the borrow "
+            "checker, bounds checking, or ownership.")
 
 # =====================================================================
 # Slide 22: RQ3 resources (generated figure)
@@ -1265,7 +1267,7 @@ add_notes(s, [
 add_caption(s, Cm(11.35), size=11, text=
             f"Pooling gives {M('BmPoolSamplesMin')} to {M('BmPoolSamplesMax')} operations per group, which is "
             f"what makes p99.99 a measurement and not a handful of draws. The same campaign reproduces the "
-            f"overload divergence at {M('BmOverloadThrRatio')}\u00d7 on another vendor's silicon, and its "
+            f"in-run fill effect at {M('BmOverloadThrRatio')}\u00d7, and its "
             f"counters show Rust retiring {M('BmInstrDelta')}% {M('BmInstrDeltaDir')} instructions in "
             f"{M('BmCycleDelta')}% {M('BmCycleDeltaDir')} cycles.")
 
@@ -1337,16 +1339,16 @@ add_figure(s, _png, crop_top=_crop)
 # Slide 28: Summary of findings
 # =====================================================================
 s = headline(1, "Summary of findings and evidence strength",
-             "Safety and migration are final. The performance answer divides at saturation")
+             "Safety and migration are final. The overload language gaps belong to the recorder")
 add_data_table(
     s,
     [
         ("RQ", "Headline finding", "Evidence"),
         ("RQ1", f"Equivalent at the median below saturation, where the end-to-end number is only "
                 f"{M('BudgetCoreShareMax')}% operation. On a quiet host the pooled p99.99 of the Rust "
-                f"variants sits below the C++ ones. Past saturation {M('OverloadSustainedFaster')} sustains "
-                f"{M('OverloadThrRatio')}\u00d7 the throughput",
-         "Overload and operation resolved. Far tail resolved on bare metal, at one shard count"),
+                "variants sits below the C++ ones. Past saturation the campaign's opposite language "
+                "gaps disappear under the deferred fill",
+         "Overload instrument and operation resolved. Far tail resolved on bare metal"),
         ("RQ2", f"All {len(IN_GUARANTEE)} in-guarantee classes are compile errors in safe Rust. The "
                 f"{len(BOUNDARY)} boundary classes compile in both languages", "Final"),
         ("RQ3", f"{M('RssLangDiffLo')}\u2013{M('RssLangDiffHi')} MiB more peak RSS in Rust under both allocators, "
@@ -1377,10 +1379,10 @@ add_data_table(
     [
         ("Hypothesis", "Statement, and what the evidence did to it", "Verdict"),
         ("H1", "Equivalent below saturation, with any difference confined to the far tail. The first half "
-               "holds. The second is half right: a quiet machine does find a far-tail difference, in Rust's "
-               "favour, while the largest difference in the study sits in overload, which H1 never considered. "
-               "\u201cPerformance-equivalent\u201d also names three quantities that answer differently.",
-         "Half right, and too loosely worded"),
+               "holds for the delivered service. A quiet machine finds a far-tail difference in Rust's "
+               "favour. The apparent overload differences disappear when the histogram fill moves. "
+               "\u201cPerformance-equivalent\u201d still names different quantities.",
+         "Supported for service behaviour, but too loosely worded"),
         ("H2", "Safe Rust prevents the classes C++ leaves to best-effort detection. Exact for the "
                f"{len(IN_GUARANTEE)} injected classes. The boundary classes are concurrency defects it does not prevent.",
          "Supported precisely, refuted loosely"),
@@ -1540,7 +1542,7 @@ _pictures = sum(1 for sl in prs.slides for sh in sl.shapes if sh.shape_type == 1
 print("Saved", OUT, "with", len(prs.slides._sldIdLst), "slides")
 print(f"Figures placed: {_pictures}")
 print("Data read from:")
-print("  figures/gen_{macros,complexity,baremetal,guest}.tex "
+print("  figures/gen_{macros,complexity,baremetal,guest,probes}.tex "
       f"({len(MACROS)} macros)")
 print("  figures/tab_{latency,resource,overload,budget,contention,ffi,resident}.tex")
 print("  figures/fig_*.pdf, diagrams/png/*.png")
