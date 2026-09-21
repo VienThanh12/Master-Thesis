@@ -489,10 +489,10 @@ def repro_artifacts():
     d.rect(20, 406, 840, 56, RED_FILL, RED, rx=8, sw=1.7)
     d.text(36, 428, "Not required:", 11.5, RED_DEEP, weight=700)
     d.text(126, 428, "no proprietary source. The implementations are driven "
-                     "entirely by the public specification, and the", 10.5,
+                     "entirely by the public specification. The", 10.5,
            BODY)
-    d.text(36, 447, "subsystem is modelled on production code rather than "
-                    "copied from it.", 10.5, BODY)
+    d.text(36, 447, "service is a 3GPP-shaped model, not a reduced product "
+                    "module.", 10.5, BODY)
     d.footer([
         "Separating environment-sensitive results from "
         "environment-insensitive ones is what lets the thesis",
@@ -1037,30 +1037,67 @@ def service_lifecycle():
 
 # --------------------------------------------------------------------------
 def research_gap():
-    d = Diagram(
-        "29_research_gap", 880, 552,
-        "What the neighbouring studies control, and what they leave varying",
-        "Each prior result is credible on its own terms, but none isolates the "
-        "language for a control-plane subsystem driven into overload",
+    # Printed at \linewidth (16 cm). Table labels at 14.5 units come out
+    # at about 7.5 pt. The title, subtitle, and gap callout were still
+    # smaller than that, so they are set larger and wrapped: title 26
+    # (~13 pt), subtitle 20 (~10 pt), gap body 18 (~9 pt).
+    W, H = 880, 752
+    d = Diagram("29_research_gap", W, H)
+    d.lines(
+        W / 2, 34,
+        [
+            "What the neighbouring studies control,",
+            "and what they leave varying",
+        ],
+        26, NAVY, lh=32, weight=700, anchor="middle",
     )
+    d.lines(
+        W / 2, 104,
+        [
+            "Each prior result is credible on its own terms, but none isolates",
+            "the language for a control-plane subsystem driven into overload",
+        ],
+        20, MUTED, lh=24, anchor="middle",
+    )
+
+    x0, label_w, col_gap, col_w = 12, 198, 4, 128
+    head_y, head_h = 144, 112
+    name_size, name_lh = 14.5, 17
+    who_size, who_lh = 13, 15
+    # Every header line is measured to sit inside col_w with 8 px of
+    # side pad. The previous wrapping left "Vendor RAN and",
+    # "5G frameworks", and the two longest author lines wider than
+    # the chip, so they ran into the next column.
     cols = [
-        (168, 131, ["Cross-language", "benchmarks"], "Pereira et al."),
-        (308, 131, ["Matched pairs in", "systems software"],
-         "Emmerich \u00b7 Suchert"),
-        (448, 131, ["Vendor RAN and", "5G frameworks"],
-         "Other Ericsson theses"),
-        (588, 131, ["Matched telecom", "pair"], "Emberg & Wadsten"),
-        (728, 131, ["This thesis", ""], ""),
+        (["Cross-", "language", "benchmarks"], ["Pereira et al."]),
+        (["Matched pairs", "in systems", "software"],
+         ["Emmerich", "Suchert"]),
+        (["Vendor RAN", "and 5G", "frameworks"],
+         ["Other Ericsson", "theses"]),
+        (["Matched", "telecom pair"], ["Emberg &", "Wadsten"]),
+        (["This thesis"], []),
     ]
-    for x, w, name, who in cols:
-        mine = who == ""
-        d.rect(x, 74, w, 62, BLUE_CHIP if mine else GREY_FILL,
+    col_x = []
+    x = x0 + label_w + 6
+    for name, who in cols:
+        col_x.append(x)
+        mine = not who
+        d.rect(x, head_y, col_w, head_h,
+               BLUE_CHIP if mine else GREY_FILL,
                BLUE if mine else GREY_EDGE, rx=8, sw=1.8 if mine else 1.4)
-        for i, part in enumerate(p for p in name if p):
-            d.text(x + w / 2, 98 + i * 15, part, 11.5,
+        block_h = len(name) * name_lh
+        if who:
+            block_h += 6 + len(who) * who_lh
+        y_line = head_y + (head_h - block_h) / 2 + name_size * 0.78
+        for i, part in enumerate(name):
+            d.text(x + col_w / 2, y_line + i * name_lh, part, name_size,
                    BLUE_DEEP if mine else NAVY, weight=700, anchor="middle")
         if who:
-            d.text(x + w / 2, 127, who, 9.5, MUTED, anchor="middle")
+            wy = y_line + len(name) * name_lh + 6
+            for i, part in enumerate(who):
+                d.text(x + col_w / 2, wy + i * who_lh, part, who_size,
+                       MUTED, anchor="middle")
+        x += col_w + col_gap
 
     rows = [
         (["Measures a systems", "language empirically"],
@@ -1081,24 +1118,32 @@ def research_gap():
         "part": ("\u2013", AMBER_CHIP, AMBER_DEEP),
         "no": ("\u2717", RED_CHIP, RED_DEEP),
     }
-    y = 148
+    y = head_y + head_h + 8
+    row_h, row_gap = 54, 5
     for parts, vals in rows:
-        h = 22 + 12 * len(parts)
-        d.card(20, y, 140, h, None, parts, fill=WHITE, stroke=GREY_EDGE, rx=6,
-               body_size=9.3, body_color=BODY, pad=9, lh=12)
-        for (x, w, *_), val in zip(cols, vals):
+        d.card(x0, y, label_w, row_h, None, parts, fill=WHITE, stroke=GREY_EDGE,
+               rx=6, body_size=14.5, body_color=BODY, pad=8, lh=18)
+        for cx, val in zip(col_x, vals):
             glyph, fill, color = mark[val]
-            d.chip(x, y, w, h, glyph, fill, color, size=15, rx=6, weight=700)
-        y += h + 6
+            d.chip(cx, y, col_w, row_h, glyph, fill, color, size=20, rx=6,
+                   weight=700)
+        y += row_h + row_gap
 
-    d.rect(20, y + 6, 840, 64, BLUE_FILL, BLUE, rx=9, sw=1.7)
-    d.text(36, y + 29, "The gap", 12.5, BLUE_DEEP, weight=700)
-    d.text(104, y + 29, "the telecom studies vary the runtime with the "
-                        "language, and the one matched pair among them "
-                        "measures a stateless", 10.5, BODY)
-    d.text(36, y + 48, "transformation. None holds the concurrency model fixed "
-                       "and then drives a stateful subsystem past saturation.",
-           10.5, BODY)
+    box_h = 122
+    by = y + 8
+    d.rect(x0, by, W - 2 * x0, box_h, BLUE_FILL, BLUE, rx=9, sw=1.7)
+    label_x = x0 + 16
+    body_x = label_x + 108
+    ly = by + 30
+    lh = 22
+    d.text(label_x, ly, "The gap", 20, BLUE_DEEP, weight=700)
+    d.lines(body_x, ly, [
+        "the telecom studies vary the runtime with the language,",
+        "and the one matched pair among them measures a stateless "
+        "transformation.",
+        "None holds the concurrency model fixed",
+        "and then drives a stateful subsystem past saturation.",
+    ], 18, BODY, lh=lh)
     return d
 
 

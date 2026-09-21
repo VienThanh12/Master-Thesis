@@ -139,8 +139,7 @@ def three_trends():
     d = Diagram(
         "31_three_trends", 880, 600,
         "Three trends that make the language choice timely",
-        "They meet in one production component: UE Context Management inside "
-        "a Nokia gNB-CU-CP",
+        "They meet in gNB-CU-CP UE-context work, which this study models as UECM",
     )
     cards = [
         (20, BLUE, BLUE_FILL, BLUE_DEEP, "1.  Cloud-native RAN", [
@@ -187,9 +186,9 @@ def three_trends():
     d.text(36, 386, "Where they land in this thesis", 13, NAVY, weight=700)
     d.card(36, 404, 250, 108, "Industrial setting", [
         "Nokia is an end-to-end RAN vendor.",
-        "UECM is modelled on a live gNB-CU-CP",
-        "part, specified in public, not copied",
-        "from proprietary source.",
+        "UECM models gNB-CU-CP per-UE state",
+        "work. It is specified in public.",
+        "No proprietary source is copied.",
     ], fill=WHITE, stroke=BLUE_EDGE, rx=8, title_size=12, body_size=10.5,
         pad=12, lh=14, gap=18)
     d.card(304, 404, 250, 108, "A generational horizon", [
