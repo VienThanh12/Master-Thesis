@@ -77,6 +77,8 @@ Not comparable with the C++ figure — different tools counting different things
   with only the atomic `activity_seq` shared through an `Arc<AtomicU64>`. At
   `queue_capacity == 0` this is a rendezvous channel. C++ `BoundedQueue` clamps 0 to 1, and
   so does the mutex-queue probe. Default and campaign capacity is 1024.
+  `--features sync-oneshot` is a probe-only swap of the *completion* channel
+  to `sync_channel(1)`. It is not a compared arm. See spec §12.
 - **Safety**: `src/` contains **zero `unsafe`**. `src/lib.rs` does not currently carry
   `#![forbid(unsafe_code)]`, so a later `unsafe` block would compile until that attribute is
   added. Safe Rust guarantees data-race freedom at compile time (`Send`/`Sync`), so no

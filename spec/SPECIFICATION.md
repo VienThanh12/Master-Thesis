@@ -17,9 +17,9 @@
 
 ## 1. Purpose and scope
 
-The subsystem under study is a **UE Context Management (UECM) service**. It is a compact
-model of the UE-context lifecycle, RRC procedure execution, and mobility/handover of the
-kind a gNB-CU-CP performs. This document specifies, in a language-agnostic way:
+The subsystem under study is a **UE Context Management (UECM) service**. It keeps
+per-device state, as a gNB-CU-CP does, and covers the UE-context lifecycle, RRC procedure
+execution, and mobility/handover. This document specifies, in a language-agnostic way:
 
 - the UE context **data model** (Section 4),
 - the UE **state machine** (Section 5),
@@ -688,12 +688,14 @@ container, so that a measured difference can be assigned to the container or not
   the primitives alone do not. Note that the microbenchmark shares the second blind spot
   — its job is 32 bytes, so sixteen fit per deque node and it allocates at a fifth of the
   service's rate — so it too was weaker evidence than it looked; the ring probe is what
-  closes the question. That leaves one untested entry in this log as the live candidate:
-  the tagged-struct dispatch and the 160-byte request the C++ side moves through the
-  queue against Rust's 96. Host caveat as above — 14 logical CPUs here against 16 vCPUs
-  on the measurement guest, so the absolute ratio is smaller (1.4x here,
-  `\OverloadThrRatio` there) — but both probes are within-host comparisons of two builds
-  of the same language, which is what they need to be.
+  closes the question. At the time this was written that left one untested *service-side* entry: the
+  tagged-struct dispatch and the 160-byte request the C++ side moves through the
+  queue against Rust's 96. That candidate has the wrong sign for a gap in which
+  C++ completes more work, and the 18 September probes below test the open-loop
+  instrument instead. Host caveat as above — 14 logical CPUs here against 16
+  vCPUs on the measurement guest, so the absolute ratio is smaller (1.4x here,
+  `\OverloadThrRatio` there) — but both probes are within-host comparisons of
+  two builds of the same language, which is what they need to be.
 
 **All three probes returned negative, which is the finding.** The two mechanisms the
 thesis offers for its two most notable performance results are, when tested by
@@ -711,27 +713,214 @@ microbenchmark isolated primitives but shrank the allocation rate fivefold by us
 smaller job. Each looked like a controlled experiment and each silently varied a second
 thing along with the first.
 
+**Overload instrument probes (recorded 2026-09-18, not compared configurations):**
+
+These do not swap a container. They ask whether the published floor is the service
+or the open-loop harness: the capped coordinated-omission backfill, and the
+unbounded per-request completion channel. The compared pair is untouched.
+Runner: `bench/overload_probes.sh`. System allocator, mixed workload, 7 shards
+and 7 producers, interleaved inside each repeat. `--correction-cap` defaults to
+10 000 so a campaign binary without the flag is the reported instrument.
+`--features sync-oneshot` is probe-only.
+
+- **P0 Closed loop.** Same service, no `--rate`, so the producer never sleeps
+  on a schedule and the 10 000-sample backfill never runs. Throughput is
+  `ops_total / measured_wall_s` under `--max-run-s`.
+- **P1 Open loop, `--correction-cap 0`.** The send schedule stays. The real
+  sample is still recorded. Only the synthetic backfill is dropped. Throughput
+  is the row that must be compared. Collapsed p50 will stay large, because the
+  intended send time is still the origin.
+- **P2 Rust `sync_channel(1)` completions** (`--features sync-oneshot`). Array
+  flavour, one slot, still a 1:1 blocking completion, no `unsafe`. The shard
+  queue stays on `sync_channel(1024)`. C++ is unchanged.
+- **P3 Other clocks.** `--latency-origin start` records the call from the
+  instant the producer actually sent, with no fill. `--correction-when after`
+  keeps the intended origin and the 10 000-sample cap, but the fill runs
+  after the timed window. Throughput should then match P1 cap 0. Service-time
+  p50 is the language comparison of the call.
+
+**Result (8 interleaved repeats, WSL2 development host, 2 s measured,
+140 kops/s offered on P1/P2, indicative only).** Log:
+`bench/results/overload_probes-20260918-134345.jsonl`. The script refused to
+certify every phase: every arm's throughput varied by more than 5% across
+repeats (P0 12%, P1 default-cap 6–9%, P1 cap-0 20%, P2 6–8%). A median of a
+spread that wide is a location of a cluster, not a measurement. Direction,
+from the ranges:
+
+- P0: C++ 67–100 kops/s, Rust 67–103. Complete overlap. Closed-loop max is
+  not a language split on this host. CPU clusters ~436% (C++) and ~461%
+  (Rust).
+- P1, default 10 000-sample cap (the campaign instrument): C++ 47–62 kops/s,
+  Rust 37–45. The ranges do not overlap. C++ completes more. Rust draws more
+  CPU (cluster ~538% against ~486%). Same signature as the overload table.
+- P1, cap 0: C++ 42–94 kops/s, Rust 42–96. Both recover toward the closed-loop
+  band. Each has one low outlier near 42 kops/s. CPU recedes to the
+  closed-loop cluster (~437% / ~457%). The default-cap C++ advantage is no
+  longer visible. Collapsed p50 stays on the order of a second, as expected:
+  the producer is still late relative to the intended schedule. The work
+  that moved is the histogram backfill, not service time.
+- P2: standard Rust 37–46 kops/s, `sync_channel(1)` 40–46, C++ 51–65. The
+  oneshot swap does not move the floor.
+
+Host caveat as for the 2026-08 probes. The tagged-struct / request-size
+entry (D1) remains unrun and still has the wrong sign. **Do not copy these
+WSL2 kops/s into `figures/gen_macros.tex` or the thesis.**
+
+**Result (10 interleaved repeats, certified, Cherry Chicago AMD EPYC 7443P,
+19 September 2026).** Same runner, mixed, 7/7, system allocator, 3 s
+measured, 784 kops/s offered on P1/P2, pinned to cores 2–17 after SMT off.
+Host kernel Ubuntu 24.04.4, `virtualisation: none`, no `isolcpus`, no
+`nohz_full`. Toolchain is the Rocky image (`g++` 15.2.1, `rustc` 1.97.1).
+512 GB RAM. Log: `bench/results/overload_probes-20260919-153013.jsonl`.
+The script certified every phase (spread under 5% on every arm). This is
+not the Nokia/UH 7443 of `campaign-20260827-151927`. It is the same CPU
+SKU as the 26 August confirmation host (`7443P`), a different machine.
+
+- P0 closed loop: C++ 455 kops/s `[454, 458]`, Rust 487 kops/s `[485, 488]`.
+  C++/Rust 0.94×, paired *p* = 1.95×10⁻³. Closed-loop max is not a C++ win.
+  CPU ~573% / ~592%.
+- P1, default 10 000-sample cap: C++ 138 kops/s `[136, 138]`, Rust 83 kops/s
+  `[81, 84]`. C++/Rust **1.67×**, paired *p* = 1.95×10⁻³. Same ordering and
+  nearly the same ratio as `\OverloadThrRatio` on the reported campaign
+  (147 / 84). Rust draws more CPU (~650% against ~632%) while completing
+  less. Same signature as `tab:overload`.
+- P1, cap 0: C++ 446 kops/s `[440, 451]`, Rust 467 kops/s `[463, 470]`.
+  C++/Rust **0.95×**. Both recover to the closed-loop band. CPU recedes to
+  ~569% / ~585%. The default-cap C++ advantage is gone.
+- P2: standard Rust 83 kops/s, `sync_channel(1)` 83 kops/s, C++ 138.
+  The oneshot swap does not move the floor.
+
+**Do not copy these kops/s into `figures/gen_macros.tex`.** They are not
+the compared pair. They license a *cause* sentence: under this open-loop
+instrument the published floor gap is the 10 000-sample coordinated-omission
+backfill, not the languages' closed-loop maximum and not the completion
+channel. D1 (request size) is not the mechanism of a gap that disappears
+when the cap is 0.
+
+**Result (4 interleaved repeats, WSL2 development host, 2 s measured,
+140 kops/s offered, P3, 20 September 2026, indicative only).** Log:
+`bench/results/overload_probes-20260920-132221.jsonl`. Spread under 5%.
+Not the measurement host. Do not copy kops/s into `figures/gen_macros.tex`.
+
+- `--latency-origin start`: C++ 108 kops/s `[108, 109]`, Rust 111 kops/s
+  `[110, 112]`. C++/Rust **0.97×**. Service-time p50 C++ 63 µs, Rust 59 µs.
+  The call is not slower in Rust.
+- `--correction-when after`: C++ 108 kops/s `[108, 109]`, Rust 109 kops/s
+  `[108, 109]`. C++/Rust **0.99×**. Intended-origin p50 stays hundreds of
+  milliseconds (schedule drift). Throughput sits with P1 cap 0, not with
+  the campaign fill.
+
+**Result (10 interleaved repeats, certified, Cherry Chicago AMD EPYC 7443P,
+20 September 2026, P3).** Same packing as the 19 September P0–P2 run: mixed,
+7/7, system allocator, 3 s measured, 784 kops/s offered, `--pin 2-17` after
+SMT off. Host `calm-husky` (Ubuntu 24.04.4, kernel 6.17.0-23-generic,
+`virtualisation: none`, no `isolcpus`, no `nohz_full`, ~512 GB RAM). Not
+the 19 September box (`exciting-moose`) and not the Nokia/UH 7443. Same
+CPU SKU. Rocky image (`g++` 15.2.1, `rustc` 1.97.1). Log:
+`bench/results/overload_probes-20260920-183540.jsonl`. Env:
+`bench/results/env-20260920-183531.txt`. The script certified every arm
+(spread 1.1–2.9%).
+
+- `--latency-origin start` (no fill): C++ 448 kops/s `[440, 453]`, Rust 471
+  kops/s `[463, 475]`. C++/Rust **0.95×**, paired *p* = 3.91×10⁻³. Service-time
+  p50 C++ 15.7 µs `[15.7, 15.8]`, Rust 15.2 µs `[15.2, 15.3]`. CPU ~568% /
+  ~590%. Throughput sits with P0 / P1 cap 0, not with the campaign floor.
+  The call is not slower in Rust.
+- `--correction-when after` (intended origin, fill after the timed loop):
+  C++ 453 kops/s `[449, 455]`, Rust 454 kops/s `[446, 467]`. C++/Rust
+  **1.00×**, paired *p* = 5.37×10⁻¹. The test cannot tell the languages
+  apart. Intended-origin p50 stays about a second of schedule drift
+  (C++ 1260 ms, Rust 1119 ms). CPU ~571% / ~592%. Throughput sits with P1
+  cap 0 (446 / 467), not with P1 default cap (138 / 83).
+
+**Do not copy these kops/s into `figures/gen_macros.tex`.** They license
+the same cause sentence as P1 cap 0: under this open-loop instrument the
+published floor gap is the at-record 10 000-sample fill on the producer,
+not service time and not a fill deferred until after the timed window.
+
+**14-load fair-clock sweep (`bench/fair_latency_sweep.sh`, added 20 September
+2026).** Same per-producer rates as `campaign-20260827-151927`, 7/7, mixed,
+20 repeats, 3 s measured. Clock A (`--clocks start`, default) is
+`--latency-origin start --correction-cap 0`. Clock B (`--clocks after`) is
+`--correction-when after`. Logs are `fair-start-*.jsonl` and
+`fair-after-*.jsonl`, never `campaign-*.jsonl`. `campaign.sh` refuses those
+clock flags unless `--prefix` is set, so the main campaign discovery cannot
+mistake either log for the compared pair.
+
+**Macro source (added 20 September 2026).** `bench/probe_facts.py` reads both
+logs and writes `figures/gen_probes.tex` under the `\ProbeStart*` and
+`\ProbeAfter*` prefixes, so prose quoting either sweep quotes a generated
+value. Two refusals are built in. It does not emit Clock B percentiles,
+because that clock keeps the intended origin and past saturation its
+percentiles are schedule drift in seconds rather than service time. And
+neither prefix may enter `gen_macros.tex`, because the reported campaign stays
+the pre-committed compared pair for the below-saturation tail result. The
+refresh script calls this generator before `plot_figures.py`, which reads the
+Clock B log separately for the overload instrument comparison.
+
+**Result (Clock A, 1120 runs, certified, Cherry Chicago AMD EPYC 7443P
+`calm-husky`, 20 September 2026).** Full 14-load grid, four variants, 20
+interleaved repeats, `--pin 2-17` after SMT off, Rocky image. Log:
+`bench/results/fair-start-20260920-195304.jsonl`. Env:
+`bench/results/env-20260920-195229.txt`. Worst throughput spread across all
+56 cells is 2.5%, so every cell certifies.
+
+- **Rust's p99 is lower at all fourteen loads**, by 1 to 2 µs. Pooled over
+  allocators the p99 runs 21 µs (C++) against 19 µs (Rust) across the whole
+  sweep. At 784 kops/s offered the paired difference is
+  $+1.49\,\mu$s (system) and $+2.66\,\mu$s (jemalloc) in C++'s disfavour,
+  exact paired permutation *p* = 3.91×10⁻³ on 16 pairs in both.
+- **The cliff does not appear on this clock.** Both languages track to
+  448 kops/s offered, then plateau rather than collapse: at 784 kops/s
+  offered C++ holds 441 kops/s and Rust 470. The reported campaign has
+  147 and 84 at the same point. The drop below each language's own tracking
+  rate is therefore the at-record fill, not the service.
+- Service-time p50 at 784 kops/s offered: C++ 15.8 µs (system) and 15.9
+  (jemalloc), Rust 15.2 and 14.7.
+
+**This is not the compared pair and does not replace it.** Do not copy any
+kops/s or microsecond from this sweep into `figures/gen_macros.tex`. The
+reported campaign stays `campaign-20260827-151927` on its own clock.
+
+**Result (Clock B, 1120 runs, certified, same host, same evening).** Intended
+origin, cap 10 000, fill applied after the timed loop.
+`bench/results/fair-after-20260920-213440.jsonl`. Env:
+`bench/results/env-20260920-213438.txt`. Worst throughput spread 2.5%. Both
+languages track to 448 kops/s offered and then plateau: at 784 kops/s offered
+C++ holds 447 kops/s and Rust 461 (0.97×). On the system allocator the paired
+throughput difference is not significant (*p* = 7.01×10⁻² on 16 pairs). On
+jemalloc Rust is ahead (*p* = 3.91×10⁻³). Intended-origin p50 at 784 kops/s
+offered is schedule drift on the order of a second, as expected on this
+clock. Throughput sits with Clock A and with P1 cap 0, not with the reported
+campaign floor. The correction itself can stay. Charging it inside the timed
+loop is what made the cliff.
+
 **Bare-metal status (2026-08-26).** The divergence itself reproduces on a dedicated
 AMD EPYC 7443P: at 640 kops/s offered, where every arm has collapsed and each one's
 15 repeats agree to within 0.4%, C++ sustains 158 kops/s against Rust's 96, a ratio of
 1.64 against the 1.8 the thesis reports from the KVM guest. Different vendor, different
 microarchitecture, no hypervisor, same ordering and roughly the same magnitude.
 
-The three probe results above are **not** re-established on that host, and one attempt to
+The three 2026-08 queue and map probes above are **not** re-established on
+the Nokia/UH 7443, and one attempt to
 do so has to be discarded. It ran at 512 kops/s, the first swept load past the knee, which
 the same campaign shows to be **metastable**: the Rust arms are bimodal across repeats
 there, serving the full offered rate in some and collapsing in others, with throughput
 varying by 37%. A median across a distribution with a mode at each end is not a
 measurement, and the probe ratios computed from it (which appeared to reverse the
 divergence) mean nothing. A re-run at 640 kops/s was started and the machine was released
-before it finished. **Treat the WSL2 probe results above as the current evidence, and do
-not quote any bare-metal probe number until one is collected past the metastable band.**
+before it finished. **Treat the 19 September 7443P result as the current
+evidence for P0–P2, and the 20 September 7443P result as the current
+evidence for P3.** The 18–20 September WSL2 runs stay on file as
+uncertified direction. Do not quote the discarded 512 kops/s queue-probe
+attempt.
 
 The lesson generalises the one above it: a substitution probe also has to be run at an
 operating point whose repeats agree. `bench/queue_probes.sh` builds all four arms and runs
 them interleaved inside one repeat, so both probes share their baselines. It refuses to
 certify a run when the baseline arm is still serving its offered rate, and when any arm's
-throughput varies by more than 5% across repeats. Replayed against the discarded 512 kops/s
+throughput varies by more than 5% across repeats. `bench/overload_probes.sh` uses the
+same two checks, and the 18 September WSL2 run fired the spread check on every phase. Replayed against the discarded 512 kops/s
 data that second check fires on three of the four arms, the Rust channel at 39%, so the run
 that produced the misleading ratios would not have been reportable.
 
@@ -754,7 +943,21 @@ that produced the misleading ratios would not have been reportable.
   counts are **identical** in C++ and Rust for a given `(active_ues, seed)`, verified
   equal, an extra parity signal beyond §11.
 - Coordinated omission is handled by an optional `--rate` (fixed send schedule + HDR
-  correction from intended send time).
+  correction from intended send time). The synthetic backfill is capped at 10 000
+  samples per completed operation (`kMaxCorrectionSamples` in `cpp/bench/hdr.hpp`,
+  `MAX_CORRECTION_SAMPLES` in `rust/examples/bench.rs`). `--correction-cap N`
+  overrides that cap. `N == 0` records the real sample and drops the synthetics.
+  The default is 10 000, so a campaign binary without the flag is the reported
+  instrument. P1 of the 18 September probes uses 0.
+  `--correction-when after` records real samples during the timed loop and
+  applies the same capped fill once the producer finishes (P3). Default is
+  `record`. `--latency-origin start` records `t_done - t_actual_send` instead
+  of the intended send time (P3). Default is `intended`. Neither flag is a
+  campaign default. Coordinated omission is skipped when the origin is `start`.
+  `bench/fair_latency_sweep.sh` applies them across the reported 14-load grid
+  and writes `fair-*.jsonl`. Clock A ran on `calm-husky` on 20 September 2026
+  and is certified. Clock B ran on the same host that evening and is
+  certified.
 - Resource capture (RQ3): each run reports peak RSS and total CPU via `getrusage`
   (`ru_maxrss`, `ru_utime`+`ru_stime`), emitted in JSON/CSV. The Rust side's single
   `unsafe` `getrusage` FFI call lives only in the benchmark example (`libc`
@@ -870,11 +1073,27 @@ configuration and lifecycle edges found by the 16 September implementation revie
 corrects the Rust `unsafe` line: no `unsafe` in `rust/src`, crate attribute absent.
 Details in `docs/CODE_REVIEW.md`. Version remains 1.0. Tag `spec-v1.0` is unchanged.
 
-**Amendment 2026-09-18 (wording only, requirements unchanged).** §1 now names UECM as a
-compact model of gNB-CU-CP UE-context work rather than as a production service domain.
-§7 now states that the thread-per-shard layout is a fairness control, not a copy of a
+**Amendment 2026-09-18 (wording only, requirements unchanged).** §1 names UECM as
+per-device state work of the sort a gNB-CU-CP does, not as a production service domain.
+§7 states that the thread-per-shard layout is a fairness control, not a copy of a
 production runtime. Behaviour, API, and conformance vectors are unchanged.
 Version remains 1.0. Tag `spec-v1.0` is unchanged.
+
+**Amendment 2026-09-18 (recording only, requirements unchanged).** §12 records the
+P0/P1/P2 overload-instrument probes (`bench/overload_probes.sh`). The harness
+gains `--correction-cap` (default 10 000). Rust gains `--features sync-oneshot`
+(probe only, completions via `sync_channel(1)`). Compared pair, API, and
+conformance vectors are unchanged. Version remains 1.0. Tag `spec-v1.0` is
+unchanged.
+
+**Amendment 2026-09-20 (recording only, requirements unchanged).** §12 records
+P3 of the overload-instrument probes: `--latency-origin start` and
+`--correction-when after` (`bench/overload_probes.sh --phase p3`). The same
+day's Cherry Chicago 7443P P3 run is certified there. The 14-load fair-clock
+sweep is `bench/fair_latency_sweep.sh`, and its Clock A run on `calm-husky`
+is certified in the same section. Clock B is certified there too. Compared
+pair, API, and conformance vectors are unchanged. Version remains 1.0. Tag
+`spec-v1.0` is unchanged.
 
 ---
 

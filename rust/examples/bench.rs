@@ -183,6 +183,14 @@ struct Args {
     hist_out: String,
     /// Opaque tag echoed into the sidecar, used by campaign.sh for the repeat index.
     run_id: String,
+    /// Coordinated-omission backfill cap. Default matches MAX_CORRECTION_SAMPLES.
+    /// `--correction-cap 0` keeps the real sample and drops the synthetics (P1 probe).
+    correction_cap: u64,
+    /// `record`: fill during the timed loop (campaign). `after`: real samples
+    /// only, then correct once the producer finishes (P3). Probe-only.
+    correction_when: String,
+    /// `intended`: t_done - t_intended (campaign). `start`: t_done - t_actual_send (P3).
+    latency_origin: String,
 }
 
 fn parse() -> Args {
@@ -202,6 +210,9 @@ fn parse() -> Args {
         jitter: false,
         hist_out: String::new(),
         run_id: String::new(),
+        correction_cap: MAX_CORRECTION_SAMPLES,
+        correction_when: "record".to_string(),
+        latency_origin: "intended".to_string(),
     };
     let argv: Vec<String> = std::env::args().collect();
     let mut i = 1;
@@ -226,6 +237,11 @@ fn parse() -> Args {
             "--jitter" => a.jitter = true,
             "--hist-out" => a.hist_out = val(),
             "--run-id" => a.run_id = val(),
+            "--correction-cap" => {
+                a.correction_cap = val().parse().unwrap_or(MAX_CORRECTION_SAMPLES);
+            }
+            "--correction-when" => a.correction_when = val(),
+            "--latency-origin" => a.latency_origin = val(),
             "--json" => a.json = true,
             other => {
                 eprintln!("unknown arg: {other}");
@@ -233,6 +249,14 @@ fn parse() -> Args {
             }
         }
         i += 1;
+    }
+    if a.correction_when != "record" && a.correction_when != "after" {
+        eprintln!("--correction-when must be record or after");
+        std::process::exit(2);
+    }
+    if a.latency_origin != "intended" && a.latency_origin != "start" {
+        eprintln!("--latency-origin must be intended or start");
+        std::process::exit(2);
     }
     if a.producers == 0 {
         a.producers = a.shards;
@@ -259,17 +283,47 @@ fn new_hist() -> Histogram<u64> {
 // bound, so the correction would cost O(value/expected_interval) per operation.
 // Recording saturates rather than erroring so out-of-range values are clamped
 // into the top bucket, which is what the C++ histogram does.
-fn record_corrected(hist: &mut Histogram<u64>, value: u64, expected_interval: u64) {
+fn record_corrected(
+    hist: &mut Histogram<u64>,
+    value: u64,
+    expected_interval: u64,
+    cap: u64,
+) {
     hist.saturating_record(value);
-    if expected_interval == 0 || value <= expected_interval {
+    if expected_interval == 0 || value <= expected_interval || cap == 0 {
         return;
     }
     let mut missing = value - expected_interval;
     let mut emitted = 0u64;
-    while missing >= expected_interval && emitted < MAX_CORRECTION_SAMPLES {
+    while missing >= expected_interval && emitted < cap {
         hist.saturating_record(missing);
         missing -= expected_interval;
         emitted += 1;
+    }
+}
+
+// Same synthetic series as record_corrected, applied once the producer has
+// finished. Occupied buckets are snapshotted first so the fill does not
+// iterate a histogram it is mutating. Probe-only (--correction-when after).
+fn correct_after(hist: &mut Histogram<u64>, expected_interval: u64, cap: u64) {
+    if expected_interval == 0 || cap == 0 {
+        return;
+    }
+    let occ: Vec<(u64, u64)> = hist
+        .iter_recorded()
+        .map(|v| (v.value_iterated_to(), v.count_at_value()))
+        .collect();
+    for (value, count) in occ {
+        if value <= expected_interval {
+            continue;
+        }
+        let mut missing = value - expected_interval;
+        let mut emitted = 0u64;
+        while missing >= expected_interval && emitted < cap {
+            hist.saturating_record_n(missing, count);
+            missing -= expected_interval;
+            emitted += 1;
+        }
     }
 }
 
@@ -603,14 +657,16 @@ fn main() {
                             None => WKind::Signal as usize,
                         };
                         counts[kind_idx] += 1;
-                        let lat = if interval_ns > 0 {
+                        let from_intended = interval_ns > 0 && args.latency_origin != "start";
+                        let lat = if from_intended {
                             t1.duration_since(intended).as_nanos() as u64
                         } else {
                             t1.duration_since(t0).as_nanos() as u64
                         }
                         .max(1);
-                        if interval_ns > 0 {
-                            record_corrected(&mut hist, lat, interval_ns);
+                        let fill_now = from_intended && args.correction_when == "record";
+                        if fill_now {
+                            record_corrected(&mut hist, lat, interval_ns, args.correction_cap);
                         } else {
                             hist.saturating_record(lat);
                         }
@@ -634,6 +690,12 @@ fn main() {
                             }
                         }
                     }
+                }
+                if interval_ns > 0
+                    && args.latency_origin != "start"
+                    && args.correction_when == "after"
+                {
+                    correct_after(&mut hist, interval_ns, args.correction_cap);
                 }
                 meas_hi_ns.fetch_max(wall_start.elapsed().as_nanos() as u64, Ordering::Relaxed);
                 errors.fetch_add(local_errors, Ordering::Relaxed);
@@ -724,12 +786,14 @@ fn main() {
             .collect();
         println!(
             "{{\"lang\":\"rust\",\"alloc\":\"{}\",\"workload\":\"{}\",\"shards\":{},\"producers\":{},\
-\"rate\":{:.1},\"ops_total\":{},\"errors\":{},\"wall_s\":{:.6},\"measured_wall_s\":{:.6},\
+\"rate\":{:.1},\"correction_cap\":{},\"correction_when\":\"{}\",\"latency_origin\":\"{}\",\
+\"ops_total\":{},\"errors\":{},\"wall_s\":{:.6},\"measured_wall_s\":{:.6},\
 \"throughput_ops_s\":{:.1},\
 \"lat_ns\":{{\"p25\":{},\"p50\":{},\"p75\":{},\"p90\":{},\"p99\":{},\"p999\":{},\"p9999\":{},\
 \"max\":{},\"mean\":{:.1},\"stdev\":{:.1}}}{},\
 \"rss_peak_kb\":{},\"cpu_user_s\":{:.3},\"cpu_sys_s\":{:.3},\"cpu_pct\":{:.1},{},\"kinds\":{{{}}}}}",
-            ALLOC_NAME, a.workload, a.shards, a.producers, a.rate, total_ops, errs, wall_s,
+            ALLOC_NAME, a.workload, a.shards, a.producers, a.rate, a.correction_cap,
+            a.correction_when, a.latency_origin, total_ops, errs, wall_s,
             measured_wall_s, thr,
             p25, p50, p75, p90, p99, p999, p9999, h.max(), h.mean(), h.stdev(), jitter_json,
             rss_peak_kb, cpu_user_s, cpu_sys_s, cpu_pct, je_json(), kinds,

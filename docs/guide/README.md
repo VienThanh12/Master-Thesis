@@ -40,7 +40,7 @@ Nokia internship. Title: *Performance, Safety, and Engineering Trade-offs of
 Rust and C++ in Nokia RAN Control-Plane Systems*.
 
 It compares two language-equivalent implementations of a **UE Context
-Management (UECM)** service of the kind a gNB-CU-CP performs, along
+Management (UECM)** service that keeps per-device state, as a gNB-CU-CP does, along
 four research questions.
 
 | RQ | Question | Evidence |

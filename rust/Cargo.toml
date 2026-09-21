@@ -44,6 +44,11 @@ jemalloc-prof = ["jemalloc", "tikv-jemallocator/profiling"]
 # the overload divergence is the channel rather than the language. See
 # src/mutex_queue.rs and spec/SPECIFICATION.md §12.
 mutex-queue = []
+# PROBE ONLY, never a reported arm: per-request completion is sync_channel(1)
+# (array flavour, one slot) instead of unbounded channel() (list flavour, 31-slot
+# block). Tests whether the overload floor is the oneshot allocation. Completions
+# stay 1:1 and blocking. See spec/SPECIFICATION.md §12 and docs/OVERLOAD_MECHANISM.md.
+sync-oneshot = []
 
 # The benchmark lives as an example so it can use the dev-dependency (hdrhistogram)
 # while keeping the library itself free of runtime dependencies.

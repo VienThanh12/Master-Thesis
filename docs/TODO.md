@@ -112,6 +112,7 @@ Three datasets now have distinct jobs and the prefixes keep them apart:
 | **Q** | §1.4 of **both** documents: "How it compares against the cost of the allocator choice is not:" had no predicate. **Both sources remediating 12 Sep** (draft: "does not travel to another machine"). Standing draft grade unchanged until a re-grade | — | Awaits re-grade |
 | **R** | `tab:findings` RQ3 cell: "on bare metal" cannot pick out a host. **Draft source remediating 12 Sep** (the cell names the representative load and the second bare-metal host). Standing grade unchanged until a re-grade | — | Awaits re-grade |
 | **S** | Durable: generate the fault-catalogue toolchain into `gen_artefacts.tex` from `taxonomy.md`, and teach `texaudit.py` to flag bare dotted version numbers. Items **O** and **P** recur without this | ~1 hour | You or agent |
+| **T** | ~~Nokia instructor comments on the 44-page `Thesis_v3` PDF~~ **Skeleton done** (21 Sep): all 46 marks resolved, rebuilt, and checked. Checklist: `docs/MANAGER_COMMENTS.md`. The full draft remains separate work, especially §1.4's contribution count and results preview (p.13–14) | — | Skeleton closed |
 | — | Second examiner once faculty assigns. `\examiners{Prof. Keijo Heljanko}` carries the name that is settled; the class prints the field nowhere. UH deposit (E-thesis) and originality check wait on that round | n/a | Faculty |
 
 ### What belongs on this list, and what does not (12 Sep 2026)
@@ -357,19 +358,19 @@ still presents the container as the candidate. If D1 runs, revisit it then.
 
 ### D1. The fourth substitution probe, the last untested candidate
 
-**Read first.** `docs/OVERLOAD_MECHANISM.md` (18 September 2026). The Request-size candidate has
-the wrong sign, and a WSL2 closed-loop run of the full service was tied. Three cheaper probes
-(closed loop, HDR cap off, `sync_channel(1)` completions) should precede this item. None of that
-is measurement-host evidence. Do not quote it in the thesis.
+**Read first.** `docs/OVERLOAD_MECHANISM.md` (19 September 2026). P0, P1, and
+P2 are certified on a Cherry Chicago AMD EPYC 7443P at 784 kops/s offered.
+Closed loop favours Rust slightly. The campaign-cap open-loop floor is
+1.67×. Cap 0 returns both arms to the closed-loop band. `sync_channel(1)`
+does not move the floor. Request-size cannot be the mechanism of a gap
+that disappears when the histogram cap is 0. Do not copy the probe kops/s
+into `gen_macros.tex`. The live edit is the cause sentence in
+`sec:overload` / `tab:threats`, not this probe.
 
-**Why.** The overload divergence is the largest language effect in the tested family and the most
-reproducible effect in the study, and `tab:threats` still concedes it is attributed but not
-localised. Three probes have come back negative. The open-addressed map closes a minority of the
-core-operation gap, the Rust mutex-and-condvar queue closes none of the overload divergence, and the
-C++ preallocated ring closes none either, which exonerates the queue on design and on allocation
-both. `spec/SPECIFICATION.md` §12 names what is left: **the tagged-struct dispatch and the 160-byte
-C++ `Request` against Rust's 96.** The 18 September note argues that entry is the wrong next
-experiment, not that it should never run.
+**Why.** The overload divergence is the largest effect in the tested family. P0--P2 on the 7443P
+localise it to the open-loop 10 000-sample HDR fill. `tab:threats` now records that. Request-size
+cannot be the mechanism of a gap that disappears when the histogram cap is 0. The probe can still
+run as a negative for the forced-idiom log. It is not the live floor candidate.
 
 **What to build.** A C++ `Request` carrying only the arguments of the operation in flight, either a
 `std::variant` of per-operation argument structs or a discriminated union, keeping the tagged
@@ -380,9 +381,9 @@ byte-for-byte transcript parity on all seven vectors, so the compared pair does 
 measurement host. The three existing probes are unpaired WSL2 runs marked indicative only, and they
 carry a conclusion the thesis leans on, so re-run all four the same way.
 
-**Both outcomes are worth having.** If the divergence closes, the forced-idiom log explains the
-study's strongest result end to end. If it does not, that is a fourth negative and the defensible
-claim becomes the handoff path as a whole and no single idiom within it.
+**Both outcomes are worth having.** If the size gap closes, the forced-idiom log still
+explains a slice of the core-op path. If it does not, that is a fourth negative. Neither
+outcome reopens the floor. P1 cap 0 already removed it.
 
 **Cost, including the half people forget.** The probe is about a day and the campaign is hours.
 Then `bench/refresh_thesis.sh`, then re-reading every sentence citing a macro that moved, then one
@@ -503,10 +504,7 @@ latexmk -C                   # clean build artifacts
 
 ## Phase 1 - Literature & background solidification
 - [x] Collect and read the core references (3GPP 38.401/38.300, RustBelt, MSRC, Google Android, Pereira energy study, HdrHistogram/coordinated omission). Search protocol in Appendix B. Durable citation record in `docs/Sources_evidence.md` and `source_audit.pdf`
-- [x] Confirm gNB-CU-CP / UE Context Management framing with Nokia supervisors
-      *(18 Sep 2026: checked against the Nokia gNB tree. Verdict 2: UECM is a
-      3GPP-shaped model of CU-CP UE-context work, not a reduced product module.
-      UECM is a thesis name. Public prose no longer says ``real Nokia component''.)*
+- [ ] Confirm gNB-CU-CP / UE Context Management framing with Nokia supervisors
 - [ ] Note any Nokia-internal constraints (what can/cannot be published)
 
 ## Phase 2 - Shared specification (FAIRNESS BASELINE - freeze first)

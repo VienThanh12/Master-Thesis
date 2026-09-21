@@ -73,7 +73,9 @@ Details: [`rust/README.md`](../../rust/README.md).
 | `run_bench.sh` | Shorter comparison run. |
 | `load_sweep.sh` | Load sweep helper. |
 | `latency_budget.sh` | Split end-to-end time into work vs cross-thread handoff. |
-| `queue_contention.sh`, `queue_probes.sh` | Isolate the handoff primitives. The overload-floor analysis is `docs/OVERLOAD_MECHANISM.md`. |
+| `queue_contention.sh`, `queue_probes.sh` | Isolate the handoff primitives. |
+| `overload_probes.sh` | Closed loop, HDR cap 0, `sync-oneshot`, start-origin and post-hoc fill. Overload-floor analysis: `docs/OVERLOAD_MECHANISM.md`. |
+| `fair_latency_sweep.sh` | 14-load sweep with those clocks. Writes `fair-*.jsonl`, never `campaign-*.jsonl`. |
 | `counters.sh` | Hardware counters. Needs a PMU. Refuses on WSL2. |
 | `alloc_profile.sh` | Attribute peak RSS to allocation sites. Testbed only. |
 | `steal_probe.sh` | CPU steal probe. |

@@ -11,14 +11,27 @@
 //!
 //! Rust specifics vs. C++:
 //! - Bounded MPSC queue: `std::sync::mpsc::sync_channel(capacity)` (blocking send).
-//! - One-shot completion: a fresh `std::sync::mpsc::channel()` per request.
+//! - One-shot completion: a fresh `std::sync::mpsc::channel()` per request
+//!   (the compared arm). `--features sync-oneshot` uses `sync_channel(1)`
+//!   instead, an attribution probe, not a reported configuration.
 //! - Shared-nothing: each worker owns its `ShardCore`; only the atomic
 //!   `activity_seq` counter is shared (via `Arc<AtomicU64>`).
 
 use std::sync::atomic::AtomicU64;
-use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::thread::JoinHandle;
+
+// Completions are always std::sync::mpsc, even when the shard queue is the
+// mutex-queue probe. Fully qualified so `--features mutex-queue` cannot steal
+// the name `sync_channel` out from under the oneshot probe.
+#[cfg(not(feature = "sync-oneshot"))]
+fn completion_channel<T>() -> (std::sync::mpsc::Sender<T>, std::sync::mpsc::Receiver<T>) {
+    std::sync::mpsc::channel()
+}
+#[cfg(feature = "sync-oneshot")]
+fn completion_channel<T>() -> (std::sync::mpsc::SyncSender<T>, std::sync::mpsc::Receiver<T>) {
+    std::sync::mpsc::sync_channel(1)
+}
 
 // The shard queue. The standard bounded channel is the measured configuration;
 // the mutex-and-two-condvars alternative mirrors the C++ design and exists only
@@ -123,7 +136,7 @@ impl Service {
     }
 
     pub fn create_context(&self, ue_id: UeId, params: CreateParams) -> OpResult<()> {
-        let (rtx, rrx) = channel();
+        let (rtx, rrx) = completion_channel();
         self.shard_tx(ue_id)
             .send(Request::Create {
                 ue_id,
@@ -135,7 +148,7 @@ impl Service {
     }
 
     pub fn setup_connection(&self, ue_id: UeId) -> OpResult<()> {
-        let (rtx, rrx) = channel();
+        let (rtx, rrx) = completion_channel();
         self.shard_tx(ue_id)
             .send(Request::Setup { ue_id, resp: rtx })
             .expect("worker alive");
@@ -143,7 +156,7 @@ impl Service {
     }
 
     pub fn handle_signaling(&self, ue_id: UeId, msg: SignalingMsg) -> OpResult<SignalingAck> {
-        let (rtx, rrx) = channel();
+        let (rtx, rrx) = completion_channel();
         self.shard_tx(ue_id)
             .send(Request::Signal {
                 ue_id,
@@ -155,7 +168,7 @@ impl Service {
     }
 
     pub fn add_drb(&self, ue_id: UeId, drb: DrbEntry) -> OpResult<()> {
-        let (rtx, rrx) = channel();
+        let (rtx, rrx) = completion_channel();
         self.shard_tx(ue_id)
             .send(Request::AddDrb {
                 ue_id,
@@ -167,7 +180,7 @@ impl Service {
     }
 
     pub fn begin_reconfigure(&self, ue_id: UeId, params: ReconfigParams) -> OpResult<()> {
-        let (rtx, rrx) = channel();
+        let (rtx, rrx) = completion_channel();
         self.shard_tx(ue_id)
             .send(Request::BeginReconf {
                 ue_id,
@@ -179,7 +192,7 @@ impl Service {
     }
 
     pub fn complete_reconfigure(&self, ue_id: UeId) -> OpResult<()> {
-        let (rtx, rrx) = channel();
+        let (rtx, rrx) = completion_channel();
         self.shard_tx(ue_id)
             .send(Request::CompleteReconf { ue_id, resp: rtx })
             .expect("worker alive");
@@ -187,7 +200,7 @@ impl Service {
     }
 
     pub fn abort_reconfigure(&self, ue_id: UeId) -> OpResult<()> {
-        let (rtx, rrx) = channel();
+        let (rtx, rrx) = completion_channel();
         self.shard_tx(ue_id)
             .send(Request::AbortReconf { ue_id, resp: rtx })
             .expect("worker alive");
@@ -195,7 +208,7 @@ impl Service {
     }
 
     pub fn release_context(&self, ue_id: UeId) -> OpResult<()> {
-        let (rtx, rrx) = channel();
+        let (rtx, rrx) = completion_channel();
         self.shard_tx(ue_id)
             .send(Request::Release { ue_id, resp: rtx })
             .expect("worker alive");
@@ -203,7 +216,7 @@ impl Service {
     }
 
     pub fn lookup(&self, ue_id: UeId) -> OpResult<UeContextView> {
-        let (rtx, rrx) = channel();
+        let (rtx, rrx) = completion_channel();
         self.shard_tx(ue_id)
             .send(Request::Lookup { ue_id, resp: rtx })
             .expect("worker alive");
@@ -218,7 +231,7 @@ impl Service {
         }
         let mut total = 0;
         for s in &self.shards {
-            let (rtx, rrx) = channel();
+            let (rtx, rrx) = completion_channel();
             s.tx.send(Request::Count { resp: rtx })
                 .expect("worker alive");
             total += rrx.recv().expect("completion");

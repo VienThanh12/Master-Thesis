@@ -4901,3 +4901,194 @@ defect. Sentence stdev 6.4 sits below the house screen's ~8 band. The matrix doe
 This pass did not edit `Thesis_v3.tex`. Do not copy this 5.00 onto `Ha_Vien_Mastersthesis_2026.tex`.
 Do not re-open the skeleton's abstract, `\CpuDiffAbsMax` scope, mixed-order, or `TBD` items. They
 are still closed after the 14–15 September edits.
+
+## Twenty-seventh pass — 21 September 2026
+
+Graded independently against the CSM matrix of 9 April 2024, on
+**`Thesis_v3.tex` / `Thesis_v3.pdf`**, after the coordinated-omission recorder
+diagnostics were added. Standard applied: a supervisor receiving the current
+50-page PDF. The plan was checked and rebuilt. The full draft was checked for
+claim sync and build gates, but was not graded as a second manuscript.
+
+**What is new.** The overload section now compares the campaign clock with a
+deferred-fill clock, `fig:overload` shows both at 448 and 784 kops/s, and the
+discussion and conclusion attribute both campaign gaps to histogram-recorder
+work. This pass formed its view from the source, generated macros, raw
+environment captures, and the diagnostic analysis code before reconciling with
+the twenty-sixth pass.
+
+**Build verified.** A forced `latexmk` rebuild produced 50 pages.
+`texaudit.py Thesis_v3.tex --macros figures/gen_macros.tex` exits 0: no LaTeX
+errors, undefined references or citations, multiply defined labels, floats too
+large, or overfull boxes. Every float is referenced. The bibliography has 113
+entries, 63 cited in this document, and 75 peer-reviewed venues. The only
+prose-number hit is Meneely's cited 58.2% literature value. The abstract page
+was rendered and fits its form. `diagrams/check_labels.py` passes all 21
+reader-visible diagrams. The plan also rebuilds cleanly at seven pages.
+
+Canvas: [`thesis-grade-csm-sep21.canvas.tsx`](/home/vienha/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-sep21.canvas.tsx).
+
+| Area | 26th pass (16 Sep) | This pass | Clause that sets it |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Hold. Four traceable RQs, three prior hypotheses, and the two-sided 7 + 7 RQ2 catalogue remain intact |
+| 2. Scholarly framework and sources | 5 | **5** | Hold. Contrary findings and primary method sources remain engaged |
+| 3. Research data and method | 5 | **4.5** | Split. The main campaign remains at 5. The new diagnostic analysis uses 16 of 20 pairs and a different statistic, and the stored captures do not isolate fill timing as the only changed variable |
+| 4. Presentation of results | 5 | **4** | Several surfaces disagree: stale abstract, undisclosed mixed-host figure, omitted jemalloc result, representative-load values generalized to a regime, and one canonical RSS range assigned to all hosts |
+| 5. Discussion and conclusions | 5 | **4** | The discussion overstates the causal control, promotes a biased no-fill p99, gives H1 a partial acceptance the tests do not support, and does not state that overload service latency remains unresolved |
+| 6. Academic text | 5 | **4** | Level 4's whole-text consistency clause fails across the abstract, motivation, method, implementation, results summaries, hypothesis revisit, and conclusion |
+| 7. Work during the thesis process | n/a | **n/a** | Not assessable from a manuscript |
+| **Mean of the six assessable** | 5.00 | **4.42** | The method half remains strong, but the new finding has not been integrated consistently enough for areas 4 to 6 to hold 4.5 |
+
+### Findings that move the grade
+
+1. **The abstract did not move with the result.** `Thesis_v3.tex` lines
+   125--130 still report Rust tracking to 448 kops/s, C++ to 392, then a
+   1.7-times C++ lead after both fall behind. The body now says both are
+   campaign-recorder effects. The full draft's abstract carries the same stale
+   account. Because `ai_statement.tex` says the abstract was written unaided,
+   this pass does not supply replacement prose. The author has to rewrite both
+   abstracts.
+
+2. **The diagnostic p-values do not use the thesis's declared test.**
+   `bench/probe_facts.py` truncates each allocator comparison to the first 16
+   pairs, despite 20 repeats, and applies a median-difference sign test. The
+   canonical analysis uses all 20 pairs and the mean paired difference as its
+   permutation statistic. Recomputing the same diagnostic data with that test
+   gives system-allocator \(p=0.0750\), not `\ProbeAfterThrPSystem` 0.070, and
+   jemalloc \(p=0.0000038\). The generated diagnostic macro reports 0.004 from
+   the truncated alternate test. The prose reports only the system allocator.
+   The large 1.7-times collapse still disappears, but a smaller Rust lead under
+   jemalloc resolves and must be stated.
+
+3. **The fill is not isolated as the only changed variable.** The canonical
+   capture `env-20260827-151643.txt` records an AMD EPYC 7443, root UUID
+   `a9c...`, and `nohz_full=2-17`. The diagnostic capture
+   `env-20260920-213438.txt` records an AMD EPYC 7443P, root UUID `d381...`,
+   and no `nohz_full`. No ordinary intended-origin, in-run-fill baseline was
+   run on the diagnostic setup. The two diagnostic clocks strengthen the
+   recorder explanation, but they do not justify “only the timing of the work
+   moves” or “the fill is the cause”. A same-setup baseline would establish
+   that. Without one, the result has to be written as evidence consistent with
+   recorder work and the host/configuration confound has to be named.
+
+4. **One old mechanism survives in the implementation chapter.**
+   `Thesis_v3.tex` lines 891--897 say the bounded queue and reply handle carry
+   the overload result. The results chapter now says the isolated primitives do
+   not reproduce it and replacing Rust's reply handle does not move the floor.
+   Those forced idioms are candidates that were ruled out alone, not carriers
+   of the result.
+
+5. **RQ1's overload-latency clause is not answered at the supported
+   strength.** RQ1 asks for median through maximum under overload. Campaign
+   percentiles include recorder work and deferred-fill percentiles are schedule
+   drift, so neither supports a service-latency comparison after saturation.
+   The discussion answers the capacity-ranking question instead of stating this
+   negative result. Clock A's no-fill p99 is then repeated at three sites
+   without its defining limitation: it reintroduces coordinated-omission bias.
+
+6. **Several old scopes became visible when the result was read end to end.**
+   `\PFiftyRange`, `\PFiftySpread`, `\PNineNineRange`,
+   `\PNineNineMaxCI`, and `\PFiftyDiffAbsMax` are computed at
+   `\ReprLoad`, but four sites introduce them as the whole below-saturation
+   regime. The summary assigns the canonical 1.4--2.5 MiB RSS range to all
+   three hosts, whose generated ranges are 1.8--3.5 and 0.7--1.8 MiB on the
+   other two. The direction travels. The exact range does not.
+
+7. **The method summary and figures contain two further contradictions.**
+   The statistics paragraph says only jitter and pooled p99.99 stay out of the
+   family, while maximum, representative-load throughput, and all overload
+   percentiles are also excluded for distinct reasons. The latency-table caption
+   says maximum is excluded for the same reason as pooled p99.99 even though
+   maximum has repeat-wise intervals. `fig:loadsweep` still titles one panel
+   “the saturation knee” although the generated evidence says the knee is not
+   shared.
+
+8. **The integration missed the front and back of the argument.** The
+   motivation still advertises the widest post-saturation language gap. The
+   method table calls the contaminated high-load clock the round-trip a
+   deployment experiences. H1 is partially accepted despite no equivalence
+   margin and resolved median, p99, and p99.9 differences. The engineering
+   guideline says only to sweep past the service knee, omitting the new lesson
+   that producer-side recorder work must be kept outside that timed path.
+
+9. **Three source and register fixes are required.** The coordinated-omission
+   correction sentence cites Schroeder's open/closed-system paper but omits the
+   HDR correction source (`tene_hdrhistogram`). The Arvidsson sentence says it
+   times “this split”, where it reports similar degradation past a threshold,
+   not recorder against service. H3's call-cost bound is measured, while the
+   learning-cost clause is a literature-backed implication and not a measured
+   result.
+
+### Per-area reconciliation
+
+**1, holds 5.** No RQ, hypothesis, catalogue boundary, or objective changed.
+The overload finding changes the answer to RQ1, not whether the question is
+significant and testable.
+
+**2, holds 5.** The new section's only literature comparison is Arvidsson's
+threshold degradation, and the text correctly says that its asynchronous
+runtime explanation cannot carry into a thread-per-shard design. The earlier
+precision note that “times this split” is broader than the source remains
+optional wording work.
+
+**3, moves 5 to 4.5.** The frozen main campaign, exact paired family, Holm
+correction, pooled far tail, parity controls, and refusal of `isolcpus` still
+read at 5. The diagnostic branch does not: it silently drops four pairs, changes
+the statistic, and compares against a campaign with a different captured
+configuration while calling timing the only change. This is a split between the
+main method and the new causal diagnostic.
+
+**4, moves 5 to 4.** `fig:overload` is clear and its bar values match the
+logs. Level 4 holds because the generated layer is correct, every figure is
+referenced, and the questions still have identifiable findings. The next half
+step does not: the abstract is one evidence state behind, the body omits the
+significant jemalloc contrast, the figure mixes captures without saying so,
+several representative-load values are generalized, and the RSS summary assigns
+one host's exact range to all three.
+
+**5, moves 5 to 4.** The discussion still shows substantial independent input,
+revisits H1 to H3, and preserves RQ2's boundary. It does not yet deeply
+internalise the new finding: it promotes a cross-setup diagnostic into a
+one-variable cause, repeats a deliberately biased p99 as a finding, and partly
+accepts H1 without an equivalence margin. RQ1's honest overload answer is that
+service latency cannot be compared with either current percentile clock.
+
+**6, moves 5 to 4.** The build is camera-ready and the prose gates pass:
+Flesch 70.6, no semicolons, no acronym first-use failures, and no paragraph of
+three or more sentences without a short sentence. Level 4 nevertheless asks for
+the whole text to be consistent on setup, findings and conclusions. The
+abstract, motivation, method table, forced-idiom paragraph, no-fill summaries,
+H1 revisit and conclusion do not yet describe one evidence state. The abstract
+must remain the author's own work.
+
+### Ranked work before sending
+
+1. **Author edit, minutes:** rewrite both abstracts to remove the two
+   campaign-clock gaps as service rankings and state the diagnostic evidence at
+   the strength the controls permit. Areas 4 and 6.
+2. **Analysis edit, under an hour:** make `probe_facts.py` use the canonical
+   20-pair test, regenerate `gen_probes.tex`, and report both allocators. Areas 3
+   and 4.
+3. **Either new measurement or weaker prose:** run an in-run-fill baseline on
+   the diagnostic setup, or rerun deferred fill on the canonical setup. If
+   neither is possible, replace causal wording throughout with a qualified
+   cross-setup finding and name the configuration difference. Areas 3 and 5.
+4. **Argument edit, hours:** state RQ1's overload-latency answer as unresolved,
+   remove the biased no-fill p99 from the findings summaries, give H1 and H3
+   verdicts at their supported strength, and answer RQ3 axis by axis without
+   assigning whole-implementation effects to the safety model. Areas 4 and 5.
+5. **Integration edit, hours:** sync the motivation, method table, forced-idiom
+   paragraph, saturation language, guidelines, threats, and conclusion. Add
+   Tene to the correction sentence and narrow the Arvidsson clause. Areas 4 to
+   6.
+6. **Scope edit, under an hour:** attach representative-load macros to
+   `\ReprLoad`, report host-specific RSS ranges, describe every statistical
+   exclusion for its own reason, and rename the singular knee title. Areas 3,
+   4, and 6.
+7. **Rebuild and independent read:** rerun all four prose screens, the CSM
+   audit, render the abstract and overload pages, and re-read the abstract,
+   results, findings summary, hypothesis revisit, threats, and conclusion
+   against each other.
+
+This pass changed no thesis prose. It rebuilt `Thesis_v3.pdf` and
+`Thesis_Plan_v2.pdf`, created the grading canvas, and appended this record.

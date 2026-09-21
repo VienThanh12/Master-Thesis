@@ -30,7 +30,11 @@ Two workloads, identical to the Rust bench:
 
 Each measured op's service latency goes into a per-thread HDR histogram
 (`bench/hdr.hpp`, vendored). `--rate` turns on coordinated omission.
-`--json` is what the campaign harness parses. `--hist-out` dumps buckets
+`--correction-cap N` overrides the 10 000-sample backfill (0 keeps the real
+sample and drops the synthetics). `--correction-when after` and
+`--latency-origin start` are P3 clocks: fill after the timed loop, or record
+the call from the actual send. Those flags are probes, not campaign
+defaults. `--json` is what the campaign harness parses. `--hist-out` dumps buckets
 for the pooled far-tail column the thesis reads. You do not need those
 flags to learn the code.
 
