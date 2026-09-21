@@ -33,12 +33,19 @@ root="$(cd "$here/.." && pwd)"
 # pooled. Add any new results directory here.
 echo "== pooling histogram sidecars =="
 for dir in results results-baremetal; do
-  for hist in "$root/bench/$dir"/campaign-*.hist.jsonl; do
+  for hist in "$root/bench/$dir"/campaign-*.hist.jsonl \
+              "$root/bench/$dir"/fair-after-*.hist.jsonl; do
     [ -e "$hist" ] || continue
     python3 "$here/pool_hist.py" "$hist" >/dev/null \
       || echo "  WARN: pooling failed for $(basename "$hist")"
   done
 done
+
+# The fair-clock sweeps are diagnostics rather than a replacement campaign.
+# Their prefix keeps them out of the unprefixed result layer, while this
+# generator makes every value quoted by the overload diagnosis reproducible.
+echo "== regenerating fair-clock diagnostic macros =="
+python3 "$here/probe_facts.py"
 
 echo "== regenerating figures, tables, and generated macros =="
 python3 "$here/plot_figures.py" "$@"

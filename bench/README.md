@@ -44,7 +44,16 @@ significant figures on both sides (C++ uses a vendored HDR port in
 
 **Coordinated omission:** pass `--rate R` (ops/sec per producer) to pace sends to a
 fixed schedule and record latency from the *intended* send time with HDR
-correction. Without `--rate` the loop is closed (back-to-back).
+correction. Without `--rate` the loop is closed (back-to-back). The synthetic
+backfill is capped at 10 000 samples per completed operation. `--correction-cap N`
+overrides the cap (`N == 0` records the real sample only). Default is 10 000,
+so a campaign run without the flag is the reported instrument. `--correction-when
+after` applies that fill after the timed loop. `--latency-origin start` records
+the call from the actual send instant. Both are probe-only. Attribution
+probes that vary the cap, the clock, or the Rust oneshot live in `overload_probes.sh`.
+The 14-load fair-clock sweep (call time, no fill, same grid as the reported
+campaign) is `fair_latency_sweep.sh`. It writes `fair-start-*.jsonl`, never
+`campaign-*.jsonl`. Do not copy those kops/s into `gen_macros.tex`.
 
 ## Latency statistics, and how the two languages are kept comparable
 
@@ -234,6 +243,24 @@ python3 bench/plot_campaign.py results/campaign-XXXX.agg.csv --metric p999_ns
 metrics **only when every run in the campaign carries them**, so campaigns recorded
 before these existed still aggregate exactly as they did before, and a campaign that
 mixes instruments is reported rather than silently averaged.
+
+## Fair-clock 14-load sweep (`fair_latency_sweep.sh`)
+
+Same 14 per-producer rates as `campaign-20260827-151927` (7 shards, 7 producers,
+20 repeats, 3 s measured). Clock A is the default: `--latency-origin start
+--correction-cap 0`. That is one real sample per call and no 10 000-sample fill.
+Clock B (`--clocks after`) keeps the intended origin and fills after the timed
+loop. About two hours per clock on a 7443P once the image is built.
+
+```bash
+docker/run.sh --cpuset 2-17 exec -- bench/fair_latency_sweep.sh --pin 2-17
+docker/run.sh --cpuset 2-17 exec -- bench/fair_latency_sweep.sh --pin 2-17 --clocks both
+```
+
+Logs are `bench/results/fair-start-*.jsonl` and `fair-after-*.jsonl`. They are
+not `campaign-*.jsonl`, so `bench/refresh_thesis.sh` cannot make them the
+thesis. Do not copy those kops/s into `gen_macros.tex`. The compared pair stays
+the 27 August campaign.
 
 ## Pooling the far tail (`pool_hist.py`)
 
@@ -453,6 +480,9 @@ rust/target/release/examples/bench --shards 8 --ops 200000 [--json]
 | `--warmup N` | ops/10 | unmeasured warmup ops per producer |
 | `--seed S` | 42 | PRNG seed base |
 | `--rate R` | 0 (closed loop) | target ops/sec/producer (enables CO correction) |
+| `--correction-cap N` | 10000 | synthetic fill cap (`0` keeps the real sample only) |
+| `--correction-when W` | `record` | `record` fills during the timed loop, `after` fills once it ends |
+| `--latency-origin O` | `intended` | `start` records `t_done - t_actual_send` |
 | `--jitter` | off | also record inter-operation jitter (IPDV); see above for its RSS cost |
 | `--hist-out P` | off | append the full HDR buckets for this run to `P` |
 | `--run-id S` | empty | opaque tag echoed into the sidecar (campaign.sh passes the repeat) |
