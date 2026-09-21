@@ -14,6 +14,13 @@
 #       --workload mixed --producers 8 --active-ues 5000 --duration 3 --warmup-s 1 \
 #       --rates "1000 2000 4000 6000 8000 10000 12000 16000"
 #   bench/campaign.sh --no-jitter --no-hist          # older instrument, smaller footprint
+#   bench/campaign.sh --prefix fair-start --latency-origin start --correction-cap 0
+#
+# --prefix defaults to campaign. plot_figures.py and refresh_thesis.sh read the
+# newest campaign-*.jsonl, so a fair-clock sweep MUST set a prefix that is not
+# campaign. fair_latency_sweep.sh does that. Do not copy those kops/s into
+# gen_macros.tex. Default clock flags are omitted, so a run without them is
+# still the reported instrument (intended origin, fill at record, cap 10 000).
 #
 # Inter-operation jitter and full HDR bucket persistence are on by default; see the
 # `jitter` and `hist` defaults below for what each costs and why.
@@ -56,6 +63,12 @@ jitter=1
 # finished campaign, which is exactly the hole a testbed visit must not come back
 # with. Off the measured path: written once per run, after the run.
 hist=1
+# Clock flags. Empty means do not pass the flag, so the binary keeps the
+# reported defaults. fair_latency_sweep.sh is what sets these.
+out_prefix="campaign"
+latency_origin=""
+correction_cap=""
+correction_when=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -72,11 +85,24 @@ while [ $# -gt 0 ]; do
     --rt)         rt="$2"; shift 2;;
     --rates)      rates="$2"; shift 2;;
     --max-run-s)  max_run_s="$2"; shift 2;;
+    --prefix)     out_prefix="$2"; shift 2;;
+    --latency-origin) latency_origin="$2"; shift 2;;
+    --correction-cap) correction_cap="$2"; shift 2;;
+    --correction-when) correction_when="$2"; shift 2;;
     --no-jitter)  jitter=0; shift;;
     --no-hist)    hist=0; shift;;
     *) echo "unknown arg: $1"; exit 2;;
   esac
 done
+
+if [ -n "$latency_origin" ] || [ -n "$correction_cap" ] || [ -n "$correction_when" ]; then
+  if [ "$out_prefix" = "campaign" ]; then
+    echo "error: a fair-clock run must set --prefix (not campaign)."
+    echo "       plot_figures.py takes the newest campaign-*.jsonl."
+    echo "       use bench/fair_latency_sweep.sh, or --prefix fair-start / fair-after."
+    exit 2
+  fi
+fi
 
 if [ -z "$max_run_s" ]; then max_run_s=$(( duration * 2 )); fi
 
@@ -143,7 +169,7 @@ declare -A BIN=(
 order=("cpp:system" "cpp:jemalloc" "rust:system" "rust:jemalloc")
 
 stamp="$(date +%Y%m%d-%H%M%S)"
-jsonl="$here/results/campaign-$stamp.jsonl"
+jsonl="$here/results/${out_prefix}-$stamp.jsonl"
 : > "$jsonl"
 
 # Per-run flags shared by every variant, so the instrument is identical across
@@ -152,9 +178,16 @@ extra=()
 if [ "$jitter" = "1" ]; then extra+=(--jitter); fi
 histfile=""
 if [ "$hist" = "1" ]; then
-  histfile="$here/results/campaign-$stamp.hist.jsonl"
+  histfile="$here/results/${out_prefix}-$stamp.hist.jsonl"
   : > "$histfile"
   extra+=(--hist-out "$histfile")
+fi
+if [ -n "$latency_origin" ]; then extra+=(--latency-origin "$latency_origin"); fi
+if [ -n "$correction_cap" ]; then extra+=(--correction-cap "$correction_cap"); fi
+if [ -n "$correction_when" ]; then extra+=(--correction-when "$correction_when"); fi
+if [ -n "$latency_origin" ] || [ -n "$correction_cap" ] || [ -n "$correction_when" ]; then
+  echo "== probe clock: origin=${latency_origin:-default} cap=${correction_cap:-default} when=${correction_when:-default} prefix=$out_prefix =="
+  echo "   not the compared pair. do not copy kops/s into gen_macros.tex"
 fi
 
 total=$(( repeats * $(echo "$rates" | wc -w) * ${#order[@]} ))
@@ -178,8 +211,8 @@ done
 printf '\n'
 
 echo "== aggregating (bootstrap median + 95%% CI over $repeats repeats) =="
-agg="$here/results/campaign-$stamp.agg.csv"
-tex="$here/results/campaign-$stamp.latency.tex"
+agg="$here/results/${out_prefix}-$stamp.agg.csv"
+tex="$here/results/${out_prefix}-$stamp.latency.tex"
 python3 "$here/aggregate.py" "$jsonl" --out "$agg" --tex "$tex" --producers "$producers"
 
 echo "== plotting latency-vs-load (CI bands) =="
