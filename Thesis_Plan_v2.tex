@@ -46,7 +46,7 @@ in Nokia RAN Control-Plane Systems}}
 \normalsize Thesis supervisor: Keijo Heljanko\\
 \normalsize Nokia instructors: Christoph Luneburg, Petteri Kotimaa}
 
-\date{\normalsize 28 August 2026\\[0.5em]
+\date{\normalsize 21 September 2026\\[0.5em]
 \normalsize Estimated completion: 11 November 2026 \quad Planned thesis presentation: November 2026}
 
 \begin{document}
@@ -82,7 +82,7 @@ control plane of the current generation is inherited by the next.
 \section{Research gap}
 
 The closest prior work is a cluster of at least five master's theses carried
-out at Ericsson. Karlb\"ack and Or\"o compare Rust and Go against C++ for RAN
+out at Ericsson. Their conclusions conflict. Karlb\"ack and Or\"o compare Rust and Go against C++ for RAN
 applications and conclude C++ remains the choice where performance is
 critical~\cite{karlback2021ran}. Olsson reaches the same domain from the
 management side and reports Rust's execution speed on par with or better than
@@ -108,7 +108,7 @@ reading~\cite{skoudlil2025asyncrust}. The remaining two report execution time,
 and in one case peak memory, rather than tail behaviour under rising load.
 
 Stated as requirements rather than as an absence, the gap is narrow, and each
-requirement is met somewhere. Matched implementations built from one design
+requirement is met somewhere. No single study meets them all. Matched implementations built from one design
 exist in systems
 software~\cite{emmerich2019drivers,li2021ipc,suchert2023stamp,gonzalez2023rustudp}
 and, in telecom, in Emberg and Wadsten. Percentile latency for control-plane
@@ -190,12 +190,29 @@ interleaved repeats and interval estimates rather than single
 figures~\cite{georges2007rigorous}: medians with nonparametric bootstrap
 confidence intervals~\cite{efron1993bootstrap}, and exact paired permutation
 tests corrected across the family by the Holm procedure~\cite{holm1979simple}.
+That family is fixed before the campaign runs. A load picked after reading a
+sweep cannot enter it, and the clock diagnostics below sit outside it too.
 The reported campaign now runs on a dedicated bare-metal host with the
 frequency governor fixed. The earlier virtualised host is retained for
-comparison, because it could not resolve the far tail. Latency is
-captured in high-dynamic-range histograms against an intended send schedule, so
-coordinated omission does not hide the
-tail~\cite{schroeder2006openclosed,tene_hdrhistogram}. Evaluation adds a controlled
+comparison, because it could not resolve the far tail.
+
+Latency is captured in high-dynamic-range histograms against an intended send
+schedule, so coordinated omission does not hide the tail below
+saturation~\cite{schroeder2006openclosed,tene_hdrhistogram}. Past saturation
+that correction is part of what the clock times, because the producer writes
+its extra samples inside the timed path. Two later full-grid sweeps move that
+work. One drops the fill and starts timing at the actual send. The other keeps
+the intended send time and the cap, and writes the fill after the timed window.
+Neither reproduces the large high-load gaps the campaign clock shows. Both run
+on a captured setup with a different processor and a different
+\texttt{nohz\_full} setting, so they support a recorder explanation of those
+gaps without isolating it from the setup change. Neither supplies
+service-latency percentiles past saturation: the no-fill clock is
+coordinated-omission biased by construction, and the deferred-fill clock
+reports cumulative schedule drift rather than service time. Overload service
+latency is therefore left unresolved.
+
+Evaluation adds a controlled
 fault-injection study~\cite{natella2016fault} and an FFI prototype. On the FFI,
 the plan takes a narrow position: confining \texttt{unsafe} to the seam is a
 statement about what the compiler checks, not run-time protection, since host
@@ -207,27 +224,38 @@ data is used, so no personal or confidential data is processed.
 \begin{tightitemize}
   \item A reproducible, telecom-relevant benchmarking framework.
   \item A frozen shared specification and two parity-tested implementations.
-  \item A quantitative comparison emphasising tail latency under overload.
+  \item A quantitative comparison of latency and resource behaviour that
+  divides at the saturation knee. Below it the far tail is resolved on bare
+  metal. Past it the campaign clock times recorder work alongside the service,
+  so the study reports what each clock can support and ranks neither language.
   \item A bound on what a comparison of this shape can attribute to a language
   at all, obtained by decomposing an end-to-end operation into the work the
-  language performs and the cross-thread handoff around it. This one was not
+  language performs and the cross-thread handoff around it, and by auditing
+  what else the producer's timed path contains at high load. This one was not
   anticipated and emerged from the measurements.
   \item A defect-class taxonomy mapping both what the compile-time guarantee
   covers and where it stops.
-  \item Evidence-based guidelines for incremental Rust adoption, where the
-  dominant cost is the learning curve rather than
-  run-time~\cite{fulton2021adopting}.
+  \item Evidence-based guidelines for incremental Rust adoption. The per-call
+  cost at the FFI seam is measured and bounded on a real signalling call. The
+  design and learning costs are named by prior work and are not measured
+  here~\cite{fulton2021adopting}.
 \end{tightitemize}
 
 \section{Status and timeline}
 
 Work is well under way. The shared specification, both implementations, the conformance
 suite, the fault-injection catalogue, the FFI prototype, and the benchmark harness are in
-place. Chapter drafts and a supervisor-read-through skeleton (\texttt{Thesis\_v2.tex}) exist.
+place. Chapter drafts and a supervisor-read-through skeleton (\texttt{Thesis\_v3.tex}) exist.
 The reported campaign now runs on a dedicated bare-metal host at the main sweep's own
-shard count, load grid, repeat count and toolchain, and it resolves the RQ1 tail claim.
-A second bare-metal host at a different design agrees on every direction. The earlier
-virtualised campaign is retained for the host comparison. What remains is supervisor
+shard count, load grid, repeat count and toolchain, and it resolves the RQ1 tail claim
+below saturation. A second bare-metal host at a different design agrees on every
+direction. The earlier virtualised campaign is retained for the host comparison. Two
+later full-grid diagnostics then moved the histogram fill off the producer's timed
+path, and neither reproduces the campaign's large high-load gaps. With the fill
+deferred, the full set of paired repeats cannot separate the two languages at the top
+load under the system allocator, and it resolves a smaller Rust lead under
+\texttt{jemalloc}.
+The overload reading is narrowed to match. What remains is supervisor
 review and submission.
 
 \begin{center}
@@ -241,8 +269,9 @@ RQ2 (fault injection) & Complete \\
 RQ4 (FFI prototype) & Complete \\
 RQ1 / RQ3 (benchmarks) & Measured on a dedicated bare-metal EPYC host. The
 earlier virtualised campaign is retained for comparison, and a second
-bare-metal host at a different design confirms the directions \\
-Thesis document & In progress (full draft + bullet skeleton) \\
+bare-metal host at a different design confirms the directions. Two later
+clock diagnostics narrow what the campaign supports past saturation \\
+Thesis document & In progress (full draft + supervisor-facing skeleton) \\
 \hline
 \end{tabular}
 \end{center}
@@ -255,21 +284,27 @@ Month (2026) & Goal & What happens \\
 June & Foundations & Done: topic defined, C++/Rust/5G foundations, literature review drafted. \\
 July & Draft & Done: thesis plan approved, chapter skeleton and evaluation design outlined. \\
 August & Build and measure & Done: specification and both implementations built, parity suite
-and benchmark harness operational, canonical bare-metal campaign run and reported, earlier
+and benchmark harness operational, reported bare-metal campaign run, earlier
 virtualised campaign retained for the host comparison, second bare-metal host at a different
 design confirming the directions. \\
-September & Resolve & Abstract, full proofread, draft to supervisors and Nokia instructors. \\
+September & Resolve & Histogram-fill clock diagnostics and the narrowed overload reading,
+abstract, full proofread, draft to supervisors and Nokia instructors. \\
 October & Review & Revise on supervisor and instructor feedback, prepare the colloquium. \\
 November & Submit & Final revisions, colloquium presentation, submission. \\
 \hline
 \end{tabular}
 \end{center}
 
-\textbf{Risks.} The far tail is now resolved on bare metal. The one open question,
-the transparent-hugepage candidate for the allocator-effect discrepancy, needs no new
-machine: it is a two-setting comparison on one host with everything else pinned.
+\textbf{Risks.} The far tail is now resolved on bare metal below saturation. Two open
+questions remain and neither needs a new machine. The first is a same-host control that
+repeats in-run and deferred histogram fill on one captured setup, which would separate
+recorder timing from the processor and kernel-control differences the later sweeps also
+changed. The second is the transparent-hugepage candidate for the allocator effect, a
+two-setting comparison on one host with everything else pinned. The language effect on
+peak resident set size keeps its sign and its MiB scale on all three hosts measured. The
+size of the allocator effect does not travel between them.
 Single-author skill asymmetry is bounded by the frozen specification and parity
-suite, and acknowledged as residual for performance.
+suite, and acknowledged as a remaining performance limitation.
 
 \textbf{Out of scope.} The full gNB, PHY/L2 and the user plane, real captured
 traces, managed-language alternatives, and production operational concerns.
