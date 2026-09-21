@@ -122,17 +122,22 @@
       spends only $\BudgetCoreShareMax\%$ on language work. Passing work between threads takes the rest,
       so that clock cannot attribute a gap to C++ or Rust. Timed on its own, the core
       is $\BudgetCoreRatio\times$ faster in Rust.
-      (5)~Below saturation the paired test on the end-to-end median resolves $\PFiftyDiffAbsMax\,\mu$s
-      in Rust's favour. That gap is too small to bound a language effect. The Rust versions keep up
-      with the offered load to $\TrackingLoadRust$~kilo-operations per second (kops/s), the C++ versions only to $\TrackingLoadCpp$.
-      After both languages fall behind the offered load, \OverloadSustainedFaster{}
-      still holds $\OverloadThrRatio\times$ the rate of \OverloadSustainedSlower{}.
-      That order holds in \OverloadThrAgree{} paired repeats under both allocators.
+      (5)~At $\ReprLoad$~kilo-operations per second (kops/s) the paired test on the end-to-end median
+      resolves $\PFiftyDiffAbsMax\,\mu$s in Rust's favour. That gap is too small to bound a language
+      effect. In the pooled far tail the slowest Rust variant sits $\FarTailLangSep\,\mu$s below the
+      fastest C++ one.
+      (6)~Past saturation the campaign clock shows a Rust lead at $\KneeGapLoad$~kops/s and a
+      $\OverloadThrRatio\times$ C++ lead at $\OverloadLoad$~kops/s. A later sweep of the same grid,
+      writing the coordinated-omission fill after the timed window instead of inside it, reproduces
+      neither. That sweep also changed processor and kernel controls, so it implicates the recorder
+      without isolating it, and overload service latency is left unresolved.
 
       \noindent\textbf{Conclusions.}
-      The main cost of adopting Rust is engineering effort and the learning curve, not run-time
-      performance at nominal load. The gain is freedom from data races, not from concurrency
-      defects in general. A nominal-load test would not expose the gap.
+      Below saturation the choice is which defect classes a team wants made impossible to write, not
+      which language runs faster. The gain is freedom from data races, not from concurrency defects
+      in general. The measured cost of adoption is the seam bound above, while design effort and the
+      learning curve are named by prior work and not measured here. A nominal-load test would miss
+      the boundary, and a recorder inside the timed loop can manufacture the gap past it.
 \end{abstract}
 \end{otherlanguage}
 }
