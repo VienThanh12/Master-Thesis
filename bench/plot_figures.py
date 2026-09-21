@@ -439,7 +439,7 @@ def fig_load_sweep(rows, outdir, percentile="p99"):
         curve(ax_b, g_thr, key)
     ax_b.set_xlabel("Offered load (kops/s)")
     ax_b.set_ylabel("Achieved throughput (kops/s)")
-    ax_b.set_title("(b) Achieved throughput, and the saturation knee", fontsize=9.5)
+    ax_b.set_title("(b) Achieved throughput and campaign-clock knees", fontsize=9.5)
     ax_b.grid(True, ls=":", alpha=0.4)
     ax_b.set_axisbelow(True)
     # Only the ideal line, because (a) already establishes the variant styling.
@@ -1531,75 +1531,109 @@ def fig_effects(sig_results, outdir):
     return out
 
 
-def fig_overload(rows, outdir, overload):
-    """The divergence past saturation, and the reading that rules out idleness.
+def fig_overload(rows, deferred_rows, outdir, overload):
+    """Compare the in-run and deferred coordinated-omission fill.
 
-    Grouped by allocator on purpose. The two bars inside a group differ only in
-    language and the two groups differ only in allocator, so the figure shows in
-    its layout what the paired tests establish in numbers: the separation follows
-    the language and not the allocator.
+    The campaign shows two apparent language effects in opposite directions:
+    Rust leads at the rung between the languages' tracking limits, while C++
+    leads at the deepest overload point. The later Clock B sweep keeps the
+    intended-send origin and the correction cap, but moves the fill outside the
+    timed window on a different captured setup. Putting both datasets in one
+    figure shows that the later setup does not reproduce either asymmetry. It
+    does not isolate fill timing as the only changed variable.
 
-    Panel (b) is what makes the gap interpretable rather than merely large. A
-    variant completing less work might simply be doing less, and total CPU alone
-    cannot tell the two apart. Divided through by the work that actually completed
-    it can: the variant that sustains less spends more CPU per operation it
-    finishes, which is effort without completion rather than idleness.
+    Allocators remain in separate panels, so the figure does not hide the
+    allocator control by pooling it.
     """
-    if overload is None:
+    if overload is None or not deferred_rows:
         return None
     variants = variants_present(rows)
     allocs = [a for a in ("system", "jemalloc")
-              if any(k[1] == a for k in variants) and _subset(rows, ("cpp", a), overload)]
+              if (any(k[1] == a for k in variants)
+                  and _subset(rows, ("cpp", a), overload)
+                  and _subset(deferred_rows, ("cpp", a), overload))]
     langs = [l for l in ("cpp", "rust") if any(k[0] == l for k in variants)]
     if not allocs or len(langs) < 2:
         return None
     names = {"cpp": "C++", "rust": "Rust"}
     alloc_names = {"system": "system allocator", "jemalloc": "jemalloc"}
     thr_kops = lambda r: r["throughput_ops_s"] / 1000.0
-    # CPU spent per unit of work that actually completed. Formed per repeat rather
-    # than as a ratio of the two medians, so the interval it carries is the
-    # dispersion of the quantity itself.
-    cpu_per_kops = lambda r: (r["cpu_pct"] / thr_kops(r) if thr_kops(r) > 0 else None)
 
-    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(9.2, 3.5))
+    # Match the generated \KneeGapLoad definition: take the higher of the two
+    # language-specific tracking limits, with both allocators required to hold
+    # at least 95% of the offered rate. Keeping the derivation here avoids a
+    # typed load that could drift away from gen_macros.tex.
+    loads = sorted({r["rate"] * r["producers"] for r in rows})
 
-    def grouped(ax, metric_fn, ylabel, title, annotate):
-        width = 0.34
-        for i, lang in enumerate(langs):
-            xs, med, err_lo, err_hi = [], [], [], []
-            for j, alloc in enumerate(allocs):
-                vals = [metric_fn(r) for r in _subset(rows, (lang, alloc), overload)]
-                m, lo, hi = bootstrap_ci([v for v in vals if v is not None])
-                xs.append(j + (i - (len(langs) - 1) / 2) * width)
-                med.append(m)
-                err_lo.append(max(0.0, m - lo))
-                err_hi.append(max(0.0, hi - m))
-            colour = VARIANT_STYLE[(lang, allocs[0])][1]
-            bars = ax.bar(xs, med, width=width, color=colour, label=names[lang],
-                          yerr=[err_lo, err_hi], capsize=3,
-                          error_kw={"lw": 1.0, "ecolor": "#333333"})
-            if annotate:
-                for b, m in zip(bars, med):
-                    ax.text(b.get_x() + b.get_width() / 2, m, f"{m:.0f}",
-                            ha="center", va="bottom", fontsize=8.5)
-        ax.set_xticks(range(len(allocs)))
-        ax.set_xticklabels([alloc_names[a] for a in allocs], fontsize=8.5)
-        ax.set_ylabel(ylabel)
-        ax.set_title(title, fontsize=9.5)
+    def tracks(lang, load):
+        for alloc in allocs:
+            vals = [thr_kops(r) for r in _subset(rows, (lang, alloc), load)]
+            if not vals or statistics.median(vals) < 0.95 * load / 1000.0:
+                return False
+        return True
+
+    limits = {
+        lang: max((load for load in loads if tracks(lang, load)), default=0)
+        for lang in langs
+    }
+    knee_gap = max(limits.values())
+    points = [knee_gap, overload]
+    if not knee_gap or knee_gap == overload:
+        return None
+
+    fig, axes = plt.subplots(1, len(allocs), figsize=(9.2, 3.8), sharey=True)
+    if len(allocs) == 1:
+        axes = [axes]
+
+    clocks = [
+        ("Campaign: fill during", rows, ""),
+        ("Later setup: fill after", deferred_rows, "///"),
+    ]
+    width = 0.18
+    offsets = (-1.5 * width, -0.5 * width, 0.5 * width, 1.5 * width)
+
+    for ax, alloc, panel in zip(axes, allocs, ("a", "b")):
+        series = 0
+        for clock_name, source, hatch in clocks:
+            for lang in langs:
+                med, err_lo, err_hi = [], [], []
+                for load in points:
+                    vals = [thr_kops(r) for r in _subset(source, (lang, alloc), load)]
+                    m, lo, hi = bootstrap_ci(vals)
+                    med.append(m)
+                    err_lo.append(max(0.0, m - lo))
+                    err_hi.append(max(0.0, hi - m))
+                xs = [j + offsets[series] for j in range(len(points))]
+                colour = VARIANT_STYLE[(lang, alloc)][1]
+                bars = ax.bar(
+                    xs, med, width=width, color=colour, hatch=hatch,
+                    edgecolor="#333333", linewidth=0.7,
+                    label=f"{names[lang]}, {clock_name.lower()}",
+                    yerr=[err_lo, err_hi], capsize=2.5,
+                    error_kw={"lw": 0.9, "ecolor": "#333333"},
+                )
+                for bar, value in zip(bars, med):
+                    ax.text(
+                        bar.get_x() + bar.get_width() / 2, value + 7,
+                        f"{value:.0f}", ha="center", va="bottom", fontsize=7.5,
+                    )
+                series += 1
+        ax.set_xticks(range(len(points)))
+        ax.set_xticklabels([f"{load / 1000:.0f} kops/s" for load in points])
+        ax.set_xlabel("Offered load")
+        ax.set_title(f"({panel}) {alloc_names[alloc]}", fontsize=9.5)
         ax.grid(True, axis="y", ls=":", alpha=0.4)
         ax.set_axisbelow(True)
-        ax.legend(fontsize=8, framealpha=0.95)
-
-    grouped(ax_a, thr_kops, "Sustained throughput (kops/s)",
-            "(a) Work still completed", annotate=True)
-    grouped(ax_b, cpu_per_kops, "CPU (%) per sustained kops/s",
-            "(b) Cost of the work that completed", annotate=False)
-    # Headroom for the value labels, which otherwise collide with the frame.
-    ax_a.set_ylim(top=ax_a.get_ylim()[1] * 1.14)
-
-    fig.tight_layout()
+        ax.set_ylim(0, max(points) / 1000.0 * 0.68)
+    axes[0].set_ylabel("Sustained throughput (kops/s)")
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(
+        handles, labels, ncol=2, fontsize=7.8, framealpha=0.95,
+        loc="upper center", bbox_to_anchor=(0.5, 1.02),
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.88))
     out = os.path.join(outdir, "fig_overload.pdf")
-    fig.savefig(out)
+    fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
     return out
 
@@ -2818,6 +2852,12 @@ def write_resource_table(rows, outdir, load):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--campaign", default=None)
+    ap.add_argument(
+        "--probe-after",
+        default=None,
+        help="Clock B JSONL with coordinated-omission fill deferred until after "
+             "the timed run; newest fair-after log if omitted.",
+    )
     ap.add_argument("--sweep", default=None)
     ap.add_argument("--taxonomy", default="../faults/results/taxonomy.csv")
     ap.add_argument("--ffi", default="../ffi/results/metrics.json")
@@ -2840,6 +2880,16 @@ def main():
         cands = sorted(glob.glob(os.path.join(here, "results", "campaign-*.jsonl")))
         campaign = cands[-1] if cands else os.path.join(here, "results", "latest.jsonl")
     rows = balance_repeats(load_campaign(campaign))
+    probe_after = args.probe_after
+    if probe_after is None:
+        probe_cands = sorted(
+            p for p in glob.glob(os.path.join(here, "results", "fair-after-*.jsonl"))
+            if ".hist." not in p
+        )
+        probe_after = probe_cands[-1] if probe_cands else None
+    deferred_rows = (
+        balance_repeats(load_campaign(probe_after)) if probe_after else []
+    )
 
     load = args.load if args.load is not None else pick_representative_load(rows)
     overload = args.overload if args.overload is not None else pick_overload_load(rows)
@@ -2850,6 +2900,10 @@ def main():
               "at which the service stops meeting the offered rate.")
     else:
         print(f"overload operating point: {overload:.0f} ops/s")
+    if probe_after:
+        print(f"deferred-fill probe: {probe_after}  rows={len(deferred_rows)}")
+    else:
+        print("note: no fair-after probe found; overload instrument comparison skipped")
 
     produced = []
     produced.append(fig_latency_vs_load(rows, outdir))
@@ -2901,7 +2955,7 @@ def main():
     effects_fig = fig_effects(sig, outdir)
     if effects_fig:
         produced.append(effects_fig)
-    overload_fig = fig_overload(rows, outdir, overload)
+    overload_fig = fig_overload(rows, deferred_rows, outdir, overload)
     if overload_fig:
         produced.append(overload_fig)
     # tab:latency's far-tail column is pooled across repeats, so the pooled
