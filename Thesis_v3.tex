@@ -12,6 +12,7 @@
 
 \usepackage[pdftex, plainpages=false]{hyperref} % For hyperlinks and pdf metadata
 \usepackage{fancyhdr} 
+\usepackage{array} % Ragged-right p-columns in the host table
 \usepackage{longtable}
 \usepackage{float} % [H] pins the key-terms glossary at the appendix heading
 \usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
@@ -19,6 +20,9 @@
 \renewcommand{\topfraction}{0.9}
 \renewcommand{\textfraction}{0.08}
 \renewcommand{\floatpagefraction}{0.75}
+
+% Ragged-right paragraph column: avoids stretched inter-word spacing in narrow cells.
+\newcolumntype{R}[1]{>{\raggedright\arraybackslash}p{#1}}
 
 \onehalfspacing 
 
@@ -989,6 +993,8 @@ this one. The two can then be set next to each other to ask which findings belon
 A third sweep on a second bare-metal \BmCpu{} uses a new shard count, load
 grid, run count and tools. It tests whether the findings hold under those
 changes as a set, not any one of them on its own.
+Appendix~\ref{appendix:config} itemises the three hosts and the campaign
+parameters field by field.
 
 \section[Workload and measurements]{Workload and measurements\label{sec:workload}}
 The work is made for the test. The steps it takes come from the 3GPP
@@ -1650,6 +1656,233 @@ Coordinated omission & The bias an open-loop schedule avoids, in which a stalled
 \hline
 \end{tabular}
 \end{table}
+
+% In the full draft this is Appendix D. Here it is Appendix B because Thesis_v3
+% carries only Key terms before it. The label stays appendix:config so both
+% documents share one cross-reference name.
+\appendix{Host and campaign configuration\label{appendix:config}}
+Table~\ref{tab:testbed} itemises the three machines the campaigns ran on: the bare-metal host of
+Section~\ref{sec:testbed} that every performance and resource table of the main sweep is drawn from,
+the virtualised host it replaced, and the second bare-metal host at a different design that
+Section~\ref{sec:testbed} reads against it. The resident-set decomposition belongs to the
+second bare-metal host and is reported in Section~\ref{sec:resources}. The fault catalogue was
+compiled and run on the development machine, whose toolchain its own caption records. Of the
+adoption-cost axes only build time is host-sensitive, which is why that one is reported as a
+paired ratio while the footprint and dependency figures are deterministic. The three small paired
+experiments predate the move to bare metal and carry no environment record, so each supports a
+ratio between two variants measured alternately in one session. Section~\ref{sec:testbed} points
+here for the field-by-field record of what each campaign captured. Every column reports what was
+measured, and the protocol they are read against is published as \texttt{bench/TESTBED.md}.
+Table~\ref{tab:params} gathers the configuration of the service, the workload and the campaign.
+
+% [tp] and not [H]: measured in the full draft. At [H] the table did not fit under its
+% own intro paragraph, and [H] forbids the following text from flowing back into the gap.
+\begin{table}[tp]
+\centering
+\small
+\caption[The three measurement hosts]{The three machines the campaigns ran on, each reported as
+measured. Every hardware, kernel and toolchain cell is generated from that campaign's own
+environment capture rather than restated from the protocol of \texttt{bench/TESTBED.md}. The
+operating-system row names the machine and, where a campaign ran in a container, the image's
+userland beside it, so the kernel row prints one value for both. The last
+two rows are prose, because what an instrument set is adequate for is a judgement and not a captured
+field. The columns are arranged so that each
+adjacent pair isolates one change, with the exceptions the Kernel and Toolchain rows record.
+Reported sweep against virtualised host: the same design and the same container image on a
+different machine, one \texttt{g++} release apart within GCC~15, which is what
+Section~\ref{sec:testbed} reads a hardware effect from.
+Reported sweep against second bare-metal host: a different shard count, load grid, repeat count and
+compiler on comparable hardware, which is what tests whether the findings depend on those choices.
+Rows where all three agree describe the source or the method rather than any machine. The
+\emph{Short of protocol} marks are deliberate and are argued where they appear.\label{tab:testbed}}
+\renewcommand{\arraystretch}{1.1}
+\footnotesize
+\begin{tabular}{@{}R{0.14\linewidth} R{0.26\linewidth} R{0.27\linewidth} R{0.25\linewidth}@{}}
+\hline\hline
+Aspect & Reported sweep & Virtualised host, same design & Second bare-metal host, different design \\
+\hline
+Host & \MainCpu{}, \MainCores{} cores, \MainSockets{} socket & \GuestCpu{} guest, \GuestCores{} vCPUs & \BmCpu{}, \BmCores{} cores, \BmSockets{} socket \\
+Operating system & \MainHostDistro{}. Image \MainDistro{} & \GuestDistro{} & \BmDistro{} \\
+Kernel & \MainKernel{} & \GuestKernel{} & \BmKernel{} \\
+Hypervisor & \MainVirt{}. Governor \MainGovernor{}, boost off, verified on the machine & \GuestVirt{}. Frequency and turbo host-controlled, unobservable from inside & \BmVirt{}. Governor \BmGovernor{}, verified on the machine \\
+CPU steal & None: no hypervisor to lose a timeslice to & Not characterised. The capture's single one-second sample read \GuestSteal{}, and no steal probe was run on this host & \BmStealWithSteal{} of \BmStealIntervals{} intervals on \BmStealCores{} pinned cores \\
+Isolation & \texttt{nohz\_full} \MainNohzFull{}. \texttt{isolcpus} \MainIsolcpus{}, omitted on purpose (\S\ref{sec:testbed}) & \texttt{isolcpus} \GuestIsolcpus{}, \texttt{nohz\_full} \GuestNohzFull{} & \texttt{isolcpus} \BmIsolcpus{}, \texttt{nohz\_full} \BmNohzFull{}. \emph{Short of protocol} \\
+Hugepages & \MainThp{} & \GuestThp{}, and only the system-allocator variant inherits it & \BmThp{} \\
+Toolchain & \texttt{g++~\MainGpp}, \texttt{rustc~\MainRustc}, pinned in a container image & \texttt{g++~\GuestGpp}, \texttt{rustc~\GuestRustc} & \texttt{g++~\BmGpp}, \texttt{rustc~\BmRustc}, so a compiler change is tested too \\
+Pinning & Cores \MainPinned{}, $7$ shards, $7$ producers & Cores $2$--$15$, \GuestShards{} shards, \GuestProducers{} producers & Cores \BmPinned{}, \BmShards{} shards, \BmProducers{} producers \\
+SMT & \MainSmt{}, verified & Absent from the topology the guest is shown, and decided on the host & \BmSmt{}, verified \\
+Repeats & \NRepeats{} over \NLoadLevels{} loads, \NRuns{} runs & \GuestRepeats{} over \GuestLoadLevels{} loads, \GuestRuns{} runs & \BmRepeats{} over \BmLoadLevels{} loads, \BmRuns{} runs. \emph{Short of protocol} \\
+Instruments & Counters, pooled HDR sidecars, jitter, allocator accounting & None available in the guest & Counters at two scopes, HDR sidecars, allocator accounting \\
+\hline
+Adequate for & The pre-committed campaign-clock results. Not overload service latency & Everything except the far tail below saturation & Confirming campaign-clock directions survive a change of design \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\small
+\caption[Configuration of the service, the workload, and the campaign]{Configuration of the service under test, the workload driving it, and the measurement
+campaign. Service parameters are fixed by the frozen specification, with one exception: the
+shard count is set to match the cores the host offers (Section~\ref{sec:testbed}). All of them,
+that one included, are identical in both languages. Campaign figures are generated from the
+measurement logs together with the
+tables that report them. The representative load is fixed rather than derived, for the reason
+Section~\ref{sec:workload} gives, and the throughput plateau is the lowest of the four variants'
+own plateaus, which differ.\label{tab:params}}
+\footnotesize
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{@{}R{0.28\linewidth} R{0.28\linewidth} R{0.36\linewidth}@{}}
+\hline\hline
+Parameter & Value & Note \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Service under test, identical in both languages}} \\
+Shards, and worker threads & $7$ & one thread owns one shard. Identical in both languages, which is what the fairness control requires (\S\ref{sec:controlsbrief}) \\
+Queue bound per shard & $1\,024$ requests & bounded and blocking, so overload is observable \\
+Initial map capacity & $4\,096$ entries & reserved so steady state does not rehash \\
+Bearers per context & at most $8$ & \\
+Signaling payload & $64$ bytes & \\
+Context ceiling per shard & $200\,000$ & \\
+Shard selection & SplitMix64, then modulo & pinned: diffuses sequential identifiers \\
+Intra-shard hash & FNV-1a, 64-bit & pinned on both sides and checked bit-for-bit \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Workload}} \\
+Workloads & signal, mixed & mixed walks the full RAN lifecycle \\
+Active UEs & \SweepUes{} & \\
+Offered-load levels & \NLoadLevels{} & up to $\MaxOfferedLoad$~kops/s \\
+Representative load & $\ReprLoad$~kops/s & fixed, see caption \\
+Campaign-clock throughput plateau & $\SatKnee$~kops/s achieved & the apparent language split at $\KneeGapLoad$~kops/s is not reproduced on the later deferred-fill setup (Section~\ref{sec:overload}) \\
+Load model & open loop, fixed intended schedule & latency measured from intended send time \\
+\hline
+\multicolumn{3}{@{}l}{\emph{Campaign}} \\
+Build variants & $\NVariants$ & two languages $\times$ two allocators \\
+Repeats per sweep point & \NRepeats{} & variants interleaved within each repeat \\
+Measured runs & $\NRuns$ & \\
+Latency capture & HDR histogram, $[1\,\text{ns}, 3.6\,\text{s}]$, 3 s.f. & same algorithm and configuration on both sides \\
+Summary statistic & median with bootstrap $95\%$ confidence interval & intervals reported in full, not as half-widths \\
+Language comparison & exact paired permutation test & \NTests{} tests, Holm-corrected \\
+Attainable $p$ floors & $\MinAttainableP$ / $\CorrectedFloor$ & uncorrected / after correction \\
+\hline
+\end{tabular}
+\end{table}
+
+\paragraph{What each campaign recorded.}
+Each of the $\NRuns$ runs of the factorial design in Table~\ref{tab:params} contributes one
+newline-delimited JSON record. Nothing is aggregated at capture time. A record carries the
+configuration (language, allocator, workload, shard and producer counts, target rate), the
+outcome (operations completed, errors, wall-clock duration, achieved throughput), the latency
+distribution from the HDR histogram (mean, standard deviation, the quartiles, p50, p90, p99,
+p99.9, p99.99 and the maximum, in nanoseconds), a shorter block for inter-operation delay
+variation (mean, standard deviation, p50, p99, p99.9, the maximum and a sample count), the
+resource counters from \texttt{getrusage} (peak resident set size, user and system CPU seconds,
+CPU utilisation), and the per-operation-kind counts. A \texttt{jemalloc} variant adds that
+allocator's own accounting. A system-allocator variant stores those fields as unavailable rather than
+as zero, on the same principle as the governor and turbo state. The kind counts are what makes a
+divergence between the languages show up as a parity failure (Chapter~\ref{chapter:design}) instead
+of a performance difference. Each run also persists its complete HDR bucket contents to a sidecar,
+so the repeats can be pooled before a far-tail percentile is read
+(Section~\ref{sec:statsbrief}), and a separate file records \texttt{perf} counters at two scopes, the
+end-to-end path and the operation on its own.
+
+The three small paired experiments have a different shape. For each of \BudgetRepeats{}
+interleaved repeats the decomposition records the batch-mean cost in both languages, once for
+the operation called directly and once through the threaded service. A third dataset of the same
+shape over \ContentionRepeats{} repeats records sustained throughput through the bounded queue and
+completion primitives alone. The FFI comparison of
+Section~\ref{sec:migrationresults} has that structure over \FfiOpRepeats{} repeats. All three
+predate the environment record, which is why each is read as a ratio between its two variants.
+
+Build time is the one RQ4 axis that is a timing measurement. It is recorded over
+\AdoptRepeats{} interleaved repeats at \AdoptJobs{} parallel jobs on the development machine,
+alternating the toolchains so the ratio survives a change of machine even though the seconds do
+not. The static footprint and the resolved dependency graph are read from the linked binaries
+and the manifests.
+
+The fault catalogue is categorical. Each of the $\FaultClasses$ cases yields four tool logs
+(AddressSanitizer, ThreadSanitizer and UndefinedBehaviorSanitizer on the C++ program, and
+\texttt{rustc} on the safe-Rust counterpart) and one taxonomy row carrying the three sanitiser
+outcomes, the detection stage, the compiler result, and the expectation registered before the
+study. The two original boundary cases yield a second table from the model checkers, and the
+\texttt{unsafe} one a third from the interpreter. The table and figure in
+Section~\ref{sec:safetyresults} are generated from those logs.
+
+Every load sweep writes the environment record of Section~\ref{sec:repro} beside its results,
+including the fields a given host does not expose. The governor and turbo state are stored as
+unavailable rather than left out, so the limitation of Section~\ref{sec:testbed} is a property
+of the dataset. The virtualised campaign shares the sweep's design and predates the later
+instruments: its records carry the percentiles and the resource counters and nothing else. That
+absence is the measurement-validity argument of Section~\ref{sec:testbed}, which is why the
+campaign is kept. The second bare-metal campaign carries the same record shape as the reported
+sweep, including the allocator accounting that lets Section~\ref{sec:resources} decompose the
+resident set, but runs a different shard count, load grid, repeat count and toolchain. Each
+campaign has its own generator and macro prefix.
+
+The two clock diagnostics each cover the same fourteen-load, two-language,
+two-allocator grid over \ProbeAfterRuns{} runs, but their environment capture
+is not the campaign capture. The campaign records \MainCpu{} and
+\texttt{nohz\_full} \MainNohzFull{}. The diagnostics record \ProbeAfterCpu{}
+and \texttt{nohz\_full} \ProbeAfterNohzFull{}. Clock A drops the
+coordinated-omission fill and therefore cannot supply RQ1 percentiles. Clock B
+defers the fill, but its overload percentiles are schedule drift. At the top
+load its \ProbeAfterPairsSystem{} system-allocator pairs are unresolved at
+$p = \ProbeAfterThrPSystem$, while its \ProbeAfterPairsJemalloc{}
+\texttt{jemalloc} pairs resolve a smaller Rust lead at
+$p \ProbeAfterThrPJemalloc$. These diagnostics are consistent with recorder
+work but do not isolate fill timing.
+
+The tables that follow are the measurements the main text cites from this appendix.
+
+\begin{table}[ht]
+\centering
+\small
+\caption[Inter-operation jitter at the representative load]{Inter-operation delay variation at a
+sustained offered load of $\ReprLoad$~kops/s, in microseconds, as a median over \NRepeats{}
+interleaved repeats with a bootstrap $95\%$ interval. Measured within one producer and never across
+producers, since two producers share no schedule and a difference between them is not a variation
+either one experienced. Reported for completeness rather than as evidence: no research question
+names this metric, and it is absent from the paired family of
+Section~\ref{sec:statsbrief}.\label{tab:jitter}}
+\begin{tabular}{@{}l r r r r@{}}
+\hline\hline
+Variant & p50 & p99 & p99.9 & max \\
+\hline
+\input{figures/tab_jitter.tex}\\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\small
+\caption[The resident set decomposed by the allocator]{Where the peak resident set goes on the
+second bare-metal host, from \texttt{jemalloc}'s own accounting in each of the \BmJeRuns{} runs of
+the two \texttt{jemalloc} variants. Medians in MiB over the steady-state loads, with the paired language
+difference in the last column. The two rows below the rule are the argument: the allocator holds
+\emph{less} in the Rust build, and the process holds more, so the difference is outside the
+allocator. The final row is the quantity the other rows decompose. The derived row is the median of
+the per-run difference and not the difference of two medians, because the two figures it subtracts
+come from one process at one moment, so the column does not sum
+exactly.\label{tab:resident}}
+\begin{tabular}{@{}l r r r@{}}
+\hline\hline
+Component & C++ & Rust & Difference \\
+\hline
+\input{figures/tab_resident.tex}\\
+\hline
+\end{tabular}
+\end{table}
+
+The allocation profile on the second bare-metal host was taken to name the call sites behind
+the resident-set difference of Section~\ref{sec:resources}. Two departures from the campaign
+explain why it cannot. The first profile ran closed loop at $\BmProfThroughput$~kops/s, past the
+plateau bracketed at $\BmKneeLo$--$\BmKneeHi$~kops/s. Repeating it at a swept load below saturation
+shrank the discrepancy by most of its size and did not remove it. What remains is that
+profiling requires an allocator built to sample every allocation and record a backtrace, so the
+variant under profile is not the variant the campaign measured. Each symbolised profile puts almost all
+of its flat bytes on a frame that allocates nothing, $\BmProfFlatCppPct\%$ on a deallocation
+symbol in the C++ variant and $\BmProfFlatRustPct\%$ on the allocator's own backtrace routine in the
+Rust one. Attributing the footprint would need a profile taken at a swept load, on a build
+whose peak RSS reproduces the campaign's ordering.
 
 \end{appendices}
 
