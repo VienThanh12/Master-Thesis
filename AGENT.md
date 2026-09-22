@@ -479,8 +479,9 @@ prose in every chapter. Chapter 1 is therefore the introduction from
 `Ha_Vien_Mastersthesis_2026.tex`, with appendix and later-section references retargeted to
 the chapter labels this file has. Chapters 2 to 8 keep **five argument paragraphs** each,
 the same five moves they had as bullets. Do not add a sixth paragraph to those chapters, and
-do not expand them into the full draft's chapter prose. The document carries one Key terms
-appendix (`appendix:terms`), matching the draft's Appendix A, and needs no further ones.
+do not expand them into the full draft's chapter prose. The document carries two appendices:
+Key terms (`appendix:terms`) and Host and campaign configuration (`appendix:config`), matching
+the draft's Appendices A and D. It needs no further ones.
 Chapters 5 to 8 were first filled at the author's explicit request on 20 August
 2026, when the fold had not happened and they were numbered 6 to 9.
 
