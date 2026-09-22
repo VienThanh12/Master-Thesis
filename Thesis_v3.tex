@@ -81,6 +81,25 @@
 \input{figures/gen_guest.tex}
 \input{figures/gen_probes.tex}
 
+% The 12 cm minipage ends on the keyword rule. The class \vfill parks CCS on
+% that rule, so spare space lands between Conclusions and CCS and the last
+% classification line still kisses Avainsanat. Drop the fill so unused height
+% sits under CCS. Look at page 3 after editing.
+\makeatletter
+\renewenvironment{@summary}{%
+    \abst@small
+    \begin{lrbox}{\@abstract}%
+    \begin{minipage}[t][12cm]{5.7in}%
+    \setlength{\parskip}{2ex}%
+}{%
+    {\bf \@ccs}%
+    \abst@small \@classification
+    \end{minipage}%
+    \end{lrbox}%
+    \put(22, 450){\mbox{\usebox{\@abstract}}}%
+}
+\makeatother
+
 \begin{document}
 
 \maketitle
@@ -101,39 +120,40 @@
       compile-time safety, but its fit for this latency-critical setting is unproven.
       
       \noindent\textbf{Objective.}
-      The thesis compares modern C++ and Rust on a user equipment (UE) Context Management service.
-      The service keeps per-device state, as a 5G base-station control plane (gNB-CU-CP) does.
-      Average-throughput comparisons leave four dimensions open: tail latency, the C++ defect classes Rust prevents at compile time, the overhead of
-      its safety model, and the cost of incremental adoption.
+      The thesis compares modern C++ and Rust on a user equipment (UE) Context Management service
+      that keeps per-device state, as a 5G base-station control plane (gNB-CU-CP) does.
+      Average-throughput comparisons leave four dimensions open: tail latency, the defect classes
+      Rust prevents at compile time, safety-model overhead, and incremental adoption.
       
       \noindent\textbf{Methods.}
-      One language-agnostic specification is frozen first, then implemented in C++ and Rust with matched
-      algorithms, concurrency model, allocator, and build settings, and with forced-idiom gaps logged.
-      A synthetic workload is increased to
-      overload, both versions pass the same parity tests, and the evaluation adds fault injection and a
-      foreign function interface (FFI) prototype.
+      One language-agnostic specification is frozen, then implemented in C++ and Rust with
+      matched algorithms, concurrency model, allocator, and build settings, with forced-idiom
+      gaps logged. A synthetic workload is increased to overload, both versions pass the same
+      parity tests, and the evaluation adds fault injection and a foreign function interface
+      (FFI) prototype.
       
       \noindent\textbf{Results.}
-      (1)~Safe Rust rejects all seven injected memory-safety and data-race defect classes at compile
-      time. The same seven build cleanly in C++ and surface only at runtime, if a sanitiser catches
-      them. (2)~Seven boundary classes fail in both languages, and C++ tooling reports two that
-      Rust's does not. (3)~C++ can call the Rust service through a thin C interface that holds all
-      the \texttt{unsafe} code and costs at most $\FfiOpBoundPct\%$ of a real signalling call.
-      (4)~A full request spends only $\BudgetCoreShareMax\%$ on language work, so that clock cannot
-      attribute a gap. Timed alone the core is $\BudgetCoreRatio\times$ faster
-      in Rust. (5)~At $\ReprLoad$~kilo-operations per second (kops/s) the paired median difference is
-      $\PFiftyDiffAbsMax\,\mu$s in Rust's favour, too small to bound a language effect. The pooled far
-      tail puts the slowest Rust variant $\FarTailLangSep\,\mu$s below the fastest C++ one.
-      (6)~Past saturation the campaign clock shows a Rust lead at $\KneeGapLoad$~kops/s and a
-      $\OverloadThrRatio\times$ C++ lead at $\OverloadLoad$. Moving the coordinated-omission fill after
-      the timed window reproduces neither, implicating the recorder rather than the services and
-      leaving overload service latency unresolved.
+      (1)~Safe Rust rejects all seven injected memory-safety and data-race defect classes at
+      compile time. The same seven build in C++ and surface only at runtime, if a sanitiser
+      catches them. (2)~Seven boundary classes fail in both languages, and C++ tooling reports
+      two that Rust's does not. (3)~C++ can call the Rust service through a thin C interface that
+      holds all the \texttt{unsafe} code and costs at most $\FfiOpBoundPct\%$ of a real signalling
+      call. (4)~A full request spends only $\BudgetCoreShareMax\%$ on language work, so that clock
+      cannot attribute a gap. Timed alone the core is $\BudgetCoreRatio\times$ faster in Rust.
+      (5)~At $\ReprLoad$~kilo-operations per second (kops/s) the paired median difference is
+      $\PFiftyDiffAbsMax\,\mu$s in Rust's favour, too small to bound a language effect. The pooled
+      far tail puts the slowest Rust variant $\FarTailLangSep\,\mu$s below the fastest C++ one.
+      (6)~Once the services no longer meet the sent rate, the campaign shows Rust ahead at
+      $\KneeGapLoad$~kops/s and C++ ahead by $\OverloadThrRatio\times$ at $\OverloadLoad$.
+      Both gaps go away when the recorder writes its coordinated-omission samples after the timed
+      run. The later run also changed the machine, so it cannot show that the recorder was the
+      only cause. Service time under overload stays unknown.
 
       \noindent\textbf{Conclusions.}
-      Below saturation the choice is which defect classes a team wants impossible to write, not
-      which is faster. The gain is freedom from data races, not from concurrency defects generally.
-      Adoption cost is measured at the seam, not in design or training time. A nominal-load test
-      misses the boundary, and a recorder in the timed loop can manufacture the gap past it.
+      At loads where the service still meets the sent rate, what matters is which defects the compiler rejects.
+      Rust stops data races. It does not stop every concurrency bug. The cost this study
+      measured is calling Rust from C++. Design time and training time were not measured.
+      A test that never leaves ordinary load misses where the services fall behind.
 \end{abstract}
 \end{otherlanguage}
 }
