@@ -34,7 +34,8 @@ is a working map: what to open, what to rebuild, what not to confuse.
 - **Chapters 2-8** stay five argument paragraphs. Do not add a sixth. Do not
   expand them into the full draft's chapter prose. Do not put Chapter 1 back
   to a short skeleton.
-- The skeleton has **no appendix**. It needs none.
+- The skeleton carries one appendix: Key terms (`appendix:terms`), matching
+  Appendix A of the full draft. It needs no further appendices.
 - It carries a subset of the draft's figures. Captions are trimmed. Image
   sources are shared, not copied.
 - `bench/refresh_thesis.sh` rebuilds the **full draft PDF**, not `Thesis_v3.pdf`.
