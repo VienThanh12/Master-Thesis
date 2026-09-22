@@ -12,7 +12,8 @@
 
 \usepackage[pdftex, plainpages=false]{hyperref} % For hyperlinks and pdf metadata
 \usepackage{fancyhdr} 
-\usepackage{longtable} 
+\usepackage{longtable}
+\usepackage{float} % [H] pins the key-terms glossary at the appendix heading
 \usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
 \usepackage[section]{placeins} % flush pending floats before each \section
 \renewcommand{\topfraction}{0.9}
@@ -155,14 +156,18 @@
 % The class already names this list: \nomname is set to "List of acronyms" in
 % \captionsenglish. Scoped to the acronyms this document uses, which is a subset of
 % the full draft's. Expansions are sentence case. The five gNB rows keep a
-% lowercase g, which is the token's own spelling and not an oversight.
+% lowercase g, which is the token's own spelling and not an oversight. Terms that
+% are not acronyms stay in Appendix~\ref{appendix:terms}.
 \cleardoublepage
 \phantomsection
 \addcontentsline{toc}{chapter}{\nomname}
 \chapter*{\nomname}
 \markboth{\nomname}{\nomname}
+\label{page:acronyms}
 
-\noindent Each acronym below is also written out where the text first uses it.
+\noindent Each acronym below is also written out where the text first uses it. Terms that are
+not acronyms, such as \emph{tail latency} and \emph{shard}, are collected in
+Appendix~\ref{appendix:terms}.
 
 \begingroup
 \singlespacing
@@ -273,9 +278,9 @@ Three terms recur throughout. The \emph{gNB-CU-CP} is the control-plane class th
 \emph{UE Context Management (UECM)} is the compact service reimplemented and measured.
 \emph{Tail latency}, the p99, p99.9 and p99.99 percentiles rather than the mean, is the property that,
 more than average speed, decides whether such a system meets its
-latency budgets~\cite{dean2013tail,barroso2017microseconds}.
-
-
+latency budgets~\cite{dean2013tail,barroso2017microseconds}. Every acronym is written out where the
+text first uses it, and the \nomname{} in the front matter collects them. The terms that are not
+acronyms are fixed in Appendix~\ref{appendix:terms} for readers outside telecom.
 
 \section{Motivation}\label{sec:motivation}
 Three trends make this comparison timely. The first is the cloud-native
@@ -1596,5 +1601,41 @@ settle the human cost this study can only name.
 
 \addcontentsline{toc}{chapter}{\bibname} % This lines adds the bibliography to the ToC
 \printbibliography
+
+\backmatter
+\begin{appendices}
+
+\appendix{Key terms\label{appendix:terms}}
+Table~\ref{tab:abbrev} collects the terms used throughout the thesis that are not acronyms, for
+readers outside the telecom domain. The acronyms are written out at first use and listed together
+in the \nomname{} on page~\pageref{page:acronyms}.
+
+\begin{table}[H]
+\centering
+\caption[Key terms]{Key terms used throughout the thesis.\label{tab:abbrev}}
+\singlespacing
+\footnotesize
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{0.21\linewidth} p{0.71\linewidth}@{}}
+\hline\hline
+Term & Meaning \\
+\hline
+Control plane & The signalling and management path, as opposed to the user-plane data path \\
+Tail latency & High-percentile latency (p99, p99.9, p99.99), the worst-case-oriented timing metric \\
+Jitter & How much latency varies from one operation to the next, as opposed to its typical value \\
+Saturation & The offered load beyond which the service can no longer keep up and requests start queueing \\
+Shard & One of several independent slices of the UE state, each owned by exactly one worker thread \\
+Open-loop & A load schedule whose send times are fixed in advance, so a slow response delays no later request \\
+Coordinated omission & The bias an open-loop schedule avoids, in which a stalled client stops issuing requests and so never records the latency of the stall \\
+\hline
+\end{tabular}
+\end{table}
+
+\end{appendices}
+
+% The class writes the page counts for the abstract form from \AtEndDocument, which
+% runs before \end{document} flushes the last page. Without this the final appendix
+% page is never counted and the form reports no appendix pages at all.
+\clearpage
 
 \end{document}
