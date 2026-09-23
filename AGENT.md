@@ -659,6 +659,8 @@ a heuristic. Three things to know when it fails. Diagrams 20 to 29 are generated
 escapes, so grep for the escape. And **the gate checks punctuation, not sense**: removing a dash
 or a semicolon frequently leaves a comma splice or a label that overruns its panel, and nine of
 them did in the pass that introduced the gate, so re-render and read the figure afterwards.
+Criterion 2 (consistent terminology) does not apply to a figure callout. If a
+label would need a translation, rewrite it. See `.cursor/rules/plain-diagram-labels.mdc`.
 
 **Both rules cover the slide deck as well**, which is why `build_deck.py` ends with a
 `check_prose_style` gate beside `check_layout`. It walks every text run, table cell, and grouped
