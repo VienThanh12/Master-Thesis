@@ -634,30 +634,26 @@ def contributions():
             "conditions, and aliasing errors, not",
             "lock-ordering errors.",
         ]),
-        (301, BLUE, BLUE_FILL, BLUE_DEEP, "Migration: the cost is human", [
+        (301, BLUE, BLUE_FILL, BLUE_DEEP, "Migration: the call tax is bounded", [
             "An unmodified Rust core can be driven",
             "from C++ across a thin seam that",
-            "concentrates every unsafe site, for a",
-            "cost on a real operation bounded at",
-            f"{M['FfiOpBoundPct']}% against the same operation",
-            "called natively.",
+            "holds every unsafe site. Any call",
+            f"tax is bounded at {M['FfiOpBoundPct']}%.",
             "",
-            "What migration costs is API design and",
-            "the learning curve, not run time.",
+            "API design and training time",
+            "were not measured.",
         ]),
         (587, AMBER_EDGE, AMBER_FILL, AMBER_DEEP,
          "Performance: two different answers", [
-            f"End to end, an operation is "
-            f"{M['BudgetCoreShareMax']}% the",
-            "work the language performs and the rest",
-            "a cross-thread handoff. The two are",
-            "equivalent at the median, and on a",
-            "quiet host Rust's far tail sits lower.",
+            f"The round-trip is only {M['BudgetCoreShareMax']}%",
+            "language work. The median gap is",
+            "small. On a quiet host the far",
+            "tail sits lower in Rust.",
             "",
-            "Measured on the operation alone they",
-            "are not equivalent: Rust is faster by",
-            "about a factor of two, for reasons",
-            "tracing to hash-map layout.",
+            "Timed apart, the core call is",
+            f"{M['BudgetCoreRatio']}\u00d7 faster in {M['BudgetCoreFaster']}.",
+            "Past saturation, service time",
+            "stays unknown.",
         ]),
     ]
     for x, stroke, fill, deep, title, body in cards:
@@ -678,9 +674,9 @@ def contributions():
 
     d.rect(15, 396, 850, 78, BLUE_FILL, BLUE, rx=9, sw=1.7)
     d.text(31, 418, "Where it goes next", 12.5, BLUE_DEEP, weight=700)
-    d.text(206, 418, "a canonical-configuration repeat. Bare metal already "
-                     "bought the far tail, the counters and the allocator's "
-                     "accounting.", 10.5, BODY)
+    d.text(206, 418, "a same-host repeat of in-run and deferred fill, "
+                     "so the recorder can be separated from the machine.",
+           10.5, BODY)
     cx = 31
     for label in ["Production traces", "Further subsystems",
                   "Call-site attribution", "Extend the catalogue",
@@ -690,9 +686,8 @@ def contributions():
                stroke=BLUE_EDGE)
         cx += w + 9
 
-    d.footer(["For stateful, concurrent, partitionable control-plane services "
-              "of this kind, the choice between modern C++ and Rust is not a "
-              "performance decision."], y=502)
+    d.footer(["Where the service still meets the sent rate, the choice is "
+              "which defects to make impossible to write."], y=502)
     return d
 
 

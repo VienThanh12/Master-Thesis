@@ -16,28 +16,25 @@
   <text x="30" y="234.325" font-size="10.5" fill="#5b6b7b">conditions, and aliasing errors, not</text>
   <text x="30" y="248.325" font-size="10.5" fill="#5b6b7b">lock-ordering errors.</text>
   <rect x="301" y="76" width="278" height="218" rx="10" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.8"/>
-  <text x="316" y="101.325" font-size="11.5" fill="#1c4e86" font-weight="700">Migration: the cost is human</text>
+  <text x="316" y="101.325" font-size="11.5" fill="#1c4e86" font-weight="700">Migration: the call tax is bounded</text>
   <text x="316" y="122.325" font-size="10.5" fill="#5b6b7b">An unmodified Rust core can be driven</text>
   <text x="316" y="136.325" font-size="10.5" fill="#5b6b7b">from C++ across a thin seam that</text>
-  <text x="316" y="150.325" font-size="10.5" fill="#5b6b7b">concentrates every unsafe site, for a</text>
-  <text x="316" y="164.325" font-size="10.5" fill="#5b6b7b">cost on a real operation bounded at</text>
-  <text x="316" y="178.325" font-size="10.5" fill="#5b6b7b">10.91% against the same operation</text>
-  <text x="316" y="192.325" font-size="10.5" fill="#5b6b7b">called natively.</text>
-  <text x="316" y="206.325" font-size="10.5" fill="#5b6b7b"></text>
-  <text x="316" y="220.325" font-size="10.5" fill="#5b6b7b">What migration costs is API design and</text>
-  <text x="316" y="234.325" font-size="10.5" fill="#5b6b7b">the learning curve, not run time.</text>
+  <text x="316" y="150.325" font-size="10.5" fill="#5b6b7b">holds every unsafe site. Any call</text>
+  <text x="316" y="164.325" font-size="10.5" fill="#5b6b7b">tax is bounded at 10.91%.</text>
+  <text x="316" y="178.325" font-size="10.5" fill="#5b6b7b"></text>
+  <text x="316" y="192.325" font-size="10.5" fill="#5b6b7b">API design and training time</text>
+  <text x="316" y="206.325" font-size="10.5" fill="#5b6b7b">were not measured.</text>
   <rect x="587" y="76" width="278" height="218" rx="10" fill="#fdf6e9" stroke="#c8860d" stroke-width="1.8"/>
   <text x="602" y="101.325" font-size="11.5" fill="#a5700c" font-weight="700">Performance: two different answers</text>
-  <text x="602" y="122.325" font-size="10.5" fill="#5b6b7b">End to end, an operation is 0.250% the</text>
-  <text x="602" y="136.325" font-size="10.5" fill="#5b6b7b">work the language performs and the rest</text>
-  <text x="602" y="150.325" font-size="10.5" fill="#5b6b7b">a cross-thread handoff. The two are</text>
-  <text x="602" y="164.325" font-size="10.5" fill="#5b6b7b">equivalent at the median, and on a</text>
-  <text x="602" y="178.325" font-size="10.5" fill="#5b6b7b">quiet host Rust's far tail sits lower.</text>
-  <text x="602" y="192.325" font-size="10.5" fill="#5b6b7b"></text>
-  <text x="602" y="206.325" font-size="10.5" fill="#5b6b7b">Measured on the operation alone they</text>
-  <text x="602" y="220.325" font-size="10.5" fill="#5b6b7b">are not equivalent: Rust is faster by</text>
-  <text x="602" y="234.325" font-size="10.5" fill="#5b6b7b">about a factor of two, for reasons</text>
-  <text x="602" y="248.325" font-size="10.5" fill="#5b6b7b">tracing to hash-map layout.</text>
+  <text x="602" y="122.325" font-size="10.5" fill="#5b6b7b">The round-trip is only 0.250%</text>
+  <text x="602" y="136.325" font-size="10.5" fill="#5b6b7b">language work. The median gap is</text>
+  <text x="602" y="150.325" font-size="10.5" fill="#5b6b7b">small. On a quiet host the far</text>
+  <text x="602" y="164.325" font-size="10.5" fill="#5b6b7b">tail sits lower in Rust.</text>
+  <text x="602" y="178.325" font-size="10.5" fill="#5b6b7b"></text>
+  <text x="602" y="192.325" font-size="10.5" fill="#5b6b7b">Timed apart, the core call is</text>
+  <text x="602" y="206.325" font-size="10.5" fill="#5b6b7b">1.6× faster in Rust.</text>
+  <text x="602" y="220.325" font-size="10.5" fill="#5b6b7b">Past saturation, service time</text>
+  <text x="602" y="234.325" font-size="10.5" fill="#5b6b7b">stays unknown.</text>
   <rect x="15" y="308" width="850" height="74" rx="9" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.6"/>
   <text x="31" y="330" font-size="12.5" fill="#12233a" font-weight="700">What this adds to the decision is an instrument, not a verdict</text>
   <rect x="31" y="344" width="156.2" height="26" rx="5" fill="#ffffff" stroke="#d7dde3" stroke-width="1.0"/>
@@ -50,7 +47,7 @@
   <text x="662.5999999999999" y="360.78" font-size="10.5" fill="#33475b" text-anchor="middle">A catalogue of what the guarantee misses</text>
   <rect x="15" y="396" width="850" height="78" rx="9" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.7"/>
   <text x="31" y="418" font-size="12.5" fill="#1c4e86" font-weight="700">Where it goes next</text>
-  <text x="206" y="418" font-size="10.5" fill="#33475b">a canonical-configuration repeat. Bare metal already bought the far tail, the counters and the allocator's accounting.</text>
+  <text x="206" y="418" font-size="10.5" fill="#33475b">a same-host repeat of in-run and deferred fill, so the recorder can be separated from the machine.</text>
   <rect x="31" y="434" width="122.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
   <text x="92.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Production traces</text>
   <rect x="162.0" y="434" width="128.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
@@ -63,5 +60,5 @@
   <text x="655.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Async runtimes</text>
   <rect x="716.0" y="434" width="122.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
   <text x="777.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Isolate the heaps</text>
-  <text x="440.0" y="502" font-size="11.5" fill="#8794a3" text-anchor="middle">For stateful, concurrent, partitionable control-plane services of this kind, the choice between modern C++ and Rust is not a performance decision.</text>
+  <text x="440.0" y="502" font-size="11.5" fill="#8794a3" text-anchor="middle">Where the service still meets the sent rate, the choice is which defects to make impossible to write.</text>
 </svg>

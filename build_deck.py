@@ -1158,18 +1158,22 @@ add_notes(s, [
 # =====================================================================
 # Slide 20: Past saturation (generated instrument comparison)
 # =====================================================================
-s = headline(1, "The timed histogram fill creates both overload gaps",
-             "The intended-send clock and correction cap stay fixed. Only when the fill runs changes")
+# The figure shows the campaign gaps absent on a later setup. The title must
+# not say the fill created them: that run also changed the processor and
+# nohz_full, so the thesis leaves the recorder as a consistent reading and
+# not as an isolated cause. Service time under overload stays unknown.
+s = headline(1, "The later setup lacks both large overload gaps",
+             "Deferred fill, and also a different processor and kernel control")
 add_figure(s, result_figure("fig_overload"), top=Cm(3.25), height=Cm(7.15))
 add_notes(s, [
     (f"{M('KneeGapLoad')} kops/s: {M('KneeGapRatio')}\u00d7 becomes "
      f"{M('ProbeAfterKneeThrCpp')} vs {M('ProbeAfterKneeThrRust')}",
-     "Rust's campaign lead disappears."),
+     "Rust's lead is absent later."),
     (f"{M('OverloadLoad')} kops/s: {M('OverloadThrRatio')}\u00d7 becomes "
      f"{M('ProbeAfterThrCpp')} vs {M('ProbeAfterThrRust')}",
-     "C++'s campaign lead disappears."),
-    ("One fix removes both",
-     "The timed recorder, not service capacity, creates the gaps."),
+     "C++'s lead is absent there too."),
+    ("Service time stays unknown",
+     "The machine changed as well."),
 ], top=Cm(10.6), height=Cm(2.4))
 
 # =====================================================================
@@ -1193,11 +1197,11 @@ add_bar_chart(s, Cm(1.3), tbl_bottom + Cm(0.6), Cm(15.0),
                 f"{M('OverloadThrRatio')}\u00d7 ({M('OverloadSustainedFaster')})", RED)],
               baseline=1.0, label_w=Cm(6.6), value_w=Cm(2.6))
 add_caption(s, Cm(10.1), size=11, text=
-            f"The overload gap was attributed to the bounded queue and the completion handle. Isolated, they do "
-            f"not reproduce it: {M('ContentionThrCpp')} against {M('ContentionThrRust')} kops/s is only "
+            f"The bounded queue and the reply handle do not reproduce the gap when timed alone: "
+            f"{M('ContentionThrCpp')} against {M('ContentionThrRust')} kops/s is only "
             f"{M('ContentionRatio')}\u00d7 at p = {M('ContentionP')}. A closed loop of the same service is not a "
-            f"C++ win. Deferring the same fill removes both campaign gaps. Nothing here points at the borrow "
-            "checker, bounds checking, or ownership.")
+            f"C++ win. A later setup with deferred fill also lacks both campaign gaps, but that run changed "
+            f"the machine, so the recorder is not isolated.")
 
 # =====================================================================
 # Slide 22: RQ3 resources (generated figure)
@@ -1339,16 +1343,15 @@ add_figure(s, _png, crop_top=_crop)
 # Slide 28: Summary of findings
 # =====================================================================
 s = headline(1, "Summary of findings and evidence strength",
-             "Safety and migration are final. The overload language gaps belong to the recorder")
+             "Safety and migration are final. Overload service time stays unknown")
 add_data_table(
     s,
     [
         ("RQ", "Headline finding", "Evidence"),
-        ("RQ1", f"Equivalent at the median below saturation, where the end-to-end number is only "
-                f"{M('BudgetCoreShareMax')}% operation. On a quiet host the pooled p99.99 of the Rust "
-                "variants sits below the C++ ones. Past saturation the campaign's opposite language "
-                "gaps disappear under the deferred fill",
-         "Overload instrument and operation resolved. Far tail resolved on bare metal"),
+        ("RQ1", f"Below saturation the median gap is small, and the round-trip is only "
+                f"{M('BudgetCoreShareMax')}% language work. Rust's pooled far tail sits lower. "
+                "A later setup lacks both gaps, but the machine also changed",
+         "Far tail resolved on bare metal. Overload service time is not"),
         ("RQ2", f"All {len(IN_GUARANTEE)} in-guarantee classes are compile errors in safe Rust. The "
                 f"{len(BOUNDARY)} boundary classes compile in both languages", "Final"),
         ("RQ3", f"{M('RssLangDiffLo')}\u2013{M('RssLangDiffHi')} MiB more peak RSS in Rust under both allocators, "
@@ -1373,16 +1376,15 @@ add_data_table(
 # Slide 29: Hypotheses versus verdict
 # =====================================================================
 s = headline(1, "The three prior hypotheses against the evidence",
-             "Stated up front so the evaluation could refute them, two needed refining")
+             "H1 is not accepted as written. H2 holds only for the classes it names")
 add_data_table(
     s,
     [
         ("Hypothesis", "Statement, and what the evidence did to it", "Verdict"),
-        ("H1", "Equivalent below saturation, with any difference confined to the far tail. The first half "
-               "holds for the delivered service. A quiet machine finds a far-tail difference in Rust's "
-               "favour. The apparent overload differences disappear when the histogram fill moves. "
-               "\u201cPerformance-equivalent\u201d still names different quantities.",
-         "Supported for service behaviour, but too loosely worded"),
+        ("H1", "Equivalent below saturation, with any difference confined to the far tail. No margin was "
+               "set, so a small median gap is not equivalence. The far tail favours Rust. After saturation "
+               "the clocks do not rank service time, and the later setup also changed the machine.",
+         "Not accepted as written"),
         ("H2", "Safe Rust prevents the classes C++ leaves to best-effort detection. Exact for the "
                f"{len(IN_GUARANTEE)} injected classes. The boundary classes are concurrency defects it does not prevent.",
          "Supported precisely, refuted loosely"),
