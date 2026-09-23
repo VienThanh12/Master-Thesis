@@ -118,25 +118,21 @@
 \begin{otherlanguage}{english}
 \begin{abstract}
       \setlength{\parskip}{1ex}
-      \noindent\textbf{Context.}
       Radio access network (RAN) control planes are written mostly in C++ for performance, at a
       well-known cost in memory safety and concurrency. Rust promises comparable performance with
       compile-time safety, but its fit for this latency-critical setting is unproven.
       
-      \noindent\textbf{Objective.}
       The thesis compares modern C++ and Rust on a user equipment (UE) Context Management service
       that keeps per-device state, as a 5G base-station control plane (gNB-CU-CP) does.
       Average-throughput comparisons leave four dimensions open: tail latency, the defect classes
       Rust prevents at compile time, safety-model overhead, and incremental adoption.
       
-      \noindent\textbf{Methods.}
       One language-agnostic specification is frozen, then implemented in C++ and Rust with
       matched algorithms, concurrency model, allocator, and build settings, with forced-idiom
       gaps logged. A synthetic workload is increased to overload, both versions pass the same
       parity tests, and the evaluation adds fault injection and a foreign function interface
       (FFI) prototype.
       
-      \noindent\textbf{Results.}
       (1)~Safe Rust rejects all seven injected memory-safety and data-race defect classes at
       compile time. The same seven build in C++ and surface only at runtime, if a sanitiser
       catches them. (2)~Seven boundary classes fail in both languages, and C++ tooling reports
@@ -153,11 +149,11 @@
       run. The later run also changed the machine, so it cannot show that the recorder was the
       only cause. Service time under overload stays unknown.
 
-      \noindent\textbf{Conclusions.}
       At loads where the service still meets the sent rate, what matters is which defects the compiler rejects.
       Rust stops data races. It does not stop every concurrency bug. The cost this study
       measured is calling Rust from C++. Design time and training time were not measured.
       A test that never leaves ordinary load misses where the services fall behind.
+
 \end{abstract}
 \end{otherlanguage}
 }
