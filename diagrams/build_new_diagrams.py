@@ -1036,7 +1036,7 @@ def research_gap():
     # at about 7.5 pt. The title, subtitle, and gap callout were still
     # smaller than that, so they are set larger and wrapped: title 26
     # (~13 pt), subtitle 20 (~10 pt), gap body 18 (~9 pt).
-    W, H = 880, 752
+    W, H = 880, 796
     d = Diagram("29_research_gap", W, H)
     d.lines(
         W / 2, 34,
@@ -1124,18 +1124,19 @@ def research_gap():
                    weight=700)
         y += row_h + row_gap
 
-    box_h = 122
+    box_h = 158
     by = y + 8
     d.rect(x0, by, W - 2 * x0, box_h, BLUE_FILL, BLUE, rx=9, sw=1.7)
     label_x = x0 + 16
     body_x = label_x + 108
-    ly = by + 30
+    ly = by + 26
     lh = 22
     d.text(label_x, ly, "The gap", 20, BLUE_DEEP, weight=700)
     d.lines(body_x, ly, [
-        "the telecom studies vary the runtime with the language,",
-        "and the one matched pair among them measures a stateless "
-        "transformation.",
+        "most of the telecom studies change two things at once:",
+        "the language, and how the program is run.",
+        "Emberg and Wadsten keep the design the same,",
+        "but they still test a stateless program.",
         "None holds the concurrency model fixed",
         "and then drives a stateful subsystem past saturation.",
     ], 18, BODY, lh=lh)
