@@ -133,27 +133,7 @@
       parity tests, and the evaluation adds fault injection and a foreign function interface
       (FFI) prototype.
       
-      (1)~Safe Rust rejects all seven injected memory-safety and data-race defect classes at
-      compile time. The same seven build in C++ and surface only at runtime, if a sanitiser
-      catches them. (2)~Seven boundary classes fail in both languages, and C++ tooling reports
-      two that Rust's does not. (3)~C++ can call the Rust service through a thin C interface that
-      holds all the \texttt{unsafe} code and costs at most $\FfiOpBoundPct\%$ of a real signalling
-      call. (4)~A full request spends only $\BudgetCoreShareMax\%$ on language work, so that clock
-      cannot attribute a gap. Timed alone the core is $\BudgetCoreRatio\times$ faster in Rust.
-      (5)~At $\ReprLoad$~kilo-operations per second (kops/s) the paired median difference is
-      $\PFiftyDiffAbsMax\,\mu$s in Rust's favour, too small to bound a language effect. The pooled
-      far tail puts the slowest Rust variant $\FarTailLangSep\,\mu$s below the fastest C++ one.
-      (6)~Once the services no longer meet the sent rate, the campaign shows Rust ahead at
-      $\KneeGapLoad$~kops/s and C++ ahead by $\OverloadThrRatio\times$ at $\OverloadLoad$.
-      Both gaps go away when the recorder writes its coordinated-omission samples after the timed
-      run. The later run also changed the machine, so it cannot show that the recorder was the
-      only cause. Service time under overload stays unknown.
-
-      At loads where the service still meets the sent rate, what matters is which defects the compiler rejects.
-      Rust stops data races. It does not stop every concurrency bug. The cost this study
-      measured is calling Rust from C++. Design time and training time were not measured.
-      A test that never leaves ordinary load misses where the services fall behind.
-
+      TBD
 \end{abstract}
 \end{otherlanguage}
 }
