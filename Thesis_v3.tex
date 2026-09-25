@@ -1308,12 +1308,13 @@ $\PFiftyRange\,\mu$s at the median, and the pooled far tail lands on
 \FarTailLower{}'s side. The end-to-end round-trip is only
 $\BudgetCoreShareMax\%$ language work, so it cannot bound a language effect.
 The same core timed apart is $\BudgetCoreRatio\times$ faster in
-\BudgetCoreFaster{}. At higher loads the campaign shows one gap for each
-language. Rust leads at $\KneeGapLoad$~kops/s, then C++ leads at
-$\OverloadLoad$~kops/s. A later captured setup with deferred fill reproduces
-neither large gap, which is consistent with recorder work but does not isolate
-it from the setup change. Neither overload clock supplies service-latency
-percentiles, so RQ1 has no language verdict after saturation. The RQ2 outcome
+\BudgetCoreFaster{}. At higher loads the campaign clock shows an allocator
+split at $\KneeSplitLoad$~kops/s and a $\OverloadThrRatio\times$ lead for
+\OverloadSustainedFaster{} at $\OverloadLoad$. Moving the fill after the
+window on this same host removes both large patterns and leaves a smaller
+Rust lead. CPU per completed call falls from $\OverloadCpuPerOpRatio\times$
+to $\ProbeAfterCpuPerOpRatio\times$. Neither overload clock supplies
+service-latency percentiles, so RQ1 has no language verdict after saturation. The RQ2 outcome
 is complete for the fourteen-class catalogue set in advance and does not
 depend on the host. All seven in-guarantee classes are
 compile errors in safe Rust. All seven boundary classes compile and
@@ -1335,17 +1336,20 @@ saturation neither available percentile clock estimates service latency. The
 campaign includes producer-side fill, while Clock B measures cumulative
 schedule drift. No overload tail ranking follows.
 
-The campaign throughput shows Rust leading at one rung and C++ later. The
-later captured setup reproduces neither large gap when the fill is removed or
-deferred. That is evidence for recorder work, but the changed processor
-capture and kernel control prevent a one-variable causal claim. Clock A's
+The campaign throughput shows an allocator split at one rung and a C++ lead
+later. Clock B, on this same host, removes both large patterns when the fill
+is deferred and leaves a smaller Rust lead. That isolates the fill as the
+source of the large gaps. The smaller lead is reported and not explained.
+This visit took no allocation profile, and the queue and channel
+substitutions belong to an earlier host. Clock A's
 lower Rust p99 is deliberately coordinated-omission biased and is not an RQ1
-tail result. Clock B's throughput leaves the system-allocator pair unresolved
-and a smaller Rust lead under \texttt{jemalloc}. The closest prior work reports
+tail result. Clock B's throughput is a completed-work comparison. Its
+percentiles are schedule drift. The closest prior work reports
 similar degradation past a threshold rate and attributes it to stackless
 \texttt{async}/\texttt{await}~\cite{arvidsson2025async}. That cause cannot
 carry here because neither side uses an asynchronous runtime. Changing Rust's
-reply handle does not move the floor either. The campaign ratio therefore
+reply handle, on an earlier host, does not explain the smaller lead that
+remains here. The campaign ratio therefore
 remains a result for its harness and does not rank top service rates. The
 prediction logged in advance had instead named bounds and overflow
 checking~\cite{zhang2022runtime,harris2023morello}. That part was wrong. At
@@ -1410,8 +1414,9 @@ runs on Tokio, where a task is a small future on the heap. What they
 timed is the per-task cost of two concurrency runtimes.
 Two further studies agree with the way found
 here~\cite{olsson2023ranmgmt,sundvisson2026drivers}. Below saturation Rust
-draws slightly less CPU. The larger flip under the campaign clock is not
-reproduced with deferred fill and cannot be assigned to Rust's safe code model.
+draws slightly less CPU. The larger flip under the campaign clock is the
+recorder. On this host it is absent once the fill moves, and it cannot be
+assigned to Rust's safe code model. A smaller throughput lead remains.
 
 RQ4 finds a small machine-side seam. A C++ host can
 call an unchanged Rust core across a thin C-ABI seam whose cost on a real
@@ -1466,9 +1471,9 @@ either language. The strongest concurrency result here belongs to the design and
 to neither compiler. Plan the learning curve as a training cost and track
 it. Time the part as well as the round-trip. Sweep past the point where
 the campaign stops keeping up. Audit every operation on the producer's timed
-path, including histogram correction. Run recorder work after the timed
-window, and compare clock changes on the same captured setup before assigning
-a high-load gap to the service.
+path, including histogram correction. On this host, running that work after
+the timed window removes the large high-load gaps and leaves a smaller
+throughput lead.
 
 \section[Where this study sits]{Where this study sits, and what it cannot support}\label{sec:standing}
 The studies closest to this one are the five vendor-hosted theses of
@@ -1480,11 +1485,11 @@ versions. The same failure mode flipped a printed verdict in this
 field: comparable after a code review and then Rust worse by $85$--$91\%$
 after more speed work~\cite{emberg2023asn1}. The parity suite bounds
 what the code does and not speed. The second is that the end-to-end clock
-times the design faithfully and the language hardly at all. Third, the later probes do not share
-the campaign's processor capture or \texttt{nohz\_full} setting. Their failure
-to reproduce the two large gaps supports a recorder explanation, but it does
-not isolate fill timing as the only changed variable. No peer-reviewed study
-reports that same instrument effect. Fourth, neither high-load clock gives
+times the design faithfully and the language hardly at all. Third, the
+same-host control isolates fill timing. It removes the large campaign gaps
+and leaves a smaller Rust lead on the deferred plateau. No allocation profile
+was taken on this visit, so that lead is reported and not explained. Clock A
+was not repeated here. Fourth, neither high-load clock gives
 service-latency percentiles. The campaign includes recorder work, Clock A has
 coordinated-omission bias, and Clock B reports schedule drift. The thesis
 therefore leaves overload service latency unresolved.
@@ -1547,11 +1552,12 @@ removes the queue and cross-thread handoff and times the core call alone. The
 core is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster{} in that
 measurement. At the chosen load of $\ReprLoad$~kops/s the paired test finds
 $\PFiftyDiffAbsMax\,\mu$s in Rust's favour. At p99.99 the slowest Rust variant sits
-$\FarTailLangSep\,\mu$s below the fastest C++ one. The campaign then shows a
-Rust lead at the knee and a $\OverloadThrRatio\times$ C++ lead deeper into
-overload. A later captured setup with deferred fill reproduces neither large
-gap. That comparison is consistent with recorder work, but the setup change
-prevents a one-variable causal claim. The gaps do not rank the two services,
+$\FarTailLangSep\,\mu$s below the fastest C++ one. The campaign then shows
+an allocator split at $\KneeSplitLoad$~kops/s and a $\OverloadThrRatio\times$
+C++ lead deeper into overload. Moving the fill after the timed window on
+this same host removes both large patterns and leaves a smaller Rust lead.
+CPU per completed call falls from $\OverloadCpuPerOpRatio\times$ to
+$\ProbeAfterCpuPerOpRatio\times$. The gaps do not rank the two services,
 and overload service latency remains unresolved. On RAM
 the Rust build carries a few MiB more fixed footprint under both heaps. It does so in
 the same direction and MiB scale on all three hosts timed. The
@@ -1570,10 +1576,11 @@ region. A split of the
 round-trip says how much of what it times the language can own. A defect
 list maps where the guarantee stops.
 
-Future work answers the gaps one at a time. The first job is a same-host
-control that repeats in-run and deferred fill on one captured setup. It would
-separate recorder timing from the processor and kernel-control differences.
-The next job needs no new host. It is to vary the transparent hugepage policy on one host with all
+Future work answers the gaps one at a time. The same-host control is now
+done. In-run and deferred fill were repeated on one host, with the pin and
+\texttt{nohz\_full} held. The large gaps move with the fill. What remains is
+the smaller Rust throughput lead on the deferred plateau, which this visit
+does not explain. The next job needs no new host. It is to vary the transparent hugepage policy on one host with all
 else held fixed. All three hosts agree that the Rust build carries the larger
 footprint. They disagree about how that sits against the cost of the
 heap. The guest put it an order of magnitude higher, and neither
@@ -1727,7 +1734,7 @@ Workloads & signal, mixed & mixed walks the full RAN lifecycle \\
 Active UEs & \SweepUes{} & \\
 Offered-load levels & \NLoadLevels{} & up to $\MaxOfferedLoad$~kops/s \\
 Representative load & $\ReprLoad$~kops/s & fixed, see caption \\
-Campaign-clock throughput plateau & $\SatKnee$~kops/s achieved & the apparent language split at $\KneeGapLoad$~kops/s is not reproduced on the later deferred-fill setup (Section~\ref{sec:overload}) \\
+Campaign-clock throughput plateau & $\SatKnee$~kops/s achieved & both languages track through $\TrackingLoad$~kops/s. At $\KneeSplitLoad$ the Rust heaps split, and deferred fill on this host removes that split (Section~\ref{sec:overload}) \\
 Load model & open loop, fixed intended schedule & latency measured from intended send time \\
 \hline
 \multicolumn{3}{@{}l}{\emph{Campaign}} \\
@@ -1794,17 +1801,17 @@ resident set, but runs a different shard count, load grid, repeat count and tool
 campaign has its own generator and macro prefix.
 
 The two clock diagnostics each cover the same fourteen-load, two-language,
-two-allocator grid over \ProbeAfterRuns{} runs, but their environment capture
-is not the campaign capture. The campaign records \MainCpu{} and
-\texttt{nohz\_full} \MainNohzFull{}. The diagnostics record \ProbeAfterCpu{}
-and \texttt{nohz\_full} \ProbeAfterNohzFull{}. Clock A drops the
-coordinated-omission fill and therefore cannot supply RQ1 percentiles. Clock B
-defers the fill, but its overload percentiles are schedule drift. At the top
-load its \ProbeAfterPairsSystem{} system-allocator pairs are unresolved at
-$p = \ProbeAfterThrPSystem$, while its \ProbeAfterPairsJemalloc{}
-\texttt{jemalloc} pairs resolve a smaller Rust lead at
-$p \ProbeAfterThrPJemalloc$. These diagnostics are consistent with recorder
-work but do not isolate fill timing.
+two-allocator grid. Clock B is this host. The processor is \ProbeAfterCpu{},
+the pin is \ProbeAfterPinned{}, and \texttt{nohz\_full} is
+\ProbeAfterNohzFull{}, matching the campaign's \MainCpu{} and
+\texttt{\MainNohzFull}. Clock A was not repeated here and remains an earlier
+host, so it cannot supply this campaign's percentiles. Clock B defers the
+fill, and its overload percentiles are schedule drift. At the top load Rust
+is ahead on both heaps, at $p \ProbeAfterThrPSystem$ on the system allocator
+and $p \ProbeAfterThrPJemalloc$ under \texttt{jemalloc}. CPU per completed
+operation is $\ProbeAfterCpuPerOpRatio$, against $\OverloadCpuPerOpRatio$
+while the fill ran inside the window. The large ratio is the recorder. The
+smaller throughput lead remains.
 
 The tables that follow are the measurements the main text cites from this appendix.
 
