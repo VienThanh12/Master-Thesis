@@ -466,12 +466,12 @@ it costs to catch them.
 
 \section{RAN control-plane systems and the gNB-CU-CP}\label{sec:ranarch}
 The next-generation radio access network (NG-RAN) is the setting for this comparison.
-Event rates are high: UEs move, and signalling can spike. Delay bounds are
+Event rates are high: UEs move, and signalling can spike. Latency bounds are
 tight and must stay stable. The 5G service and RAN specs state those bounds as key
 performance indicators (KPIs)~\cite{3gpp38913,3gpp22261}. The software lives
 for a long time and keeps growing. Many threads run at once. Those bounds are
-on the delay of a signalling call. A late call still misses them when the
-average call is on time. So the worst case and the tail of that delay matter
+on the latency of a signalling call. A late call still misses them when the
+average call is on time. So the worst case and the tail of that latency matter
 more than the mean. That is why this thesis measures the tail.
 
 The gNB is split on two axes. The first split is central versus distributed.
@@ -553,7 +553,7 @@ C++, Rust, and Go~\cite{karlback2021ran}. One asks whether Rust could replace
 C in RAN node management~\cite{olsson2023ranmgmt}. One builds a packet
 processor, one thread per core, in async Rust. It measures that processor
 against the Data Plane Development Kit (DPDK) program it
-mirrors~\cite{olsson2023asyncpackets}. One measures median and p99 delay for
+mirrors~\cite{olsson2023asyncpackets}. One measures median and p99 latency for
 control-plane steps across five async
 frameworks~\cite{arvidsson2025async}. The last builds matched C++ and Rust
 versions of an Abstract Syntax Notation One (ASN.1) decompiler. It compares
@@ -575,7 +575,7 @@ In that packet-processor study the DPDK program does two to five times as much
 work~\cite{olsson2023asyncpackets}. A compiler does not move throughput that
 far. The run-time does. Olsson's management study and Emberg and Wadsten do
 not change the run-time with the language~\cite{olsson2023ranmgmt,emberg2023asn1}. But they
-report run time and peak memory, not tail delay under rising load. Emberg and
+report run time and peak memory, not tail latency under rising load. Emberg and
 Wadsten come closest in method to this thesis. They still measure a stateless
 transform. It is not a stateful multi-thread
 part. Figure~\ref{fig:gapmap} places the five vendor theses beside the
@@ -608,7 +608,7 @@ Emberg and Wadsten have their own column because they keep the design the same i
 
 What is missing from prior work is a direct, controlled test of a typical
 control-plane part. The open questions are these. Does Rust hold its tail
-delay under too much load against modern C++ when the thread model, operations, and
+latency under too much load against modern C++ when the thread model, operations, and
 data layout stay fixed? Which bug classes does it remove, and at what stage
 are the rest caught? What does its safety model cost in throughput and in CPU
 and memory? What does step-by-step adoption cost in practice? Closing this gap
@@ -683,7 +683,7 @@ operations. The slowest member gates completion. A busy site drives thousands of
 such procedures per second. So a far-tail point is reached often enough to
 matter. The failure shape is the second reason. Under an open-loop clock,
 achieved rate can track offered load until either the service or timed
-producer work becomes limiting. Delay then rises sharply. That is why this
+producer work becomes limiting. Latency then rises sharply. That is why this
 study sweeps past the apparent saturation point and audits what the timed
 path contains.
 
@@ -716,7 +716,7 @@ same stateful, multi-thread control-plane part under too much load.
 
 Table~\ref{tab:design} maps each research question to the method, artefact,
 data and metric that answer it. RQ1 and RQ3 share H1, worded to cover a speed
-tie in both the delay and the resource sense. That wording turns out to be the
+tie in both the latency and the resource sense. That wording turns out to be the
 hypothesis's main weakness. RQ2 does not depend on the host. RQ4 depends on it
 along one axis. Build time is a timing. So it is read as a ratio between two
 toolchains measured in turn on one machine.
@@ -837,14 +837,14 @@ language, not a gap of design or of skill. The spec is itself an output of the
 study. It is the main control against writer bias.
 
 One thread model is used on both sides: shared-nothing and thread-per-shard.
-That layout is known to change tail delay by
+That layout is known to change tail latency by
 itself~\cite{enberg2019threadpercore}. The layout is held fixed as a fairness
 control. A production gNB-CU-CP schedules UE work differently. The id space is split into shards. Each
 shard is owned by one worker thread. That thread alone reads or changes it.
 So no lock guards context state. Callers send a request to the owning shard's
 bounded queue. They wait on a one-shot reply handle. The queue blocks when it
 is full. That is on purpose. A drop rule would hide overload. This study needs
-overload to show up as delay. The only shared mutable state either version
+overload to show up as latency. The only shared mutable state either version
 allows is one atomic counter. No control flow depends on its value.
 Figure~\ref{fig:arch} shows the data flow. There is one multi-producer,
 single-consumer (MPSC) queue per shard. Its worker drains it first in, first
@@ -901,7 +901,7 @@ shard, and that shard's worker drains it.\label{fig:arch}}
 
 Fairness is kept below the design as well as in it. Both builds link the same
 \texttt{jemalloc}. Both keep a system-allocator build as a control. Both
-compile at the same opt level. Both record delay through one high-dynamic-range
+compile at the same opt level. Both record latency through one high-dynamic-range
 (HDR) histogram set up the same way~\cite{tene_hdrhistogram}. Hashing is pinned
 on both sides. SplitMix64 assigns the shard~\cite{steele2014splitmix}. FNV-1a, the
 Fowler--Noll--Vo hash~\cite{rfc9923}, is used inside the map. C++'s default hash of an
@@ -953,7 +953,7 @@ fixed. The governor is \MainGovernor{}, and boost is off. The
 test may use only cores \MainPinned{}. There is no hypervisor. The
 program runs on the host itself, not inside a virtual machine. On those
 cores the kernel turns off its timer tick (\texttt{nohz\_full}).
-If left on, those ticks would show up in the delay numbers. The study does
+If left on, those ticks would show up in the latency numbers. The study does
 not use \texttt{isolcpus}. That flag also stops the kernel sharing work
 across the allowed cores. Each test thread then lands on one core.
 
@@ -1191,7 +1191,7 @@ gaps move with the fill.\label{fig:overload}}
 \end{figure}
 
 \subsection{Resource use (RQ3)}\label{sec:resources}
-The four variants differ in RAM and CPU even where their median delays are
+The four variants differ in RAM and CPU even where their median latencies are
 close. Peak resident set size (RSS) contains two effects of similar size on
 the reported host. The Rust build uses
 $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak RAM than the C++ build under
@@ -1509,7 +1509,7 @@ licence to describe a moved part as ``safe'', and the boundary cases are
 why that reading would be wrong. A deadlocked control plane is an outage. A
 lost counter update that stays silent can misinform a mobility decision. Nothing
 shown here stops either. The second duty is how far the data reaches.
-Tail delay numbers from any single host are a thinner
+Tail latency numbers from any single host are a thinner
 basis for a production roll-out than they look. That is why the earlier
 guest sweep is kept, not dropped.
 
@@ -1761,7 +1761,7 @@ newline-delimited JSON record. Nothing is aggregated at capture time. A record c
 configuration (language, allocator, workload, shard and producer counts, target rate), the
 outcome (operations completed, errors, wall-clock duration, achieved throughput), the latency
 distribution from the HDR histogram (mean, standard deviation, the quartiles, p50, p90, p99,
-p99.9, p99.99 and the maximum, in nanoseconds), a shorter block for inter-operation delay
+p99.9, p99.99 and the maximum, in nanoseconds), a shorter block for inter-operation latency
 variation (mean, standard deviation, p50, p99, p99.9, the maximum and a sample count), the
 resource counters from \texttt{getrusage} (peak resident set size, user and system CPU seconds,
 CPU utilisation), and the per-operation-kind counts. A \texttt{jemalloc} variant adds that
@@ -1824,7 +1824,7 @@ The tables that follow are the measurements the main text cites from this append
 \begin{table}[ht]
 \centering
 \small
-\caption[Inter-operation jitter at the representative load]{Inter-operation delay variation at a
+\caption[Inter-operation jitter at the representative load]{Inter-operation latency variation at a
 sustained offered load of $\ReprLoad$~kops/s, in microseconds, as a median over \NRepeats{}
 interleaved repeats with a bootstrap $95\%$ interval. Measured within one producer and never across
 producers, since two producers share no schedule and a difference between them is not a variation
