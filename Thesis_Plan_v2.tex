@@ -200,17 +200,15 @@ Latency is captured in high-dynamic-range histograms against an intended send
 schedule, so coordinated omission does not hide the tail below
 saturation~\cite{schroeder2006openclosed,tene_hdrhistogram}. Past saturation
 that correction is part of what the clock times, because the producer writes
-its extra samples inside the timed path. Two later full-grid sweeps move that
-work. One drops the fill and starts timing at the actual send. The other keeps
-the intended send time and the cap, and writes the fill after the timed window.
-Neither reproduces the large high-load gaps the campaign clock shows. Both run
-on a captured setup with a different processor and a different
-\texttt{nohz\_full} setting, so they support a recorder explanation of those
-gaps without isolating it from the setup change. Neither supplies
-service-latency percentiles past saturation: the no-fill clock is
-coordinated-omission biased by construction, and the deferred-fill clock
-reports cumulative schedule drift rather than service time. Overload service
-latency is therefore left unresolved.
+its extra samples inside the timed path. A same-host control keeps the
+intended send time and the cap, and writes the fill after the timed window.
+The processor, the pin and \texttt{nohz\_full} stay the same. That control
+removes the large high-load gaps and leaves a smaller Rust throughput lead.
+CPU per completed operation falls with the fill, so the large ratio is the
+recorder. The smaller lead is reported and not explained. A no-fill clock
+from an earlier host is coordinated-omission biased by construction and was
+not repeated here. The deferred-fill clock reports cumulative schedule drift
+rather than service time. Overload service latency is therefore left unresolved.
 
 Evaluation adds a controlled
 fault-injection study~\cite{natella2016fault} and an FFI prototype. On the FFI,
@@ -249,12 +247,11 @@ place. Chapter drafts and a supervisor-read-through skeleton (\texttt{Thesis\_v3
 The reported campaign now runs on a dedicated bare-metal host at the main sweep's own
 shard count, load grid, repeat count and toolchain, and it resolves the RQ1 tail claim
 below saturation. A second bare-metal host at a different design agrees on every
-direction. The earlier virtualised campaign is retained for the host comparison. Two
-later full-grid diagnostics then moved the histogram fill off the producer's timed
-path, and neither reproduces the campaign's large high-load gaps. With the fill
-deferred, the full set of paired repeats cannot separate the two languages at the top
-load under the system allocator, and it resolves a smaller Rust lead under
-\texttt{jemalloc}.
+direction. The earlier virtualised campaign is retained for the host comparison. The
+reported host then repeated the grid with the histogram fill after the timed
+window. The processor, the pin and \texttt{nohz\_full} were held. The large
+high-load gaps move with the fill. A smaller Rust lead remains on both heaps,
+and the visit does not explain it.
 The overload reading is narrowed to match. What remains is supervisor
 review and submission.
 
@@ -267,10 +264,10 @@ Literature review & Drafted in thesis skeleton \\
 Spec + implementations & Complete, frozen at v1.0 (\texttt{spec-v1.0}) \\
 RQ2 (fault injection) & Complete \\
 RQ4 (FFI prototype) & Complete \\
-RQ1 / RQ3 (benchmarks) & Measured on a dedicated bare-metal EPYC host. The
+RQ1 / RQ3 (benchmarks) & Measured on one dedicated bare-metal EPYC host. The
 earlier virtualised campaign is retained for comparison, and a second
-bare-metal host at a different design confirms the directions. Two later
-clock diagnostics narrow what the campaign supports past saturation \\
+bare-metal host at a different design confirms the directions. A same-host
+deferred-fill control isolates the large high-load gaps as recorder work \\
 Thesis document & In progress (full draft + supervisor-facing skeleton) \\
 \hline
 \end{tabular}
@@ -287,7 +284,7 @@ August & Build and measure & Done: specification and both implementations built,
 and benchmark harness operational, reported bare-metal campaign run, earlier
 virtualised campaign retained for the host comparison, second bare-metal host at a different
 design confirming the directions. \\
-September & Resolve & Histogram-fill clock diagnostics and the narrowed overload reading,
+September & Resolve & Same-host fill control on the reported bare-metal host,
 abstract, full proofread, draft to supervisors and Nokia instructors. \\
 October & Review & Revise on supervisor and instructor feedback, prepare the colloquium. \\
 November & Submit & Final revisions, colloquium presentation, submission. \\
@@ -295,11 +292,10 @@ November & Submit & Final revisions, colloquium presentation, submission. \\
 \end{tabular}
 \end{center}
 
-\textbf{Risks.} The far tail is now resolved on bare metal below saturation. Two open
-questions remain and neither needs a new machine. The first is a same-host control that
-repeats in-run and deferred histogram fill on one captured setup, which would separate
-recorder timing from the processor and kernel-control differences the later sweeps also
-changed. The second is the transparent-hugepage candidate for the allocator effect, a
+\textbf{Risks.} The far tail is now resolved on bare metal below saturation. The
+same-host fill control is done: the large high-load gaps move with the recorder,
+and a smaller Rust throughput lead remains unexplained. One open question still
+needs no new machine. It is the transparent-hugepage candidate for the allocator effect, a
 two-setting comparison on one host with everything else pinned. The language effect on
 peak resident set size keeps its sign and its MiB scale on all three hosts measured. The
 size of the allocator effect does not travel between them.
