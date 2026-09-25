@@ -1534,13 +1534,12 @@ def fig_effects(sig_results, outdir):
 def fig_overload(rows, deferred_rows, outdir, overload):
     """Compare the in-run and deferred coordinated-omission fill.
 
-    The campaign shows two apparent language effects in opposite directions:
-    Rust leads at the rung between the languages' tracking limits, while C++
-    leads at the deepest overload point. The later Clock B sweep keeps the
-    intended-send origin and the correction cap, but moves the fill outside the
-    timed window on a different captured setup. Putting both datasets in one
-    figure shows that the later setup does not reproduce either asymmetry. It
-    does not isolate fill timing as the only changed variable.
+    The campaign shows two apparent effects while the histogram fill runs inside
+    the timed window: an allocator split at the first rung one heap still
+    serves, and a language gap at the deepest overload point. Clock B keeps
+    the intended-send origin, the correction cap, the pin and the kernel
+    control, and moves only the fill to after the window. Both bars are that
+    same host.
 
     Allocators remain in separate panels, so the figure does not hide the
     allocator control by pooling it.
@@ -1559,24 +1558,41 @@ def fig_overload(rows, deferred_rows, outdir, overload):
     alloc_names = {"system": "system allocator", "jemalloc": "jemalloc"}
     thr_kops = lambda r: r["throughput_ops_s"] / 1000.0
 
-    # Match the generated \KneeGapLoad definition: take the higher of the two
-    # language-specific tracking limits, with both allocators required to hold
-    # at least 95% of the offered rate. Keeping the derivation here avoids a
-    # typed load that could drift away from gen_macros.tex.
+    # The left-hand rung is the campaign's own first disagreement, derived here
+    # so a typed load cannot drift from gen_macros.tex. When the two languages
+    # stop tracking at different loads, that rung is the higher limit and both
+    # allocators have to hold 95% of the offered rate. When they stop together,
+    # the rung is the higher per-allocator limit, which is where one heap still
+    # serves and the other has already fallen. The figure then has a bar for
+    # the split the macros name, rather than for a language gap that was not
+    # emitted.
     loads = sorted({r["rate"] * r["producers"] for r in rows})
 
-    def tracks(lang, load):
-        for alloc in allocs:
-            vals = [thr_kops(r) for r in _subset(rows, (lang, alloc), load)]
-            if not vals or statistics.median(vals) < 0.95 * load / 1000.0:
-                return False
-        return True
+    def variant_tracks(lang, alloc, load):
+        vals = [thr_kops(r) for r in _subset(rows, (lang, alloc), load)]
+        return bool(vals) and statistics.median(vals) >= 0.95 * load / 1000.0
 
-    limits = {
-        lang: max((load for load in loads if tracks(lang, load)), default=0)
-        for lang in langs
-    }
-    knee_gap = max(limits.values())
+    def lang_limit(lang):
+        held = [
+            load for load in loads
+            if all(variant_tracks(lang, alloc, load) for alloc in allocs)
+        ]
+        return max(held) if held else 0
+
+    limits = {lang: lang_limit(lang) for lang in langs}
+    per_alloc = [
+        max(
+            (load for load in loads if variant_tracks(lang, alloc, load)),
+            default=0,
+        )
+        for lang in langs for alloc in allocs
+    ]
+    if len(set(limits.values())) > 1:
+        knee_gap = max(limits.values())
+    elif len(set(per_alloc)) > 1:
+        knee_gap = max(per_alloc)
+    else:
+        knee_gap = max(limits.values())
     points = [knee_gap, overload]
     if not knee_gap or knee_gap == overload:
         return None
@@ -1586,8 +1602,8 @@ def fig_overload(rows, deferred_rows, outdir, overload):
         axes = [axes]
 
     clocks = [
-        ("Campaign: fill during", rows, ""),
-        ("Later setup: fill after", deferred_rows, "///"),
+        ("Fill during, this host", rows, ""),
+        ("Fill after, this host", deferred_rows, "///"),
     ]
     width = 0.18
     offsets = (-1.5 * width, -0.5 * width, 0.5 * width, 1.5 * width)
@@ -2133,6 +2149,53 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
             "KneeGapAgree": f"{agree}/{total}",
         })
 
+    # Per-allocator tracking. A language can fail the both-heaps test because
+    # one heap's median has fallen while the other still serves the offered
+    # rate, and the repeats on the fallen heap can be split rather than all
+    # collapsed. Those facts are generated here so a sentence cannot invent a
+    # language knee from the absence of KneeGap, and cannot type the repeat
+    # count.
+    alloc_tag = {"system": "System", "jemalloc": "Jemalloc"}
+    alloc_limit = {}
+    for lang in sorted({k[0] for k in variants}):
+        for alloc in sorted({k[1] for k in variants if k[0] == lang}):
+            held = [
+                l for l in loads
+                if med_at((lang, alloc), l, thr_kops) >= 0.95 * l / 1000.0
+            ]
+            limit = max(held) if held else 0
+            alloc_limit[(lang, alloc)] = limit
+            tag = {"cpp": "Cpp", "rust": "Rust"}[lang]
+            macros[f"TrackingLoad{tag}{alloc_tag[alloc]}"] = (
+                f"{limit / 1000.0:.0f}"
+            )
+
+    splits = []
+    for lang in sorted({k[0] for k in alloc_limit}):
+        pair = {alloc: alloc_limit[(lang, alloc)] for alloc in alloc_tag
+                if (lang, alloc) in alloc_limit}
+        if len(pair) < 2 or len(set(pair.values())) < 2:
+            continue
+        keep = max(pair, key=pair.get)
+        drop = min(pair, key=pair.get)
+        splits.append((pair[keep] - pair[drop], lang, keep, drop, pair[keep]))
+    if splits:
+        _, lang, keep, drop, rung = max(splits)
+        runs = _subset(rows, (lang, drop), rung)
+        meet = sum(
+            1 for r in runs if thr_kops(r) >= 0.95 * rung / 1000.0
+        )
+        macros.update({
+            "KneeSplitLoad": f"{rung / 1000.0:.0f}",
+            "KneeSplitLang": LANG_LABEL.get(lang, lang),
+            "KneeSplitKeepHeap": "jemalloc" if keep == "jemalloc" else "system allocator",
+            "KneeSplitDropHeap": "jemalloc" if drop == "jemalloc" else "system allocator",
+            "KneeSplitMeet": str(meet),
+            "KneeSplitRepeats": str(len(runs)),
+            "KneeSplitMedKeep": f"{med_at((lang, keep), rung, thr_kops):.0f}",
+            "KneeSplitMedDrop": f"{med_at((lang, drop), rung, thr_kops):.0f}",
+        })
+
     # The preamble of tab:latency travels with its generated body. The table gains
     # a p99.99 column the moment a campaign records one, and a hand-written
     # column specification in the thesis would then be one column short of the
@@ -2391,9 +2454,11 @@ def write_generated_macros(rows, outdir, load, sig_results=(), budget=None, ffi=
                 if vals:
                     per_op[lang] = statistics.median(vals)
             if len(per_op) == 2 and min(per_op.values()) > 0:
+                higher = max(per_op, key=per_op.get)
                 macros["OverloadCpuPerOpRatio"] = (
-                    f"{max(per_op.values()) / min(per_op.values()):.1f}"
+                    f"{per_op[higher] / min(per_op.values()):.1f}"
                 )
+                macros["OverloadCpuPerOpHigher"] = LANG_LABEL.get(higher, higher)
 
     # The allocator effect on peak RSS, held against the language effect above:
     # jemalloc minus the system allocator, with the language held fixed.

@@ -57,18 +57,26 @@ TRACK_TOLERANCE = 0.95
 
 
 def knee_load():
-    """The campaign's \\KneeGapLoad, in ops/s.
+    """The campaign's \\KneeGapLoad, in ops/s, or None when it was not emitted.
 
     Read from the generated macros rather than repeated here, because the
     knee comparison is only meaningful if both datasets are quoted at the
     same rung. If the campaign is ever re-derived and the knee moves, this
-    follows it instead of silently comparing two different loads.
+    follows it instead of silently comparing two different loads. A campaign
+    whose two languages share a tracking limit does not emit the macro, and
+    that absence is the signal: there is no language rung to compare.
     """
     path = os.path.join(ROOT, "figures", "gen_macros.tex")
-    m = re.search(r"\\newcommand\{\\KneeGapLoad\}\{(\d+)\}", open(path).read())
-    if not m:
-        raise SystemExit("probe_facts: no \\KneeGapLoad in gen_macros.tex")
-    return int(m.group(1)) * int(OPS_PER_KOP)
+    text = open(path).read()
+    # A shared language knee when the two tracking limits differ. Otherwise the
+    # allocator split, which is the disagreement this campaign actually emits.
+    # plot_figures.py runs first, so the macro read here is the one just written.
+    gap = re.search(r"\\newcommand\{\\KneeGapLoad\}\{(\d+)\}", text)
+    split = re.search(r"\\newcommand\{\\KneeSplitLoad\}\{(\d+)\}", text)
+    chosen = gap or split
+    if not chosen:
+        return None
+    return int(chosen.group(1)) * int(OPS_PER_KOP)
 
 
 def median(xs):
@@ -240,6 +248,31 @@ def summarise(rows, prefix, macros, percentiles):
     cpp_thr = by_lang(cell, "cpp", overload, thr_kops)
     rust_thr = by_lang(cell, "rust", overload, thr_kops)
     macros[f"{prefix}ThrRatio"] = f"{cpp_thr / rust_thr:.2f}"
+    # CPU per completed operation, the same quantity as OverloadCpuPerOpRatio:
+    # the per-allocator median of cpu_pct divided by the per-allocator median
+    # throughput, then the median across allocators, then the ratio of the two
+    # languages. Emitted for both clocks so the deferred-fill residual is read
+    # from this log and not from another machine.
+    per_op = {}
+    for lang, tag in (("cpp", "Cpp"), ("rust", "Rust")):
+        vals = []
+        for alloc in ALLOCS:
+            runs = cell.get((lang, alloc, overload))
+            if not runs:
+                continue
+            thr = median([thr_kops(r) for r in runs])
+            if thr <= 0:
+                continue
+            vals.append(median([r["cpu_pct"] for r in runs]) / thr)
+        if vals:
+            per_op[lang] = median(vals)
+            macros[f"{prefix}CpuPerOp{tag}"] = f"{per_op[lang]:.2f}"
+    if len(per_op) == 2 and min(per_op.values()) > 0:
+        higher = max(per_op, key=per_op.get)
+        macros[f"{prefix}CpuPerOpRatio"] = (
+            f"{per_op[higher] / min(per_op.values()):.2f}"
+        )
+        macros[f"{prefix}CpuPerOpHigher"] = "C++" if higher == "cpp" else "Rust"
 
     if percentiles:
         # How many of the fourteen loads have the lower Rust p99.
@@ -273,7 +306,7 @@ def summarise(rows, prefix, macros, percentiles):
     # The campaign's knee rung, where its asymmetry runs the other way: Rust
     # still serves the offered rate there and C++ has already fallen.
     knee = knee_load()
-    if knee in loads:
+    if knee is not None and knee in loads:
         macros[f"{prefix}KneeLoad"] = f"{knee / OPS_PER_KOP:.0f}"
         for lang, tag in (("cpp", "Cpp"), ("rust", "Rust")):
             macros[f"{prefix}KneeThr{tag}"] = (
@@ -299,17 +332,23 @@ def main():
     host_facts(matching_env(start), "ProbeStart", macros)
     host_facts(matching_env(after), "ProbeAfter", macros)
 
-    # Both sweeps ran on the same rented box, so a disagreement between the
-    # two captures means one of them was matched to the wrong log.
-    for field in ("Cpu", "NohzFull", "Kernel", "Pinned"):
-        if macros[f"ProbeStart{field}"] != macros[f"ProbeAfter{field}"]:
-            raise SystemExit(
-                f"probe_facts: {field} differs between the two captures "
-                f"({macros['ProbeStart' + field]!r} vs "
-                f"{macros['ProbeAfter' + field]!r}); check the env match"
-            )
-    macros["ProbeCpu"] = macros["ProbeStartCpu"]
-    macros["ProbeNohzFull"] = macros["ProbeStartNohzFull"]
+    # Shared names exist only when the two captures agree. Clock A can be an
+    # earlier host while Clock B is the campaign's own fill control, and a
+    # single ProbeCpu would then describe the wrong machine for one of them.
+    # A disagreement is reported. It is not a mismatched log.
+    disagreed = [
+        field for field in ("Cpu", "NohzFull", "Kernel", "Pinned")
+        if macros[f"ProbeStart{field}"] != macros[f"ProbeAfter{field}"]
+    ]
+    if disagreed:
+        print(
+            "probe_facts: clocks differ in "
+            + ", ".join(disagreed)
+            + "; shared ProbeCpu and ProbeNohzFull omitted"
+        )
+    else:
+        macros["ProbeCpu"] = macros["ProbeStartCpu"]
+        macros["ProbeNohzFull"] = macros["ProbeStartNohzFull"]
 
     macros["ProbeStartLog"] = os.path.basename(start).replace("_", r"\_")
     macros["ProbeAfterLog"] = os.path.basename(after).replace("_", r"\_")
@@ -317,7 +356,9 @@ def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w") as fh:
         fh.write("% Generated by bench/probe_facts.py -- do not edit by hand.\n")
-        fh.write("% Diagnostic sweeps. NOT the compared pair. See spec/SPECIFICATION.md.\n")
+        fh.write("% Clock A is the newest fair-start log and is not this campaign's host.\n")
+        fh.write("% Clock B is the newest fair-after log. When it shares the campaign host,\n")
+        fh.write("% it is the fill control. Clock B percentiles are not emitted.\n")
         for name in sorted(macros):
             fh.write(f"\\newcommand{{\\{name}}}{{{macros[name]}}}\n")
     print(f"wrote {OUT} ({len(macros)} macros)")
