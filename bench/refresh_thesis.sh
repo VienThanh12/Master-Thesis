@@ -41,14 +41,15 @@ for dir in results results-baremetal; do
   done
 done
 
-# The fair-clock sweeps are diagnostics rather than a replacement campaign.
-# Their prefix keeps them out of the unprefixed result layer, while this
-# generator makes every value quoted by the overload diagnosis reproducible.
-echo "== regenerating fair-clock diagnostic macros =="
-python3 "$here/probe_facts.py"
-
+# The fair-clock sweeps are not a second campaign. Clock B, the newest
+# fair-after log, is the fill control for whatever campaign plot_figures just
+# summarised, and it reads that campaign's knee from the macros just written.
+# Clock B percentiles stay omitted: past saturation they are schedule drift.
 echo "== regenerating figures, tables, and generated macros =="
 python3 "$here/plot_figures.py" "$@"
+
+echo "== regenerating fair-clock diagnostic macros =="
+python3 "$here/probe_facts.py"
 
 # The bare-metal confirmation campaign is a separate dataset with its own design,
 # so it has its own generator rather than a flag on the one above. It describes a
