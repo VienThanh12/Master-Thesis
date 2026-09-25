@@ -266,12 +266,20 @@ def load_map():
            rx=8, stroke=RED)
 
     d.text(40, 248, "kops/s finished", 12, FAINT)
-    # bars at descriptive gap and overload
-    d.text(40, 278, f"at {M['KneeGapLoad']} (shown)", 12, AMBER_DEEP)
-    bar(d, 220, 264, 180, 18, GREEN, GREEN, f"Rust  {M['KneeGapThrFast']}",
-        GREEN_DEEP)
-    bar(d, 220, 288, 65, 18, BLUE, BLUE, f"C++  {M['KneeGapThrSlow']}",
-        BLUE_DEEP)
+    if "KneeGapLoad" in M:
+        d.text(40, 278, f"at {M['KneeGapLoad']} (shown)", 12, AMBER_DEEP)
+        bar(d, 220, 264, 180, 18, GREEN, GREEN, f"Rust  {M['KneeGapThrFast']}",
+            GREEN_DEEP)
+        slow = float(M["KneeGapThrSlow"]) / max(float(M["KneeGapThrFast"]), 1.0)
+        bar(d, 220, 288, 180 * slow, 18, BLUE, BLUE,
+            f"C++  {M['KneeGapThrSlow']}", BLUE_DEEP)
+    else:
+        d.text(40, 278, f"at {M['KneeSplitLoad']} (shown)", 12, AMBER_DEEP)
+        bar(d, 220, 264, 180, 18, AMBER, AMBER,
+            f"jemalloc  {M['KneeSplitMedKeep']}", AMBER_DEEP)
+        slow = float(M["KneeSplitMedDrop"]) / max(float(M["KneeSplitMedKeep"]), 1.0)
+        bar(d, 220, 288, 180 * slow, 18, AMBER, AMBER,
+            f"system  {M['KneeSplitMedDrop']}", AMBER_DEEP)
 
     d.text(500, 278, f"at {M['OverloadLoad']} (tested)", 12, RED_DEEP)
     bar(d, 680, 264, 110, 18, BLUE, BLUE, f"C++  {M['OverloadThrCpp']}",
