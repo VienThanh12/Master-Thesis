@@ -555,7 +555,8 @@ against the Data Plane Development Kit (DPDK) program it
 mirrors~\cite{olsson2023asyncpackets}. One measures median and p99 latency for
 control-plane steps across five async
 frameworks~\cite{arvidsson2025async}. The last builds matched C++ and Rust
-versions of an Abstract Syntax Notation One (ASN.1) decompiler. It compares
+versions of one program. That program turns a packed Abstract Syntax Notation
+One (ASN.1) message back into a readable form. It compares
 them with statistical tests~\cite{emberg2023asn1}. All five are directly
 relevant. They do not all favour Rust. Olsson and Stenstr\"om's packet
 processor reaches a fifth to a half of DPDK's throughput, with far worse
@@ -575,9 +576,9 @@ work~\cite{olsson2023asyncpackets}. A compiler does not move throughput that
 far. The run-time does. Olsson's management study and Emberg and Wadsten do
 not change the run-time with the language~\cite{olsson2023ranmgmt,emberg2023asn1}. But they
 report run time and peak memory, not tail latency under rising load. Emberg and
-Wadsten come closest in method to this thesis. They still measure a stateless
-transform. It is not a stateful multi-thread
-part. Figure~\ref{fig:gapmap} places the five vendor theses beside the
+Wadsten come closest in method to this thesis. Their program keeps no state
+between calls. The service in this thesis stores state and uses many threads.
+Figure~\ref{fig:gapmap} places the five vendor theses beside the
 general-purpose comparisons~\cite{pereira2017energy} and the matched
 systems-software pairs~\cite{emmerich2019drivers,suchert2023stamp}. Each group holds some of what a fair test would need. None
 holds all of it.
