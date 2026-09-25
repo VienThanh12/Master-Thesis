@@ -133,7 +133,14 @@
       parity tests, and the evaluation adds fault injection and a foreign function interface
       (FFI) prototype.
       
-      TBD
+      Safe Rust rejects all seven injected memory-safety and data-race classes at compile time.
+      The same seven build in C++. Seven further classes fail in both. Below saturation the
+      paired test resolves $\PFiftyDiffAbsMax\,\mu$s, and an end-to-end call spends only
+      $\BudgetCoreShareMax\%$ on language work. Both languages meet the offered rate through
+      $\TrackingLoad$~kops/s. With the fill inside the timed window, \OverloadSustainedFaster{}
+      holds $\OverloadThrRatio\times$ the throughput at $\OverloadLoad$~kops/s. On this same
+      host, moving the fill to after the window removes that large gap and leaves a smaller
+      Rust lead. Overload service latency stays unresolved.
 \end{abstract}
 \end{otherlanguage}
 }
@@ -719,8 +726,8 @@ toolchains measured in turn on one machine.
 \caption[How each research question is answered]{How each research question is
 answered. RQ1 and RQ3 carry two methods rather than one. Below saturation the
 sweep measures the round-trip a deployment would experience. The split of the
-core from the handoff measures the part the language can own, while later
-diagnostics test whether high-load recorder work contaminates the sweep.
+core from the handoff measures the part the language can own, while a
+same-host control tests whether high-load recorder work contaminates the sweep.
 \label{tab:design}}
 \renewcommand{\arraystretch}{1.2}
 \setlength{\tabcolsep}{4pt}
@@ -751,10 +758,10 @@ instead of waiting for replies~\cite{schroeder2006openclosed}. The four build
 variants are interleaved inside each repeat. A second timing splits the core operation
 from the cross-thread handoff around it. The end-to-end round-trip bundles two
 costs of two kinds. Only one of them can differ between the languages. A third
-timing takes the contended queue and the reply handle on their own. Later
-full-grid diagnostics move or remove histogram fill from the timed producer
-path. Together these tests narrow the overload explanation, but the
-cross-setup comparison does not isolate one cause.
+timing takes the contended queue and the reply handle on their own. A
+same-host control then writes the histogram fill after the timed window,
+holding the pin and \texttt{nohz\_full}. That control isolates the fill.
+Clock A, which drops the fill, was not repeated on this host.
 
 RQ2 is answered by controlled fault injection~\cite{natella2016fault}. Each
 defect class is a small program of its own in both languages.
@@ -906,8 +913,9 @@ campaign-clock overload result of Section~\ref{sec:overload}. One is the bounded
 from \texttt{sync\_channel}. C++23 still has no such primitive, so C++ builds
 one from a mutex and two condition variables. The other is the reply handle,
 \texttt{std::promise} against a fresh \texttt{mpsc} channel per request. Tests
-of those primitives and a replacement reply handle do not reproduce the two
-large campaign gaps. A
+of those primitives and a replacement reply handle were run on an earlier
+host. They do not explain the smaller lead that remains on this one once the
+fill moves. A
 third carries the core-operation result of Section~\ref{sec:perfresults}: the
 per-shard container is each language's own standard hash map. A fourth is the
 request encoding. C++ has no payload-carrying enumeration in this idiom, so a
@@ -1102,88 +1110,78 @@ blind zone by a factor of $\BudgetBoundVsCore$.\label{fig:budget}}
 \end{figure}
 
 \subsection{Past saturation (RQ1)}\label{sec:overload}
-Under the campaign clock, the four variants appear to stop keeping up at
-loads that do not match. The Rust versions hold to
-$\TrackingLoadRust$~kops/s. The C++ versions hold to $\TrackingLoadCpp$. Those two loads are the
-knees reported by that instrument. So at
-$\KneeGapLoad$~kops/s \KneeGapFaster{} still serves $\KneeGapThrFast$~kops/s
-where \KneeGapSlower{} has fallen to $\KneeGapThrSlow$. That load is
-shown and not tested, because it was found after the data was in hand.
-Figure~\ref{fig:loadmap} maps the representative load, both knees, and the
-overload point.
+Under the campaign clock both languages keep up through
+$\TrackingLoadCpp$~kops/s and $\TrackingLoadRust$~kops/s, the same load.
+At $\KneeSplitLoad$~kops/s the split is inside Rust. The \KneeSplitKeepHeap{}
+heap still serves $\KneeSplitMedKeep$~kops/s. The \KneeSplitDropHeap{} median
+is $\KneeSplitMedDrop$, and $\KneeSplitMeet$ of $\KneeSplitRepeats$ repeats
+on that heap still meet the offered rate. That rung was found after the data
+and is shown, not tested.
+Figure~\ref{fig:loadmap} maps the representative load, the shared tracking
+load, the allocator split, and the overload point.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.78\linewidth]{diagrams/pdf/30_load_regimes.pdf}
 \caption[Campaign-clock load regimes on the offered-load axis]{Four operating points on
 the offered-load axis, spaced for reading, not to scale. Ticks are
-$\ReprLoad$, $\TrackingLoadCpp$, $\TrackingLoadRust$ and
-$\OverloadLoad$~kops/s. The comparison at $\KneeGapLoad$ belongs to the
-campaign clock and is absent on the later deferred-fill setup. Bars are campaign-clock
-throughput there and at
-$\OverloadLoad$~kops/s.\label{fig:loadmap}}
+$\ReprLoad$, the shared tracking load $\TrackingLoad$, the allocator split at
+$\KneeSplitLoad$, and $\OverloadLoad$~kops/s. Bars at the split are the two
+Rust heaps on the campaign clock. Bars at $\OverloadLoad$ are the two
+languages, also on that clock.\label{fig:loadmap}}
 \end{figure}
 
-Deeper, at $\OverloadLoad$~kops/s sent, the order flips.
-\OverloadSustainedFaster{} still finishes $\OverloadThrCpp$~kops/s where
-\OverloadSustainedSlower{} finishes $\OverloadThrRust$, a factor of
-$\OverloadThrRatio$, in \OverloadThrAgree{} runs under both heaps. The
-Holm-corrected $p$ is as small as this test family can go. The slower variant
-uses $\OverloadCpuPerOpRatio$ times the CPU for each call it finishes. That
-quantity belongs to the whole campaign process, including the recorder, and
-does not identify service work. The bounded queue and reply handle do not
-reproduce the order when timed alone.
+Deeper, at $\OverloadLoad$~kops/s sent, \OverloadSustainedFaster{} still
+finishes $\OverloadThrCpp$~kops/s where \OverloadSustainedSlower{} finishes
+$\OverloadThrRust$, a factor of $\OverloadThrRatio$, in \OverloadThrAgree{}
+runs under both heaps. The Holm-corrected $p$ is as small as this test family
+can go. The slower variant uses $\OverloadCpuPerOpRatio$ times the CPU for
+each call it finishes. That quantity belongs to the whole campaign process,
+including the recorder, and does not identify service work.
 
-Two later sweeps test the recorder explanation on a separate captured setup.
-Each repeats the fourteen-load grid over $\ProbeAfterRuns$ runs, holding the
-pin set, allocator pair and repeat count. The processor capture is
-\ProbeAfterCpu{}, against \MainCpu{} for the campaign, and the later setup has
-\ProbeAfterNohzFull{} for \texttt{nohz\_full} against
-\texttt{\MainNohzFull} in the campaign. When a sender falls behind, the
-harness writes up to $\ProbeAfterCap$ extra samples for each finished call.
-Clock A drops that fill and starts at the actual send. Its percentiles are
-coordinated-omission biased by construction, so its lower Rust p99 is a
-diagnostic direction and not an RQ1 tail result. Clock B keeps the intended
-send time and cap but writes the fill after the timed window.
+Clock B repeats the same grid on this host, over $\ProbeAfterRuns$ runs.
+The processor is \ProbeAfterCpu{}, the pin is \ProbeAfterPinned{}, and
+\texttt{nohz\_full} is \ProbeAfterNohzFull{}. Those match the campaign.
+Only the fill moves, to after the timed window. When a sender falls behind,
+the harness still writes up to $\ProbeAfterCap$ extra samples for each
+finished call, but it writes them outside the window. Clock A was not
+repeated here. It remains an earlier host. Its percentiles stay
+coordinated-omission biased, so they are not an RQ1 tail result.
 
-Neither diagnostic repeats the large collapse. With the fill delayed, both
-languages keep up through $\ProbeAfterTrackRust$~kops/s. At the top load the
-system-allocator medians are $\ProbeAfterThrCppSystem$~kops/s for C\texttt{++}
-and $\ProbeAfterThrRustSystem$ for Rust. The full \ProbeAfterPairsSystem{}
-paired repeats cannot distinguish them, at
-$p = \ProbeAfterThrPSystem$. Under \texttt{jemalloc}, Rust serves
-$\ProbeAfterThrRustJemalloc$~kops/s against
-$\ProbeAfterThrCppJemalloc$ for C\texttt{++}, and the full
-\ProbeAfterPairsJemalloc{}-pair test resolves that smaller Rust lead at
-$p \ProbeAfterThrPJemalloc$. These post-hoc diagnostic $p$-values are
-unadjusted and do not join the pre-committed Holm family. Percentiles on Clock
-B are schedule drift, not service time, so throughput carries this diagnostic.
-
-Clock B also lacks the campaign's knee asymmetry. At
-$\KneeGapLoad$~kops/s the campaign has \KneeGapFaster{} serving
-$\KneeGapThrFast$~kops/s where \KneeGapSlower{} has fallen to
-$\KneeGapThrSlow$, a factor of $\KneeGapRatio$. With the fill delayed,
+Moving the fill removes both campaign patterns. At $\KneeSplitLoad$~kops/s,
 C\texttt{++} serves $\ProbeAfterKneeThrCpp$~kops/s and Rust serves
-$\ProbeAfterKneeThrRust$. Removing one gap that favours each language on the
-later setup is consistent with recorder work causing the campaign pattern.
-The host and kernel-control change prevents a one-variable causal claim. The
-campaign stays the pre-committed compared pair, while the later sweeps change
-how its high-load gaps are interpreted. They do not supply service-latency
-percentiles after saturation and do not establish a general top-rate rank.
-Figure~\ref{fig:overload} compares both clocks at both loads and keeps the two
-heaps apart.
+$\ProbeAfterKneeThrRust$. Rust still tracks to $\ProbeAfterTrackRust$~kops/s
+and C\texttt{++} to $\ProbeAfterTrackCpp$. At the top load Rust is ahead on
+both heaps. On the system allocator C\texttt{++} finishes
+$\ProbeAfterThrRatioSystem$ of Rust's throughput, $\ProbeAfterThrCppSystem$
+against $\ProbeAfterThrRustSystem$~kops/s, at $p \ProbeAfterThrPSystem$.
+Under \texttt{jemalloc} the figure is $\ProbeAfterThrRatioJemalloc$,
+$\ProbeAfterThrCppJemalloc$ against $\ProbeAfterThrRustJemalloc$, at
+$p \ProbeAfterThrPJemalloc$. These tests sit outside the pre-committed Holm
+family.
+
+What remains is that smaller Rust lead. CPU per completed operation on the
+deferred plateau is $\ProbeAfterCpuPerOpRatio$, with
+\ProbeAfterCpuPerOpHigher{} the higher one, against $\OverloadCpuPerOpRatio$
+while the fill ran inside the window. The large ratio is the recorder. The
+smaller lead is not that ratio. This visit took no allocation profile, so
+the lead is reported and not explained. Queue and channel substitutions from
+an earlier host do not explain it either. Percentiles on Clock B are
+schedule drift, not service time. The campaign stays the pre-committed
+compared pair. Figure~\ref{fig:overload} compares both clocks on this host
+and keeps the two heaps apart.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_overload.pdf}
-\caption[Campaign and deferred-fill throughput on two captured setups]{Throughput at the
-two loads where the campaign shows opposite language gaps. Bars are medians
-over \NRepeats{} interleaved repeats with bootstrap $95\%$ intervals. Solid
-bars are the \MainCpu{} campaign with \texttt{nohz\_full} on
-\texttt{\MainNohzFull}. Hatched bars are the later \ProbeAfterCpu{} diagnostic
-with \ProbeAfterNohzFull{} for \texttt{nohz\_full}, where the same fill runs
-after the timed window. Panels keep the two heaps separate. The later setup
-does not reproduce either large campaign gap.\label{fig:overload}}
+\caption[Campaign and deferred-fill throughput on this host]{Throughput on
+this host at the allocator-split load and at the deepest overload point.
+Bars are medians over \NRepeats{} interleaved repeats with bootstrap $95\%$
+intervals. Solid bars fill the histogram during the timed window. Hatched
+bars are the same processor, \MainCpu{}, the same pin, and the same
+\texttt{nohz\_full} \MainNohzFull{}, with that fill after the window. Panels
+keep the two heaps separate. Both bars are this host. The large campaign
+gaps move with the fill.\label{fig:overload}}
 \end{figure}
 
 \subsection{Resource use (RQ3)}\label{sec:resources}
@@ -1209,9 +1207,11 @@ cost, not more live application data.
 CPU is a separate result. At $\ReprLoad$~kops/s Rust uses at most
 $\CpuDiffAbsMax$ percentage points less. At $\OverloadLoad$~kops/s the slower
 campaign-clock variant instead uses $\OverloadCpuPerOpRatio$ times the CPU per
-finished call. The deferred-fill sweep does not reproduce that large inversion,
-which supports a recorder-work explanation without isolating it from the changed
-setup. Counters on
+finished call. On this host the deferred-fill sweep does not reproduce that
+large ratio. CPU per completed operation there is $\ProbeAfterCpuPerOpRatio$,
+with \ProbeAfterCpuPerOpHigher{} the higher one. The large ratio is the
+recorder. The smaller throughput lead remains, and this visit does not
+explain it. Counters on
 the second bare-metal host cover only the isolated core call. Rust retires
 $\BmInstrDelta\%$ \BmInstrDeltaDir{} instructions and finishes in
 $\BmCycleDelta\%$ \BmCycleDeltaDir{} cycles, while missing cache
