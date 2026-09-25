@@ -478,7 +478,7 @@ The gNB is split on two axes. The first split is central versus distributed.
 The gNB runs a protocol stack: a set of layered radio protocols from the air
 interface up to RRC signalling. A central unit (gNB-CU) hosts the higher layers.
 One or more distributed units (gNB-DU) host the lower layers. Those layers sit close to
-the radio and are tight on time. The second split is control versus user
+the radio and have tight low latency requirements. The second split is control versus user
 plane, inside the central unit. It splits the control-plane function
 (gNB-CU-CP) from the user-plane function (gNB-CU-UP). These parts talk over
 standard links. NG goes toward the 5G core, F1 sits between the CU and the DU,
