@@ -1158,22 +1158,21 @@ add_notes(s, [
 # =====================================================================
 # Slide 20: Past saturation (generated instrument comparison)
 # =====================================================================
-# The figure shows the campaign gaps absent on a later setup. The title must
-# not say the fill created them: that run also changed the processor and
-# nohz_full, so the thesis leaves the recorder as a consistent reading and
-# not as an isolated cause. Service time under overload stays unknown.
-s = headline(1, "The later setup lacks both large overload gaps",
-             "Deferred fill, and also a different processor and kernel control")
+# Both bars are this host. The large gaps move with the fill. A smaller
+# Rust lead remains, and the visit does not explain it.
+s = headline(1, "Both clocks are this host. Only the fill moves",
+             "The large gaps follow the recorder. A smaller Rust lead remains")
 add_figure(s, result_figure("fig_overload"), top=Cm(3.25), height=Cm(7.15))
 add_notes(s, [
-    (f"{M('KneeGapLoad')} kops/s: {M('KneeGapRatio')}\u00d7 becomes "
-     f"{M('ProbeAfterKneeThrCpp')} vs {M('ProbeAfterKneeThrRust')}",
-     "Rust's lead is absent later."),
-    (f"{M('OverloadLoad')} kops/s: {M('OverloadThrRatio')}\u00d7 becomes "
-     f"{M('ProbeAfterThrCpp')} vs {M('ProbeAfterThrRust')}",
-     "C++'s lead is absent there too."),
-    ("Service time stays unknown",
-     "The machine changed as well."),
+    (f"Heap split at {M('KneeSplitLoad')} kops/s",
+     f"{M('KneeSplitKeepHeap')} serves {M('KneeSplitMedKeep')}. "
+     f"{M('KneeSplitMeet')} of {M('KneeSplitRepeats')} repeats on the other heap still meet the rate."),
+    (f"Overload at {M('OverloadLoad')} kops/s",
+     f"After the window, C++ finishes {M('ProbeAfterThrRatioSystem')} and "
+     f"{M('ProbeAfterThrRatioJemalloc')} of Rust's throughput."),
+    (f"CPU per call falls",
+     f"{M('OverloadCpuPerOpHigher')} {M('OverloadCpuPerOpRatio')} times, then "
+     f"{M('ProbeAfterCpuPerOpHigher')} {M('ProbeAfterCpuPerOpRatio')} times."),
 ], top=Cm(10.6), height=Cm(2.4))
 
 # =====================================================================
@@ -1200,8 +1199,9 @@ add_caption(s, Cm(10.1), size=11, text=
             f"The bounded queue and the reply handle do not reproduce the gap when timed alone: "
             f"{M('ContentionThrCpp')} against {M('ContentionThrRust')} kops/s is only "
             f"{M('ContentionRatio')}\u00d7 at p = {M('ContentionP')}. A closed loop of the same service is not a "
-            f"C++ win. A later setup with deferred fill also lacks both campaign gaps, but that run changed "
-            f"the machine, so the recorder is not isolated.")
+            f"C++ win. On this host, deferred fill removes the large gap and leaves a smaller "
+            f"Rust lead. The queue and channel probes were a different machine, so they do "
+            f"not explain that lead.")
 
 # =====================================================================
 # Slide 22: RQ3 resources (generated figure)
@@ -1349,8 +1349,9 @@ add_data_table(
     [
         ("RQ", "Headline finding", "Evidence"),
         ("RQ1", f"Below saturation the median gap is small, and the round-trip is only "
-                f"{M('BudgetCoreShareMax')}% language work. Rust's pooled far tail sits lower. "
-                "A later setup lacks both gaps, but the machine also changed",
+                f"{M('BudgetCoreShareMax')}% language work. Rust's pooled far tail sits lower "
+                "at the representative load. On this host the large overload gap moves with "
+                "the fill, and a smaller Rust lead remains",
          "Far tail resolved on bare metal. Overload service time is not"),
         ("RQ2", f"All {len(IN_GUARANTEE)} in-guarantee classes are compile errors in safe Rust. The "
                 f"{len(BOUNDARY)} boundary classes compile in both languages", "Final"),
@@ -1383,7 +1384,7 @@ add_data_table(
         ("Hypothesis", "Statement, and what the evidence did to it", "Verdict"),
         ("H1", "Equivalent below saturation, with any difference confined to the far tail. No margin was "
                "set, so a small median gap is not equivalence. The far tail favours Rust. After saturation "
-               "the clocks do not rank service time, and the later setup also changed the machine.",
+               "the clocks do not rank service time. On this host the large gap moves with the fill.",
          "Not accepted as written"),
         ("H2", "Safe Rust prevents the classes C++ leaves to best-effort detection. Exact for the "
                f"{len(IN_GUARANTEE)} injected classes. The boundary classes are concurrency defects it does not prevent.",
