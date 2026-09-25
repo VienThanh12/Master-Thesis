@@ -141,6 +141,7 @@
       holds $\OverloadThrRatio\times$ the throughput at $\OverloadLoad$~kops/s. On this same
       host, moving the fill to after the window removes that large gap and leaves a smaller
       Rust lead. Overload service latency stays unresolved.
+      
 \end{abstract}
 \end{otherlanguage}
 }
@@ -537,15 +538,15 @@ highlighted inside the gNB-CU-CP.\label{fig:ngran}}
 
 \section{Research gap}\label{sec:gap}
 The RAN control plane has many threads and
-tight delay bounds. Tail delay under too much load, not mean throughput, sets
+tight latency bounds. Tail latency under too much load, not mean throughput, sets
 the quality the network delivers. C++ gives the control and speed the domain
 needs. But it leaves whole classes of memory and thread bugs to detection
-after the fact. Rust promises to block those classes at compile time at no
-run-time cost. It also offers a step-by-step adoption path through the C
+at runtime. Rust promises to block those classes of errors at compile time at no
+run-time overhead. It also offers a step-by-step adoption path through the C
 application binary interface (ABI).
 
-The domain is not unstudied. The volume of prior work is easy to miss, because
-almost none of it is indexed. Five vendor-hosted master's theses, all
+The domain is not unstudied, though the volume of prior work is easy to miss
+because almost none of it is indexed. Five vendor-hosted master's theses, all
 done at Ericsson, have compared candidate languages for RAN and telecom
 software. One weighs run-time cost against how fast people can build, across
 C++, Rust, and Go~\cite{karlback2021ran}. One asks whether Rust could replace
@@ -1065,10 +1066,15 @@ outside the tested family because one disturbed operation can determine it.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.78\linewidth]{figures/fig_load_sweep.pdf}
-\caption[The load sweep: tail latency and achieved throughput]{The load sweep,
-both panels against offered load. Lines are medians over \NRepeats{} repeats,
-and the bands are bootstrap $95\%$ confidence intervals.\label{fig:loadsweep}}
+\includegraphics[width=\linewidth]{figures/fig_load_sweep.pdf}
+\caption[The load sweep: tail latency and achieved throughput]{Panel (a) is
+p99 below the knee, on one linear scale, through $\TrackingLoad$~kops/s.
+The four variants sit within a few microseconds, so they are drawn together.
+In (b) and (c) each variant has its own panel. Panel (b) is the tail on a
+log scale across the whole sweep. Panel (c) is achieved throughput, and the
+dotted line matches the offered load. Lines are medians over \NRepeats{}
+repeats, and the bands in (b) and (c) are bootstrap $95\%$ confidence
+intervals.\label{fig:loadsweep}}
 \end{figure}
 
 The far tail can be read here too. The runs' histograms are pooled, which

@@ -392,20 +392,49 @@ def fig_throughput_vs_load(rows, outdir):
 # side by side on their own slide, where two separate images are what the layout
 # wants. The thesis reads them as a pair against one x axis, so it takes this
 # one instead and pays a single caption and a single block of float whitespace.
-# The variant styling is drawn once, in (a), and (b) carries only the ideal
-# line in its legend.
+# (a) keeps the four variants on one linear scale, because that is where they
+# separate by a few microseconds and can be compared at a glance. In (b) and
+# (c) the system allocator and jemalloc follow one path, so drawing them in
+# one panel hides the second stroke. Each variant gets its own panel there.
 # --------------------------------------------------------------------------- #
 def fig_load_sweep(rows, outdir, percentile="p99"):
     loads = loads_present(rows)
     variants = variants_present(rows)
     xs_ideal = [l / 1000.0 for l in loads]
+    sweep_color = {
+        ("cpp", "system"): "#2171b5",
+        ("cpp", "jemalloc"): "#08306b",
+        ("rust", "system"): "#cb181d",
+        ("rust", "jemalloc"): "#67000d",
+    }
+    dash = {
+        ("cpp", "system"): "-",
+        ("cpp", "jemalloc"): (0, (5, 2)),
+        ("rust", "system"): "-",
+        ("rust", "jemalloc"): (0, (5, 2)),
+    }
+    short_name = {
+        ("cpp", "system"): "C++ system",
+        ("cpp", "jemalloc"): "C++ jemalloc",
+        ("rust", "system"): "Rust system",
+        ("rust", "jemalloc"): "Rust jemalloc",
+    }
 
-    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(9.6, 3.6))
+    fig = plt.figure(figsize=(9.6, 8.8))
+    gs = fig.add_gridspec(
+        3, 4, height_ratios=[1.05, 1.15, 1.05],
+        left=0.08, right=0.985, top=0.94, bottom=0.06,
+        hspace=0.58, wspace=0.18,
+    )
+    ax_a = fig.add_subplot(gs[0, :])
 
-    def curve(ax, g, key):
-        label, color, ls, mk = VARIANT_STYLE[key]
+    def series(g, key, load_max=None):
+        label, _color, _ls, mk = VARIANT_STYLE[key]
+        color = sweep_color[key]
         xs, meds, los, his = [], [], [], []
         for load in loads:
+            if load_max is not None and load > load_max:
+                continue
             vals = g.get((key[0], key[1], load))
             if not vals:
                 continue
@@ -414,42 +443,120 @@ def fig_load_sweep(rows, outdir, percentile="p99"):
             meds.append(m)
             los.append(lo)
             his.append(hi)
+        return label, color, mk, xs, meds, los, his
+
+    def draw(ax, g, key, z, load_max=None, band=True, markers=True):
+        label, color, mk, xs, meds, los, his = series(g, key, load_max)
         if not xs:
             return
-        ax.plot(xs, meds, ls, color=color, marker=mk, ms=4, lw=1.6, label=label)
-        ax.fill_between(xs, los, his, color=color, alpha=0.15, lw=0)
+        if band:
+            ax.fill_between(xs, los, his, color=color, alpha=0.13, lw=0, zorder=1)
+        if dash[key] == "-":
+            ax.plot(
+                xs, meds, color=color, lw=2.6, linestyle="-",
+                solid_capstyle="round", zorder=z,
+            )
+        else:
+            # A light gap cut into the solid line, then the dashed stroke in it,
+            # so the second allocator is not hidden where the two agree.
+            ax.plot(
+                xs, meds, color="white", lw=4.2, linestyle=dash[key],
+                solid_capstyle="butt", zorder=z,
+            )
+            ax.plot(
+                xs, meds, color=color, lw=1.8, linestyle=dash[key],
+                solid_capstyle="butt", zorder=z + 0.5,
+            )
+        if markers:
+            ax.plot(
+                xs, meds, linestyle="none", marker=mk, ms=6.5, color=color,
+                markerfacecolor=color, markeredgecolor="white", markeredgewidth=0.7,
+                zorder=z + 1,
+            )
 
-    # ---- (a) tail latency against offered load ---------------------------- #
     g_lat = group_metric(rows, lambda r: r["lat_ns"][percentile] / NS_PER_US)
+    # Last load at which every variant is still on the flat region. The next
+    # rung is where C++ leaves a linear scale of tens of microseconds.
+    tracking = None
+    for load in loads:
+        meds = []
+        for key in variants:
+            vals = g_lat.get((key[0], key[1], load))
+            if not vals:
+                meds = []
+                break
+            meds.append(statistics.median(vals))
+        if not meds:
+            continue
+        if max(meds) > 5 * min(meds):
+            break
+        tracking = load
+
+    # ---- (a) four variants below the knee, linear ------------------------ #
+    for z, key in enumerate(variants):
+        draw(ax_a, g_lat, key, z=3 + 2 * z, load_max=tracking, band=False)
+    flat_y = []
     for key in variants:
-        curve(ax_a, g_lat, key)
+        _label, _color, _mk, _xs, meds, _los, _his = series(g_lat, key, tracking)
+        flat_y.extend(meds)
+    pad = 1.0
+    ax_a.set_ylim(min(flat_y) - pad, max(flat_y) + pad)
+    ax_a.set_xlim(left=0)
     ax_a.set_xlabel("Offered load (kops/s)")
     ax_a.set_ylabel(f"{percentile} latency (\u00b5s)")
-    ax_a.set_yscale("log")
-    ax_a.set_title(f"(a) Tail latency ({percentile}) against offered load", fontsize=9.5)
-    ax_a.grid(True, which="both", ls=":", alpha=0.4)
+    ax_a.set_title("(a) Below the knee, linear scale", fontsize=11, loc="left")
+    ax_a.grid(True, ls=":", alpha=0.45)
     ax_a.set_axisbelow(True)
-    ax_a.legend(fontsize=8, framealpha=0.95, loc="upper left")
 
-    # ---- (b) achieved throughput against the same axis -------------------- #
+    # ---- (b) and (c): one variant per panel, shared scale within the row -- #
+    def variant_row(row, g, ylabel, yscale=None, ylim=None, ideal=False):
+        left = fig.add_subplot(gs[row, 0])
+        axes = [left]
+        for i in range(1, 4):
+            axes.append(fig.add_subplot(gs[row, i], sharex=left, sharey=left))
+        if yscale:
+            for ax in axes:
+                ax.set_yscale(yscale)
+        for ax, key in zip(axes, variants):
+            label, color, mk, xs, meds, los, his = series(g, key)
+            if ideal:
+                ax.plot(
+                    xs_ideal, xs_ideal, color="0.55", lw=1.15,
+                    linestyle=(0, (1.2, 1.5)), zorder=2,
+                )
+            ax.fill_between(xs, los, his, color=color, alpha=0.18, lw=0, zorder=1)
+            ax.plot(xs, meds, color=color, lw=2.4, solid_capstyle="round", zorder=3)
+            ax.plot(
+                xs, meds, linestyle="none", marker=mk, ms=5.5, color=color,
+                markerfacecolor=color, markeredgecolor="white", markeredgewidth=0.6,
+                zorder=4,
+            )
+            ax.set_title(short_name[key], fontsize=9, color=color, pad=3)
+            ax.grid(True, which="major", ls=":", alpha=0.45)
+            ax.set_axisbelow(True)
+            ax.tick_params(labelsize=7)
+            ax.set_xlabel("Offered load (kops/s)", fontsize=7.5)
+            if ax is not left:
+                ax.tick_params(labelleft=False)
+        if ylim:
+            left.set_ylim(*ylim)
+        left.set_xlim(left=0)
+        left.set_ylabel(ylabel, fontsize=8)
+        return left
+
+    ax_b = variant_row(1, g_lat, f"{percentile} latency (\u00b5s)", yscale="log")
     g_thr = group_metric(rows, lambda r: r["throughput_ops_s"] / 1000.0)
-    ax_b.plot(xs_ideal, xs_ideal, color="0.6", ls=":", lw=1.2,
-              label="ideal (offered = achieved)")
-    for key in variants:
-        curve(ax_b, g_thr, key)
-    ax_b.set_xlabel("Offered load (kops/s)")
-    ax_b.set_ylabel("Achieved throughput (kops/s)")
-    ax_b.set_title("(b) Achieved throughput and campaign-clock knees", fontsize=9.5)
-    ax_b.grid(True, ls=":", alpha=0.4)
-    ax_b.set_axisbelow(True)
-    # Only the ideal line, because (a) already establishes the variant styling.
-    ideal_handle = [h for h, l in zip(*ax_b.get_legend_handles_labels())
-                    if l.startswith("ideal")]
-    if ideal_handle:
-        ax_b.legend(handles=ideal_handle, fontsize=8, framealpha=0.95,
-                    loc="upper left")
+    ax_c = variant_row(
+        2, g_thr, "Achieved throughput\n(kops/s)",
+        ylim=(0, max(xs_ideal) * 1.08), ideal=True,
+    )
+    for anchor, text in (
+        (ax_b, "(b) Whole sweep, log scale. One variant per panel."),
+        (ax_c, "(c) Achieved throughput. The dotted line matches the offered load."),
+    ):
+        pos = anchor.get_position()
+        fig.text(0.5, pos.y1 + 0.025, text, ha="center", va="bottom", fontsize=10)
 
-    fig.tight_layout()
     out = os.path.join(outdir, "fig_load_sweep.pdf")
     fig.savefig(out)
     plt.close(fig)
