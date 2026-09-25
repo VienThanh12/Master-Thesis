@@ -398,8 +398,8 @@ Telecom vendors are under growing pressure, both technical and increasingly regu
 memory-safe languages, yet for the RAN control plane they lack \emph{direct, controlled}
 evidence on which to base that decision. It is not established whether a Rust implementation of
 a stateful, concurrent control-plane subsystem can match modern C++ in \emph{tail latency and
-predictability under overload} (as opposed to average throughput), whether Rust's compile-time
-guarantees actually eliminate the specific defect classes that affect the existing C++ code,
+predictability under overload} (as opposed to average throughput). It is also unknow whether Rust's compile-time
+guarantees actually eliminate the specific defect classes that affects the existing C++ code,
 and what incremental adoption \emph{costs} inside a large C++ codebase. The available evidence
 is largely general-purpose and average-case~\cite{balasubramanian2017rust,qin2020rust}, leaving
 these three questions (predictability, prevented-defect scope, and migration cost) open for a
@@ -1192,7 +1192,7 @@ gaps move with the fill.\label{fig:overload}}
 \end{figure}
 
 \subsection{Resource use (RQ3)}\label{sec:resources}
-The four variants differ in RAM and CPU even where their median latencies are
+The four variants differ in RAM and CPU usage even where their median latencies are
 close. Peak resident set size (RSS) contains two effects of similar size on
 the reported host. The Rust build uses
 $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak RAM than the C++ build under
