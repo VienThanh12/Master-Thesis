@@ -368,18 +368,22 @@ The measurements here use a current-generation subsystem and published requireme
 No claim is made about requirements that have not been written.
 
 \paragraph{A concrete failure mode.}
-A handover moves a connected UE from one cell to another. The session can
-continue. When many UEs do that at once, the control plane is under a mobility
-storm. Each UE has a stored record, the UE context. One of those UEs is released,
-so its record is deleted. At the same time, a message for that UE is still being
-handled. The next read of the record is a use-after-free. In C++ this still
-compiles. Tests that do not hit that overlap can pass. When many calls run at
-once, the bug can corrupt another UE's state. It can crash the thread that is
-serving the call. A few calls can become much slower than the rest. That jump
-in the slowest calls is a tail-latency spike. In safe Rust the same design does
-not compile: ownership and borrowing reject the dangling reference. That is why
-this thesis measures both \emph{safety} (which defects are prevented, and when)
-and \emph{predictability} (tail latency under overload), not average throughput
+A moving train full of passengers stands for the connected UEs at one site.
+A handover moves one passenger from one cell to another, and the call can
+continue. Each passenger has a stored record, the UE context. When many
+passengers move at once, the control plane is under a mobility storm. One
+passenger leaves, so that record is deleted, while a message for that
+passenger is still being handled. Which of those two steps finishes first is a
+race condition. If the read comes after the delete, it is a use-after-free.
+In C++ this still compiles. Tests that do not hit that ordering can pass.
+When many calls run at once, the bug can corrupt another passenger's record.
+That race can crash the thread that is serving the call. A few calls can
+become much slower than the rest. That jump in the slowest calls is a
+tail-latency spike. In safe
+Rust the same design does not compile: ownership and borrowing reject the read
+of a record that has already been deleted. That is why this thesis measures
+both \emph{safety} (which defects are prevented, and when) and
+\emph{predictability} (tail latency under overload), not average throughput
 alone.
 
 \section{Problem statement}
