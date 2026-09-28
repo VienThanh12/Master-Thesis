@@ -6,7 +6,7 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path("/home/vienha/thesis.local")
-TEX = ["Ha_Vien_Mastersthesis_2026.tex", "Thesis_v3.tex", "Thesis_Plan_v2.tex"]
+TEX = ["Ha_Vien_Mastersthesis_2026.tex", "Thesis_v4.tex", "Thesis_Plan_v2.tex"]
 BIB = ROOT / "bibliography.bib"
 
 keys = re.findall(r"^@\w+\{([^,]+),", BIB.read_text(), re.M)

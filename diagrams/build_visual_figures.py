@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Visual-first review figures for Thesis_v3.
+"""Visual-first review figures for Thesis_v4.
 
 Short labels only. No paragraph cards. Numbers from generated macros.
 
@@ -537,7 +537,7 @@ def write_gallery(built):
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Thesis_v3 figures</title>
+<title>Thesis_v4 figures</title>
 <style>
   body {{ margin: 0; font-family: "Segoe UI", Arial, sans-serif;
          background: #f7f9fb; color: #12233a; }}
@@ -557,7 +557,7 @@ def write_gallery(built):
 </head>
 <body>
 <header>
-  <h1>Thesis_v3 figures</h1>
+  <h1>Thesis_v4 figures</h1>
   <p class="lead">Pictures, not paragraphs. Open this file in a browser.</p>
   <nav>{nav}</nav>
 </header>
@@ -576,7 +576,7 @@ def write_gallery(built):
 def as_mxfile(built):
     chunks = [
         '<?xml version="1.0" encoding="UTF-8"?>',
-        '<mxfile host="app.diagrams.net" agent="Thesis_v3 visual figures" '
+        '<mxfile host="app.diagrams.net" agent="Thesis_v4 visual figures" '
         'version="22.1.0" type="device">',
     ]
     for title, diag in built:
@@ -603,7 +603,7 @@ def main():
             hits.append(f"{diag.name}: {kind}")
         print(f"built {diag.name} ({diag.w}x{diag.h})")
 
-    with open(os.path.join(OUT, "thesis_v3_figures.drawio"), "w", encoding="utf-8") as fh:
+    with open(os.path.join(OUT, "thesis_v4_figures.drawio"), "w", encoding="utf-8") as fh:
         fh.write(as_mxfile(built))
 
     if warnings:

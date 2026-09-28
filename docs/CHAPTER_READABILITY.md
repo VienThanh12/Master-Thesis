@@ -1,4 +1,4 @@
-# Chapter readability: `Thesis_v3.tex`
+# Chapter readability: `Thesis_v4.tex`
 
 Generated 2026-09-14 by `.chapter_readability.py`. Same counters as `.readability.py`.
 Floats, tables, and lists are dropped. Syllables are vowel groups, so a few
@@ -7,7 +7,7 @@ technical words are over-counted.
 Re-run:
 
 ```bash
-python3 .chapter_readability.py Thesis_v3.tex -o docs/CHAPTER_READABILITY.md
+python3 .chapter_readability.py Thesis_v4.tex -o docs/CHAPTER_READABILITY.md
 ```
 
 ## Whole document
@@ -37,7 +37,7 @@ python3 .chapter_readability.py Thesis_v3.tex -o docs/CHAPTER_READABILITY.md
 ## What the columns are
 
 - **Flesch** (Reading Ease): higher is easier. 80+ is the bar used for the
-  recent results, discussion, and conclusion pass on `Thesis_v3.tex`.
+  recent results, discussion, and conclusion pass on `Thesis_v4.tex`.
 - **FK**: Flesch-Kincaid grade level (US school grade). Lower is easier.
 - **Fog**: Gunning Fog index. Lower is easier.
 - **ASL**: average sentence length in words.

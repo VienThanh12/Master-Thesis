@@ -14,7 +14,7 @@ repository root unless a component README says otherwise.
 | `build/` | Intermediates. Gitignored. |
 
 ```bash
-latexmk -pdf Thesis_v3.tex
+latexmk -pdf Thesis_v4.tex
 ```
 
 An editor that overrides the aux directory will still drop `.aux` and `.log`
@@ -58,18 +58,18 @@ value. `check_prose_style` walks the saved deck.
 
 | Script | Role |
 | --- | --- |
-| `build_audit.py` | Generates `source_audit.tex` by default (full draft, all 111 keys). `--document v3` writes `source_audit_v3.tex` with `Thesis_v3`'s own numbering (61 cited of 111). `--all-documents` adds the other documents' numbers as extra columns. Refuses to run when a `.bbl` disagrees with cite keys (`--allow-stale` exists and should not be used). |
+| `build_audit.py` | Generates `source_audit.tex` by default (full draft, all 111 keys). `--document v4` writes `source_audit_v4.tex` with `Thesis_v4`'s own numbering (61 cited of 111). `--all-documents` adds the other documents' numbers as extra columns. Refuses to run when a `.bbl` disagrees with cite keys (`--allow-stale` exists and should not be used). |
 | `reviewed.txt` | Mirror of Part 1 review ticks for the draft audit. |
-| `reviewed_v3.txt` | Same sidecar for `source_audit_v3.tex`. Separate on purpose: a draft tick does not mean the skeleton's citing sentence was checked. |
+| `reviewed_v4.txt` | Same sidecar for `source_audit_v4.tex`. Separate on purpose: a draft tick does not mean the skeleton's citing sentence was checked. |
 | `cite_audit.py` | Cite-key helper. |
 | `bib_verify.py`, `meta_checks.py`, `link_check.py` | Metadata and URL checks. |
 | `fetch_sources.py`, `oa_fetch.py`, `oa_fetch2.py`, `fetch_theses.py` | Retrieve sources. |
 | `evidence.py`, `evidence2.py`, `abstracts.py`, `abstract_sweep.py` | Evidence and abstract sweeps. |
 | `pdfgrep.py`, `sweep_diff.py`, `verify_candidates.py` | Search and diff helpers. |
 
-**Never hand-edit `source_audit.tex` or `source_audit_v3.tex` except the Part 1 tick** (`$\square$` →
+**Never hand-edit `source_audit.tex` or `source_audit_v4.tex` except the Part 1 tick** (`$\square$` →
 `$\blacksquare$`). The generator reads ticks back before overwriting and
-prints `review ticks: N of 111` for the draft (or `N of 61` for `Thesis_v3`). Read that line after every rebuild: a
+prints `review ticks: N of 111` for the draft (or `N of 61` for `Thesis_v4`). Read that line after every rebuild: a
 regeneration silently wiped 22 of them on 1 September 2026.
 
 Quoted source text is passed through, em dashes included, so `.aitells.py`
@@ -80,7 +80,7 @@ Durable records: `docs/Sources_evidence.md`, `docs/LITERATURE_NOTES.md`,
 
 ```bash
 .bibaudit/build_audit.py && latexmk -pdf source_audit.tex
-.bibaudit/build_audit.py --document v3 && latexmk -pdf source_audit_v3.tex
+.bibaudit/build_audit.py --document v4 && latexmk -pdf source_audit_v4.tex
 ```
 
 ## Short cut (`.compress/`)
@@ -102,7 +102,7 @@ the defect no LaTeX build catches.
 
 | Script | Role |
 | --- | --- |
-| `pdfpreview.py` | Rasterise pages to `.pdf-preview/` for the WSL editor. `./pdfpreview.py Thesis_v3.pdf`, or a page range. |
+| `pdfpreview.py` | Rasterise pages to `.pdf-preview/` for the WSL editor. `./pdfpreview.py Thesis_v4.pdf`, or a page range. |
 | `pdfannots.py` | Extract highlights and comments from `docs/review/*.pdf`. |
 
 `docs/review/` is gitignored. Create it locally. A marked-up copy may carry

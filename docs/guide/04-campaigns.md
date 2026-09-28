@@ -94,4 +94,4 @@ bench/refresh_thesis.sh --campaign bench/results/campaign-20260827-151927.jsonl
 ```
 
 Without `--campaign`, the newest log in `bench/results/` is used. Then rebuild
-`Thesis_v3.tex` by hand if the skeleton should show the new macros.
+`Thesis_v4.tex` by hand if the skeleton should show the new macros.

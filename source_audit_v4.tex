@@ -1,11 +1,11 @@
 %% GENERATED FILE. Do not edit, with one exception.
 %% Written by .bibaudit/build_audit.py. Regenerate instead of correcting by hand:
-%%     .bibaudit/build_audit.py --document v3 && latexmk -pdf source_audit_v3.tex
+%%     .bibaudit/build_audit.py --document v4 && latexmk -pdf source_audit_v4.tex
 %%
 %% The exception is Part 1's last column, which is the author's review tick. Change a
 %% $\square$ to a $\blacksquare$ to record that an entry has been checked. The generator
 %% reads those ticks back before it overwrites this file and reprints them, and mirrors
-%% them to .bibaudit/reviewed_v3.txt so they survive the file being deleted. Everything else
+%% them to .bibaudit/reviewed_v4.txt so they survive the file being deleted. Everything else
 %% here is derived, so a hand edit to it is lost on the next run.
 %%
 %% Every reference below is printed by biblatex from bibliography.bib. Every printed
@@ -75,11 +75,11 @@
 
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\small Citation audit of Thesis\_v3}
+\fancyhead[L]{\small Citation audit of Thesis\_v4}
 \fancyhead[R]{\small\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 
-\title{Citation audit of \texttt{Thesis\_v3}\\[2pt]\large Every work it cites, the sentence citing it, and where the
+\title{Citation audit of \texttt{Thesis\_v4}\\[2pt]\large Every work it cites, the sentence citing it, and where the
 claim sits in the source}
 \author{Ha Vien}
 
@@ -92,10 +92,10 @@ claim sits in the source}
 \section*{How to read this document}
 \addcontentsline{toc}{section}{How to read this document}
 
-This document lists every work that \texttt{Thesis\_v3} cites. It is ordered by the number the
+This document lists every work that \texttt{Thesis\_v4} cites. It is ordered by the number the
 work carries in that document's reference list, so entry \textbf{[17]} here is reference
 \textbf{[17]} there and the two can be read side by side. It covers
-\texttt{Thesis\_v3} alone. The shared \texttt{bibliography.bib} holds 113 entries and this
+\texttt{Thesis\_v4} alone. The shared \texttt{bibliography.bib} holds 113 entries and this
 document cites 63 of them. The remaining 50 are used by the full draft and
 biblatex keeps them out of this PDF's reference list. A number here is always that document's
 number and never needs translating.
@@ -132,7 +132,7 @@ shows the value. Evidence comes from \texttt{docs/Sources\_evidence.md}, with
 Regenerate with:
 
 \begin{quote}\ttfamily\small
-.bibaudit/build\_audit.py -{}-document v3 \&\& latexmk -pdf source\_audit\_v3.tex
+.bibaudit/build\_audit.py -{}-document v4 \&\& latexmk -pdf source\_audit\_v4.tex
 \end{quote}
 
 \textbf{One note on punctuation.} The thesis style forbids em dashes and prose semicolons
@@ -313,7 +313,7 @@ each located by the chapter or section it sits in.
 \begin{citedsentence}\textbf{\small Section 3.1.}\enspace Delay targets are the ones the 5G system sets for control-plane procedures~\citemark{5, 27}.\end{citedsentence}
 \afield{Claim it carries}{the millisecond-scale control-plane budget, and specifically the 10 ms target}
 \afield{Source says}{}
-\begin{saidquote}(\texttt{tr\_138913v180000p.pdf}, \textbf{p. 24}, clause 7.4 \enquote{Control plane latency}): \enquote{Control plane latency refers to the time to move from a battery efficient state (e.g., IDLE) to start of continuous data transfer (e.g., ACTIVE). \textbf{The target for control plane latency should be 10ms.}} This is exactly the claim at \texttt{Thesis\_v3.tex} and the wording already in the entry's \texttt{note} field.\end{saidquote}
+\begin{saidquote}(\texttt{tr\_138913v180000p.pdf}, \textbf{p. 24}, clause 7.4 \enquote{Control plane latency}): \enquote{Control plane latency refers to the time to move from a battery efficient state (e.g., IDLE) to start of continuous data transfer (e.g., ACTIVE). \textbf{The target for control plane latency should be 10ms.}} This is exactly the claim at \texttt{Thesis\_v4.tex} and the wording already in the entry's \texttt{note} field.\end{saidquote}
 \afield{Metadata}{[nit] month. \texttt{38913-i00.zip} is dated \textbf{2024-04-04}. ETSI mirror is \emph{ETSI TR 138 913 V18.0.0 (2024-05)}. The entry says March 2024. $\rightarrow$ \texttt{month = apr}.}
 \afield{Verdict}{Claim verified, fix the month.}
 \afield{Record}{Sources\_evidence.md, entry record.}
@@ -762,7 +762,7 @@ each located by the chapter or section it sits in.
 \afield{Source says}{}
 \begin{saidquote}(\texttt{hdrhistogram.github.io}): \enquote{A Histogram that supports \textbf{recording and analyzing sampled data value counts across a configurable integer value range with configurable value precision} within the range. Value precision is expressed as the number of significant digits\ldots{}}, this fully supports the use at \texttt{Ha\_Vien\_Mastersthesis\_2026.tex} (identical HDR configuration, three significant figures).\end{saidquote}
 \afield{Metadata}{[verified] Gil Tene is credited on the project page (Authors, Contributors and License section). Accessed August 2026 as stated.}
-\afield{Issue}{The page does \textbf{not} discuss coordinated omission, which is what the citation is being asked to carry at 2402, 3922, \texttt{Thesis\_v3.tex} and \texttt{Thesis\_Plan\_v2.tex}. In all four places \texttt{schroeder2006openclosed} is cited alongside and does carry it (fix \#8).}
+\afield{Issue}{The page does \textbf{not} discuss coordinated omission, which is what the citation is being asked to carry at 2402, 3922, \texttt{Thesis\_v4.tex} and \texttt{Thesis\_Plan\_v2.tex}. In all four places \texttt{schroeder2006openclosed} is cited alongside and does carry it (fix \#8).}
 \afield{Verdict}{OK for the histogram, re-point or drop for coordinated omission.}
 \afield{Record}{Sources\_evidence.md, entry record.}
 \auditentry{45}{steele2014splitmix}{peer reviewed, no evidence record}
@@ -982,10 +982,10 @@ here because the pattern recurs. In every case the work itself was sound and cit
 elsewhere, so each was closed by moving or dropping the citation rather than by replacing the
 source. No source was added that the bibliography did not already hold.
 
-Four of the six existed only in \texttt{Thesis\_v3} and the full draft had them right, which
+Four of the six existed only in \texttt{Thesis\_v4} and the full draft had them right, which
 locates the cause: compressing a chapter into five paragraphs detaches a citation from the clause
 it was attached to. The two that reached the full draft are both in Chapter~1, which
-\texttt{Thesis\_v3} carries as a copy. So the rule for the next compression pass is to re-read
+\texttt{Thesis\_v4} carries as a copy. So the rule for the next compression pass is to re-read
 what each surviving citation now sits next to.
 
 \begin{enumerate}[leftmargin=1.6em,itemsep=4pt]

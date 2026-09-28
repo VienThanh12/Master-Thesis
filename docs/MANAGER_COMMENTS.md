@@ -1,11 +1,12 @@
-# Nokia instructor comments on `Thesis_v3`
+# Nokia instructor comments on `Thesis_v4`
 
 **Date:** 20 September 2026
-**Resolved in `Thesis_v3`:** 21 September 2026
+**Resolved in `Thesis_v4`:** 21 September 2026
+**Name:** the annotated PDF was `Thesis_v3`. The skeleton was renamed `Thesis_v4` on 28 September 2026.
 **Source:** annotation layer of the commented PDF (44 physical pages). Pages with
 markup: 11, 13, 14, 17, 21, 23, 25, 26, 27, 29, 30, 31, 33, 34, 44. Other pages
 had none.
-**Ticked against:** `Thesis_v3.tex` (the annotated document; now longer than 44
+**Ticked against:** `Thesis_v4.tex` (the annotated document; now longer than 44
 pages) and `Ha_Vien_Mastersthesis_2026.tex` (full draft). The draft was not the
 file that was marked up. It still carries several of the same sentences, so it
 is ticked too.
@@ -29,7 +30,7 @@ contribution and results preview the skeleton no longer prints.
 
 | Where | Done | Partial | Open |
 | --- | --- | --- | --- |
-| `Thesis_v3.tex` | 46 | 0 | 0 |
+| `Thesis_v4.tex` | 46 | 0 | 0 |
 | Full draft | 15 | 19 | 12 |
 
 Forty-six numbered comments, matching the markup list (p.13 items 3–5 counted
@@ -40,7 +41,7 @@ that preview is still there.
 
 ---
 
-## Resolution in `Thesis_v3`
+## Resolution in `Thesis_v4`
 
 All 46 comments are resolved in the skeleton. The 21 September pass:
 
@@ -56,7 +57,7 @@ All 46 comments are resolved in the skeleton. The 21 September pass:
 8. rewrites the memory, H3, safety, seam, and timing explanations in direct
    language.
 
-`Thesis_v3.pdf` rebuilds to 49 pages with no LaTeX errors, undefined
+`Thesis_v4.pdf` rebuilds to 49 pages with no LaTeX errors, undefined
 references, undefined citations, overfull boxes, or float errors.
 
 **On the full draft (`Ha_Vien_Mastersthesis_2026.tex`), same comments**
@@ -87,7 +88,7 @@ Eleven marks. This was one of the two pages the instructor wanted rewritten.
 | 2 | Spell out FFI at first use | Must | **Done** | **Done** | Abstract: “foreign function interface (FFI) prototype.” RQ4: “foreign function interface (FFI).” Acronyms list carries it. |
 | 3–5 | Crossed-out “for”, “S”, “T” on the hypotheses | Minor | **Done** | **Done** | Hypotheses rewritten as full sentences. H1 no longer leans on a hanging “for.” |
 | 6 | “What do you mean by this?” on “H2 is stated so that it can fail.” | Should | **Done** | **Done** | Phrase gone. Both documents now say the catalogue spans seven classes safe Rust is expected to stop and seven it is not, so the study can locate the boundary. |
-| 7 | “Avoid very short sentences like this” on “Three are results.” | Should | **Done** | **Open** | Gone from `Thesis_v3.tex`. Draft §1.4 still opens with “Three are results, and the first is…” |
+| 7 | “Avoid very short sentences like this” on “Three are results.” | Should | **Done** | **Open** | Gone from `Thesis_v4.tex`. Draft §1.4 still opens with “Three are results, and the first is…” |
 | 8 | Contributions paragraph does not follow from the text before it | Should | **Done** | **Open** | Skeleton Chapter 1 ends at the RQs and the Meneely paragraph. No contribution list. Draft still has the six-contribution block immediately after the hypotheses. |
 | 9 | “Do you mean: This work has three main contributions?” | Should | **Done** | **Open** | Same as 7–8. Draft still counts two artefacts, three results, and “the last” guidelines. |
 | 10 | “What do you mean by this?” on the attribution bound | Should | **Done** | **Partial** | Skeleton defines both clocks: the end-to-end round-trip includes the queue, wake-up, and core call; the second measurement removes the queue and handoff. Draft Chapter 1 still compresses that into one sentence before the setup. |
@@ -273,7 +274,7 @@ The full draft’s Chapter 1 still reads as the annotated pages 13–14.
 - Do not copy WSL2 or 7443P probe kops/s into `figures/gen_macros.tex`. Those
   belong to `docs/OVERLOAD_MECHANISM.md`. The campaign macros stay the
   published floor.
-- Do not expand `Thesis_v3.tex` Chapters 2–8 past five argument paragraphs.
+- Do not expand `Thesis_v4.tex` Chapters 3-8 past five argument paragraphs, and do not compress Chapter 2 back to five paragraphs.
   A sentence in an existing paragraph, or a small table, is the lever.
 - Do not treat “cannot tell” as “equivalent.”
 - `seam_double_free` is `double_free` through `unsafe`, not a new class.
