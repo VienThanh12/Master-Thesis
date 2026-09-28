@@ -494,10 +494,12 @@ control-plane state. It also handles RRC signalling and mobility. These are
 integral control-plane functions, which makes UECM a representative stateful
 subsystem. It does not stand for the control plane as a whole.
 
-% After the two paragraphs the leftover is short of the TikZ plus
-% caption, so [ht] defers it and [section]{placeins} ships the leftover as
-% whitespace. A modest enlarge keeps the figure with the section that cites it.
-\enlargethispage{64pt}
+% The leftover on this page is short of the diagram at its own size.
+% Stretching the page put the caption in the bottom margin, and shrinking
+% the diagram was rejected. Break here so the figure opens the next page
+% at full size, and the next section follows it on that page. Do not go
+% back to \enlargethispage or a shorter stack.
+\clearpage
 \begin{figure}[!ht]
 \centering
 \begin{tikzpicture}[

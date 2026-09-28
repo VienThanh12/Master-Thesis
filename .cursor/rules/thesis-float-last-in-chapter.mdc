@@ -16,12 +16,13 @@ The citing subsection ends a page with leftover whitespace. The next folio is on
 
 ## Fix
 
-Local enlarge plus here-placement, sized to the shortfall, then rebuild and look at the folio. Two sites in `Thesis_v4.tex`:
+Local enlarge plus here-placement, sized to the shortfall, then rebuild and look at the folio. One site in `Thesis_v4.tex` still uses it:
 
 | Figure | Enlarge | What flushed it |
 | --- | --- | --- |
-| `fig:ngran` | `64pt` | `[section]{placeins}` |
 | `fig:ffiseam` | `52pt` (14 Sep 2026) | `\chapter{Discussion}` |
+
+`fig:ngran` does not use this fix. A `64pt` enlarge put the caption in the bottom margin, and a shorter stack was rejected. A `\clearpage` before the figure sends it to the next page at full size, and the following section continues under it. Do not put the enlarge back and do not shrink the diagram.
 
 ```latex
 % leftover is short of the diagram plus caption, so [ht] defers it

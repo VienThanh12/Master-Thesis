@@ -731,9 +731,11 @@ third is the last-in-chapter float, closed in `Thesis_v4.tex` on 14 September 20
   defers it when the leftover is short of the diagram plus caption. `\chapter`
   then `\clearpage`s it onto its own page, centred. `[section]{placeins}` does
   the same at the next `\section`. The fix is local: `\enlargethispage{...}`
-  plus `[!ht]`, sized to the shortfall, then rebuild and check the folio. Two
-  sites in `Thesis_v4.tex`: `fig:ngran` (`64pt`, placeins) and `fig:ffiseam`
-  (`52pt`, 14 September 2026, `\chapter{Discussion}`). Do not `\newpage` the
+  plus `[!ht]`, sized to the shortfall, then rebuild and check the folio. One
+  site in `Thesis_v4.tex` still does this: `fig:ffiseam`
+  (`52pt`, 14 September 2026, `\chapter{Discussion}`). `fig:ngran` is the
+  exception: the author chose a page break over an enlarge or a shorter
+  diagram, so a `\clearpage` before that figure stays. Do not `\newpage` the
   subsection (the hole moves to the page before) and do not reach for `[H]`
   (the table trap above). Cursor rule:
   `.cursor/rules/thesis-float-last-in-chapter.mdc`.
