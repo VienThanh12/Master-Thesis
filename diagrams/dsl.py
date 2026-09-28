@@ -186,19 +186,33 @@ class Diagram:
 
     def card(self, x, y, w, h, title=None, body=(), fill=WHITE, stroke=BLUE_EDGE,
              rx=7, sw=1.0, title_size=11.5, title_color=NAVY, body_size=11,
-             body_color=MUTED, pad=14, lh=14.5, gap=20, dashed=False):
-        """A titled box. Emits one editable drawio shape carrying its own text."""
+             body_color=MUTED, pad=14, lh=14.5, gap=20, dashed=False,
+             align="left"):
+        """A titled box. Emits one editable drawio shape carrying its own text.
+
+        ``align="center"`` puts the lines on the middle of the box, both ways.
+        The default stays left, which is what the other diagrams were drawn for.
+        """
         self.rect(x, y, w, h, fill, stroke, rx=rx, sw=sw, dashed=dashed)
         self.cells.pop()  # replace the plain rect with a text-bearing shape
 
+        anchor = "middle" if align == "center" else "start"
+        tx = x + w / 2 if align == "center" else x + pad
         cy = y + pad + title_size * 0.55
         if title:
-            self.text(x + pad, cy + 4, title, title_size, title_color, weight=700)
+            self.text(tx, cy + 4, title, title_size, title_color, weight=700,
+                      anchor=anchor)
             cy += gap
+        elif align == "center" and body:
+            # Same optical offset chip() uses for one line, shifted so the
+            # whole block, not the first line, sits on the box center.
+            cy = (y + h / 2 - (len(body) - 1) * lh / 2
+                  + body_size * 0.36 - 4)
         else:
             cy = y + pad + body_size * 0.4
         for i, line in enumerate(body):
-            self.text(x + pad, cy + 4 + i * lh, line, body_size, body_color)
+            self.text(tx, cy + 4 + i * lh, line, body_size, body_color,
+                      anchor=anchor)
 
         # Drop the per-line drawio cells the two calls above created, and put a
         # single rich shape in their place so the .drawio stays editable.
@@ -212,12 +226,18 @@ class Diagram:
             if body:
                 html += "<br><br>"
         html += "<br>".join(_html(b) for b in body)
+        if align == "center":
+            place = "align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;spacingTop=0;"
+        else:
+            place = (
+                f"align=left;verticalAlign=top;spacingLeft={pad - 4};"
+                f"spacingTop={pad - 10};spacingRight=6;"
+            )
         style = (
             f"rounded={1 if rx else 0};whiteSpace=wrap;html=1;"
             + (f"absoluteArcSize=1;arcSize={rx * 2};" if rx else "")
             + f"fillColor={fill};strokeColor={stroke or 'none'};strokeWidth={sw};"
-            f"align=left;verticalAlign=top;spacingLeft={pad - 4};spacingTop={pad - 10};"
-            f"spacingRight=6;fontSize={body_size};fontColor={body_color};"
+            f"{place}fontSize={body_size};fontColor={body_color};"
             f"fontFamily={MX_FONT};"
         )
         if dashed:

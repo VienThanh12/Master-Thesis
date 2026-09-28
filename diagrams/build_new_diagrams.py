@@ -1153,7 +1153,8 @@ def research_gap():
     row_h, row_gap = 54, 5
     for parts, vals in rows:
         d.card(x0, y, label_w, row_h, None, parts, fill=WHITE, stroke=GREY_EDGE,
-               rx=6, body_size=14.5, body_color=BODY, pad=8, lh=18)
+               rx=6, body_size=14.5, body_color=BODY, pad=8, lh=18,
+               align="center")
         for cx, val in zip(col_x, vals):
             glyph, fill, color = mark[val]
             d.chip(cx, y, col_w, row_h, glyph, fill, color, size=20, rx=6,
