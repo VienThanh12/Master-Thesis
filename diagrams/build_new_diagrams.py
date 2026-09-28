@@ -1077,8 +1077,8 @@ def research_gap():
     d.lines(
         W / 2, 34,
         [
-            "What the neighbouring studies control,",
-            "and what they leave varying",
+            "A checklist of earlier comparisons",
+            "A tick means yes. A cross means no. A dash means partly.",
         ],
         26, NAVY, lh=32, weight=700, anchor="middle",
     )
