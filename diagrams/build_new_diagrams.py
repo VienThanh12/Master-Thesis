@@ -800,35 +800,35 @@ def load_regimes():
 def e2e_clock():
     """End-to-end round-trip, then the core call alone.
 
-    The language sliver is drawn wide enough to see. Its share is the label,
-    $\\BudgetCoreShareMax$, not the pixel width. The core-only pair is duration,
-    so the slower language is the longer bar.
+    Printed at \\linewidth. Labels are 16 to 18 units, about 8.5 to 10 pt
+    on the page. The language sliver is drawn wide enough to see. Its share
+    is the label, not the pixel width. The core-only pair is duration, so
+    the slower language is the longer bar.
     """
-    d = Diagram("31_e2e_clock", 880, 240)
+    d = Diagram("31_e2e_clock", 880, 300)
     rest = M["BudgetCoreShareRest"]
     ratio = float(M["BudgetCoreRatio"])
     faster = M["BudgetCoreFaster"]
 
-    d.text(40, 48, "round-trip", 13, NAVY, weight=700)
-    bar_x, bar_y, bar_w, bar_h = 160, 36, 680, 22
-    core_w = 6
-    d.rect(bar_x, bar_y, core_w, bar_h, GREEN, rx=2)
-    d.rect(bar_x + core_w, bar_y, bar_w - core_w, bar_h, BLUE, rx=2)
-    d.text(bar_x + 20, 26, f"language  {M['BudgetCoreShareMax']}%", 12,
+    bar_x, bar_w, bar_h = 188, 652, 34
+    d.text(28, 74, "round-trip", 18, NAVY, weight=700)
+    d.rect(bar_x, 52, 10, bar_h, GREEN, rx=2)
+    d.rect(bar_x + 10, 52, bar_w - 10, bar_h, BLUE, rx=2)
+    d.text(bar_x + 24, 38, f"language  {M['BudgetCoreShareMax']}%", 16,
            GREEN_DEEP, weight=700)
-    d.text(bar_x + 340, 26, f"handoff  {rest}%", 12, BLUE_DEEP, weight=700)
+    d.text(bar_x + 280, 38, f"handoff  {rest}%", 16, BLUE_DEEP, weight=700)
 
-    d.text(40, 116, "core only", 13, NAVY, weight=700)
-    rust_w = 200
+    d.text(28, 186, "core only", 18, NAVY, weight=700)
+    rust_w = 220
     cpp_w = rust_w * ratio
-    d.text(160, 104, "Rust", 12, GREEN_DEEP)
-    d.rect(210, 90, rust_w, 20, GREEN, rx=4)
-    d.text(160, 136, "C++", 12, BLUE_DEEP)
-    d.rect(210, 122, cpp_w, 20, BLUE, rx=4)
-    d.text(210 + cpp_w + 12, 138,
-           f"{faster} {M['BudgetCoreRatio']}\u00d7 faster", 13, GREEN_DEEP,
+    d.text(bar_x, 162, "Rust", 16, GREEN_DEEP)
+    d.rect(bar_x + 52, 142, rust_w, 28, GREEN, rx=4)
+    d.text(bar_x, 214, "C++", 16, BLUE_DEEP)
+    d.rect(bar_x + 52, 194, cpp_w, 28, BLUE, rx=4)
+    d.text(bar_x + 52 + cpp_w + 14, 216,
+           f"{faster} {M['BudgetCoreRatio']}\u00d7 faster", 16, GREEN_DEEP,
            weight=700)
-    d.text(440, 196, "That clock cannot bound a language effect", 14, BODY,
+    d.text(440, 268, "That clock cannot bound a language effect", 17, BODY,
            anchor="middle")
     return d
 

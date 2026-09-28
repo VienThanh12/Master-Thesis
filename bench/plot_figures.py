@@ -1448,7 +1448,7 @@ def write_contention_table(contention, outdir):
     return out
 
 
-def fig_budget(budget, sig_results, outdir):
+def fig_budget(budget, sig_results, outdir, for_thesis=False):
     """Two-panel decomposition of the end-to-end latency the sweep reports.
 
     The table states this in numbers, but the numbers span four orders of
@@ -1468,7 +1468,18 @@ def fig_budget(budget, sig_results, outdir):
     if min(core.values()) <= 0:
         return None
 
-    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(9.6, 3.5),
+    # The slide keeps the wide, small-type figure. The thesis column is
+    # drawn larger so the labels survive \\linewidth instead of coming out
+    # near 5 pt.
+    if for_thesis:
+        fig_w, fig_h = 7.5, 4.55
+        title_pt, tick_pt, note_pt, legend_pt, value_pt = 13, 11, 10.5, 9.5, 11
+        out_name = "fig_budget_thesis.pdf"
+    else:
+        fig_w, fig_h = 9.6, 3.5
+        title_pt, tick_pt, note_pt, legend_pt, value_pt = 9.5, 8.5, 8, 7.5, 8.5
+        out_name = "fig_budget.pdf"
+    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(fig_w, fig_h),
                                      gridspec_kw={"width_ratios": [1.0, 1.25]})
 
     # ---- (a) the round-trip at true proportion ---------------------------- #
@@ -1482,21 +1493,25 @@ def fig_budget(budget, sig_results, outdir):
     ax_a.barh(ypos, hand_us, height=0.45, left=core_us, color="#b6c2cf",
               label="cross-thread handoff (the OS)")
     ax_a.set_yticks(ypos)
-    ax_a.set_yticklabels([names[l] for l in langs])
-    ax_a.set_xlabel("End-to-end round-trip (\u00b5s)")
-    ax_a.set_title("(a) Drawn at true proportion", fontsize=9.5)
+    ax_a.set_yticklabels([names[l] for l in langs],
+                         fontsize=tick_pt if for_thesis else None)
+    ax_a.set_xlabel("End-to-end round-trip (\u00b5s)",
+                    fontsize=tick_pt if for_thesis else None)
+    ax_a.set_title("(a) Drawn at true proportion", fontsize=title_pt)
+    if for_thesis:
+        ax_a.tick_params(axis="x", labelsize=tick_pt)
     ax_a.grid(True, axis="x", ls=":", alpha=0.4)
     ax_a.set_axisbelow(True)
     ax_a.set_xlim(0, max(c + h for c, h in zip(core_us, hand_us)) * 1.32)
     for y, c, h in zip(ypos, core_us, hand_us):
-        ax_a.text(c + h, y, f"  {c + h:.1f} \u00b5s", va="center", fontsize=8.5)
+        ax_a.text(c + h, y, f"  {c + h:.1f} \u00b5s", va="center", fontsize=value_pt)
     share = max(med(l, "core_share_pct") for l in langs)
     ax_a.annotate(f"the operation:\n{share:.3f}% of the bar",
                   xy=(0, 1.23), xytext=(max(hand_us) * 0.22, 1.60),
-                  fontsize=8, color="#c0392b", ha="left",
+                  fontsize=note_pt, color="#c0392b", ha="left",
                   arrowprops=dict(arrowstyle="->", color="#c0392b", lw=1.1))
     ax_a.set_ylim(-0.75, 2.05)
-    ax_a.legend(fontsize=7.5, loc="lower right", framealpha=0.95)
+    ax_a.legend(fontsize=legend_pt, loc="lower right", framealpha=0.95)
 
     # ---- (b) the same quantities on a log axis ---------------------------- #
     # The sweep's resolving power on the paired median difference: the widest
@@ -1530,25 +1545,43 @@ def fig_budget(budget, sig_results, outdir):
         bars[-1].set_edgecolor("#a5281b")
     ax_b.set_xscale("log")
     ax_b.set_yticks(yb)
-    ax_b.set_yticklabels(labels, fontsize=8.5)
-    ax_b.set_xlabel("Cost (ns, log scale)")
-    ax_b.set_title("(b) The instrument against the quantity", fontsize=9.5)
+    ax_b.set_yticklabels(labels, fontsize=tick_pt)
+    ax_b.set_xlabel("Cost (ns, log scale)",
+                    fontsize=tick_pt if for_thesis else None)
+    b_title = "(b) The instrument against the quantity"
+    if for_thesis:
+        b_title = "(b) The instrument\nagainst the quantity"
+    ax_b.set_title(b_title, fontsize=title_pt)
+    if for_thesis:
+        ax_b.tick_params(axis="x", labelsize=tick_pt)
     ax_b.grid(True, axis="x", which="both", ls=":", alpha=0.4)
     ax_b.set_axisbelow(True)
     ax_b.set_xlim(min(vals) * 0.4, max(vals) * 7)
     for y, v in zip(yb, vals):
         txt = f"{v:.0f} ns" if v < 1000 else f"{v / NS_PER_US:.0f} \u00b5s"
-        ax_b.text(v * 1.25, y, txt, va="center", fontsize=8.5)
+        ax_b.text(v * 1.25, y, txt, va="center", fontsize=value_pt)
     if bound_us:
         ratio = bound_us * NS_PER_US / max(core.values())
-        ax_b.annotate(f"{ratio:.0f}\u00d7 the quantity it would have to constrain",
-                      xy=(0.5, -0.55), xycoords=("axes fraction", "data"),
-                      ha="center", fontsize=8, color="#a5281b")
-        ax_b.set_ylim(-1.15, len(vals) - 0.4)
+        note = f"{ratio:.0f}\u00d7 the quantity it would have to constrain"
+        if for_thesis:
+            # Two lines under the axis. Inside the axes the larger type
+            # sat on the hatched bar and ran off the right edge.
+            note = f"{ratio:.0f}\u00d7 the quantity it would\nhave to constrain"
+            ax_b.text(0.5, -0.34, note, transform=ax_b.transAxes,
+                      ha="center", va="top", fontsize=note_pt, color="#a5281b",
+                      clip_on=False)
+            ax_b.set_ylim(-0.65, len(vals) - 0.4)
+        else:
+            ax_b.annotate(note,
+                          xy=(0.5, -0.55), xycoords=("axes fraction", "data"),
+                          ha="center", fontsize=note_pt, color="#a5281b")
+            ax_b.set_ylim(-1.15, len(vals) - 0.4)
 
     fig.tight_layout()
-    out = os.path.join(outdir, "fig_budget.pdf")
-    fig.savefig(out)
+    if for_thesis:
+        fig.subplots_adjust(bottom=0.24)
+    out = os.path.join(outdir, out_name)
+    fig.savefig(out, bbox_inches="tight" if for_thesis else None)
     plt.close(fig)
     return out
 
