@@ -1063,10 +1063,16 @@ def service_lifecycle():
 # --------------------------------------------------------------------------
 def research_gap():
     # Printed at \linewidth (16 cm). Table labels at 14.5 units come out
-    # at about 7.5 pt. The title, subtitle, and gap callout were still
-    # smaller than that, so they are set larger and wrapped: title 26
-    # (~13 pt), subtitle 20 (~10 pt), gap body 18 (~9 pt).
-    W, H = 880, 796
+    # at about 7.5 pt. The title and subtitle are set larger: title 26
+    # (~13 pt), subtitle 20 (~10 pt). The gap callout is one line per
+    # sentence, at 16.5 (~8.5 pt), still above the row labels. Six short
+    # lines beside the label left the right half of the box empty.
+    W = 880
+    head_y, head_h = 144, 112
+    row_h, row_gap, n_rows = 54, 5, 6
+    box_h, bottom = 116, 12
+    by = head_y + head_h + 8 + n_rows * (row_h + row_gap) + 8
+    H = by + box_h + bottom
     d = Diagram("29_research_gap", W, H)
     d.lines(
         W / 2, 34,
@@ -1154,22 +1160,20 @@ def research_gap():
                    weight=700)
         y += row_h + row_gap
 
-    box_h = 158
-    by = y + 8
+    # One sentence per line, across the box. The old six-line column
+    # stopped about two thirds of the way across and left the rest empty.
+    if y + 8 != by:
+        raise RuntimeError(f"gap box drifted: rows end at {y + 8}, canvas uses {by}")
     d.rect(x0, by, W - 2 * x0, box_h, BLUE_FILL, BLUE, rx=9, sw=1.7)
     label_x = x0 + 16
-    body_x = label_x + 108
-    ly = by + 26
-    lh = 22
-    d.text(label_x, ly, "The gap", 20, BLUE_DEEP, weight=700)
-    d.lines(body_x, ly, [
-        "most of the telecom studies change two things at once:",
-        "the language, and how the program is run.",
-        "Emberg and Wadsten keep the design the same,",
-        "but they still test a stateless program.",
-        "None holds the concurrency model fixed",
-        "and then drives a stateful subsystem past saturation.",
-    ], 18, BODY, lh=lh)
+    gap_lines = [
+        "most of the telecom studies change two things at once: the language, and how the program is run.",
+        "Emberg and Wadsten keep the design the same, but they still test a stateless program.",
+        "None holds the concurrency model fixed and then drives a stateful subsystem past saturation.",
+    ]
+    gap_size, gap_lh = 16.5, 22
+    d.text(label_x, by + 26, "The gap", 20, BLUE_DEEP, weight=700)
+    d.lines(label_x, by + 52, gap_lines, gap_size, BODY, lh=gap_lh)
     return d
 
 
