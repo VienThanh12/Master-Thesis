@@ -1236,7 +1236,7 @@ counters explain the isolated core result, not the overload floor.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_resources_column.pdf}
-\caption[Resource use, and the two effects inside peak RSS]{Resource use at
+\caption[Peak memory and CPU of the four builds]{Resource use at
 $\ReprLoad$~kops/s, grouped by allocator. Bars are medians over \NRepeats{}
 repeats with bootstrap $95\%$ intervals, and CPU in (b) is summed across
 threads.\label{fig:resources}}
@@ -1319,7 +1319,7 @@ $\CoreUnsafe$ \texttt{unsafe} sites).
 \begin{figure}[!ht]
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/07_ffi_seam.pdf}
-\caption[The C++-to-Rust FFI migration seam]{The C++-to-Rust FFI migration seam.
+\caption[The thin layer where C++ calls the Rust service]{The C++-to-Rust FFI migration seam.
 The same signalling operation costs $\FfiOpNative$~\textmu s directly and
 $\FfiOpSeam$~\textmu s through the seam, a paired difference bounded at
 $\FfiOpBoundPct\%$ of that call. A do-nothing crossing costs
@@ -1844,7 +1844,7 @@ The tables that follow are the measurements the main text cites from this append
 \begin{table}[ht]
 \centering
 \small
-\caption[Inter-operation jitter at the representative load]{Inter-operation latency variation at a
+\caption[How much the delay changes from one call to the next]{Inter-operation latency variation at a
 sustained offered load of $\ReprLoad$~kops/s, in microseconds, as a median over \NRepeats{}
 interleaved repeats with a bootstrap $95\%$ interval. Measured within one producer and never across
 producers, since two producers share no schedule and a difference between them is not a variation
@@ -1863,7 +1863,7 @@ Variant & p50 & p99 & p99.9 & max \\
 \begin{table}[ht]
 \centering
 \small
-\caption[The resident set decomposed by the allocator]{Where the peak resident set goes on the
+\caption[Where the process's extra memory sits]{Where the peak resident set goes on the
 second bare-metal host, from \texttt{jemalloc}'s own accounting in each of the \BmJeRuns{} runs of
 the two \texttt{jemalloc} variants. Medians in MiB over the steady-state loads, with the paired language
 difference in the last column. The two rows below the rule are the argument: the allocator holds
