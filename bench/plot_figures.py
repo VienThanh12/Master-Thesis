@@ -1506,12 +1506,22 @@ def fig_budget(budget, sig_results, outdir, for_thesis=False):
     for y, c, h in zip(ypos, core_us, hand_us):
         ax_a.text(c + h, y, f"  {c + h:.1f} \u00b5s", va="center", fontsize=value_pt)
     share = max(med(l, "core_share_pct") for l in langs)
-    ax_a.annotate(f"the operation:\n{share:.3f}% of the bar",
-                  xy=(0, 1.23), xytext=(max(hand_us) * 0.22, 1.60),
-                  fontsize=note_pt, color="#c0392b", ha="left",
-                  arrowprops=dict(arrowstyle="->", color="#c0392b", lw=1.1))
+    # The operation is a few hundredths of a microsecond, so at this scale it
+    # has no visible width. The arrow has to meet the bar, not the space above
+    # it, or the callout looks attached to nothing.
+    ax_a.annotate(f"the operation:\n{share:.3f}% of the round-trip",
+                  xy=(core_us[0], ypos[0]),
+                  xytext=(max(hand_us) * 0.20, 1.55),
+                  fontsize=note_pt, color="#c0392b", ha="left", va="center",
+                  arrowprops=dict(arrowstyle="->", color="#c0392b", lw=1.1,
+                                  shrinkA=0, shrinkB=2),
+                  zorder=5)
     ax_a.set_ylim(-0.75, 2.05)
-    ax_a.legend(fontsize=legend_pt, loc="lower right", framealpha=0.95)
+    # Below the axis. Inside the axes the box covered the Rust bar and ran
+    # into the neighbouring panel.
+    ax_a.legend(fontsize=legend_pt, loc="upper center",
+                bbox_to_anchor=(0.5, -0.38), framealpha=0.95,
+                borderaxespad=0)
 
     # ---- (b) the same quantities on a log axis ---------------------------- #
     # The sweep's resolving power on the paired median difference: the widest
@@ -1558,7 +1568,12 @@ def fig_budget(budget, sig_results, outdir, for_thesis=False):
     ax_b.set_axisbelow(True)
     ax_b.set_xlim(min(vals) * 0.4, max(vals) * 7)
     for y, v in zip(yb, vals):
-        txt = f"{v:.0f} ns" if v < 1000 else f"{v / NS_PER_US:.0f} \u00b5s"
+        # One decimal on the microsecond labels. Rounding 13.6 to 14, or the
+        # blind zone to 2, disagrees with panel (a) and with the factor below.
+        if v < 1000:
+            txt = f"{v:.0f} ns"
+        else:
+            txt = f"{v / NS_PER_US:.1f} \u00b5s"
         ax_b.text(v * 1.25, y, txt, va="center", fontsize=value_pt)
     if bound_us:
         ratio = bound_us * NS_PER_US / max(core.values())
@@ -1578,10 +1593,10 @@ def fig_budget(budget, sig_results, outdir, for_thesis=False):
             ax_b.set_ylim(-1.15, len(vals) - 0.4)
 
     fig.tight_layout()
-    if for_thesis:
-        fig.subplots_adjust(bottom=0.24)
+    # Room for the legend under panel (a) and the note under panel (b).
+    fig.subplots_adjust(bottom=0.30 if for_thesis else 0.28)
     out = os.path.join(outdir, out_name)
-    fig.savefig(out, bbox_inches="tight" if for_thesis else None)
+    fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
     return out
 
@@ -3191,6 +3206,9 @@ def main():
     budget_fig = fig_budget(budget, sig, outdir)
     if budget_fig:
         produced.append(budget_fig)
+    budget_thesis = fig_budget(budget, sig, outdir, for_thesis=True)
+    if budget_thesis:
+        produced.append(budget_thesis)
     effects_fig = fig_effects(sig, outdir)
     if effects_fig:
         produced.append(effects_fig)
