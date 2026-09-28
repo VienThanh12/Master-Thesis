@@ -20,7 +20,7 @@ whether first use glosses them. Acronyms are already gated by .acronyms.py.
 Identifiers in \texttt are code, not prose.
 
     python3 .b2.py                              # the full draft
-    python3 .b2.py Thesis_v3.tex --band c1      # one band only
+    python3 .b2.py Thesis_v4.tex --band c1      # one band only
     python3 .b2.py --context                    # every line, not just four
 """
 import re

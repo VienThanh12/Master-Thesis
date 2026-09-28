@@ -27,7 +27,7 @@ record instead of a silent pass. A heuristic loose enough to accept them all
 would have accepted the one real defect this script found.
 
     ./.acronyms.py                                  # the full draft
-    ./.acronyms.py Thesis_v3.tex                    # any other document
+    ./.acronyms.py Thesis_v4.tex                    # any other document
 """
 from __future__ import annotations
 

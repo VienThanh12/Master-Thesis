@@ -4,8 +4,8 @@
 Same counters as .readability.py (naive vowel-group syllables, floats dropped).
 Not part of the thesis build.
 
-    python3 .chapter_readability.py Thesis_v3.tex
-    python3 .chapter_readability.py Thesis_v3.tex -o docs/CHAPTER_READABILITY.md
+    python3 .chapter_readability.py Thesis_v4.tex
+    python3 .chapter_readability.py Thesis_v4.tex -o docs/CHAPTER_READABILITY.md
 """
 from __future__ import annotations
 
@@ -234,7 +234,7 @@ def render(src: Path, chap_order, runs) -> str:
         "## What the columns are",
         "",
         "- **Flesch** (Reading Ease): higher is easier. 80+ is the bar used for the",
-        "  recent results, discussion, and conclusion pass on `Thesis_v3.tex`.",
+        "  recent results, discussion, and conclusion pass on `Thesis_v4.tex`.",
         "- **FK**: Flesch-Kincaid grade level (US school grade). Lower is easier.",
         "- **Fog**: Gunning Fog index. Lower is easier.",
         "- **ASL**: average sentence length in words.",
@@ -357,7 +357,7 @@ def how_computed(rows: list[dict]) -> list[str]:
 
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("src", nargs="?", default="Thesis_v3.tex")
+    p.add_argument("src", nargs="?", default="Thesis_v4.tex")
     p.add_argument("-o", "--output", default="docs/CHAPTER_READABILITY.md")
     p.add_argument("--stdout", action="store_true", help="print Markdown only, do not write a file")
     args = p.parse_args()
