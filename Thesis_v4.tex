@@ -14,7 +14,6 @@
 \usepackage{fancyhdr} 
 \usepackage{array} % Ragged-right p-columns in the host table
 \usepackage{longtable}
-\usepackage{float} % [H] pins the key-terms glossary at the appendix heading
 \usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
 \usepackage[section]{placeins} % flush pending floats before each \section
 \renewcommand{\topfraction}{0.9}
@@ -1641,30 +1640,51 @@ settle the human cost this study can only name.
 \begin{appendices}
 
 \appendix{Key terms\label{appendix:terms}}
-Table~\ref{tab:abbrev} collects the terms used throughout the thesis that are not acronyms, for
-readers outside the telecom domain. The acronyms are written out at first use and listed together
-in the \nomname{} on page~\pageref{page:acronyms}.
+Table~\ref{tab:abbrev} collects the network, measurement and safety terms used throughout the thesis
+that are not acronyms, for readers outside the telecom domain. The acronyms are written out at
+first use and listed together in the \nomname{} on page~\pageref{page:acronyms}.
 
-\begin{table}[H]
-\centering
-\caption[Key terms]{Key terms used throughout the thesis.\label{tab:abbrev}}
+\begingroup
 \singlespacing
-\footnotesize
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}p{0.21\linewidth} p{0.71\linewidth}@{}}
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{@{}>{\footnotesize}p{0.22\linewidth} >{\footnotesize}p{0.70\linewidth}@{}}
+\caption[Key terms]{Key terms used throughout the thesis.\label{tab:abbrev}}\\
 \hline\hline
 Term & Meaning \\
 \hline
-Control plane & The signalling and management path, as opposed to the user-plane data path \\
-Tail latency & High-percentile latency (p99, p99.9, p99.99), the worst-case-oriented timing metric \\
-Jitter & How much latency varies from one operation to the next, as opposed to its typical value \\
-Saturation & The offered load beyond which the service can no longer keep up and requests start queueing \\
-Shard & One of several independent slices of the UE state, each owned by exactly one worker thread \\
-Open-loop & A load schedule whose send times are fixed in advance, so a slow response delays no later request \\
-Coordinated omission & The bias an open-loop schedule avoids, in which a stalled client stops issuing requests and so never records the latency of the stall \\
+\endfirsthead
+\hline\hline
+Term & Meaning \\
 \hline
-\end{tabular}
-\end{table}
+\endhead
+Control plane & The signalling and management path, as opposed to the user-plane data path \\
+User plane & The path that carries the user's data. The control plane sets it up and tears it down \\
+Signalling & The messages that create, change and release a connection, as opposed to the user's data \\
+Handover & Moving one connected device from one cell to another, so the call can continue \\
+UE context & The stored record for one device. The shards divide these records, and a handover or a release changes one \\
+Data radio bearer & A channel for that device's data, added while the device stays connected \\
+Tail latency & High-percentile latency (p99, p99.9, p99.99), the worst-case-oriented timing metric \\
+Far tail & The extreme end of the latency distribution, the p99.99, past the p99 many studies stop at \\
+Jitter & How much latency varies from one operation to the next, as opposed to its typical value \\
+Offered load & The rate the test tries to send, counted whether or not the service answers in time \\
+Saturation & The offered load beyond which the service can no longer keep up and requests start queueing \\
+Saturation knee & The offered load at which one variant stops keeping up. The four variants do not share one \\
+Overload & Offered load past that point, where requests queue because the service cannot keep up \\
+Open-loop & A load schedule whose send times are fixed in advance, so a slow response delays no later request \\
+Closed-loop & A schedule that waits for each answer before the next request, so a stall is never recorded \\
+Coordinated omission & The bias an open-loop schedule avoids, in which a stalled client stops issuing requests and so never records the latency of the stall \\
+Blind zone & Delays too short for the end-to-end sweep to separate. A language effect inside it does not show in that sweep \\
+Shard & One of several independent slices of the UE state, each owned by exactly one worker thread \\
+Bare metal & The measurement machine with no hypervisor between the program and the processor \\
+Allocator & The library that hands out and takes back heap memory. Both languages are measured with the system allocator and with jemalloc \\
+Data race & Two threads use the same memory at once and at least one writes, with nothing to order the two uses \\
+Race condition & A bug that depends on which of two steps finishes first. Safe Rust does not rule these out, and it does not rule out deadlocks \\
+In-guarantee class & A defect from the set the compiler is built to reject. In safe Rust each one is a compile error \\
+Boundary class & A defect safe Rust is not built to stop. These compile in safe Rust and then fail \\
+Unsafe & A region the programmer marks so the compiler stops checking it. C++ marks no such region \\
+\hline
+\end{longtable}
+\endgroup
 
 % In the full draft this is Appendix D. Here it is Appendix B because Thesis_v4
 % carries only Key terms before it. The label stays appendix:config so both
