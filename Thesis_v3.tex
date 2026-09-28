@@ -1195,6 +1195,9 @@ keep the two heaps separate. Both bars are this host. The large campaign
 gaps move with the fill.\label{fig:overload}}
 \end{figure}
 
+% The throughput figure does not fit on the page that cites it. Without a
+% barrier the next subsection starts, and the figure lands under that heading.
+\FloatBarrier
 \subsection{Resource use (RQ3)}\label{sec:resources}
 The four variants differ in RAM and CPU usage even where their median latencies are
 close. Peak resident set size (RSS) contains two effects of similar size on
@@ -1238,6 +1241,8 @@ repeats with bootstrap $95\%$ intervals, and CPU in (c) is summed across
 threads.\label{fig:resources}}
 \end{figure}
 
+% Same drift as the throughput figure: the RAM chart was opening the safety subsection.
+\FloatBarrier
 \subsection{Safety via fault injection (RQ2)}\label{sec:safetyresults}
 Safe code is checked by putting $\FaultClasses$ defects in. Seven come from inside
 the zone Rust claims to govern. Seven were chosen because safe Rust is
@@ -1280,6 +1285,12 @@ forgotten-guard programs hang, and no side's tools said so.
 outcomes as a matrix, generated from the taxonomy log.\label{fig:taxonomy}}
 \end{figure}
 
+% The outcome matrix was opening the migration subsection. The seam diagram
+% does not fit under that matrix, and the following chapter would otherwise
+% leave it alone on the next page. The subsection starts on a fresh page so
+% the diagram stays with the paragraph that cites it.
+\FloatBarrier
+\newpage
 \subsection{Migration (RQ4)}\label{sec:migrationresults}
 The FFI seam, the C-ABI layer between the C++ host and Rust core, is small on
 each measured axis: $\FfiEntryPoints$ C entry points in $\FfiSeamLines$ lines
