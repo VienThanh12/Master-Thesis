@@ -1502,20 +1502,25 @@ def fig_budget(budget, sig_results, outdir, for_thesis=False):
         ax_a.tick_params(axis="x", labelsize=tick_pt)
     ax_a.grid(True, axis="x", ls=":", alpha=0.4)
     ax_a.set_axisbelow(True)
-    ax_a.set_xlim(0, max(c + h for c, h in zip(core_us, hand_us)) * 1.32)
+    span = max(c + h for c, h in zip(core_us, hand_us))
+    # 1.32 put "13.6 μs" under the right spine. The extra room keeps the
+    # value, and the callout, to the left of that line.
+    ax_a.set_xlim(0, span * 1.72)
     for y, c, h in zip(ypos, core_us, hand_us):
-        ax_a.text(c + h, y, f"  {c + h:.1f} \u00b5s", va="center", fontsize=value_pt)
+        ax_a.text(c + h, y, f"  {c + h:.1f} \u00b5s", va="center",
+                  fontsize=value_pt, clip_on=True)
     share = max(med(l, "core_share_pct") for l in langs)
     # The operation is a few hundredths of a microsecond, so at this scale it
-    # has no visible width. The arrow has to meet the bar, not the space above
-    # it, or the callout looks attached to nothing.
-    ax_a.annotate(f"the operation:\n{share:.3f}% of the round-trip",
+    # has no visible width. The arrow has to meet the bar. Each line of the
+    # callout is short so the right spine cannot cut a word.
+    ax_a.annotate(f"the operation:\n{share:.3f}%\nof the round-trip",
                   xy=(core_us[0], ypos[0]),
-                  xytext=(max(hand_us) * 0.20, 1.55),
+                  xytext=(span * 0.06, 1.52),
                   fontsize=note_pt, color="#c0392b", ha="left", va="center",
                   arrowprops=dict(arrowstyle="->", color="#c0392b", lw=1.1,
                                   shrinkA=0, shrinkB=2),
-                  zorder=5)
+                  zorder=5,
+                  annotation_clip=False)
     ax_a.set_ylim(-0.75, 2.05)
     # Below the axis. Inside the axes the box covered the Rust bar and ran
     # into the neighbouring panel.
@@ -1537,14 +1542,15 @@ def fig_budget(budget, sig_results, outdir, for_thesis=False):
         labels.append(f"{names[l]} operation")
         vals.append(core[l])
         colors.append("#d62728" if l == "rust" else "#1f77b4")
-    labels.append("Cross-thread handoff")
+    labels.append("Handoff")
     vals.append(max(handoff.values()))
     colors.append("#8794a3")
     if bound_us:
         # Drawn as a bar rather than a marker on purpose: it is a blind zone, not
         # a measurement. Everything it covers is invisible to the sweep, and the
-        # two operation bars sit well inside it.
-        labels.append("Sweep's blind zone\n(bound on the paired p50)")
+        # two operation bars sit well inside it. The label stays short so it
+        # does not cross the line between the panels.
+        labels.append("Blind zone")
         vals.append(bound_us * NS_PER_US)
         colors.append("#f2d4d0")
 
@@ -1593,8 +1599,9 @@ def fig_budget(budget, sig_results, outdir, for_thesis=False):
             ax_b.set_ylim(-1.15, len(vals) - 0.4)
 
     fig.tight_layout()
-    # Room for the legend under panel (a) and the note under panel (b).
-    fig.subplots_adjust(bottom=0.30 if for_thesis else 0.28)
+    # Room under the panels, and a gap so panel (b)'s labels do not sit on
+    # panel (a)'s right spine.
+    fig.subplots_adjust(bottom=0.30 if for_thesis else 0.28, wspace=0.55)
     out = os.path.join(outdir, out_name)
     fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
