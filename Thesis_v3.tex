@@ -1185,14 +1185,12 @@ and keeps the two heaps apart.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_overload.pdf}
-\caption[Campaign and deferred-fill throughput on this host]{Throughput on
-this host at the allocator-split load and at the deepest overload point.
-Bars are medians over \NRepeats{} interleaved repeats with bootstrap $95\%$
-intervals. Solid bars fill the histogram during the timed window. Hatched
-bars are the same processor, \MainCpu{}, the same pin, and the same
-\texttt{nohz\_full} \MainNohzFull{}, with that fill after the window. Panels
-keep the two heaps separate. Both bars are this host. The large campaign
-gaps move with the fill.\label{fig:overload}}
+\caption[Campaign and deferred-fill throughput on this host]{Throughput at
+the allocator-split load and at the deepest overload point. Bars are medians
+over \NRepeats{} interleaved repeats with bootstrap $95\%$ intervals. Solid
+bars fill the histogram during the timed window. Hatched bars put that fill
+after the window, on \MainCpu{}, pin \MainPinned{}, and \texttt{nohz\_full}
+\MainNohzFull{}. The large gaps move with the fill.\label{fig:overload}}
 \end{figure}
 
 % The throughput figure does not fit on the page that cites it. Without a
@@ -1234,10 +1232,10 @@ counters explain the isolated core result, not the overload floor.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.78\linewidth]{figures/fig_resources.pdf}
+\includegraphics[width=\linewidth]{figures/fig_resources_column.pdf}
 \caption[Resource use, and the two effects inside peak RSS]{Resource use at
 $\ReprLoad$~kops/s, grouped by allocator. Bars are medians over \NRepeats{}
-repeats with bootstrap $95\%$ intervals, and CPU in (c) is summed across
+repeats with bootstrap $95\%$ intervals, and CPU in (b) is summed across
 threads.\label{fig:resources}}
 \end{figure}
 
@@ -1278,9 +1276,12 @@ because leaving a scope destroys the guard and releases its lock. It does not
 remove the class: both
 forgotten-guard programs hang, and no side's tools said so.
 
-\begin{figure}[ht]
+% Full column width no longer fits in the leftover under the safety paragraph.
+% [ht] would park the matrix above the next subsection.
+\enlargethispage{48pt}
+\begin{figure}[!ht]
 \centering
-\includegraphics[width=0.72\linewidth]{figures/fig_taxonomy.pdf}
+\includegraphics[width=\linewidth]{figures/fig_taxonomy.pdf}
 \caption[Where the guarantee stops: the outcome matrix]{The fault-injection
 outcomes as a matrix, generated from the taxonomy log.\label{fig:taxonomy}}
 \end{figure}
@@ -1314,7 +1315,7 @@ $\CoreUnsafe$ \texttt{unsafe} sites).
 \enlargethispage{52pt}
 \begin{figure}[!ht]
 \centering
-\includegraphics[width=0.78\linewidth]{diagrams/pdf/07_ffi_seam.pdf}
+\includegraphics[width=\linewidth]{diagrams/pdf/07_ffi_seam.pdf}
 \caption[The C++-to-Rust FFI migration seam]{The C++-to-Rust FFI migration seam.
 The same signalling operation costs $\FfiOpNative$~\textmu s directly and
 $\FfiOpSeam$~\textmu s through the seam, a paired difference bounded at

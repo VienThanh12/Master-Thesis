@@ -846,10 +846,10 @@ def fig_resources(rows, outdir, load):
     drawn because peak RSS is the one metric here whose intervals separate the
     variants, and a bar chart without them cannot show that.
 
-    Panel (b) is the finding. Both effects are real and they are not of comparable
-    size: linking jemalloc moves an order of magnitude more memory than switching
-    language does. Drawing them on one linear axis is the whole point, since it is
-    the ratio between the bars rather than either bar that the RQ3 claim rests on.
+    Panel (b) draws the allocator gap and the language gap on one axis, so the
+    two sizes can be compared. The wide strip is what the slide slot holds. The
+    column figure is the one the thesis includes: the same strip, scaled into
+    the text width, left the labels near 4 pt.
     """
     variants = variants_present(rows)
     allocs = [a for a in ("system", "jemalloc") if any(k[1] == a for k in variants)]
@@ -859,76 +859,110 @@ def fig_resources(rows, outdir, load):
     rss_of = lambda r: r["rss_peak_kb"] / 1024.0
     cpu_of = lambda r: r["cpu_pct"]
 
+    def paint(ax_a, ax_b, ax_c, tick, title_pt, legend_pt, value_pt,
+              wrap_ticks=False, bar_h=0.5, xlim_pad=1.22, slide=False,
+              rss_headroom=0.0, rss_legend="best",
+              cpu_letter="(c)", effect_letter="(b)"):
+        def grouped(ax, metric_fn, ylabel, title, headroom=0.0, legend_loc="best"):
+            width = 0.34
+            for i, lang in enumerate(langs):
+                xs, med, err_lo, err_hi = [], [], [], []
+                for j, alloc in enumerate(allocs):
+                    key = (lang, alloc)
+                    if key not in VARIANT_STYLE:
+                        continue
+                    m, lo, hi = bootstrap_ci([metric_fn(r) for r in _subset(rows, key, load)])
+                    xs.append(j + (i - (len(langs) - 1) / 2) * width)
+                    med.append(m)
+                    err_lo.append(max(0.0, m - lo))
+                    err_hi.append(max(0.0, hi - m))
+                color = VARIANT_STYLE[(lang, allocs[0])][1]
+                ax.bar(xs, med, width=width, color=color, label=names[lang],
+                       yerr=[err_lo, err_hi], capsize=3,
+                       error_kw={"lw": 1.0, "ecolor": "#333333"})
+            ax.set_xticks(range(len(allocs)))
+            tick_labels = [alloc_names[a].replace(" ", "\n") if wrap_ticks
+                           else alloc_names[a] for a in allocs]
+            ax.set_xticklabels(tick_labels, fontsize=tick)
+            ax.set_ylabel(ylabel, fontsize=None if slide else tick)
+            ax.set_title(title, fontsize=title_pt)
+            if not slide:
+                ax.tick_params(axis="y", labelsize=tick)
+            ax.grid(True, axis="y", ls=":", alpha=0.4)
+            ax.set_axisbelow(True)
+            if headroom:
+                lo_y, hi_y = ax.get_ylim()
+                ax.set_ylim(lo_y, hi_y + (hi_y - lo_y) * headroom)
+            ax.legend(fontsize=legend_pt, framealpha=0.95, loc=legend_loc)
+
+        grouped(ax_a, rss_of, "Peak RSS (MiB)", "(a) Peak resident set size",
+                headroom=rss_headroom, legend_loc=rss_legend)
+        # Every variant saturates a core here, so all four bars run to the top of the
+        # axis and "best" has nowhere free to sit: it lands on the system-allocator
+        # pair. The headroom gives the legend a lane of its own.
+        grouped(ax_c, cpu_of, "CPU utilisation (%)", f"{cpu_letter} CPU utilisation",
+                headroom=0.34, legend_loc="upper left")
+
+        # ---- (b) the allocator effect against the language effect --------- #
+        effects = []
+        if len(allocs) > 1:
+            for lang in langs:
+                eff = _paired_effect(rows, (lang, "system"), (lang, "jemalloc"), load, rss_of)
+                if eff:
+                    effects.append((f"jemalloc \u2212 system,\nin {names[lang]}", eff, "#7f8c8d"))
+        for alloc in allocs:
+            eff = _paired_effect(rows, ("cpp", alloc), ("rust", alloc), load, rss_of)
+            if eff:
+                effects.append((f"Rust \u2212 C++,\nunder {alloc_names[alloc]}", eff, "#c0392b"))
+
+        ys = list(range(len(effects)))[::-1]
+        hi_cap = max(e[1][2] for e in effects) if effects else 1.0
+        for y, (label, (med, lo, hi), color) in zip(ys, effects):
+            ax_b.barh([y], [med], height=bar_h, color=color,
+                      xerr=[[max(0.0, med - lo)], [max(0.0, hi - med)]], capsize=3,
+                      error_kw={"lw": 1.0, "ecolor": "#333333"})
+            ax_b.text(hi + hi_cap * 0.03, y, f"{med:.1f}",
+                      va="center", fontsize=value_pt)
+        ax_b.set_yticks(ys)
+        ax_b.set_yticklabels([e[0] for e in effects], fontsize=8 if slide else tick)
+        ax_b.set_xlabel("Paired difference in peak RSS (MiB)",
+                        fontsize=None if slide else tick)
+        effect_title = f"{effect_letter} Allocator effect against language effect"
+        if not slide:
+            effect_title = f"{effect_letter} Allocator effect\nagainst language effect"
+        ax_b.set_title(effect_title, fontsize=title_pt)
+        if not slide:
+            ax_b.tick_params(axis="x", labelsize=tick)
+        ax_b.axvline(0.0, color="#333333", lw=0.9)
+        ax_b.grid(True, axis="x", ls=":", alpha=0.4)
+        ax_b.set_axisbelow(True)
+        if effects:
+            ax_b.set_xlim(0, hi_cap * xlim_pad)
+
+    # Wide strip for the slide slot. The thesis column cannot hold this at a
+    # size where the labels stay readable, so the page gets the stacked file.
     fig, (ax_a, ax_b, ax_c) = plt.subplots(
         1, 3, figsize=(10.2, 3.5), gridspec_kw={"width_ratios": [1.0, 1.22, 1.0]})
-
-    def grouped(ax, metric_fn, ylabel, title, headroom=0.0, legend_loc="best"):
-        width = 0.34
-        for i, lang in enumerate(langs):
-            xs, med, err_lo, err_hi = [], [], [], []
-            for j, alloc in enumerate(allocs):
-                key = (lang, alloc)
-                if key not in VARIANT_STYLE:
-                    continue
-                m, lo, hi = bootstrap_ci([metric_fn(r) for r in _subset(rows, key, load)])
-                xs.append(j + (i - (len(langs) - 1) / 2) * width)
-                med.append(m)
-                err_lo.append(max(0.0, m - lo))
-                err_hi.append(max(0.0, hi - m))
-            color = VARIANT_STYLE[(lang, allocs[0])][1]
-            ax.bar(xs, med, width=width, color=color, label=names[lang],
-                   yerr=[err_lo, err_hi], capsize=3,
-                   error_kw={"lw": 1.0, "ecolor": "#333333"})
-        ax.set_xticks(range(len(allocs)))
-        ax.set_xticklabels([alloc_names[a] for a in allocs], fontsize=8.5)
-        ax.set_ylabel(ylabel)
-        ax.set_title(title, fontsize=9.5)
-        ax.grid(True, axis="y", ls=":", alpha=0.4)
-        ax.set_axisbelow(True)
-        if headroom:
-            lo_y, hi_y = ax.get_ylim()
-            ax.set_ylim(lo_y, hi_y + (hi_y - lo_y) * headroom)
-        ax.legend(fontsize=8, framealpha=0.95, loc=legend_loc)
-
-    grouped(ax_a, rss_of, "Peak RSS (MiB)", "(a) Peak resident set size")
-    # Every variant saturates a core here, so all four bars run to the top of the
-    # axis and "best" has nowhere free to sit: it lands on the system-allocator
-    # pair. The headroom gives the legend a lane of its own.
-    grouped(ax_c, cpu_of, "CPU utilisation (%)", "(c) CPU utilisation",
-            headroom=0.34, legend_loc="upper left")
-
-    # ---- (b) the allocator effect against the language effect ------------- #
-    effects = []
-    if len(allocs) > 1:
-        for lang in langs:
-            eff = _paired_effect(rows, (lang, "system"), (lang, "jemalloc"), load, rss_of)
-            if eff:
-                effects.append((f"jemalloc \u2212 system,\nin {names[lang]}", eff, "#7f8c8d"))
-    for alloc in allocs:
-        eff = _paired_effect(rows, ("cpp", alloc), ("rust", alloc), load, rss_of)
-        if eff:
-            effects.append((f"Rust \u2212 C++,\nunder {alloc_names[alloc]}", eff, "#c0392b"))
-
-    ys = list(range(len(effects)))[::-1]
-    for y, (label, (med, lo, hi), color) in zip(ys, effects):
-        ax_b.barh([y], [med], height=0.5, color=color,
-                  xerr=[[max(0.0, med - lo)], [max(0.0, hi - med)]], capsize=3,
-                  error_kw={"lw": 1.0, "ecolor": "#333333"})
-        ax_b.text(hi + max(e[1][2] for e in effects) * 0.03, y, f"{med:.1f}",
-                  va="center", fontsize=8.5)
-    ax_b.set_yticks(ys)
-    ax_b.set_yticklabels([e[0] for e in effects], fontsize=8)
-    ax_b.set_xlabel("Paired difference in peak RSS (MiB)")
-    ax_b.set_title("(b) Allocator effect against language effect", fontsize=9.5)
-    ax_b.axvline(0.0, color="#333333", lw=0.9)
-    ax_b.grid(True, axis="x", ls=":", alpha=0.4)
-    ax_b.set_axisbelow(True)
-    if effects:
-        ax_b.set_xlim(0, max(e[1][2] for e in effects) * 1.22)
-
+    paint(ax_a, ax_b, ax_c, tick=8.5, title_pt=9.5, legend_pt=8, value_pt=8.5,
+          slide=True)
     fig.tight_layout()
     out = os.path.join(outdir, "fig_resources.pdf")
     fig.savefig(out)
+    plt.close(fig)
+
+    # (a) is the left column, full height, so it shares a left edge with the
+    # figure. (b) sits above (c) on the right. A top-left box left (a) inset
+    # over the wide panel and the letters did not match the reading order.
+    fig = plt.figure(figsize=(6.3, 5.4), layout="constrained")
+    gs = fig.add_gridspec(2, 2, width_ratios=[0.92, 1.35], height_ratios=[1.0, 1.25])
+    paint(fig.add_subplot(gs[:, 0]), fig.add_subplot(gs[1, 1]),
+          fig.add_subplot(gs[0, 1]),
+          tick=10, title_pt=11, legend_pt=9, value_pt=10,
+          wrap_ticks=True, bar_h=0.5, xlim_pad=1.42,
+          rss_headroom=0.18, rss_legend="upper left",
+          cpu_letter="(b)", effect_letter="(c)")
+    column = os.path.join(outdir, "fig_resources_column.pdf")
+    fig.savefig(column, bbox_inches="tight")
     plt.close(fig)
     return out
 
