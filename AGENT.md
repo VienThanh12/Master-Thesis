@@ -488,9 +488,9 @@ prose in every chapter. Chapter 1 is therefore the introduction from
 the chapter labels this file has. Chapter 2 is a related-work spine as of 21 September 2026.
 Do not compress it back to five paragraphs. Chapters 3 to 8 keep **five argument paragraphs** each,
 the same five moves they had as bullets. Do not add a sixth paragraph to those chapters, and
-do not expand them into the full draft's chapter prose. The document carries two appendices:
-Key terms (`appendix:terms`) and Host and campaign configuration (`appendix:config`), matching
-the draft's Appendices A and D. It needs no further ones.
+do not expand them into the full draft's chapter prose. Key terms sit in the front matter
+after the list of acronyms. The document carries one appendix, Host and campaign
+configuration (`appendix:config`). It needs no further one.
 Chapters 5 to 8 were first filled at the author's explicit request on 20 August
 2026, when the fold had not happened and they were numbered 6 to 9.
 

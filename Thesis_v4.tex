@@ -164,7 +164,7 @@
 % \captionsenglish. Scoped to the acronyms this document uses, which is a subset of
 % the full draft's. Expansions are sentence case. The five gNB rows keep a
 % lowercase g, which is the token's own spelling and not an oversight. Terms that
-% are not acronyms stay in Appendix~\ref{appendix:terms}.
+% are not acronyms follow this list, still in the front matter.
 \cleardoublepage
 \phantomsection
 \addcontentsline{toc}{chapter}{\nomname}
@@ -174,7 +174,7 @@
 
 \noindent Each acronym below is also written out where the text first uses it. Terms that are
 not acronyms, such as \emph{tail latency} and \emph{shard}, are collected in
-Appendix~\ref{appendix:terms}.
+the list of key terms that follows.
 
 \begingroup
 \singlespacing
@@ -229,6 +229,80 @@ UECM & UE Context Management, the subsystem reimplemented and measured here \\
 \end{longtable}
 \endgroup
 
+% Key terms sit in the front matter, with the acronyms, so a reader meets them
+% before Chapter 1. The label keeps the name appendix:terms.
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Key terms}
+\chapter*{Key terms}
+\markboth{Key terms}{Key terms}
+\label{appendix:terms}
+
+\noindent The table below gives plain meanings for the network, the service, the timing, and the safety
+words used in the thesis.     
+
+\begingroup
+\singlespacing
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{@{}>{\footnotesize\raggedright\arraybackslash}p{0.34\linewidth} >{\footnotesize\raggedright\arraybackslash}p{0.62\linewidth}@{}}
+\hline\hline
+Term & Meaning \\
+\hline
+\endfirsthead
+\hline\hline
+Term & Meaning \\
+\hline
+\endhead
+\multicolumn{2}{@{}l}{\footnotesize\emph{Network}}\\*[2pt]
+Control plane & The messages that set up and control a call. The user's data travels on the user plane \\
+User plane & The path that carries the user's data. The control plane sets that path up and takes it down \\
+Signalling & The messages that create, change, and end a connection \\
+Handover & Moving one connected device from one cell to another, so the call can continue \\
+Cell & One coverage area of the radio network \\
+Mobility & A connected device changing cell while the call continues \\
+UE context & The stored record for one device. A handover or a release changes that record \\
+Reconfiguration & A change to a connection that stays up, such as adding a data channel \\
+Release & Ending one device's connection and deleting its record \\
+Procedure & One action a person would notice, such as setting up a call or moving between cells. It is made of many smaller steps \\
+Open-RAN & The same split base station, opened so each part may come from a different company and run as ordinary software \\
+5G core & The network behind the base station. It forwards each call onward \\
+\\[6pt]
+\multicolumn{2}{@{}l}{\footnotesize\emph{The service}}\\*[2pt]
+Shard & One slice of the device records. Exactly one thread owns that slice \\
+Producer & A thread that sends the test's requests and waits for each reply \\
+Worker & The thread that owns one shard and carries out the requests for it \\
+Bounded queue & The queue in front of a shard. It has a fixed size and waits when full, so a service that cannot keep up shows delay rather than dropped requests \\
+Operation & One request for one device, such as setup or release \\
+Variant & One of the four builds under test. The four are C++ or Rust, each linked with one of the two memory libraries \\
+Allocator & The library that hands out memory and takes it back \\
+\\[6pt]
+\multicolumn{2}{@{}l}{\footnotesize\emph{Timing}}\\*[2pt]
+Tail latency & How long the slow calls take, rather than the average call. This thesis reads that from the p99, the p99.9, and the p99.99 \\
+Median & The middle call, once the calls are ordered by how long they took. Half are faster and half are slower \\
+Histogram & The record of how long each call took. Tail latency is read from its slow end \\
+Offered load & The rate the test tries to send, counted whether or not the service answers in time \\
+Throughput & How many requests the service finishes each second. Offered load is how many the test tries to send \\
+Saturation & The load at which the service can no longer keep up and requests start to wait \\
+Overload & Load past saturation. Requests wait because the service cannot keep up \\
+Round-trip & The time from the planned send until the reply comes back. It includes the wait in the queue \\
+Bare metal & The program runs on the computer itself, with no virtual machine between it and the hardware \\
+Guest & A virtual machine an earlier measurement ran in. The reported results come from the bare-metal computer \\
+\\[6pt]
+\multicolumn{2}{@{}l}{\footnotesize\emph{Safety}}\\*[2pt]
+Data race & Two threads use the same memory at once and at least one writes, with nothing to keep the two uses in order \\
+Race condition & A bug that depends on which of two steps finishes first. Safe Rust still compiles these \\
+Use-after-free & Using memory after it has been given back \\
+Double-free & Giving the same memory back twice \\
+Ownership & Rust's rule that each value has one owner. A read of a record whose owner is already gone does not compile \\
+Borrowing & A temporary loan of a value. The compiler rejects a loan that lasts longer than the value \\
+Unsafe & A region the programmer marks so the Rust compiler stops checking it. C++ has no such mark \\
+Sanitiser & A tool that watches a running C++ program and reports some defects. It can report only a path a test actually runs \\
+\hline
+\end{longtable}
+\endgroup
+
+
 \cleardoublepage
 \mainmatter
 
@@ -236,8 +310,8 @@ UECM & UE Context Management, the subsystem reimplemented and measured here \\
 \chapter{Introduction}
 
 Mobile networks are moving from specialised hardware to software on ordinary servers.
-Functions that once ran on fixed-purpose, vertically integrated equipment are now re
-implemented as programs on general-purpose machines. The radio access network (RAN),
+Functions that once ran on fixed-purpose, vertically integrated equipment are now
+reimplemented as programs on general-purpose machines. The radio access network (RAN),
 long the most hardware-centric part of the stack, is part of that shift.
 
 In 5G, the base station, formally the next-generation NodeB (gNB), is split into a central
@@ -286,10 +360,7 @@ Three terms recur throughout. The \emph{gNB-CU-CP} is the control-plane class th
 \emph{UE Context Management (UECM)} is the compact service reimplemented and measured.
 \emph{Tail latency}, the p99, p99.9 and p99.99 percentiles rather than the mean, is the property that,
 more than average speed, decides whether such a system meets its
-latency budgets~\cite{dean2013tail,barroso2017microseconds}. Every acronym is written out where the
-text first uses it, and the \nomname{} in the front matter collects them. The terms that are not
-acronyms are fixed in Appendix~\ref{appendix:terms} for readers outside telecom.
-
+latency budgets~\cite{dean2013tail,barroso2017microseconds}. 
 \section{Motivation}\label{sec:motivation}
 Three trends make this comparison timely. The first is the cloud-native
 evolution of the RAN. Control-plane functions now run on general-purpose
@@ -956,7 +1027,7 @@ one bare-metal host, a single-socket \MainCpu{}. Each core runs one
 thread. Extra threads on a core are \MainSmt{}. The host runs
 \MainHostDistro{} on kernel \MainKernel{}. Linux can raise and
 lower each core's clock as load and heat change. The clock is held
-fixed. The governor is \MainGovernor{}, and boost is off. The
+fixed. That clock setting is \MainGovernor{}, and boost, a further rise of that clock, is off. The
 test may use only cores \MainPinned{}. There is no hypervisor. The
 program runs on the host itself, not inside a virtual machine. On those
 cores the kernel turns off its timer tick (\texttt{nohz\_full}).
@@ -1016,8 +1087,8 @@ time of day, and no public figure fixes it. A mix that does not match a real
 cell moves both sides by the same amount. It limits how far the numbers
 travel. It does not make the test unfair. The sender keeps to its
 plan even if the service is late (open-loop). The histogram is
-corrected so a stall does not hide missing replies (coordinated-omission
-bias)~\cite{schroeder2006openclosed,tene_hdrhistogram}. Each load is
+corrected so a stalled sender, which stops asking, does not leave the stall
+untimed~\cite{schroeder2006openclosed,tene_hdrhistogram}. Each load is
 run \NRepeats{} times. The four language and heap variants are interleaved
 inside each run. Each point is a median with a bootstrap $95\%$
 band~\cite{georges2007rigorous,efron1993bootstrap}.
@@ -1075,7 +1146,7 @@ outside the tested family because one disturbed operation can determine it.
 \centering
 \includegraphics[width=\linewidth]{figures/fig_load_sweep.pdf}
 \caption[The load sweep: tail latency and achieved throughput]{Panel (a) is
-p99 below the knee, on one linear scale, through $\TrackingLoad$~kops/s.
+p99 below saturation, on one linear scale, through $\TrackingLoad$~kops/s.
 The four variants sit within a few microseconds, so they are drawn together.
 In (b) and (c) each variant has its own panel. Panel (b) is the tail on a
 log scale across the whole sweep. Panel (c) is achieved throughput, and the
@@ -1118,8 +1189,7 @@ a language effect.\label{fig:e2eclock}}
 \includegraphics[width=\linewidth]{figures/fig_budget_thesis.pdf}
 \caption[How small the language’s share of a round-trip is]{Where
 an end-to-end round-trip's cost goes. \textbf{(a)} The round-trip at true
-proportion. \textbf{(b)} Both operation measurements sit inside the sweep's
-blind zone by a factor of $\BudgetBoundVsCore$.\label{fig:budget}}
+proportion. \textbf{(b)} Both operation measurements are too short for that clock to separate, by a factor of $\BudgetBoundVsCore$.\label{fig:budget}}
 \end{figure}
 
 \subsection{Past saturation (RQ1)}\label{sec:overload}
@@ -1152,14 +1222,13 @@ can go. The slower variant uses $\OverloadCpuPerOpRatio$ times the CPU for
 each call it finishes. That quantity belongs to the whole campaign process,
 including the recorder, and does not identify service work.
 
-Clock B repeats the same grid on this host, over $\ProbeAfterRuns$ runs.
+A same-host run writes the fill after the timed window. It repeats the same grid, over $\ProbeAfterRuns$ runs.
 The processor is \ProbeAfterCpu{}, the pin is \ProbeAfterPinned{}, and
 \texttt{nohz\_full} is \ProbeAfterNohzFull{}. Those match the campaign.
 Only the fill moves, to after the timed window. When a sender falls behind,
 the harness still writes up to $\ProbeAfterCap$ extra samples for each
-finished call, but it writes them outside the window. Clock A was not
-repeated here. It remains an earlier host. Its percentiles stay
-coordinated-omission biased, so they are not an RQ1 tail result.
+finished call, but it writes them outside the window. The earlier run that drops the fill was not
+repeated here. It remains an earlier host. Its percentiles still miss the stalls, so they are not an RQ1 tail result.
 
 Moving the fill removes both campaign patterns. At $\KneeSplitLoad$~kops/s,
 C\texttt{++} serves $\ProbeAfterKneeThrCpp$~kops/s and Rust serves
@@ -1173,13 +1242,12 @@ $\ProbeAfterThrCppJemalloc$ against $\ProbeAfterThrRustJemalloc$, at
 $p \ProbeAfterThrPJemalloc$. These tests sit outside the pre-committed Holm
 family.
 
-What remains is that smaller Rust lead. CPU per completed operation on the
-deferred plateau is $\ProbeAfterCpuPerOpRatio$, with
+What remains is that smaller Rust lead. CPU per completed operation where throughput has stopped rising is $\ProbeAfterCpuPerOpRatio$, with
 \ProbeAfterCpuPerOpHigher{} the higher one, against $\OverloadCpuPerOpRatio$
 while the fill ran inside the window. The large ratio is the recorder. The
 smaller lead is not that ratio. This visit took no allocation profile, so
 the lead is reported and not explained. Queue and channel substitutions from
-an earlier host do not explain it either. Percentiles on Clock B are
+an earlier host do not explain it either. Percentiles on that same-host run are
 schedule drift, not service time. The campaign stays the pre-committed
 compared pair. Figure~\ref{fig:overload} compares both clocks on this host
 and keeps the two heaps apart.
@@ -1251,8 +1319,8 @@ error in Rust. In C++ each is valid code. The
 defect shows up only if a test drives it, and no single sanitiser hits them
 all. The use-after-move is the case where no sanitiser flags anything. A
 moved-from object is still a valid object. Its value is unset. So there
-is nothing wrong to detect, and the name is just lost. All seven
-boundary cases compile in safe Rust and fail. On two of them the C++
+is nothing wrong to detect, and the name is just lost. The seven
+that safe Rust is not built to stop do compile in safe Rust, and they fail. On two of them the C++
 tools are the ones that flag. LeakSanitizer flags the ref cycle that
 Rust leaks in silence, because leaks are safe in Rust by
 design~\cite{hughes2025gcrust,cui2024rcanary}. UndefinedBehaviorSanitizer flags
@@ -1262,15 +1330,14 @@ itself jumps. It logs lock orders only from locks that work. If the
 first inversion waits and never returns, the cycle is never closed, so the tool never
 flags it.
 
-The seam double-free is the in-guarantee double-free recast through
-\texttt{unsafe}, not a new class. Its C++ half is the same, so only the Rust
-column moves. Two Rust model checkers do flag both original boundary defects.
+The double-free inside \texttt{unsafe} is the ordinary double-free rewritten where the compiler has stopped checking, not a new class. Its C++ half is the same, so only the Rust
+column moves. Two Rust model checkers do flag both of the original defects that safe Rust does not stop.
 Loom explores thread orders in a sound way. Shuttle picks the ones
 Loom cannot reach~\cite{bornholt2021shardstore}. Each had to be written using
-the checker's own parts first, and shrunk to model size. Miri flags the
-seam double-free, but it reads Rust and cannot run the C++ host the
+the checker's own parts first, and shrunk to model size. Miri flags that
+double-free, but it reads Rust and cannot run the C++ host the
 defect sits behind. LeakSanitizer and UndefinedBehaviorSanitizer flag without
-a rewrite. The two model checkers flag the concurrency boundary cases only
+a rewrite. The two model checkers flag the concurrency cases only
 after the defect is recast into their parts. Figure~\ref{fig:taxonomy} draws the
 whole list as an outcome matrix. Resource Acquisition Is Initialization
 (RAII) ties cleanup to object lifetime. It removes the plain missed-unlock,
@@ -1288,21 +1355,21 @@ forgotten-guard programs hang, and no side's tools said so.
 outcomes as a matrix, generated from the taxonomy log.\label{fig:taxonomy}}
 \end{figure}
 
-% The outcome matrix was opening the migration subsection. The seam diagram
+% The outcome matrix was opening the migration subsection. The layer diagram
 % does not fit under that matrix, and the following chapter would otherwise
 % leave it alone on the next page. The subsection starts on a fresh page so
 % the diagram stays with the paragraph that cites it.
 \FloatBarrier
 \newpage
 \subsection{Migration (RQ4)}\label{sec:migrationresults}
-The FFI seam, the C-ABI layer between the C++ host and Rust core, is small on
+The C-ABI layer between the C++ host and the Rust core is small on
 each measured axis: $\FfiEntryPoints$ C entry points in $\FfiSeamLines$ lines
 of Rust. All raw-pointer work is kept in
 $\FfiUnsafeFns$ functions. The core is left free of \texttt{unsafe}. No extra
 cost is seen against the same signal call made directly. That bounds any
 per-call tax at $\FfiOpBoundPct\%$ of that call, and
 Figure~\ref{fig:ffiseam} shows the structure that bound belongs to. Three
-adoption costs beyond the seam were measured as well, and two of them
+adoption costs beyond that layer were measured as well, and two of them
 go against the usual worry about taking Rust.
 $\BuildDepShareCpu\%$ of the Rust clean build is third-party code. The project's
 own source builds in $\BuildAllFirstPartyCpuRatio$ times the CPU \texttt{g++}
@@ -1318,9 +1385,9 @@ $\CoreUnsafe$ \texttt{unsafe} sites).
 \begin{figure}[!ht]
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/07_ffi_seam.pdf}
-\caption[The thin layer where C++ calls the Rust service]{The C++-to-Rust FFI migration seam.
+\caption[The thin layer where C++ calls the Rust service]{The layer where C++ calls the Rust service.
 The same signalling operation costs $\FfiOpNative$~\textmu s directly and
-$\FfiOpSeam$~\textmu s through the seam, a paired difference bounded at
+$\FfiOpSeam$~\textmu s through that layer, a paired difference bounded at
 $\FfiOpBoundPct\%$ of that call. A do-nothing crossing costs
 $\FfiCrossing$~ns and bounds only itself.\label{fig:ffiseam}}
 \end{figure}
@@ -1341,14 +1408,14 @@ Rust lead. CPU per completed call falls from $\OverloadCpuPerOpRatio\times$
 to $\ProbeAfterCpuPerOpRatio\times$. Neither overload clock supplies
 service-latency percentiles, so RQ1 has no language verdict after saturation. The RQ2 outcome
 is complete for the fourteen-class catalogue set in advance and does not
-depend on the host. All seven in-guarantee classes are
-compile errors in safe Rust. All seven boundary classes compile and
+depend on the host. All seven classes safe Rust is built to reject are
+compile errors. The other seven compile and
 fail in Rust and in C++. RQ3 finds a higher Rust peak RSS under both heaps:
 $\RssLangDiffLo$--$\RssLangDiffHi$~MiB on the campaign host,
 $\GuestRssLangLo$--$\GuestRssLangHi$ on the guest, and
 $\BmRssLangLo$--$\BmRssLangHi$ on the second bare-metal host. Below
 saturation Rust draws slightly less CPU. Corrected high-load throughput gives
-no general language rank. RQ4 finds a small seam whose per-call tax is bounded
+no general language rank. RQ4 finds that layer small, and its per-call tax is bounded
 at $\FfiOpBoundPct\%$ of that call. API design and learning remain
 literature-backed adoption costs that this study does not measure directly.
 
@@ -1358,17 +1425,17 @@ resolves median, p99 and p99.9 differences, and the pooled p99.99 lies on
 Rust's side. The end-to-end clock still cannot bound a language effect because
 the core call is only $\BudgetCoreShareMax\%$ of what it times. After
 saturation neither available percentile clock estimates service latency. The
-campaign includes producer-side fill, while Clock B measures cumulative
+campaign includes producer-side fill, while the same-host run measures cumulative
 schedule drift. No overload tail ranking follows.
 
 The campaign throughput shows an allocator split at one rung and a C++ lead
-later. Clock B, on this same host, removes both large patterns when the fill
+later. The same-host run removes both large patterns when the fill
 is deferred and leaves a smaller Rust lead. That isolates the fill as the
 source of the large gaps. The smaller lead is reported and not explained.
 This visit took no allocation profile, and the queue and channel
-substitutions belong to an earlier host. Clock A's
-lower Rust p99 is deliberately coordinated-omission biased and is not an RQ1
-tail result. Clock B's throughput is a completed-work comparison. Its
+substitutions belong to an earlier host. The earlier run's
+lower Rust p99 misses the stalls on purpose and is not an RQ1
+tail result. The same-host run's throughput is a completed-work comparison. Its
 percentiles are schedule drift. The closest prior work reports
 similar degradation past a threshold rate and attributes it to stackless
 \texttt{async}/\texttt{await}~\cite{arvidsson2025async}. That cause cannot
@@ -1443,15 +1510,15 @@ draws slightly less CPU. The larger flip under the campaign clock is the
 recorder. On this host it is absent once the fill moves, and it cannot be
 assigned to Rust's safe code model. A smaller throughput lead remains.
 
-RQ4 finds a small machine-side seam. A C++ host can
-call an unchanged Rust core across a thin C-ABI seam whose cost on a real
+RQ4 finds the layer between the two languages small. A C++ host can
+call an unchanged Rust core across that thin C-ABI layer, and the cost on a real
 signal call is bounded at $\FfiOpBoundPct\%$ of that call. Prior work identifies
 design and learning as human costs~\cite{fulton2021adopting,crichton2024learning},
 but this study does not measure their size. Keeping \texttt{unsafe}
-at the seam bounds what has to be checked, not what can be corrupted. Host and
+in that layer bounds what has to be checked, not what can be corrupted. Host and
 part share one address
 space~\cite{rivera2021galeed,kirth2022pkrusafe}. The build and footprint axes
-point the same way as the seam. A vendor worried about either should
+point the same way as that layer. A vendor worried about either should
 audit its crate budget before blaming the compiler. The one axis where C++
 leads outright is the edit and compile loop for changes that stay inside one
 source file. The $\FootShippedRatio\times$ size figure sets two
@@ -1475,8 +1542,7 @@ Saying how they came out is what sets a test apart from a sketch.
         exception. It fails in the looser reading its wording invites. It is
         accepted for memory safety and data-race freedom, rejected for
         concurrency correctness at large, and it is a claim about \emph{safe}
-        Rust only. The seam case shows the same class returning inside
-        \texttt{unsafe}.
+        Rust only. The case inside \texttt{unsafe} shows the same class returning there.
   \item[H3] Any per-call tax is bounded at $\FfiOpBoundPct\%$ of that signalling call. This is
         supported by the upper bound on the paired difference. A non-significant
         difference alone would not show that the tax is small. The accompanying claim, that the real
@@ -1512,11 +1578,10 @@ after more speed work~\cite{emberg2023asn1}. The parity suite bounds
 what the code does and not speed. The second is that the end-to-end clock
 times the design faithfully and the language hardly at all. Third, the
 same-host control isolates fill timing. It removes the large campaign gaps
-and leaves a smaller Rust lead on the deferred plateau. No allocation profile
-was taken on this visit, so that lead is reported and not explained. Clock A
+and leaves a smaller Rust lead where throughput has stopped rising. No allocation profile
+was taken on this visit, so that lead is reported and not explained. The earlier run
 was not repeated here. Fourth, neither high-load clock gives
-service-latency percentiles. The campaign includes recorder work, Clock A has
-coordinated-omission bias, and Clock B reports schedule drift. The thesis
+service-latency percentiles. The campaign includes recorder work. The earlier run misses the stalls, and the same-host run reports schedule drift. The thesis
 therefore leaves overload service latency unresolved.
 
 \section{Ethical and professional reflection}
@@ -1524,7 +1589,7 @@ The study uses no personal data, no subscriber data, and no operator secrets. Al
 traffic is made for the test. The service is based on live code, not
 copied from it, so the artefacts can be shared in public. The first
 duty is not to claim too much. A vendor could read the RQ2 result as
-licence to describe a moved part as ``safe'', and the boundary cases are
+licence to describe a moved part as ``safe'', and the seven defects it does not stop are
 why that reading would be wrong. A deadlocked control plane is an outage. A
 lost counter update that stays silent can misinform a mobility decision. Nothing
 shown here stops either. The second duty is how far the data reaches.
@@ -1545,18 +1610,17 @@ of skill.
 The safety mechanisms act at different stages. Safe Rust rejects all seven
 injected memory-safety and data-race classes before they become programs that
 can run. The same seven compile in C++, where a sanitiser can report a defect
-only if a test executes the relevant path. All seven boundary classes compile
+only if a test executes the relevant path. The other seven compile
 and fail in both languages. On two of them the C++ tools flag what Rust's do
 not. Rust therefore drops data races and aliasing errors. It does not drop
 race conditions, lock-order errors, leaks, wrapping arithmetic, or the blast
 radius of a failed worker. It drops nothing inside an \texttt{unsafe} block.
-LeakSanitizer and UndefinedBehaviorSanitizer flag two boundary defects without
+LeakSanitizer and UndefinedBehaviorSanitizer flag two of those seven without
 a rewrite. The two model checkers flag the concurrency cases only after each
 defect is recast into their parts.
 
-On migration the measured machine-side seam is small. An unchanged Rust core
-can be driven from C++ across an FFI
-seam, the C-ABI layer where the two languages meet. It has
+On migration that layer is small. An unchanged Rust core
+can be driven from C++ across the C-ABI layer where the two languages meet. It has
 $\FfiEntryPoints$ entry points in $\FfiSeamLines$ lines, and its
 $\FfiUnsafeFns$ raw-pointer functions contain all of the \texttt{unsafe}. The
 core has $\CoreUnsafe$ \texttt{unsafe} sites. The cost on a real signal call is
@@ -1604,12 +1668,12 @@ list maps where the guarantee stops.
 Future work answers the gaps one at a time. The same-host control is now
 done. In-run and deferred fill were repeated on one host, with the pin and
 \texttt{nohz\_full} held. The large gaps move with the fill. What remains is
-the smaller Rust throughput lead on the deferred plateau, which this visit
-does not explain. The next job needs no new host. It is to vary the transparent hugepage policy on one host with all
+the smaller Rust throughput lead where throughput has stopped rising, which this visit
+does not explain. The next job needs no new host. It is to vary how the kernel uses large pages for ordinary memory, on one host with all
 else held fixed. All three hosts agree that the Rust build carries the larger
 footprint. They disagree about how that sits against the cost of the
 heap. The guest put it an order of magnitude higher, and neither
-bare-metal host does. The hugepage policy is the candidate this study
+bare-metal host does. The large-page setting is the candidate this study
 can name but not test, because it was not the same on each host and only the
 system allocator variant gets it. Beyond that, replaying anonymised production
 traces would check the call mix. The harness can also take further
@@ -1639,134 +1703,7 @@ settle the human cost this study can only name.
 \backmatter
 \begin{appendices}
 
-\appendix{Key terms\label{appendix:terms}}
-Table~\ref{tab:abbrev} collects the network, service, measurement and safety terms used in the thesis
-that are not acronyms, for readers outside the telecom domain. The safety rows use the names in the
-text and on the outcome matrix. The acronyms are written out at
-first use and listed together in the \nomname{} on page~\pageref{page:acronyms}.
-
-\begingroup
-\singlespacing
-\setlength{\tabcolsep}{4pt}
-\renewcommand{\arraystretch}{1.15}
-\begin{longtable}{@{}>{\footnotesize\raggedright\arraybackslash}p{0.34\linewidth} >{\footnotesize\raggedright\arraybackslash}p{0.62\linewidth}@{}}
-\caption[Key terms]{Key terms used throughout the thesis.\label{tab:abbrev}}\\
-\hline\hline
-Term & Meaning \\
-\hline
-\endfirsthead
-\hline\hline
-Term & Meaning \\
-\hline
-\endhead
-\multicolumn{2}{@{}l}{\footnotesize\emph{Network}}\\*[2pt]
-Control plane & The signalling and management path, as opposed to the user-plane data path \\
-User plane & The path that carries the user's data. The control plane sets it up and tears it down \\
-Signalling & The messages that create, change and release a connection, as opposed to the user's data \\
-Handover & Moving one connected device from one cell to another, so the call can continue \\
-Cell & One coverage area of the radio network. A handover moves a device from one cell to another \\
-Mobility & A connected device changing cell. Many such moves at once are a mobility storm \\
-UE context & The stored record for one device. The shards divide these records, and a handover or a release changes one \\
-Data radio bearer & A channel for that device's data, added while the device stays connected \\
-Reconfiguration & A change to a connection that stays up, such as adding a data radio bearer \\
-Procedure & One user-visible control-plane action, such as a setup or a handover. It is made of many operations \\
-Release & Deleting one device's stored record and ending its connection \\
-Open-RAN & The same split base station, opened so each part may come from a different vendor and run as ordinary software \\
-Uu & The radio link between the device and the distributed unit \\
-F1 & The link between the central unit and a distributed unit \\
-E1 & The link between the control-plane and user-plane halves of the central unit \\
-NG & The link from the base station toward the 5G core. NG-RAN is the network, and this NG is one link inside it \\
-5G core & The network behind the base station. It forwards each call onward \\
-\\[6pt]
-\multicolumn{2}{@{}l}{\footnotesize\emph{Service}}\\*[2pt]
-Shard & One of several independent slices of the UE state, each owned by exactly one worker thread \\
-Shared-nothing & Each shard's device state has a single owning thread. The only shared mutable state is one counter, and no control flow depends on its value \\
-Thread-per-shard & One worker thread owns one shard and is the only thread that reads or changes it \\
-Producer & A load-generator thread. It submits each request and waits for the reply \\
-Worker & The thread that owns one shard, drains its queue, and runs the operation \\
-Bounded queue & The queue in front of a shard. It has a fixed capacity and blocks when full, so overload appears as delay \\
-One-shot reply & The handle a producer waits on for the result of one request \\
-Operation & One request handled for one device record, such as setup, signal, or release. A procedure is many of these \\
-Signal workload & Connects a set of devices and then repeats one signalling call \\
-Mixed workload & Walks each device through context creation, setup, signal, bearer setup, reconfiguration or handover, and release \\
-Variant & One of the four measured builds. The four are C++ or Rust, each linked with the system allocator and with jemalloc \\
-Heap & Which allocator a variant uses. The two heaps are the system allocator and jemalloc \\
-Allocator & The library that hands out and takes back heap memory. Both languages are measured with the system allocator and with jemalloc \\
-System allocator & The allocator the operating system supplies \\
-jemalloc & The second allocator. Both languages link it the same way, beside the system allocator \\
-Seam & The C layer where a C++ host calls the Rust core. Every raw pointer stays in that layer \\
-Crate & A Rust package. Unsafe code spreads along the crates a build pulls in \\
-Parity & The check that both languages perform the same operations and return the same results \\
-Forced idiom & A place the two languages could not be written the same way. The difference is logged and then measured \\
-Linkage policy & How the binary is joined to its libraries. The size order flips when both languages use the same policy \\
-\\[6pt]
-\multicolumn{2}{@{}l}{\footnotesize\emph{Measurement}}\\*[2pt]
-Tail latency & High-percentile latency (p99, p99.9, p99.99), the worst-case-oriented timing metric \\
-Far tail & The extreme end of the latency distribution, the p99.99, past the p99 many studies stop at \\
-Jitter & How much latency varies from one operation to the next, as opposed to its typical value \\
-Offered load & The rate the test tries to send, counted whether or not the service answers in time \\
-Achieved throughput & The rate of operations the service actually finishes \\
-Tracking & Achieved throughput staying equal to the offered load. The two languages stop tracking at different loads \\
-Saturation & The offered load beyond which the service can no longer keep up and requests start queueing \\
-Saturation knee & The offered load at which one variant stops keeping up. The four variants do not share one \\
-Overload & Offered load past that point, where requests queue because the service cannot keep up \\
-Representative load & The offered load fixed in advance for the latency table and the resource plots \\
-Open-loop & A load schedule whose send times are fixed in advance, so a slow response delays no later request \\
-Closed-loop & A schedule that waits for each answer before the next request, so a stall is never recorded \\
-Coordinated omission & The bias an open-loop schedule avoids, in which a stalled client stops issuing requests and so never records the latency of the stall \\
-Campaign clock & The pre-committed sweep. The histogram is filled inside the timed window, so the recorder is part of what it times \\
-Clock A & A repeat on an earlier host that drops the histogram fill. Its percentiles carry coordinated-omission bias, and the repeat was not run on the reported host \\
-Clock B & The repeat on the reported host that writes the histogram after the timed window. Its overload percentiles are schedule drift \\
-Histogram fill & The write of latency samples into the histogram. Writing it inside the timed window charges recorder work to the result \\
-Schedule drift & How far a producer falls behind the send times fixed in advance. A percentile on that clock is backlog \\
-End-to-end round-trip & The time from the planned send until the reply. The queue and the handoff are inside it \\
-Handoff & Passing a request from the producer thread to the worker and the reply back. The operating system owns this time \\
-Core call & The operation timed with the queue and the handoff removed. This is the part a language difference can own. The hardware a thread is pinned to is also called a core \\
-Blind zone & Delays too short for the end-to-end sweep to separate. A language effect inside it does not show in that sweep \\
-Interleaved repeat & One pass in which the four variants run in turn on the same pinned cores \\
-Plateau & The region of offered load where achieved throughput has stopped rising with the load \\
-Recorder & Measurement work inside the campaign process, chiefly the histogram fill. The time the service spent on the call is counted apart from it \\
-Bare metal & The measurement machine with no hypervisor between the program and the processor \\
-Hypervisor & Software that places a virtual machine between the program and the processor. The reported campaign runs with none \\
-Governor & The Linux policy that raises and lowers a core's clock with load and heat. The reported campaign holds the clock fixed \\
-Pinning & Binding the test threads to a chosen set of cores \\
-Transparent hugepage & A kernel policy that backs ordinary memory with large pages. It differed by host, and only the system-allocator build gets it \\
-Boost & A rise of the processor clock above the rate the governor holds. The reported campaign has it off. Boost.Fibers is a C++ library in another study, and a different use of the word \\
-\\[6pt]
-\multicolumn{2}{@{}l}{\footnotesize\emph{Safety}}\\*[2pt]
-Data race & Two threads use the same memory at once and at least one writes, with nothing to order the two uses \\
-Race condition & A bug that depends on which of two steps finishes first. Safe Rust does not rule these out, and it does not rule out deadlocks \\
-In-guarantee class & A defect from the set the compiler is built to reject. In safe Rust each one is a compile error \\
-Use-after-free & Using memory after it has been released. Safe Rust rejects this when the program is compiled \\
-Double-free & Releasing the same memory twice. Safe Rust rejects it at compile time. The seam case is the same defect written where the compiler has stopped checking \\
-Iterator invalidation & Using an iterator after the list it walks has changed. Safe Rust rejects it at compile time \\
-Use-after-move & Using a value after it has been moved. Safe Rust rejects it. In C++ the moved-from object is still a valid object, so the sanitisers report nothing \\
-Unguarded shared mutation & Changing one value from two threads with nothing to order the writes. Safe Rust rejects it at compile time \\
-Thread-unsafe handle shared & Sending another thread a handle that is safe only on one thread. Safe Rust rejects that program at compile time \\
-Boundary class & A defect safe Rust is not built to stop. These compile in safe Rust and then fail \\
-Lock-order deadlock & Two threads each waiting for a lock the other holds. Safe Rust compiles this and then hangs \\
-Lost update & Two updates of one field that both complete, with one result discarded. Each access can be locked, and the bug remains \\
-Reference-cycle leak & Objects that keep each other alive, so the memory is never freed. Rust treats a leak as safe \\
-Release-build overflow & Integer overflow in an optimised build. Rust defines the result to wrap, and the program still compiles \\
-Worker-failure blast radius & How much of the service fails with one worker. A shard can go down. Safe Rust still compiles that program \\
-Seam double-free & The double-free written through an unsafe boundary, so the Rust compiler accepts it. The C++ half is the ordinary double-free \\
-Forgotten lock guard & A lock taken and then not held for the work it was meant to cover. The C++ program hangs, and the Rust program hangs too. Cleanup tied to the object's life leaves this class in place \\
-Unsafe & A region the programmer marks so the compiler stops checking it. C++ marks no such region \\
-Ownership & Rust's rule that a value has one owner. A read of a record whose owner has already dropped it does not compile \\
-Borrowing & A temporary loan of a value. The compiler rejects a loan that outlives the value \\
-Borrow checker & The part of the Rust compiler that enforces ownership and borrowing. Lock order is outside what it checks \\
-Aliasing & Two live names for the same memory. Safe Rust rejects the cases that can corrupt it \\
-Bounds check & A test the compiler puts in, and that runs with the program, to keep an index inside a list \\
-Sanitiser & A tool that reports a defect when a test runs the path that holds it. The program has already been built \\
-Undefined behaviour & A program state with no meaning in C++. A sanitiser can turn some of it into a reported failure \\
-Model checker & A tool that searches the orders threads can run in. The two concurrency cases had to be rewritten in the checker's own parts before it would run \\
-\hline
-\end{longtable}
-\endgroup
-
-% In the full draft this is Appendix D. Here it is Appendix B because Thesis_v4
-% carries only Key terms before it. The label stays appendix:config so both
-% documents share one cross-reference name.
+% The only appendix. The label stays appendix:config.
 \appendix{Host and campaign configuration\label{appendix:config}}
 Table~\ref{tab:testbed} itemises the three machines the campaigns ran on: the bare-metal host of
 Section~\ref{sec:testbed} that every performance and resource table of the main sweep is drawn from,
@@ -1811,10 +1748,10 @@ Aspect & Reported sweep & Virtualised host, same design & Second bare-metal host
 Host & \MainCpu{}, \MainCores{} cores, \MainSockets{} socket & \GuestCpu{} guest, \GuestCores{} vCPUs & \BmCpu{}, \BmCores{} cores, \BmSockets{} socket \\
 Operating system & \MainHostDistro{}. Image \MainDistro{} & \GuestDistro{} & \BmDistro{} \\
 Kernel & \MainKernel{} & \GuestKernel{} & \BmKernel{} \\
-Hypervisor & \MainVirt{}. Governor \MainGovernor{}, boost off, verified on the machine & \GuestVirt{}. Frequency and turbo host-controlled, unobservable from inside & \BmVirt{}. Governor \BmGovernor{}, verified on the machine \\
+Hypervisor & \MainVirt{}. Clock setting \MainGovernor{}, boost off, verified on the machine & \GuestVirt{}. Frequency and turbo host-controlled, unobservable from inside & \BmVirt{}. Clock setting \BmGovernor{}, verified on the machine \\
 CPU steal & None: no hypervisor to lose a timeslice to & Not characterised. The capture's single one-second sample read \GuestSteal{}, and no steal probe was run on this host & \BmStealWithSteal{} of \BmStealIntervals{} intervals on \BmStealCores{} pinned cores \\
 Isolation & \texttt{nohz\_full} \MainNohzFull{}. \texttt{isolcpus} \MainIsolcpus{}, omitted on purpose (\S\ref{sec:testbed}) & \texttt{isolcpus} \GuestIsolcpus{}, \texttt{nohz\_full} \GuestNohzFull{} & \texttt{isolcpus} \BmIsolcpus{}, \texttt{nohz\_full} \BmNohzFull{}. \emph{Short of protocol} \\
-Hugepages & \MainThp{} & \GuestThp{}, and only the system-allocator variant inherits it & \BmThp{} \\
+Large pages & \MainThp{} & \GuestThp{}, and only the system-allocator variant inherits it & \BmThp{} \\
 Toolchain & \texttt{g++~\MainGpp}, \texttt{rustc~\MainRustc}, pinned in a container image & \texttt{g++~\GuestGpp}, \texttt{rustc~\GuestRustc} & \texttt{g++~\BmGpp}, \texttt{rustc~\BmRustc}, so a compiler change is tested too \\
 Pinning & Cores \MainPinned{}, $7$ shards, $7$ producers & Cores $2$--$15$, \GuestShards{} shards, \GuestProducers{} producers & Cores \BmPinned{}, \BmShards{} shards, \BmProducers{} producers \\
 SMT & \MainSmt{}, verified & Absent from the topology the guest is shown, and decided on the host & \BmSmt{}, verified \\
@@ -1835,8 +1772,7 @@ shard count is set to match the cores the host offers (Section~\ref{sec:testbed}
 that one included, are identical in both languages. Campaign figures are generated from the
 measurement logs together with the
 tables that report them. The representative load is fixed rather than derived, for the reason
-Section~\ref{sec:workload} gives, and the throughput plateau is the lowest of the four variants'
-own plateaus, which differ.\label{tab:params}}
+Section~\ref{sec:workload} gives. The flat stretch is the lowest of the four, and they differ.\label{tab:params}}
 \footnotesize
 \renewcommand{\arraystretch}{1.05}
 \begin{tabular}{@{}R{0.28\linewidth} R{0.28\linewidth} R{0.36\linewidth}@{}}
@@ -1858,7 +1794,7 @@ Workloads & signal, mixed & mixed walks the full RAN lifecycle \\
 Active UEs & \SweepUes{} & \\
 Offered-load levels & \NLoadLevels{} & up to $\MaxOfferedLoad$~kops/s \\
 Representative load & $\ReprLoad$~kops/s & fixed, see caption \\
-Campaign-clock throughput plateau & $\SatKnee$~kops/s achieved & both languages track through $\TrackingLoad$~kops/s. At $\KneeSplitLoad$ the Rust heaps split, and deferred fill on this host removes that split (Section~\ref{sec:overload}) \\
+Flat throughput & $\SatKnee$~kops/s achieved & both languages track through $\TrackingLoad$~kops/s. At $\KneeSplitLoad$ the Rust heaps split, and deferred fill on this host removes that split (Section~\ref{sec:overload}) \\
 Load model & open loop, fixed intended schedule & latency measured from intended send time \\
 \hline
 \multicolumn{3}{@{}l}{\emph{Campaign}} \\
@@ -1884,7 +1820,7 @@ variation (mean, standard deviation, p50, p99, p99.9, the maximum and a sample c
 resource counters from \texttt{getrusage} (peak resident set size, user and system CPU seconds,
 CPU utilisation), and the per-operation-kind counts. A \texttt{jemalloc} variant adds that
 allocator's own accounting. A system-allocator variant stores those fields as unavailable rather than
-as zero, on the same principle as the governor and turbo state. The kind counts are what makes a
+as zero, on the same principle as the clock setting and the turbo state. The kind counts are what makes a
 divergence between the languages show up as a parity failure (Chapter~\ref{chapter:design}) instead
 of a performance difference. Each run also persists its complete HDR bucket contents to a sidecar,
 so the repeats can be pooled before a far-tail percentile is read
@@ -1909,12 +1845,12 @@ The fault catalogue is categorical. Each of the $\FaultClasses$ cases yields fou
 (AddressSanitizer, ThreadSanitizer and UndefinedBehaviorSanitizer on the C++ program, and
 \texttt{rustc} on the safe-Rust counterpart) and one taxonomy row carrying the three sanitiser
 outcomes, the detection stage, the compiler result, and the expectation registered before the
-study. The two original boundary cases yield a second table from the model checkers, and the
+study. The two original cases that safe Rust does not stop yield a second table from the model checkers, and the
 \texttt{unsafe} one a third from the interpreter. The table and figure in
 Section~\ref{sec:safetyresults} are generated from those logs.
 
 Every load sweep writes the environment record of Section~\ref{sec:repro} beside its results,
-including the fields a given host does not expose. The governor and turbo state are stored as
+including the fields a given host does not expose. The clock setting and the turbo state are stored as
 unavailable rather than left out, so the limitation of Section~\ref{sec:testbed} is a property
 of the dataset. The virtualised campaign shares the sweep's design and predates the later
 instruments: its records carry the percentiles and the resource counters and nothing else. That
@@ -1924,12 +1860,12 @@ sweep, including the allocator accounting that lets Section~\ref{sec:resources} 
 resident set, but runs a different shard count, load grid, repeat count and toolchain. Each
 campaign has its own generator and macro prefix.
 
-The two clock diagnostics each cover the same fourteen-load, two-language,
-two-allocator grid. Clock B is this host. The processor is \ProbeAfterCpu{},
+The two timing checks each cover the same fourteen-load, two-language,
+two-allocator grid. The same-host run is this host. The processor is \ProbeAfterCpu{},
 the pin is \ProbeAfterPinned{}, and \texttt{nohz\_full} is
 \ProbeAfterNohzFull{}, matching the campaign's \MainCpu{} and
-\texttt{\MainNohzFull}. Clock A was not repeated here and remains an earlier
-host, so it cannot supply this campaign's percentiles. Clock B defers the
+\texttt{\MainNohzFull}. The earlier run that drops the fill was not repeated here and remains an earlier
+host, so it cannot supply this campaign's percentiles. The same-host run defers the
 fill, and its overload percentiles are schedule drift. At the top load Rust
 is ahead on both heaps, at $p \ProbeAfterThrPSystem$ on the system allocator
 and $p \ProbeAfterThrPJemalloc$ under \texttt{jemalloc}. CPU per completed
@@ -1982,7 +1918,7 @@ Component & C++ & Rust & Difference \\
 The allocation profile on the second bare-metal host was taken to name the call sites behind
 the resident-set difference of Section~\ref{sec:resources}. Two departures from the campaign
 explain why it cannot. The first profile ran closed loop at $\BmProfThroughput$~kops/s, past the
-plateau bracketed at $\BmKneeLo$--$\BmKneeHi$~kops/s. Repeating it at a swept load below saturation
+flat stretch bracketed at $\BmKneeLo$--$\BmKneeHi$~kops/s. Repeating it at a swept load below saturation
 shrank the discrepancy by most of its size and did not remove it. What remains is that
 profiling requires an allocator built to sample every allocation and record a backtrace, so the
 variant under profile is not the variant the campaign measured. Each symbolised profile puts almost all
