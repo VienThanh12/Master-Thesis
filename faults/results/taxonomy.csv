@@ -11,5 +11,5 @@ lost_update,"Lost update",clean,clean,clean,"undetected","not prevented (compile
 leak_cycle,"Reference-cycle leak",detected,clean,clean,"runtime (ASan)","not prevented (compiles; wrong result)","leaks",not-prevented,""
 integer_overflow,"Integer overflow (release)",clean,clean,detected,"runtime (UBSan)","not prevented (compiles; wrong result)","wrong result",not-prevented,""
 worker_failure_blast_radius,"Worker-failure blast radius",clean,clean,clean,"undetected","not prevented (compiles; wrong result)","shard outage",not-prevented,""
-seam_double_free,"Double-free across the seam",detected,clean,clean,"runtime (ASan)","not prevented (compiles; crashes)","aborts",not-prevented,""
+seam_double_free,"Double-free in unsafe",detected,clean,clean,"runtime (ASan)","not prevented (compiles; crashes)","aborts",not-prevented,""
 forgotten_guard,"Forgotten lock guard",hung,hung,hung,"undetected (hung)","not prevented (compiles; deadlocks)","deadlocks",not-prevented,""

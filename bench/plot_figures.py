@@ -504,7 +504,7 @@ def fig_load_sweep(rows, outdir, percentile="p99"):
     ax_a.set_xlim(left=0)
     ax_a.set_xlabel("Offered load (kops/s)")
     ax_a.set_ylabel(f"{percentile} latency (\u00b5s)")
-    ax_a.set_title("(a) Below the knee, linear scale", fontsize=11, loc="left")
+    ax_a.set_title("(a) Below saturation, linear scale", fontsize=11, loc="left")
     ax_a.grid(True, ls=":", alpha=0.45)
     ax_a.set_axisbelow(True)
 
@@ -983,7 +983,14 @@ def fig_taxonomy(taxonomy_csv, outdir):
     prevented = [r for r in rows if r["rust_expected"].strip() == "prevented"]
     boundary = [r for r in rows if r["rust_expected"].strip() != "prevented"]
     rows = prevented + boundary
-    defects = [r["defect"].replace("_", " ") for r in rows]
+    defects = []
+    for r in rows:
+        # The id seam_double_free is the file name. The reader sees the plain
+        # label, the same words as the table.
+        if r["defect"].strip() == "seam_double_free":
+            defects.append("double-free in unsafe")
+        else:
+            defects.append(r["defect"].replace("_", " "))
     # UBSan is a third axis, not a refinement of the other two: signed overflow
     # is invisible to ASan and TSan alike, so without its own column the
     # integer-overflow row would read as undetected in C++ when it is not.
@@ -1051,7 +1058,7 @@ def fig_taxonomy(taxonomy_csv, outdir):
     ]
     if prevented and boundary:
         legend.append(plt.Line2D([], [], color="black", linewidth=2.0,
-                                 label="boundary of the guarantee"))
+                                 label="where the guarantee stops"))
     ax.legend(handles=legend, loc="upper center", bbox_to_anchor=(0.5, -0.14),
               ncol=2, fontsize=8.5, framealpha=0.9)
     fig.tight_layout()
@@ -1120,7 +1127,7 @@ def write_taxonomy_table(taxonomy_csv, outdir):
         return f"compiles, {observed}"
 
     groups = [("prevented", "Within the guarantee"),
-              ("not-prevented", "Boundary of the guarantee")]
+              ("not-prevented", "Outside the guarantee")]
     lines = []
     for expected, heading in groups:
         sel = [r for r in rows if r["rust_expected"].strip() == expected]
@@ -1550,7 +1557,7 @@ def fig_budget(budget, sig_results, outdir, for_thesis=False):
         # a measurement. Everything it covers is invisible to the sweep, and the
         # two operation bars sit well inside it. The label stays short so it
         # does not cross the line between the panels.
-        labels.append("Blind zone")
+        labels.append("Too short")
         vals.append(bound_us * NS_PER_US)
         colors.append("#f2d4d0")
 

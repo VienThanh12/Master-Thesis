@@ -739,7 +739,7 @@ def load_regimes():
     else:
         mid_load = M["TrackingLoadCpp"]
         gap_load = M["TrackingLoadRust"]
-        mid_chip = "C++ knee"
+        mid_chip = "C++ stops tracking"
         gap_chip = "shown, not tested"
     ticks = [
         (80, M["ReprLoad"], GREEN_DEEP),
@@ -886,7 +886,7 @@ def ffi_seam():
     d.rect(280, 251, w_native, 14, BLUE)
     d.text(280 + w_native + 10, 262, f"{native} \u00b5s", 11, BLUE_DEEP,
            weight=700)
-    d.text(268, 286, "through the seam", 11, BODY, anchor="end")
+    d.text(268, 286, "through the layer", 11, BODY, anchor="end")
     d.rect(280, 275, w_seam, 14, "#7fa8d4")
     d.text(280 + w_seam + 10, 286, f"{seam} \u00b5s", 11, BLUE_DEEP, weight=700)
     return d

@@ -36,10 +36,10 @@ is a working map: what to open, what to rebuild, what not to confuse.
 - **Chapters 3-8** stay five argument paragraphs. Do not add a sixth. Do not
   expand them into the full draft's chapter prose. Do not put Chapter 1 back
   to a short skeleton.
-- The skeleton carries two appendices: Key terms (`appendix:terms`) and Host
-  and campaign configuration (`appendix:config`), matching the draft's
-  Appendices A and D. Cross-references inside the config appendix are
-  retargeted to labels this file has. It needs no further appendices.
+- Key terms sit in the front matter, after the list of acronyms. The skeleton
+  carries one appendix, Host and campaign configuration (`appendix:config`).
+  Cross-references inside that appendix are retargeted to labels this file
+  has. It needs no further appendix.
 - It carries a subset of the draft's figures. Captions are trimmed. Image
   sources are shared, not copied.
 - `bench/refresh_thesis.sh` rebuilds the **full draft PDF**, not `Thesis_v4.pdf`.

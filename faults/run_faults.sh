@@ -96,7 +96,7 @@ defects=(
   "leak_cycle|leak_cycle|asan|not-prevented|||Reference-cycle leak|leaks"
   "integer_overflow|integer_overflow|ubsan|not-prevented|-O -C debug-assertions=off -C overflow-checks=off||Integer overflow (release)|wrong result"
   "worker_failure_blast_radius|worker_failure|none|not-prevented|||Worker-failure blast radius|shard outage"
-  "seam_double_free|seam_double_free|asan|not-prevented|||Double-free across the seam|aborts"
+  "seam_double_free|seam_double_free|asan|not-prevented|||Double-free in unsafe|aborts"
   "forgotten_guard|forgotten_guard|none|not-prevented|||Forgotten lock guard|deadlocks"
 )
 
