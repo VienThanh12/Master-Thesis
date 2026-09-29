@@ -250,7 +250,8 @@ now runs there too.
 
 In 5G, the base station, formally the next-generation NodeB (gNB), is split into a central
 unit and one or more distributed units. The central unit is split again into control-plane
-and user-plane functions~\cite{3gpp38401,3gpp38300}. Open-RAN pushes the same idea further:
+and user-plane functions~\cite{3gpp38401,3gpp38300}. The control plane carries the signalling, the messages that set up and control
+the call. The user plane carries the phone’s data. Open-RAN pushes the same idea further:
 the RAN becomes virtualised, multi-vendor software linked by open
 interfaces~\cite{polese2023oran}. The control plane that results, the gNB central unit
 control plane (gNB-CU-CP), is a large, stateful, highly concurrent program. It tracks every
