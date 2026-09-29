@@ -356,7 +356,7 @@ state, as a gNB-CU-CP does, in modern C++ and in Rust, and compares them under a
 synthetic signalling workload.
 
 
-Three terms recur throughout. The \emph{gNB-CU-CP} is the control-plane class this work sits in.
+Three terms recur throughout, and the first is the \emph{gNB-CU-CP}, the control-plane class this work sits in.
 \emph{UE Context Management (UECM)} is the compact service reimplemented and measured.
 \emph{Tail latency}, the p99, p99.9 and p99.99 percentiles rather than the mean, is the property that,
 more than average speed, decides whether such a system meets its
@@ -992,7 +992,7 @@ the two standard libraries would have been the measurement.
 
 Where the languages cannot meet a need the same way, the gap is written into a
 forced-idiom log and then measured. Two of those gaps were candidates for the
-campaign-clock overload result of Section~\ref{sec:overload}. One is the bounded queue. Rust takes it
+campaign-clock overload result of Section~\ref{sec:overload}. The first is the bounded queue, and Rust takes it
 from \texttt{sync\_channel}. C++23 still has no such primitive, so C++ builds
 one from a mutex and two condition variables. The other is the reply handle,
 \texttt{std::promise} against a fresh \texttt{mpsc} channel per request. Tests
@@ -1604,9 +1604,9 @@ guest sweep is kept, not dropped.
 \chapter{Conclusion and Future Work\label{chapter:conclusions}}
 
 The thesis set modern C++ against Rust. The object is a UE Context Management
-service. It keeps per-device state, as a gNB-CU-CP does. It looked at four things. Two of them are
-how late the tail is, and which defects a compile step can stop. The other two are the
-cost of the safe code model and the cost of adding Rust a piece at a time. Both
+service. It keeps per-device state, as a gNB-CU-CP does. It looked at how late
+the tail is, which defects a compile step can stop, the cost of the safe code
+model, and the cost of adding Rust a piece at a time. Both
 sides were built against one frozen spec. They were driven along the same code
 paths. That is what lets a language effect be told apart from a gap of design or
 of skill.
