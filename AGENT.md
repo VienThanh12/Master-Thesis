@@ -96,7 +96,15 @@ sites plus `tab:testbed` claiming toolchain parity with the guest (`\GuestGpp` 1
 `\MainGpp` 15.2.1), §6.4.7 hand-typing 15.1.1 as the measurement host's compiler, and
 `tab:findings`' RQ3 cell saying “on bare metal”. The twentieth pass, 3 September, held 5.00.
 
-**Twenty-seventh pass, 21 September 2026, graded `Thesis_v3.tex` only, mean 4.42.** Areas 1 and 2
+**Twenty-eighth pass, 29 September 2026, graded `Thesis_v4.tex` only, mean 4.92.**
+Areas 1 to 5 at 5, area 6 at **4.5**. The twenty-seventh pass's diagnostic and integration
+defects are closed in this PDF: Clock B matches the campaign host and `nohz_full`, the probe
+tests use all 20 pairs and the canonical permutation statistic, and the abstract through the
+conclusion describe one evidence state. Area 6 stays at 4.5 because the host table is 111 pt
+too tall and the problem statement prints "unknow" and "that affects". Do not copy this mean
+onto the draft. See the twenty-eighth pass in `docs/ASSESSMENT.md`.
+
+**Twenty-seventh pass, 21 September 2026, graded `Thesis_v3.tex` only, mean 4.42. Historical.** Those sites are closed as of the twenty-eighth pass. Areas 1 and 2
 remain at 5, area 3 is 4.5, and areas 4 to 6 are 4 after the coordinated-omission diagnostics
 landed. The abstract still presents the two campaign-clock gaps without qualification,
 `probe_facts.py` tests only the first 16 of 20 pairs with a different statistic, the stored

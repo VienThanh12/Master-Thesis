@@ -198,6 +198,15 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
+**`Thesis_v4.tex` only, twenty-eighth pass, 29 September 2026. Mean 4.92.** Areas 1 to 5 at 5,
+area 6 at 4.5. The twenty-seventh pass's caps are closed in this PDF: Clock B is the same host
+and `nohz_full` as the campaign, the probe tests use all 20 pairs and the canonical paired
+permutation, and the abstract, motivation, hypotheses, guidelines, and conclusion describe that
+evidence. Area 6 fails level 5's camera-ready clause: `tab:testbed` is 111 pt too large for its
+page, `tab:params` overruns by 5 pt, and the problem statement prints "unknow" and "that
+affects". Do not copy this mean onto the draft. Do not re-open the twenty-seventh pass's closed
+items as if they were still in the source.
+
 **`Thesis_v3.tex` only, twenty-sixth pass, 16 September 2026. Mean 5.00, a hold.** Fifteen commits
 after the twenty-fifth pass added two diagrams, removed the uncited predictability section, and
 renamed arm to variant. The macros still match, including the new SVG labels. Do not reopen the

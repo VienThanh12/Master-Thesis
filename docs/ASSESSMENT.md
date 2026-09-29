@@ -13,18 +13,18 @@ The thesis source was renamed from `Ha_Vien_Mastersthesis_2026.tex` to `Ha_Vien_
 
 Interactive canvases live beside this file. The standing full-draft grade is
 `thesis-grade-csm-sep07-rev2.canvas.tsx`. The latest pass, of the supervisor skeleton, is
-`thesis-grade-csm-sep11.canvas.tsx`. This file is the durable copy.
+`thesis-grade-csm-sep29.canvas.tsx`. This file is the durable copy.
 
 > **Current for the submission draft: twenty-second pass, 7 September 2026 afternoon, mean 4.83.**
 > Areas 1, 2, 3 and 5 at 5, areas 4 and 6 at **4.5**. Caps: toolchain parity at three prose sites
 > plus `tab:testbed`, §6.4.7's hand-typed `g++ 15.1.1`, and `tab:findings`' "on bare metal". Canvas:
-> `thesis-grade-csm-sep07-rev2.canvas.tsx`.
+> `thesis-grade-csm-sep07-rev2.canvas.tsx`. The twenty-eighth pass did not re-read the draft.
 >
-> **Latest pass: twenty-fourth, 11 September 2026, of `Thesis_v3.tex` only, mean 5.00.** All six
-> assessable areas at 5. Yesterday's 4.5s (abstract register, `\CpuDiffAbsMax` scope, title-page
-> `TBD`, no numeric table) were edited closed in the 15:37 source. Canvas:
-> `thesis-grade-csm-sep11.canvas.tsx`. The full draft was not re-read and its standing grade is
-> unchanged.
+> **Latest pass: twenty-eighth, 29 September 2026, of `Thesis_v4.tex` only, mean 4.92.**
+> Areas 1 to 5 at 5, area 6 at **4.5**. The cap is finishing polish: the host table overruns
+> its page by 111 pt, and the problem statement prints "unknow" and "that affects". Canvas:
+> `thesis-grade-csm-sep29.canvas.tsx`. The twenty-seventh pass's integration defects are closed
+> in this PDF. Do not copy this mean onto the draft.
 >
 > **The summary table immediately below is the first pass** and is kept as history, not as the
 > standing view. Twenty-one passes are on record and they do not all agree. Read the passes in
@@ -5092,3 +5092,149 @@ must remain the author's own work.
 
 This pass changed no thesis prose. It rebuilt `Thesis_v3.pdf` and
 `Thesis_Plan_v2.pdf`, created the grading canvas, and appended this record.
+
+## Twenty-eighth pass — 29 September 2026
+
+Graded independently against the CSM matrix of 9 April 2024, on
+**`Thesis_v4.tex` / `Thesis_v4.pdf`**, after the coordinated-omission account
+had been rewritten. Standard applied: a supervisor reading the current 60-page
+PDF, not a submitted maturity test. The full draft was not re-read. This pass
+formed its view from the source, the generated macros, the latency table, and
+the 24 September environment captures before reconciling with the
+twenty-seventh pass.
+
+**Build verified.** A forced `latexmk -g` rebuild produced 60 physical pages.
+The abstract form reports 44 pages plus 8 appendix pages, which matches the
+front matter, the numbered body, and appendices A and B. `texaudit.py` fails
+one hard gate: `tab:testbed` is 111.47 pt too large for its page, and
+`tab:params` is 5.40 pt too large. No LaTeX errors, undefined references,
+undefined citations, or overfull boxes. Two float labels are never referenced:
+`tab:jitter` and `tab:resident`. The bibliography has 113 entries and 63 cites
+in this file. The only prose-number hit is Meneely's cited 58.2%, a literature
+value. `zhang2026deadlock` is the journal article. `bugden2022rust` is not
+cited here. Prose screens: Flesch 66.9, grade 7.4, no paragraph of three or
+more sentences without a sentence under 15 words, acronym gate clean, no
+semicolons. The dash hits are numeric ranges and Herfindahl--Hirschman.
+
+The class prints `\today` on the abstract form, so this rebuild stamped
+29 September 2026. The source `\date` is still 11 September 2026.
+
+Canvas: [`thesis-grade-csm-sep29.canvas.tsx`](/home/vienha/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-sep29.canvas.tsx).
+
+| Area | 27th pass (21 Sep) | This pass | Clause that sets it |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Hold. Named gap, four traceable questions, three prior hypotheses, 7 + 7 catalogue |
+| 2. Scholarly framework and sources | 5 | **5** | Hold. Contrary findings engaged, primary standards and method sources used |
+| 3. Research data and method | 4.5 | **5** | The diagnostic half now matches the main method: 20 pairs, the canonical permutation, and a same-host fill control |
+| 4. Presentation of results | 4 | **5** | Headline claims match the generated tables, and each clock states what it cannot rank |
+| 5. Discussion and conclusions | 4 | **5** | H1 is not accepted as written, overload service latency is left unresolved, and the discussion matches the results |
+| 6. Academic text | 4 | **4.5** | Consistency holds at level 4. Level 5's camera-ready clause fails on the host table and two grammar errors |
+| 7. Work during the thesis process | n/a | **n/a** | Not assessable from a manuscript |
+| **Mean of the six assessable** | 4.42 | **4.92** | Five areas at 5. Finishing is the only assessable cap |
+
+### What closed the twenty-seventh pass
+
+Checked against the current source and the 24 September captures, not against
+the old note.
+
+1. The abstract qualifies the 1.7× lead as the in-window fill, says the
+   same-host deferred fill removes that gap and leaves a smaller Rust lead,
+   and says overload service latency stays unresolved.
+2. `probe_facts.py` calls `paired_permutation_test` on the full pair list.
+   `\ProbeAfterPairsSystem` and `\ProbeAfterPairsJemalloc` are 20.
+   `EXACT_MAX` is 20, so the test is exact. Both allocator results are in the
+   prose, at `p < 0.001`.
+3. `env-20260924-083349.txt` and `env-20260924-100058.txt` share the CPU, pin,
+   kernel, `nohz_full`, governor, toolchain, and hugepage policy. They differ
+   by container id and the instantaneous MHz reading. "Only the fill moves"
+   is earned for Clock B. Clock A is described as an earlier host and is not
+   used as a tail result.
+4. The forced-idiom paragraph calls the queue and the reply handle candidates
+   that do not explain the smaller lead that remains.
+5. Motivation, method table, guidelines, H1, and the conclusion state the same
+   limit: the large high-load gaps move with the fill, and neither overload
+   clock ranks service latency.
+6. Representative-load latency figures are attached to `\ReprLoad` in the
+   results and the discussion. The three hosts have three RSS ranges. The
+   statistics section gives the maximum, the pooled far tail, jitter, and
+   post-saturation percentiles separate reasons for staying out of the family.
+   `fig:loadsweep` panel (a) is titled "Below the knee", not a shared knee.
+
+### Claims checked, and none disagreed
+
+Read from the generated macros and `figures/tab_latency.tex`.
+
+- Median span `\PFiftyRange` 1.6 µs, table 73.9 to 72.3. Paired gap
+  `\PFiftyDiffAbsMax` 1.5 µs.
+- p99 band `\PNineNineMaxCI` 0.8 µs against gap `\PNineNineRange` 1.8 µs.
+  Guest `\GuestPNineNineMaxCI` 1480 against `\GuestPNineNineRange` 293, the
+  other way.
+- Far-tail separation `\FarTailLangSep` 22 µs (110.0 minus 87.9). Second host
+  Rust `\BmFarTailRustLo`--`\BmFarTailRustHi` 88–115 against C++ 147–228.
+- Campaign overload `\OverloadThrCpp` 140 against `\OverloadThrRust` 84,
+  ratio 1.7, C++ faster, Rust the higher CPU per call.
+- Deferred fill: system 412/434 = 0.95, jemalloc 413/450 = 0.92, both
+  `p < 0.001`, CPU ratio 1.03 with C++ higher.
+- Peak RSS on this host: language 1.6–2.5 MiB, allocator 1.5–2.3 MiB. Guest
+  allocator effect `\GuestRssAllocOverLang` 13 times the language effect.
+  The prose says same order on both bare-metal hosts and does not say the
+  allocator effect is the larger one.
+- Toolchain row prints `\MainGpp` 15.2.1, `\GuestGpp` 15.1.1, `\BmGpp` 13.3.0,
+  and the caption names the release gap.
+
+### Per-area notes
+
+**1, holds 5.** The gap is located in named limits of the five Ericsson theses
+and of Emberg and Wadsten's stateless pair. RQ1's overload half is answered
+by saying the available clocks cannot rank service latency.
+
+**2, holds 5.** Critical use of contrary results is intact, including the
+reading of Karlbäck's memory sign as two concurrency runtimes. The search for
+the vendor theses is described as a hand search of university archives.
+
+**3, moves 4.5 to 5.** The main campaign was already at 5. The half grade was
+the diagnostic. That half now uses the declared test on all 20 pairs, and the
+fill control is the same machine and the same `nohz_full`. Ethics remain in
+the discussion.
+
+**4, moves 4 to 5.** Level 5's aptness clause holds: the figures and tables
+that carry the findings agree with the prose, and the findings are specific
+enough to use. Two unreferenced appendix tables and one signed-delta sentence
+were not used to move the grade, because neither reverses a result and the
+captions say what the tables are for.
+
+**5, moves 4 to 5.** H1 is not accepted as written, because no equivalence
+margin was defined and the paired test resolves a median gap. H2 is limited
+to memory safety and data races. H3's call-cost bound is measured, and the
+learning cost is marked as structural. The one-variable fill claim is now
+backed by the captures.
+
+**6, moves 4 to 4.5.** Level 4's consistency clause holds. The abstract,
+motivation, method, results, hypothesis revisit, and conclusion describe one
+evidence state. Level 5 fails on finishing polish. The host table's last row,
+"Adequate for", sits in the bottom margin of appendix page ii. The problem
+statement hyphenates "unknow" and uses "classes that affects". The half grade
+is consistency at 5 and finishing at 4.
+
+The AI statement truthfully says the abstract has not been rewritten unaided.
+That blocks this PDF as the maturity test. It is not a false declaration, and
+under the supervisor-reading standard it does not set the grade.
+
+### What is outstanding
+
+1. **Editing, minutes.** "unknow" and "that affects" in the problem statement.
+   Area 6.
+2. **Editing, about an hour.** Make `tab:testbed` and `tab:params` fit the
+   text block. Area 6. This is the item that blocks a 5.
+3. **Editing, minutes, does not move the current grade.** Cite `tab:resident`
+   from the resources section. Cite `tab:jitter` or delete the sentence that
+   says the main text cites the tables that follow.
+4. **Polish.** The resident-set sentence prints a signed delta and a direction
+   word together ("−0.16 MiB less"). Both point the same way.
+5. **Author, unaided.** Rewrite the abstract and set
+   `\abstractunaidedtrue` in the shared statement. A model must not draft that
+   page. This is a submission rule, not the cap on this pass.
+
+This pass changed no thesis prose. It rebuilt `Thesis_v4.pdf`, which moved the
+abstract-form date to 29 September 2026, created the grading canvas, and
+appended this record.
