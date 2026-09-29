@@ -235,13 +235,18 @@ UECM & UE Context Management, the subsystem reimplemented and measured here \\
 
 \chapter{Introduction}
 
-A mobile network is the system that connects a phone to the rest of the network. For a long
-time, the radio work in that system ran inside a box built for this job alone. One vendor
-sold the box and the software together. That arrangement is called vertically integrated
-equipment. The same work is now a program on an ordinary server, a general-purpose
-machine. The radio access network (RAN) is this radio part. It was the piece most tied
-to those special boxes, and it is part of the same change. The stack is the set of layers
-from the radio signal up to the core network.
+A mobile network connects a phone to other phones and to outside networks. 5G is the
+current generation of that network, and in it a phone talks over the radio to a base
+station. The core network sits behind the base station and forwards each call toward
+its destination. The stack is the set of layers from the radio signal up to the core
+network.
+
+For a long time, the radio functions in this network ran on hardware built for this job
+alone, and one vendor sold the hardware and the software together. That arrangement is
+called vertically integrated equipment. The radio access network (RAN) is the radio part
+of the network. It was the part most tied to that purpose-built hardware. The same
+functions now run as software on a general-purpose server, an ordinary machine. The RAN
+now runs there too.
 
 In 5G, the base station, formally the next-generation NodeB (gNB), is split into a central
 unit and one or more distributed units. The central unit is split again into control-plane
