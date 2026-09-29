@@ -760,15 +760,24 @@ It is not built to stop the other $\FaultClassesBoundary$.
 For each defect, the expected result was written down before the programs were run.
 Section~\ref{sec:safetyresults} reports what each one did.
 
-The tail is the metric because of two traits of this part. One user-visible
-action, a call setup or a handover, becomes many dependent control-plane
-operations. The slowest member gates completion. A busy site drives thousands of
-such procedures per second. So a far-tail point is reached often enough to
-matter. The failure shape is the second reason. Under an open-loop clock,
-achieved rate can track offered load until either the service or timed
-producer work becomes limiting. Latency then rises sharply. That is why this
-study sweeps past the apparent saturation point and audits what the timed
-path contains.
+The study measures the tail. The tail is the slow calls, not the ordinary ones. Two facts
+about this part make those slow calls the right thing to measure.
+
+The first fact is what a phone user waits for. Setting up a call, or moving a phone to the
+next cell, is not one step. It is a chain of control-plane steps, and they have to finish in
+order. The user is still waiting until the slowest step in that chain is done. A busy site
+runs thousands of these chains every second. A call that is slow only rarely therefore still
+happens often enough to notice.
+
+The second fact is about the test clock. The sender follows a fixed timetable. A late reply
+does not hold back the next request. That rule is called an open-loop clock. Offered load
+is how fast the timetable sends work. Achieved rate is how fast the service finishes it.
+While the timetable is gentle, the two rates match and the delay stays small.
+
+When the timetable is made faster, a limit appears and the delay jumps. That limit can
+be the service, or work the sender still does while the timer is running, such as writing
+down the late replies. Because either one can cause the jump, the study sends more work
+than the service can finish and then checks which of the two the timer was counting.
 
 \section{Research approach}\label{sec:approach}
 The study runs experiments. It also builds the thing it measures: a matched
