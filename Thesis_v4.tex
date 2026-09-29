@@ -781,7 +781,8 @@ than the service can finish and then checks which of the two the timer was count
 
 \section{Research approach}\label{sec:approach}
 The study runs experiments. It also builds the thing it measures: a matched
-pair of versions, plus the harness that drives them. Both are built from one
+pair of versions, plus the harness that drives them. The harness is the program that sends
+the load and records the times. Both are built from one
 frozen spec. Evidence comes from three separate methods: a load sweep contributes to
 RQ1 and RQ3, controlled fault injection answers RQ2, and an FFI migration
 prototype answers RQ4. A weakness in one of them, such as how much the host
