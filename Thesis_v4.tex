@@ -485,7 +485,7 @@ One or more distributed units (gNB-DU) host the lower layers. Those layers sit c
 the radio and have tight low latency requirements. The second split is control versus user
 plane, inside the central unit. It splits the control-plane function
 (gNB-CU-CP) from the user-plane function (gNB-CU-UP). These parts talk over
-standard links. NG goes toward the 5G core, F1 sits between the CU and the DU,
+standard links. Uu is the radio link from the device. NG goes toward the 5G core, F1 sits between the CU and the DU,
 and E1 sits between the CU-CP and the CU-UP~\cite{3gpp38401,3gpp38300,3gpp38463}.
 Open-RAN pushes the same links further. Each part can then come from a
 different vendor and run as software on ordinary
@@ -770,7 +770,7 @@ costs of two kinds. Only one of them can differ between the languages. A third
 timing takes the contended queue and the reply handle on their own. A
 same-host control then writes the histogram fill after the timed window,
 holding the pin and \texttt{nohz\_full}. That control isolates the fill.
-Clock A, which drops the fill, was not repeated on this host.
+The earlier run that drops the fill was not repeated on this host.
 
 RQ2 is answered by controlled fault injection~\cite{natella2016fault}. Each
 defect class is a small program of its own in both languages.
@@ -781,11 +781,10 @@ run, on purpose.
 The C++ columns then report the tooling this study ran. They do not report a
 ceiling on what C++ tooling could find. RQ4 is answered by a working
 prototype in the direction a real migration takes. A C++ host calls an
-unchanged Rust core across a C ABI. This boundary is called the FFI seam here.
-It is the thin layer that converts between the C++ host and the Rust core.
+unchanged Rust core across a C ABI. That thin layer converts between the C++ host and the Rust core.
 The per-call cost is measured on a real
 operation and not inferred from an empty crossing. Memory bugs that cross a
-language sit at that seam~\cite{li2022crosslang}.
+language sit in that layer~\cite{li2022crosslang}.
 
 \section{Fairness as a controlled variable}\label{sec:controlsbrief}
 A language comparison is only as good as the variables it holds fixed. The
