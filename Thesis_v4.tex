@@ -753,11 +753,12 @@ returns a typed error and leaves the context unchanged. That closed set lets
 the same tests and the same workload drive both versions along the same
 paths.
 
-RQ2 needs a catalogue, not a vague list of dangers. One is built from this
-operation set: $\FaultClasses$ classes in two groups of seven. Seven come from inside
-the region safe Rust claims to govern. Seven were chosen because safe Rust is
-expected not to prevent them. Each has its expectation recorded before the
-programs were run. Section~\ref{sec:safetyresults} reports what each one did.
+RQ2 asks which defects safe Rust stops at compile time, and which ones it does not.
+They are $\FaultClasses$ bugs that can happen in those operations, such as setting up a call or releasing a device.
+Safe Rust is built to reject $\FaultClassesPrevented$ of them at compile time.
+It is not built to stop the other $\FaultClassesBoundary$.
+For each defect, the expected result was written down before the programs were run.
+Section~\ref{sec:safetyresults} reports what each one did.
 
 The tail is the metric because of two traits of this part. One user-visible
 action, a call setup or a handover, becomes many dependent control-plane
