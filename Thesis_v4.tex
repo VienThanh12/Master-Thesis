@@ -1648,8 +1648,9 @@ first use and listed together in the \nomname{} on page~\pageref{page:acronyms}.
 
 \begingroup
 \singlespacing
+\setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.15}
-\begin{longtable}{@{}>{\footnotesize}p{0.22\linewidth} >{\footnotesize}p{0.70\linewidth}@{}}
+\begin{longtable}{@{}>{\footnotesize\raggedright\arraybackslash}p{0.34\linewidth} >{\footnotesize\raggedright\arraybackslash}p{0.62\linewidth}@{}}
 \caption[Key terms]{Key terms used throughout the thesis.\label{tab:abbrev}}\\
 \hline\hline
 Term & Meaning \\
@@ -1659,7 +1660,7 @@ Term & Meaning \\
 Term & Meaning \\
 \hline
 \endhead
-\multicolumn{2}{@{}l}{\footnotesize\emph{Network}}\\[2pt]
+\multicolumn{2}{@{}l}{\footnotesize\emph{Network}}\\*[2pt]
 Control plane & The signalling and management path, as opposed to the user-plane data path \\
 User plane & The path that carries the user's data. The control plane sets it up and tears it down \\
 Signalling & The messages that create, change and release a connection, as opposed to the user's data \\
@@ -1678,7 +1679,7 @@ E1 & The link between the control-plane and user-plane halves of the central uni
 NG & The link from the base station toward the 5G core. NG-RAN is the network, and this NG is one link inside it \\
 5G core & The network behind the base station. It forwards each call onward \\
 \\[6pt]
-\multicolumn{2}{@{}l}{\footnotesize\emph{Service}}\\[2pt]
+\multicolumn{2}{@{}l}{\footnotesize\emph{Service}}\\*[2pt]
 Shard & One of several independent slices of the UE state, each owned by exactly one worker thread \\
 Shared-nothing & Each shard's device state has a single owning thread. The only shared mutable state is one counter, and no control flow depends on its value \\
 Thread-per-shard & One worker thread owns one shard and is the only thread that reads or changes it \\
@@ -1700,7 +1701,7 @@ Parity & The check that both languages perform the same operations and return th
 Forced idiom & A place the two languages could not be written the same way. The difference is logged and then measured \\
 Linkage policy & How the binary is joined to its libraries. The size order flips when both languages use the same policy \\
 \\[6pt]
-\multicolumn{2}{@{}l}{\footnotesize\emph{Measurement}}\\[2pt]
+\multicolumn{2}{@{}l}{\footnotesize\emph{Measurement}}\\*[2pt]
 Tail latency & High-percentile latency (p99, p99.9, p99.99), the worst-case-oriented timing metric \\
 Far tail & The extreme end of the latency distribution, the p99.99, past the p99 many studies stop at \\
 Jitter & How much latency varies from one operation to the next, as opposed to its typical value \\
@@ -1733,7 +1734,7 @@ Pinning & Binding the test threads to a chosen set of cores \\
 Transparent hugepage & A kernel policy that backs ordinary memory with large pages. It differed by host, and only the system-allocator build gets it \\
 Boost & A rise of the processor clock above the rate the governor holds. The reported campaign has it off. Boost.Fibers is a C++ library in another study, and a different use of the word \\
 \\[6pt]
-\multicolumn{2}{@{}l}{\footnotesize\emph{Safety}}\\[2pt]
+\multicolumn{2}{@{}l}{\footnotesize\emph{Safety}}\\*[2pt]
 Data race & Two threads use the same memory at once and at least one writes, with nothing to order the two uses \\
 Race condition & A bug that depends on which of two steps finishes first. Safe Rust does not rule these out, and it does not rule out deadlocks \\
 In-guarantee class & A defect from the set the compiler is built to reject. In safe Rust each one is a compile error \\
