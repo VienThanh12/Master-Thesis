@@ -735,8 +735,11 @@ state.\label{fig:fsm}}
 
 UECM is core RAN layer-3 work. It has the traits that make live control-plane
 code hard. Each UE has state that changes, the operation lifecycle is strict,
-and many UEs run at once. Delay targets are the ones the 5G system sets for
-control-plane procedures~\cite{3gpp38913,3gpp22261}. Findings about how a language
+and many UEs run at once. A delay target is the longest a control-plane procedure may take.
+The 5G service requirements name latency as one such limit~\cite{3gpp22261}.
+For the move from a battery-saving idle state to the start of sending data, that limit is $10$~ms~\cite{3gpp38913}.
+The procedure is a chain of steps. It is late if the chain is late, even when most steps are fast.
+Findings about how a language
 handles those traits are most relevant to other stateful, multi-thread
 control-plane services of this kind. The part is also small enough to specify in full and build twice.
 That is what makes a parity-tested comparison possible.
