@@ -7,11 +7,11 @@ Unguarded shared mutation & not detected & detected & not detected & compile err
 Use-after-move & not detected & not detected & not detected & compile error (E0382) \\
 Thread-unsafe handle shared & not detected & detected & not detected & compile error (E0277)\\
 \hline
-\rlap{\emph{Boundary of the guarantee}} & & & & \\
+\rlap{\emph{Outside the guarantee}} & & & & \\
 Lock-order deadlock$^{\ddagger}$ & not detected & intermittent$^{\S}$ & not detected & compiles, deadlocks \\
 Lost update & not detected & not detected & not detected & compiles, wrong result \\
 Reference-cycle leak & detected & not detected & not detected & compiles, leaks \\
 Integer overflow (release) & not detected & not detected & detected & compiles, wrong result \\
 Worker-failure blast radius & not detected & not detected & not detected & compiles, shard outage \\
-Double-free across the seam & detected & not detected & not detected & compiles, aborts \\
+Double-free in unsafe & detected & not detected & not detected & compiles, aborts \\
 Forgotten lock guard$^{\ddagger}$ & not detected & not detected & not detected & compiles, deadlocks
