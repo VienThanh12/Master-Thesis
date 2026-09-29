@@ -301,7 +301,7 @@ memory-corruption defect is then a network-wide risk, and the language
 choice is an engineering decision.
 
 The second trend is artificial intelligence (AI). AI used to be only a tool.
-It helped choose radio settings, such as how much power to send. That tool did
+It helps to choose radio settings, such as how much power to send. That tool does
 not have to run on the radio's own server. Now AI programs also run on that
 server, next to the radio software~\cite{polese2026airan}. Both run at the same
 time, so they share one processor. International Mobile
@@ -1641,8 +1641,9 @@ settle the human cost this study can only name.
 \begin{appendices}
 
 \appendix{Key terms\label{appendix:terms}}
-Table~\ref{tab:abbrev} collects the network, measurement and safety terms used throughout the thesis
-that are not acronyms, for readers outside the telecom domain. The acronyms are written out at
+Table~\ref{tab:abbrev} collects the network, service, measurement and safety terms used in the thesis
+that are not acronyms, for readers outside the telecom domain. The safety rows use the names in the
+text and on the outcome matrix. The acronyms are written out at
 first use and listed together in the \nomname{} on page~\pageref{page:acronyms}.
 
 \begingroup
@@ -1658,31 +1659,107 @@ Term & Meaning \\
 Term & Meaning \\
 \hline
 \endhead
+\multicolumn{2}{@{}l}{\footnotesize\emph{Network}}\\[2pt]
 Control plane & The signalling and management path, as opposed to the user-plane data path \\
 User plane & The path that carries the user's data. The control plane sets it up and tears it down \\
 Signalling & The messages that create, change and release a connection, as opposed to the user's data \\
 Handover & Moving one connected device from one cell to another, so the call can continue \\
+Cell & One coverage area of the radio network. A handover moves a device from one cell to another \\
+Mobility & A connected device changing cell. Many such moves at once are a mobility storm \\
 UE context & The stored record for one device. The shards divide these records, and a handover or a release changes one \\
 Data radio bearer & A channel for that device's data, added while the device stays connected \\
+Reconfiguration & A change to a connection that stays up, such as adding a data radio bearer \\
+Procedure & One user-visible control-plane action, such as a setup or a handover. It is made of many operations \\
+Release & Deleting one device's stored record and ending its connection \\
+Open-RAN & The same split base station, opened so each part may come from a different vendor and run as ordinary software \\
+Uu & The radio link between the device and the distributed unit \\
+F1 & The link between the central unit and a distributed unit \\
+E1 & The link between the control-plane and user-plane halves of the central unit \\
+NG & The link from the base station toward the 5G core. NG-RAN is the network, and this NG is one link inside it \\
+5G core & The network behind the base station. It forwards each call onward \\
+\\[6pt]
+\multicolumn{2}{@{}l}{\footnotesize\emph{Service}}\\[2pt]
+Shard & One of several independent slices of the UE state, each owned by exactly one worker thread \\
+Shared-nothing & Each shard's device state has a single owning thread. The only shared mutable state is one counter, and no control flow depends on its value \\
+Thread-per-shard & One worker thread owns one shard and is the only thread that reads or changes it \\
+Producer & A load-generator thread. It submits each request and waits for the reply \\
+Worker & The thread that owns one shard, drains its queue, and runs the operation \\
+Bounded queue & The queue in front of a shard. It has a fixed capacity and blocks when full, so overload appears as delay \\
+One-shot reply & The handle a producer waits on for the result of one request \\
+Operation & One request handled for one device record, such as setup, signal, or release. A procedure is many of these \\
+Signal workload & Connects a set of devices and then repeats one signalling call \\
+Mixed workload & Walks each device through context creation, setup, signal, bearer setup, reconfiguration or handover, and release \\
+Variant & One of the four measured builds. The four are C++ or Rust, each linked with the system allocator and with jemalloc \\
+Heap & Which allocator a variant uses. The two heaps are the system allocator and jemalloc \\
+Allocator & The library that hands out and takes back heap memory. Both languages are measured with the system allocator and with jemalloc \\
+System allocator & The allocator the operating system supplies \\
+jemalloc & The second allocator. Both languages link it the same way, beside the system allocator \\
+Seam & The C layer where a C++ host calls the Rust core. Every raw pointer stays in that layer \\
+Crate & A Rust package. Unsafe code spreads along the crates a build pulls in \\
+Parity & The check that both languages perform the same operations and return the same results \\
+Forced idiom & A place the two languages could not be written the same way. The difference is logged and then measured \\
+Linkage policy & How the binary is joined to its libraries. The size order flips when both languages use the same policy \\
+\\[6pt]
+\multicolumn{2}{@{}l}{\footnotesize\emph{Measurement}}\\[2pt]
 Tail latency & High-percentile latency (p99, p99.9, p99.99), the worst-case-oriented timing metric \\
 Far tail & The extreme end of the latency distribution, the p99.99, past the p99 many studies stop at \\
 Jitter & How much latency varies from one operation to the next, as opposed to its typical value \\
 Offered load & The rate the test tries to send, counted whether or not the service answers in time \\
+Achieved throughput & The rate of operations the service actually finishes \\
+Tracking & Achieved throughput staying equal to the offered load. The two languages stop tracking at different loads \\
 Saturation & The offered load beyond which the service can no longer keep up and requests start queueing \\
 Saturation knee & The offered load at which one variant stops keeping up. The four variants do not share one \\
 Overload & Offered load past that point, where requests queue because the service cannot keep up \\
+Representative load & The offered load fixed in advance for the latency table and the resource plots \\
 Open-loop & A load schedule whose send times are fixed in advance, so a slow response delays no later request \\
 Closed-loop & A schedule that waits for each answer before the next request, so a stall is never recorded \\
 Coordinated omission & The bias an open-loop schedule avoids, in which a stalled client stops issuing requests and so never records the latency of the stall \\
+Campaign clock & The pre-committed sweep. The histogram is filled inside the timed window, so the recorder is part of what it times \\
+Clock A & A repeat on an earlier host that drops the histogram fill. Its percentiles carry coordinated-omission bias, and the repeat was not run on the reported host \\
+Clock B & The repeat on the reported host that writes the histogram after the timed window. Its overload percentiles are schedule drift \\
+Histogram fill & The write of latency samples into the histogram. Writing it inside the timed window charges recorder work to the result \\
+Schedule drift & How far a producer falls behind the send times fixed in advance. A percentile on that clock is backlog \\
+End-to-end round-trip & The time from the planned send until the reply. The queue and the handoff are inside it \\
+Handoff & Passing a request from the producer thread to the worker and the reply back. The operating system owns this time \\
+Core call & The operation timed with the queue and the handoff removed. This is the part a language difference can own. The hardware a thread is pinned to is also called a core \\
 Blind zone & Delays too short for the end-to-end sweep to separate. A language effect inside it does not show in that sweep \\
-Shard & One of several independent slices of the UE state, each owned by exactly one worker thread \\
+Interleaved repeat & One pass in which the four variants run in turn on the same pinned cores \\
+Plateau & The region of offered load where achieved throughput has stopped rising with the load \\
+Recorder & Measurement work inside the campaign process, chiefly the histogram fill. The time the service spent on the call is counted apart from it \\
 Bare metal & The measurement machine with no hypervisor between the program and the processor \\
-Allocator & The library that hands out and takes back heap memory. Both languages are measured with the system allocator and with jemalloc \\
+Hypervisor & Software that places a virtual machine between the program and the processor. The reported campaign runs with none \\
+Governor & The Linux policy that raises and lowers a core's clock with load and heat. The reported campaign holds the clock fixed \\
+Pinning & Binding the test threads to a chosen set of cores \\
+Transparent hugepage & A kernel policy that backs ordinary memory with large pages. It differed by host, and only the system-allocator build gets it \\
+Boost & A rise of the processor clock above the rate the governor holds. The reported campaign has it off. Boost.Fibers is a C++ library in another study, and a different use of the word \\
+\\[6pt]
+\multicolumn{2}{@{}l}{\footnotesize\emph{Safety}}\\[2pt]
 Data race & Two threads use the same memory at once and at least one writes, with nothing to order the two uses \\
 Race condition & A bug that depends on which of two steps finishes first. Safe Rust does not rule these out, and it does not rule out deadlocks \\
 In-guarantee class & A defect from the set the compiler is built to reject. In safe Rust each one is a compile error \\
+Use-after-free & Using memory after it has been released. Safe Rust rejects this when the program is compiled \\
+Double-free & Releasing the same memory twice. Safe Rust rejects it at compile time. The seam case is the same defect written where the compiler has stopped checking \\
+Iterator invalidation & Using an iterator after the list it walks has changed. Safe Rust rejects it at compile time \\
+Use-after-move & Using a value after it has been moved. Safe Rust rejects it. In C++ the moved-from object is still a valid object, so the sanitisers report nothing \\
+Unguarded shared mutation & Changing one value from two threads with nothing to order the writes. Safe Rust rejects it at compile time \\
+Thread-unsafe handle shared & Sending another thread a handle that is safe only on one thread. Safe Rust rejects that program at compile time \\
 Boundary class & A defect safe Rust is not built to stop. These compile in safe Rust and then fail \\
+Lock-order deadlock & Two threads each waiting for a lock the other holds. Safe Rust compiles this and then hangs \\
+Lost update & Two updates of one field that both complete, with one result discarded. Each access can be locked, and the bug remains \\
+Reference-cycle leak & Objects that keep each other alive, so the memory is never freed. Rust treats a leak as safe \\
+Release-build overflow & Integer overflow in an optimised build. Rust defines the result to wrap, and the program still compiles \\
+Worker-failure blast radius & How much of the service fails with one worker. A shard can go down. Safe Rust still compiles that program \\
+Seam double-free & The double-free written through an unsafe boundary, so the Rust compiler accepts it. The C++ half is the ordinary double-free \\
+Forgotten lock guard & A lock taken and then not held for the work it was meant to cover. The C++ program hangs, and the Rust program hangs too. Cleanup tied to the object's life leaves this class in place \\
 Unsafe & A region the programmer marks so the compiler stops checking it. C++ marks no such region \\
+Ownership & Rust's rule that a value has one owner. A read of a record whose owner has already dropped it does not compile \\
+Borrowing & A temporary loan of a value. The compiler rejects a loan that outlives the value \\
+Borrow checker & The part of the Rust compiler that enforces ownership and borrowing. Lock order is outside what it checks \\
+Aliasing & Two live names for the same memory. Safe Rust rejects the cases that can corrupt it \\
+Bounds check & A test the compiler puts in, and that runs with the program, to keep an index inside a list \\
+Sanitiser & A tool that reports a defect when a test runs the path that holds it. The program has already been built \\
+Undefined behaviour & A program state with no meaning in C++. A sanitiser can turn some of it into a reported failure \\
+Model checker & A tool that searches the orders threads can run in. The two concurrency cases had to be rewritten in the checker's own parts before it would run \\
 \hline
 \end{longtable}
 \endgroup
