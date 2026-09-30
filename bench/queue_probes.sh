@@ -26,9 +26,19 @@
 # achieved throughput tracks the offered rate, the host is not in overload and
 # the probe is measuring nothing.
 #
+# FILL AFTER THE WINDOW. The gap this script was written for moved with the
+# histogram fill: on the reported host it vanished once the fill was deferred,
+# and a smaller Rust lead was left. --correction-when after runs every arm on
+# that deferred-fill clock, so the probes speak to the lead that remains and
+# not to the recorder. --perf-cs wraps each run in `perf stat` and stores the
+# process's context switches, which is how often its threads were set aside,
+# mostly to sleep until the other side of the handoff answered.
+#
 # Usage:
 #   bench/queue_probes.sh                      # defaults, 15 repeats
 #   bench/queue_probes.sh --rate 64000 --repeats 15 --pin 2-17
+#   bench/queue_probes.sh --rate 112000 --repeats 10 --pin 2-17 \
+#       --shards 7 --producers 7 --correction-when after --perf-cs
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -47,6 +57,8 @@ seed=42
 repeats=15
 rate=64000
 pin=""
+correction_when=""
+perf_cs=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -56,9 +68,19 @@ while [ $# -gt 0 ]; do
     --producers)  producers="$2"; shift 2;;
     --shards)     shards="$2"; shift 2;;
     --duration)   duration="$2"; shift 2;;
+    --correction-when) correction_when="$2"; shift 2;;
+    --perf-cs)    perf_cs=1; shift;;
     *) echo "unknown arg: $1"; exit 2;;
   esac
 done
+
+extra=()
+[ -n "$correction_when" ] && extra+=(--correction-when "$correction_when")
+
+if [ "$perf_cs" = "1" ] && ! command -v perf >/dev/null 2>&1; then
+  echo "FAIL: --perf-cs needs perf, and it is not on PATH"
+  exit 1
+fi
 
 max_run_s=$(( duration * 2 ))
 
@@ -105,21 +127,48 @@ ops=$(( rate * duration ))
 warmup=$(( rate * warmup_s ))
 total=$(( repeats * ${#order[@]} ))
 echo "== probing at $rate per producer ($(( rate * producers )) offered): $repeats repeats x ${#order[@]} arms = $total runs =="
+[ -n "$correction_when" ] && echo "   fill timing: --correction-when $correction_when"
+[ "$perf_cs" = "1" ] && echo "   counting context switches with perf stat"
 
 n=0
 for rep in $(seq 1 "$repeats"); do
   for arm in "${order[@]}"; do
     n=$(( n + 1 ))
     printf '\r  run %d/%d (rep %d, %s)      ' "$n" "$total" "$rep" "$arm"
-    line="$("${pre[@]}" "${BIN[$arm]}" --workload "$workload" --shards "$shards" \
+    cmd=("${BIN[$arm]}" --workload "$workload" --shards "$shards" \
       --producers "$producers" --active-ues "$active_ues" --preload "$preload" \
       --ops "$ops" --warmup "$warmup" --seed "$seed" --rate "$rate" \
-      --max-run-s "$max_run_s" --run-id "$rep" --json 2>/dev/null)"
+      --max-run-s "$max_run_s" --run-id "$rep" "${extra[@]}" --json)
+    csv=""
+    if [ "$perf_cs" = "1" ]; then
+      csv="$(mktemp)"
+      line="$("${pre[@]}" perf stat -x, -e context-switches,cpu-migrations \
+        -o "$csv" -- "${cmd[@]}" 2>/dev/null)"
+    else
+      line="$("${pre[@]}" "${cmd[@]}" 2>/dev/null)"
+    fi
     if [ -z "$line" ]; then echo; echo "FAIL: no output from $arm"; exit 1; fi
-    python3 -c "
-import json,sys
-r=json.loads(sys.argv[1]); r['arm']=sys.argv[2]; r['repeat']=int(sys.argv[3])
-print(json.dumps(r))" "$line" "$arm" "$rep" >> "$out"
+    python3 - "$line" "$arm" "$rep" "$csv" >> "$out" <<'PY'
+import json, sys
+r = json.loads(sys.argv[1])
+r["arm"] = sys.argv[2]
+r["repeat"] = int(sys.argv[3])
+if sys.argv[4]:
+    counts = {}
+    for raw in open(sys.argv[4]):
+        f = raw.strip().split(",")
+        if raw.startswith("#") or len(f) < 3:
+            continue
+        # "<not counted>" is recorded as null, never as zero.
+        try:
+            counts[f[2]] = float(f[0])
+        except ValueError:
+            counts[f[2]] = None
+    r["ctx_switches"] = counts.get("context-switches")
+    r["cpu_migrations"] = counts.get("cpu-migrations")
+print(json.dumps(r))
+PY
+    [ -n "$csv" ] && rm -f "$csv"
   done
 done
 printf '\n\n'
@@ -196,6 +245,46 @@ r_mutexq = statistics.median(thr["cpp-deque"]) / statistics.median(thr["rust-mut
 r_ring = statistics.median(thr["cpp-ring"]) / statistics.median(thr["rust-channel"])
 print(f"    Ratio with the Rust queue substituted: {r_mutexq:.2f}x")
 print(f"    Ratio with the C++ allocation removed: {r_ring:.2f}x")
+print()
+
+# Where each arm's CPU goes, per finished call. Same chain as probe_facts.py's
+# CpuPerOp: the run's CPU rate over its window throughput, medians over repeats.
+def per_call_us(a, field):
+    runs = [r for r in rows if r["arm"] == a]
+    rate = statistics.median(r[field] / r["wall_s"] for r in runs)
+    return rate / statistics.median(thr[a]) * 1e6
+
+def switches_per_call(a):
+    runs = [r for r in rows if r["arm"] == a and r.get("ctx_switches") is not None]
+    if not runs:
+        return None
+    rate = statistics.median(r["ctx_switches"] / r["wall_s"] for r in runs)
+    return rate / statistics.median(thr[a])
+
+print(f"{'arm':<14}{'user us/call':>14}{'kernel us/call':>16}{'switches/call':>15}")
+for a in arms:
+    cs = switches_per_call(a)
+    cs_txt = f"{cs:.2f}" if cs is not None else "n/a"
+    print(f"{a:<14}{per_call_us(a, 'cpu_user_s'):>14.2f}"
+          f"{per_call_us(a, 'cpu_sys_s'):>16.2f}{cs_txt:>15}")
+print()
+
+# With the fill after the window Rust leads, so the question turns round: how
+# much of Rust's lead over stock C++ does the C++ queue design take away?
+by_rep = {a: {r["repeat"]: r["throughput_ops_s"] for r in rows if r["arm"] == a}
+          for a in arms}
+reps = sorted(set.intersection(*(set(v) for v in by_rep.values())))
+lead = statistics.median(thr["rust-channel"]) - statistics.median(thr["cpp-deque"])
+if lead > 0:
+    closed = (statistics.median(thr["rust-channel"])
+              - statistics.median(thr["rust-mutexq"])) / lead
+    slower = sum(1 for k in reps if by_rep["rust-mutexq"][k] < by_rep["rust-channel"][k])
+    ahead = sum(1 for k in reps if by_rep["rust-channel"][k] > by_rep["cpp-deque"][k])
+    print(f"    Rust ahead of C++ in {ahead} of {len(reps)} paired repeats")
+    print(f"    Share of that lead the C++ queue design removes: {closed * 100:.0f}%")
+    print(f"    Rust with the C++ queue slower than stock Rust in {slower} of {len(reps)}")
+else:
+    print("    Rust is not ahead at this rate, so no share of a lead is computed.")
 print()
 print(f"wrote {sys.argv[1]}")
 PY

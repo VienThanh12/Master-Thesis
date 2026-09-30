@@ -25,11 +25,17 @@ designed after the campaign to diagnose its high-load recorder path, so they
 change the interpretation of the overload gaps without replacing the tested
 family.
 
+Clock B also leaves a smaller Rust lead where throughput has stopped rising.
+Its kernel and user CPU per call say where that lead sits (the Sys* macros),
+and two swap probes on a further host with the same processor test what
+carries it (the Sg* macros). Those probes are diagnostics too, outside the
+tested family.
+
 Every value the prose quotes about these sweeps is written here, because a
 number typed into a sentence cannot be re-derived.
 
-Reads bench/results/fair-start-*.jsonl and fair-after-*.jsonl and writes
-figures/gen_probes.tex.
+Reads bench/results/fair-start-*.jsonl and fair-after-*.jsonl, and the probe
+logs in bench/results-probes-20260930-sg/, and writes figures/gen_probes.tex.
 """
 
 import glob
@@ -44,6 +50,9 @@ from plot_figures import paired_permutation_test
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 RESULTS = os.path.join(HERE, "results")
+# Swap probes from the 30 September 2026 host. Kept out of results/ so that
+# refresh_thesis.sh can never take one of them for a campaign.
+SG_DIR = os.path.join(HERE, "results-probes-20260930-sg")
 OUT = os.path.join(ROOT, "figures", "gen_probes.tex")
 
 NS_PER_US = 1000.0
@@ -87,17 +96,17 @@ def median(xs):
     return xs[n // 2] if n % 2 else 0.5 * (xs[n // 2 - 1] + xs[n // 2])
 
 
-def newest(pattern):
+def newest(pattern, directory=RESULTS):
     """Newest run log for a prefix. The .hist. sidecars share the glob."""
     hits = sorted(
-        p for p in glob.glob(os.path.join(RESULTS, pattern)) if ".hist." not in p
+        p for p in glob.glob(os.path.join(directory, pattern)) if ".hist." not in p
     )
     if not hits:
-        raise SystemExit(f"probe_facts: no log matching {pattern} in {RESULTS}")
+        raise SystemExit(f"probe_facts: no log matching {pattern} in {directory}")
     return hits[-1]
 
 
-def matching_env(log_path):
+def matching_env(log_path, directory=RESULTS):
     """The capture written for this run, matched by timestamp.
 
     Taking the newest capture would silently repoint the host description when
@@ -108,7 +117,7 @@ def matching_env(log_path):
     stamp = os.path.basename(log_path).rsplit("-", 2)[-2:]
     stamp = "-".join(stamp).replace(".jsonl", "")
     best = None
-    for env in sorted(glob.glob(os.path.join(RESULTS, "env-*.txt"))):
+    for env in sorted(glob.glob(os.path.join(directory, "env-*.txt"))):
         env_stamp = os.path.basename(env)[len("env-") : -len(".txt")]
         if env_stamp <= stamp:
             best = env
@@ -321,13 +330,166 @@ def summarise(rows, prefix, macros, percentiles):
     macros[f"{prefix}Cap"] = f"{int(sample['correction_cap']):,}".replace(",", r"\,")
 
 
+LANG_NAME = {"cpp": "C++", "rust": "Rust"}
+
+
+def kernel_split(rows, prefix, macros):
+    """Kernel CPU per completed call, the place the deferred-fill lead sits.
+
+    Each sender waits for its reply, so past saturation throughput is set by
+    the round-trip, and the round-trip is mostly the cross-thread handoff,
+    whose cost the kernel carries. Same chain as CpuPerOp, with cpu_sys_s over
+    wall_s in place of cpu_pct.
+
+    The kernel share is per run and its denominator includes the deferred
+    fill, which is user code, so it understates the handoff's share.
+    """
+    cell = cells(rows)
+    loads = sorted({k[2] for k in cell})
+    top = max(loads)
+
+    def sys_per_op(lang, alloc, load_ops):
+        runs = cell[(lang, alloc, load_ops)]
+        rate = median([100.0 * r["cpu_sys_s"] / r["wall_s"] for r in runs])
+        return rate / median([thr_kops(r) for r in runs])
+
+    at_top = {
+        lang: median([sys_per_op(lang, alloc, top) for alloc in ALLOCS])
+        for lang in LANGS
+    }
+    higher = max(at_top, key=at_top.get)
+    lower = min(at_top, key=at_top.get)
+    macros[f"{prefix}SysHigher"] = LANG_NAME[higher]
+    macros[f"{prefix}SysLower"] = LANG_NAME[lower]
+    macros[f"{prefix}SysRatio"] = f"{at_top[higher] / at_top[lower]:.2f}"
+    macros[f"{prefix}SysLowerLoads"] = str(sum(
+        1
+        for L in loads
+        if all(sys_per_op(lower, a, L) < sys_per_op(higher, a, L) for a in ALLOCS)
+    ))
+    shares = [
+        median([
+            r["cpu_sys_s"] / (r["cpu_sys_s"] + r["cpu_user_s"])
+            for r in cell[(lang, alloc, top)]
+        ])
+        for lang in LANGS
+        for alloc in ALLOCS
+    ]
+    macros[f"{prefix}SysShareLo"] = f"{100.0 * min(shares):.0f}"
+    macros[f"{prefix}SysShareHi"] = f"{100.0 * max(shares):.0f}"
+
+
+def sg_facts(macros):
+    """Two swap probes on a further host with the campaign's processor.
+
+    Both run on the deferred-fill clock, interleaved against the stock builds
+    in one session: an open-addressed C++ map, and the C++ queue design given
+    to Rust, with a C++ ring buffer that keeps the lock as the control. The
+    queue swap is read from the session without perf, because counting context
+    switches slowed every arm by about a tenth and hid the lead. The counted
+    session supplies only switches per call, at a load where the send schedule
+    and not the counter sets the rate.
+    """
+    flat_log = newest("probe-sg-flatmap-112000-*.jsonl", SG_DIR)
+    queue_log = newest("probe-sg-queue-nocount-112000-*.jsonl", SG_DIR)
+    count_log = newest("probe-sg-queue-8000-*.jsonl", SG_DIR)
+
+    host_facts(matching_env(queue_log, SG_DIR), "Sg", macros)
+    # That capture was taken on the host, outside the container, so it lists
+    # every online CPU. The runs were pinned to 2-17 by the container.
+    del macros["SgPinned"]
+
+    def by_arm(rows):
+        out = {}
+        for r in rows:
+            out.setdefault(r["arm"], {})[r["repeat"]] = r
+        return out
+
+    def paired(arms):
+        reps = sorted(set.intersection(*(set(v) for v in arms.values())))
+        thr = {a: [arms[a][k]["throughput_ops_s"] for k in reps] for a in arms}
+        return reps, thr
+
+    def load_kops(arms):
+        r = next(iter(next(iter(arms.values())).values()))
+        return f"{r['rate'] * r['producers'] / OPS_PER_KOP:.0f}"
+
+    flat = by_arm(load(flat_log))
+    reps, thr = paired(flat)
+    macros["SgFlatLoad"] = load_kops(flat)
+    macros["SgFlatPairs"] = str(len(reps))
+    macros["SgFlatRustAhead"] = str(sum(
+        r > c for r, c in zip(thr["rust-stock"], thr["cpp-stock"])))
+    macros["SgFlatCppFaster"] = str(sum(
+        f > c for f, c in zip(thr["cpp-flat"], thr["cpp-stock"])))
+
+    queue = by_arm(load(queue_log))
+    reps, thr = paired(queue)
+    med = {a: median(v) for a, v in thr.items()}
+    lead = med["rust-channel"] - med["cpp-deque"]
+    closed = (med["rust-channel"] - med["rust-mutexq"]) / lead if lead > 0 else 0.0
+    slower = sum(m < s for m, s in zip(thr["rust-mutexq"], thr["rust-channel"]))
+    # Thesis_v4 says the C++ queue removed the lead and quotes no share. That
+    # was the reading fixed before the run for a swap that closes all of the
+    # lead in at least 8 of 10 pairs. A log that breaks it breaks the sentence.
+    if closed < 1.0 or slower < 0.8 * len(reps):
+        raise SystemExit(
+            f"probe_facts: the queue swap closes {closed:.0%} of the lead, slower "
+            f"in {slower} of {len(reps)} pairs. Thesis_v4 says it removed the lead."
+        )
+    def sys_us_per_call(arm):
+        rs = list(queue[arm].values())
+        rate = median([r["cpu_sys_s"] / r["wall_s"] for r in rs])
+        return rate / median([r["throughput_ops_s"] for r in rs]) * 1e6
+
+    sys_us = {a: sys_us_per_call(a) for a in queue}
+    # Thesis_v4 also says the C++ queue adds kernel time to each handoff.
+    if sys_us["rust-mutexq"] <= sys_us["rust-channel"]:
+        raise SystemExit(
+            "probe_facts: Rust with the C++ queue no longer spends more kernel "
+            "time per call than stock Rust. Thesis_v4 says it does."
+        )
+    _effect, p, _n = paired_permutation_test(thr["rust-channel"], thr["rust-mutexq"])
+    for arm, tag in (("cpp-deque", "Cpp"), ("rust-channel", "Rust"),
+                     ("rust-mutexq", "RustMutex")):
+        macros[f"SgQueueSys{tag}"] = f"{sys_us[arm]:.2f}"
+    macros["SgQueueLoad"] = load_kops(queue)
+    macros["SgQueuePairs"] = str(len(reps))
+    macros["SgQueueRustAhead"] = str(sum(
+        r > c for r, c in zip(thr["rust-channel"], thr["cpp-deque"])))
+    macros["SgQueueMutexSlower"] = str(slower)
+    macros["SgQueueClosedPct"] = f"{100.0 * closed:.0f}"
+    macros["SgQueueMutexP"] = fmt_p(p)
+    macros["SgQueueRingAbsPct"] = (
+        f"{abs(med['cpp-ring'] - med['cpp-deque']) / med['cpp-deque'] * 100.0:.1f}"
+    )
+
+    counted = by_arm(load(count_log))
+    per_call = {}
+    for arm, runs in counted.items():
+        rs = [r for r in runs.values() if r.get("ctx_switches") is not None]
+        if not rs:
+            raise SystemExit(f"probe_facts: {arm} has no context-switch counts")
+        rate = median([r["ctx_switches"] / r["wall_s"] for r in rs])
+        per_call[arm] = rate / median([r["throughput_ops_s"] for r in rs])
+    shown = {f"{v:.1f}" for v in per_call.values()}
+    # The prose gives one figure for all four builds, so they must agree.
+    if len(shown) != 1:
+        raise SystemExit(f"probe_facts: switches per call differ by arm: {per_call}")
+    macros["SgSwitchLow"] = shown.pop()
+    macros["SgSwitchLowLoad"] = load_kops(counted)
+
+
 def main():
     macros = {}
     start = newest("fair-start-*.jsonl")
     after = newest("fair-after-*.jsonl")
 
+    after_rows = load(after)
     summarise(load(start), "ProbeStart", macros, percentiles=True)
-    summarise(load(after), "ProbeAfter", macros, percentiles=False)
+    summarise(after_rows, "ProbeAfter", macros, percentiles=False)
+    kernel_split(after_rows, "ProbeAfter", macros)
+    sg_facts(macros)
 
     host_facts(matching_env(start), "ProbeStart", macros)
     host_facts(matching_env(after), "ProbeAfter", macros)
@@ -359,6 +521,8 @@ def main():
         fh.write("% Clock A is the newest fair-start log and is not this campaign's host.\n")
         fh.write("% Clock B is the newest fair-after log. When it shares the campaign host,\n")
         fh.write("% it is the fill control. Clock B percentiles are not emitted.\n")
+        fh.write("% Sg* are swap probes on a further host with the same processor,\n")
+        fh.write("% read from bench/results-probes-20260930-sg/. Not in the tested family.\n")
         for name in sorted(macros):
             fh.write(f"\\newcommand{{\\{name}}}{{{macros[name]}}}\n")
     print(f"wrote {OUT} ({len(macros)} macros)")
