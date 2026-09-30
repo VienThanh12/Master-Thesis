@@ -706,6 +706,11 @@ overturned — the differences are real and reproduce — but their stated cause
 revising, and all three were testable without the hardware counters the text names as the
 only route.
 
+**Update 2026-09-30.** Those verdicts were measured on the recorder-dominated gap, with the
+fill inside the timed window. With the fill after the window a smaller Rust lead remains, and
+the queue's synchronisation carries it on a further 7443P host. See the 2026-09-30 entry
+below. The map verdict stands on that clock too.
+
 Worth recording as a methodological lesson, because it caught two of the three probes: a
 substitution probe has to substitute *everything* the candidate mechanism covers. The
 Rust queue probe matched a design and not an allocation pattern; the contended-primitive
@@ -923,6 +928,51 @@ throughput varies by more than 5% across repeats. `bench/overload_probes.sh` use
 same two checks, and the 18 September WSL2 run fired the spread check on every phase. Replayed against the discarded 512 kops/s
 data that second check fires on three of the four arms, the Rust channel at 39%, so the run
 that produced the misleading ratios would not have been reportable.
+
+**Swap probes on the deferred-fill clock (recorded 2026-09-30, not compared configurations).**
+The Chicago same-host control (`fair-after-20260924-100100.jsonl`) removed the recorder gaps
+and left a smaller Rust lead where throughput stops rising. None of the probes above speak to
+that lead, because each ran with the fill inside the timed window.
+
+- **Where the lead sits (Chicago log, no new run).** Kernel CPU per completed call is lower
+  in Rust at all 14 loads on both heaps, C++ 1.05 to 1.13 times Rust's, and 1.12 at 784 kops/s.
+  Kernel time is 57 to 63% of a call's CPU at the top load. User CPU per call is equal or
+  higher in Rust. Every sender waits for its reply (`fut.get()`, `rrx.recv()`), so past
+  saturation throughput is the round-trip rate, and the core call is at most
+  `\BudgetCoreShareMax`% of a round-trip. Macros: `\ProbeAfterSys*`.
+- **Host.** Cherry Singapore `immune-bullfrog`, AMD EPYC 7443P, Ubuntu 24.04.5, kernel
+  6.8.0-142-generic, `virtualisation: none`, SMT off, `nohz_full=2-17 rcu_nocbs=2-17`, no
+  `isolcpus`, performance governor, boost off, 128 GB. Rocky image (`g++` 15.2.1, `rustc`
+  1.97.1), pin 2-17. Env: `bench/results-probes-20260930-sg/env-20260930-125434.txt`. The
+  earlier captures in that folder predate the reboot that set `nohz_full` and describe no
+  measurement. The models started these runs over SSH under the author's direction, which
+  `ai_statement.tex` now says.
+- **Open-addressed C++ map** (`bench/probe_sg_flatmap.sh`, 10 interleaved repeats, fill after,
+  `--max-run-s 3`). At 784 kops/s offered: stock C++ 432 kops/s, flat map 427, Rust 440. Rust
+  is ahead of stock C++ in 10 of 10 repeats, and the flat map beats stock C++ in 2 of 10. At
+  448 kops/s: 435, 432 and 448, with the same 10 and 2. The map does not carry the lead.
+- **Queue swap** (`bench/queue_probes.sh --correction-when after`, 7/7, 10 repeats, system
+  heap, the campaign's run lengths). Decision rule fixed before the run: the C++ queue design
+  "removes the lead" only if it closes at least 100% of it and Rust with it is slower than
+  stock Rust in at least 8 of 10 pairs. Uncounted session
+  (`probe-sg-queue-nocount-112000-20260930-140418.jsonl`), 784 kops/s: `cpp-deque` 426.9,
+  `cpp-ring` 425.2, `rust-channel` 441.6, `rust-mutexq` 426.2 kops/s. Rust leads in 9 of 10.
+  The C++ queue design closes 105% of that lead, slower than stock Rust in 9 of 10, paired
+  *p* = 3.91×10⁻³. The ring control moves C++ by 0.4% (*p* = 0.86). Kernel µs per call 8.54,
+  8.59, 7.70 and 7.96. The rule is met.
+- **Counted sessions** (`--perf-cs`, `probe-sg-queue-112000-*` and `probe-sg-queue-8000-*`).
+  Counting context switches slowed every arm by about a tenth (C++ 380 kops/s against 427
+  uncounted) and hid the lead (Rust ahead in 5 of 10), so no swap reading is taken from them.
+  Switches per call at 784 kops/s: 1.60, 1.60, 1.63, 1.61. At 56 kops/s, where the send
+  schedule sets the rate: 2.83 in all four builds. The C++ queue does not make threads switch
+  more often. It adds kernel time to each handoff.
+
+What this licenses: on that host, the deferred-fill Rust lead is carried by the shard queue's
+synchronisation (Rust's `sync_channel` against one mutex and two condition variables), not by
+the map and not by the queue's storage. It revises the 2026-08 "queue exonerated" verdict,
+which stays true for the recorder-dominated gap it was measured on. It was not re-measured on
+the campaign host. Prose quotes the `\Sg*` macros in `gen_probes.tex`. **Do not copy these
+kops/s into `figures/gen_macros.tex`.**
 
 **Benchmark harness (recorded 2026-07, `bench/`):**
 - Latency capture: C++ uses a from-scratch, header-only HDR histogram
