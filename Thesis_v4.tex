@@ -807,12 +807,20 @@ indexed paper mentioning Rust from the vendor hosting this work. The search
 returned no study that measures the tail of a Rust and a C++ version of the
 same stateful, multi-thread control-plane part under too much load.
 
-Table~\ref{tab:design} maps each research question to the method, artefact,
-data and metric that answer it. RQ1 and RQ3 share H1, worded to cover a speed
-tie in both the latency and the resource sense. That wording turns out to be the
-hypothesis's main weakness. RQ2 does not depend on the host. RQ4 depends on it
-along one axis. Build time is a timing. So it is read as a ratio between two
-toolchains measured in turn on one machine.
+Table~\ref{tab:design} maps each research question to the method, the artefact,
+the data and the metric that answer it. RQ1 asks how late the calls are, and
+RQ3 asks how much processor time and memory they use. H1 is the hypothesis for
+both questions. It says the two languages are performance-equivalent below
+saturation, with any difference only in the far tail. One hypothesis then has
+to hold for the delay and for the resources together, which is why that wording
+is its main weakness. The two need not move together.
+
+RQ2 records whether the compiler accepts the program and what the C++
+sanitisers report. That result is the same on any machine. Most of RQ4 is a
+size or a count, so those readings are the same on any machine. Build time is
+read with a stopwatch. A faster machine shortens both the Rust build and the
+C++ build, so the study reports the ratio of the two times, taken in turn on
+one machine. Those seconds belong to that machine.
 
 \begin{table}[ht]
 \centering
@@ -1243,6 +1251,8 @@ Only the fill moves, to after the timed window. When a sender falls behind,
 the harness still writes up to $\ProbeAfterCap$ extra samples for each
 finished call, but it writes them outside the window. The earlier run that drops the fill was not
 repeated here. It remains an earlier host. Its percentiles still miss the stalls, so they are not an RQ1 tail result.
+Percentiles on that same-host run are schedule drift, not service time. The
+campaign stays the pre-committed compared pair.
 
 Moving the fill removes both campaign patterns. At $\KneeSplitLoad$~kops/s,
 C\texttt{++} serves $\ProbeAfterKneeThrCpp$~kops/s and Rust serves
@@ -1254,17 +1264,35 @@ against $\ProbeAfterThrRustSystem$~kops/s, at $p \ProbeAfterThrPSystem$.
 Under \texttt{jemalloc} the figure is $\ProbeAfterThrRatioJemalloc$,
 $\ProbeAfterThrCppJemalloc$ against $\ProbeAfterThrRustJemalloc$, at
 $p \ProbeAfterThrPJemalloc$. These tests sit outside the pre-committed Holm
-family.
+family. What remains is that smaller Rust lead. CPU per completed operation
+where throughput has stopped rising is $\ProbeAfterCpuPerOpRatio$, with \ProbeAfterCpuPerOpHigher{}
+the higher one, against $\OverloadCpuPerOpRatio$
+while the fill ran inside the window. The large ratio is the recorder.
+Figure~\ref{fig:overload} compares both clocks on this host and keeps the two
+heaps apart.
 
-What remains is that smaller Rust lead. CPU per completed operation where throughput has stopped rising is $\ProbeAfterCpuPerOpRatio$, with
-\ProbeAfterCpuPerOpHigher{} the higher one, against $\OverloadCpuPerOpRatio$
-while the fill ran inside the window. The large ratio is the recorder. The
-smaller lead is not that ratio. This visit took no allocation profile, so
-the lead is reported and not explained. Queue and channel substitutions from
-an earlier host do not explain it either. Percentiles on that same-host run are
-schedule drift, not service time. The campaign stays the pre-committed
-compared pair. Figure~\ref{fig:overload} compares both clocks on this host
-and keeps the two heaps apart.
+The smaller lead has another source. Each sender waits for its reply before
+sending again, so past saturation the rate of finished calls is set by the
+round-trip time. The core call is at most $\BudgetCoreShareMax\%$ of that
+trip, far too little to give a lead of this size. The rest is passing requests
+between threads. Most of the CPU a call costs, $\ProbeAfterSysShareLo$ to
+$\ProbeAfterSysShareHi\%$ at the top load, is kernel time, spent by the
+operating system putting threads to sleep and waking them. \ProbeAfterSysHigher{}
+uses more kernel time per call than \ProbeAfterSysLower{} at
+$\ProbeAfterSysLowerLoads$ of the $\ProbeAfterLoads$ loads on both heaps, and
+$\ProbeAfterSysRatio$ times as much at the top load.
+A further host with the same processor then tested two suspects. Rust's hash
+map is open-addressed, keeping its entries in one flat table, while the
+C\texttt{++} map gives each entry its own node. An open-addressed map in
+C\texttt{++} left the lead in place, with Rust ahead in $\SgFlatRustAhead$ of
+$\SgFlatPairs$ paired repeats. Giving Rust the C\texttt{++} queue, one lock and
+two condition variables, removed the lead instead. Rust with that queue fell
+behind stock Rust in $\SgQueueMutexSlower$ of $\SgQueuePairs$ repeats, while a
+C\texttt{++} ring buffer with the same lock moved C\texttt{++} by only
+$\SgQueueRingAbsPct\%$. So the lead comes from how the queue is locked, not
+from how it stores requests. The lock adds kernel time to each handoff, not
+extra sleeps, since all four builds switch threads $\SgSwitchLow$ times per
+call at $\SgSwitchLowLoad$~kops/s.
 
 \begin{figure}[ht]
 \centering
@@ -1281,6 +1309,18 @@ after the window, on \MainCpu{}, pin \MainPinned{}, and \texttt{nohz\_full}
 % barrier the next subsection starts, and the figure lands under that heading.
 \FloatBarrier
 \subsection{Resource use (RQ3)}\label{sec:resources}
+% The chart is taller than the space left under this paragraph, about 430pt
+% against 250pt, so after the paragraph it left half a page blank before the
+% barrier. Placed under the heading it shares the folio with its text.
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_resources_column.pdf}
+\caption[Peak memory and CPU of the four builds]{Resource use at
+$\ReprLoad$~kops/s, grouped by allocator. Bars are medians over \NRepeats{}
+repeats with bootstrap $95\%$ intervals, and CPU in (b) is summed across
+threads.\label{fig:resources}}
+\end{figure}
+
 The four variants differ in RAM and CPU usage even where their median latencies are
 close. Peak resident set size (RSS) contains two effects of similar size on
 the reported host. The Rust build uses
@@ -1306,22 +1346,13 @@ campaign-clock variant instead uses $\OverloadCpuPerOpRatio$ times the CPU per
 finished call. On this host the deferred-fill sweep does not reproduce that
 large ratio. CPU per completed operation there is $\ProbeAfterCpuPerOpRatio$,
 with \ProbeAfterCpuPerOpHigher{} the higher one. The large ratio is the
-recorder. The smaller throughput lead remains, and this visit does not
-explain it. Counters on
+recorder. The smaller throughput lead remains, and Section~\ref{sec:overload}
+traces it to how the queue is locked. Counters on
 the second bare-metal host cover only the isolated core call. Rust retires
 $\BmInstrDelta\%$ \BmInstrDeltaDir{} instructions and finishes in
 $\BmCycleDelta\%$ \BmCycleDeltaDir{} cycles, while missing cache
 $\BmMissDelta\%$ \BmMissDeltaDir{} often per thousand instructions. Those
 counters explain the isolated core result, not the overload floor.
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=\linewidth]{figures/fig_resources_column.pdf}
-\caption[Peak memory and CPU of the four builds]{Resource use at
-$\ReprLoad$~kops/s, grouped by allocator. Bars are medians over \NRepeats{}
-repeats with bootstrap $95\%$ intervals, and CPU in (b) is summed across
-threads.\label{fig:resources}}
-\end{figure}
 
 % Same drift as the throughput figure: the RAM chart was opening the safety subsection.
 \FloatBarrier
@@ -1419,7 +1450,9 @@ split at $\KneeSplitLoad$~kops/s and a $\OverloadThrRatio\times$ lead for
 \OverloadSustainedFaster{} at $\OverloadLoad$. Moving the fill after the
 window on this same host removes both large patterns and leaves a smaller
 Rust lead. CPU per completed call falls from $\OverloadCpuPerOpRatio\times$
-to $\ProbeAfterCpuPerOpRatio\times$. Neither overload clock supplies
+to $\ProbeAfterCpuPerOpRatio\times$. The smaller lead sits in the handoff
+between threads, and on a further host it goes away when Rust is given the
+C\texttt{++} queue. Neither overload clock supplies
 service-latency percentiles, so RQ1 has no language verdict after saturation. The RQ2 outcome
 is complete for the fourteen-class catalogue set in advance and does not
 depend on the host. All seven classes safe Rust is built to reject are
@@ -1445,9 +1478,10 @@ schedule drift. No overload tail ranking follows.
 The campaign throughput shows an allocator split at one rung and a C++ lead
 later. The same-host run removes both large patterns when the fill
 is deferred and leaves a smaller Rust lead. That isolates the fill as the
-source of the large gaps. The smaller lead is reported and not explained.
-This visit took no allocation profile, and the queue and channel
-substitutions belong to an earlier host. The earlier run's
+source of the large gaps. The smaller lead sits in the handoff between
+threads, where C\texttt{++} uses more kernel time per call. On a further host
+with the same processor, a hash map swap left it in place, and giving Rust
+the C\texttt{++} queue removed it. The earlier run's
 lower Rust p99 misses the stalls on purpose and is not an RQ1
 tail result. The same-host run's throughput is a completed-work comparison. Its
 percentiles are schedule drift. The closest prior work reports
@@ -1592,8 +1626,9 @@ after more speed work~\cite{emberg2023asn1}. The parity suite bounds
 what the code does and not speed. The second is that the end-to-end clock
 times the design faithfully and the language hardly at all. Third, the
 same-host control isolates fill timing. It removes the large campaign gaps
-and leaves a smaller Rust lead where throughput has stopped rising. No allocation profile
-was taken on this visit, so that lead is reported and not explained. The earlier run
+and leaves a smaller Rust lead where throughput has stopped rising. The kernel
+time split behind that lead comes from this host, but the swaps that test its
+cause ran on a further host with the same processor. The earlier run
 was not repeated here. Fourth, neither high-load clock gives
 service-latency percentiles. The campaign includes recorder work. The earlier run misses the stalls, and the same-host run reports schedule drift. The thesis
 therefore leaves overload service latency unresolved.
@@ -1660,7 +1695,9 @@ an allocator split at $\KneeSplitLoad$~kops/s and a $\OverloadThrRatio\times$
 C++ lead deeper into overload. Moving the fill after the timed window on
 this same host removes both large patterns and leaves a smaller Rust lead.
 CPU per completed call falls from $\OverloadCpuPerOpRatio\times$ to
-$\ProbeAfterCpuPerOpRatio\times$. The gaps do not rank the two services,
+$\ProbeAfterCpuPerOpRatio\times$. On a further host, giving Rust the
+C\texttt{++} queue removes the smaller lead, so it comes from how calls pass
+between threads, not from the core work. The gaps do not rank the two services,
 and overload service latency remains unresolved. On RAM
 the Rust build carries a few MiB more fixed footprint under both heaps. It does so in
 the same direction and MiB scale on all three hosts timed. The
@@ -1680,10 +1717,11 @@ round-trip says how much of what it times the language can own. A defect
 list maps where the guarantee stops.
 
 Future work answers the gaps one at a time. The same-host control is now
-done. In-run and deferred fill were repeated on one host, with the pin and
-\texttt{nohz\_full} held. The large gaps move with the fill. What remains is
-the smaller Rust throughput lead where throughput has stopped rising, which this visit
-does not explain. The next job needs no new host. It is to vary how the kernel uses large pages for ordinary memory, on one host with all
+done. In-run and deferred fill were repeated on one host, with the pin and \texttt{nohz\_full}
+held. The large gaps move with the fill. On a further
+host, the smaller Rust lead that remains goes away when Rust is given the
+C\texttt{++} queue. One job is to repeat that swap on the campaign host.
+Another needs no new host. It is to vary how the kernel uses large pages for ordinary memory, on one host with all
 else held fixed. All three hosts agree that the Rust build carries the larger
 footprint. They disagree about how that sits against the cost of the
 heap. The guest put it an order of magnitude higher, and neither
@@ -1732,10 +1770,16 @@ ratio between two variants measured alternately in one session. Section~\ref{sec
 here for the field-by-field record of what each campaign captured. Every column reports what was
 measured, and the protocol they are read against is published as \texttt{bench/TESTBED.md}.
 Table~\ref{tab:params} gathers the configuration of the service, the workload and the campaign.
+Each adjacent column pair isolates one change, except where the Kernel and Toolchain rows
+record otherwise: against the virtualised host the design and container image match but the
+machine and \texttt{g++} point release differ; against the second bare-metal host the shard
+count, load grid, repeat count and compiler differ too.
 
-% [tp] and not [H]: measured in the full draft. At [H] the table did not fit under its
-% own intro paragraph, and [H] forbids the following text from flowing back into the gap.
-\begin{table}[tp]
+% The float is 111pt taller than one page. [tp] parked it at the bottom and clipped the last
+% rows. enlargethispage belongs on the table page, after clearpage, not under the intro.
+\clearpage
+\enlargethispage{160pt}
+\begin{table}[!ht]
 \centering
 \small
 \caption[The three measurement hosts]{The three machines the campaigns ran on, each reported as
@@ -1744,16 +1788,9 @@ environment capture rather than restated from the protocol of \texttt{bench/TEST
 operating-system row names the machine and, where a campaign ran in a container, the image's
 userland beside it, so the kernel row prints one value for both. The last
 two rows are prose, because what an instrument set is adequate for is a judgement and not a captured
-field. The columns are arranged so that each
-adjacent pair isolates one change, with the exceptions the Kernel and Toolchain rows record.
-Reported sweep against virtualised host: the same design and the same container image on a
-different machine, one \texttt{g++} release apart within GCC~15, which is what
-Section~\ref{sec:testbed} reads a hardware effect from.
-Reported sweep against second bare-metal host: a different shard count, load grid, repeat count and
-compiler on comparable hardware, which is what tests whether the findings depend on those choices.
-Rows where all three agree describe the source or the method rather than any machine. The
+field. Rows where all three agree describe the source or the method rather than any machine. The
 \emph{Short of protocol} marks are deliberate and are argued where they appear.\label{tab:testbed}}
-\renewcommand{\arraystretch}{1.1}
+\renewcommand{\arraystretch}{1.0}
 \footnotesize
 \begin{tabular}{@{}R{0.14\linewidth} R{0.26\linewidth} R{0.27\linewidth} R{0.25\linewidth}@{}}
 \hline\hline
@@ -1823,6 +1860,7 @@ Attainable $p$ floors & $\MinAttainableP$ / $\CorrectedFloor$ & uncorrected / af
 \end{tabular}
 \end{table}
 
+\FloatBarrier
 \paragraph{What each campaign recorded.}
 Each of the $\NRuns$ runs of the factorial design in Table~\ref{tab:params} contributes one
 newline-delimited JSON record. Nothing is aggregated at capture time. A record carries the
