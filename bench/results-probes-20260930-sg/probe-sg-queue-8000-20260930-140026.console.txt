@@ -1,0 +1,45 @@
+== uecm-bench:el8-gcc15-rust1.97.1 on cores 2-17 (seccomp off, network none) ==
+
+== pinning probes to cores: 2-17 ==
+== building the four arms ==
+== probing at 8000 per producer (56000 offered): 10 repeats x 4 arms = 40 runs ==
+   fill timing: --correction-when after
+   counting context switches with perf stat
+
+
+offered 56,000 ops/s, 10 repeats per arm
+WARNING: the baseline arm served 100% of the offered rate, so the host
+         is not in overload and these numbers answer nothing. Raise --rate.
+
+REFUSING TO CERTIFY: see the warnings above before using any number here.
+
+arm             sustained kops/s                95% CI
+cpp-deque                  55.99        [55.99, 56.00]
+cpp-ring                   55.99        [55.99, 55.99]
+rust-channel               55.99        [55.99, 55.99]
+rust-mutexq                55.99        [55.99, 55.99]
+
+Divergence and what each substitution does to it
+
+    Baseline divergence, C++ over Rust: 1.00x
+
+Probe 1, Rust queue design matched to the C++ arm:
+    rust-channel 55.99 against rust-mutexq 55.99 kops/s, +0.0%, paired p=2.38e-01
+    Closes the divergence only if Rust moves up towards C++.
+
+Probe 2, C++ hot-path allocation removed:
+    cpp-deque 55.99 against cpp-ring 55.99 kops/s, -0.0%, paired p=9.77e-03
+    Explains the divergence only if C++ moves down towards Rust.
+
+    Ratio with the Rust queue substituted: 1.00x
+    Ratio with the C++ allocation removed: 1.00x
+
+arm             user us/call  kernel us/call  switches/call
+cpp-deque               6.22           17.72           2.83
+cpp-ring                6.08           17.78           2.83
+rust-channel            6.75           16.74           2.83
+rust-mutexq             6.60           17.01           2.83
+
+    Rust is not ahead at this rate, so no share of a lead is computed.
+
+wrote /root/thesis.local/bench/results/queue_probes-20260930-140026.jsonl

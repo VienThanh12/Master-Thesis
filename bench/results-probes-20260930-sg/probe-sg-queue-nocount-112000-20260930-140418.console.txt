@@ -1,0 +1,42 @@
+== uecm-bench:el8-gcc15-rust1.97.1 on cores 2-17 (seccomp off, network none) ==
+
+== pinning probes to cores: 2-17 ==
+== building the four arms ==
+== probing at 112000 per producer (784000 offered): 10 repeats x 4 arms = 40 runs ==
+   fill timing: --correction-when after
+
+
+offered 784,000 ops/s, 10 repeats per arm
+
+arm             sustained kops/s                95% CI
+cpp-deque                 426.91      [413.97, 433.01]
+cpp-ring                  425.24      [418.60, 433.11]
+rust-channel              441.65      [432.57, 449.19]
+rust-mutexq               426.20      [419.69, 428.50]
+
+Divergence and what each substitution does to it
+
+    Baseline divergence, C++ over Rust: 0.97x
+
+Probe 1, Rust queue design matched to the C++ arm:
+    rust-channel 441.65 against rust-mutexq 426.20 kops/s, -3.5%, paired p=3.91e-03
+    Closes the divergence only if Rust moves up towards C++.
+
+Probe 2, C++ hot-path allocation removed:
+    cpp-deque 426.91 against cpp-ring 425.24 kops/s, -0.4%, paired p=8.57e-01
+    Explains the divergence only if C++ moves down towards Rust.
+
+    Ratio with the Rust queue substituted: 1.00x
+    Ratio with the C++ allocation removed: 0.96x
+
+arm             user us/call  kernel us/call  switches/call
+cpp-deque               5.35            8.54            n/a
+cpp-ring                5.21            8.59            n/a
+rust-channel            6.20            7.70            n/a
+rust-mutexq             6.43            7.96            n/a
+
+    Rust ahead of C++ in 9 of 10 paired repeats
+    Share of that lead the C++ queue design removes: 105%
+    Rust with the C++ queue slower than stock Rust in 9 of 10
+
+wrote /root/thesis.local/bench/results/queue_probes-20260930-140418.jsonl
