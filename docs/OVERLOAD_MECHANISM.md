@@ -117,6 +117,12 @@ indicative only. Direction is what they support. Do not quote the absolute kops/
 | C++ `-DUECM_RING_QUEUE=ON` | `std::queue` → preallocated ring | 1.44× → 1.43× | Queue *allocation* is not the cause. 1008 `new`/`delete` pairs per 3000 pushes went to zero. Throughput did not move. |
 | `queue_contention` | queue + completion, no `ShardCore` | 55 vs 59 kops/s, `p = \ContentionP` | The two primitives alone do not reproduce the ordering. Thesis §`sec:contention`. |
 
+**Scope of that table (added 30 September 2026).** Every row was measured with the
+fill inside the timed window, on the recorder-dominated gap where C++ wins. It says
+nothing about the smaller Rust lead that remains once the fill is deferred. On that
+clock the mutex-queue swap removes the Rust lead on a further 7443P (§4.12), so
+"queue synchronisation is not the cause" holds for the recorder gap only.
+
 The spec then named the last untested *service-side* entry in the forced-idiom
 log: tagged-struct dispatch and the 160-byte C++ `Request` (`\CppRequestBytes`)
 against Rust’s 96 (`\RustRequestBytes`). That is D1.
@@ -446,6 +452,36 @@ Both the pooling loop in `refresh_thesis.sh` and the campaign discovery in
 `plot_figures.py` glob `campaign-*`, so the new pooled CSV cannot be mistaken
 for the compared pair.
 
+### 4.12 The deferred-fill lead: where it sits and what carries it (30 September 2026)
+
+The Chicago same-host control (`fair-after-20260924-100100.jsonl`) removed the
+recorder gaps and left a smaller Rust lead where throughput stops rising. Full
+record in spec §12, 2026-09-30 entry.
+
+**Where it sits, from the Chicago log itself.** Every sender waits for its reply,
+so past saturation throughput is the round-trip rate. The core call is at most
+`\BudgetCoreShareMax`% of a round-trip, so it cannot carry a lead of several per
+cent. Kernel time is 57 to 63% of a call's CPU at the top load, and C++ spends
+more of it per call than Rust at all 14 loads on both heaps (1.12 times at 784
+kops/s). User time per call is equal or higher in Rust.
+
+**What carries it, on a further 7443P** (Cherry Singapore `immune-bullfrog`,
+`nohz_full=2-17`, SMT off, Rocky image, fill after the window):
+
+| Swap, interleaved against stock | Result at 784 kops/s offered | Reading |
+| --- | --- | --- |
+| C++ `-DUECM_FLAT_MAP=ON` | Rust still ahead in 10 of 10; flat map beats stock C++ in 2 of 10 | The map does not carry the lead. |
+| Rust `--features mutex-queue` | Closes 105% of the lead; slower than stock Rust in 9 of 10, *p* = 3.91×10⁻³ | The queue's synchronisation carries it. |
+| C++ `-DUECM_RING_QUEUE=ON` (control) | C++ moves 0.4%, *p* = 0.86 | Storage does not matter; the lock does. |
+
+Thread switches per call are the same in every build (2.83 at 56 kops/s, 1.60 to
+1.63 at 784 kops/s), so the C++ design costs more kernel time per handoff, not
+more sleeps. Counting switches with `perf` slowed every arm by about a tenth and
+hid the lead, so the swap reading comes from the uncounted session only.
+
+Not re-measured on the campaign host. The thesis says "on a further host" wherever
+it uses this, and the threats paragraph names the host transfer.
+
 ---
 
 ## 5. Ranked account
@@ -463,6 +499,7 @@ From what can currently be defended.
 | 5 | Per-request unbounded `channel()` is a 31-slot MPMC list, ~1 KiB versus an 88-byte promise. Swapping to `sync_channel(1)` does not move the open-loop floor. | **Certified negative on 7443P.** Allocation tax still real. | §4.3, §4.6 P2. |
 | 6 | C++ 160-byte tagged `Request` versus Rust 96-byte enum. | **Weak.** Wrong sign. | Present in closed loop, where Rust is slightly faster. Not the floor. |
 | 7 | Bounds checks, `unsafe`, jemalloc, async runtime. | **Not the cause.** | Campaign plus design. |
+| 8 | With the fill deferred, the smaller Rust lead sits in kernel time at the handoff and is carried by the shard queue's synchronisation (Rust's `sync_channel` against one mutex and two condition variables). Not the map, not the queue's storage. | **Located on the campaign host, carried on a further 7443P.** Swap not repeated on the campaign host. | §4.12, spec §12 2026-09-30. |
 
 A consistent picture:
 
@@ -509,8 +546,11 @@ negative for the forced-idiom log. It is no longer the live candidate for
 the floor.
 
 The three 2026-08 queue and map substitutions were never re-run on an
-EPYC at 784 kops/s. They stay WSL2. That does not reopen them as the
-floor mechanism.
+EPYC with the fill inside the window. They stay WSL2 for the recorder
+floor, and that does not reopen them as its mechanism. On 30 September
+2026 all three ran on a further 7443P with the fill after the window,
+which is a different question: what carries the smaller Rust lead. The
+mutex-queue swap removed it (§4.12).
 
 Do **not** start from `std::sync::oneshot` itself. It is unstable and would
 pull a nightly story into a freeze that currently has none.
@@ -556,6 +596,13 @@ replaced. Sites that now carry that sentence:
 
 `bench/refresh_thesis.sh` is not required unless a compared-pair number moves.
 These probes must not move the compared pair.
+
+**30 September 2026.** `Thesis_v4.tex` now carries the §4.12 cause at seven
+sites: the cause paragraph closing `sec:overload`, the resource paragraph,
+§6.1, §6.2, the threats paragraph, the conclusion, and future work. The full
+draft was not changed, by the author's choice. Its source file has been empty
+since 25 September 2026, and its last built PDF (24 September) still says the
+smaller lead is not explained.
 
 ---
 
