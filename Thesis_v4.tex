@@ -1246,32 +1246,44 @@ path, and mixed walks each UE through the procedure sequence drawn
 below.\label{fig:workload}}
 \end{figure}
 
-The steps match the 3GPP rules. Those rules do not set the mix of calls.
-A real cell's handover rate rests on the site and the
-time of day, and no public figure fixes it. A mix that does not match a real
-cell moves both sides by the same amount. It limits how far the numbers
-travel. It does not make the test unfair. The sender keeps to its plan even if
-the service is late (open-loop). When a producer falls behind its scheduled send
-times, the harness adds samples to the delay histogram for requests that should
-have been sent during the missed period. HdrHistogram practice calls that step
-coordinated-omission correction~\cite{schroeder2006openclosed,tene_hdrhistogram}.
-This study names that extra histogram writing \emph{histogram fill}, up to
-$\ProbeAfterCap$ synthetic samples for each finished call. The fill accounts
-for delays that would otherwise be missed when the sender falls behind its
-schedule. The label marks one operation in this harness, not a standard term in
-performance benchmarking. Each load is
-run \NRepeats{} times. The four language and heap variants are interleaved
-inside each run. Each point is a median with a bootstrap $95\%$
+The test follows the 3GPP rules, which do not specify a particular mix of
+call types. In a real mobile cell, the handover rate depends on factors such
+as the location of the site and the time of day. There is no single publicly
+defined handover rate. Therefore, the call mix used in this study may differ
+from that of a real cell. However, the same mix is applied to all variants, so
+any difference in the mix affects all variants in the same way. It may change
+the absolute results, but it does not make the comparison between variants
+unfair.
+
+The sender uses an open-loop approach, meaning that it continues to send
+requests according to the planned schedule even when the service becomes slow.
+If the producer falls behind this schedule, the test harness adds samples to
+the delay histogram for requests that should have been sent during the missed
+period. This follows the coordinated-omission correction approach used in
+HdrHistogram~\cite{schroeder2006openclosed,tene_hdrhistogram}. In this study,
+this process is referred to as \emph{histogram fill}, with up to
+$\ProbeAfterCap$ synthetic samples added for each completed call. These
+additional samples represent delays that could otherwise be missed when the
+sender falls behind. The term \emph{histogram fill} is specific to this test
+harness and is not a standard benchmarking term.
+
+Each load level is tested \NRepeats{} times. The four language and heap
+variants are interleaved within each run to reduce the effect of changes in
+the test environment. Each reported value is the median of the measurements,
+together with a bootstrap $95\%$ confidence
 band~\cite{georges2007rigorous,efron1993bootstrap}.
 
-The load used for the resource plots is $\ReprLoad$~kilo-operations per second
-(kops/s). It is a chosen
-value, not one made from the sweep. The first rule this study used was the
-peak load whose p99 stayed under $5$~ms. On the virtual machine that rule
-landed on the noise of the host. On a quiet host it climbs until the service
-can no longer keep up. It is kept only as a check. The lowest finished rate
-among the four variants is $\SatKnee$~kops/s, reached when the sent
-load is $\TrackingLoad$~kops/s.
+For the resource-usage plots, the study uses a fixed load of
+$\ReprLoad$~kops/s ($\ReprLoad{,}000$ operations per second). This value
+was selected independently rather than taken from the load sweep. The initial
+rule was to use the highest load at which the p99 latency remained below
+$5$~ms. However, on the virtual machine, this value was strongly affected
+by noise from the host system. On a quiet host, the load can be increased
+until the service is no longer able to keep up. Therefore, this measurement
+is used only as a check.
+
+The lowest completed rate among the four variants is $\SatKnee$~kops/s,
+which occurs when the offered load is also $\TrackingLoad$~kops/s.
 
 \section{Results}
 The safe code results and most of the migration results do not depend on which
