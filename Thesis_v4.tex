@@ -1001,15 +1001,18 @@ has fallen behind. Therefore, these measurements cannot be used as a fair estima
 of the service's processing time and are reported only as descriptive results.
 
 \section{Reproducibility and research artefacts}\label{sec:repro}
-A third party can rebuild the results without access to Nokia's private code.
-The versions are driven entirely by the public frozen spec. The benchmarking
-harness, the fault catalogue and its runner, and the FFI prototype are
-published with the thesis. Each plot of measured data is rebuilt by one
-script from the raw logs. So is each quoted number in the results. The script
-is \texttt{bench/refresh\_thesis.sh}. That claim does not cover the hand-drawn
-schematics, which explain a concept rather than report a result. And running
-the same scripts over another host's campaign rebuilds the artefacts by the
-same procedure, not with the same values.
+The code, raw logs, and rebuild scripts live in
+\url{https://github.com/VienThanh12/Master-Thesis}. Access to that repository is
+restricted during review, and the same package is submitted with this thesis.
+A reader with either copy can rebuild the results without access to Nokia's
+private code. The versions are driven entirely by the public frozen spec. The
+benchmarking harness, the fault catalogue and its runner, and the FFI
+prototype are part of that package. Each plot of measured data is rebuilt by
+one script from the raw logs. So is each quoted number in the results. The
+script is \texttt{bench/refresh\_thesis.sh}. That claim does not cover the
+hand-drawn schematics, which explain a concept rather than report a result.
+And running the same scripts over another host's campaign rebuilds the
+artefacts by the same procedure, not with the same values.
 
 The logs that script reads are part of the package. Each campaign has its own
 script and its own macro prefix, so a figure from one cannot reach a sentence
