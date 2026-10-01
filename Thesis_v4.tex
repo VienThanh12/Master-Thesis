@@ -1030,6 +1030,8 @@ language, not a gap of design or of skill. The spec is itself a result of
 the study. It is the main guard against the author favouring one language while writing.
 
 One thread model is used on both sides: shared-nothing and thread-per-shard.
+Shared-nothing means one thread never reads another thread’s records. Thread-per-shard means
+each slice of those records has one owner thread.
 That layout is known to change tail latency by
 itself~\cite{enberg2019threadpercore}. The layout is held fixed as a fairness
 control. A production gNB-CU-CP schedules UE work differently. The id space is split into shards. Each
