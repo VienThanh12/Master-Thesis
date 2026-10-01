@@ -807,20 +807,24 @@ indexed paper mentioning Rust from the vendor hosting this work. The search
 returned no study that measures the tail of a Rust and a C++ version of the
 same stateful, multi-thread control-plane part under too much load.
 
-Table~\ref{tab:design} maps each research question to the method, the artefact,
-the data and the metric that answer it. RQ1 asks how late the calls are, and
-RQ3 asks how much processor time and memory they use. H1 is the hypothesis for
+Table 3.1 is the map for the rest of this chapter. Each row is one research question.
+The columns say which test answers it, what was built for that test, which data the test
+produces, and which number is reported.
+
+RQ1 asks how long a call takes, and RQ3 asks how much processor time and memory
+the service uses. H1 is the hypothesis for
 both questions. It says the two languages are performance-equivalent below
 saturation, with any difference only in the far tail. One hypothesis then has
 to hold for the delay and for the resources together, which is why that wording
-is its main weakness. The two need not move together.
+is its main weakness. The two need not move together. Chapter 6 returns to that wording.
 
-RQ2 records whether the compiler accepts the program and what the C++
-sanitisers report. That result is the same on any machine. Most of RQ4 is a
-size or a count, so those readings are the same on any machine. Build time is
-read with a stopwatch. A faster machine shortens both the Rust build and the
-C++ build, so the study reports the ratio of the two times, taken in turn on
-one machine. Those seconds belong to that machine.
+RQ2 records whether the compiler accepts the program and what the C++ sanitizers report. 
+These results are independent of the machine. Most of RQ4 consists of sizes or counts, 
+which are likewise machine-independent. Build time is measured with a stopwatch. 
+A faster machine reduces both the Rust and C++ build times, so absolute times depend 
+on the machine used. To control for this, the study reports the ratio of the two
+build times, measured sequentially on the same machine. 
+Thus, the comparison is made within the same machine, rather than across machines.
 
 \begin{table}[ht]
 \centering
