@@ -861,16 +861,36 @@ boundary size, \texttt{unsafe} scope, per-call cost \\
 \end{table}
 
 \section[Methods per research question]{Methods per research question, in outline}\label{sec:methodbrief}
-RQ1 and RQ3 are studied with an open-loop load sweep from light load to well
-past saturation. Open-loop means the generator keeps to its send schedule
-instead of waiting for replies~\cite{schroeder2006openclosed}. The four build
-variants are interleaved inside each repeat. A second timing splits the core operation
-from the cross-thread handoff around it. The end-to-end round-trip bundles two
-costs of two kinds. Only one of them can differ between the languages. A third
-timing takes the contended queue and the reply handle on their own. A
-same-host control then writes the histogram fill after the timed window,
-holding the pin and \texttt{nohz\_full}. That control isolates the fill.
-The earlier run that drops the fill was not repeated on this host.
+RQ1 and RQ3 use an open-loop load sweep. The sweep runs from a light load to
+well past saturation. Open-loop means the generator keeps to its send
+schedule. It does not wait for a reply before sending the next
+request~\cite{schroeder2006openclosed}. Four builds are compared. They take
+turns inside each repeat, so a noisy moment hits all four.
+
+The time from send to reply mixes two costs. The core operation is the work
+the language does on the device record. The handoff passes that work to the
+worker thread and brings the answer back. A second timing measures those
+two costs apart. The round-trip spends most of its time on the handoff, so
+the split shows how much of the measured time the language's own work can
+account for. 
+
+A third timing measures the contended queue and the reply handle on their own, 
+without any \texttt{ShardCore} work in the path. 
+The two languages build these pieces differently, so this test focuses only on 
+the submit-and-wait synchronisation between the producers and the worker. 
+Several producers compete for the same bounded queue, and each waits on a
+one-shot handle until the worker signals back. Together with the core-versus-handoff
+split above, this helps narrow down which part of the path may contribute to the 
+overload delay.
+
+We also run a same-host control to check whether histogram filling on the timed path 
+affects the high-load measurements. In the normal sweep, the recorder fills the delay 
+histogram while the timer is running. In the control, the same histogram is filled only 
+after the timed window ends, using the same CPU pinning and \texttt{nohz\_full} setting. 
+The two runs therefore differ only in when the histogram fill runs. 
+The gap between them isolates the cost of histogram filling from the service time. 
+The earlier run that removed the fill completely was not repeated on this host.
+
 
 RQ2 is answered by controlled fault injection~\cite{natella2016fault}. Each
 defect class is a small program of its own in both languages.
