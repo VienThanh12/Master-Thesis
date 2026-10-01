@@ -1189,20 +1189,44 @@ toolset, but not its exact point release. As a result, the compiler version
 used in this experiment is \texttt{g++~\MainGpp}. The use of a container does not completely isolate the experiment from the
 host system. In particular, a container uses the host's Linux kernel.
 
-Until late in the work the sweep ran on a Kernel-based Virtual Machine (KVM)
-on an \GuestCpu{}, with none of the core controls above. The capture records
-the hypervisor as \GuestVirt{}, the guest userland as \GuestDistro{}, and the
-guest kernel as \GuestKernel{}. On that
-host the $95\%$ band on one variant's p99 spans
-$\GuestPNineNineMaxCI\,\mu$s. The four variants' p99 values differ by
-$\GuestPNineNineRange\,\mu$s. The noise on one variant was larger than the gap
-between all four. That sweep is kept. It uses the same design as
-this one. The two can then be set next to each other to ask which findings belong to the code.
-A third sweep on a second bare-metal \BmCpu{} uses a new shard count, load
-grid, run count and tools. It tests whether the findings hold under those
-changes as a set, not any one of them on its own.
-Appendix~\ref{appendix:config} itemises the three hosts and the campaign
-parameters field by field.
+Until late in the study, the load sweep was performed inside a
+Kernel-based Virtual Machine (KVM) running on an \GuestCpu{}. The CPU core
+controls described above were not applied during this earlier sweep. The
+experimental notes record the hypervisor as \GuestVirt{}, the guest
+operating system as \GuestDistro{}, and the guest kernel as \GuestKernel{}.
+Here, the guest refers to the virtual machine itself, while userland refers
+to the programs and libraries that run on top of the operating-system
+kernel.
+
+The earlier sweep showed substantial variation in the measurements. For one
+variant, the $95\%$ bootstrap confidence interval for p99 latency had a
+width of $\GuestPNineNineMaxCI\,\mu$s. Across the four variants, the
+difference between the smallest and largest p99 values was only
+$\GuestPNineNineRange\,\mu$s. In other words, the uncertainty in the
+measurement of one variant was larger than the difference observed between
+all four variants. This means that, although the four variants had different
+measured p99 values, those differences were small relative to the variability 
+of the experiment. The results should therefore be interpreted with caution: 
+the observed differences between the variants are small compared with the uncertainty in the measurements.
+
+We nevertheless retain this earlier sweep because it used the same
+experimental design as the main experiment. This makes it useful for a
+side-by-side comparison. The purpose of this comparison is to examine
+whether the observed findings are consistent across different environments
+and therefore less likely to be specific to one particular machine or
+environment.
+
+A third sweep was performed on a second bare-metal machine with an
+\BmCpu{} processor. This sweep changed several experimental choices at
+the same time: the shard count, the set of offered loads, the number of
+repetitions, and the tools used. It therefore provides a broader
+robustness check. Specifically, it tests whether the findings remain
+similar when several experimental choices are changed together. It does
+not allow us to determine the effect of any one of these changes
+separately.
+
+Appendix~\ref{appendix:config} provides a field-by-field description of
+the three hosts and their corresponding experimental settings.
 
 \section[Workload and measurements]{Workload and measurements\label{sec:workload}}
 The work is made for the test. The steps it takes come from the 3GPP
