@@ -1119,12 +1119,15 @@ request becomes a tagged struct holding each field any operation might need,
 $\CppRequestBytes$~bytes against Rust's $\RustRequestBytes$. The net result is
 a Rust core $\NlocRise\%$ longer in code lines. Its branching complexity is
 $\CcnTotalDrop\%$ lower~\cite{lizard}. The Rust library contains no
-\texttt{unsafe} at all.
+\texttt{unsafe} at all. In Rust, unsafe
+is the block where the compiler’s checks are switched off.
 
 Parity is tested and not assumed. Language-neutral vectors run in both
 versions. Their logs are diffed operation by operation. A cross-diff cannot tell ``both
 correct'' from ``both wrong in the same way''. A third version in Python acts
-as an independent oracle. It has to reproduce all $\ConfHandOps$ hand-derived
+as an independent oracle. An
+oracle is a third program, written on its own, whose answers the other two have to match.
+It has to reproduce all $\ConfHandOps$ hand-derived
 expectations before it may generate any of its own. A campaign of
 $\ConfGenOps$ generated operations found no mismatch. The C++ side runs under
 AddressSanitizer, ThreadSanitizer and UndefinedBehaviorSanitizer. The Rust
