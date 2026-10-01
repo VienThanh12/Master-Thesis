@@ -893,13 +893,18 @@ names this harness operation \emph{histogram fill}. The earlier run that removed
 backfill completely was not repeated on this host.
 
 RQ2 is answered by controlled fault injection~\cite{natella2016fault}. Each
-defect class is a small program of its own in both languages.
-The C++ side is built and run under AddressSanitizer. It is also run under
-ThreadSanitizer and UndefinedBehaviorSanitizer. The safe-Rust side is compiled
-and, where it compiles, run under a bounded timeout. No static analyser is
-run, on purpose.
-The C++ columns then report the tooling this study ran. They do not report a
-ceiling on what C++ tooling could find. RQ4 is answered by a working
+bug class is a small program of its own, written in both languages. The C++
+side is built and run under AddressSanitizer, ThreadSanitizer, and
+UndefinedBehaviorSanitizer. Those three tools watch a running C++ program
+for memory bugs, thread bugs, and undefined behaviour. Undefined behaviour
+is a mistake the language does not define, so a running program may do
+anything. The safe-Rust side is compiled. Where it compiles, it is run with
+a time limit, and the run is stopped if it takes too long. No static
+analyser is used, on purpose. A static analyser reads the source without
+running it. The C++ columns report the tools this study ran. They do not
+claim that no other C++ tool could find more.
+
+RQ4 is answered by a working
 prototype in the direction a real migration takes. A C++ host calls an
 unchanged Rust core across a C ABI. That thin layer converts between the C++ host and the Rust core.
 The per-call cost is measured on a real
