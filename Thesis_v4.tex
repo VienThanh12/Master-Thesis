@@ -830,10 +830,13 @@ Thus, the comparison is made within the same machine, rather than across machine
 \centering
 \small
 \caption[How each research question is answered]{How each research question is
-answered. RQ1 and RQ3 carry two methods rather than one. Below saturation the
-sweep measures the round-trip a deployment would experience. The split of the
-core from the handoff measures the part the language can own, while a
-same-host control tests whether high-load recorder work contaminates the sweep.
+answered. RQ1 and RQ3 use two methods. The first measures the full round trip, 
+from deployment to completion. This shows the delay that a real deployment 
+would experience below saturation. The second separates the core work from the handoff. 
+This shows how much of the delay comes from the language itself. 
+We also use a same-host control to check that the heavy recorder 
+workload does not affect the sweep measurements.
+
 \label{tab:design}}
 \renewcommand{\arraystretch}{1.2}
 \setlength{\tabcolsep}{4pt}
