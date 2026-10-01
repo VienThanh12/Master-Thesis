@@ -1167,15 +1167,20 @@ numbers depend on the machine they ran on. The reported campaign comes from
 one bare-metal host, a single-socket \MainCpu{}. Bare metal means the program runs on the machine itself,
 with no virtual machine in between. Each core runs one
 thread. Extra threads on a core are \MainSmt{}. The host runs
-\MainHostDistro{} on kernel \MainKernel{}. Linux can raise and
+\MainHostDistro{} on kernel \MainKernel{}. The kernel is the core of the
+operating system
+
+Linux can raise and
 lower each core's clock as load and heat change. The clock is held
 fixed. That clock setting is \MainGovernor{}, and boost, a further rise of that clock, is off. The
-test may use only cores \MainPinned{}. There is no hypervisor. The
+test may use only cores \MainPinned{}. There is no hypervisor. A hypervisor
+is the program that would run a virtual machine. The
 program runs on the host itself, not inside a virtual machine. On those
 cores the kernel turns off its timer tick (\texttt{nohz\_full}).
 If left on, those ticks would show up in the latency numbers. The study does
 not use \texttt{isolcpus}. That flag also stops the kernel sharing work
-across the allowed cores. Each test thread then lands on one core.
+across the allowed cores. Each test thread is placed on
+one core.
 
 The build tools are not the ones on the host. Both sides are built
 and run inside an image that carries \MainDistro{} with
