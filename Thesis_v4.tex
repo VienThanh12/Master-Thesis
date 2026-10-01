@@ -912,19 +912,28 @@ operation and not inferred from an empty crossing. Memory bugs that cross a
 language sit in that layer~\cite{li2022crosslang}.
 
 \section{Fairness as a controlled variable}\label{sec:controlsbrief}
-A language comparison is only as good as the variables it holds fixed. The
-spec is frozen before either version exists. The thread model, the allocator
-and its arena count, the opt level, the hash function, the histogram method
-and the load schedule are matched across the two sides. They are never tuned
-per side. Where the two languages could not be written alike, the gap is
-logged instead of resolved. The two sides are shown to match by diffing match
-logs operation by operation. For a given seed they also execute the same
-operation order. The four variants take turns on the same pinned cores
-inside each repeat. That keeps recent cache contents and recent branch
-guesses close, because the same work runs one after another. The test does
-not empty the cache between variants. It also does not first train the CPU
-on those branches. It holds the work and the cores fixed. It does not hold
-the CPU's recent memory and branch history fixed.
+A language comparison is only as good as what it keeps the same. The spec
+is frozen before either version exists. Several choices are then matched on
+both sides, and never tuned to favour one language. Those choices are the
+thread model, the allocator and its arena count, the opt level, the hash
+function, the histogram method, and the load schedule. The opt level is how
+hard the compiler tries to make the code fast. An arena is a pre-sized pool
+the allocator draws memory from. Both sides use the same speed setting and
+the same pool count. Where the two languages could not be written the same
+way, the gap is written down and left in place.
+
+The two sides are shown to match by comparing their logs, operation by
+operation. For a given seed they also run the operations in the same order.
+A seed is the starting number of that random order, so the same seed repeats
+the same sequence. The four builds take turns on the same pinned cores
+inside each repeat. A pinned core is a core the test is allowed to use, and
+no other work is. Running the same work one build after another keeps the
+processor's recent memory and recent branch guesses close. The cache is the
+small fast memory next to the processor. A branch guess is the processor's
+guess about which way a condition will go. The test does not empty the cache
+between builds. It also does not first let the processor practise those
+guesses. The work and the cores stay fixed. It does
+not hold the CPU’s recent memory and branch history fixed.
 
 \section{Statistical treatment}\label{sec:statsbrief}
 The statistical design is fixed in advance. The family of tested comparisons is
