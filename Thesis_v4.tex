@@ -936,20 +936,69 @@ guesses. The work and the cores stay fixed. It does
 not hold the CPU’s recent memory and branch history fixed.
 
 \section{Statistical treatment}\label{sec:statsbrief}
-The statistical design is fixed in advance. The family of tested comparisons is
-listed ahead of the campaign. So a load picked after seeing a sweep cannot
-enter it. Each comparison is an exact paired permutation test over \NRepeats{}
-interleaved repeats, with a bootstrap confidence
-interval~\cite{efron1993bootstrap}, Holm-corrected across the
-family~\cite{holm1979simple}. The floors the test can reach ($\MinAttainableP$
-uncorrected, $\CorrectedFloor$ corrected) are quoted so that a null can be
-told apart from a math limit. Representative-load throughput is reported but
-not tested because it is pinned to the offered rate. Jitter is outside the
-research questions. The maximum is too sensitive to one disturbed operation
-for pairing to rescue it. The pooled p99.99 far tail has the operation as its
-unit, so it has no across-repeat interval to test. No latency percentile is
-tested after saturation because cumulative schedule drift makes it a lower
-bound rather than a service-time estimate.
+The statistical analysis plan was decided before the experiment was run. We first
+specified which comparisons would be tested. These comparisons could not be changed
+after seeing the results. In particular, a load could not be added to the statistical
+analysis because its results looked interesting in the load sweep.
+
+For each planned comparison, we use an exact paired permutation test over \NRepeats{}
+interleaved repeats. The test is \emph{paired} because C++ and Rust are compared
+within the same repeat. This means that both languages are measured under the same
+conditions at approximately the same time. For example, if the system is temporarily
+slower during one repeat, that slowdown affects both measurements.
+
+The permutation test asks whether the observed difference between C++ and Rust could
+have occurred by chance. To answer this, the test repeatedly swaps the C++ and Rust
+labels within the paired measurements. It then checks how often a difference as large
+as the observed difference occurs after these swaps. A small $p$-value means that a
+difference of this size would be unusual if there were no real difference between
+the languages.
+
+For each comparison, we also calculate a bootstrap confidence
+interval~\cite{efron1993bootstrap}. The confidence interval shows the uncertainty
+around the measured difference. It indicates the range of differences that are
+reasonably compatible with the observed repeats.
+
+Because several comparisons are tested, we apply the Holm
+correction~\cite{holm1979simple}. Without a correction, testing many comparisons
+increases the chance that at least one comparison appears statistically significant
+simply by chance. The Holm correction accounts for the fact that several tests are
+performed.
+
+There is a limit to how small the $p$-value can be with a fixed number of repeats.
+Before the Holm correction, this limit is $\MinAttainableP$. After the correction,
+it is $\CorrectedFloor$. We report these limits so that a reader can distinguish
+between a result showing no detectable difference and a result where the test does
+not have enough resolution to distinguish a smaller $p$-value. In this study, a
+\emph{tie} means that the test found no statistically detectable difference between
+C++ and Rust.
+
+Not every reported measurement is statistically tested. Some measurements are
+included only to describe the behaviour of the system.
+
+Throughput at the selected load is not tested because the experiment itself fixes
+the request rate. The test sends requests at the selected rate, so this value is
+already determined by the experimental setup.
+
+Jitter measures how much latency varies from one call to the next. It is reported
+as a descriptive measure because it is not part of the research questions.
+
+Maximum latency is also not tested. The maximum is determined by a single call. One
+unusual or disturbed call can therefore determine the entire value. Pairing the
+repeats does not make this single-call maximum suitable for reliable statistical
+testing.
+
+Pooled p99.99 latency is not tested either. This value is calculated from all
+individual calls combined into one distribution. Because the individual calls,
+rather than the repeats, are the observations, it cannot be used with the paired
+repeat-level statistical test.
+
+Finally, latency percentiles are not statistically tested after saturation. At
+saturation, the sender can no longer maintain the planned request rate and starts
+to fall behind. This is called \emph{schedule drift}. The measured latency then
+includes both the actual service time and the time spent waiting because the sender
+has fallen behind. Therefore, these measurements cannot be used as a fair estimate
+of the service's processing time and are reported only as descriptive results.
 
 \section{Reproducibility and research artefacts}\label{sec:repro}
 A third party can rebuild the results without access to Nokia's private code.
