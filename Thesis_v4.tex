@@ -1167,10 +1167,7 @@ numbers depend on the machine they ran on. The reported campaign comes from
 one bare-metal host, a single-socket \MainCpu{}. Bare metal means the program runs on the machine itself,
 with no virtual machine in between. Each core runs one
 thread. Extra threads on a core are \MainSmt{}. The host runs
-\MainHostDistro{} on kernel \MainKernel{}. The kernel is the core of the
-operating system
-
-Linux can raise and
+\MainHostDistro{} on kernel \MainKernel{}. Linux can raise and
 lower each core's clock as load and heat change. The clock is held
 fixed. That clock setting is \MainGovernor{}, and boost, a further rise of that clock, is off. The
 test may use only cores \MainPinned{}. There is no hypervisor. A hypervisor
@@ -1182,14 +1179,15 @@ not use \texttt{isolcpus}. That flag also stops the kernel sharing work
 across the allowed cores. Each test thread is placed on
 one core.
 
-The build tools are not the ones on the host. Both sides are built
-and run inside an image that carries \MainDistro{} with
-\texttt{g++~\MainGpp} and \texttt{rustc~\MainRustc}. The image pins the
-\texttt{gcc-toolset} major and not the point release. The earlier
-sweep on a virtual machine then built with \texttt{g++~\GuestGpp},
-one GNU Compiler Collection (GCC)~15 release earlier. An image still uses the kernel of the host
-it sits on. The two sweeps then differ in the hardware, in the kernel
-(\MainKernel{} against \GuestKernel{}), and in that compiler release.
+The compiler and build tools used in the experiment are not taken directly
+from the host system. Instead, both the C++ and Rust programs are built and
+executed inside the same container image. The image is based on \MainDistro{}
+and provides \texttt{g++~\MainGpp} and \texttt{rustc~\MainRustc}. This
+ensures that the build environment is controlled and reproducible rather
+than depending on the software installed on the host machine. The image specifies the major version of the GNU Compiler Collection (GCC)
+toolset, but not its exact point release. As a result, the compiler version
+used in this experiment is \texttt{g++~\MainGpp}. The use of a container does not completely isolate the experiment from the
+host system. In particular, a container uses the host's Linux kernel.
 
 Until late in the work the sweep ran on a Kernel-based Virtual Machine (KVM)
 on an \GuestCpu{}, with none of the core controls above. The capture records
