@@ -883,14 +883,14 @@ one-shot handle until the worker signals back. Together with the core-versus-han
 split above, this helps narrow down which part of the path may contribute to the 
 overload delay.
 
-We also run a same-host control to check whether histogram filling on the timed path 
-affects the high-load measurements. In the normal sweep, the recorder fills the delay 
-histogram while the timer is running. In the control, the same histogram is filled only 
-after the timed window ends, using the same CPU pinning and \texttt{nohz\_full} setting. 
-The two runs therefore differ only in when the histogram fill runs. 
-The gap between them isolates the cost of histogram filling from the service time. 
-The earlier run that removed the fill completely was not repeated on this host.
-
+We also run a same-host control to check whether the recorder's histogram backfill
+on the timed path affects the high-load measurements. In the normal sweep, that
+backfill runs while the timer is running. In the control, the same corrections are
+written only after the timed window ends, with the same CPU pinning and
+\texttt{nohz\_full} setting. The two runs differ only in when the backfill runs.
+The gap between them isolates recorder cost from service time. Section~\ref{sec:workload}
+names this harness operation \emph{histogram fill}. The earlier run that removed the
+backfill completely was not repeated on this host.
 
 RQ2 is answered by controlled fault injection~\cite{natella2016fault}. Each
 defect class is a small program of its own in both languages.
@@ -1134,10 +1134,16 @@ The steps match the 3GPP rules. Those rules do not set the mix.
 A real cell's handover rate rests on the site and the
 time of day, and no public figure fixes it. A mix that does not match a real
 cell moves both sides by the same amount. It limits how far the numbers
-travel. It does not make the test unfair. The sender keeps to its
-plan even if the service is late (open-loop). The histogram is
-corrected so a stalled sender, which stops asking, does not leave the stall
-untimed~\cite{schroeder2006openclosed,tene_hdrhistogram}. Each load is
+travel. It does not make the test unfair. The sender keeps to its plan even if
+the service is late (open-loop). When a producer falls behind its scheduled send
+times, the harness adds samples to the delay histogram for requests that should
+have been sent during the missed period. HdrHistogram practice calls that step
+coordinated-omission correction~\cite{schroeder2006openclosed,tene_hdrhistogram}.
+This study names that extra histogram writing \emph{histogram fill}, up to
+$\ProbeAfterCap$ synthetic samples for each finished call. The fill accounts
+for delays that would otherwise be missed when the sender falls behind its
+schedule. The label marks one operation in this harness, not a standard term in
+performance benchmarking. Each load is
 run \NRepeats{} times. The four language and heap variants are interleaved
 inside each run. Each point is a median with a bootstrap $95\%$
 band~\cite{georges2007rigorous,efron1993bootstrap}.
