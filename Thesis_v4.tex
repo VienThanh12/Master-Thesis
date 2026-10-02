@@ -1319,11 +1319,12 @@ The maximum is kept out of the tested family, as the pooled p99.99 is.
 \begin{table}[ht]
 \centering
 \small
-\caption[Per-operation latency at the representative load]{Per-operation latency,
-in microseconds, at $\ReprLoad$~kops/s. The median over \NRepeats{} repeats sits
-above its bootstrap $95\%$ interval. $^{\dagger}$The p99.99 column is pooled across
-repeats, so it has no interval. The maximum has a repeat-wise interval but stays
-outside the tested family because one disturbed operation can determine it.
+\caption[How long one call takes at the chosen load]{How long one call takes
+at the chosen load, $\ReprLoad$~kops/s, in microseconds. The median over
+\NRepeats{} repeats sits above its bootstrap $95\%$ interval. $^{\dagger}$The
+p99.99 column pools every repeat, so it has no interval. The maximum has an
+interval across repeats but stays outside the tested set, because one
+disturbed call can set it.
 \label{tab:latency}}
 \LatencyTabular
 \hline\hline
