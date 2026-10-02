@@ -1297,8 +1297,9 @@ with the work the test sends.
 At the chosen load of $\ReprLoad$~kops/s, every build keeps up. The four
 medians lie within $\PFiftyRange\,\mu$s of each other, which is
 $\PFiftySpread\%$. A paired test still finds a gap of $\PFiftyDiffAbsMax\,\mu$s. Rust
-is slightly faster, under both memory libraries. Figure~\ref{fig:loadsweep} shows the sweep behind
-that. Higher tails can now be read as well. The widest band on
+is slightly faster, under both memory libraries. 
+Figure~\ref{fig:loadsweep} shows the sweep behind that number. The higher
+tails can be read on this host as well. The widest band on
 one variant's own p99 spans $\PNineNineMaxCI\,\mu$s. The four variants' p99
 values differ by $\PNineNineRange\,\mu$s. So the noise on one is smaller than
 the gap between them. On the virtual machine the same two sizes were
