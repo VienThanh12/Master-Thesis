@@ -1369,7 +1369,8 @@ faster in \BudgetCoreFaster{}. The test does not trace the cause. The stock
 hash map is one candidate. Compiler code generation may also own part of the
 gap.
 
-\begin{figure}[ht]
+\enlargethispage{36pt}
+\begin{figure}[!ht]
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/31_e2e_clock.pdf}
 \caption[Where the end-to-end clock goes]{Where an end-to-end
@@ -1378,7 +1379,7 @@ $\BudgetCoreShareMax\%$. A clock that spends the rest on handoff cannot bound
 a language effect.\label{fig:e2eclock}}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_budget_thesis.pdf}
 \caption[How small the language’s share of a round-trip is]{Where
@@ -1386,6 +1387,7 @@ an end-to-end round-trip's cost goes. \textbf{(a)} The round-trip at true
 proportion. \textbf{(b)} Both operation measurements are too short for that clock to separate, by a factor of $\BudgetBoundVsCore$.\label{fig:budget}}
 \end{figure}
 
+\clearpage
 \subsection{Past saturation (RQ1)}\label{sec:overload}
 
 This part asks what happens once the test sends more work than the service
