@@ -1390,9 +1390,11 @@ proportion. \textbf{(b)} Both operation measurements are too short for that cloc
 \clearpage
 \subsection{Past saturation (RQ1)}\label{sec:overload}
 
-This part asks what happens once the test sends more work than the service
-can finish. The campaign clock is the original timing. It writes late
-replies into the delay log while the timer is still running.
+This part explains what happens when the test sends more work than the service can process.
+The campaign clock controls the timing of the main load test. 
+If the service starts falling behind, the additional delay is recorded in the delay log 
+while the timed test window is still running.
+
 
 Under the campaign clock both languages keep up through
 $\TrackingLoadCpp$~kops/s and $\TrackingLoadRust$~kops/s, the same load.
