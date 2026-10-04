@@ -1422,13 +1422,15 @@ compare the two languages using the same clock.
 \label{fig:loadmap}}
 \end{figure}
 
-Deeper, at $\OverloadLoad$~kops/s sent, \OverloadSustainedFaster{} still
-finishes $\OverloadThrCpp$~kops/s where \OverloadSustainedSlower{} finishes
-$\OverloadThrRust$, a factor of $\OverloadThrRatio$, in \OverloadThrAgree{}
-runs under both allocators. The Holm-corrected $p$ is as small as this test family
-can go. The slower variant uses $\OverloadCpuPerOpRatio$ times the CPU for
-each call it finishes. That quantity belongs to the whole campaign process,
-including the recorder, and does not identify service work.
+At an offered load of $\OverloadLoad$~kops/s, \OverloadSustainedFaster{}
+still finishes $\OverloadThrCpp$~kops/s. \OverloadSustainedSlower{} finishes
+$\OverloadThrRust$~kops/s, a factor of $\OverloadThrRatio$. That gap appears
+in \OverloadThrAgree{} repeats under both allocators. The paired test reports
+the smallest $p$-value this design can reach. \OverloadSustainedSlower{} uses
+$\OverloadCpuPerOpRatio$ times as much CPU per finished call as
+\OverloadSustainedFaster{}. That
+CPU is for the whole campaign process, including histogram fill. It does not
+measure service work alone.
 
 A same-host run writes the fill after the timed window. It repeats the same grid, over $\ProbeAfterRuns$ runs.
 The processor is \ProbeAfterCpu{}, the pin is \ProbeAfterPinned{}, and
