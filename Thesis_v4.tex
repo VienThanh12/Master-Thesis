@@ -1409,12 +1409,16 @@ load, the allocator split, and the overload point.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.78\linewidth]{diagrams/pdf/30_load_regimes.pdf}
-\caption[Four load points, from a light load to overload]{Four load points, from a light load to overload. Operating points on
-the offered-load axis, spaced for reading, not to scale. Ticks are
+\caption[Four load points, from a light load to overload]{The figure shows
+four operating points, ranging from light load to overload. These points
+are placed along the offered-load axis for easy reading. Their positions
+are not to scale. The tick marks show four important load levels:
 $\ReprLoad$, the shared tracking load $\TrackingLoad$, the allocator split at
-$\KneeSplitLoad$, and $\OverloadLoad$~kops/s. Bars at the split are the two
-Rust heaps on the campaign clock. Bars at $\OverloadLoad$ are the two
-languages, also on that clock.\label{fig:loadmap}}
+$\KneeSplitLoad$, and the overload point at $\OverloadLoad$~kops/s. At the
+allocator split, the bars show the performance of the two Rust heaps,
+measured using the campaign clock. At $\OverloadLoad$, the bars instead
+compare the two languages using the same clock.
+\label{fig:loadmap}}
 \end{figure}
 
 Deeper, at $\OverloadLoad$~kops/s sent, \OverloadSustainedFaster{} still
