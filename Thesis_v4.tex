@@ -1401,7 +1401,7 @@ $\TrackingLoadCpp$~kops/s and $\TrackingLoadRust$~kops/s, the same load.
 At $\KneeSplitLoad$~kops/s the split is inside Rust. The \KneeSplitKeepHeap{}
 allocator still serves $\KneeSplitMedKeep$~kops/s. The \KneeSplitDropHeap{} median
 is $\KneeSplitMedDrop$, and $\KneeSplitMeet$ of $\KneeSplitRepeats$ repeats
-on that allocator still meet the offered rate. That rung was found after the data
+on that allocator still meet the offered rate. That operating point was found after the data
 and is shown, not tested.
 Figure~\ref{fig:loadmap} maps the representative load, the shared tracking
 load, the allocator split, and the overload point.
@@ -1660,7 +1660,7 @@ saturation neither available percentile clock estimates service latency. The
 campaign includes producer-side fill, while the same-host run measures cumulative
 schedule drift. No overload tail ranking follows.
 
-The campaign throughput shows an allocator split at one rung and a C++ lead
+The campaign throughput shows an allocator split at one operating point and a C++ lead
 later. The same-host run removes both large patterns when the fill
 is deferred and leaves a smaller Rust lead. That isolates the fill as the
 source of the large gaps. The smaller lead sits in the handoff between
