@@ -1432,15 +1432,9 @@ $\OverloadCpuPerOpRatio$ times as much CPU per finished call as
 CPU is for the whole campaign process, including the extra delay samples. It does not
 measure service work alone.
 
-A same-host run writes those extra delay samples after the timed window. It repeats the same grid, over $\ProbeAfterRuns$ runs.
-The processor is \ProbeAfterCpu{}, the pin is \ProbeAfterPinned{}, and
-\texttt{nohz\_full} is \ProbeAfterNohzFull{}. Those match the campaign.
-The only change is when the extra samples are written. When a sender falls behind,
-the harness still writes up to $\ProbeAfterCap$ extra samples for each
-finished call, but it writes them outside the window. The earlier run that wrote none of those extra samples was not
-repeated here. It remains an earlier host. Its percentiles still miss the stalls, so they are not an RQ1 tail result.
-Percentiles on that same-host run are schedule drift, not service time. The
-campaign stays the pre-committed compared pair.
+In the same-host run, the harness writes the extra delay samples after the
+timed window. The run uses the same grid and is repeated for
+$\ProbeAfterRuns$ runs. The host settings match the main campaign.
 
 Writing the extra samples after the window removes both campaign patterns. At $\KneeSplitLoad$~kops/s,
 C\texttt{++} serves $\ProbeAfterKneeThrCpp$~kops/s and Rust serves
