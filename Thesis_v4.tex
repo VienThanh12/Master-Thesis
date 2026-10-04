@@ -1267,7 +1267,7 @@ additional samples represent delays that could otherwise be missed when the
 sender falls behind. The term \emph{histogram fill} is specific to this test
 harness and is not a standard benchmarking term.
 
-Each load level is tested \NRepeats{} times. The four language and heap
+Each load level is tested \NRepeats{} times. The four language and allocator
 variants are interleaved within each run to reduce the effect of changes in
 the test environment. Each reported value is the median of the measurements,
 together with a bootstrap $95\%$ confidence
@@ -1399,9 +1399,9 @@ while the timed test window is still running.
 Under the campaign clock both languages keep up through
 $\TrackingLoadCpp$~kops/s and $\TrackingLoadRust$~kops/s, the same load.
 At $\KneeSplitLoad$~kops/s the split is inside Rust. The \KneeSplitKeepHeap{}
-heap still serves $\KneeSplitMedKeep$~kops/s. The \KneeSplitDropHeap{} median
+allocator still serves $\KneeSplitMedKeep$~kops/s. The \KneeSplitDropHeap{} median
 is $\KneeSplitMedDrop$, and $\KneeSplitMeet$ of $\KneeSplitRepeats$ repeats
-on that heap still meet the offered rate. That rung was found after the data
+on that allocator still meet the offered rate. That rung was found after the data
 and is shown, not tested.
 Figure~\ref{fig:loadmap} maps the representative load, the shared tracking
 load, the allocator split, and the overload point.
@@ -1415,7 +1415,7 @@ are placed along the offered-load axis for easy reading. Their positions
 are not to scale. The tick marks show four important load levels:
 $\ReprLoad$, the shared tracking load $\TrackingLoad$, the allocator split at
 $\KneeSplitLoad$, and the overload point at $\OverloadLoad$~kops/s. At the
-allocator split, the bars show the performance of the two Rust heaps,
+allocator split, the bars show the two Rust allocators,
 measured using the campaign clock. At $\OverloadLoad$, the bars instead
 compare the two languages using the same clock.
 \label{fig:loadmap}}
@@ -1424,7 +1424,7 @@ compare the two languages using the same clock.
 Deeper, at $\OverloadLoad$~kops/s sent, \OverloadSustainedFaster{} still
 finishes $\OverloadThrCpp$~kops/s where \OverloadSustainedSlower{} finishes
 $\OverloadThrRust$, a factor of $\OverloadThrRatio$, in \OverloadThrAgree{}
-runs under both heaps. The Holm-corrected $p$ is as small as this test family
+runs under both allocators. The Holm-corrected $p$ is as small as this test family
 can go. The slower variant uses $\OverloadCpuPerOpRatio$ times the CPU for
 each call it finishes. That quantity belongs to the whole campaign process,
 including the recorder, and does not identify service work.
@@ -1443,7 +1443,7 @@ Moving the fill removes both campaign patterns. At $\KneeSplitLoad$~kops/s,
 C\texttt{++} serves $\ProbeAfterKneeThrCpp$~kops/s and Rust serves
 $\ProbeAfterKneeThrRust$. Rust still tracks to $\ProbeAfterTrackRust$~kops/s
 and C\texttt{++} to $\ProbeAfterTrackCpp$. At the top load Rust is ahead on
-both heaps. On the system allocator C\texttt{++} finishes
+both allocators. On the system allocator C\texttt{++} finishes
 $\ProbeAfterThrRatioSystem$ of Rust's throughput, $\ProbeAfterThrCppSystem$
 against $\ProbeAfterThrRustSystem$~kops/s, at $p \ProbeAfterThrPSystem$.
 Under \texttt{jemalloc} the figure is $\ProbeAfterThrRatioJemalloc$,
@@ -1454,7 +1454,7 @@ where throughput has stopped rising is $\ProbeAfterCpuPerOpRatio$, with \ProbeAf
 the higher one, against $\OverloadCpuPerOpRatio$
 while the fill ran inside the window. The large ratio is the recorder.
 Figure~\ref{fig:overload} compares both clocks on this host and keeps the two
-heaps apart.
+allocators apart.
 
 The smaller lead has another source. Each sender waits for its reply before
 sending again, so past saturation the rate of finished calls is set by the
@@ -1464,7 +1464,7 @@ between threads. Most of the CPU a call costs, $\ProbeAfterSysShareLo$ to
 $\ProbeAfterSysShareHi\%$ at the top load, is kernel time, spent by the
 operating system putting threads to sleep and waking them. \ProbeAfterSysHigher{}
 uses more kernel time per call than \ProbeAfterSysLower{} at
-$\ProbeAfterSysLowerLoads$ of the $\ProbeAfterLoads$ loads on both heaps, and
+$\ProbeAfterSysLowerLoads$ of the $\ProbeAfterLoads$ loads on both allocators, and
 $\ProbeAfterSysRatio$ times as much at the top load.
 A further host with the same processor then tested two suspects. Rust's hash
 map is open-addressed, keeping its entries in one flat table, while the
@@ -1510,7 +1510,7 @@ The four variants differ in RAM and CPU usage even where their median latencies 
 close. Peak resident set size (RSS) contains two effects of similar size on
 the reported host. The Rust build uses
 $\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak RAM than the C++ build under
-either heap. Linking \texttt{jemalloc} costs
+either allocator. Linking \texttt{jemalloc} costs
 $\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB in either language.
 Figure~\ref{fig:resources} shows both effects. The language effect keeps its
 sign and MiB scale on all three hosts, but not one exact range. It spans
@@ -1520,7 +1520,7 @@ allocator effect's size does not travel either: on the
 virtual machine it was $\GuestRssAllocOverLang$ times the language effect,
 $\GuestRssAllocLo$--$\GuestRssAllocHi$~MiB. Their ratio is therefore a host
 property. Allocator accounting on the second bare-metal host locates the
-language gap outside the heap. Rust has $\BmJeMetadataDelta$~MiB more arena
+language gap outside the allocator. Rust has $\BmJeMetadataDelta$~MiB more arena
 metadata but $\BmJeAllocatedDelta$~MiB less live allocation and
 $\BmJeResidentDelta$~MiB less allocator-resident memory, while the process
 peak remains $\BmJeRssDelta$~MiB higher. The extra RAM is a fixed process
@@ -1642,7 +1642,7 @@ service-latency percentiles, so RQ1 has no language verdict after saturation. Th
 is complete for the fourteen-class catalogue set in advance and does not
 depend on the host. All seven classes safe Rust is built to reject are
 compile errors. The other seven compile and
-fail in Rust and in C++. RQ3 finds a higher Rust peak RSS under both heaps:
+fail in Rust and in C++. RQ3 finds a higher Rust peak RSS under both allocators:
 $\RssLangDiffLo$--$\RssLangDiffHi$~MiB on the campaign host,
 $\GuestRssLangLo$--$\GuestRssLangHi$ on the guest, and
 $\BmRssLangLo$--$\BmRssLangHi$ on the second bare-metal host. Below
@@ -1725,13 +1725,13 @@ root cause belongs to the method. A ban stated without a way
 behind it leaves each version to fail in its own idiom.
 
 RQ3 splits by resource and the splits do not point the same way. The RAM
-cost holds under both heaps and on a second host with a
+cost holds under both allocators and on a second host with a
 new compiler. Peak RSS is a max for the whole run, so the jitter that
-destroys a p99 does not touch it. Sized against the heap's own effect, the
+destroys a p99 does not touch it. Sized against the allocator's own effect, the
 two are of the same order on both bare-metal hosts. On the guest the
-heap's was an order of magnitude larger. The language effect travels. The
-ratio does not. The quiet host also puts the cost past the heap, by
-the heap's own counts. One close study reports the other sign, with
+allocator's was an order of magnitude larger. The language effect travels. The
+ratio does not. The quiet host also puts the cost past the allocator, by
+the allocator's own counts. One close study reports the other sign, with
 Rust lowest and the gap growing as concurrency rises~\cite{karlback2021ran}.
 Those two findings agree once the variants are read as two concurrency runtimes, not two sides.
 Their C++ runs on Boost.Fibers, which gets a stack per fiber. Their Rust
@@ -1884,9 +1884,9 @@ $\ProbeAfterCpuPerOpRatio\times$. On a further host, giving Rust the
 C\texttt{++} queue removes the smaller lead, so it comes from how calls pass
 between threads, not from the core work. The gaps do not rank the two services,
 and overload service latency remains unresolved. On RAM
-the Rust build carries a few MiB more fixed footprint under both heaps. It does so in
+the Rust build carries a few MiB more fixed footprint under both allocators. It does so in
 the same direction and MiB scale on all three hosts timed. The
-heap choice costs about as much on both bare-metal hosts, and an order of
+allocator choice costs about as much on both bare-metal hosts, and an order of
 magnitude more on the guest this study used first.
 
 Taken as a set these support a narrow claim. It is for stateful, concurrent,
@@ -1909,7 +1909,7 @@ C\texttt{++} queue. One job is to repeat that swap on the campaign host.
 Another needs no new host. It is to vary how the kernel uses large pages for ordinary memory, on one host with all
 else held fixed. All three hosts agree that the Rust build carries the larger
 footprint. They disagree about how that sits against the cost of the
-heap. The guest put it an order of magnitude higher, and neither
+allocator. The guest put it an order of magnitude higher, and neither
 bare-metal host does. The large-page setting is the candidate this study
 can name but not test, because it was not the same on each host and only the
 system allocator variant gets it. Beyond that, replaying anonymised production
@@ -1919,7 +1919,7 @@ path. A part with truly shared mutable state would work the two
 sides in a way a shared-nothing design does not. Testing Rust async runtimes against the thread per shard model
 would split the runtime from the language in the tail
 result~\cite{arvidsson2025async}. Timing what a split of the two
-heaps in one process costs would price what keeping a core free of \texttt{unsafe} is
+allocators in one process costs would price what keeping a core free of \texttt{unsafe} is
 worth~\cite{rivera2021galeed,kirth2022pkrusafe}. A longer case study would track
 defect counts and review effort while adding Rust a piece at a time. That is what would
 settle the human cost this study can only name.
@@ -2030,7 +2030,7 @@ Workloads & signal, mixed & mixed walks the full RAN lifecycle \\
 Active UEs & \SweepUes{} & \\
 Offered-load levels & \NLoadLevels{} & up to $\MaxOfferedLoad$~kops/s \\
 Representative load & $\ReprLoad$~kops/s & fixed, see caption \\
-Flat throughput & $\SatKnee$~kops/s achieved & both languages track through $\TrackingLoad$~kops/s. At $\KneeSplitLoad$ the Rust heaps split, and deferred fill on this host removes that split (Section~\ref{sec:overload}) \\
+Flat throughput & $\SatKnee$~kops/s achieved & both languages track through $\TrackingLoad$~kops/s. At $\KneeSplitLoad$ the Rust allocators split, and deferred fill on this host removes that split (Section~\ref{sec:overload}) \\
 Load model & open loop, fixed intended schedule & latency measured from intended send time \\
 \hline
 \multicolumn{3}{@{}l}{\emph{Campaign}} \\
@@ -2104,7 +2104,7 @@ the pin is \ProbeAfterPinned{}, and \texttt{nohz\_full} is
 \texttt{\MainNohzFull}. The earlier run that drops the fill was not repeated here and remains an earlier
 host, so it cannot supply this campaign's percentiles. The same-host run defers the
 fill, and its overload percentiles are schedule drift. At the top load Rust
-is ahead on both heaps, at $p \ProbeAfterThrPSystem$ on the system allocator
+is ahead on both allocators, at $p \ProbeAfterThrPSystem$ on the system allocator
 and $p \ProbeAfterThrPJemalloc$ under \texttt{jemalloc}. CPU per completed
 operation is $\ProbeAfterCpuPerOpRatio$, against $\OverloadCpuPerOpRatio$
 while the fill ran inside the window. The large ratio is the recorder. The
