@@ -1513,29 +1513,39 @@ those samples after the window, on \MainCpu{}, pin \MainPinned{}, and \texttt{no
 \FloatBarrier
 \clearpage
 \subsection{Resource use (RQ3)}\label{sec:resources}
-The four variants differ in RAM and CPU usage even when their median latencies are
-similar.
+The four variants have similar median latencies, but they do not use the same
+amount of RAM or CPU. The resource results show different patterns for
+memory and CPU, so we discuss them separately.
 
 \paragraph{Memory usage.}
-Peak resident set size (RSS) shows a language effect and an allocator
-effect. Table~\ref{tab:rsshosts} gives both on each host. On the reported
-host they are of similar size, and Figure~\ref{fig:resources} shows them
-at $\ReprLoad$~kops/s. The language effect keeps the same sign on all
-three hosts and stays within a few MiB, although the exact range moves.
-The allocator effect varies much more. On the virtual machine it is about
-$\GuestRssAllocOverLang$ times the language effect. That ratio belongs to
-the host. It is not a general fact about Rust or \texttt{jemalloc}.
+Peak resident set size (RSS) shows two distinct effects: a
+\emph{language effect} and an \emph{allocator effect}. The language effect
+measures the additional peak RAM used by Rust compared with C\texttt{++},
+while the allocator effect measures the additional peak RAM used by
+\texttt{jemalloc} compared with the system allocator. Table~\ref{tab:rsshosts}
+reports both effects on all three hosts, and Figure~\ref{fig:resources}
+shows the results for the reported host at $\ReprLoad$~kops/s.
+
+The language effect is consistent across all three hosts: Rust uses more
+peak RAM than C\texttt{++}, and the difference remains within a few MiB.
+However, its exact size varies by host. In contrast, the allocator effect
+varies much more between hosts. On the virtual machine, for example, the
+allocator effect is about $\GuestRssAllocOverLang$ times larger than the
+language effect. Thus, the relative size of the two effects is a property
+of the host environment, rather than a general property of Rust or
+\texttt{jemalloc}.
 
 \begin{table}[ht]
 \centering
 \small
 \caption[Extra peak RAM on each host]{Extra peak RAM on each host, in MiB.
-The language effect is how much more Rust uses than C\texttt{++}, taken
-across the two allocators. The allocator effect is how much more
-\texttt{jemalloc} uses than the system allocator, taken across the two
-languages. Each cell is the range of those differences, computed from
-medians over the repeats. The reported host is read at $\ReprLoad$~kops/s,
-and the other two hosts over their steady-state loads.\label{tab:rsshosts}}
+The language effect is the difference in peak RSS between Rust and
+C\texttt{++}, averaged across the two allocators. The allocator effect is
+the difference in peak RSS between \texttt{jemalloc} and the system
+allocator, averaged across the two languages. Each cell reports the range
+of these differences computed from the medians of the repeated runs. The
+reported host is measured at $\ReprLoad$~kops/s. The other two hosts are
+measured at their respective steady-state loads.\label{tab:rsshosts}}
 \renewcommand{\arraystretch}{1.2}
 \begin{tabular}{@{}lccc@{}}
 \hline\hline
@@ -1549,34 +1559,56 @@ Allocator effect & \RssAllocDiffLo--\RssAllocDiffHi
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:resident} shows where the extra Rust RAM sits on the second
-bare-metal host. Relative to C\texttt{++}, Rust's arena metadata differs by
-$\BmJeMetadataDelta$~MiB, its live application allocation by
-$\BmJeAllocatedDelta$~MiB, and its allocator-resident memory by
-$\BmJeResidentDelta$~MiB. Its process peak still differs by
-$\BmJeRssDelta$~MiB. The extra RAM is not more live application data. It
-is a fixed process cost.
+The second bare-metal host provides more detail about the source of the
+additional Rust RAM. Table~\ref{tab:resident} separates the process memory
+into allocator metadata, live application allocation, and
+allocator-resident memory. Compared with C\texttt{++}, Rust uses
+$\BmJeMetadataDelta$~MiB more arena metadata, but
+$\BmJeAllocatedDelta$~MiB less live application allocation and
+$\BmJeResidentDelta$~MiB less allocator-resident memory. Despite using
+less live application and allocator-resident memory, the Rust process still
+has a peak RSS that is $\BmJeRssDelta$~MiB higher.
+
+Therefore, the higher Rust RSS is not caused by Rust holding more live
+application data. Instead, it is mainly a fixed process-level cost.
 
 \paragraph{CPU usage.}
-CPU usage does not follow the memory pattern. At $\ReprLoad$~kops/s, Rust
-uses at most $\CpuDiffAbsMax$ percentage points less CPU than
-C\texttt{++}. At $\OverloadLoad$~kops/s under the campaign clock,
-\OverloadCpuPerOpHigher{} uses $\OverloadCpuPerOpRatio$ times as much CPU
-per finished call as the other language. When the extra delay samples are
-written after the timed window, that ratio falls to
-$\ProbeAfterCpuPerOpRatio$, with \ProbeAfterCpuPerOpHigher{} the higher
-one. The large campaign-clock ratio is therefore the extra-sample
-recorder, not the Rust service. A smaller throughput lead remains, and
-Section~\ref{sec:overload} traces it to how the queue is locked.
+CPU usage shows a different pattern from memory usage. At
+$\ReprLoad$~kops/s, Rust uses at most $\CpuDiffAbsMax$ percentage points
+less CPU than C\texttt{++}. At $\OverloadLoad$~kops/s, however, the
+campaign-clock measurement reports that \OverloadCpuPerOpHigher{} uses
+$\OverloadCpuPerOpRatio$ times as much CPU per completed call as the other
+language.
+
+This large difference depends on how the measurement is recorded. When the
+additional delay samples are written after the timed window instead, the
+ratio falls to $\ProbeAfterCpuPerOpRatio$, with \ProbeAfterCpuPerOpHigher{}
+using slightly more CPU. The large $\OverloadCpuPerOpRatio$ ratio is
+therefore caused by the extra-sample recorder rather than by the Rust
+service itself.
+
+After accounting for this recorder effect, a smaller throughput difference
+between the two implementations remains. Section~\ref{sec:overload}
+attributes this remaining difference to how the queue is locked.
 
 \paragraph{What the hardware counters tell us.}
-The hardware counters on the second bare-metal host cover only the
-isolated core call, with no queue in the path and no offered load. For
-that call Rust retires $\BmInstrDelta\%$ \BmInstrDeltaDir{} instructions
-and finishes in $\BmCycleDelta\%$ \BmCycleDeltaDir{} cycles, while missing
-cache $\BmMissDelta\%$ \BmMissDeltaDir{} often per thousand instructions.
-Those counters explain the isolated core result. They do not explain the
-overload floor.
+The hardware-counter measurements on the second bare-metal host describe
+only the isolated core call. This experiment has no queue in the execution
+path and no offered load, so it measures the cost of processing an
+individual call without contention.
+
+For this isolated call, Rust retires $\BmInstrDelta\%$
+\BmInstrDeltaDir{} instructions and completes in
+$\BmCycleDelta\%$ \BmCycleDeltaDir{} cycles, while experiencing
+$\BmMissDelta\%$ \BmMissDeltaDir{} more cache misses per thousand
+instructions.
+
+These counters explain the performance difference for the isolated core
+call: Rust completes the call with fewer instructions and fewer cycles,
+despite having more cache misses per thousand instructions. However, these
+measurements do not explain the overload floor, because the overload
+experiment includes queueing and contention that are absent from the
+isolated-core measurement.
 
 % After the citing paragraph so the chart cannot open the next page in the
 % middle of that paragraph. [!ht] keeps it with this subsection.
