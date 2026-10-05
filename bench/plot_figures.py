@@ -909,11 +909,11 @@ def fig_resources(rows, outdir, load):
             for lang in langs:
                 eff = _paired_effect(rows, (lang, "system"), (lang, "jemalloc"), load, rss_of)
                 if eff:
-                    effects.append((f"jemalloc \u2212 system,\nin {names[lang]}", eff, "#7f8c8d"))
+                    effects.append((f"jemalloc extra RAM\nin {names[lang]}", eff, "#7f8c8d"))
         for alloc in allocs:
             eff = _paired_effect(rows, ("cpp", alloc), ("rust", alloc), load, rss_of)
             if eff:
-                effects.append((f"Rust \u2212 C++,\nunder {alloc_names[alloc]}", eff, "#c0392b"))
+                effects.append((f"Rust extra RAM,\n{alloc_names[alloc]}", eff, "#c0392b"))
 
         ys = list(range(len(effects)))[::-1]
         hi_cap = max(e[1][2] for e in effects) if effects else 1.0
