@@ -1697,21 +1697,35 @@ outcomes as a matrix, generated from the taxonomy log.\label{fig:taxonomy}}
 \FloatBarrier
 \newpage
 \subsection{Migration (RQ4)}\label{sec:migrationresults}
-The C-ABI layer between the C++ host and the Rust core is small on
-each measured axis: $\FfiEntryPoints$ C entry points in $\FfiSeamLines$ lines
-of Rust. All raw-pointer work is kept in
-$\FfiUnsafeFns$ functions. The core is left free of \texttt{unsafe}. No extra
-cost is seen against the same signal call made directly. That bounds any
-per-call tax at $\FfiOpBoundPct\%$ of that call, and
-Figure~\ref{fig:ffiseam} shows the structure that bound belongs to. Three
-adoption costs beyond that layer were measured as well, and two of them
-go against the usual worry about taking Rust.
-$\BuildDepShareCpu\%$ of the Rust clean build is third-party code. The project's
-own source builds in $\BuildAllFirstPartyCpuRatio$ times the CPU \texttt{g++}
-needs. The $\FootShippedRatio\times$ size gap is a linkage policy that
-flips when the policy is held fixed. The compared part has no
-third-party crates and no \texttt{unsafe} sites ($\DepsCore$ crates,
-$\CoreUnsafe$ \texttt{unsafe} sites).
+The C-ABI boundary between the C\texttt{++} host and the Rust core is
+small. It consists of $\FfiEntryPoints$ C entry points implemented across
+$\FfiSeamLines$ lines of Rust. All raw-pointer operations are isolated in
+$\FfiUnsafeFns$ functions, leaving the main Rust core free of
+\texttt{unsafe} code.
+
+We observe no measurable runtime overhead from crossing this boundary when
+comparing the same signal call made directly with the call made through the
+C-ABI. Thus, any per-call overhead introduced by the boundary is bounded by
+$\FfiOpBoundPct\%$ of the call cost in our measurements. Figure~\ref{fig:ffiseam}
+shows the structure of this boundary.
+
+We also measured three practical costs of adopting Rust beyond the FFI
+boundary: build time, compiler cost for the project's own source, and
+shipped binary size. Third-party code accounts for
+$\BuildDepShareCpu\%$ of the CPU time in a clean Rust build. When we
+consider only the project's own source, the Rust build requires
+$\BuildAllFirstPartyCpuRatio$ times as much CPU as the corresponding
+\texttt{g++} build.
+
+The observed $\FootShippedRatio\times$ binary-size difference is also
+strongly affected by the linkage policy. When the same linkage policy is
+used for both languages, the size difference changes and can even reverse.
+Finally, the Rust code used in this comparison contains no third-party
+crates and no \texttt{unsafe} sites ($\DepsCore$ crates and
+$\CoreUnsafe$ \texttt{unsafe} sites). These controls make the comparison
+more directly attributable to the language and build configuration rather
+than to dependencies or unsafe code.
+
 
 % After the paragraph the leftover is short of the diagram plus caption, so
 % [ht] defers it and \chapter flushes it onto an empty float page. A page
