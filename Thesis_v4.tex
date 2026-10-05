@@ -1547,13 +1547,15 @@ in 15\% fewer CPU cycles than C\texttt{++}. It also has 29\% more cache
 misses per thousand instructions. Thus, Rust completes the isolated call
 faster even though its cache-miss rate is higher.
 
-These measurements explain the performance difference when a call runs
-without interference from other requests. They do not explain the
-performance at the overload floor. Under overload, many requests compete
-for shared resources such as the queue and its lock. That queueing is
-not present in the isolated-core experiment.
-Therefore, the hardware counters cannot by themselves explain the
-overload behavior.
+These measurements show why Rust is faster than C\texttt{++} when a single
+call is processed in isolation. However, the overload experiment is
+different: many requests arrive at the same time and must share the queue
+and its lock. Some requests therefore spend time waiting for the queue or
+for other threads to release the lock. This waiting does not occur in the
+isolated-core experiment and is not captured by the hardware-counter
+measurements. Therefore, the hardware counters explain the isolated-call
+result, but they cannot explain the behavior observed under overload.
+
 
 % After the citing paragraph so the chart cannot open the next page in the
 % middle of that paragraph. [!ht] keeps it with this subsection.
