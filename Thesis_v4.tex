@@ -293,6 +293,7 @@ Data race & Two threads use the same memory at once and at least one writes, wit
 Race condition & A bug that depends on which of two steps finishes first. Safe Rust still compiles these \\
 Use-after-free & Using memory after it has been given back \\
 Double-free & Giving the same memory back twice \\
+Use-after-move & Reading from a value after its contents have been moved elsewhere. The old name is still valid but empty \\
 Ownership & Rust's rule that each value has one owner. A read of a record whose owner is already gone does not compile \\
 Borrowing & A temporary loan of a value. The compiler rejects a loan that lasts longer than the value \\
 Unsafe & A region the programmer marks so the Rust compiler stops checking it. C++ has no such mark \\
@@ -753,10 +754,8 @@ the same tests and the same workload drive both versions along the same
 paths.
 
 RQ2 asks which defects safe Rust stops at compile time, and which ones it does not.
-They are $\FaultClasses$ bugs that can happen in those operations, such as setting up a call or releasing a device.
-Safe Rust is built to reject $\FaultClassesPrevented$ of them at compile time.
-It is not built to stop the other $\FaultClassesBoundary$.
-For each defect, the expected result was written down before the programs were run.
+Section~\ref{sec:defects} sets out the catalogue. For each defect, the expected
+result was written down before the programs were run.
 Section~\ref{sec:safetyresults} reports what each one did.
 
 The study measures the tail. The tail is the slow calls, not the ordinary ones. Two facts
@@ -778,6 +777,55 @@ be the service, or work the sender still does while the timer is running, such a
 down the late replies. Because either one can cause the jump, the study sends more work
 than the service can finish and then checks which of the two the timer was counting.
 
+\section{The defect catalogue}\label{sec:defects}
+The defects considered in this study fall into two broad families:
+\emph{memory-safety defects} and \emph{concurrency defects}. This
+classification is useful because the two families capture different ways in
+which C++ control-plane code can fail, and because safe Rust is expected to
+provide different guarantees for them.
+
+Table~\ref{tab:defectmap} lists the $\FaultClasses$ classes injected in
+Chapter~\ref{chapter:eval}, each in the form it would take in UE Context
+Management, with the outcome expected of safe Rust before the study was run.
+Section~\ref{sec:safetyresults} and Figure~\ref{fig:taxonomy} report what was
+measured.
+
+\begin{table}[!ht]
+\centering
+\small
+\caption[Injected defects and their predicted outcomes]{Injected defects and their predicted outcomes. Buffer overflow is listed but not injected.\label{tab:defectmap}}
+\footnotesize
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}R{0.19\linewidth} R{0.40\linewidth} R{0.14\linewidth} R{0.16\linewidth}@{}}
+\hline\hline
+Defect & Example in UECM & Result & Safe Rust \\
+\hline
+\multicolumn{4}{@{}l}{\emph{Memory safety}} \\
+Use-after-free & Handler uses a context after it was released & Crash/corruption & Prevented \\
+Double-free & Release frees the same context twice & Crash/corruption & Prevented \\
+Use-after-move & Request uses a context after it was moved & Empty identity & Prevented \\
+Buffer overflow & No applicable scenario in the context store & n/a & Not injected \\
+\hline
+\multicolumn{4}{@{}l}{\emph{Concurrency}} \\
+Iterator invalidation & Bearer list changes while it is being iterated & Crash/corruption & Prevented \\
+Data race & Two workers update the same field at once & Wrong value & Prevented \\
+Unguarded shared mutation & Multiple workers mutate the same context & Wrong value & Prevented \\
+Thread-unsafe handle & Non-atomic handle is shared between workers & Corrupted refcount & Prevented \\
+\hline
+\multicolumn{4}{@{}l}{\emph{Defects safe Rust does not automatically prevent}} \\
+Lock-order deadlock & Two handovers acquire locks in opposite orders & Hang & Not prevented \\
+Lost update & Two workers overwrite each other's updates & Wrong value & Not prevented \\
+Reference-cycle leak & Contexts keep references to each other & Memory leak & Not prevented \\
+Integer overflow & TEID calculation exceeds the integer range & Wrong value & Not prevented \\
+Worker failure & Worker fails while holding shard state & Wider outage & Not prevented \\
+Double-free across FFI & C++ releases a Rust handle twice & Crash/corruption & Not prevented \\
+Forgotten lock guard & Lock is not released after an early return & Hang & Not prevented \\
+\hline
+\end{tabular}
+\end{table}
+
+\FloatBarrier
+      
 \section{Research approach}\label{sec:approach}
 The study runs experiments on a matched pair of versions. It builds that
 pair, plus the harness that drives them. The harness is the program that sends
@@ -1581,9 +1629,10 @@ the zone Rust claims to govern. Seven were chosen because safe Rust is
 meant \emph{not} to stop them. Each one of the first seven is a compile
 error in Rust. In C++ each is valid code. The
 defect shows up only if a test drives it, and no single sanitiser hits them
-all. The use-after-move is the case where no sanitiser flags anything. A
-moved-from object is still a valid object. Its value is unset. So there
-is nothing wrong to detect, and the name is just lost. The seven
+all. Use-after-move (Section~\ref{sec:defects}) is the in-guarantee case where
+no sanitiser flags anything. A moved-from object is still a valid object.
+Its value is unset. So there is nothing wrong to detect, and the name is just
+lost. The seven
 that safe Rust is not built to stop do compile in safe Rust, and they fail. On two of them the C++
 tools are the ones that flag. LeakSanitizer flags the ref cycle that
 Rust leaks in silence, because leaks are safe in Rust by
@@ -1594,7 +1643,9 @@ itself jumps. It logs lock orders only from locks that work. If the
 first inversion waits and never returns, the cycle is never closed, so the tool never
 flags it.
 
-The double-free inside \texttt{unsafe} is the ordinary double-free rewritten where the compiler has stopped checking, not a new class. Its C++ half is the same, so only the Rust
+The double-free inside \texttt{unsafe} is the ordinary case of giving the
+same memory back twice, rewritten where the compiler has stopped checking,
+not a new class. Its C++ half is the same, so only the Rust
 column moves. Two Rust model checkers do flag both of the original defects that safe Rust does not stop.
 Loom explores thread orders in a sound way. Shuttle picks the ones
 Loom cannot reach~\cite{bornholt2021shardstore}. Each had to be written using
