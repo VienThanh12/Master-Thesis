@@ -1526,8 +1526,7 @@ application data. Instead, it is mainly a fixed process-level cost.
 \paragraph{CPU usage.}
 CPU usage does not follow the memory pattern. At $\ReprLoad$~kops/s, Rust
 uses at most $\CpuDiffAbsMax$ percentage points less CPU than
-C\texttt{++}. Past saturation, extra delay samples are written after the
-timed window. At $\OverloadLoad$~kops/s that ratio is
+C\texttt{++}. At $\OverloadLoad$~kops/s that ratio is
 $\ProbeAfterCpuPerOpRatio$, with \ProbeAfterCpuPerOpHigher{} the higher
 one. A throughput lead remains, and Section~\ref{sec:overload} traces it
 to how the queue is locked.
