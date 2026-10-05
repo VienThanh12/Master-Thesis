@@ -1624,41 +1624,49 @@ threads.\label{fig:resources}}
 % Same drift as the throughput figure: the RAM chart was opening the safety subsection.
 \FloatBarrier
 \subsection{Safety via fault injection (RQ2)}\label{sec:safetyresults}
-Safe code is checked by putting $\FaultClasses$ defects in. Seven come from inside
-the zone Rust claims to govern. Seven were chosen because safe Rust is
-meant \emph{not} to stop them. Each one of the first seven is a compile
-error in Rust. In C++ each is valid code. The
-defect shows up only if a test drives it, and no single sanitiser hits them
-all. Use-after-move (Section~\ref{sec:defects}) is the in-guarantee case where
-no sanitiser flags anything. A moved-from object is still a valid object.
-Its value is unset. So there is nothing wrong to detect, and the name is just
-lost. The seven
-that safe Rust is not built to stop do compile in safe Rust, and they fail. On two of them the C++
-tools are the ones that flag. LeakSanitizer flags the ref cycle that
-Rust leaks in silence, because leaks are safe in Rust by
-design~\cite{hughes2025gcrust,cui2024rcanary}. UndefinedBehaviorSanitizer flags
-the overflow that Rust defines to wrap. ThreadSanitizer catches the lock-order
-inversion in $\DeadlockTsanHits$ of $\DeadlockTsanRuns$ runs, a rate that
-itself jumps. It logs lock orders only from locks that work. If the
-first inversion waits and never returns, the cycle is never closed, so the tool never
-flags it.
+Safe code is evaluated by injecting $\FaultClasses$ defect classes into the
+implementations. Seven of these defects fall within the safety guarantees that
+Rust is intended to provide, while the other seven represent defects that safe
+Rust is not expected to prevent. The first seven defects are prevented by the 
+Rust compiler at compile time. In C++, the same defective code is allowed to 
+compile and run. The defect will only become visible if the program actually runs 
+the part of the code where the defect exists.Different defects require different 
+detection methods, so no single sanitiser can detect all of them.
 
-The double-free inside \texttt{unsafe} is the ordinary case of giving the
-same memory back twice, rewritten where the compiler has stopped checking,
-not a new class. Its C++ half is the same, so only the Rust
-column moves. Two Rust model checkers do flag both of the original defects that safe Rust does not stop.
-Loom explores thread orders in a sound way. Shuttle picks the ones
-Loom cannot reach~\cite{bornholt2021shardstore}. Each had to be written using
-the checker's own parts first, and shrunk to model size. Miri flags that
-double-free, but it reads Rust and cannot run the C++ host the
-defect sits behind. LeakSanitizer and UndefinedBehaviorSanitizer flag without
-a rewrite. The two model checkers flag the concurrency cases only
-after the defect is recast into their parts. Figure~\ref{fig:taxonomy} draws the
-whole list as an outcome matrix. Resource Acquisition Is Initialization
-(RAII) ties cleanup to object lifetime. It removes the plain missed-unlock,
-because leaving a scope destroys the guard and releases its lock. It does not
-remove the class: both
-forgotten-guard programs hang, and no side's tools said so.
+
+Use-after-move is an important example because it is prevented by Rust even
+though no sanitiser reports it. A moved-from C++ object remains valid, but its
+state is unspecified, so the program may continue running with the expected
+identity missing. There is therefore no invalid memory access for a sanitiser
+to detect, even though the application behaviour is incorrect
+(Section~\ref{sec:defects}).
+
+The seven defects outside the guarantees of safe Rust compile successfully in
+Rust and remain possible at runtime. Some can nevertheless be detected by
+specialised tools. LeakSanitizer detects the reference cycle because the
+resulting memory leak is permitted by Rust's ownership model
+\cite{hughes2025gcrust,cui2024rcanary}. UndefinedBehaviorSanitizer detects the
+integer overflow in C++, while Rust defines the same operation to wrap when
+overflow checks are disabled. ThreadSanitizer detects the lock-order inversion
+in $\DeadlockTsanHits$ of $\DeadlockTsanRuns$ runs, although this result varies
+between runs. The tool records lock-order relationships only when the
+relevant locks are successfully acquired; if the first inversion blocks
+indefinitely, the complete cycle is never observed and ThreadSanitizer does
+not report the deadlock.
+
+The double-free inside \texttt{unsafe} Rust is not a separate defect class,
+but the same double-free error occurring in code where Rust's normal safety
+checks have been bypassed. The C++ implementation contains the corresponding
+error, so the difference between the two implementations is only in whether
+the compiler is able to prevent it. Miri detects the Rust double-free, but it
+cannot execute the C++ host code behind the foreign-function boundary.
+
+The remaining concurrency defects require a different approach because they
+are not directly detected by the normal sanitiser tools. Loom explores
+possible thread interleavings, while Shuttle provides complementary schedule
+exploration~\cite{bornholt2021shardstore}. These defects therefore had to be
+rewritten using the primitives supported by each model checker an
+
 
 % Full column width no longer fits in the leftover under the safety paragraph.
 % [ht] would park the matrix above the next subsection.
