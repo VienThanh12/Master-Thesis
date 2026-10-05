@@ -1436,45 +1436,56 @@ In the same-host run, the harness writes the extra delay samples after the
 timed window. The run uses the same grid and is repeated for
 $\ProbeAfterRuns$ runs. The host settings match the main campaign.
 
-Writing the extra samples after the window removes both campaign patterns. At $\KneeSplitLoad$~kops/s,
+Writing the extra samples after the window changes the picture at both
+loads. At $\KneeSplitLoad$~kops/s the two Rust allocators no longer split.
 C\texttt{++} serves $\ProbeAfterKneeThrCpp$~kops/s and Rust serves
-$\ProbeAfterKneeThrRust$. Rust still tracks to $\ProbeAfterTrackRust$~kops/s
-and C\texttt{++} to $\ProbeAfterTrackCpp$. At the top load Rust is ahead on
-both allocators. On the system allocator C\texttt{++} finishes
-$\ProbeAfterThrRatioSystem$ of Rust's throughput, $\ProbeAfterThrCppSystem$
-against $\ProbeAfterThrRustSystem$~kops/s, at $p \ProbeAfterThrPSystem$.
-Under \texttt{jemalloc} the figure is $\ProbeAfterThrRatioJemalloc$,
-$\ProbeAfterThrCppJemalloc$ against $\ProbeAfterThrRustJemalloc$, at
-$p \ProbeAfterThrPJemalloc$. These tests sit outside the pre-committed Holm
-family. What remains is that smaller Rust lead. CPU per completed operation
-where throughput has stopped rising is $\ProbeAfterCpuPerOpRatio$, with \ProbeAfterCpuPerOpHigher{}
-the higher one, against $\OverloadCpuPerOpRatio$
-while those extra samples were written inside the window. The large ratio is the recorder.
-Figure~\ref{fig:overload} compares both clocks on this host and keeps the two
-allocators apart.
+$\ProbeAfterKneeThrRust$. Rust still keeps up to $\ProbeAfterTrackRust$~kops/s,
+while C\texttt{++} keeps up only to $\ProbeAfterTrackCpp$.
 
-The smaller lead has another source. Each sender waits for its reply before
-sending again, so past saturation the rate of finished calls is set by the
-round-trip time. The core call is at most $\BudgetCoreShareMax\%$ of that
-trip, far too little to give a lead of this size. The rest is passing requests
-between threads. Most of the CPU a call costs, $\ProbeAfterSysShareLo$ to
-$\ProbeAfterSysShareHi\%$ at the top load, is kernel time, spent by the
-operating system putting threads to sleep and waking them. \ProbeAfterSysHigher{}
-uses more kernel time per call than \ProbeAfterSysLower{} at
-$\ProbeAfterSysLowerLoads$ of the $\ProbeAfterLoads$ loads on both allocators, and
-$\ProbeAfterSysRatio$ times as much at the top load.
-A further host with the same processor then tested two suspects. Rust's hash
-map is open-addressed, keeping its entries in one flat table, while the
-C\texttt{++} map gives each entry its own node. An open-addressed map in
-C\texttt{++} left the lead in place, with Rust ahead in $\SgFlatRustAhead$ of
-$\SgFlatPairs$ paired repeats. Giving Rust the C\texttt{++} queue, one lock and
-two condition variables, removed the lead instead. Rust with that queue fell
-behind stock Rust in $\SgQueueMutexSlower$ of $\SgQueuePairs$ repeats, while a
-C\texttt{++} ring buffer with the same lock moved C\texttt{++} by only
-$\SgQueueRingAbsPct\%$. So the lead comes from how the queue is locked, not
-from how it stores requests. The lock adds kernel time to each handoff, not
-extra sleeps, since all four builds switch threads $\SgSwitchLow$ times per
-call at $\SgSwitchLowLoad$~kops/s.
+At the highest load, Rust is still ahead on both allocators, but the gap is
+smaller. On the system allocator, C\texttt{++} finishes
+$\ProbeAfterThrRatioSystem$ of Rust's throughput,
+$\ProbeAfterThrCppSystem$ against $\ProbeAfterThrRustSystem$~kops/s, at
+$p \ProbeAfterThrPSystem$. Under \texttt{jemalloc}, C\texttt{++} finishes
+$\ProbeAfterThrRatioJemalloc$ of Rust,
+$\ProbeAfterThrCppJemalloc$ against $\ProbeAfterThrRustJemalloc$~kops/s, at
+$p \ProbeAfterThrPJemalloc$. These comparisons were not in the tests chosen
+before the experiment.
+
+Once throughput has stopped rising, CPU per finished call is
+$\ProbeAfterCpuPerOpRatio$, with \ProbeAfterCpuPerOpHigher{} the higher one.
+While the extra samples were written inside the window, that ratio was
+$\OverloadCpuPerOpRatio$. The large ratio was the extra-sample recorder, not
+the service. Figure~\ref{fig:overload} shows both clocks on this host and
+keeps the two allocators apart.
+
+The remaining Rust lead is not from the core call. Each sender waits for its
+reply before sending the next request. Past saturation, the rate of finished
+calls is therefore set by the round-trip time. The core call is at most
+$\BudgetCoreShareMax\%$ of that trip, far too little to explain a lead of
+this size. The rest of the trip is handing requests between threads.
+
+Most of the CPU a call uses at the top load, $\ProbeAfterSysShareLo$ to
+$\ProbeAfterSysShareHi\%$, is kernel time. The operating system spends it
+putting threads to sleep and waking them. \ProbeAfterSysHigher{} uses more
+kernel time per call than \ProbeAfterSysLower{} at
+$\ProbeAfterSysLowerLoads$ of the $\ProbeAfterLoads$ loads on both
+allocators, and $\ProbeAfterSysRatio$ times as much at the top load.
+
+A further host with the same processor then swapped the hash map and the
+queue. Rust keeps map entries in one flat table. C\texttt{++} gives each
+entry its own node. Putting an open-addressed map in C\texttt{++} left the
+lead in place. Rust was ahead in $\SgFlatRustAhead$ of $\SgFlatPairs$
+paired repeats.
+
+Giving Rust the C\texttt{++} queue, one lock and two condition variables,
+removed the lead. Rust with that queue fell behind the original Rust queue
+in $\SgQueueMutexSlower$ of $\SgQueuePairs$ repeats. A C\texttt{++} ring
+buffer that kept the same lock moved C\texttt{++} by only
+$\SgQueueRingAbsPct\%$. The lead therefore comes from how the queue is
+locked, not from how it stores requests. The lock adds kernel time to each
+handoff, not extra thread sleeps. All four builds switch threads
+$\SgSwitchLow$ times per call at $\SgSwitchLowLoad$~kops/s.
 
 \begin{figure}[ht]
 \centering
