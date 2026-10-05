@@ -1513,46 +1513,70 @@ those samples after the window, on \MainCpu{}, pin \MainPinned{}, and \texttt{no
 \FloatBarrier
 \clearpage
 \subsection{Resource use (RQ3)}\label{sec:resources}
-The four variants differ in RAM and CPU usage even where their median latencies are
-close. Peak resident set size (RSS) is the high-water mark of RAM the process
-holds. At $\ReprLoad$~kops/s on the reported host,
-Figure~\ref{fig:resources} shows two effects of similar size. The Rust build uses
-$\RssLangDiffLo$--$\RssLangDiffHi$~MiB more peak RAM than the C++ build under
-either allocator. Linking \texttt{jemalloc} costs
-$\RssAllocDiffLo$--$\RssAllocDiffHi$~MiB in either language.
+The four variants differ in RAM and CPU usage even when their median latencies are
+similar.
 
-The language effect keeps its sign and MiB scale on all three hosts, but not one
-exact range. It spans $\GuestRssLangLo$--$\GuestRssLangHi$~MiB on the guest and
-$\BmRssLangLo$--$\BmRssLangHi$~MiB on the second bare-metal host. The allocator
-effect's size does not travel either. On the virtual machine it was
-$\GuestRssAllocOverLang$ times the language effect,
-$\GuestRssAllocLo$--$\GuestRssAllocHi$~MiB. Their ratio is therefore a host
-property.
+\paragraph{Memory usage.}
+Peak resident set size (RSS) shows a language effect and an allocator
+effect. Table~\ref{tab:rsshosts} gives both on each host. On the reported
+host they are of similar size, and Figure~\ref{fig:resources} shows them
+at $\ReprLoad$~kops/s. The language effect keeps the same sign on all
+three hosts and stays within a few MiB, although the exact range moves.
+The allocator effect varies much more. On the virtual machine it is about
+$\GuestRssAllocOverLang$ times the language effect. That ratio belongs to
+the host. It is not a general fact about Rust or \texttt{jemalloc}.
 
-Allocator accounting on the second bare-metal host locates the language gap
-outside the allocator. Relative to C++, Rust's allocator bookkeeping is
-$\BmJeMetadataDelta$~MiB, live allocation is $\BmJeAllocatedDelta$~MiB, and
-allocator-resident memory is $\BmJeResidentDelta$~MiB, while the process peak is
-$\BmJeRssDelta$~MiB. The extra RAM is a fixed process cost, not more live
-application data.
+\begin{table}[ht]
+\centering
+\small
+\caption[Extra peak RAM on each host]{Extra peak RAM on each host, in MiB.
+The language effect is how much more Rust uses than C\texttt{++}, taken
+across the two allocators. The allocator effect is how much more
+\texttt{jemalloc} uses than the system allocator, taken across the two
+languages. Each cell is the range of those differences, computed from
+medians over the repeats. The reported host is read at $\ReprLoad$~kops/s,
+and the other two hosts over their steady-state loads.\label{tab:rsshosts}}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}lccc@{}}
+\hline\hline
+ & Reported host & Virtual machine & Second bare-metal host \\
+\hline
+Language effect & \RssLangDiffLo--\RssLangDiffHi
+  & \GuestRssLangLo--\GuestRssLangHi & \BmRssLangLo--\BmRssLangHi \\
+Allocator effect & \RssAllocDiffLo--\RssAllocDiffHi
+  & \GuestRssAllocLo--\GuestRssAllocHi & \BmRssAllocLo--\BmRssAllocHi \\
+\hline
+\end{tabular}
+\end{table}
 
-CPU is a separate result, and it depends on the clock and the load. At
-$\ReprLoad$~kops/s Rust uses at most $\CpuDiffAbsMax$ percentage points less. At
-$\OverloadLoad$~kops/s, \OverloadSustainedSlower{} uses
-$\OverloadCpuPerOpRatio$ times the CPU per finished call of
-\OverloadSustainedFaster{} under the campaign clock. On this host, writing the
-extra delay samples after the interval does not reproduce that large ratio. CPU
-per completed operation there is $\ProbeAfterCpuPerOpRatio$, with
-\ProbeAfterCpuPerOpHigher{} the higher one. The large ratio is the recorder. The
-smaller throughput lead remains, and Section~\ref{sec:overload} traces it to how
-the queue is locked.
+Table~\ref{tab:resident} shows where the extra Rust RAM sits on the second
+bare-metal host. Relative to C\texttt{++}, Rust's arena metadata differs by
+$\BmJeMetadataDelta$~MiB, its live application allocation by
+$\BmJeAllocatedDelta$~MiB, and its allocator-resident memory by
+$\BmJeResidentDelta$~MiB. Its process peak still differs by
+$\BmJeRssDelta$~MiB. The extra RAM is not more live application data. It
+is a fixed process cost.
 
-The instruction and cache numbers are not a load-sweep result. They come from
-the isolated core loop on the second bare-metal host, with no queue in the path
-and no offered load. Rust runs $\BmInstrDelta\%$ \BmInstrDeltaDir{} instructions
-and finishes in $\BmCycleDelta\%$ \BmCycleDeltaDir{} cycles, while missing cache
-$\BmMissDelta\%$ \BmMissDeltaDir{} often per thousand instructions. Those
-counters explain the isolated core result, not the overload floor.
+\paragraph{CPU usage.}
+CPU usage does not follow the memory pattern. At $\ReprLoad$~kops/s, Rust
+uses at most $\CpuDiffAbsMax$ percentage points less CPU than
+C\texttt{++}. At $\OverloadLoad$~kops/s under the campaign clock,
+\OverloadCpuPerOpHigher{} uses $\OverloadCpuPerOpRatio$ times as much CPU
+per finished call as the other language. When the extra delay samples are
+written after the timed window, that ratio falls to
+$\ProbeAfterCpuPerOpRatio$, with \ProbeAfterCpuPerOpHigher{} the higher
+one. The large campaign-clock ratio is therefore the extra-sample
+recorder, not the Rust service. A smaller throughput lead remains, and
+Section~\ref{sec:overload} traces it to how the queue is locked.
+
+\paragraph{What the hardware counters tell us.}
+The hardware counters on the second bare-metal host cover only the
+isolated core call, with no queue in the path and no offered load. For
+that call Rust retires $\BmInstrDelta\%$ \BmInstrDeltaDir{} instructions
+and finishes in $\BmCycleDelta\%$ \BmCycleDeltaDir{} cycles, while missing
+cache $\BmMissDelta\%$ \BmMissDeltaDir{} often per thousand instructions.
+Those counters explain the isolated core result. They do not explain the
+overload floor.
 
 % After the citing paragraph so the chart cannot open the next page in the
 % middle of that paragraph. [!ht] keeps it with this subsection.
