@@ -1630,7 +1630,7 @@ Rust is intended to provide, while the other seven represent defects that safe
 Rust is not expected to prevent. The first seven defects are prevented by the 
 Rust compiler at compile time. In C++, the same defective code is allowed to 
 compile and run. The defect will only become visible if the program actually runs 
-the part of the code where the defect exists.Different defects require different 
+the part of the code where the defect exists. Different defects require different 
 detection methods, so no single sanitiser can detect all of them.
 
 
@@ -1650,9 +1650,11 @@ integer overflow in C++, while Rust defines the same operation to wrap when
 overflow checks are disabled. ThreadSanitizer detects the lock-order inversion
 in $\DeadlockTsanHits$ of $\DeadlockTsanRuns$ runs, although this result varies
 between runs. The tool records lock-order relationships only when the
-relevant locks are successfully acquired; if the first inversion blocks
-indefinitely, the complete cycle is never observed and ThreadSanitizer does
-not report the deadlock.
+relevant locks are successfully acquired. If a thread becomes stuck while 
+waiting for the first lock, the other lock may never be acquired. 
+As a result, ThreadSanitizer cannot observe the complete sequence of 
+lock acquisitions needed to identify the deadlock, so it may not report the problem.
+
 
 The double-free inside \texttt{unsafe} Rust is not a separate defect class,
 but the same double-free error occurring in code where Rust's normal safety
