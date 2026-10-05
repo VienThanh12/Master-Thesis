@@ -872,7 +872,7 @@ two costs apart. The round-trip spends most of its time on the handoff, so
 the split shows how much of the measured time the language's own work can
 account for. 
 
-A third timing measures the contended queue and the reply handle on their own, 
+A third timing measures the bounded queue and the reply handle on their own, 
 without any \texttt{ShardCore} work in the path. 
 The two languages build these pieces differently, so this test focuses only on 
 the submit-and-wait synchronisation between the producers and the worker. 
@@ -1550,8 +1550,8 @@ faster even though its cache-miss rate is higher.
 These measurements explain the performance difference when a call runs
 without interference from other requests. They do not explain the
 performance at the overload floor. Under overload, many requests compete
-for shared resources such as the queue and its lock. The resulting
-queueing and contention are not present in the isolated-core experiment.
+for shared resources such as the queue and its lock. That queueing is
+not present in the isolated-core experiment.
 Therefore, the hardware counters cannot by themselves explain the
 overload behavior.
 
