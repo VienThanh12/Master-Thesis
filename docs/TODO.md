@@ -38,14 +38,14 @@ dataset, was wrong, and how wrong is the most useful thing on this page.** Three
 27 August promotion found **twenty-two** prose defects against artefacts that were themselves
 correct throughout:
 
-| Reviewer | Scope | Found | Character |
-| --- | --- | --- | --- |
-| Thirteenth grading pass, 27 Aug night | Ch. 6–7 | 13 | Six wrong rather than stale, including `tab:latency`'s p99.99 computed as a median of per-run values while two sections called it pooled |
-| Fourteenth pass auditing its own remediation | Ch. 6–7 | 4 | Three introduced by the remediation itself, one it had missed |
-| **Independent reader, artefacts only** | Ch. 6–7 | **5** | A §6.4.1 paragraph and figure caption stating the exact opposite of the figure beside them, missed by both self-audits |
-| Cross-document check by hand | 3 docs | 3 | The plan dated a fortnight before the work it reports, September marked Done in August, and Chapter 8 naming the wrong next experiment |
-| **Independent reader, artefacts only** | Ch. 1–5, appendices | **12 + 5** | A hand-typed guest CPU-steal figure whose own capture records zero, and two claims the remediation had introduced |
-| **Independent reader, artefacts only** | Abstract, Ch. 8, declaration, cross-doc | **10 + 9** | The overload CPU-per-operation ratio attributed to the wrong language at five sites in two documents, and five abstract defects nobody had recorded |
+| Reviewer                                     | Scope                                   | Found      | Character                                                                                                                                           |
+| -------------------------------------------- | --------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Thirteenth grading pass, 27 Aug night        | Ch. 6–7                                 | 13         | Six wrong rather than stale, including `tab:latency`'s p99.99 computed as a median of per-run values while two sections called it pooled            |
+| Fourteenth pass auditing its own remediation | Ch. 6–7                                 | 4          | Three introduced by the remediation itself, one it had missed                                                                                       |
+| **Independent reader, artefacts only**       | Ch. 6–7                                 | **5**      | A §6.4.1 paragraph and figure caption stating the exact opposite of the figure beside them, missed by both self-audits                              |
+| Cross-document check by hand                 | 3 docs                                  | 3          | The plan dated a fortnight before the work it reports, September marked Done in August, and Chapter 8 naming the wrong next experiment              |
+| **Independent reader, artefacts only**       | Ch. 1–5, appendices                     | **12 + 5** | A hand-typed guest CPU-steal figure whose own capture records zero, and two claims the remediation had introduced                                   |
+| **Independent reader, artefacts only**       | Abstract, Ch. 8, declaration, cross-doc | **10 + 9** | The overload CPU-per-operation ratio attributed to the wrong language at five sites in two documents, and five abstract defects nobody had recorded |
 
 **Fifty-six defects in that window, all fixed and verified**, against a generated layer that has
 re-derived byte for byte every time anyone has checked it. Nine were introduced by the two editing
@@ -82,42 +82,42 @@ histograms verified against the printed percentiles.
 
 Three datasets now have distinct jobs and the prefixes keep them apart:
 
-| Dataset | Macros | Job |
-| --- | --- | --- |
-| `campaign-20260827-151927` (bare metal, canonical design) | unprefixed, `gen_macros.tex` | Every result the thesis reports |
-| `campaign-20260812-154528` (KVM guest, same design) | `\Guest*`, `gen_guest.tex` | The measurement-validity comparison in §`sec:hostcompare` |
-| `campaign-20260826-*` (bare metal, 8/8/15 design) | `\Bm*`, `gen_baremetal.tex` | Whether findings survive a change of design |
+| Dataset                                                   | Macros                       | Job                                                       |
+| --------------------------------------------------------- | ---------------------------- | --------------------------------------------------------- |
+| `campaign-20260827-151927` (bare metal, canonical design) | unprefixed, `gen_macros.tex` | Every result the thesis reports                           |
+| `campaign-20260812-154528` (KVM guest, same design)       | `\Guest*`, `gen_guest.tex`   | The measurement-validity comparison in §`sec:hostcompare` |
+| `campaign-20260826-*` (bare metal, 8/8/15 design)         | `\Bm*`, `gen_baremetal.tex`  | Whether findings survive a change of design               |
 
 ### Open work
 
-| # | Task | Effort | Who |
-| --- | --- | --- | --- |
-| **A** | ~~Rewrite the abstract yourself, then set `\abstractunaidedtrue`~~ **Done** (19th pass, 31 Aug afternoon). Printed statement matches. A model may not flip the switch; it was not flipped by one | — | Closed |
-| **A2** | ~~Short optional title on §2.2~~ **Done.** Header now reads `2.2. LATENCY AND PREDICTABILITY`. Zero `Overfull` during `\output` | — | Closed |
-| **B** | ~~Send spec + plan to supervisors and freeze the spec.~~ **Spec freeze done** (15 Sep 2026): v1.0, tag `spec-v1.0`, Appendix A locked. Remaining: settle Nokia "what can be published" | Email | You |
-| **C** | ~~Companion docs: fate of `archive/thesis-vi`~~ **Done** (18 Aug). Decided against as a deliverable; citations-as-`[?]` is why | — | Closed |
-| **D** | Full proofread pass | Half day+ | You |
-| **E** | Transparent-hugepage experiment, the one open question the data raised | 1 machine-hour | You or agent |
-| **F** | ~~A grading pass by a reader who wrote none of the last two days' edits~~ **Done**, plus the later independent audits through the 19th pass | — | Closed |
-| **G** | ~~One independent read of the fifteen edits after 11:15~~ **Done.** Found eight defects, all closed | — | Recorded in `docs/ASSESSMENT.md` |
-| **H** | ~~One independent read of the ten edits that closed **G**~~ **Done** (16th pass residual-risk re-check, still closed) | — | Closed |
-| **I** | ~~`Thesis_v4.tex` abstract is still the template placeholder~~ **Done** (11 Sep). Abstract is written. Twenty-fourth pass that day put the skeleton at 5.00. Do **L** before sending | — | Closed |
-| **J** | Plan September row still says "Abstract". The full-draft abstract is done and the skeleton's is too; the row should name proofread and the supervisor send | Minutes | You or agent |
-| **K** | Optional: replace `bugden2022rust` (remaining arXiv load-bearing cite). `naylor2026cherisimt` already carries the contrary-result half. Optional: name `\FarTailLangSep` in the abstract | — | You |
-| **L** | The `Thesis_v4` abstract is written: re-read every surviving citation against the clause it now sits next to. Four of the six detached cites on 31 Aug lived only in `Thesis_v4.tex`. No gate sees this | Half hour | You or a reader who was not told what changed |
-| **M** | Rebuild `Thesis_v4.pdf` and `Thesis_Plan_v2.pdf` whenever macros move. `bench/refresh_thesis.sh` rebuilds `Ha_Vien_Mastersthesis_2026.pdf` and the deck only | Minutes | You or agent |
-| **N** | Colloquium. The deck is already regenerated by `refresh_thesis.sh`. The plan puts the talk in October | Date + rehearsal | You |
-| **O** | Disclose the guest vs reported `g++` patch (`\GuestGpp` 15.1.1, `\MainGpp` 15.2.1) at the four toolchain-parity sites. **Draft source remediating 12 Sep** (§6.1 and `tab:testbed`'s caption name the split). Standing draft grade still 4.83 until a reader re-grades | — | Awaits re-grade |
-| **P** | §6.4.7 hand-typed `g++~15.1.1` as the measurement host's compiler. **Draft source remediating 12 Sep** (the paragraph types `g++~13.3` as the development machine and `\MainGpp` as the measurement host). Standing grade unchanged until a re-grade | — | Awaits re-grade |
-| **Q** | §1.4 of **both** documents: "How it compares against the cost of the allocator choice is not:" had no predicate. **Both sources remediating 12 Sep** (draft: "does not travel to another machine"). Standing draft grade unchanged until a re-grade | — | Awaits re-grade |
-| **R** | `tab:findings` RQ3 cell: "on bare metal" cannot pick out a host. **Draft source remediating 12 Sep** (the cell names the representative load and the second bare-metal host). Standing grade unchanged until a re-grade | — | Awaits re-grade |
-| **S** | Durable: generate the fault-catalogue toolchain into `gen_artefacts.tex` from `taxonomy.md`, and teach `texaudit.py` to flag bare dotted version numbers. Items **O** and **P** recur without this | ~1 hour | You or agent |
-| **T** | ~~Nokia instructor comments on the 44-page `Thesis_v4` PDF~~ **Skeleton done** (21 Sep): all 46 marks resolved, rebuilt, and checked. Checklist: `docs/MANAGER_COMMENTS.md`. The full draft remains separate work, especially §1.4's contribution count and results preview (p.13–14) | — | Skeleton closed |
-| — | Second examiner once faculty assigns. `\examiners{Prof. Keijo Heljanko}` carries the name that is settled; the class prints the field nowhere. UH deposit (E-thesis) and originality check wait on that round | n/a | Faculty |
+| #      | Task                                                                                                                                                                                                                                                                                  | Effort           | Who                                           |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | --------------------------------------------- |
+| **A**  | ~~Rewrite the abstract yourself, then set `\abstractunaidedtrue`~~ **Done** (19th pass, 31 Aug afternoon). Printed statement matches. A model may not flip the switch; it was not flipped by one                                                                                      | —                | Closed                                        |
+| **A2** | ~~Short optional title on §2.2~~ **Done.** Header now reads `2.2. LATENCY AND PREDICTABILITY`. Zero `Overfull` during `\output`                                                                                                                                                       | —                | Closed                                        |
+| **B**  | ~~Send spec + plan to supervisors and freeze the spec.~~ **Spec freeze done** (15 Sep 2026): v1.0, tag `spec-v1.0`, Appendix A locked. Remaining: settle Nokia "what can be published"                                                                                                | Email            | You                                           |
+| **C**  | ~~Companion docs: fate of `archive/thesis-vi`~~ **Done** (18 Aug). Decided against as a deliverable; citations-as-`[?]` is why                                                                                                                                                        | —                | Closed                                        |
+| **D**  | Full proofread pass                                                                                                                                                                                                                                                                   | Half day+        | You                                           |
+| **E**  | Transparent-hugepage experiment, the one open question the data raised                                                                                                                                                                                                                | 1 machine-hour   | You or agent                                  |
+| **F**  | ~~A grading pass by a reader who wrote none of the last two days' edits~~ **Done**, plus the later independent audits through the 19th pass                                                                                                                                           | —                | Closed                                        |
+| **G**  | ~~One independent read of the fifteen edits after 11:15~~ **Done.** Found eight defects, all closed                                                                                                                                                                                   | —                | Recorded in `docs/ASSESSMENT.md`              |
+| **H**  | ~~One independent read of the ten edits that closed **G**~~ **Done** (16th pass residual-risk re-check, still closed)                                                                                                                                                                 | —                | Closed                                        |
+| **I**  | ~~`Thesis_v4.tex` abstract is still the template placeholder~~ **Done** (11 Sep). Abstract is written. Twenty-fourth pass that day put the skeleton at 5.00. Do **L** before sending                                                                                                  | —                | Closed                                        |
+| **J**  | Plan September row still says "Abstract". The full-draft abstract is done and the skeleton's is too; the row should name proofread and the supervisor send                                                                                                                            | Minutes          | You or agent                                  |
+| **K**  | Optional: replace `bugden2022rust` (remaining arXiv load-bearing cite). `naylor2026cherisimt` already carries the contrary-result half. Optional: name `\FarTailLangSep` in the abstract                                                                                              | —                | You                                           |
+| **L**  | The `Thesis_v4` abstract is written: re-read every surviving citation against the clause it now sits next to. Four of the six detached cites on 31 Aug lived only in `Thesis_v4.tex`. No gate sees this                                                                               | Half hour        | You or a reader who was not told what changed |
+| **M**  | Rebuild `Thesis_v4.pdf` and `Thesis_Plan_v2.pdf` whenever macros move. `bench/refresh_thesis.sh` rebuilds `Ha_Vien_Mastersthesis_2026.pdf` and the deck only                                                                                                                          | Minutes          | You or agent                                  |
+| **N**  | Colloquium. The deck is already regenerated by `refresh_thesis.sh`. The plan puts the talk in October                                                                                                                                                                                 | Date + rehearsal | You                                           |
+| **O**  | Disclose the guest vs reported `g++` patch (`\GuestGpp` 15.1.1, `\MainGpp` 15.2.1) at the four toolchain-parity sites. **Draft source remediating 12 Sep** (§6.1 and `tab:testbed`'s caption name the split). Standing draft grade still 4.83 until a reader re-grades                | —                | Awaits re-grade                               |
+| **P**  | §6.4.7 hand-typed `g++~15.1.1` as the measurement host's compiler. **Draft source remediating 12 Sep** (the paragraph types `g++~13.3` as the development machine and `\MainGpp` as the measurement host). Standing grade unchanged until a re-grade                                  | —                | Awaits re-grade                               |
+| **Q**  | §1.4 of **both** documents: "How it compares against the cost of the allocator choice is not:" had no predicate. **Both sources remediating 12 Sep** (draft: "does not travel to another machine"). Standing draft grade unchanged until a re-grade                                   | —                | Awaits re-grade                               |
+| **R**  | `tab:findings` RQ3 cell: "on bare metal" cannot pick out a host. **Draft source remediating 12 Sep** (the cell names the representative load and the second bare-metal host). Standing grade unchanged until a re-grade                                                               | —                | Awaits re-grade                               |
+| **S**  | Durable: generate the fault-catalogue toolchain into `gen_artefacts.tex` from `taxonomy.md`, and teach `texaudit.py` to flag bare dotted version numbers. Items **O** and **P** recur without this                                                                                    | ~1 hour          | You or agent                                  |
+| **T**  | ~~Nokia instructor comments on the 44-page `Thesis_v4` PDF~~ **Skeleton done** (21 Sep): all 46 marks resolved, rebuilt, and checked. Checklist: `docs/MANAGER_COMMENTS.md`. The full draft remains separate work, especially §1.4's contribution count and results preview (p.13–14) | —                | Skeleton closed                               |
+| —      | Second examiner once faculty assigns. `\examiners{Prof. Keijo Heljanko}` carries the name that is settled; the class prints the field nowhere. UH deposit (E-thesis) and originality check wait on that round                                                                         | n/a              | Faculty                                       |
 
 ### What belongs on this list, and what does not (12 Sep 2026)
 
-**Repair first, then process.** Items **O** to **S** still hold the *draft's* areas 4 and 6 at 4.5
+**Repair first, then process.** Items **O** to **S** still hold the _draft's_ areas 4 and 6 at 4.5
 until a reader re-grades. The current source already carries the disclosure. That does not move
 the standing grade. A new campaign, a new probe variant, or a new optional citation can reopen the
 sync failure that cost a grade point twice in two days (macros regenerate, sentences around them
@@ -131,7 +131,7 @@ The spec freeze is done (**B**, tag `spec-v1.0`). Nokia publishability is still 
 rebuilt by `refresh_thesis.sh` (**M**, **J**). The colloquium is a date, not a build (**N**).
 Your proofread is the only remaining risk no agent can take (**D**).
 
-**Scoped separately, in *Going deeper* below.** The attribution probes, the dispatch and
+**Scoped separately, in _Going deeper_ below.** The attribution probes, the dispatch and
 request-size probe, the clang++ variant, the second workload and the independent implementation review
 are ranked there against what each buys and what each costs. None of them holds a grade, and one
 of them is the deepest work left in the project. An agent pass of the two cores on 16 September
@@ -168,18 +168,18 @@ what the unaided rewrite had to settle.
 
 **Closed 30 Aug evening (17th pass). Do not re-report against the current PDF.**
 
-| # | What the abstract says | What is true |
-| --- | --- | --- |
-| 1 | "all **five** injected memory-safety and data-race defect classes" | **Seven.** `\FaultClassesPrevented` = 7, seven `rust_expected = prevented` rows in `taxonomy.csv` |
-| 2 | "In C++ the same **five** build cleanly" | **Seven**, same source |
-| 3 | "**Five** further classes fail in both languages" | **Seven.** `\FaultClassesBoundary` = 7, `\FaultClasses` = 14 |
-| 4 | "median latency **matches**" | The paired test resolves $-1.3$ and $-1.2\,\mu$s, both clearing Holm. §1.4's register: practical equivalence, not statistical |
-| 5 | jitter listed in the *Objective* as an open dimension | Measured and reported descriptively on both bare-metal hosts. No research question asks for it, which §4.5, §6.4.1 and `tab:jitter`'s caption all say |
-| 6 | "The far tail below saturation **cannot be settled on a virtualised host**" | It is settled, on the reported bare-metal host, and favours Rust by $\FarTailLangSep$ µs at p99.99. This is also the **only** place the abstract describes a measurement environment, so the one machine a reader of the abstract meets is the retired one |
-| 7 | "**Above saturation** the order flips: C++ holds 1.7×" | Half the finding. The first thing that happens above saturation favours **Rust**: it holds its offered rate to 448 kops/s where C++ collapses at 392, a 2.8× lead in 40 of 40 repeats. C++ leads only once both have collapsed. §7.2 says a single verdict here would be false |
-| 8 | overload "depends on the **standard library's synchronisation primitives**" | §6.4.2's microbenchmark isolates exactly those two primitives and does **not** reproduce the ordering ($p = 0.226$, Rust marginally ahead). The defensible claim is the handoff path, with the primitives ruled out as the whole explanation |
-| 9 | "tail latency and jitter **under overload**" as a dimension | RQ1 asks about increasing load **and** overload, and the far-tail finding that now carries RQ1 is a below-saturation result |
-| 10 | "**Timed alone**, Rust's operation is 1.6× faster **and the process is a few MiB larger**" | Two instruments under one adverbial. The 1.6× is the 15-repeat operation microbenchmark; the footprint is the campaign's own 20-repeat peak-RSS column. Both figures are right, the attribution is not |
+| #   | What the abstract says                                                                     | What is true                                                                                                                                                                                                                                                                   |
+| --- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | "all **five** injected memory-safety and data-race defect classes"                         | **Seven.** `\FaultClassesPrevented` = 7, seven `rust_expected = prevented` rows in `taxonomy.csv`                                                                                                                                                                              |
+| 2   | "In C++ the same **five** build cleanly"                                                   | **Seven**, same source                                                                                                                                                                                                                                                         |
+| 3   | "**Five** further classes fail in both languages"                                          | **Seven.** `\FaultClassesBoundary` = 7, `\FaultClasses` = 14                                                                                                                                                                                                                   |
+| 4   | "median latency **matches**"                                                               | The paired test resolves $-1.3$ and $-1.2\,\mu$s, both clearing Holm. §1.4's register: practical equivalence, not statistical                                                                                                                                                  |
+| 5   | jitter listed in the _Objective_ as an open dimension                                      | Measured and reported descriptively on both bare-metal hosts. No research question asks for it, which §4.5, §6.4.1 and `tab:jitter`'s caption all say                                                                                                                          |
+| 6   | "The far tail below saturation **cannot be settled on a virtualised host**"                | It is settled, on the reported bare-metal host, and favours Rust by $\FarTailLangSep$ µs at p99.99. This is also the **only** place the abstract describes a measurement environment, so the one machine a reader of the abstract meets is the retired one                     |
+| 7   | "**Above saturation** the order flips: C++ holds 1.7×"                                     | Half the finding. The first thing that happens above saturation favours **Rust**: it holds its offered rate to 448 kops/s where C++ collapses at 392, a 2.8× lead in 40 of 40 repeats. C++ leads only once both have collapsed. §7.2 says a single verdict here would be false |
+| 8   | overload "depends on the **standard library's synchronisation primitives**"                | §6.4.2's microbenchmark isolates exactly those two primitives and does **not** reproduce the ordering ($p = 0.226$, Rust marginally ahead). The defensible claim is the handoff path, with the primitives ruled out as the whole explanation                                   |
+| 9   | "tail latency and jitter **under overload**" as a dimension                                | RQ1 asks about increasing load **and** overload, and the far-tail finding that now carries RQ1 is a below-saturation result                                                                                                                                                    |
+| 10  | "**Timed alone**, Rust's operation is 1.6× faster **and the process is a few MiB larger**" | Two instruments under one adverbial. The 1.6× is the 15-repeat operation microbenchmark; the footprint is the campaign's own 20-repeat peak-RSS column. Both figures are right, the attribution is not                                                                         |
 
 A lower-severity eleventh, noted and left to you: "implemented twice with **identical** algorithms,
 concurrency model, allocator, and build settings". `tab:controls` records the optimisation control as
@@ -228,8 +228,8 @@ its own paragraph.
 **The overload divergence reproduces on a third machine**, 1.7× against the guest's 1.8× and the
 26 August 1.64×, always with the same variant ahead.
 
-**RQ3's headline ordering reversed, and this is the finding to remember.** The peak-RSS *language*
-effect is stable on all three hosts at 1.4–3.5 MiB. The *allocator* effect measured 32.5–34.3 MiB on
+**RQ3's headline ordering reversed, and this is the finding to remember.** The peak-RSS _language_
+effect is stable on all three hosts at 1.4–3.5 MiB. The _allocator_ effect measured 32.5–34.3 MiB on
 the guest and 1.5–2.4 MiB on both bare-metal hosts, so the two are comparable on adequate hardware
 and the guest is the outlier of three. Transparent hugepages were `always` on the guest and
 `madvise` on both bare-metal hosts, and only the system-allocator variant inherits that policy, so it is
@@ -241,7 +241,7 @@ experiment as the immediate priority.
 
 **1. `isolcpus` put an entire 1120-run campaign on one core.** The first attempt on 27 August booted
 with `isolcpus=2-17`, which also removes those cores from every scheduling domain. The benchmark
-pins to a *range* and relies on the kernel to spread its 14 threads, so with no load balancing they
+pins to a _range_ and relies on the kernel to spread its 14 threads, so with no load balancing they
 all inherited `cpu2`. Evidence: `cpu2` at 85.9% busy with `cpu3`–`cpu17` at exactly 0.0%; `cpu_pct`
 flat at 100.1% in all 1120 records, never above 100.2% at any load; throughput plateau 84 kops/s
 against 336 on the guest and 448 on 26 August. **Every record looked individually plausible.** The
@@ -287,7 +287,7 @@ sentence length 21.4 ± 11.6. Diagram labels clean. The deck passes both `check_
 `bench/refresh_thesis.sh` runs end to end.
 
 **Length note.** Three rounds of word cuts recovered nothing, and the chapter-6 tail page at physical
-84 *grew* its bottom gap from 627pt to 642pt as words came out of the paragraphs feeding it. Do not
+84 _grew_ its bottom gap from 627pt to 642pt as words came out of the paragraphs feeding it. Do not
 attack that page from the prose side. If pages are wanted there they have to come from a float in
 §6.4.5. Under 100 remains a preference and substance won here. The 95 figure is the class counting
 main matter, so the document is not shorter than it was.
@@ -298,15 +298,15 @@ sits within a few points of a full page, so measure after any row edit.
 
 ### Grade map
 
-| Criterion | 19th pass (31 Aug) | **22nd pass, 7 Sep, draft current** | What decides it |
-| --- | --- | --- | --- |
-| 1 Objectives & RQs | 5 | **5** | RQ1 names p99.99 in all three documents. RQ2 two-sided |
-| 2 Sources | 5 | **5** | 111/111 cited as of 12 Sep (109/109 at the 31 Aug snapshot below). Optional: replace `bugden2022rust`. `zhang2026deadlock` is the journal version |
-| 3 Method & data | 5 | **5** | Canonical bare-metal campaign. Description matches. Do not add `isolcpus`. A GCC patch is not a method defect |
-| 4 Results presentation | 5 | **4.5** | Standing cap from the 21st/22nd passes. Draft source remediating 12 Sep. Grade waits on a re-read |
-| 5 Discussion | 5 | **5** | §7.2 refuses a verdict and gives a decision rule instead. None of this pass's findings is in Chapter 7 |
-| 6 Academic text | 5 | **4.5** | Standing cap from the 21st/22nd passes. Draft source remediating 12 Sep. Grade waits on a re-read |
-| **Mean** | 5.00 | **4.83** | |
+| Criterion              | 19th pass (31 Aug) | **22nd pass, 7 Sep, draft current** | What decides it                                                                                                                                   |
+| ---------------------- | ------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 Objectives & RQs     | 5                  | **5**                               | RQ1 names p99.99 in all three documents. RQ2 two-sided                                                                                            |
+| 2 Sources              | 5                  | **5**                               | 111/111 cited as of 12 Sep (109/109 at the 31 Aug snapshot below). Optional: replace `bugden2022rust`. `zhang2026deadlock` is the journal version |
+| 3 Method & data        | 5                  | **5**                               | Canonical bare-metal campaign. Description matches. Do not add `isolcpus`. A GCC patch is not a method defect                                     |
+| 4 Results presentation | 5                  | **4.5**                             | Standing cap from the 21st/22nd passes. Draft source remediating 12 Sep. Grade waits on a re-read                                                 |
+| 5 Discussion           | 5                  | **5**                               | §7.2 refuses a verdict and gives a decision rule instead. None of this pass's findings is in Chapter 7                                            |
+| 6 Academic text        | 5                  | **4.5**                             | Standing cap from the 21st/22nd passes. Draft source remediating 12 Sep. Grade waits on a re-read                                                 |
+| **Mean**               | 5.00               | **4.83**                            |                                                                                                                                                   |
 
 The skeleton is a separate document: twenty-fourth pass, 11 September 2026, mean **5.00**. Do not
 copy that onto the draft.
@@ -409,7 +409,7 @@ cites Emberg and Wadsten reversing their own results between two benchmarking se
    adopted. One that changes the design goes into the forced-idiom log instead.
 6. Re-measure only if something is adopted, and report the delta whichever way it goes.
 
-**Why it is the strongest item per hour.** It is the only entry here that improves *internal*
+**Why it is the strongest item per hour.** It is the only entry here that improves _internal_
 validity, it lands no new numbers unless a proposal is adopted, and the negative result is
 publishable: two experts found nothing that moves the result closes the threat rather than leaving
 it conceded. At Nokia both experts are in the building.
@@ -462,13 +462,13 @@ submission, where new numbers cost nothing.
 
 ### Ranking
 
-| Item | What it buys | New numbers | When |
-| --- | --- | --- | --- |
-| **D0** | Removes a live contradiction in an attribution | No | **Done 1 Sep 2026** |
-| **D2** | Closes the one threat no statistic reaches | Only if a proposal is adopted | Before submission. Cheapest real gain. An agent pass on 16 Sep is in `docs/CODE_REVIEW.md` and does not close this |
-| **D1** | Explains the strongest result end to end, or bounds it honestly | Yes | Before submission only with the sync budget |
-| **D3** | Bounds external validity instead of conceding it | Yes | After D1, or after submission |
-| **D4** | New research questions | Yes | After submission. Paper or doctoral |
+| Item   | What it buys                                                    | New numbers                   | When                                                                                                               |
+| ------ | --------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **D0** | Removes a live contradiction in an attribution                  | No                            | **Done 1 Sep 2026**                                                                                                |
+| **D2** | Closes the one threat no statistic reaches                      | Only if a proposal is adopted | Before submission. Cheapest real gain. An agent pass on 16 Sep is in `docs/CODE_REVIEW.md` and does not close this |
+| **D1** | Explains the strongest result end to end, or bounds it honestly | Yes                           | Before submission only with the sync budget                                                                        |
+| **D3** | Bounds external validity instead of conceding it                | Yes                           | After D1, or after submission                                                                                      |
+| **D4** | New research questions                                          | Yes                           | After submission. Paper or doctoral                                                                                |
 
 **The one thing not to do** is start D1 or D3 without booking the sync pass and the independent
 reader in the same breath. That is the failure this repository has already paid for twice.
@@ -476,6 +476,7 @@ reader in the same breath. That is the failure this repository has already paid 
 ---
 
 ## Phase 0 - Environment & repository setup
+
 - [x] Install LaTeX toolchain (TinyTeX in ~/.TinyTeX; `pdflatex`, `bibtex`, `latexmk` on PATH)
 - [x] Obtain the department class file. The document builds on `HYthesisML.cls`. The reconstructed
       `UH_DS_MSc.cls` in `archive/` is no longer loaded.
@@ -496,6 +497,7 @@ reader in the same breath. That is the failure this repository has already paid 
       `analysis/` dirs (folded into `bench/`).
 
 ### Build instructions
+
 ```bash
 # Toolchain is TinyTeX; PATH set in ~/.bashrc (open a new terminal or `source ~/.bashrc`)
 latexmk -pdf Ha_Vien_Mastersthesis_2026.tex      # build -> Ha_Vien_Mastersthesis_2026.pdf
@@ -503,16 +505,18 @@ latexmk -C                   # clean build artifacts
 ```
 
 ## Phase 1 - Literature & background solidification
+
 - [x] Collect and read the core references (3GPP 38.401/38.300, RustBelt, MSRC, Google Android, Pereira energy study, HdrHistogram/coordinated omission). Search protocol in Appendix B. Durable citation record in `docs/Sources_evidence.md` and `source_audit.pdf`
 - [ ] Confirm gNB-CU-CP / UE Context Management framing with Nokia supervisors
 - [ ] Note any Nokia-internal constraints (what can/cannot be published)
 
 ## Phase 2 - Shared specification (FAIRNESS BASELINE - freeze first)
-- [x] Define the public API of the UE Context Management service  (spec/SPECIFICATION.md §6)
-- [x] Define the UE state machine (states + transitions)            (§5)
+
+- [x] Define the public API of the UE Context Management service (spec/SPECIFICATION.md §6)
+- [x] Define the UE state machine (states + transitions) (§5)
 - [x] Define data structures & algorithmic strategy (sharded map, pinned hash) (§8)
 - [x] Define locking/sharding granularity and the concurrency model (thread-per-shard) (§7)
-- [x] Define the message/signaling set to handle                    (§6)
+- [x] Define the message/signaling set to handle (§6)
 - [x] Define parity-test contract (behaviour both implementations must match) (§11)
 - [x] Seed an initial conformance suite in spec/conformance/ (format README + `basic.vec`, `shards.vec` + shared runners + `run.sh`; both impls agree)
 - [x] Expand the conformance suite to 7 vectors / 223 checked ops: `states.vec` (full §5.2
@@ -520,10 +524,11 @@ latexmk -C                   # clean build artifacts
       op, `ue_id==0` on all ten ops, payload boundary, error precedence), `capacity.vec`
       (per-shard `CapacityExceeded`), `routing.vec` (§10.1 I1), `shards13.vec`
       (non-power-of-two shard count). Both impls pass all seven and agree byte-for-byte.
-- [x] Review spec DRAFT v0.1 with supervisors; resolve Appendix A open decisions *(Done 15 Sep 2026: Appendix A locked as frozen design decisions)*
-- [x] On approval: bump to v1.0 and tag `spec-v1.0` (FREEZE) *(Done 15 Sep 2026)*
+- [x] Review spec DRAFT v0.1 with supervisors; resolve Appendix A open decisions _(Done 15 Sep 2026: Appendix A locked as frozen design decisions)_
+- [x] On approval: bump to v1.0 and tag `spec-v1.0` (FREEZE) _(Done 15 Sep 2026)_
 
 ## Phase 3 - C++ implementation
+
 - [x] Scaffold CMake project (C++23, STL, standard threading) + smoke tests (2/2 pass)
 - [x] Implement pinned types, hash/shard functions, error model (spec §4,§6,§8)
 - [x] Implement ShardCore: sharded context store + UE state machine per spec (single-threaded)
@@ -534,6 +539,7 @@ latexmk -C                   # clean build artifacts
 - [x] Run against shared parity-test contract (spec §11): `conformance_runner` passes all 7 vectors
 
 ## Phase 4 - Rust implementation
+
 - [x] Scaffold Cargo project (stable toolchain 1.97; release opt-level=2 to match C++ -O2)
 - [x] Implement pinned types, hash/shard functions (LE-byte FNV BuildHasher == fnv1a_64), error model (spec §4,§6,§8)
 - [x] Implement ShardCore: sharded context store + UE state machine per spec (single-threaded)
@@ -552,6 +558,7 @@ latexmk -C                   # clean build artifacts
 - [x] Run against shared parity-test contract (spec §11): `conformance_runner` passes all 7 vectors; transcript matches C++ byte-for-byte
 
 ## Phase 5 - Parity verification
+
 - [x] Confirm both implementations pass identical functional parity tests (shared
       `conformance_runner`; op-for-op transcript match on all 7 vectors, 223 ops)
 - [x] Diff behaviour on edge cases; document forced-idiom deviations (deviations logged in
@@ -561,8 +568,7 @@ latexmk -C                   # clean build artifacts
       implementations matched it on the first run, including the error-precedence cases
       §6 leaves unordered (now pinned so they cannot drift). **One configuration edge sits
       outside that suite (16 Sep 2026):** `queue_capacity == 0` is a 1-slot buffer in C++
-      and a rendezvous channel in the compared Rust arm. Default and campaign capacity is
-      1024. Recorded in spec §12 and `docs/CODE_REVIEW.md`.
+      and a rendezvous channel in the compared Rust arm. Default and campaign capacity is 1024. Recorded in spec §12 and `docs/CODE_REVIEW.md`.
 - [x] Mirrored per-language suites for the properties a sequential `.vec` transcript cannot
       express: `test_invariants`/`invariants.rs` (§6.1 no mutation on error, §10.3/§11.2
       activity-sequence discipline, `security_key`/`rrc_transaction_id`/per-DRB round-trip,
@@ -600,6 +606,7 @@ latexmk -C                   # clean build artifacts
       the C++ `BoundedQueue` template's uninstantiated members and Rust's derive-generated `types.rs`.
 
 ## Phase 6 - Benchmarking framework & workload generator
+
 - [x] Build synthetic workload generator (UE lifecycle: attach, signaling, bearer setup, handover begin/complete/abort, release), pinned deterministic model, identical op-stream in C++/Rust (`--workload mixed`)
 - [x] Parameterize by number of active UEs (`--active-ues`) and target event rate (`--rate`, open-loop w/ CO correction), 3GPP-anchored rate calibration still TODO
 - [x] Ensure histogram-based capture avoids coordinated-omission bias (HDR histograms both sides; `--rate` fixed schedule + HDR correction from intended send time)
@@ -608,10 +615,12 @@ latexmk -C                   # clean build artifacts
       repeats, interleaving) + `bench/capture_env.sh`. Executed on bare metal 26 and 27 Aug 2026.
       **Do not add `isolcpus`.**
 - [~] Make runs scriptable + reproducible (`bench/run_bench.sh` + `bench/campaign.sh` +
-      `bench/refresh_thesis.sh` work end-to-end; 3GPP-anchored rate calibration still TODO)
+  `bench/refresh_thesis.sh` work end-to-end; 3GPP-anchored rate calibration still TODO)
 
 ## Phase 7 - Experiment campaigns
+
 ### 7a. Load sweep (RQ1 latency predictability, RQ3 overhead)
+
 - [x] Run load sweep nominal -> saturation -> overload. **DONE on bare metal 27 Aug 2026**
       (`campaign-20260827-151927.jsonl`, 1120 runs), which is what every thesis table now
       reports. Earlier passes ran on WSL2 (`campaign-20260807-122430.jsonl`) and then on a KVM
@@ -654,8 +663,8 @@ latexmk -C                   # clean build artifacts
 - [x] **Run `bench/counters.sh` on the testbed. DONE 26 Aug 2026**, `counters-20260826-105541.jsonl`,
       10 interleaved repeats at both the `op` and `e2e` scopes. The `op` scope is the one that
       speaks to the language and it answers both live claims at once: Rust retires **11 % fewer
-      instructions** (*p* = 0.002) in **15 % fewer cycles** (*p* = 0.0117) while missing cache
-      **29 % more often per thousand instructions** (*p* = 0.002). Less work and worse locality is
+      instructions** (_p_ = 0.002) in **15 % fewer cycles** (_p_ = 0.0117) while missing cache
+      **29 % more often per thousand instructions** (_p_ = 0.002). Less work and worse locality is
       one account of the operation-level gap and the peak-RSS effect together, and it replaces the
       node-based-`unordered_map` argument with a measurement. Reported in §`sec:baremetal`.
       `kernel.perf_event_paranoid` defaults to 4 on Ubuntu 24.04 and blocks the script; set it to 1.
@@ -664,18 +673,18 @@ latexmk -C                   # clean build artifacts
       this host"), and the first was falsified 90 lines later in its own chapter. All four now name
       §`sec:baremetal`. Watch out when editing that table row: `tab:threats` is the densest table in
       the thesis and sits within a few points of its page, so a longer cell overflows it.
-- [~] Allocation profile per variant: **`bench/alloc_profile.sh` written** (Aug 2026), to be *run*
-      on the testbed visit. Uses jemalloc's own `prof` on **both** jemalloc variants rather than
-      heaptrack for C++ and dhat for Rust, so the two sides are measured by one instrument with
-      one notion of a call site (the same choice already made for the complexity proxies, where
-      `lizard` measures both languages); a mismatched pair could not be differenced, which is the
-      whole question. Needs the new opt-in `jemalloc-prof` Cargo feature. Prof support is detected
-      functionally, by checking a dump actually lands, since a build without `--enable-prof` says
-      `Invalid conf pair` while a syntax error says `Malformed conf string` and matching on
-      wording is how a false positive survives to the testbed. Verified on this host: both variants
-      dump, only `jeprof` is missing, and `--raw-ok` collects dumps plus their binaries for later
-      symbolisation so a one-off visit is never wasted. Parsing is in `bench/parse_jeprof.py` with
-      `--self-test`.
+- [~] Allocation profile per variant: **`bench/alloc_profile.sh` written** (Aug 2026), to be _run_
+  on the testbed visit. Uses jemalloc's own `prof` on **both** jemalloc variants rather than
+  heaptrack for C++ and dhat for Rust, so the two sides are measured by one instrument with
+  one notion of a call site (the same choice already made for the complexity proxies, where
+  `lizard` measures both languages); a mismatched pair could not be differenced, which is the
+  whole question. Needs the new opt-in `jemalloc-prof` Cargo feature. Prof support is detected
+  functionally, by checking a dump actually lands, since a build without `--enable-prof` says
+  `Invalid conf pair` while a syntax error says `Malformed conf string` and matching on
+  wording is how a false positive survives to the testbed. Verified on this host: both variants
+  dump, only `jeprof` is missing, and `--raw-ok` collects dumps plus their binaries for later
+  symbolisation so a one-off visit is never wasted. Parsing is in `bench/parse_jeprof.py` with
+  `--self-test`.
 - [x] **Collected 26 Aug 2026.** `bench/results-baremetal/alloc_profile-20260826-110718/` holds
       40 interval heap dumps per variant, both stderr transcripts, the C++ allocation trajectory as a
       TSV, and the Rust binary kept for later symbolisation. The instrument the thesis has said it
@@ -693,10 +702,10 @@ latexmk -C                   # clean build artifacts
 - [x] **The profile would have come back empty, and that is now fixed** (20 Aug 2026, found by
       running it in the container rather than on the testbed). Three defects, all in the
       instrument and none of them visible without running it end to end: the distribution
-      jemalloc the Rocky host links is built *without* `--enable-prof`, so the C++ variant had
+      jemalloc the Rocky host links is built _without_ `--enable-prof`, so the C++ variant had
       nothing to profile with and the script correctly refuses to profile one variant alone;
       backtraces at `-O2` stopped inside the allocator, so not one application site appeared;
-      and `prof_final` dumps the live heap *at exit*, after teardown, which measured 92 kB
+      and `prof_final` dumps the live heap _at exit_, after teardown, which measured 92 kB
       (C++) and 640 bytes (Rust) against 2.3 MB live mid-run. Fixed by a dedicated profiling
       build tree with frame pointers, a prof-enabled jemalloc built from the same source the
       Rust variant links (`docker/Dockerfile`), and interval dumps with peak selection. Verified:
@@ -705,13 +714,15 @@ latexmk -C                   # clean build artifacts
       slot array. Recorded in spec §12. **`jeprof` no longer needs installing on the host:**
       the image carries it.
 - [ ] Optional, and a methodology call: jemalloc 5.3 keeps its own frame at the leaf of every
-      sampled stack, so the *flat* column collapses onto `prof_backtrace_impl` and the
+      sampled stack, so the _flat_ column collapses onto `prof_backtrace_impl` and the
       cumulative column carries the attribution (totals are unaffected). Building the
       profiling jemalloc with `--enable-prof-libunwind` would put application sites back in
       the flat column for the C++ variant, but `tikv-jemalloc-sys` exposes no hook to do the same
       for Rust, so it would make the two variants use different unwinders. That cuts against the
       one-instrument principle the matched profile rests on, which is why it is not done.
+
 ### 7b. Fault-injection study (RQ2 safety)
+
 - [x] Inject C++ defect catalogue (use-after-free, double-free, iterator invalidation,
       data race, unguarded shared mutation), `faults/cpp/*.cpp`, domain-flavoured
 - [x] Rust counterparts, each rejected at compile time (`faults/rust/*.rs`); runner
@@ -719,7 +730,9 @@ latexmk -C                   # clean build artifacts
 - [x] Record per defect: Rust compile-time rejection (E-code) vs C++ ASan/TSan detection,
       `faults/results/taxonomy.{md,csv}` + per-case logs; every defect is compile-error in Rust
 - [x] Produce defect-class taxonomy table (filled into thesis §6.2, Table `tab:taxonomy`)
+
 ### 7c. FFI migration prototype (RQ4 adoption cost)
+
 - [x] Build a small Rust component behind a C ABI, driven by a C++ host (`ffi/`): seam crate
       `rust-uecm-ffi` (staticlib+cdylib, path-dep on unmodified `rust/`) + hand-written
       `uecm_ffi.h` + `cpp-host/main.cpp`; `ffi/build.sh` builds/links/runs (host PASSes)
@@ -730,12 +743,13 @@ latexmk -C                   # clean build artifacts
       `bench/artefact_facts.py` now regenerates them into the prose.
 - [x] Replace the indirect argument for "no measurable per-call tax" with the direct A/B.
       An empty crossing measured against a full round-trip bounds the crossing but is not the
-      same experiment; `ffi/build.sh` now also runs the *same* signaling op natively (same
+      same experiment; `ffi/build.sh` now also runs the _same_ signaling op natively (same
       shard count, same loop shape, `rust/examples/latency_budget.rs --shards 4`) so the
       difference is the seam's actual per-operation cost. Lands in `metrics.json` as
       `op_roundtrip_native_ns` and in `tab_ffi.tex`.
 
 ## Phase 8 - Analysis & figures
+
 - [x] Tooling: `bench/campaign.sh` (repeats + interleaving + env capture + pinning) ->
       `bench/aggregate.py` (bootstrap median + 95% CI per metric, tidy CSV + auto `tab:latency`
       LaTeX) -> `bench/plot_campaign.py` (median + CI-band latency-vs-load). Pipeline smoke-tested.
@@ -786,6 +800,7 @@ latexmk -C                   # clean build artifacts
       is in `archive/` and is not a live companion.
 
 ## Phase 9 - Writing (fill placeholders in Ha_Vien_Mastersthesis_2026.tex)
+
 - [x] Build `bibliography.bib` (3gpp38401, 3gpp38300, msrc2019memory, google2022android,
       klabnik2023rust, jung2018rustbelt, astrauskas2020unsafe, tene_hdrhistogram, pereira2017energy)
 - [x] Complete "Implementation details" section with concrete data structures/locking
@@ -803,8 +818,10 @@ latexmk -C                   # clean build artifacts
       Keywords row; check page 3 visually after editing it.
 
 ## Phase 9b - Companion documents (assign a status, then keep them in step)
+
 The repo now carries several documents besides `Ha_Vien_Mastersthesis_2026.tex`. Only `Ha_Vien_Mastersthesis_2026.tex` is the submission
 artefact; the rest are unlabelled, which is how two of them drifted without it being visible.
+
 - [x] `plain_thesis.tex` - plain-language variant (121 pages) for a reader with no 5G
       background. Same argument, same data, same generated macros, and it built clean.
       `Ha_Vien_Mastersthesis_2026.tex` stays the reference version, and its header already says so. Moved to
@@ -830,8 +847,7 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
 - [ ] `Ha_Vien_Mastersthesis_2026_short.tex` - compression pass, in progress. Same class, macros,
       figures and bibliography as the draft. Not supervisor-facing and not a submission
       candidate. Run `.compress/shortcheck.py` after every edit.
-- [ ] `Thesis_Plan_v2.tex` - the plan, dated **28 August 2026**, estimated completion 11 November
-      2026. Status table: spec row frozen at v1.0 (15 Sep 2026). The September timeline row still
+- [ ] `Thesis_Plan_v2.tex` - the plan, dated **28 August 2026**, estimated completion 11 November 2026. Status table: spec row frozen at v1.0 (15 Sep 2026). The September timeline row still
       says "Abstract, full proofread, draft to supervisors", which is open-work item **J** now
       that both abstracts are done. Rebuild when the September row moves.
 - [x] Title-page fields agree across the two live documents: both use `HYthesisML.cls` with
@@ -844,13 +860,14 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       the pre-cuts `Ha_Vien_Mastersthesis_2026.tex` backup, and the v1 plan PDF.
 
 ## Phase 10 - Finalization
+
 - [x] **Rewrite the abstract unaided, then set `\abstractunaidedtrue`.** Done 31 August 2026
       afternoon. The UH thesis guide states that a language model may not be used when preparing
       the thesis summary, and in this programme the summary doubles as the maturity test.
       `ai_statement.tex` now declares the abstract as written unaided, the AI-statement page prints that
       wording, and the build no longer prints "Not submittable". A model may not flip the switch
       back. The ten factual defects the unaided rewrite had to settle are the historical list in
-      *Do now*.
+      _Do now_.
 - [x] Declaration of AI use (`ai_statement.tex`), `\input` by `Ha_Vien_Mastersthesis_2026.tex`,
       `Thesis_v4.tex` and `Ha_Vien_Mastersthesis_2026_short.tex` before the bibliography, listed in the ToC. Follows the UH basic
       reporting instruction: scope, purpose, tool and version, how the output was verified,
@@ -911,7 +928,7 @@ Section numbers below use the full draft's current eight-chapter numbering, not 
       campaign (including `tab:findings`'s RQ1 row) were synced in the 27–30 August passes.
 - [x] **Peak RSS reproduces.** 16 of 16 points significant, same sign, language effect 0.7 to
       1.8 MiB. The prose leaning on it is safe.
-- [x] **FIXED 26 Aug 2026, evening: the peak-RSS *ratio* did not reproduce, and now the thesis says so.** The allocator effect fell
+- [x] **FIXED 26 Aug 2026, evening: the peak-RSS _ratio_ did not reproduce, and now the thesis says so.** The allocator effect fell
       from 32.9-34.4 MiB on the guest to **1.9-3.2 MiB** on bare metal, while the language effect
       only halved. So the gap between the two effects went from about thirteenfold to about
       twofold, with the allocator configuration matched at `thp:never,narenas:16` on both hosts.
@@ -938,7 +955,7 @@ Section numbers below use the full draft's current eight-chapter numbering, not 
 - [ ] **The core-operation gap was NOT re-measured.** `bench/results-baremetal/latency_budget.json`
       is byte-identical to `bench/results/latency_budget.json`, so it is a copied guest file and
       `\BudgetCoreRatio` remains a guest number. Its presence in that directory is misleading and
-      it should either be re-measured or removed. What *did* land is better than the timing repeat
+      it should either be re-measured or removed. What _did_ land is better than the timing repeat
       this item asked for: the op-scope counters give the attribution directly (11 % fewer
       instructions, 15 % fewer cycles, 29 % more cache misses per thousand instructions), which is
       what "consider isolating the attribution with cache-miss counters" meant.
@@ -992,7 +1009,7 @@ landed and are marked DONE in their sections.
 > Items 5, 5b and 7 are done. Item 3's jemalloc accounting is in `tab:resident`. Item 4's
 > Loom/Shuttle half is done. Item 8's equivalence table is placed. Still open as optional
 > enrichment: item 1's paired re-run of the three probes on the measurement host, item 6's
-> clang++ variant, item 9's knob sweep, item 11's DOI archive, and the hugepage experiment in *Do now*.
+> clang++ variant, item 9's knob sweep, item 11's DOI archive, and the hugepage experiment in _Do now_.
 > The 14 Aug note below is kept as the record of what had started that day.
 
 ### 1. Decompose "language" into language and standard library
@@ -1009,7 +1026,7 @@ standard-library data structures, and neither attribution is measured:
   on the C++ side against `std::sync::mpsc::sync_channel` on the Rust side, plus tagged-struct
   dispatch against a typed enum.
 
-Counters would be *observational* evidence for both. Swapping the structure is a *controlled*
+Counters would be _observational_ evidence for both. Swapping the structure is a _controlled_
 experiment, it is strictly stronger, and it does not need a PMU.
 
 **What to build.** Two probe variants, each behind a build flag, each required to stay
@@ -1022,14 +1039,14 @@ conformance-clean:
   replacing `sync_channel` in `Service`. Re-run the overload point only (not the whole sweep).
   If the $\OverloadThrRatio\times$ divergence collapses, the mechanism is localised.
 
-**What must not happen.** These are *additional* variants, not a replacement for the measured pair.
+**What must not happen.** These are _additional_ variants, not a replacement for the measured pair.
 The fairness argument is explicitly "each language as a developer actually finds it", and the
 reported comparison has to keep the standard containers on both sides. The probe answers a
 different question: how much of the measured difference is the language and how much is the
 library that ships with it. Log both in spec §12 as probes.
 
 **Payoff.** Potentially the thesis's most interesting result: that two of its three resolved
-differences are library artefacts rather than language artefacts. That *strengthens* RQ3 (the
+differences are library artefacts rather than language artefacts. That _strengthens_ RQ3 (the
 safety model costs even less than measured) and converts the overload finding from "attributed"
 to "localised", closing the residual `tab:threats` names as its most exposed.
 
@@ -1091,7 +1108,7 @@ Jitter is `tab:jitter` in §6.4.1 and a paragraph in §6.4.4, reported descripti
 **RQ1 now names p99.99 and still does not name jitter, and both halves of that are deliberate.** The
 old note here said "do not widen RQ1 to name jitter again unless the statistic is in hand", and the
 condition it set has been met for one statistic and not the other. p99.99 turned out to be the
-statistic that *decides* RQ1, since it is where the two languages separate below saturation, so
+statistic that _decides_ RQ1, since it is where the two languages separate below saturation, so
 leaving it unnamed while reporting it as the headline result was a question-and-answer mismatch and
 §1.3 was widened on 28 August to close it. Jitter decides nothing, no claim rests on it, and adding
 it to the tested family would spend two slots of the Holm budget on a metric that cannot resolve, so
@@ -1107,7 +1124,7 @@ way, and keep `bench/results/` in `refresh_thesis.sh`'s pooling loop.
 This is filed under "after the bare-metal campaign" at the end of Phase 10, and it does not
 belong there. Jitter is an IPDV dispersion statistic, not a far-tail percentile: the reading rule
 in §5.5 withholds the tail on a shared host, but it does not withhold a dispersion measure of the
-same runs. Pooled p99.99 would at least become *descriptively* reportable with the host's limits
+same runs. Pooled p99.99 would at least become _descriptively_ reportable with the host's limits
 attached, against ~17 observations per run today.
 
 **Cost.** One campaign is ~2.5 h wall clock on the KVM guest (the 1120-run Aug 12 pair started
@@ -1123,7 +1140,7 @@ Holm family, for the reason §5.5 already gives.
       whole `Jitter*` / `FarTail*` / `Iqr*` macro family for the first time, and
       `pool_hist.py --verify` confirmed every percentile of all 200 runs recomputes from the
       persisted buckets on a shared lattice. `NTests` still read 14. So the §7.5 float, its
-      caption and the prose can be written against the real macro names *before* the run,
+      caption and the prose can be written against the real macro names _before_ the run,
       instead of discovering their shape afterwards.
 - [x] **Overtaken by events, 26 Aug 2026.** The bare-metal campaign carries `--jitter` and
       `--hist-out` and its pooled p99.99 is now reported in §`sec:baremetal`, which is what this
@@ -1201,12 +1218,13 @@ zeros - the same convention `counters.sh` already uses.
       own fixed pages, which is a sharper and more interesting claim than the placeholder. Mind that
       peak RSS is a `getrusage` maximum while the `je` figures are sampled at a point, so the two are
       not strictly commensurable and the write-up has to say so.
+
 - [x] **First of the two follow-ups answered, in the negative, which is the useful outcome.** The
       30 MiB bimodality does not appear on bare metal at all: no variant's peak RSS spans more than
       1.7 MiB across its repeats, so the defect belonged to the host and not to the allocator. That
       is now the third reading in §`sec:baremetal` and it retrospectively supports the §`sec:stats`
       reading rule, which assumed exactly this without being able to show it. The guest campaign
-      carries no `je` fields, so the *guest's* low runs still cannot be checked against `metadata`.
+      carries no `je` fields, so the _guest's_ low runs still cannot be checked against `metadata`.
 - [ ] **Second follow-up still open.** Whether `metadata` explains the allocator effect falling from
       ~33 MiB on the guest to ~2.5 MiB on bare metal. Only the bare-metal side can be measured, so
       this is a partial answer at best, and the two hosts link different jemalloc builds.
@@ -1246,25 +1264,25 @@ an argued position into a measured one.
 
 **Why the outcome is worth having either way.** The plausible result is that C++ detects
 lock-order inversion with a sanitiser flag while Rust needs a rewrite of the test into a model
-checker's primitives - a boundary class where C++ tooling is *ahead*. That is the kind of finding
+checker's primitives - a boundary class where C++ tooling is _ahead_. That is the kind of finding
 the two-sided catalogue was designed to be able to produce, and reporting it is what makes the
 five in-guarantee results credible.
 
 - [x] **Checked, and the taxonomy is safe: no correction needed.** `taxonomy.csv` is
       byte-identical after the change. But the reason is not the one assumed. The
-      detector is *already on by default* in the libtsan g++ 13.3 ships (upstream
+      detector is _already on by default_ in the libtsan g++ 13.3 ships (upstream
       documents it as off, so this varies by runtime), and it still does not fire on the
       injected case.
 - [x] **The mechanism is the interesting part, and it is now evidenced.** TSan builds its
-      lock-order graph from acquisitions that *succeed*. `deadlock.cpp` blocks on its
+      lock-order graph from acquisitions that _succeed_. `deadlock.cpp` blocks on its
       first inversion, so the second edge never completes, the cycle never closes, and
       the detector stays silent — precisely when the bug manifests. A new positive
       control, `faults/cpp/deadlock_control.cpp`, inverts the same two locks without
-      blocking and *is* reported, which proves the detector was live. So the honest
+      blocking and _is_ reported, which proves the detector was live. So the honest
       statement for this class is that the tool catches the inversion the program
       survives and misses the one that deadlocks.
 - [x] **CORRECTION (Aug 2026): "it still does not fire" was wrong, and the reason it
-      looked right is instructive.** The detection is *nondeterministic*, and the
+      looked right is instructive.** The detection is _nondeterministic_, and the
       previous verdict was a single run. Measured over repeats, TSan reports the
       lock-order inversion in **4/12, 6/20 and 7/20 runs** across three trials — roughly
       30% — while the program deadlocks on every one. The mechanism recorded above is
@@ -1292,7 +1310,7 @@ five in-guarantee results credible.
       under either checker as written: each had to be re-imported against the checker's own
       `sync`/`thread` types, and shrunk to model size (lost update from 20 000 iterations
       per thread to one; the deadlock loses its `thread::sleep`). So the Rust answer is
-      *detected at test time, after a rewrite*, against a C++ side that needs no rewrite and
+      _detected at test time, after a rewrite_, against a C++ side that needs no rewrite and
       finds one of the two unreliably and the other not at all. The two halves point in
       opposite directions, which is the two-sided result the catalogue was designed to be
       able to produce.
@@ -1403,7 +1421,7 @@ were borrow-checker diagnostics while the prose claimed two mechanisms.
       length 105 to 108 pages.
 - [x] **The abstract's catalogue counts.** Closed by the unaided rewrite (17th pass). Do not
       re-report "five" and "Five further classes" against the current PDF. Historical list is in
-      *Do now*.
+      _Do now_.
 - [x] **The deadlock detection rate is not a number the prose should lean on.** Successive
       12-repeat runs recorded 4, 5, 7 and 9 hits. The thesis now states intermittency and reads
       the current rate from `taxonomy.csv` (`\DeadlockTsanHits` of `\DeadlockTsanRuns`). Raising
@@ -1422,7 +1440,7 @@ robustness sentence or finds something.
 > **Status, 26 Aug 2026: a partial answer arrived by accident and has to be reported either way.**
 > The bare-metal campaign ran `g++ 13.3.0` and `rustc 1.98.0` where the guest campaign ran
 > `g++ 15.1.1` and `rustc 1.97`. Every finding survived, across two major versions of the C++
-> compiler and a minor version of rustc. That is a free robustness result and it argues *for* the
+> compiler and a minor version of rustc. That is a free robustness result and it argues _for_ the
 > thesis. It is also a fifth difference between the two campaigns that §`sec:baremetal` does not
 > name while claiming the campaign "changes one thing that matters, the machine", and
 > `tab:testbed`'s caption says the confirmation host met a protocol column that asks for the same
@@ -1450,8 +1468,8 @@ Table 8.1's RQ4 row, §8.4's RQ4 paragraph, §5.4's method description, and the 
 - [x] **Binary size and static footprint.** Measured on `conformance_runner`, the tightest matched
       executable pair (spec-defined, built by both, no dev-dependency either side). **The naive
       comparison is a linkage-policy artefact and the ordering reverses when the policy is held
-      fixed:** shipped defaults give Rust `\FootShippedRatio`x the size, matched *dynamic* std
-      gives C++ smaller by `\FootDynamicRatio`x, matched *static* std gives **Rust** smaller by
+      fixed:** shipped defaults give Rust `\FootShippedRatio`x the size, matched _dynamic_ std
+      gives C++ smaller by `\FootDynamicRatio`x, matched _static_ std gives **Rust** smaller by
       `\FootStaticRatioAbs`x. Cause measured, not argued: `\FootCppLocaleShare`% of the sized
       symbols in the static C++ binary are locale and stream facets, including the money, date and
       `wchar_t` facets the program never instantiates, because a static libstdc++ link takes the
@@ -1507,8 +1525,8 @@ cheapest reduction if one is wanted is to cut the footprint discussion to the re
 ### 8. Report equivalence bounds, not only null results
 
 **Why.** The thesis's most-repeated sentence is that this measurement "cannot tell", and the
-register is right. But a non-significant paired test is the *weakest* possible way to say it: it
-supports no claim at all, which is why §5.5 has to spend a paragraph on the *p*-floor.
+register is right. But a non-significant paired test is the _weakest_ possible way to say it: it
+supports no claim at all, which is why §5.5 has to spend a paragraph on the _p_-floor.
 
 Equivalence testing gives the positive version. The TOST procedure (Schuirmann) tests
 $H_0: |\Delta| \ge \delta$ against a pre-specified margin and, when it rejects, licenses
@@ -1519,15 +1537,15 @@ forbids, because the margin is stated.
 **smallest margin at which equivalence holds at 95%**. That is a single number per metric, read
 straight off the bootstrap interval already computed, and it turns every null in
 `tab:significance` into a bound. "The paired median difference is within $\pm1.6$ µs" says
-something; "*p* = 0.7" does not.
+something; "_p_ = 0.7" does not.
 
 **Implementation.** The permutation machinery in `bench/plot_figures.py` already does this: shift
 the paired differences by $\pm\delta$ and run the existing one-sided test each way, take the
-larger *p*. No new dependency, no distributional assumption, and it composes with the existing
+larger _p_. No new dependency, no distributional assumption, and it composes with the existing
 Holm family rather than replacing it.
 
 **Also worth adding while in that file.** A power/repeat-count calculation for the testbed visit.
-§5.5 states the *p*-floor at $2/2^n$ but nothing about the *n* needed to detect an effect of a
+§5.5 states the _p_-floor at $2/2^n$ but nothing about the _n_ needed to detect an effect of a
 given size, so the September repeat count is currently guesswork.
 
 - [x] **Implemented and run.** `paired_tost()` (two one-sided permutation tests against a
@@ -1539,7 +1557,7 @@ given size, so the September repeat count is currently guesswork.
       143 pages with zero errors and zero undefined references.
 - [x] **The output makes the case for the testbed better than the current text does.**
       Median latency is equivalent within **±2.0 µs**, a tight positive claim where there
-      was only a *p*-value. The tail is bounded at **252-1298 µs** depending on the row —
+      was only a _p_-value. The tail is bounded at **252-1298 µs** depending on the row —
       against a median of roughly 43 µs. So "cannot tell" now has a number on it: the
       difference could be thirty times the median. That is a far stronger argument for
       the bare-metal campaign than "the intervals overlap".
@@ -1556,7 +1574,7 @@ given size, so the September repeat count is currently guesswork.
 
 `tab:params` fixes shard count, queue capacity, and active-UE population. The external-validity
 row concedes "one subsystem, one workload, one machine" and the performance results "do not
-travel". A cheap partial answer: does the *ordering* survive a sweep of the knobs? Queue capacity
+travel". A cheap partial answer: does the _ordering_ survive a sweep of the knobs? Queue capacity
 is the interesting one, because it interacts directly with item 1's overload hypothesis. The
 `signal` workload also exists in both benches and has never been run as a campaign, so a second
 workload is available for the price of one flag.
@@ -1601,6 +1619,7 @@ by "the artefacts" once the repository keeps moving after submission.
 ---
 
 ### Notes / open questions
+
 - Timeline: writing, implementation, and both bare-metal campaigns are complete (26 and 27 August),
   ahead of the plan's September slot. Remaining work is the draft's editing items (**O**–**S**,
   source remediating, grade waits on a re-read), the citation
@@ -1636,3 +1655,7 @@ by "the artefacts" once the repository keeps moving after submission.
   inferred from `\additionalinformation{Software study track}`. Verify this is right.
 - Logo `UH-logo.png` moved to `archive/` with `UH_DS_MSc.cls` on 8 September 2026. The live
   documents load the HY mark from `template/`.
+
+Todo: 5.10.2026
+
+- [ ] Make it more clear to read
