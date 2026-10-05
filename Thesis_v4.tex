@@ -1642,8 +1642,9 @@ identity missing. There is therefore no invalid memory access for a sanitiser
 to detect, even though the application behaviour is incorrect
 (Section~\ref{sec:defects}).
 
-The seven defects outside the guarantees of safe Rust compile successfully in
-Rust and remain possible at runtime. Some can nevertheless be detected by
+The seven boundary classes also compile in safe Rust. Rust does not rule them out 
+at compile time, so the faulty behaviour can still happen when the program runs.
+Some can nevertheless be detected by
 specialised tools. LeakSanitizer detects the reference cycle because the
 resulting memory leak is permitted by Rust's ownership model
 \cite{hughes2025gcrust,cui2024rcanary}. UndefinedBehaviorSanitizer detects the
@@ -1664,12 +1665,20 @@ error, so the difference between the two implementations is only in whether
 the compiler is able to prevent it. Miri detects the Rust double-free, but it
 cannot execute the C++ host code behind the foreign-function boundary.
 
-The remaining concurrency defects require a different approach because they
-are not directly detected by the normal sanitiser tools. Loom explores
-possible thread interleavings, while Shuttle provides complementary schedule
-exploration~\cite{bornholt2021shardstore}. These defects therefore had to be
-rewritten using the primitives supported by each model checker an
+Some concurrency defects cannot be found directly by the sanitiser tools. To
+investigate these cases, this study used Loom and
+Shuttle~\cite{bornholt2021shardstore}. They systematically explore different
+possible orders in which threads can execute. These tools operate on small
+models rather than the full application. Each defect had to be converted into
+the tool's model and simplified to the smallest example that still reproduced
+the problem.
 
+Rust's Resource Acquisition Is Initialization (RAII) prevents one common
+concurrency defect, forgetting to unlock a mutex. The lock is automatically
+released when its guard is dropped. RAII does not eliminate all lock-related
+defects. The two forgotten-guard cases in the study still caused the programs
+to hang, and neither tool reported these hangs. Figure~\ref{fig:taxonomy}
+draws the whole list as an outcome matrix.
 
 % Full column width no longer fits in the leftover under the safety paragraph.
 % [ht] would park the matrix above the next subsection.
