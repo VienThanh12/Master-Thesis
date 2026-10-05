@@ -1482,14 +1482,20 @@ entry its own node. Putting an open-addressed map in C\texttt{++} left the
 lead in place. Rust was ahead in $\SgFlatRustAhead$ of $\SgFlatPairs$
 paired repeats.
 
-Giving Rust the C\texttt{++} queue, one lock and two condition variables,
-removed the lead. Rust with that queue fell behind the original Rust queue
-in $\SgQueueMutexSlower$ of $\SgQueuePairs$ repeats. A C\texttt{++} ring
-buffer that kept the same lock moved C\texttt{++} by only
+The original Rust queue is \texttt{sync\_channel}. The swap gave Rust the
+C\texttt{++} locking design instead. Only one thread may change the queue
+at a time. A sender waits for a free slot, and a worker waits for a
+request. That check is not the language comparison. It asks which part
+carries the remaining lead. Rust with that lock lost the lead. It fell
+behind the original Rust channel in $\SgQueueMutexSlower$ of
+$\SgQueuePairs$ repeats.
+
+C\texttt{++} then kept the same lock and changed only the buffer, from a
+growable buffer to a fixed ring. Throughput moved by only
 $\SgQueueRingAbsPct\%$. The lead therefore comes from how the queue is
 locked, not from how it stores requests. The lock adds kernel time to each
-handoff, not extra thread sleeps. All four builds switch threads
-$\SgSwitchLow$ times per call at $\SgSwitchLowLoad$~kops/s.
+handoff. It does not add extra thread sleeps. All four builds switch
+threads $\SgSwitchLow$ times per call at $\SgSwitchLowLoad$~kops/s.
 
 \begin{figure}[ht]
 \centering
