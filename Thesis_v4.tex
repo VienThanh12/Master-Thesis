@@ -1486,7 +1486,10 @@ language effect. Thus, the relative size of the two effects is a property
 of the host environment, rather than a general property of Rust or
 \texttt{jemalloc}.
 
-\begin{table}[ht]
+% [!ht] and the barrier below keep the table with the paragraph that cites it.
+% Without them [ht] defers the float and it can land in the next paragraph.
+\enlargethispage{24pt}
+\begin{table}[!ht]
 \centering
 \small
 \caption[Extra peak RAM on each host]{Extra peak RAM on each host, in MiB.
@@ -1510,6 +1513,7 @@ Allocator effect & \RssAllocDiffLo--\RssAllocDiffHi
 \end{tabular}
 \end{table}
 
+\FloatBarrier
 The second bare-metal host provides more detail about the source of the
 additional Rust RAM. Table~\ref{tab:resident} separates the process memory
 into allocator metadata, live application allocation, and
