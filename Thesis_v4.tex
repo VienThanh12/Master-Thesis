@@ -1511,19 +1511,8 @@ those samples after the window, on \MainCpu{}, pin \MainPinned{}, and \texttt{no
 % The throughput figure does not fit on the page that cites it. Without a
 % barrier the next subsection starts, and the figure lands under that heading.
 \FloatBarrier
+\clearpage
 \subsection{Resource use (RQ3)}\label{sec:resources}
-% The chart is taller than the space left under this paragraph, about 430pt
-% against 250pt, so after the paragraph it left half a page blank before the
-% barrier. Placed under the heading it shares the folio with its text.
-\begin{figure}[ht]
-\centering
-\includegraphics[width=\linewidth]{figures/fig_resources_column.pdf}
-\caption[Peak memory and CPU of the four builds]{Resource use at
-$\ReprLoad$~kops/s, grouped by allocator. Bars are medians over \NRepeats{}
-repeats with bootstrap $95\%$ intervals, and CPU in (b) is summed across
-threads.\label{fig:resources}}
-\end{figure}
-
 The four variants differ in RAM and CPU usage even where their median latencies are
 close. Peak resident set size (RSS) contains two effects of similar size on
 the reported host. The Rust build uses
@@ -1556,6 +1545,17 @@ $\BmInstrDelta\%$ \BmInstrDeltaDir{} instructions and finishes in
 $\BmCycleDelta\%$ \BmCycleDeltaDir{} cycles, while missing cache
 $\BmMissDelta\%$ \BmMissDeltaDir{} often per thousand instructions. Those
 counters explain the isolated core result, not the overload floor.
+
+% After the citing paragraph so the chart cannot open the next page in the
+% middle of that paragraph. [!ht] keeps it with this subsection.
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_resources_column.pdf}
+\caption[Peak memory and CPU of the four builds]{Resource use at
+$\ReprLoad$~kops/s, grouped by allocator. Bars are medians over \NRepeats{}
+repeats with bootstrap $95\%$ intervals, and CPU in (b) is summed across
+threads.\label{fig:resources}}
+\end{figure}
 
 % Same drift as the throughput figure: the RAM chart was opening the safety subsection.
 \FloatBarrier
