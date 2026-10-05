@@ -224,8 +224,9 @@ data is used, so no personal or confidential data is processed.
   \item A frozen shared specification and two parity-tested implementations.
   \item A quantitative comparison of latency and resource behaviour that
   divides at the saturation knee. Below it the far tail is resolved on bare
-  metal. Past it the campaign clock times recorder work alongside the service,
-  so the study reports what each clock can support and ranks neither language.
+  metal. Past it extra delay samples are written after the timed window,
+  so the study reports completed work and ranks neither language on
+  service latency.
   \item A bound on what a comparison of this shape can attribute to a language
   at all, obtained by decomposing an end-to-end operation into the work the
   language performs and the cross-thread handoff around it, and by auditing

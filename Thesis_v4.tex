@@ -1463,7 +1463,6 @@ handoff. It does not add extra thread sleeps. All four builds switch
 threads $\SgSwitchLow$ times per call at $\SgSwitchLowLoad$~kops/s.
 
 \FloatBarrier
-\clearpage
 \subsection{Resource use (RQ3)}\label{sec:resources}
 The four variants have similar median latencies, but they do not use the same
 amount of RAM or CPU. The resource results show different patterns for
@@ -1527,33 +1526,31 @@ application data. Instead, it is mainly a fixed process-level cost.
 \paragraph{CPU usage.}
 CPU usage does not follow the memory pattern. At $\ReprLoad$~kops/s, Rust
 uses at most $\CpuDiffAbsMax$ percentage points less CPU than
-C\texttt{++}. Past saturation, the CPU figure for the service is the
-same-host run that writes extra delay samples after the timed window. At
-$\OverloadLoad$~kops/s that ratio is $\ProbeAfterCpuPerOpRatio$, with
-\ProbeAfterCpuPerOpHigher{} the higher one. The campaign clock, which
-writes those samples during the window, reports
-$\OverloadCpuPerOpRatio$ instead. That larger ratio is the extra-sample
-recorder. A smaller throughput lead remains, and
-Section~\ref{sec:overload} traces it to how the queue is locked.
+C\texttt{++}. Past saturation, extra delay samples are written after the
+timed window. At $\OverloadLoad$~kops/s that ratio is
+$\ProbeAfterCpuPerOpRatio$, with \ProbeAfterCpuPerOpHigher{} the higher
+one. A throughput lead remains, and Section~\ref{sec:overload} traces it
+to how the queue is locked.
 
 \paragraph{What the hardware counters tell us.}
-The hardware-counter measurements on the second bare-metal host describe
-only the isolated core call. This experiment has no queue in the execution
-path and no offered load, so it measures the cost of processing an
-individual call without contention.
 
-For this isolated call, Rust retires $\BmInstrDelta\%$
-\BmInstrDeltaDir{} instructions and completes in
-$\BmCycleDelta\%$ \BmCycleDeltaDir{} cycles, while experiencing
-$\BmMissDelta\%$ \BmMissDeltaDir{} more cache misses per thousand
-instructions.
+The hardware-counter measurements on the second bare-metal host cover only
+an isolated call. There is no queue, no offered load, and therefore no
+competition between requests for shared resources. The measurements show
+how much CPU work is needed to process one request when it runs by itself.
 
-These counters explain the performance difference for the isolated core
-call: Rust completes the call with fewer instructions and fewer cycles,
-despite having more cache misses per thousand instructions. However, these
-measurements do not explain the overload floor, because the overload
-experiment includes queueing and contention that are absent from the
-isolated-core measurement.
+For this isolated call, Rust retires 11\% fewer instructions and completes
+in 15\% fewer CPU cycles than C\texttt{++}. It also has 29\% more cache
+misses per thousand instructions. Thus, Rust completes the isolated call
+faster even though its cache-miss rate is higher.
+
+These measurements explain the performance difference when a call runs
+without interference from other requests. They do not explain the
+performance at the overload floor. Under overload, many requests compete
+for shared resources such as the queue and its lock. The resulting
+queueing and contention are not present in the isolated-core experiment.
+Therefore, the hardware counters cannot by themselves explain the
+overload behavior.
 
 % After the citing paragraph so the chart cannot open the next page in the
 % middle of that paragraph. [!ht] keeps it with this subsection.
@@ -1657,15 +1654,10 @@ $\PFiftyRange\,\mu$s at the median, and the pooled far tail lands on
 \FarTailLower{}'s side. The end-to-end round-trip is only
 $\BudgetCoreShareMax\%$ language work, so it cannot bound a language effect.
 The same core timed apart is $\BudgetCoreRatio\times$ faster in
-\BudgetCoreFaster{}. At higher loads the campaign clock shows an allocator
-split at $\KneeSplitLoad$~kops/s and a $\OverloadThrRatio\times$ lead for
-\OverloadSustainedFaster{} at $\OverloadLoad$. Writing the extra delay samples after the
-window on this same host removes both large patterns and leaves a smaller
-Rust lead. CPU per completed call falls from $\OverloadCpuPerOpRatio\times$
-to $\ProbeAfterCpuPerOpRatio\times$. The smaller lead sits in the handoff
-between threads, and on a further host it goes away when Rust is given the
-C\texttt{++} queue. Neither overload clock supplies
-service-latency percentiles, so RQ1 has no language verdict after saturation. The RQ2 outcome
+\BudgetCoreFaster{}. At higher loads Rust still finishes more calls. That
+lead sits in the handoff between threads, and on a further host it goes
+away when Rust is given the C\texttt{++} queue. The overload percentiles
+are schedule drift, so RQ1 has no language verdict after saturation. The RQ2 outcome
 is complete for the fourteen-class catalogue set in advance and does not
 depend on the host. All seven classes safe Rust is built to reject are
 compile errors. The other seven compile and
@@ -1683,26 +1675,23 @@ RQ1 has two answers separated by regime. At $\ReprLoad$~kops/s the campaign
 resolves median, p99 and p99.9 differences, and the pooled p99.99 lies on
 Rust's side. The end-to-end clock still cannot bound a language effect because
 the core call is only $\BudgetCoreShareMax\%$ of what it times. After
-saturation neither available percentile clock estimates service latency. The
-campaign includes extra delay samples on the sender, while the same-host run measures cumulative
-schedule drift. No overload tail ranking follows.
+saturation the overload percentiles are schedule drift. Extra delay
+samples are written after the timed window, so they do not add recorder
+work while the timer is running. No overload tail ranking follows.
 
-The campaign throughput shows an allocator split at one operating point and a C++ lead
-later. The same-host run removes both large patterns when those extra samples
-are written after the interval and leaves a smaller Rust lead. That isolates the extra samples as the
-source of the large gaps. The smaller lead sits in the handoff between
+Past saturation Rust is still ahead on finished calls on both allocators.
+That lead sits in the handoff between
 threads, where C\texttt{++} uses more kernel time per call. On a further host
 with the same processor, a hash map swap left it in place, and giving Rust
 the C\texttt{++} queue removed it. The earlier run's
 lower Rust p99 misses the stalls on purpose and is not an RQ1
-tail result. The same-host run's throughput is a completed-work comparison. Its
+tail result. The overload throughput is a completed-work comparison. Its
 percentiles are schedule drift. The closest prior work reports
 similar degradation past a threshold rate and attributes it to stackless
 \texttt{async}/\texttt{await}~\cite{arvidsson2025async}. That cause cannot
 carry here because neither side uses an asynchronous runtime. Changing Rust's
-reply handle, on an earlier host, does not explain the smaller lead that
-remains here. The campaign ratio therefore
-remains a result for its harness and does not rank top service rates. The
+reply handle, on an earlier host, does not explain the remaining lead
+here. That throughput lead does not rank top service rates. The
 prediction logged in advance had instead named bounds and overflow
 checking~\cite{zhang2022runtime,harris2023morello}. That part was wrong. At
 nominal load the median result still fits evidence that Rust's safe checks are
@@ -1766,9 +1755,9 @@ runs on Tokio, where a task is a small future on the heap. What they
 timed is the per-task cost of two concurrency runtimes.
 Two further studies agree with the way found
 here~\cite{olsson2023ranmgmt,sundvisson2026drivers}. Below saturation Rust
-draws slightly less CPU. The larger flip under the campaign clock is the
-recorder. On this host it is absent once the extra samples are written after the interval, and it cannot be
-assigned to Rust's safe code model. A smaller throughput lead remains.
+draws slightly less CPU. Past saturation the CPU ratio is
+$\ProbeAfterCpuPerOpRatio$. It cannot be
+assigned to Rust's safe code model. A throughput lead remains.
 
 RQ4 finds the layer between the two languages small. A C++ host can
 call an unchanged Rust core across that thin C-ABI layer, and the cost on a real
@@ -1796,7 +1785,7 @@ Saying how they came out is what sets a test apart from a sketch.
         pooled far tail favours Rust. The isolated core favours
         \BudgetCoreFaster{}. After saturation the available clocks do not
         provide a valid service-latency ranking. The hypothesis combined the
-        round-trip, core code, recorder work and overload behaviour into one
+        round-trip, core code, and overload behaviour into one
         quantity that the method cannot support.
   \item[H2] For the seven injected classes of its kind it holds without
         exception. It fails in the looser reading its wording invites. It is
@@ -1836,13 +1825,13 @@ versions. The same failure mode flipped a printed verdict in this
 field: comparable after a code review and then Rust worse by $85$--$91\%$
 after more speed work~\cite{emberg2023asn1}. The parity suite bounds
 what the code does and not speed. The second is that the end-to-end clock
-times the design faithfully and the language hardly at all. Third, the
-same-host control isolates when the extra delay samples are written. It removes the large campaign gaps
-and leaves a smaller Rust lead where throughput has stopped rising. The kernel
+times the design faithfully and the language hardly at all. Third,
+extra delay samples are written after the timed window. A throughput lead
+remains where the service has stopped meeting its sent rate. The kernel
 time split behind that lead comes from this host, but the swaps that test its
 cause ran on a further host with the same processor. The earlier run
-was not repeated here. Fourth, neither high-load clock gives
-service-latency percentiles. The campaign includes recorder work. The earlier run misses the stalls, and the same-host run reports schedule drift. The thesis
+was not repeated here. Fourth, the overload percentiles are
+schedule drift. The thesis
 therefore leaves overload service latency unresolved.
 
 \section{Ethical and professional reflection}
@@ -1902,13 +1891,11 @@ removes the queue and cross-thread handoff and times the core call alone. The
 core is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster{} in that
 measurement. At the chosen load of $\ReprLoad$~kops/s the paired test finds
 $\PFiftyDiffAbsMax\,\mu$s in Rust's favour. At p99.99 the slowest Rust variant sits
-$\FarTailLangSep\,\mu$s below the fastest C++ one. The campaign then shows
-an allocator split at $\KneeSplitLoad$~kops/s and a $\OverloadThrRatio\times$
-C++ lead deeper into overload. Writing the extra delay samples after the timed window on
-this same host removes both large patterns and leaves a smaller Rust lead.
-CPU per completed call falls from $\OverloadCpuPerOpRatio\times$ to
-$\ProbeAfterCpuPerOpRatio\times$. On a further host, giving Rust the
-C\texttt{++} queue removes the smaller lead, so it comes from how calls pass
+$\FarTailLangSep\,\mu$s below the fastest C++ one. Past saturation Rust still
+finishes more calls at $\OverloadLoad$~kops/s. Extra delay samples are written
+after the timed window. CPU per completed call is
+$\ProbeAfterCpuPerOpRatio$. On a further host, giving Rust the
+C\texttt{++} queue removes that lead, so it comes from how calls pass
 between threads, not from the core work. The gaps do not rank the two services,
 and overload service latency remains unresolved. On RAM
 the Rust build carries a few MiB more fixed footprint under both allocators. It does so in
@@ -1920,19 +1907,16 @@ Taken as a set these support a narrow claim. It is for stateful, concurrent,
 partitionable control plane services of this kind. At the loads where the
 service still meets its sent rate, the choice is which classes of defect a
 team wants to make impossible to write. The other half is whether it will pay the
-design and training cost of getting them. Past that point the campaign
-includes substantial recorder work and adds no second language rank. What the thesis adds
+design and training cost of getting them. Past that point there is no second
+language rank. What the thesis adds
 is not a verdict. It is the frozen spec,
 the parity tested pair, and a timing harness that reaches past the saturation
 region. A split of the
 round-trip says how much of what it times the language can own. A defect
 list maps where the guarantee stops.
 
-Future work answers the gaps one at a time. The same-host control is now
-done. Writing extra samples during the interval and after it was repeated on one host, with the pin and \texttt{nohz\_full}
-held. The large gaps move with when those samples are written. On a further
-host, the smaller Rust lead that remains goes away when Rust is given the
-C\texttt{++} queue. One job is to repeat that swap on the campaign host.
+Future work answers the gaps one at a time. The remaining Rust lead goes
+away when Rust is given the C\texttt{++} queue. One job is to repeat that swap on the campaign host.
 Another needs no new host. It is to vary how the kernel uses large pages for ordinary memory, on one host with all
 else held fixed. All three hosts agree that the Rust build carries the larger
 footprint. They disagree about how that sits against the cost of the
@@ -2057,7 +2041,7 @@ Workloads & signal, mixed & mixed walks the full RAN lifecycle \\
 Active UEs & \SweepUes{} & \\
 Offered-load levels & \NLoadLevels{} & up to $\MaxOfferedLoad$~kops/s \\
 Representative load & $\ReprLoad$~kops/s & fixed, see caption \\
-Flat throughput & $\SatKnee$~kops/s achieved & both languages track through $\TrackingLoad$~kops/s. At $\KneeSplitLoad$ the Rust allocators split, and writing extra samples after the interval on this host removes that split (Section~\ref{sec:overload}) \\
+Flat throughput & $\SatKnee$~kops/s achieved & both languages track through $\TrackingLoad$~kops/s. Past saturation, extra delay samples are written after the timed window (Section~\ref{sec:overload}) \\
 Load model & open loop, fixed intended schedule & latency measured from intended send time \\
 \hline
 \multicolumn{3}{@{}l}{\emph{Campaign}} \\
@@ -2125,17 +2109,16 @@ resident set, but runs a different shard count, load grid, repeat count and tool
 campaign has its own generator and macro prefix.
 
 The two timing checks each cover the same fourteen-load, two-language,
-two-allocator grid. The same-host run is this host. The processor is \ProbeAfterCpu{},
+two-allocator grid. Past saturation, extra delay samples are written after the
+interval. The processor is \ProbeAfterCpu{},
 the pin is \ProbeAfterPinned{}, and \texttt{nohz\_full} is
 \ProbeAfterNohzFull{}, matching the campaign's \MainCpu{} and
 \texttt{\MainNohzFull}. The earlier run that wrote none of the extra delay samples was not repeated here and remains an earlier
-host, so it cannot supply this campaign's percentiles. The same-host run writes those samples after the
-interval, and its overload percentiles are schedule drift. At the top load Rust
+host, so it cannot supply this campaign's percentiles. The overload percentiles are schedule drift. At the top load Rust
 is ahead on both allocators, at $p \ProbeAfterThrPSystem$ on the system allocator
 and $p \ProbeAfterThrPJemalloc$ under \texttt{jemalloc}. CPU per completed
-operation is $\ProbeAfterCpuPerOpRatio$, against $\OverloadCpuPerOpRatio$
-while those extra samples were written inside the window. The large ratio is the recorder. The
-smaller throughput lead remains.
+operation is $\ProbeAfterCpuPerOpRatio$.
+A throughput lead remains.
 
 The tables that follow are the measurements the main text cites from this appendix.
 

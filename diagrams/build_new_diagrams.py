@@ -27,7 +27,8 @@ from dsl import (
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FIGURES = os.path.join(HERE, os.pardir, "figures")
-MACRO_FILES = ("gen_macros.tex", "gen_artefacts.tex", "gen_adoption.tex")
+MACRO_FILES = ("gen_macros.tex", "gen_artefacts.tex", "gen_adoption.tex",
+               "gen_probes.tex")
 
 
 def load_macros():
@@ -53,7 +54,11 @@ def load_macros():
                "FaultClassesBoundary", "FfiEntryPoints", "FfiUnsafeFns",
                "FfiOpNative", "FfiOpSeam", "CoreUnsafe", "ReprLoad",
                "TrackingLoadCpp", "TrackingLoadRust", "OverloadLoad",
-               "OverloadThrCpp", "OverloadThrRust"} - values.keys()
+               "OverloadThrCpp", "OverloadThrRust",
+               "ProbeAfterKneeLoad", "ProbeAfterKneeThrCpp",
+               "ProbeAfterKneeThrRust", "ProbeAfterThrCpp",
+               "ProbeAfterThrRust", "ProbeAfterTrackCpp",
+               "ProbeAfterTrackRust"} - values.keys()
     if missing:
         raise SystemExit(f"{' and '.join(MACRO_FILES)} are missing {sorted(missing)}")
     if "KneeGapLoad" not in values and "KneeSplitLoad" not in values:
@@ -719,11 +724,10 @@ def load_regimes():
     """Four operating points on the offered-load axis, plus finished throughput.
 
     Spacing is schematic. The ticks and bar lengths come from the same macros
-    the prose cites. A language knee is shown and not tested. An allocator
-    split is shown the same way, and it is not a language knee.
+    the prose cites. Past saturation the bars are finished throughput with
+    extra delay samples written after the timed window.
     """
     d = Diagram("30_load_regimes", 880, 280)
-    split = "KneeGapLoad" not in M
 
     d.rect(40, 48, 800, 18, GREY_FILL, rx=9)
     d.rect(40, 48, 280, 18, GREEN, rx=9)
@@ -731,20 +735,10 @@ def load_regimes():
     d.rect(460, 48, 160, 18, AMBER, rx=0)
     d.rect(620, 48, 220, 18, RED, rx=9)
 
-    if split:
-        mid_load = M["TrackingLoadCpp"]
-        gap_load = M["KneeSplitLoad"]
-        mid_chip = "both track"
-        gap_chip = "one heap splits"
-    else:
-        mid_load = M["TrackingLoadCpp"]
-        gap_load = M["TrackingLoadRust"]
-        mid_chip = "C++ stops tracking"
-        gap_chip = "shown, not tested"
     ticks = [
         (80, M["ReprLoad"], GREEN_DEEP),
-        (360, mid_load, BLUE_DEEP),
-        (520, gap_load, AMBER_DEEP),
+        (360, M["ProbeAfterTrackCpp"], BLUE_DEEP),
+        (520, M["ProbeAfterKneeLoad"], AMBER_DEEP),
         (760, M["OverloadLoad"], RED_DEEP),
     ]
     for x, lab, color in ticks:
@@ -753,47 +747,34 @@ def load_regimes():
 
     d.chip(50, 88, 200, 36, "below saturation", GREEN_CHIP, GREEN_DEEP,
            size=13, rx=8, stroke=GREEN_EDGE)
-    d.chip(300, 88, 160, 36, mid_chip, BLUE_CHIP, BLUE_DEEP, size=13,
+    d.chip(300, 88, 160, 36, "both keep up", BLUE_CHIP, BLUE_DEEP, size=13,
            rx=8, stroke=BLUE)
-    d.chip(470, 88, 150, 36, gap_chip, AMBER_CHIP, AMBER_DEEP,
+    d.chip(470, 88, 150, 36, "C++ falls behind", AMBER_CHIP, AMBER_DEEP,
            size=12, rx=8, stroke=AMBER_EDGE)
-    d.chip(640, 88, 180, 36, "overload flip" if not split else "overload",
+    d.chip(640, 88, 180, 36, "overload",
            RED_CHIP, RED_DEEP, size=13, rx=8, stroke=RED)
 
     d.text(40, 156, "kops/s finished", 12, FAINT)
 
-    if split:
-        fast = float(M["KneeSplitMedKeep"])
-        slow = float(M["KneeSplitMedDrop"])
-        fast_label = f"{'jemalloc' if 'jemalloc' in M['KneeSplitKeepHeap'] else 'system'}  {M['KneeSplitMedKeep']}"
-        slow_label = f"{'jemalloc' if 'jemalloc' in M['KneeSplitDropHeap'] else 'system'}  {M['KneeSplitMedDrop']}"
-        gap_name = M["KneeSplitLoad"]
-    else:
-        fast = float(M["KneeGapThrFast"])
-        slow = float(M["KneeGapThrSlow"])
-        fast_label = f"Rust  {M['KneeGapThrFast']}"
-        slow_label = f"C++  {M['KneeGapThrSlow']}"
-        gap_name = M["KneeGapLoad"]
+    rust = float(M["ProbeAfterKneeThrRust"])
+    cpp = float(M["ProbeAfterKneeThrCpp"])
     gap_w = 180.0
-    d.text(40, 186, f"at {gap_name} (shown)", 12, AMBER_DEEP)
-    if split:
-        _thru_bar(d, 220, 172, gap_w, 18, AMBER, AMBER, fast_label, AMBER_DEEP)
-        _thru_bar(d, 220, 196, gap_w * slow / max(fast, 1.0), 18, AMBER, AMBER,
-                  slow_label, AMBER_DEEP)
-    else:
-        _thru_bar(d, 220, 172, gap_w, 18, GREEN, GREEN, fast_label, GREEN_DEEP)
-        _thru_bar(d, 220, 196, gap_w * slow / max(fast, 1.0), 18, BLUE, BLUE,
-                  slow_label, BLUE_DEEP)
+    longer = max(rust, cpp, 1.0)
+    d.text(40, 186, f"at {M['ProbeAfterKneeLoad']}", 12, AMBER_DEEP)
+    _thru_bar(d, 220, 172, gap_w * rust / longer, 18, GREEN, GREEN,
+              f"Rust  {M['ProbeAfterKneeThrRust']}", GREEN_DEEP)
+    _thru_bar(d, 220, 196, gap_w * cpp / longer, 18, BLUE, BLUE,
+              f"C++  {M['ProbeAfterKneeThrCpp']}", BLUE_DEEP)
 
-    cpp = float(M["OverloadThrCpp"])
-    rust = float(M["OverloadThrRust"])
+    cpp = float(M["ProbeAfterThrCpp"])
+    rust = float(M["ProbeAfterThrRust"])
     over_w = 110.0
     longer = max(cpp, rust, 1.0)
-    d.text(500, 186, f"at {M['OverloadLoad']} (tested)", 12, RED_DEEP)
-    _thru_bar(d, 680, 172, over_w * cpp / longer, 18, BLUE, BLUE,
-              f"C++  {M['OverloadThrCpp']}", BLUE_DEEP)
-    _thru_bar(d, 680, 196, over_w * rust / longer, 18, GREEN, GREEN,
-              f"Rust  {M['OverloadThrRust']}", GREEN_DEEP)
+    d.text(500, 186, f"at {M['OverloadLoad']}", 12, RED_DEEP)
+    _thru_bar(d, 680, 172, over_w * rust / longer, 18, GREEN, GREEN,
+              f"Rust  {M['ProbeAfterThrRust']}", GREEN_DEEP)
+    _thru_bar(d, 680, 196, over_w * cpp / longer, 18, BLUE, BLUE,
+              f"C++  {M['ProbeAfterThrCpp']}", BLUE_DEEP)
     return d
 
 
