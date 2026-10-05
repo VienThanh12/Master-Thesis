@@ -1553,8 +1553,13 @@ different: many requests arrive at the same time and must share the queue
 and its lock. Some requests therefore spend time waiting for the queue or
 for other threads to release the lock. This waiting does not occur in the
 isolated-core experiment and is not captured by the hardware-counter
-measurements. Therefore, the hardware counters explain the isolated-call
-result, but they cannot explain the behavior observed under overload.
+measurements. The overload experiment in Section~\ref{sec:overload} showed that 
+the additional overhead comes from waiting for the queue lock and from 
+the kernel time required for each handoff between threads. 
+Therefore, the hardware-counter results explain the performance of 
+an isolated call, but they do not explain the additional delays 
+that appear when the system is overloaded.
+
 
 
 % After the citing paragraph so the chart cannot open the next page in the
