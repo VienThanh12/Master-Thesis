@@ -1172,7 +1172,8 @@ It has to reproduce all $\ConfHandOps$ hand-derived
 expectations before it may generate any of its own. A campaign of
 $\ConfGenOps$ generated operations found no mismatch. The C++ side runs under
 AddressSanitizer, ThreadSanitizer and UndefinedBehaviorSanitizer. The Rust
-side runs under Miri. A clean sanitiser result is bounded by the code that
+side runs under Miri, an interpreter that checks \texttt{unsafe} Rust for
+undefined behaviour. A clean sanitiser result is bounded by the code that
 actually ran.
 
 \chapter{Experimental Setup and Evaluation\label{chapter:eval}}
