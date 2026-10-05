@@ -1396,20 +1396,17 @@ load test. Every request has a planned send time. When the service is
 slow, the sender is still waiting after that time has passed. If the log
 kept only the calls that finished, the wait would not show up as delay.
 The harness writes extra delay samples for the requests that should have
-been sent during the wait. It writes them while the timed window is still
-running, so that wait is part of the campaign measurement.
+been sent during the wait. The campaign writes them while the timed window
+is still running. That mix of service work and recorder work is not used
+as the language result past saturation.
 
-
-Under the campaign clock both languages keep up through
-$\TrackingLoadCpp$~kops/s and $\TrackingLoadRust$~kops/s, the same load.
-At $\KneeSplitLoad$~kops/s the split is inside Rust. The \KneeSplitKeepHeap{}
-allocator still serves $\KneeSplitMedKeep$~kops/s. The \KneeSplitDropHeap{} median
-is $\KneeSplitMedDrop$, and $\KneeSplitMeet$ of $\KneeSplitRepeats$ repeats
-on that allocator still meet the offered rate. This load was noticed only
-after the campaign results were in. The figure shows it. It is not one of
-the comparisons chosen before the experiment.
+In the same-host run, the harness writes the extra delay samples after the
+timed window. The run uses the same grid and is repeated for
+$\ProbeAfterRuns$ runs. The host settings match the main campaign.
 Figure~\ref{fig:loadmap} maps the representative load, the shared tracking
-load, the allocator split, and the overload point.
+load, the allocator split, and the overload point. The allocator-split
+bars on that figure still use the campaign clock. The numbers below do
+not.
 
 \begin{figure}[ht]
 \centering
@@ -1426,28 +1423,12 @@ compare the two languages using the same clock.
 \label{fig:loadmap}}
 \end{figure}
 
-At an offered load of $\OverloadLoad$~kops/s, \OverloadSustainedFaster{}
-still finishes $\OverloadThrCpp$~kops/s. \OverloadSustainedSlower{} finishes
-$\OverloadThrRust$~kops/s, a factor of $\OverloadThrRatio$. That gap appears
-in \OverloadThrAgree{} repeats under both allocators. The paired test reports
-the smallest $p$-value this design can reach. \OverloadSustainedSlower{} uses
-$\OverloadCpuPerOpRatio$ times as much CPU per finished call as
-\OverloadSustainedFaster{}. That
-CPU is for the whole campaign process, including the extra delay samples. It does not
-measure service work alone.
-
-In the same-host run, the harness writes the extra delay samples after the
-timed window. The run uses the same grid and is repeated for
-$\ProbeAfterRuns$ runs. The host settings match the main campaign.
-
-Writing the extra samples after the window changes the picture at both
-loads. At $\KneeSplitLoad$~kops/s the two Rust allocators no longer split.
+At $\KneeSplitLoad$~kops/s the two Rust allocators no longer split.
 C\texttt{++} serves $\ProbeAfterKneeThrCpp$~kops/s and Rust serves
 $\ProbeAfterKneeThrRust$. Rust still keeps up to $\ProbeAfterTrackRust$~kops/s,
 while C\texttt{++} keeps up only to $\ProbeAfterTrackCpp$.
 
-At the highest load, Rust is still ahead on both allocators, but the gap is
-smaller. On the system allocator, C\texttt{++} finishes
+At the highest load, Rust is still ahead on both allocators. On the system allocator, C\texttt{++} finishes
 $\ProbeAfterThrRatioSystem$ of Rust's throughput,
 $\ProbeAfterThrCppSystem$ against $\ProbeAfterThrRustSystem$~kops/s, at
 $p \ProbeAfterThrPSystem$. Under \texttt{jemalloc}, C\texttt{++} finishes
@@ -1458,10 +1439,9 @@ before the experiment.
 
 Once throughput has stopped rising, CPU per finished call is
 $\ProbeAfterCpuPerOpRatio$, with \ProbeAfterCpuPerOpHigher{} the higher one.
-While the extra samples were written inside the window, that ratio was
-$\OverloadCpuPerOpRatio$. The large ratio was the extra-sample recorder, not
-the service. Figure~\ref{fig:overload} shows both clocks on this host and
-keeps the two allocators apart.
+Figure~\ref{fig:overload} also shows the campaign clock on this host. The
+large gaps on that figure move with when the extra samples are written.
+They are the recorder, not the service.
 
 The remaining Rust lead is not from the core call. Each sender waits for its
 reply before sending the next request. Past saturation, the rate of finished
@@ -1573,23 +1553,16 @@ Therefore, the higher Rust RSS is not caused by Rust holding more live
 application data. Instead, it is mainly a fixed process-level cost.
 
 \paragraph{CPU usage.}
-CPU usage shows a different pattern from memory usage. At
-$\ReprLoad$~kops/s, Rust uses at most $\CpuDiffAbsMax$ percentage points
-less CPU than C\texttt{++}. At $\OverloadLoad$~kops/s, however, the
-campaign-clock measurement reports that \OverloadCpuPerOpHigher{} uses
-$\OverloadCpuPerOpRatio$ times as much CPU per completed call as the other
-language.
-
-This large difference depends on how the measurement is recorded. When the
-additional delay samples are written after the timed window instead, the
-ratio falls to $\ProbeAfterCpuPerOpRatio$, with \ProbeAfterCpuPerOpHigher{}
-using slightly more CPU. The large $\OverloadCpuPerOpRatio$ ratio is
-therefore caused by the extra-sample recorder rather than by the Rust
-service itself.
-
-After accounting for this recorder effect, a smaller throughput difference
-between the two implementations remains. Section~\ref{sec:overload}
-attributes this remaining difference to how the queue is locked.
+CPU usage does not follow the memory pattern. At $\ReprLoad$~kops/s, Rust
+uses at most $\CpuDiffAbsMax$ percentage points less CPU than
+C\texttt{++}. Past saturation, the CPU figure for the service is the
+same-host run that writes extra delay samples after the timed window. At
+$\OverloadLoad$~kops/s that ratio is $\ProbeAfterCpuPerOpRatio$, with
+\ProbeAfterCpuPerOpHigher{} the higher one. The campaign clock, which
+writes those samples during the window, reports
+$\OverloadCpuPerOpRatio$ instead. That larger ratio is the extra-sample
+recorder. A smaller throughput lead remains, and
+Section~\ref{sec:overload} traces it to how the queue is locked.
 
 \paragraph{What the hardware counters tell us.}
 The hardware-counter measurements on the second bare-metal host describe
