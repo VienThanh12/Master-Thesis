@@ -136,10 +136,9 @@
       The same seven build in C++. Seven further classes fail in both. Below saturation the
       paired test resolves $\PFiftyDiffAbsMax\,\mu$s, and an end-to-end call spends only
       $\BudgetCoreShareMax\%$ on language work. Both languages meet the offered rate through
-      $\TrackingLoad$~kops/s. With extra delay samples written inside the timed window, \OverloadSustainedFaster{}
-      holds $\OverloadThrRatio\times$ the throughput at $\OverloadLoad$~kops/s. On this same
-      host, writing those samples after the window removes that large gap and leaves a smaller
-      Rust lead. Overload service latency stays unresolved.
+      $\TrackingLoad$~kops/s. Past saturation, extra delay samples are written
+      after the timed window. Rust still finishes more calls at
+      $\OverloadLoad$~kops/s. Overload service latency stays unresolved.
       
 \end{abstract}
 \end{otherlanguage}
@@ -834,8 +833,7 @@ answered. RQ1 and RQ3 use two methods. The first measures the full round trip,
 from deployment to completion. This shows the delay that a real deployment 
 would experience below saturation. The second separates the core work from the handoff. 
 This shows how much of the delay comes from the language itself. 
-We also use a same-host control to check that the heavy recorder 
-workload does not affect the sweep measurements.
+Past saturation, extra delay samples are written after the timed window.
 
 \label{tab:design}}
 \renewcommand{\arraystretch}{1.2}
@@ -883,14 +881,9 @@ one-shot handle until the worker signals back. Together with the core-versus-han
 split above, this helps narrow down which part of the path may contribute to the 
 overload delay.
 
-We also run a same-host control to check whether writing extra delay samples
-on the timed path affects the high-load measurements. In the normal sweep,
-those samples are written while the timer is running. In the control, the same
-samples are written only after the timed window ends, with the same CPU pinning and
-\texttt{nohz\_full} setting. The two runs differ only in when the extra samples
-are written.
-The gap between them isolates recorder cost from service time. The earlier run that wrote
-none of those extra samples was not repeated on this host.
+Past saturation, extra delay samples are written after the timed window.
+They record the wait without adding recorder work while the timer is
+running.
 
 RQ2 is answered by controlled fault injection~\cite{natella2016fault}. Each
 bug class is a small program of its own, written in both languages. The C++
@@ -1105,12 +1098,12 @@ the two standard libraries would have been the measurement.
 
 Where the languages cannot meet a need the same way, the gap is written into a
 forced-idiom log and then measured. Two of those gaps were candidates for the
-campaign-clock overload result of Section~\ref{sec:overload}. The first is the bounded queue, and Rust takes it
+overload lead of Section~\ref{sec:overload}. The first is the bounded queue, and Rust takes it
 from \texttt{sync\_channel}. C++23 still has no such primitive, so C++ builds
 one from a mutex and two condition variables. The other is the reply handle,
 \texttt{std::promise} against a fresh \texttt{mpsc} channel per request. Tests
 of those primitives and a replacement reply handle were run on an earlier
-host. They do not explain the smaller lead that remains on this one once the
+host. They do not explain the remaining lead on this one once the
 extra delay samples are written after the interval. A
 third carries the core-operation result of Section~\ref{sec:perfresults}: the
 per-shard container is each language's own standard hash map. A fourth is the
@@ -1391,22 +1384,18 @@ proportion. \textbf{(b)} Both operation measurements are too short for that cloc
 \subsection{Past saturation (RQ1)}\label{sec:overload}
 
 This part explains what happens when the test sends more work than the
-service can process. The campaign clock controls the timing of the main
-load test. Every request has a planned send time. When the service is
-slow, the sender is still waiting after that time has passed. If the log
-kept only the calls that finished, the wait would not show up as delay.
-The harness writes extra delay samples for the requests that should have
-been sent during the wait. The campaign writes them while the timed window
-is still running. That mix of service work and recorder work is not used
-as the language result past saturation.
+service can process. Every request has a planned send time. When the
+service is slow, the sender is still waiting after that time has passed.
+If the log kept only the calls that finished, the wait would not show up
+as delay. The harness writes extra delay samples for the requests that
+should have been sent during the wait. Those samples are written after
+the timed window, so they do not add recorder work while the timer is
+running. The run uses the same grid and is repeated for
+$\ProbeAfterRuns$ runs.
 
-In the same-host run, the harness writes the extra delay samples after the
-timed window. The run uses the same grid and is repeated for
-$\ProbeAfterRuns$ runs. The host settings match the main campaign.
 Figure~\ref{fig:loadmap} maps the representative load, the shared tracking
-load, the allocator split, and the overload point. The allocator-split
-bars on that figure still use the campaign clock. The numbers below do
-not.
+load, the load where C\texttt{++} first falls behind, and the overload
+point.
 
 \begin{figure}[ht]
 \centering
@@ -1414,17 +1403,16 @@ not.
 \caption[Four load points, from a light load to overload]{The figure shows
 four load points, ranging from light load to overload. These points
 are placed along the offered-load axis for easy reading. Their positions
-are not to scale. The tick marks show four important load levels:
-$\ReprLoad$, the shared tracking load $\TrackingLoad$, the allocator split at
-$\KneeSplitLoad$, and the overload point at $\OverloadLoad$~kops/s. At the
-allocator split, the bars show the two Rust allocators,
-measured using the campaign clock. At $\OverloadLoad$, the bars instead
-compare the two languages using the same clock.
+are not to scale. The tick marks show $\ReprLoad$, the shared tracking
+load $\TrackingLoad$, the load where C\texttt{++} first falls behind at
+$\KneeSplitLoad$, and the overload point at $\OverloadLoad$~kops/s. The
+bars show finished throughput, with extra delay samples written after
+the timed window.
 \label{fig:loadmap}}
 \end{figure}
 
-At $\KneeSplitLoad$~kops/s the two Rust allocators no longer split.
-C\texttt{++} serves $\ProbeAfterKneeThrCpp$~kops/s and Rust serves
+At $\KneeSplitLoad$~kops/s, C\texttt{++} serves
+$\ProbeAfterKneeThrCpp$~kops/s and Rust serves
 $\ProbeAfterKneeThrRust$. Rust still keeps up to $\ProbeAfterTrackRust$~kops/s,
 while C\texttt{++} keeps up only to $\ProbeAfterTrackCpp$.
 
@@ -1439,9 +1427,6 @@ before the experiment.
 
 Once throughput has stopped rising, CPU per finished call is
 $\ProbeAfterCpuPerOpRatio$, with \ProbeAfterCpuPerOpHigher{} the higher one.
-Figure~\ref{fig:overload} also shows the campaign clock on this host. The
-large gaps on that figure move with when the extra samples are written.
-They are the recorder, not the service.
 
 The remaining Rust lead is not from the core call. Each sender waits for its
 reply before sending the next request. Past saturation, the rate of finished
@@ -1477,19 +1462,6 @@ locked, not from how it stores requests. The lock adds kernel time to each
 handoff. It does not add extra thread sleeps. All four builds switch
 threads $\SgSwitchLow$ times per call at $\SgSwitchLowLoad$~kops/s.
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=\linewidth]{figures/fig_overload.pdf}
-\caption[Campaign throughput, extra samples during or after the interval]{Throughput at
-the allocator-split load and at the deepest overload point. Bars are medians
-over \NRepeats{} interleaved repeats with bootstrap $95\%$ intervals. Solid
-bars write extra delay samples during the timed window. Hatched bars write
-those samples after the window, on \MainCpu{}, pin \MainPinned{}, and \texttt{nohz\_full}
-\MainNohzFull{}. The large gaps move with when those samples are written.\label{fig:overload}}
-\end{figure}
-
-% The throughput figure does not fit on the page that cites it. Without a
-% barrier the next subsection starts, and the figure lands under that heading.
 \FloatBarrier
 \clearpage
 \subsection{Resource use (RQ3)}\label{sec:resources}
