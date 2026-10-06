@@ -1744,26 +1744,33 @@ $\FfiCrossing$~ns and bounds only itself.\label{fig:ffiseam}}
 \chapter{Discussion\label{chapter:discussion}}
 
 \section{Summary of findings}
-At $\ReprLoad$~kops/s the variants agree to
-$\PFiftyRange\,\mu$s at the median, and the pooled far tail lands on
-\FarTailLower{}'s side. The end-to-end round-trip is only
-$\BudgetCoreShareMax\%$ language work, so it cannot bound a language effect.
+At $\ReprLoad$~kops/s the variants agree to $\PFiftyRange\,\mu$s at the
+median, and the pooled far tail lands on \FarTailLower{}'s side. The
+end-to-end round-trip is only $\BudgetCoreShareMax\%$ language work, so it
+cannot bound a language effect.
+
 The same core timed apart is $\BudgetCoreRatio\times$ faster in
 \BudgetCoreFaster{}. At higher loads Rust still finishes more calls. That
 lead sits in the handoff between threads, and on a further host it goes
 away when Rust is given the C\texttt{++} queue. The overload percentiles
-are schedule drift, so RQ1 has no language verdict after saturation. The RQ2 outcome
-is complete for the fourteen-class catalogue set in advance and does not
-depend on the host. All seven classes safe Rust is built to reject are
-compile errors. The other seven compile and
-fail in Rust and in C++. RQ3 finds a higher Rust peak RSS under both allocators:
+are schedule drift, so RQ1 has no language verdict after saturation.
+
+The RQ2 outcome is complete for the fourteen-class catalogue set in
+advance and does not depend on the host. All seven classes safe Rust is
+built to reject are compile errors. The other seven compile and fail in
+Rust and in C\texttt{++}.
+
+RQ3 finds a higher Rust peak RSS under both allocators:
 $\RssLangDiffLo$--$\RssLangDiffHi$~MiB on the campaign host,
-$\GuestRssLangLo$--$\GuestRssLangHi$ on the guest, and
-$\BmRssLangLo$--$\BmRssLangHi$ on the second bare-metal host. Below
-saturation Rust draws slightly less CPU. Corrected high-load throughput gives
-no general language rank. RQ4 finds that layer small, and its per-call tax is bounded
-at $\FfiOpBoundPct\%$ of that call. API design and learning remain
-literature-backed adoption costs that this study does not measure directly.
+$\GuestRssLangLo$--$\GuestRssLangHi$~MiB on the guest, and
+$\BmRssLangLo$--$\BmRssLangHi$~MiB on the second bare-metal host. Below
+saturation Rust draws slightly less CPU. Corrected high-load throughput
+gives no general language rank.
+
+RQ4 finds the FFI layer small, and its per-call tax is bounded at
+$\FfiOpBoundPct\%$ of that call. API design and learning remain
+literature-backed adoption costs that this study does not measure
+directly.
 
 \section{Discussion on the research questions}\label{sec:rqdiscussion}
 RQ1 has two answers separated by regime. At $\ReprLoad$~kops/s the campaign
