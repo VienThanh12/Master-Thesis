@@ -1744,32 +1744,40 @@ $\FfiCrossing$~ns and bounds only itself.\label{fig:ffiseam}}
 \chapter{Discussion\label{chapter:discussion}}
 
 \section{Summary of findings}
-At $\ReprLoad$~kops/s the variants agree to $\PFiftyRange\,\mu$s at the
-median, and the pooled far tail lands on \FarTailLower{}'s side. The
-end-to-end round-trip is only $\BudgetCoreShareMax\%$ language work, so it
-cannot bound a language effect.
+At $\ReprLoad$~kops/s, the variants show similar performance: their median
+latency differs by only $\PFiftyRange\,\mu$s, while the pooled far tail
+favours \FarTailLower{}. Because only $\BudgetCoreShareMax\%$ of the
+end-to-end round trip is spent on language-specific work, the overall
+measurement cannot be used to establish a language-level performance
+effect.
 
-The same core timed apart is $\BudgetCoreRatio\times$ faster in
-\BudgetCoreFaster{}. At higher loads Rust still finishes more calls. That
-lead sits in the handoff between threads, and on a further host it goes
-away when Rust is given the C\texttt{++} queue. The overload percentiles
-are schedule drift, so RQ1 has no language verdict after saturation.
+When the same core is timed separately, $\BudgetCoreRatio\times$ higher
+performance is observed in \BudgetCoreFaster{}. At higher loads, however,
+Rust still completes more calls. This advantage appears to come from the
+inter-thread handoff rather than from the language itself. When Rust uses
+the C\texttt{++} queue on a further host, the advantage disappears. The
+high-load percentile differences therefore reflect schedule drift rather
+than a clear language effect. So RQ1 does not support a language-level
+performance verdict after saturation.
 
-The RQ2 outcome is complete for the fourteen-class catalogue set in
-advance and does not depend on the host. All seven classes safe Rust is
-built to reject are compile errors. The other seven compile and fail in
-Rust and in C\texttt{++}.
+For RQ2, the outcome is fully determined by the fourteen-class catalogue
+defined in advance and is consistent across hosts. All seven classes of
+errors that safe Rust is designed to reject result in compile-time errors.
+The remaining seven compile. They fail at runtime in both Rust and
+C\texttt{++}.
 
-RQ3 finds a higher Rust peak RSS under both allocators:
-$\RssLangDiffLo$--$\RssLangDiffHi$~MiB on the campaign host,
+RQ3 shows that Rust has higher peak RSS under both allocators. The
+difference is $\RssLangDiffLo$--$\RssLangDiffHi$~MiB on the campaign host,
 $\GuestRssLangLo$--$\GuestRssLangHi$~MiB on the guest, and
 $\BmRssLangLo$--$\BmRssLangHi$~MiB on the second bare-metal host. Below
-saturation Rust draws slightly less CPU. Corrected high-load throughput
-gives no general language rank.
+saturation, Rust uses slightly less CPU. After correcting for high-load
+effects, however, the throughput measurements do not support a general
+performance ranking between the languages.
 
-RQ4 finds the FFI layer small, and its per-call tax is bounded at
-$\FfiOpBoundPct\%$ of that call. API design and learning remain
-literature-backed adoption costs that this study does not measure
+RQ4 finds that the FFI layer contributes little overhead: its per-call
+cost is bounded by $\FfiOpBoundPct\%$ of the corresponding call. Other
+factors, such as API design and learning effort, remain literature-backed
+adoption costs, but they are outside the scope of what this study measures
 directly.
 
 \section{Discussion on the research questions}\label{sec:rqdiscussion}
