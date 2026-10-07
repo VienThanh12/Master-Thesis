@@ -51,36 +51,47 @@ void Service::worker_loop(Shard& shard) {
   ShardCore& core = *shard.core;
   for (;;) {
     Request req = shard.queue.pop();
+    // One clock read, and only for a diagnostic run. It sits after the request
+    // has left the queue and before the shard operation.
+    const auto started = cfg_.stamp_start ? std::chrono::steady_clock::now()
+                                          : std::chrono::steady_clock::time_point{};
+    auto complete = [&req, started](Response response) {
+      req.completion.set_value(TimedResponse{
+          std::move(response),
+          req.stamp_completion ? std::chrono::steady_clock::now()
+                               : std::chrono::steady_clock::time_point{},
+          started});
+    };
     switch (req.kind) {
       case OpKind::CreateContext:
-        req.completion.set_value(core.create_context(req.ue_id, req.create_params));
+        complete(core.create_context(req.ue_id, req.create_params));
         break;
       case OpKind::SetupConnection:
-        req.completion.set_value(core.setup_connection(req.ue_id));
+        complete(core.setup_connection(req.ue_id));
         break;
       case OpKind::HandleSignaling:
-        req.completion.set_value(core.handle_signaling(req.ue_id, req.signaling));
+        complete(core.handle_signaling(req.ue_id, req.signaling));
         break;
       case OpKind::AddDrb:
-        req.completion.set_value(core.add_drb(req.ue_id, req.drb));
+        complete(core.add_drb(req.ue_id, req.drb));
         break;
       case OpKind::BeginReconfigure:
-        req.completion.set_value(core.begin_reconfigure(req.ue_id, req.reconfig));
+        complete(core.begin_reconfigure(req.ue_id, req.reconfig));
         break;
       case OpKind::CompleteReconfigure:
-        req.completion.set_value(core.complete_reconfigure(req.ue_id));
+        complete(core.complete_reconfigure(req.ue_id));
         break;
       case OpKind::AbortReconfigure:
-        req.completion.set_value(core.abort_reconfigure(req.ue_id));
+        complete(core.abort_reconfigure(req.ue_id));
         break;
       case OpKind::ReleaseContext:
-        req.completion.set_value(core.release_context(req.ue_id));
+        complete(core.release_context(req.ue_id));
         break;
       case OpKind::Lookup:
-        req.completion.set_value(core.lookup(req.ue_id));
+        complete(core.lookup(req.ue_id));
         break;
       case OpKind::Count:
-        req.completion.set_value(OpResult<std::uint64_t>(core.count()));
+        complete(OpResult<std::uint64_t>(core.count()));
         break;
       case OpKind::Stop:
         return;
@@ -88,67 +99,116 @@ void Service::worker_loop(Shard& shard) {
   }
 }
 
-Response Service::submit(OpKind kind, UeId ue_id, Request&& req) {
+Service::Completion Service::submit_async(OpKind kind, UeId ue_id, Request&& req) {
   if (!running_) throw std::logic_error(kNotRunning);
   req.kind = kind;
   req.ue_id = ue_id;
   auto fut = req.completion.get_future();
   std::uint64_t s = shard_index(ue_id, cfg_.n_shards);
   shards_[s]->queue.push(std::move(req));
-  return fut.get();
+  return fut;
 }
 
 // --- Typed API ----------------------------------------------------------------
 
-OpResult<void> Service::create_context(UeId ue_id, const CreateParams& params) {
+Service::Completion Service::create_context_async(UeId ue_id, const CreateParams& params,
+                                                   bool stamp_completion) {
   Request req;
   req.create_params = params;
-  return std::get<OpResult<void>>(submit(OpKind::CreateContext, ue_id, std::move(req)));
+  req.stamp_completion = stamp_completion;
+  return submit_async(OpKind::CreateContext, ue_id, std::move(req));
+}
+
+Service::Completion Service::setup_connection_async(UeId ue_id, bool stamp_completion) {
+  Request req;
+  req.stamp_completion = stamp_completion;
+  return submit_async(OpKind::SetupConnection, ue_id, std::move(req));
+}
+
+Service::Completion Service::handle_signaling_async(UeId ue_id, const SignalingMsg& msg,
+                                                     bool stamp_completion) {
+  Request req;
+  req.signaling = msg;
+  req.stamp_completion = stamp_completion;
+  return submit_async(OpKind::HandleSignaling, ue_id, std::move(req));
+}
+
+Service::Completion Service::add_drb_async(UeId ue_id, const DrbEntry& drb,
+                                            bool stamp_completion) {
+  Request req;
+  req.drb = drb;
+  req.stamp_completion = stamp_completion;
+  return submit_async(OpKind::AddDrb, ue_id, std::move(req));
+}
+
+Service::Completion Service::begin_reconfigure_async(UeId ue_id, const ReconfigParams& params,
+                                                      bool stamp_completion) {
+  Request req;
+  req.reconfig = params;
+  req.stamp_completion = stamp_completion;
+  return submit_async(OpKind::BeginReconfigure, ue_id, std::move(req));
+}
+
+Service::Completion Service::complete_reconfigure_async(UeId ue_id, bool stamp_completion) {
+  Request req;
+  req.stamp_completion = stamp_completion;
+  return submit_async(OpKind::CompleteReconfigure, ue_id, std::move(req));
+}
+
+Service::Completion Service::abort_reconfigure_async(UeId ue_id, bool stamp_completion) {
+  Request req;
+  req.stamp_completion = stamp_completion;
+  return submit_async(OpKind::AbortReconfigure, ue_id, std::move(req));
+}
+
+Service::Completion Service::release_context_async(UeId ue_id, bool stamp_completion) {
+  Request req;
+  req.stamp_completion = stamp_completion;
+  return submit_async(OpKind::ReleaseContext, ue_id, std::move(req));
+}
+
+Service::Completion Service::lookup_async(UeId ue_id, bool stamp_completion) {
+  Request req;
+  req.stamp_completion = stamp_completion;
+  return submit_async(OpKind::Lookup, ue_id, std::move(req));
+}
+
+OpResult<void> Service::create_context(UeId ue_id, const CreateParams& params) {
+  return std::get<OpResult<void>>(create_context_async(ue_id, params, false).get().response);
 }
 
 OpResult<void> Service::setup_connection(UeId ue_id) {
-  Request req;
-  return std::get<OpResult<void>>(submit(OpKind::SetupConnection, ue_id, std::move(req)));
+  return std::get<OpResult<void>>(setup_connection_async(ue_id, false).get().response);
 }
 
 OpResult<SignalingAck> Service::handle_signaling(UeId ue_id, const SignalingMsg& msg) {
-  Request req;
-  req.signaling = msg;
   return std::get<OpResult<SignalingAck>>(
-      submit(OpKind::HandleSignaling, ue_id, std::move(req)));
+      handle_signaling_async(ue_id, msg, false).get().response);
 }
 
 OpResult<void> Service::add_drb(UeId ue_id, const DrbEntry& drb) {
-  Request req;
-  req.drb = drb;
-  return std::get<OpResult<void>>(submit(OpKind::AddDrb, ue_id, std::move(req)));
+  return std::get<OpResult<void>>(add_drb_async(ue_id, drb, false).get().response);
 }
 
 OpResult<void> Service::begin_reconfigure(UeId ue_id, const ReconfigParams& params) {
-  Request req;
-  req.reconfig = params;
-  return std::get<OpResult<void>>(submit(OpKind::BeginReconfigure, ue_id, std::move(req)));
+  return std::get<OpResult<void>>(
+      begin_reconfigure_async(ue_id, params, false).get().response);
 }
 
 OpResult<void> Service::complete_reconfigure(UeId ue_id) {
-  Request req;
-  return std::get<OpResult<void>>(
-      submit(OpKind::CompleteReconfigure, ue_id, std::move(req)));
+  return std::get<OpResult<void>>(complete_reconfigure_async(ue_id, false).get().response);
 }
 
 OpResult<void> Service::abort_reconfigure(UeId ue_id) {
-  Request req;
-  return std::get<OpResult<void>>(submit(OpKind::AbortReconfigure, ue_id, std::move(req)));
+  return std::get<OpResult<void>>(abort_reconfigure_async(ue_id, false).get().response);
 }
 
 OpResult<void> Service::release_context(UeId ue_id) {
-  Request req;
-  return std::get<OpResult<void>>(submit(OpKind::ReleaseContext, ue_id, std::move(req)));
+  return std::get<OpResult<void>>(release_context_async(ue_id, false).get().response);
 }
 
 OpResult<UeContextView> Service::lookup(UeId ue_id) {
-  Request req;
-  return std::get<OpResult<UeContextView>>(submit(OpKind::Lookup, ue_id, std::move(req)));
+  return std::get<OpResult<UeContextView>>(lookup_async(ue_id, false).get().response);
 }
 
 std::uint64_t Service::count() {
@@ -159,7 +219,7 @@ std::uint64_t Service::count() {
     req.kind = OpKind::Count;
     auto fut = req.completion.get_future();
     shards_[i]->queue.push(std::move(req));
-    total += std::get<OpResult<std::uint64_t>>(fut.get()).value();
+    total += std::get<OpResult<std::uint64_t>>(fut.get().response).value();
   }
   return total;
 }

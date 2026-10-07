@@ -28,7 +28,59 @@ static void functional() {
   svc.shutdown();
 }
 
-// 2) Concurrent load across shards: disjoint ue_id ranges per producer thread,
+// 2) Multiple requests may remain in flight while preserving per-shard FIFO.
+static void async_fifo() {
+  Config cfg;
+  cfg.n_shards = 1;
+  cfg.queue_capacity = 2;
+  Service svc(cfg);
+  svc.start();
+
+  auto create = svc.create_context_async(1001, CreateParams{7, {}});
+  auto setup = svc.setup_connection_async(1001);
+  auto signal = svc.handle_signaling_async(1001, SignalingMsg{3, 10, {}});
+
+  auto created = create.get();
+  auto connected = setup.get();
+  auto signaled = signal.get();
+  CHECK(std::get<OpResult<void>>(created.response).has_value());
+  CHECK(std::get<OpResult<void>>(connected.response).has_value());
+  const auto& ack = std::get<OpResult<SignalingAck>>(signaled.response);
+  CHECK(ack.has_value() && ack->new_messages_handled == 1);
+  CHECK(created.done <= connected.done && connected.done <= signaled.done);
+  CHECK(created.started.time_since_epoch().count() == 0);
+  CHECK(signaled.started.time_since_epoch().count() == 0);
+
+  svc.shutdown();
+}
+
+// The diagnostic clock is taken after dequeue and before the operation.
+// One shard keeps the two requests in order, so the first completion cannot
+// follow the second start.
+static void async_start_stamp() {
+  Config cfg;
+  cfg.n_shards = 1;
+  cfg.stamp_start = true;
+  Service svc(cfg);
+  svc.start();
+  CHECK(svc.create_context(1001, CreateParams{7, {}}).has_value());
+  CHECK(svc.setup_connection(1001).has_value());
+
+  auto first = svc.handle_signaling_async(1001, SignalingMsg{3, 10, {}});
+  auto second = svc.handle_signaling_async(1001, SignalingMsg{3, 10, {}});
+  auto a = first.get();
+  auto b = second.get();
+  CHECK(std::get<OpResult<SignalingAck>>(a.response).has_value());
+  CHECK(std::get<OpResult<SignalingAck>>(b.response).has_value());
+  CHECK(a.started.time_since_epoch().count() != 0);
+  CHECK(a.started <= a.done);
+  CHECK(a.done <= b.started);
+  CHECK(b.started <= b.done);
+
+  svc.shutdown();
+}
+
+// 3) Concurrent load across shards: disjoint ue_id ranges per producer thread,
 //    so there are no cross-thread key conflicts; verifies routing + lifecycle
 //    under real threads (run this binary under TSan to check data-race freedom).
 static void concurrent() {
@@ -71,7 +123,7 @@ static void concurrent() {
   svc.shutdown();
 }
 
-// 3) Spec §7.1: an operation outside the running window is a caller error, not an
+// 4) Spec §7.1: an operation outside the running window is a caller error, not an
 //    OpError, and must fail immediately rather than reading shard state that does not
 //    exist. Both cases were unguarded until 2026-08: before start() this indexed an
 //    empty vector (segmentation fault), after shutdown() a cleared one
@@ -102,6 +154,8 @@ static void lifecycle_precondition() {
 
 int main() {
   functional();
+  async_fifo();
+  async_start_stamp();
   concurrent();
   lifecycle_precondition();
   return uecm::test::summary("test_service");

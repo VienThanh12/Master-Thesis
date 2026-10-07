@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include <cstdint>
 #include <future>
 #include <variant>
@@ -33,6 +34,16 @@ using Response = std::variant<
     OpResult<UeContextView>,  // lookup
     OpResult<std::uint64_t>>; // count
 
+// A worker-produced completion. The timestamp is captured immediately after the
+// shard operation and before the producer observes the future, so client polling
+// cannot inflate operation latency.
+struct TimedResponse {
+  Response response;
+  std::chrono::steady_clock::time_point done;
+  // Epoch unless Config::stamp_start. A confirmatory run must not read it.
+  std::chrono::steady_clock::time_point started{};
+};
+
 // A request carries its op kind, arguments, and a one-shot completion (§7.6).
 // Move-only because std::promise is move-only.
 struct Request {
@@ -42,7 +53,8 @@ struct Request {
   SignalingMsg signaling{};
   DrbEntry drb{};
   ReconfigParams reconfig{};
-  std::promise<Response> completion;
+  bool stamp_completion = false;
+  std::promise<TimedResponse> completion;
 };
 
 }  // namespace uecm

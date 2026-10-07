@@ -17,9 +17,12 @@ namespace uecm {
 // The threaded UE Context Management service (spec §7): shared-nothing,
 // thread-per-shard. Callers use the typed API below; each call is routed to the
 // owning shard's queue and executed by that shard's single worker thread, and
-// the caller blocks on the one-shot completion.
+// the caller blocks on the one-shot completion. The async methods expose that
+// completion for benchmark clients that keep several requests in flight.
 class Service {
  public:
+  using Completion = std::future<TimedResponse>;
+
   explicit Service(const Config& cfg = {});
   ~Service();
 
@@ -44,6 +47,20 @@ class Service {
   OpResult<UeContextView> lookup(UeId ue_id);
   std::uint64_t           count();  // sum across shards (routed per shard)
 
+  Completion create_context_async(UeId ue_id, const CreateParams& params,
+                                  bool stamp_completion = true);
+  Completion setup_connection_async(UeId ue_id, bool stamp_completion = true);
+  Completion handle_signaling_async(UeId ue_id, const SignalingMsg& msg,
+                                    bool stamp_completion = true);
+  Completion add_drb_async(UeId ue_id, const DrbEntry& drb,
+                           bool stamp_completion = true);
+  Completion begin_reconfigure_async(UeId ue_id, const ReconfigParams& params,
+                                     bool stamp_completion = true);
+  Completion complete_reconfigure_async(UeId ue_id, bool stamp_completion = true);
+  Completion abort_reconfigure_async(UeId ue_id, bool stamp_completion = true);
+  Completion release_context_async(UeId ue_id, bool stamp_completion = true);
+  Completion lookup_async(UeId ue_id, bool stamp_completion = true);
+
   std::uint64_t n_shards() const noexcept { return cfg_.n_shards; }
 
  private:
@@ -55,7 +72,7 @@ class Service {
     std::thread worker;
   };
 
-  Response submit(OpKind kind, UeId ue_id, Request&& req);
+  Completion submit_async(OpKind kind, UeId ue_id, Request&& req);
   void worker_loop(Shard& shard);
 
   Config cfg_;
