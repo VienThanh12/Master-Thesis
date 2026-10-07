@@ -9,7 +9,10 @@ struct Config {
   std::uint64_t n_shards = 8;                       // == worker-thread count
   std::uint32_t queue_capacity = 1024;              // bounded, blocking backpressure, full when > capacity, wait for space to become available
   std::uint64_t max_contexts_per_shard = 200000;    // CapacityExceeded beyond this
-  std::uint32_t initial_shard_capacity = 4096;      // reserved at start() 
+  std::uint32_t initial_shard_capacity = 4096;      // reserved at start()
+  // Diagnostic only. When set, the worker reads the clock after dequeue and
+  // before the operation. Compared and confirmatory runs leave this false.
+  bool stamp_start = false;
 };
 
 inline constexpr std::size_t MAX_DRBS = 8;             // spec §4.2 / §9
