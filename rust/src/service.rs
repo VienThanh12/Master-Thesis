@@ -37,15 +37,15 @@ fn completion_channel<T>() -> (std::sync::mpsc::SyncSender<T>, std::sync::mpsc::
 // the mutex-and-two-condvars alternative mirrors the C++ design and exists only
 // to localise the overload divergence. See mutex_queue.rs for why. The one-shot
 // completion above is unaffected either way.
-#[cfg(not(feature = "mutex-queue"))]
-use std::sync::mpsc::{sync_channel, Receiver, SyncSender};
 #[cfg(feature = "mutex-queue")]
 use crate::mutex_queue::{bounded as sync_channel, Receiver, SyncSender};
+#[cfg(not(feature = "mutex-queue"))]
+use std::sync::mpsc::{sync_channel, Receiver, SyncSender};
 
 use crate::config::Config;
 use crate::error::OpResult;
 use crate::hash::shard_index;
-use crate::message::Request;
+use crate::message::{Completion, Request};
 use crate::shard_core::ShardCore;
 use crate::types::{
     CreateParams, DrbEntry, ReconfigParams, SignalingAck, SignalingMsg, UeContextView, UeId,
@@ -135,92 +135,286 @@ impl Service {
         &self.shards[idx].tx
     }
 
-    pub fn create_context(&self, ue_id: UeId, params: CreateParams) -> OpResult<()> {
+    fn create_context_completion(
+        &self,
+        ue_id: UeId,
+        params: CreateParams,
+        stamp_completion: bool,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<()>>> {
         let (rtx, rrx) = completion_channel();
         self.shard_tx(ue_id)
             .send(Request::Create {
                 ue_id,
                 params,
+                stamp_completion,
                 resp: rtx,
             })
             .expect("worker alive");
-        rrx.recv().expect("completion")
+        rrx
     }
 
-    pub fn setup_connection(&self, ue_id: UeId) -> OpResult<()> {
+    fn setup_connection_completion(
+        &self,
+        ue_id: UeId,
+        stamp_completion: bool,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<()>>> {
         let (rtx, rrx) = completion_channel();
         self.shard_tx(ue_id)
-            .send(Request::Setup { ue_id, resp: rtx })
+            .send(Request::Setup {
+                ue_id,
+                stamp_completion,
+                resp: rtx,
+            })
             .expect("worker alive");
-        rrx.recv().expect("completion")
+        rrx
     }
 
-    pub fn handle_signaling(&self, ue_id: UeId, msg: SignalingMsg) -> OpResult<SignalingAck> {
+    fn handle_signaling_completion(
+        &self,
+        ue_id: UeId,
+        msg: SignalingMsg,
+        stamp_completion: bool,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<SignalingAck>>> {
         let (rtx, rrx) = completion_channel();
         self.shard_tx(ue_id)
             .send(Request::Signal {
                 ue_id,
                 msg,
+                stamp_completion,
                 resp: rtx,
             })
             .expect("worker alive");
-        rrx.recv().expect("completion")
+        rrx
     }
 
-    pub fn add_drb(&self, ue_id: UeId, drb: DrbEntry) -> OpResult<()> {
+    fn add_drb_completion(
+        &self,
+        ue_id: UeId,
+        drb: DrbEntry,
+        stamp_completion: bool,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<()>>> {
         let (rtx, rrx) = completion_channel();
         self.shard_tx(ue_id)
             .send(Request::AddDrb {
                 ue_id,
                 drb,
+                stamp_completion,
                 resp: rtx,
             })
             .expect("worker alive");
-        rrx.recv().expect("completion")
+        rrx
     }
 
-    pub fn begin_reconfigure(&self, ue_id: UeId, params: ReconfigParams) -> OpResult<()> {
+    fn begin_reconfigure_completion(
+        &self,
+        ue_id: UeId,
+        params: ReconfigParams,
+        stamp_completion: bool,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<()>>> {
         let (rtx, rrx) = completion_channel();
         self.shard_tx(ue_id)
             .send(Request::BeginReconf {
                 ue_id,
                 params,
+                stamp_completion,
                 resp: rtx,
             })
             .expect("worker alive");
-        rrx.recv().expect("completion")
+        rrx
+    }
+
+    fn complete_reconfigure_completion(
+        &self,
+        ue_id: UeId,
+        stamp_completion: bool,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<()>>> {
+        let (rtx, rrx) = completion_channel();
+        self.shard_tx(ue_id)
+            .send(Request::CompleteReconf {
+                ue_id,
+                stamp_completion,
+                resp: rtx,
+            })
+            .expect("worker alive");
+        rrx
+    }
+
+    fn abort_reconfigure_completion(
+        &self,
+        ue_id: UeId,
+        stamp_completion: bool,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<()>>> {
+        let (rtx, rrx) = completion_channel();
+        self.shard_tx(ue_id)
+            .send(Request::AbortReconf {
+                ue_id,
+                stamp_completion,
+                resp: rtx,
+            })
+            .expect("worker alive");
+        rrx
+    }
+
+    fn release_context_completion(
+        &self,
+        ue_id: UeId,
+        stamp_completion: bool,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<()>>> {
+        let (rtx, rrx) = completion_channel();
+        self.shard_tx(ue_id)
+            .send(Request::Release {
+                ue_id,
+                stamp_completion,
+                resp: rtx,
+            })
+            .expect("worker alive");
+        rrx
+    }
+
+    fn lookup_completion(
+        &self,
+        ue_id: UeId,
+        stamp_completion: bool,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<UeContextView>>> {
+        let (rtx, rrx) = completion_channel();
+        self.shard_tx(ue_id)
+            .send(Request::Lookup {
+                ue_id,
+                stamp_completion,
+                resp: rtx,
+            })
+            .expect("worker alive");
+        rrx
+    }
+
+    pub fn create_context_async(
+        &self,
+        ue_id: UeId,
+        params: CreateParams,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<()>>> {
+        self.create_context_completion(ue_id, params, true)
+    }
+
+    pub fn setup_connection_async(
+        &self,
+        ue_id: UeId,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<()>>> {
+        self.setup_connection_completion(ue_id, true)
+    }
+
+    pub fn handle_signaling_async(
+        &self,
+        ue_id: UeId,
+        msg: SignalingMsg,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<SignalingAck>>> {
+        self.handle_signaling_completion(ue_id, msg, true)
+    }
+
+    pub fn add_drb_async(
+        &self,
+        ue_id: UeId,
+        drb: DrbEntry,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<()>>> {
+        self.add_drb_completion(ue_id, drb, true)
+    }
+
+    pub fn begin_reconfigure_async(
+        &self,
+        ue_id: UeId,
+        params: ReconfigParams,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<()>>> {
+        self.begin_reconfigure_completion(ue_id, params, true)
+    }
+
+    pub fn complete_reconfigure_async(
+        &self,
+        ue_id: UeId,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<()>>> {
+        self.complete_reconfigure_completion(ue_id, true)
+    }
+
+    pub fn abort_reconfigure_async(
+        &self,
+        ue_id: UeId,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<()>>> {
+        self.abort_reconfigure_completion(ue_id, true)
+    }
+
+    pub fn release_context_async(
+        &self,
+        ue_id: UeId,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<()>>> {
+        self.release_context_completion(ue_id, true)
+    }
+
+    pub fn lookup_async(
+        &self,
+        ue_id: UeId,
+    ) -> std::sync::mpsc::Receiver<Completion<OpResult<UeContextView>>> {
+        self.lookup_completion(ue_id, true)
+    }
+
+    pub fn create_context(&self, ue_id: UeId, params: CreateParams) -> OpResult<()> {
+        self.create_context_completion(ue_id, params, false)
+            .recv()
+            .expect("completion")
+            .value
+    }
+
+    pub fn setup_connection(&self, ue_id: UeId) -> OpResult<()> {
+        self.setup_connection_completion(ue_id, false)
+            .recv()
+            .expect("completion")
+            .value
+    }
+
+    pub fn handle_signaling(&self, ue_id: UeId, msg: SignalingMsg) -> OpResult<SignalingAck> {
+        self.handle_signaling_completion(ue_id, msg, false)
+            .recv()
+            .expect("completion")
+            .value
+    }
+
+    pub fn add_drb(&self, ue_id: UeId, drb: DrbEntry) -> OpResult<()> {
+        self.add_drb_completion(ue_id, drb, false)
+            .recv()
+            .expect("completion")
+            .value
+    }
+
+    pub fn begin_reconfigure(&self, ue_id: UeId, params: ReconfigParams) -> OpResult<()> {
+        self.begin_reconfigure_completion(ue_id, params, false)
+            .recv()
+            .expect("completion")
+            .value
     }
 
     pub fn complete_reconfigure(&self, ue_id: UeId) -> OpResult<()> {
-        let (rtx, rrx) = completion_channel();
-        self.shard_tx(ue_id)
-            .send(Request::CompleteReconf { ue_id, resp: rtx })
-            .expect("worker alive");
-        rrx.recv().expect("completion")
+        self.complete_reconfigure_completion(ue_id, false)
+            .recv()
+            .expect("completion")
+            .value
     }
 
     pub fn abort_reconfigure(&self, ue_id: UeId) -> OpResult<()> {
-        let (rtx, rrx) = completion_channel();
-        self.shard_tx(ue_id)
-            .send(Request::AbortReconf { ue_id, resp: rtx })
-            .expect("worker alive");
-        rrx.recv().expect("completion")
+        self.abort_reconfigure_completion(ue_id, false)
+            .recv()
+            .expect("completion")
+            .value
     }
 
     pub fn release_context(&self, ue_id: UeId) -> OpResult<()> {
-        let (rtx, rrx) = completion_channel();
-        self.shard_tx(ue_id)
-            .send(Request::Release { ue_id, resp: rtx })
-            .expect("worker alive");
-        rrx.recv().expect("completion")
+        self.release_context_completion(ue_id, false)
+            .recv()
+            .expect("completion")
+            .value
     }
 
     pub fn lookup(&self, ue_id: UeId) -> OpResult<UeContextView> {
-        let (rtx, rrx) = completion_channel();
-        self.shard_tx(ue_id)
-            .send(Request::Lookup { ue_id, resp: rtx })
-            .expect("worker alive");
-        rrx.recv().expect("completion")
+        self.lookup_completion(ue_id, false)
+            .recv()
+            .expect("completion")
+            .value
     }
 
     /// Total contexts across all shards (routed per shard, summed). Not a snapshot:
@@ -246,44 +440,111 @@ impl Drop for Service {
     }
 }
 
+#[inline]
+fn completed<T>(
+    value: T,
+    stamp_completion: bool,
+    started: std::time::Instant,
+    unstamped: std::time::Instant,
+) -> Completion<T> {
+    Completion {
+        value,
+        started,
+        done: if stamp_completion {
+            std::time::Instant::now()
+        } else {
+            unstamped
+        },
+    }
+}
+
 fn worker_loop(cfg: Config, seq: Arc<AtomicU64>, rx: Receiver<Request>) {
     let mut core = ShardCore::new(cfg, seq);
+    let unstamped = std::time::Instant::now();
     while let Ok(req) = rx.recv() {
+        // One clock read, and only for a diagnostic run. It sits after the
+        // request has left the queue and before the shard operation.
+        let started = if cfg.stamp_start {
+            std::time::Instant::now()
+        } else {
+            unstamped
+        };
         match req {
             Request::Create {
                 ue_id,
                 params,
+                stamp_completion,
                 resp,
             } => {
-                let _ = resp.send(core.create_context(ue_id, &params));
+                let value = core.create_context(ue_id, &params);
+                let _ = resp.send(completed(value, stamp_completion, started, unstamped));
             }
-            Request::Setup { ue_id, resp } => {
-                let _ = resp.send(core.setup_connection(ue_id));
+            Request::Setup {
+                ue_id,
+                stamp_completion,
+                resp,
+            } => {
+                let value = core.setup_connection(ue_id);
+                let _ = resp.send(completed(value, stamp_completion, started, unstamped));
             }
-            Request::Signal { ue_id, msg, resp } => {
-                let _ = resp.send(core.handle_signaling(ue_id, &msg));
+            Request::Signal {
+                ue_id,
+                msg,
+                stamp_completion,
+                resp,
+            } => {
+                let value = core.handle_signaling(ue_id, &msg);
+                let _ = resp.send(completed(value, stamp_completion, started, unstamped));
             }
-            Request::AddDrb { ue_id, drb, resp } => {
-                let _ = resp.send(core.add_drb(ue_id, drb));
+            Request::AddDrb {
+                ue_id,
+                drb,
+                stamp_completion,
+                resp,
+            } => {
+                let value = core.add_drb(ue_id, drb);
+                let _ = resp.send(completed(value, stamp_completion, started, unstamped));
             }
             Request::BeginReconf {
                 ue_id,
                 params,
+                stamp_completion,
                 resp,
             } => {
-                let _ = resp.send(core.begin_reconfigure(ue_id, &params));
+                let value = core.begin_reconfigure(ue_id, &params);
+                let _ = resp.send(completed(value, stamp_completion, started, unstamped));
             }
-            Request::CompleteReconf { ue_id, resp } => {
-                let _ = resp.send(core.complete_reconfigure(ue_id));
+            Request::CompleteReconf {
+                ue_id,
+                stamp_completion,
+                resp,
+            } => {
+                let value = core.complete_reconfigure(ue_id);
+                let _ = resp.send(completed(value, stamp_completion, started, unstamped));
             }
-            Request::AbortReconf { ue_id, resp } => {
-                let _ = resp.send(core.abort_reconfigure(ue_id));
+            Request::AbortReconf {
+                ue_id,
+                stamp_completion,
+                resp,
+            } => {
+                let value = core.abort_reconfigure(ue_id);
+                let _ = resp.send(completed(value, stamp_completion, started, unstamped));
             }
-            Request::Release { ue_id, resp } => {
-                let _ = resp.send(core.release_context(ue_id));
+            Request::Release {
+                ue_id,
+                stamp_completion,
+                resp,
+            } => {
+                let value = core.release_context(ue_id);
+                let _ = resp.send(completed(value, stamp_completion, started, unstamped));
             }
-            Request::Lookup { ue_id, resp } => {
-                let _ = resp.send(core.lookup(ue_id));
+            Request::Lookup {
+                ue_id,
+                stamp_completion,
+                resp,
+            } => {
+                let value = core.lookup(ue_id);
+                let _ = resp.send(completed(value, stamp_completion, started, unstamped));
             }
             Request::Count { resp } => {
                 let _ = resp.send(core.count());

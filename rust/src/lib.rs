@@ -20,6 +20,7 @@ pub mod types;
 
 pub use config::{Config, MAX_DRBS, MAX_SIGNALING_PAYLOAD};
 pub use error::{OpError, OpResult};
+pub use message::Completion;
 pub use service::Service;
 pub use shard_core::ShardCore;
 pub use types::{

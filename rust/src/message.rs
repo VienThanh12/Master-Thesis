@@ -18,47 +18,68 @@ use crate::error::OpResult;
 use crate::types::{
     CreateParams, DrbEntry, ReconfigParams, SignalingAck, SignalingMsg, UeContextView, UeId,
 };
+use std::time::Instant;
+
+/// A worker-produced result and its completion time. The worker captures `done`
+/// before the producer observes the channel, so polling delay is not measured as
+/// operation latency.
+pub struct Completion<T> {
+    pub value: T,
+    pub done: Instant,
+    /// Meaningful only when `Config::stamp_start` is set. Otherwise every
+    /// completion from a worker carries the same sentinel.
+    pub started: Instant,
+}
 
 pub enum Request {
     Create {
         ue_id: UeId,
         params: CreateParams,
-        resp: CompletionTx<OpResult<()>>,
+        stamp_completion: bool,
+        resp: CompletionTx<Completion<OpResult<()>>>,
     },
     Setup {
         ue_id: UeId,
-        resp: CompletionTx<OpResult<()>>,
+        stamp_completion: bool,
+        resp: CompletionTx<Completion<OpResult<()>>>,
     },
     Signal {
         ue_id: UeId,
         msg: SignalingMsg,
-        resp: CompletionTx<OpResult<SignalingAck>>,
+        stamp_completion: bool,
+        resp: CompletionTx<Completion<OpResult<SignalingAck>>>,
     },
     AddDrb {
         ue_id: UeId,
         drb: DrbEntry,
-        resp: CompletionTx<OpResult<()>>,
+        stamp_completion: bool,
+        resp: CompletionTx<Completion<OpResult<()>>>,
     },
     BeginReconf {
         ue_id: UeId,
         params: ReconfigParams,
-        resp: CompletionTx<OpResult<()>>,
+        stamp_completion: bool,
+        resp: CompletionTx<Completion<OpResult<()>>>,
     },
     CompleteReconf {
         ue_id: UeId,
-        resp: CompletionTx<OpResult<()>>,
+        stamp_completion: bool,
+        resp: CompletionTx<Completion<OpResult<()>>>,
     },
     AbortReconf {
         ue_id: UeId,
-        resp: CompletionTx<OpResult<()>>,
+        stamp_completion: bool,
+        resp: CompletionTx<Completion<OpResult<()>>>,
     },
     Release {
         ue_id: UeId,
-        resp: CompletionTx<OpResult<()>>,
+        stamp_completion: bool,
+        resp: CompletionTx<Completion<OpResult<()>>>,
     },
     Lookup {
         ue_id: UeId,
-        resp: CompletionTx<OpResult<UeContextView>>,
+        stamp_completion: bool,
+        resp: CompletionTx<Completion<OpResult<UeContextView>>>,
     },
     Count {
         resp: CompletionTx<u64>,

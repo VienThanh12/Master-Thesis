@@ -258,6 +258,58 @@ fn service_functional() {
     svc.shutdown();
 }
 
+#[test]
+fn service_async_fifo() {
+    let cfg = Config {
+        n_shards: 1,
+        queue_capacity: 2,
+        ..Config::default()
+    };
+    let mut svc = Service::new(cfg);
+    svc.start();
+
+    let create = svc.create_context_async(1001, cp(7));
+    let setup = svc.setup_connection_async(1001);
+    let signal = svc.handle_signaling_async(1001, sig(3, 10));
+
+    let created = create.recv().expect("create completion");
+    let connected = setup.recv().expect("setup completion");
+    let signaled = signal.recv().expect("signal completion");
+    assert!(created.value.is_ok());
+    assert!(connected.value.is_ok());
+    assert_eq!(signaled.value.unwrap().new_messages_handled, 1);
+    assert!(created.done <= connected.done && connected.done <= signaled.done);
+    assert_eq!(created.started, signaled.started);
+
+    svc.shutdown();
+}
+
+#[test]
+fn service_async_start_stamp() {
+    let cfg = Config {
+        n_shards: 1,
+        queue_capacity: 2,
+        stamp_start: true,
+        ..Config::default()
+    };
+    let mut svc = Service::new(cfg);
+    svc.start();
+    svc.create_context(1001, cp(7)).unwrap();
+    svc.setup_connection(1001).unwrap();
+
+    let first = svc.handle_signaling_async(1001, sig(3, 10));
+    let second = svc.handle_signaling_async(1001, sig(3, 10));
+    let a = first.recv().expect("first");
+    let b = second.recv().expect("second");
+    assert!(a.value.is_ok());
+    assert!(b.value.is_ok());
+    assert!(a.started <= a.done);
+    assert!(a.done <= b.started);
+    assert!(b.started <= b.done);
+
+    svc.shutdown();
+}
+
 // --- Concurrent load across shards ------------------------------------------
 // Disjoint ue_id ranges per producer, so no cross-thread key conflicts.
 #[test]
