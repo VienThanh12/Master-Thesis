@@ -307,9 +307,13 @@ for comparing the two languages' safe-concurrency stories.
    and is the mechanism the tail-latency study exercises. Non-blocking/drop policy is
    explicitly **not** used (would hide overload).
 6. **Completion:** each request carries a single-use completion channel/handle. The worker
-   writes the `OpResult` to it after executing the op; the caller waits on it. The
-   completion mechanism MUST be a 1:1 handoff (e.g. a one-shot channel / promise-future),
-   not a shared mutable buffer.
+   writes the `OpResult` to it after executing the op. The ordinary typed API waits on that
+   handle. The benchmark-only asynchronous layer returns the same handle so a producer can
+   submit another request before observing the result. The completion mechanism MUST remain
+   a 1:1 handoff (e.g. a one-shot channel / promise-future), not a shared mutable buffer.
+   For the asynchronous benchmark path, the worker also stamps the completion after the
+   operation and before signalling the handle. This timestamp is instrumentation, not
+   service state, and ordinary blocking calls leave it disabled.
 7. The worker processes its queue strictly **FIFO** (Section 10.2).
 
 > Rationale note (for the thesis, not a requirement): this model lets Rust express the
@@ -565,7 +569,9 @@ during implementation, with the requirement id and the reason. Examples that wil
   a stable move-only type carrying a `std::promise` completion (`include/uecm/message.hpp`).
 - Response: `std::variant<OpResult<void>, OpResult<SignalingAck>, OpResult<UeContextView>,
   OpResult<uint64_t>>`.
-- One-shot completion: `std::promise` / `std::future` (§7.6); caller blocks on `future.get()`.
+- One-shot completion: `std::promise` / `std::future` (§7.6). Asynchronous methods return
+  the future, while the ordinary typed methods call the asynchronous form and block on
+  `future.get()`. The worker response includes its completion timestamp.
 - Bounded blocking queue: hand-written `mutex` + two `condition_variable`s
   (`include/uecm/bounded_queue.hpp`).
 - Intra-shard map: `std::unordered_map<UeId, UeContext, FnvHash>` with the pinned FNV-1a hash.
@@ -585,8 +591,10 @@ during implementation, with the requirement id and the reason. Examples that wil
 - Request: a `Request` enum with one variant per operation, each carrying a typed one-shot
   `Sender` of its precise result type (`src/message.rs`), replaces the C++ `std::variant`
   `Response`; no runtime variant dispatch on the caller side.
-- One-shot completion: a fresh `std::sync::mpsc::channel()` per request; caller blocks on
-  `recv()` (the analog of `std::future::get`).
+- One-shot completion: a fresh `std::sync::mpsc::channel()` per request. Asynchronous
+  methods return the typed receiver, while the ordinary methods call the asynchronous
+  form and block on `recv()` (the analog of `std::future::get`). The typed payload includes
+  the worker's completion timestamp.
 - Bounded blocking queue: `std::sync::mpsc::sync_channel(capacity)` (blocking `send` gives
   the same backpressure as the C++ hand-written queue). At `capacity == 0` this is a
   rendezvous channel. C++ `BoundedQueue` clamps 0 to 1. The compared campaign uses 1024.
@@ -1008,6 +1016,40 @@ kops/s into `figures/gen_macros.tex`.**
   and writes `fair-*.jsonl`. Clock A ran on `calm-husky` on 20 September 2026
   and is certified. Clock B ran on the same host that evening and is
   certified.
+- A separate `pipeline` engineering pilot permits several requests to remain in flight.
+  It does not replace the reported benchmark. Each producer pre-plans a finite set of
+  arrivals, preserves each intended timestamp, blocks only when the existing shard queue
+  is full, and drains every accepted request after the arrival window. It records
+  intended-to-worker-completion delay as the primary quantity, with admission,
+  queue-and-operation, and completion-observation components. No synthetic
+  coordinated-omission samples are added because every planned arrival is represented.
+  Its 60-second histogram range is deliberately separate from the reported benchmark's
+  3.6-second range, and any overflow or drain timeout invalidates a tail ranking. Files
+  and results use the `pipeline-*` prefix until a new campaign is pre-registered and
+  promoted.
+  `--stamp-start` is off unless a diagnostic run asks for it. The worker then reads
+  the clock once after dequeue and before the operation, and the harness splits
+  queue-and-operation delay into queue waiting and operation execution. A Rust build
+  with `--features mutex-queue` uses the C++ queue design. `pipeline_pilot.sh
+  --diagnose` runs both and writes `pipeline-diagnose-*`. Those runs explain a
+  frozen load. They are not the language ranking.
+  The 6 October 2026 confirmatory log is
+  `bench/results-pipeline-20261006-louse/pipeline-20261006-120913.jsonl`.
+  It ran on a further host, `major-louse`, an AMD EPYC 7443P with no hypervisor.
+  Signal only, seven producers, twenty interleaved repeats, 560000 operations
+  per second per producer. `bench/pipeline_facts.py` writes `figures/gen_pipeline.tex`.
+  That file is not the reported campaign and it is not in the campaign's tested family.
+  The same pilot accepts `--workload mixed` and `--active-ues`. Mixed skips the
+  signal preload. Warmup runs the lifecycle generator on the synchronous API, and
+  the measured phase continues that generator. One UE stays on one shard queue, so
+  its steps stay in submission order. Results use the `pipeline-mixed-*` prefix.
+  The 6 October signal log is signal only. The mixed log from the same host and
+  day is `bench/results-pipeline-20261006-louse/pipeline-mixed-20261006-130745.jsonl`,
+  twenty interleaved repeats at 560000 operations per second per producer. That load
+  was chosen by the same rule from the one-repeat sweep `pipeline-mixed-20261006-130135.jsonl`.
+  `bench/pipeline_mixed_facts.py` checks that rule, the operation-count parity,
+  the validity gates, the allocator split, and the delay components before it
+  writes `figures/gen_pipeline_mixed.tex`.
 - Resource capture (RQ3): each run reports peak RSS and total CPU via `getrusage`
   (`ru_maxrss`, `ru_utime`+`ru_stime`), emitted in JSON/CSV. The Rust side's single
   `unsafe` `getrusage` FFI call lives only in the benchmark example (`libc`
