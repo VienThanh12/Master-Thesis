@@ -83,6 +83,9 @@
 \input{figures/gen_baremetal.tex}
 \input{figures/gen_guest.tex}
 \input{figures/gen_probes.tex}
+% Further-host overload clocks. Quoted only as a further host, not the reported campaign.
+\input{figures/gen_pipeline.tex}
+\input{figures/gen_pipeline_mixed.tex}
 
 % The 12 cm minipage ends on the keyword rule. The class \vfill parks CCS on
 % that rule, so spare space lands between Conclusions and CCS and the last
@@ -138,7 +141,9 @@
       $\BudgetCoreShareMax\%$ on language work. Both languages meet the offered rate through
       $\TrackingLoad$~kops/s. Past saturation, extra delay samples are written
       after the timed window. Rust still finishes more calls at
-      $\OverloadLoad$~kops/s. Overload service latency stays unresolved.
+      $\OverloadLoad$~kops/s. Past saturation the campaign delay is the service
+      time plus how late the sender is. It does not settle how long the service took. A timing
+      with several requests in flight ranks that delay by allocator.
       
 \end{abstract}
 \end{otherlanguage}
@@ -473,8 +478,8 @@ Telecom vendors are under growing pressure, both technical and increasingly regu
 memory-safe languages, yet for the RAN control plane they lack \emph{direct, controlled}
 evidence on which to base that decision. It is not established whether a Rust implementation of
 a stateful, concurrent control-plane subsystem can match modern C++ in \emph{tail latency and
-predictability under overload} (as opposed to average throughput). It is also unknow whether Rust's compile-time
-guarantees actually eliminate the specific defect classes that affects the existing C++ code,
+predictability under overload} (as opposed to average throughput). It is also unknown whether Rust's compile-time
+guarantees actually eliminate the specific defect classes that affect the existing C++ code,
 and what incremental adoption \emph{costs} inside a large C++ codebase. The available evidence
 is largely general-purpose and average-case~\cite{balasubramanian2017rust,qin2020rust}, leaving
 these three questions (predictability, prevented-defect scope, and migration cost) open for a
@@ -854,7 +859,7 @@ indexed paper mentioning Rust from the vendor hosting this work. The search
 returned no study that measures the tail of a Rust and a C++ version of the
 same stateful, multi-thread control-plane part under too much load.
 
-Table 3.1 is the map for the rest of this chapter. Each row is one research question.
+Table~\ref{tab:design} is the map for the rest of this chapter. Each row is one research question.
 The columns say which test answers it, what was built for that test, which data the test
 produces, and which number is reported.
 
@@ -1490,7 +1495,8 @@ kernel time per call than \ProbeAfterSysLower{} at
 $\ProbeAfterSysLowerLoads$ of the $\ProbeAfterLoads$ loads on both
 allocators, and $\ProbeAfterSysRatio$ times as much at the top load.
 
-A further host with the same processor then swapped the hash map and the
+\paragraph{Where the remaining lead sits.}
+One further host, with the same processor, then swapped the hash map and the
 queue. Rust keeps map entries in one flat table. C\texttt{++} gives each
 entry its own node. Putting an open-addressed map in C\texttt{++} left the
 lead in place. Rust was ahead in $\SgFlatRustAhead$ of $\SgFlatPairs$
@@ -1510,6 +1516,65 @@ $\SgQueueRingAbsPct\%$. The lead therefore comes from how the queue is
 locked, not from how it stores requests. The lock adds kernel time to each
 handoff. It does not add extra thread sleeps. All four builds switch
 threads $\SgSwitchLow$ times per call at $\SgSwitchLowLoad$~kops/s.
+
+\paragraph{Delay with several requests in flight.}
+After the system becomes saturated, the sender starts to fall behind. The
+reported delay then includes two things: the service time and the time the
+sender is behind schedule. Therefore, this delay does not by itself tell us
+which service is faster.
+
+We measure the actual work separately. Several requests can be in flight at
+the same time. Each request keeps its planned arrival time, and we stop
+measuring when the worker finishes it. This experiment was run on a different
+machine, using processor \PipeCpu{}. It is not part of the tested system
+family reported in the main campaign.
+
+The offered load is $\PipeOfferedKops$~kops/s. We chose this load as the first
+measured load where every variant completes fewer than $99\%$ of its planned
+requests within their arrival windows. We chose this rule before looking at
+which variant performed better.
+
+Table~\ref{tab:pipeline} shows the median results for repeated signalling
+and mixed lifecycle. With \texttt{jemalloc}, Rust has the lower median in
+every repetition for both workloads. With the system allocator, C\texttt{++}
+has the lower median throughout.
+
+The difference comes from the time spent waiting to enter the queue, not from
+the time spent doing the work.
+
+\begin{table}[!ht]
+\centering
+\small
+\caption[Delay with several requests in flight]{Delay with several requests
+in flight on a separate host at $\PipeOfferedKops$~kops/s. The median is the
+time spent waiting before entering the queue. In-service time is measured
+after queue entry until completion. This experiment is outside the tested
+system family reported in the main campaign.\label{tab:pipeline}}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{8pt}
+\begin{tabular}{@{}lrrrr@{}}
+\hline\hline
+ & \multicolumn{2}{c}{Signal} & \multicolumn{2}{c}{Mixed} \\
+\cline{2-3}\cline{4-5}
+ & system & \texttt{jemalloc} & system & \texttt{jemalloc} \\
+\hline
+C\texttt{++} median (ms) & \PipeFiftyMsCppSystem & \PipeFiftyMsCppJemalloc &
+\PipeMixedFiftyMsCppSystem & \PipeMixedFiftyMsCppJemalloc \\
+Rust median (ms) & \PipeFiftyMsRustSystem & \PipeFiftyMsRustJemalloc &
+\PipeMixedFiftyMsRustSystem & \PipeMixedFiftyMsRustJemalloc \\
+Rust lower & \PipeRustLowerSystemPairs/\PipeRepeats &
+\PipeRustLowerJemallocPairs/\PipeRepeats &
+\PipeMixedRustLowerSystemPairs/\PipeMixedRepeats &
+\PipeMixedRustLowerJemallocPairs/\PipeMixedRepeats \\
+C\texttt{++} in service (\textmu s) & \PipeInServiceUsCppSystem &
+\PipeInServiceUsCppJemalloc & \PipeMixedInServiceUsCppSystem &
+\PipeMixedInServiceUsCppJemalloc \\
+Rust in service (\textmu s) & \PipeInServiceUsRustSystem &
+\PipeInServiceUsRustJemalloc & \PipeMixedInServiceUsRustSystem &
+\PipeMixedInServiceUsRustJemalloc \\
+\hline
+\end{tabular}
+\end{table}
 
 \FloatBarrier
 \subsection{Resource use (RQ3)}\label{sec:resources}
@@ -1755,10 +1820,10 @@ When the same core is timed separately, $\BudgetCoreRatio\times$ higher
 performance is observed in \BudgetCoreFaster{}. At higher loads, however,
 Rust still completes more calls. This advantage appears to come from the
 inter-thread handoff rather than from the language itself. When Rust uses
-the C\texttt{++} queue on a further host, the advantage disappears. The
-high-load percentile differences therefore reflect schedule drift rather
-than a clear language effect. So RQ1 does not support a language-level
-performance verdict after saturation.
+the C\texttt{++} queue on the host that swapped it, the advantage disappears. Past
+saturation the campaign delay is schedule drift. It does not rank the services.
+Timing the work with several requests in flight does, and the order depends on
+the allocator, as Section~\ref{sec:overload} reports.
 
 For RQ2, the outcome is fully determined by the fourteen-class catalogue
 defined in advance and is consistent across hosts. All seven classes of
@@ -1784,19 +1849,21 @@ directly.
 RQ1 has two answers separated by regime. At $\ReprLoad$~kops/s the campaign
 resolves median, p99 and p99.9 differences, and the pooled p99.99 lies on
 Rust's side. The end-to-end clock still cannot bound a language effect because
-the core call is only $\BudgetCoreShareMax\%$ of what it times. After
-saturation the overload percentiles are schedule drift. Extra delay
+the core call is only $\BudgetCoreShareMax\%$ of what it times. After saturation the campaign delay is schedule drift. Extra delay
 samples are written after the timed window, so they do not add recorder
-work while the timer is running. No overload tail ranking follows.
+work while the timer is running. Those numbers do not rank the services.
+Timing the work with several requests in flight does, and the order depends on
+the allocator. The delay is the wait before queue entry, for signal and for
+the mixed lifecycle.
 
 Past saturation Rust is still ahead on finished calls on both allocators.
 That lead sits in the handoff between
-threads, where C\texttt{++} uses more kernel time per call. On a further host
-with the same processor, a hash map swap left it in place, and giving Rust
+threads, where C\texttt{++} uses more kernel time per call. On the host that
+swapped the queue, a hash map swap left it in place, and giving Rust
 the C\texttt{++} queue removed it. The earlier run's
 lower Rust p99 misses the stalls on purpose and is not an RQ1
 tail result. The overload throughput is a completed-work comparison. Its
-percentiles are schedule drift. The closest prior work reports
+campaign-clock percentiles are schedule drift. The closest prior work reports
 similar degradation past a threshold rate and attributes it to stackless
 \texttt{async}/\texttt{await}~\cite{arvidsson2025async}. That cause cannot
 carry here because neither side uses an asynchronous runtime. Changing Rust's
@@ -1893,8 +1960,9 @@ Saying how they came out is what sets a test apart from a sketch.
         performance equivalence. At $\ReprLoad$~kops/s the paired test resolves
         $\PFiftyDiffAbsMax\,\mu$s and higher-percentile differences, while the
         pooled far tail favours Rust. The isolated core favours
-        \BudgetCoreFaster{}. After saturation the available clocks do not
-        provide a valid service-latency ranking. The hypothesis combined the
+        \BudgetCoreFaster{}. After saturation the campaign delay is schedule
+        drift. It does not rank the services. Timing the work with several
+        requests in flight does, and the order depends on the allocator. The hypothesis combined the
         round-trip, core code, and overload behaviour into one
         quantity that the method cannot support.
   \item[H2] For the seven injected classes of its kind it holds without
@@ -1939,10 +2007,10 @@ times the design faithfully and the language hardly at all. Third,
 extra delay samples are written after the timed window. A throughput lead
 remains where the service has stopped meeting its sent rate. The kernel
 time split behind that lead comes from this host, but the swaps that test its
-cause ran on a further host with the same processor. The earlier run
-was not repeated here. Fourth, the overload percentiles are
-schedule drift. The thesis
-therefore leaves overload service latency unresolved.
+cause ran on one further host with the same processor. The earlier run
+was not repeated here. Fourth, the campaign delay past saturation is schedule drift. It does not rank
+the services. Timing the work with several requests in flight does, and the
+order depends on the allocator. That run is outside the campaign's tested family.
 
 \section{Ethical and professional reflection}
 The study uses no personal data, no subscriber data, and no operator secrets. All
@@ -2004,10 +2072,12 @@ $\PFiftyDiffAbsMax\,\mu$s in Rust's favour. At p99.99 the slowest Rust variant s
 $\FarTailLangSep\,\mu$s below the fastest C++ one. Past saturation Rust still
 finishes more calls at $\OverloadLoad$~kops/s. Extra delay samples are written
 after the timed window. CPU per completed call is
-$\ProbeAfterCpuPerOpRatio$. On a further host, giving Rust the
+$\ProbeAfterCpuPerOpRatio$. On one further host, giving Rust the
 C\texttt{++} queue removes that lead, so it comes from how calls pass
-between threads, not from the core work. The gaps do not rank the two services,
-and overload service latency remains unresolved. On RAM
+between threads, not from the core work. Those gaps past saturation are schedule drift. They do not rank the two
+services. Timing the work with several requests in flight does rank the delay.
+The rank depends on the allocator, for signal and for the mixed lifecycle. The
+delay is the wait before queue entry. On RAM
 the Rust build carries a few MiB more fixed footprint under both allocators. It does so in
 the same direction and MiB scale on all three hosts timed. The
 allocator choice costs about as much on both bare-metal hosts, and an order of
@@ -2017,16 +2087,19 @@ Taken as a set these support a narrow claim. It is for stateful, concurrent,
 partitionable control plane services of this kind. At the loads where the
 service still meets its sent rate, the choice is which classes of defect a
 team wants to make impossible to write. The other half is whether it will pay the
-design and training cost of getting them. Past that point there is no second
-language rank. What the thesis adds
-is not a verdict. It is the frozen spec,
+design and training cost of getting them. Past that point the campaign gives no second language rank. Its delay there is
+schedule drift. The ranking from several requests in flight depends on the
+allocator, and that run sits outside the tested family. What the
+thesis adds is the frozen spec,
 the parity tested pair, and a timing harness that reaches past the saturation
 region. A split of the
 round-trip says how much of what it times the language can own. A defect
 list maps where the guarantee stops.
 
-Future work answers the gaps one at a time. The remaining Rust lead goes
+Future work answers the gaps one at a time. The remaining Rust throughput lead goes
 away when Rust is given the C\texttt{++} queue. One job is to repeat that swap on the campaign host.
+Timing the work with several requests in flight has been run for signal and mixed calls.
+Repeating it on the campaign host is still open.
 Another needs no new host. It is to vary how the kernel uses large pages for ordinary memory, on one host with all
 else held fixed. All three hosts agree that the Rust build carries the larger
 footprint. They disagree about how that sits against the cost of the
@@ -2224,7 +2297,7 @@ interval. The processor is \ProbeAfterCpu{},
 the pin is \ProbeAfterPinned{}, and \texttt{nohz\_full} is
 \ProbeAfterNohzFull{}, matching the campaign's \MainCpu{} and
 \texttt{\MainNohzFull}. The earlier run that wrote none of the extra delay samples was not repeated here and remains an earlier
-host, so it cannot supply this campaign's percentiles. The overload percentiles are schedule drift. At the top load Rust
+host, so it cannot supply this campaign's percentiles. The overload percentiles of these checks are schedule drift. At the top load Rust
 is ahead on both allocators, at $p \ProbeAfterThrPSystem$ on the system allocator
 and $p \ProbeAfterThrPJemalloc$ under \texttt{jemalloc}. CPU per completed
 operation is $\ProbeAfterCpuPerOpRatio$.
