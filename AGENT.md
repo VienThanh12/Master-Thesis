@@ -52,6 +52,8 @@ wrong prefix is wrong in a way no build gate catches.**
 | `bench/results/campaign-20260812-154528.jsonl` — KVM guest, identical design | `\Guest*`, `gen_guest.tex` | The measurement-validity comparison in §`sec:hostcompare`. Same code, same design, a host that could not resolve the far tail. `g++` is one patch apart (`\GuestGpp` 15.1.1, `\MainGpp` 15.2.1). `rustc` matches at 1.97.1. Do not write that they share a toolchain |
 | `bench/results-baremetal/campaign-20260826-*.jsonl` — bare metal, 8/8, 15 repeats, 8 loads | `\Bm*`, `gen_baremetal.tex` | Whether findings survive a change of shard count, load grid, repeat count and compiler |
 | `bench/results/fair-start-*.jsonl` and `fair-after-*.jsonl` — canonical 7/7/14/20 grid, 1120 runs each | `\ProbeStart*` and `\ProbeAfter*`, `gen_probes.tex` | **Clock B is the same-host fill control. Clock A is an earlier host.** They test whether the high-load split persists when coordinated-omission fill is removed or deferred. Clock A (`\ProbeStartOrigin` origin, cap `\ProbeStartCap`) drops the fill, and its percentiles are **coordinated-omission biased by construction**, so they must never be quoted as a tail result. It was not repeated on the Chicago host. Clock B (`\ProbeAfterWhen`, `fair-after-20260924-100100.jsonl`) keeps the origin and cap and defers the fill on the campaign host, the same pin and the same `nohz_full`. Past saturation its percentiles are **schedule drift in seconds, not service time**. `probe_facts.py` refuses to emit those percentiles. The large campaign gaps move with the fill. A smaller Rust throughput lead remains on both heaps. Its kernel and user CPU per call (`\ProbeAfterSys*`, same median chain as `CpuPerOp`) place it at the handoff: C++ spends more kernel time per call at every load, and the probes in the next row name what carries it. Shared `\ProbeCpu` and `\ProbeNohzFull` are emitted only when the two captures agree. `refresh_thesis.sh` runs `plot_figures.py` before `probe_facts.py`, so the knee rung is the one just written |
+| `bench/results-pipeline-20261006-louse/pipeline-20261006-120913.jsonl` — several requests in flight, one frozen load, 20 repeats | `\Pipe*`, `gen_pipeline.tex` | **A further host, not the reported campaign and not in its tested family.** Cherry Chicago `major-louse`, AMD EPYC 7443P, 6 October 2026. Signal only. `pipeline_facts.py` checks the allocator split before writing the macros. `Thesis_v4.tex` quotes the split in `sec:overload` and the discussion. It does not put the run in the campaign's tested family |
+| `bench/results-pipeline-20261006-louse/pipeline-mixed-20261006-130745.jsonl` — mixed lifecycle, same clock, same host, 560000 per producer frozen by the same rule from `pipeline-mixed-20261006-130135.jsonl`, 20 repeats | `\PipeMixed*`, `gen_pipeline_mixed.tex` | **Same further host, not the reported campaign.** `pipeline_mixed_facts.py` checks the load-selection rule, lifecycle parity, validity gates, allocator split, and delay components before writing the macros. `Thesis_v4.tex` quotes them beside the signal result. The campaign clock still has no after-saturation service ranking |
 | `bench/results-probes-20260930-sg/` — swap probes on a further host with the same processor, fill after the window | `\Sg*`, `gen_probes.tex` | **Diagnostics, not the compared pair and not in the Holm family.** Cherry Singapore `immune-bullfrog`, AMD EPYC 7443P, `nohz_full=2-17`, SMT off, Rocky image. An open-addressed C++ map leaves the Rust lead in place (`\SgFlat*`). Giving Rust the C++ queue design removes it, and a C++ ring buffer with the same lock changes nothing (`\SgQueue*`, read from the `nocount` session, because counting context switches with `perf` slowed every arm and hid the lead). Thread switches per call are equal across builds (`\SgSwitchLow`). `probe_facts.py` exits if a log stops supporting the two Thesis_v4 sentences that depend on it (the swap removing the lead, and adding kernel time). The `env-*` captures before `env-20260930-125434.txt` predate the `nohz_full` reboot and describe no run. Always say "a further host", never "second host", which already means the 26 August machine |
 
 Host descriptions are generated too: `\Main*` from the reported campaign's own environment capture
@@ -535,12 +537,13 @@ that cites each figure rather than in the caption, because `.acronyms.py` reads 
 label as a use and the labels come before the caption in source order.
 
 Because the results chapters and now the figure captions quote measured values,
-`Thesis_v4.tex` and the full draft `\input` the same seven generated macro files (`gen_macros`,
-`gen_complexity`, `gen_artefacts`, `gen_adoption`, `gen_baremetal`, `gen_guest`, and
-`gen_probes`, added to the draft on 21 September 2026). The skeleton therefore
-has to be rebuilt whenever those are regenerated, not only when its own source changes, and
-`bench/refresh_thesis.sh` does **not** rebuild it, so that step is manual. The refresh does
-regenerate `gen_probes.tex` and the two-clock `fig_overload.pdf` from the fixed fair-clock logs.
+`Thesis_v4.tex` reads the shared generated macro files plus the two further-host
+pipeline files, `gen_pipeline.tex` and `gen_pipeline_mixed.tex`. The full draft
+remains empty and cannot be synced until the author chooses a recovery source.
+The skeleton therefore has to be rebuilt whenever those files are regenerated,
+not only when its own source changes, and `bench/refresh_thesis.sh` does **not**
+rebuild it, so that step is manual. The refresh regenerates both pipeline files,
+`gen_probes.tex`, and the two-clock `fig_overload.pdf` from their fixed logs.
 
 ---
 
