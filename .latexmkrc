@@ -8,3 +8,7 @@ $out_dir = '.';
 # AGENT.md documents `latexmk -pdf <doc>.tex`; default to the same engine so a
 # bare `latexmk <doc>.tex` cannot silently produce a DVI instead.
 $pdf_mode = 1;
+
+# tab:pipeline in Thesis_v4.tex inputs figures/tab_pipeline.tex, which is built
+# by bench/pipeline_table.py (also run from bench/refresh_thesis.sh).
+$pre_tex_code = 'system("python3", "bench/pipeline_table.py") unless -e "figures/tab_pipeline.tex";';
