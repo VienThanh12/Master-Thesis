@@ -126,6 +126,17 @@ else()
   target_compile_definitions(bench PRIVATE UECM_ALLOC_NAME="system")
 endif()
 
+# --- Method 3 pilot (not the campaign bench) ----------------------------------
+# Open-loop async signal or mixed lifecycle. Twin of rust/examples/pipeline.rs.
+add_executable(pipeline bench/pipeline.cpp)
+target_include_directories(pipeline PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/bench)
+target_link_libraries(pipeline PRIVATE uecm)
+if(UECM_USE_JEMALLOC AND JEMALLOC_LIB)
+  target_compile_definitions(pipeline PRIVATE UECM_ALLOC_NAME="jemalloc")
+else()
+  target_compile_definitions(pipeline PRIVATE UECM_ALLOC_NAME="system")
+endif()
+
 # --- Latency-budget decomposition ---------------------------------------------
 # Separates the operation's own work from the cross-thread handoff the sweep
 # bundles into it. See bench/latency_budget.cpp.
