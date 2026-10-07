@@ -51,6 +51,10 @@ python3 "$here/plot_figures.py" "$@"
 echo "== regenerating fair-clock diagnostic macros =="
 python3 "$here/probe_facts.py"
 
+echo "== regenerating further-host overload macros =="
+python3 "$here/pipeline_facts.py"
+python3 "$here/pipeline_mixed_facts.py"
+
 # The bare-metal confirmation campaign is a separate dataset with its own design,
 # so it has its own generator rather than a flag on the one above. It describes a
 # host that no longer exists, which is the strongest possible reason for its

@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+"""Macros for the further-host multi-outstanding overload run.
+
+The log is one frozen load on major-louse, 6 October 2026: signal only,
+seven producers, twenty interleaved repeats, several requests in flight.
+It is not the reported campaign and it is not in that campaign's tested
+family. refresh_thesis.sh must not select this directory as a campaign.
+
+The primary quantity is planned-arrival-to-completion delay. Admission is
+the same delay up to the moment the request enters the shard queue.
+In-service delay runs from that moment to worker completion, so it includes
+queue waiting. This run does not stamp the start of the operation.
+"""
+
+import json
+import os
+import statistics
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+LOG_DIR = os.path.join(HERE, "results-pipeline-20261006-louse")
+LOG = os.path.join(LOG_DIR, "pipeline-20261006-120913.jsonl")
+ENV = os.path.join(LOG_DIR, "env-host-major-louse.txt")
+OUT = os.path.join(ROOT, "figures", "gen_pipeline.tex")
+
+ORDER = ("cpp-system", "rust-system", "cpp-jemalloc", "rust-jemalloc")
+RATE = 560000
+PRODUCERS = 7
+REPEATS = 20
+STATS = ("p50", "p99", "p999")
+
+
+def fail(msg):
+    print(f"pipeline_facts: {msg}", file=sys.stderr)
+    sys.exit(1)
+
+
+def cpu_model():
+    for line in open(ENV, encoding="utf-8"):
+        if line.startswith("Model name:"):
+            return " ".join(line.split(":", 1)[1].split())
+    fail(f"no CPU model in {ENV}")
+
+
+def load_rows():
+    rows = [json.loads(line) for line in open(LOG, encoding="utf-8") if line.strip()]
+    if len(rows) != REPEATS * len(ORDER):
+        fail(f"expected {REPEATS * len(ORDER)} rows, found {len(rows)}")
+    grouped = {name: [] for name in ORDER}
+    for i, row in enumerate(rows):
+        repeat = i // len(ORDER)
+        name = ORDER[(repeat + (i % len(ORDER))) % len(ORDER)]
+        got = f"{row['lang']}-{row['alloc']}"
+        if got != name:
+            fail(f"row {i} is {got}, the interleave expects {name}")
+        if row["queue"] != ("mutex" if row["lang"] == "cpp" else "channel"):
+            fail(f"row {i} has unexpected queue {row['queue']}")
+        if row["stamp_start"] or not row["valid"]:
+            fail(f"row {i} is not a confirmatory run")
+        if row["errors"] or row["timed_out"] or row["histogram_overflows"]:
+            fail(f"row {i} failed a validity gate")
+        if int(row["rate"]) != RATE or int(row["producers"]) != PRODUCERS:
+            fail(f"row {i} is not the frozen load")
+        if row["planned"] != row["enqueued"]:
+            fail(f"row {i} did not enqueue every planned request")
+        if row["completed_within_window"] + row["completed_during_drain"] != row["enqueued"]:
+            fail(f"row {i} lost a completion")
+        grouped[name].append(row)
+    for name, items in grouped.items():
+        if len(items) != REPEATS:
+            fail(f"{name} has {len(items)} repeats")
+    return grouped
+
+
+def median(rows, section, key):
+    return statistics.median(row[section][key] for row in rows)
+
+
+def check_direction(grouped):
+    """Rust lower than C++ on jemalloc, and higher on the system allocator."""
+    counts = {}
+    for alloc in ("system", "jemalloc"):
+        cpp = grouped[f"cpp-{alloc}"]
+        rust = grouped[f"rust-{alloc}"]
+        for stat in STATS:
+            lower = sum(
+                1 for c, r in zip(cpp, rust) if r["primary_ns"][stat] < c["primary_ns"][stat]
+            )
+            counts[(alloc, stat)] = lower
+            expect = REPEATS if alloc == "jemalloc" else 0
+            if lower != expect:
+                fail(f"{alloc} {stat}: Rust was lower in {lower} of {REPEATS} pairs")
+    return counts
+
+
+def check_components(grouped):
+    for name, rows in grouped.items():
+        for row in rows:
+            primary = row["primary_ns"]["p50"]
+            admission = row["admission_ns"]["p50"]
+            if primary <= 0 or abs(primary - admission) / primary > 0.02:
+                fail(f"{name} admission p50 is not the primary delay")
+            if row["in_service_ns"]["p50"] * 1000 > primary:
+                fail(f"{name} in-service p50 is not far below the primary delay")
+
+
+def emit(grouped, counts):
+    macros = {
+        "PipeCpu": cpu_model(),
+        "PipeOfferedKops": str(RATE * PRODUCERS // 1000),
+        "PipeRepeats": str(REPEATS),
+        "PipeRustLowerSystemPairs": str(counts[("system", "p50")]),
+        "PipeRustLowerJemallocPairs": str(counts[("jemalloc", "p50")]),
+    }
+    for stat in STATS:
+        tag = {"p50": "Fifty", "p99": "NinetyNine", "p999": "NinetyNineNine"}[stat]
+        for name, rows in grouped.items():
+            lang, alloc = name.split("-")
+            label = f"{lang.capitalize()}{alloc.capitalize()}"
+            macros[f"Pipe{tag}Ms{label}"] = f"{median(rows, 'primary_ns', stat) / 1e6:.1f}"
+            if stat == "p50":
+                macros[f"PipeAdmMs{label}"] = f"{median(rows, 'admission_ns', stat) / 1e6:.1f}"
+                macros[f"PipeInServiceUs{label}"] = (
+                    f"{median(rows, 'in_service_ns', stat) / 1e3:.1f}"
+                )
+                inside = statistics.median(
+                    100.0 * row["completed_within_window"] / row["planned"] for row in rows
+                )
+                macros[f"PipeInWin{label}Pct"] = f"{inside:.1f}"
+    lines = [
+        "% Generated by bench/pipeline_facts.py.",
+        "% Further host, 6 October 2026. Not the reported campaign.",
+        "% Not in the reported campaign's tested family.",
+        "% PipeInServiceUs is worker completion minus queue entry.",
+        "% It includes queue waiting. This run does not time the operation alone.",
+        "% PipeAdmMs is planned arrival to queue entry. A Pct value is a percent.",
+        "% A Fifty, NinetyNine, or NinetyNineNine name is that percentile.",
+        "% Macro names contain no digits: TeX would end the name at the first one.",
+        "% PipeRustLowerPairs counts repeats whose Rust median is below C++.",
+    ]
+    for key in sorted(macros):
+        lines.append(f"\\newcommand{{\\{key}}}{{{macros[key]}}}")
+    text = "\n".join(lines) + "\n"
+    old = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
+    if text != old:
+        with open(OUT, "w", encoding="utf-8") as fh:
+            fh.write(text)
+    print(f"pipeline_facts: {OUT} ({len(macros)} macros)")
+
+
+def main():
+    grouped = load_rows()
+    counts = check_direction(grouped)
+    check_components(grouped)
+    emit(grouped, counts)
+
+
+if __name__ == "__main__":
+    main()
