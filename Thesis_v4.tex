@@ -1820,10 +1820,12 @@ When the same core is timed separately, $\BudgetCoreRatio\times$ higher
 performance is observed in \BudgetCoreFaster{}. At higher loads, however,
 Rust still completes more calls. This advantage appears to come from the
 inter-thread handoff rather than from the language itself. When Rust uses
-the C\texttt{++} queue on the host that swapped it, the advantage disappears. Past
-saturation the campaign delay is schedule drift. It does not rank the services.
-Timing the work with several requests in flight does, and the order depends on
-the allocator, as Section~\ref{sec:overload} reports.
+the C\texttt{++} queue on the host that swapped it, the advantage disappears. 
+
+After the system reaches saturation, the campaign delay mainly reflects scheduling 
+drift and should not be used to compare the services. Instead, timing the work with 
+several requests in flight provides a more meaningful comparison. As discussed 
+in Section~\ref{sec:overload}, the performance order in this case depends on the allocator.
 
 For RQ2, the outcome is fully determined by the fourteen-class catalogue
 defined in advance and is consistent across hosts. All seven classes of
