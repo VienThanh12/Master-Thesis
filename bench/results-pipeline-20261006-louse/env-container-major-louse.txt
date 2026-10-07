@@ -1,0 +1,77 @@
+== uecm-bench:el8-gcc15-rust1.97.1 on cores 2-17 (seccomp off, network none) ==
+
+# Testbed environment capture (20261006-110731)
+
+## Host / OS
+Linux 88239f2e58c2 7.0.0-34-generic #34-Ubuntu SMP PREEMPT_DYNAMIC Wed Sep  2 14:29:37 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+distro: Rocky Linux 8.10 (Green Obsidian)
+
+## Toolchains
+g++ (GCC) 15.2.1 20260123 (Red Hat 15.2.1-7)
+rustc 1.97.1 (8bab26f4f 2026-07-14)
+cargo 1.97.1 (c980f4866 2026-06-30)
+cmake version 3.30.2
+
+## Container image
+image: uecm-bench (docker/Dockerfile)
+built: 2026-10-06T11:05:58Z
+base: Rocky Linux 8.10 (Green Obsidian)
+gcc-toolset: 15
+g++: g++ (GCC) 15.2.1 20260123 (Red Hat 15.2.1-7)
+rustc: rustc 1.97.1 (8bab26f4f 2026-07-14)
+cargo: cargo 1.97.1 (c980f4866 2026-06-30)
+cmake: cmake version 3.30.2
+ninja: 1.11.1.git.kitware.jobserver-1
+python: Python 3.11.13
+matplotlib: 3.11.2
+jemalloc: 5.2.1-3.el8
+jemalloc prof build (C++ profile arm only): 5.3.1-0-g81034ce1f1373e37dc865038e1bc8eeecf559ce8
+jeprof: jeprof (part of jemalloc 5.2.1-0-gea6b3e973b477b8061e0076bb257dbd7f3faa756)
+perf: perf version 4.18.0-553.171.1.el8_10.x86_64
+
+## CPU
+CPU(s):               48
+Thread(s) per core:   1
+Core(s) per socket:   24
+Socket(s):            1
+NUMA node(s):         1
+Model name:           AMD EPYC 7443P 24-Core Processor
+CPU MHz:              2487.242
+CPU max MHz:          4035.6440
+CPU min MHz:          1500.0000
+NUMA node0 CPU(s):    0-23
+
+## Frequency governor / turbo / SMT
+governors: performance
+intel_pstate/no_turbo: (not present)
+smt/control: off
+
+## Virtualisation and core isolation
+virtualisation: none
+container: docker
+cgroup cpu quota: max 100000
+cgroup memory limit: max
+cgroup cpuset: 2-17
+seccomp mode: 0 (0 = off, 2 = filter on every syscall)
+cpus allowed here: 2-17
+kernel cmdline: BOOT_IMAGE=/boot/vmlinuz-7.0.0-34-generic root=UUID=9a86e600-2564-4c21-87a5-8ec14b41d06f ro quiet splash nohz_full=2-17 rcu_nocbs=2-17
+isolcpus: (none)
+nohz_full: 2-17
+steal ticks (1 s sample): 0
+
+## Allocator
+system jemalloc: /lib64/libjemalloc.so.2
+MALLOC_CONF (C++ jemalloc): (unset -- allocator defaults)
+_RJEM_MALLOC_CONF (Rust jemalloc): (unset -- allocator defaults)
+transparent hugepages: madvise
+
+## Warnings
+  [CONTAINER] Running inside a container (docker). The toolchain is the
+              image's and is recorded above, but the kernel is the host's:
+              scheduler, clocksource, governor and hypervisor are unchanged,
+              so a container does not make a virtualised host bare metal.
+  [NOISOL] No isolcpus= on the kernel command line: benchmark threads share
+           their cores with the rest of the system, and a lost timeslice
+           lands directly in p99.
+
+wrote /root/thesis.local/bench/results/env-20261006-110731.txt
