@@ -1848,184 +1848,274 @@ adoption costs, but they are outside the scope of what this study measures
 directly.
 
 \section{Discussion on the research questions}\label{sec:rqdiscussion}
-RQ1 has two answers separated by regime. At $\ReprLoad$~kops/s the campaign
-resolves median, p99 and p99.9 differences, and the pooled p99.99 lies on
-Rust's side. The end-to-end clock still cannot bound a language effect because
-the core call is only $\BudgetCoreShareMax\%$ of what it times. After saturation the campaign delay is schedule drift. Extra delay
-samples are written after the timed window, so they do not add recorder
-work while the timer is running. Those numbers do not rank the services.
-Timing the work with several requests in flight does, and the order depends on
-the allocator. The delay is the wait before queue entry, for signal and for
-the mixed lifecycle.
+RQ1 has two answers, depending on the workload level. At $\ReprLoad$~kops/s,
+the campaign detects differences in the median, p99, and p99.9 latencies, while
+the pooled p99.99 latency favours Rust. However, the end-to-end measurements
+cannot be used to isolate a language effect because the core operation accounts
+for only $\BudgetCoreShareMax\%$ of the measured time.
 
-Past saturation Rust is still ahead on finished calls on both allocators.
-That lead sits in the handoff between
-threads, where C\texttt{++} uses more kernel time per call. On the host that
-swapped the queue, a hash map swap left it in place, and giving Rust
-the C\texttt{++} queue removed it. The earlier run's
-lower Rust p99 misses the stalls on purpose and is not an RQ1
-tail result. The overload throughput is a completed-work comparison. Its
-campaign-clock percentiles are schedule drift. The closest prior work reports
-similar degradation past a threshold rate and attributes it to stackless
-\texttt{async}/\texttt{await}~\cite{arvidsson2025async}. That cause cannot
-carry here because neither side uses an asynchronous runtime. Changing Rust's
-reply handle, on an earlier host, does not explain the remaining lead
-here. That throughput lead does not rank top service rates. The
-prediction logged in advance had instead named bounds and overflow
-checking~\cite{zhang2022runtime,harris2023morello}. That part was wrong. At
-nominal load the median result still fits evidence that Rust's safe checks are
-mostly absorbed by modern out-of-order
-CPUs~\cite{balasubramanian2017rust,emmerich2019drivers}.
+After the system reaches saturation, the campaign delay mainly reflects
+scheduling drift rather than service performance. Additional delay samples are
+recorded after the timed window, so they do not add recording overhead while
+the timer is running. Therefore, these measurements should not be used to rank
+the services.
 
-On safe code some defects are compile errors, so they never become a program that can run. The seven classes Rust
-does not stop are part of the answer, not a warning added then. A
-compiler that will not build a program rules the defect out of each
-run. A sanitiser rules it out only of the
-runs a sanitiser test happens to take. What is fixed there is the
-run coverage, not the breadth of the list.
-Figure~\ref{fig:boundary} names the way on each side of that line. Rust
-reasons about aliasing and not about lock order. A \texttt{Mutex} guard
-whose life the borrow checker tracks well says nothing about whether
-two threads take their locks in a matching
-order. Static deadlock checks for Rust are an open research
-problem~\cite{zhang2026deadlock}. The lost update misses ThreadSanitizer for the
-same reason it misses the borrow checker. Where each access is synced
-right, there is no unsynced access to find. In a field study of
-$105$ real concurrency bugs, about a third of the cases that were not deadlocks broke
-the order the writers meant, not their
-locking~\cite{lu2008mistakes}. Taking Rust drops one class of concurrency
-defect and leaves in place the class that fails in silence. A plan to move that
-reads ``memory-safe'' as ``concurrency-safe'' would mis-budget its review
-effort. In the corpus of Xu et al., every published Rust Common
-Vulnerabilities and Exposures (CVE) memory-safety entry but one compiler bug
-involves \texttt{unsafe}~\cite{xu2021rustcve}.
-That is why keeping the core free of \texttt{unsafe} matters. It is also why unsafe
-spreading through crates is a review concern~\cite{evans2020rust}.
+A more meaningful comparison comes from timing the actual work while several
+requests are in flight. Under this measurement, the performance order depends on
+the allocator. The measured delay includes the time before queue entry, the
+time waiting for the signal, and the overhead of the mixed lifecycle.
+
+After saturation, Rust still completes more calls with both allocators. This
+advantage appears to come from the handoff between threads, where
+C\texttt{++} spends more kernel time per call. On the host where the queue was
+swapped, replacing the Rust queue with the C\texttt{++} queue removed the
+advantage. This suggests that the difference is caused by the queue and
+thread-handoff mechanism rather than by the Rust language itself.
+
+The lower Rust p99 reported in the earlier run does not provide evidence about
+tail performance for RQ1. That experiment intentionally excludes the stalls,
+so it cannot be used as a tail-latency result. The overload throughput
+measurement is instead a comparison of completed work. Its campaign-clock
+percentiles mainly reflect scheduling drift.
+
+The closest prior work reports a similar performance degradation above a
+threshold rate and attributes it to stackless
+\texttt{async}/\texttt{await}~\cite{arvidsson2025async}. That explanation does
+not apply here because neither implementation uses an asynchronous runtime.
+Similarly, changing Rust's reply handle on an earlier host does not explain the
+remaining performance advantage observed here.
+
+The throughput advantage should therefore not be interpreted as showing that
+one service has a higher maximum rate in all conditions. The original prediction
+attributed the difference to bounds and overflow
+checking~\cite{zhang2022runtime,harris2023morello}. The results do not support
+that explanation. At nominal load, however, the median results are still
+consistent with previous evidence that Rust's safety checks are largely absorbed
+by modern out-of-order CPUs~\cite{balasubramanian2017rust,emmerich2019drivers}.
+
+For safe Rust code, some defects result in compilation errors and therefore
+never produce a program that can run. The seven classes of defects that Rust
+does not prevent are therefore part of the result, rather than an additional
+warning. A compiler that rejects a program rules out a defect for every run of
+that program. A sanitiser can rule out a defect only for the executions
+covered by the sanitiser test. In other words, sanitisation improves the
+coverage of the tested executions, but it does not reduce the overall range
+of possible defects.
+
+Figure~\ref{fig:boundary} shows where the guarantees provided by each
+approach stop. Rust provides strong guarantees about memory safety and
+aliasing, but it does not guarantee correct lock ordering. For example, a
+\texttt{Mutex} guard whose lifetime is tracked by the borrow checker does not
+guarantee that two threads acquire multiple locks in the same order. Static
+deadlock detection in Rust remains an open research
+problem~\cite{zhang2026deadlock}.
+
+A lost update is similarly outside the protection provided by the borrow
+checker and is not necessarily detected by ThreadSanitizer. When every access
+is correctly synchronised, there is no unsynchronised access for the tool to
+report. A field study of $105$ real concurrency bugs found that about one third
+of the non-deadlock cases violated the intended ordering of operations rather
+than the locking rules themselves~\cite{lu2008mistakes}. Rust therefore removes
+some classes of concurrency defects but does not remove defects that arise from
+incorrect concurrent logic.
+
+For this reason, adopting Rust should not lead to the assumption that
+``memory-safe'' means ``concurrency-safe.'' Such an assumption could result
+in insufficient review effort. In the corpus studied by Xu et al., all but one
+published Rust Common Vulnerabilities and Exposures (CVE) entry related to
+memory safety involved \texttt{unsafe} code. The exception was a compiler
+bug~\cite{xu2021rustcve}.
+
+This is why keeping the core free of \texttt{unsafe} code is important. It also
+explains why the spread of \texttt{unsafe} code through dependent crates should
+be treated as a review concern~\cite{evans2020rust}.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.78\linewidth]{diagrams/pdf/17_guarantee_boundary.pdf}
 \caption[Where Rust's compile-time guarantee stops]{Where Rust's compile-time
-guarantee stops, with classes grouped by the mechanism that rejects
+guarantee stops, with defect classes grouped by the mechanism that rejects
 them.\label{fig:boundary}}
 \end{figure}
 
-One case reaches past the fault programs. A spec gap let a
-call be sent outside the service running window. It passed each
-test, each parity vector and all three sanitisers because nothing ever called
-that path. What turned undefined behaviour into a catchable failure on the
-Rust side was a plain bounds check, not a proof. The thing worth
-planning for is ``checked by default'', not ``ruled out at compile time''. The
-root cause belongs to the method. A ban stated without a way
-behind it leaves each version to fail in its own idiom.
+One case shows that testing can also fail to cover a defect. A specification gap
+allowed a call to be sent outside the service's running window. The call passed
+every test, every parity vector, and all three sanitisers because the affected
+path was never executed. On the Rust side, the failure became detectable
+because of a simple bounds check, not because of a compile-time proof. This
+suggests that the useful engineering principle is ``checked by default,'' rather
+than ``ruled out at compile time.''
 
-RQ3 splits by resource and the splits do not point the same way. The RAM
-cost holds under both allocators and on a second host with a
-new compiler. Peak RSS is a max for the whole run, so the jitter that
-destroys a p99 does not touch it. Sized against the allocator's own effect, the
-two are of the same order on both bare-metal hosts. On the guest the
-allocator's was an order of magnitude larger. The language effect travels. The
-ratio does not. The quiet host also puts the cost past the allocator, by
-the allocator's own counts. One close study reports the other sign, with
-Rust lowest and the gap growing as concurrency rises~\cite{karlback2021ran}.
-Those two findings agree once the variants are read as two concurrency runtimes, not two sides.
-Their C++ runs on Boost.Fibers, which gets a stack per fiber. Their Rust
-runs on Tokio, where a task is a small future on the heap. What they
-timed is the per-task cost of two concurrency runtimes.
-Two further studies agree with the way found
-here~\cite{olsson2023ranmgmt,sundvisson2026drivers}. Below saturation Rust
-draws slightly less CPU. Past saturation the CPU ratio is
-$\ProbeAfterCpuPerOpRatio$. It cannot be
-assigned to Rust's safe code model. A throughput lead remains.
+The root cause of the problem also belongs to the testing method. A rule without
+a corresponding test or enforcement mechanism leaves each implementation
+vulnerable to its own failure modes.
 
-RQ4 finds the layer between the two languages small. A C++ host can
-call an unchanged Rust core across that thin C-ABI layer, and the cost on a real
-signal call is bounded at $\FfiOpBoundPct\%$ of that call. Prior work identifies
-design and learning as human costs~\cite{fulton2021adopting,crichton2024learning},
-but this study does not measure their size. Keeping \texttt{unsafe}
-in that layer bounds what has to be checked, not what can be corrupted. Host and
-part share one address
-space~\cite{rivera2021galeed,kirth2022pkrusafe}. The build and footprint axes
-point the same way as that layer. A vendor worried about either should
-audit its crate budget before blaming the compiler. The one axis where C++
-leads outright is the edit and compile loop for changes that stay inside one
-source file. The $\FootShippedRatio\times$ size figure sets two
-linkage policies, and the order flips when the policy is held fixed.
+RQ3 gives different results depending on the resource being measured. The RAM
+result is consistent across both allocators and on a second host using a newer
+compiler. Peak RSS measures the maximum memory used during the entire run, so
+the jitter that affects p99 latency does not directly affect this metric. After
+accounting for the allocator's own contribution, the two implementations use
+memory at roughly the same scale on both bare-metal hosts. On the guest system,
+however, the allocator effect is an order of magnitude larger. Thus, the
+language effect remains visible, but its size depends strongly on the environment
+and allocator.
+
+The results from the quieter host also show that the memory cost is largely
+explained by the allocator itself. One related study reports the opposite
+result, with Rust using less memory and the difference increasing with
+concurrency~\cite{karlback2021ran}. These results can be reconciled if the
+implementations are viewed as using different concurrency runtimes rather than
+as direct comparisons of Rust and C\texttt{++}.
+
+In that study, the C\texttt{++} implementation uses Boost.Fibers, which
+allocates a stack for each fiber. The Rust implementation uses Tokio, where a
+task is represented by a small future stored on the heap. Therefore, the
+measured difference is partly a difference between two concurrency runtimes.
+
+Two additional studies are consistent with the findings reported
+here~\cite{olsson2023ranmgmt,sundvisson2026drivers}. Below saturation, Rust
+uses slightly less CPU. After saturation, the CPU ratio reaches
+$\ProbeAfterCpuPerOpRatio$. This difference cannot be directly attributed to
+Rust's safe-code model. Nevertheless, Rust still maintains a throughput
+advantage.
+
+RQ4 shows that the boundary between the two languages adds relatively little
+overhead. A C\texttt{++} host can call an unchanged Rust core through a thin
+C-ABI layer, and the overhead of a real signal call is bounded by
+$\FfiOpBoundPct\%$ of the total call time. Previous work identifies design and
+learning as important human costs~\cite{fulton2021adopting,crichton2024learning},
+but this study does not measure their magnitude.
+
+Keeping \texttt{unsafe} code inside the interface layer limits the amount of
+code that requires additional review, although it does not eliminate the
+possibility of memory corruption. The host and the Rust component share the
+same address space~\cite{rivera2021galeed,kirth2022pkrusafe}. The build-size
+and footprint results point in the same direction: organisations concerned about
+these factors should examine their dependency and crate budgets before
+attributing the cost to the compiler.
+
+The main area where C\texttt{++} has a clear advantage is the edit-and-compile
+cycle for changes that affect only a single source file. The
+$\FootShippedRatio\times$ size result also shows that the relative size depends
+on the chosen linkage policy. The ordering changes when the same policy is
+applied to both implementations.
 
 \section{Revisiting the hypotheses}\label{sec:hypotheses}
-Section~\ref{sec:rqs} set three hypotheses before any run.
-Saying how they came out is what sets a test apart from a sketch.
+Section~\ref{sec:rqs} defined three hypotheses before any experiments were run.
+Revisiting them after the experiments makes clear which parts are supported and
+which are not.
 
 \begin{description}
-  \item[H1] It is not accepted as written. No equivalence margin was defined,
-        so a small significant median difference cannot establish
-        performance equivalence. At $\ReprLoad$~kops/s the paired test resolves
-        $\PFiftyDiffAbsMax\,\mu$s and higher-percentile differences, while the
-        pooled far tail favours Rust. The isolated core favours
-        \BudgetCoreFaster{}. After saturation the campaign delay is schedule
-        drift. It does not rank the services. Timing the work with several
-        requests in flight does, and the order depends on the allocator. The hypothesis combined the
-        round-trip, core code, and overload behaviour into one
-        quantity that the method cannot support.
-  \item[H2] For the seven injected classes of its kind it holds without
-        exception. It fails in the looser reading its wording invites. It is
-        accepted for memory safety and data-race freedom, rejected for
-        concurrency correctness at large, and it is a claim about \emph{safe}
-        Rust only. The case inside \texttt{unsafe} shows the same class returning there.
-  \item[H3] Any per-call tax is bounded at $\FfiOpBoundPct\%$ of that signalling call. This is
-        supported by the upper bound on the paired difference. A non-significant
-        difference alone would not show that the tax is small. The accompanying claim, that the real
-        cost is design and training, is supported structurally and not
-        statistically.
+  \item[H1] H1 is not accepted as written. No equivalence margin was defined,
+        so a statistically significant but small median difference cannot be
+        used to establish performance equivalence. At $\ReprLoad$~kops/s, the
+        paired test detects a difference of up to $\PFiftyDiffAbsMax\,\mu$s in
+        the median and also detects differences at higher percentiles. The
+        pooled far-tail result favours Rust, while the isolated core favours
+        \BudgetCoreFaster{}.
+
+        After saturation, the campaign delay mainly reflects scheduling drift
+        and should not be used to rank the services. Timing the work with
+        several requests in flight gives a more useful comparison, and the
+        performance order depends on the allocator. Therefore, H1 combines
+        round-trip latency, core performance, and overload behaviour into a
+        single claim that the experimental method cannot support.
+  \item[H2] H2 holds for the seven injected defect classes tested in this study.
+        However, it does not hold under the broader interpretation suggested by
+        its wording. The hypothesis is supported for memory safety and
+        data-race freedom, but not for concurrency correctness in general. It
+        also applies only to \emph{safe} Rust code. The example involving
+        \texttt{unsafe} code shows that the same class of defect can still
+        occur when those guarantees are bypassed.
+  \item[H3] H3 is supported: any per-call overhead is bounded by
+        $\FfiOpBoundPct\%$ of the signalling call. This conclusion is based
+        on the upper bound of the paired difference. A non-significant
+        difference alone would not be enough to show that the overhead is small.
+        The additional claim that the main costs are design and training is
+        supported by the structure of the integration, but it was not measured
+        statistically in this study.
 \end{description}
 
 \section{Engineering guidelines for incremental adoption}\label{sec:guidelines}
-The rules are the practical form of the findings, and each carries the
-limit of the finding behind it. Choose a first part for how thin its API is,
-not for its size. The rewrite of a rich interface is the
-schedule risk. The edge itself is not. Keep the C ABI in its own crate and
-the core free of \texttt{unsafe}. That keeps unsafe out of the crate
-chains it spreads through~\cite{evans2020rust}. Leave the
-concurrency review budget where it is. Prefer a shared-nothing structure in
-either language. The strongest concurrency result here belongs to the design and
-to neither compiler. Plan the learning curve as a training cost and track
-it. Time the part as well as the round-trip. Sweep past the point where
-the campaign stops keeping up. Audit every operation on the producer's timed
-path, including histogram correction. On this host, running that work after
-the timed window removes the large high-load gaps and leaves a smaller
-throughput lead.
+The following guidelines translate the findings into practical
+recommendations. Each recommendation should be understood within the limits of
+the corresponding result.
+
+Choose the first component to migrate based on the simplicity of its API rather
+than its size. Rewriting a component with a complex interface is more likely to
+create integration and scheduling risks than rewriting a small component with a
+simple interface. Keep the C ABI in a separate crate and keep the core free of
+\texttt{unsafe} code. This limits the spread of \texttt{unsafe} code through the
+dependency chain~\cite{evans2020rust}.
+
+Do not reduce the budget for concurrency review. Prefer a shared-nothing design
+where possible, regardless of the language. The strongest concurrency result in
+this study is primarily a property of the design, not of either compiler.
+
+Treat the learning curve as a real engineering cost and track it explicitly.
+Measure the component itself as well as the complete round trip. Test workloads
+beyond the point of saturation, where the campaign can no longer keep up with the
+offered load. Also audit every operation on the producer's timed path,
+including histogram correction.
+
+On the tested host, moving this work outside the timed window removed the large
+high-load latency gaps while leaving a smaller throughput advantage.
 
 \section[Where this study sits]{Where this study sits, and what it cannot support}\label{sec:standing}
-The studies closest to this one are the five vendor-hosted theses of
-Section~\ref{sec:gap}. Their verdicts clash with each other in each way.
-The one with the other sign on peak RAM fits this study
-once its variants are read as two concurrency runtimes, not two sides.
-Four threats still matter, and the first is that one author wrote both
-versions. The same failure mode flipped a printed verdict in this
-field: comparable after a code review and then Rust worse by $85$--$91\%$
-after more speed work~\cite{emberg2023asn1}. The parity suite bounds
-what the code does and not speed. The second is that the end-to-end clock
-times the design faithfully and the language hardly at all. Third,
-extra delay samples are written after the timed window. A throughput lead
-remains where the service has stopped meeting its sent rate. The kernel
-time split behind that lead comes from this host, but the swaps that test its
-cause ran on one further host with the same processor. The earlier run
-was not repeated here. Fourth, the campaign delay past saturation is schedule drift. It does not rank
-the services. Timing the work with several requests in flight does, and the
-order depends on the allocator. That run is outside the campaign's tested family.
+The studies most closely related to this work are the five vendor-hosted theses
+discussed in Section~\ref{sec:gap}. Their conclusions differ substantially from
+one another.
+
+The study reporting the opposite peak-RAM result can be reconciled with the
+present findings if the implementations are understood as different concurrency
+runtimes rather than as direct language comparisons.
+
+Four limitations remain particularly important. First, the same author
+implemented both versions. This can introduce bias or differences in
+optimisation effort. A similar problem affected a previous comparison, where
+the result initially appeared comparable after code review but later showed Rust
+performing $85$--$91\%$ worse after additional optimisation
+work~\cite{emberg2023asn1}. A parity test suite establishes that the
+implementations behave similarly, but it does not establish that they have
+similar performance.
+
+Second, the end-to-end clock measures the system design as a whole, while the
+actual language-specific component represents only a small part of the measured
+time.
+
+Third, additional delay samples are written after the timed window. Therefore,
+they do not contribute to the measured overhead while the timer is running. A
+throughput advantage remains even when the service can no longer keep up with
+the offered request rate. The difference in kernel time appears to explain part
+of this advantage on the tested host, while the queue-swap experiments on another
+host support the same explanation. However, the earlier run was not repeated in
+this study.
+
+Fourth, after saturation, the campaign delay mainly represents scheduling drift
+rather than service performance. It therefore should not be used to rank the
+services. Timing the actual work with several requests in flight provides a
+more meaningful comparison, and the resulting order depends on the allocator.
+This experiment is outside the family of measurements used in the original
+campaign.
 
 \section{Ethical and professional reflection}
-The study uses no personal data, no subscriber data, and no operator secrets. All
-traffic is made for the test. The service is based on live code, not
-copied from it, so the artefacts can be shared in public. The first
-duty is not to claim too much. A vendor could read the RQ2 result as
-licence to describe a moved part as ``safe'', and the seven defects it does not stop are
-why that reading would be wrong. A deadlocked control plane is an outage. A
-lost counter update that stays silent can misinform a mobility decision. Nothing
-shown here stops either. The second duty is how far the data reaches.
-Tail latency numbers from any single host are a thinner
-basis for a production roll-out than they look. That is why the earlier
-guest sweep is kept, not dropped.
+This study uses no personal data, subscriber data, or operator secrets. All
+traffic is generated specifically for testing. The service is based on live
+code rather than copied production code, so the resulting artefacts can be
+shared publicly.
+
+The first professional responsibility is to avoid making claims that the data
+cannot support. A vendor could interpret the RQ2 result as permission to
+describe a migrated component as ``safe.'' However, the seven defect classes
+that Rust does not prevent show why such a conclusion would be incorrect. A
+deadlocked control plane can cause an outage, while a silent lost-update bug can
+lead to incorrect mobility decisions. The results presented here prevent
+neither problem.
+
+The second responsibility concerns the scope of the evidence. Tail-latency
+measurements from a single host provide a weaker basis for a production rollout
+than they may initially appear to provide. This is why the earlier guest-system
+measurements are retained rather than discarded.
 
 \chapter{Conclusion and Future Work\label{chapter:conclusions}}
 
