@@ -55,6 +55,47 @@ The 14-load fair-clock sweep (call time, no fill, same grid as the reported
 campaign) is `fair_latency_sweep.sh`. It writes `fair-start-*.jsonl`, never
 `campaign-*.jsonl`. Do not copy those kops/s into `gen_macros.tex`.
 
+### Multi-outstanding engineering pilot
+
+The separate `pipeline` executables test a different workload. Each producer
+pre-plans `--ops` arrivals at `--rate`, submits them without waiting for earlier
+replies, and retains the intended timestamp even when bounded queue admission
+blocks. The existing per-shard queue is the only in-flight cap.
+
+The primary quantity is planned-arrival-to-worker-completion delay. Separate
+histograms record admission delay, queue-and-operation delay, and the lag before
+the producer observes a completed ticket. Histograms are built while tickets are
+harvested, not by the worker. No coordinated-omission fill is used because every
+planned arrival has a real ticket.
+
+`--workload signal` is the default. `--workload mixed` walks create, setup,
+signalling, bearer, reconfiguration, and release over `--active-ues` phones per
+producer. Mixed skips the signal preload. Warmup runs that generator to
+completion, and the measured phase continues it. One phone stays on one worker
+queue, so its steps stay in order. Mixed results use the `pipeline-mixed-*`
+prefix. The 6 October mixed log sits beside the signal log in
+`results-pipeline-20261006-louse/`. `pipeline_mixed_facts.py` checks its
+load-selection rule, lifecycle parity, validity gates, allocator split, and
+delay components before writing `figures/gen_pipeline_mixed.tex`. The
+60-second histogram range and the drain timeout keep every pipeline result
+separate from the reported campaign. A timeout or histogram overflow
+invalidates the run's tail percentiles.
+
+Run all four language and allocator variants with:
+
+```bash
+bench/pipeline_pilot.sh --repeats 2 --rates "56000 112000" --pin 2-17
+```
+
+The runner rotates variant order, validates request accounting, and refuses a
+run with operation errors, timeouts, or histogram overflow. It writes
+`pipeline-*.jsonl` and `pipeline-*.hist.jsonl`.
+
+`--diagnose` is separate. It asks the worker to record when it starts each
+request, so queue waiting can be told apart from the operation itself, and it
+adds Rust builds that use the C++ queue. It writes `pipeline-diagnose-*`. Use it
+after a load has been frozen. Do not read it as the language ranking.
+
 ## Latency statistics, and how the two languages are kept comparable
 
 Both harnesses report, from the merged histogram: `p25 p50 p75 p90 p99 p999 p9999`,
