@@ -137,13 +137,7 @@ fn main() {
                 r#""completed":{},"wall_s":{:.4},"throughput_kops":{:.2},"#,
                 r#""ns_per_op":{:.1}}}"#
             ),
-            a.producers,
-            a.capacity,
-            a.seconds,
-            r.completed,
-            r.wall_s,
-            kops,
-            ns_per_op
+            a.producers, a.capacity, a.seconds, r.completed, r.wall_s, kops, ns_per_op
         );
     } else {
         println!(
