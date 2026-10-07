@@ -115,6 +115,7 @@ RUN cd /tmp/cratefetch \
  && mkdir -p src examples \
  && : > src/lib.rs \
  && echo 'fn main() {}' > examples/bench.rs \
+ && echo 'fn main() {}' > examples/pipeline.rs \
  && CARGO_NET_OFFLINE=false cargo fetch --locked \
  && cd / && rm -rf /tmp/cratefetch \
  && chmod -R a+rwX ${CARGO_HOME}
