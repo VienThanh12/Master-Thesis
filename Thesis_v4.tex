@@ -419,7 +419,7 @@ This thesis is carried out at Nokia. The company is one of the small number of v
 that build, maintain, and evolve production RAN software end to end. The five largest
 suppliers took 96\% of worldwide RAN revenue over the first three quarters of 2025, with
 concentration by Herfindahl--Hirschman Index at a ten-year
-high~\cite{delloro2025ran3q,delloro2026ran}. The subsystem it studies, UECM, is a compact model of the per-UE state work a
+high~\cite{delloro2025ran3q,delloro2026ran}. The subsystem this thesis studies, UECM, is a compact model of the per-UE state work a
 gNB-CU-CP does.
 
 In the architecture of the 3rd Generation Partnership Project (3GPP), the gNB-CU-CP is
@@ -475,8 +475,8 @@ double-free, data races, and iterator invalidation. These defects are silent at 
 costly to find and fix at telecom scale. Second, what governs whether RAN latency budgets are met is not
 average throughput but worst-case and tail behaviour under load and
 overload~\cite{dean2013tail}, a property that is easy to regress and hard to measure correctly.
-Rust promises to remove the first class of defect at compile time while claiming performance
-competitive on the second, but that claim rests mostly on general-purpose benchmarks rather
+Rust promises to remove the first class of defect at compile time while claiming competitive
+performance on the second, but that claim rests mostly on general-purpose benchmarks rather
 than on stateful, concurrent, latency-critical telecom workloads.
 
 Bringing these threads together, the concrete problem this thesis addresses is the following.
@@ -488,8 +488,8 @@ predictability under overload} (as opposed to average throughput). It is also un
 guarantees actually eliminate the specific defect classes that affect the existing C++ code,
 and what incremental adoption \emph{costs} inside a large C++ codebase. The available evidence
 is largely general-purpose and average-case~\cite{balasubramanian2017rust,qin2020rust}, leaving
-these three questions (predictability, prevented-defect scope, and migration cost) open for a
-representative subsystem. Answering them under controlled, reproducible conditions is the
+four questions open for a representative subsystem: predictability, prevented-defect scope,
+resource overhead, and migration cost. Answering them under controlled, reproducible conditions is the
 problem this thesis sets out to solve.
 
 \section{Research questions and hypotheses}\label{sec:rqs}
@@ -518,7 +518,7 @@ Three hypotheses are written down before any measurement.
   \item[H2] Safe Rust prevents at compile time the memory-safety and concurrency defect
         classes that C++ only tries to catch after the program is built.
   \item[H3] Calling the Rust service from C++ through the FFI adds only a small
-        share of one signalling call's time. The real cost of adding Rust a
+        share of one signalling call's time. The real cost of adding Rust one
         piece at a time is engineering work, not slower calls.
 \end{description}
 Chapter~\ref{chapter:discussion} revisits all three hypotheses against the facts.
@@ -564,7 +564,7 @@ The gNB is split on two axes. The first split is central versus distributed.
 The gNB runs a protocol stack: a set of layered radio protocols from the air
 interface up to RRC signalling. A central unit (gNB-CU) hosts the higher layers.
 One or more distributed units (gNB-DU) host the lower layers. Those layers sit close to
-the radio and have tight low latency requirements. The second split is control versus user
+the radio and have strict low-latency requirements. The second split is control versus user
 plane, inside the central unit. It splits the control-plane function
 (gNB-CU-CP) from the user-plane function (gNB-CU-UP). These parts talk over
 standard links. Uu is the radio link from the device. NG goes toward the 5G core, F1 sits between the CU and the DU,
@@ -628,8 +628,8 @@ highlighted inside the gNB-CU-CP.\label{fig:ngran}}
 The RAN control plane has many threads and
 tight latency bounds. Tail latency under too much load, not mean throughput, sets
 the quality the network delivers. C++ gives the control and speed the domain
-needs. But it leaves whole classes of memory and thread bugs to detection
-at runtime. Rust promises to block those classes of errors at compile time at no
+needs. But it defers detection of whole classes of memory and thread bugs
+to runtime. Rust promises to block those classes of errors at compile time at no
 run-time overhead. It also offers a step-by-step adoption path through the C
 application binary interface (ABI).
 
@@ -978,14 +978,14 @@ The two sides are shown to match by comparing their logs, operation by
 operation. For a given seed they also run the operations in the same order.
 A seed is the starting number of that random order, so the same seed repeats
 the same sequence. The four builds take turns on the same pinned cores
-inside each repeat. A pinned core is a core the test is allowed to use, and
-no other work is. Running the same work one build after another keeps the
-processor's recent memory and recent branch guesses close. The cache is the
-small fast memory next to the processor. A branch guess is the processor's
-guess about which way a condition will go. The test does not empty the cache
-between builds. It also does not first let the processor practise those
-guesses. The work and the cores stay fixed. The test does
-not hold the CPU’s recent memory and branch history fixed.
+inside each repeat. A pinned core is reserved for the test, and no other work
+is allowed to use it. Running the same work one build after another reduces
+differences caused by changes over time in the processor's recent memory and
+branch guesses. The cache is the small fast memory next to the processor. A
+branch guess is the processor's guess about which way a condition will go.
+The test neither empties the cache nor lets the processor practise those
+guesses before each build. The work and the cores stay fixed, but the
+processor's recent memory and branch history do not.
 
 \section{Statistical treatment}\label{sec:statsbrief}
 The statistical analysis plan was decided before the experiment was run. We first
@@ -1327,7 +1327,8 @@ together with a bootstrap $95\%$ confidence
 band~\cite{georges2007rigorous,efron1993bootstrap}.
 
 For the resource-usage plots, the study uses a fixed load of
-$\ReprLoad$~kops/s ($\ReprLoad{,}000$ operations per second). This value
+$\ReprLoad$ kilo-operations per second (kops/s), equivalent to
+$\ReprLoad{,}000$ operations per second. This value
 was selected independently rather than taken from the load sweep. The initial
 rule was to use the highest load at which the p99 latency remained below
 $5$~ms. However, on the virtual machine, this value was strongly affected
@@ -1335,8 +1336,9 @@ by noise from the host system. On a quiet host, the load can be increased
 until the service is no longer able to keep up. Therefore, this measurement
 is used only as a check.
 
-The lowest completed rate among the four variants is $\SatKnee$~kops/s,
-which occurs when the offered load is also $\TrackingLoad$~kops/s.
+All four variants track the offered load through $\TrackingLoad$~kops/s. At
+$\KneeSplitLoad$~kops/s, Rust with \texttt{jemalloc} still tracks the offered
+load, but the other three variants do not.
 
 \section{Results}
 The safe-code results and most migration results do not depend on the host used. 
@@ -1625,10 +1627,10 @@ measured at their respective steady-state loads.\label{tab:rsshosts}}
 \hline\hline
  & Reported host & Virtual machine & Second bare-metal host \\
 \hline
-Language effect & \RssLangDiffLo--\RssLangDiffHi
-  & \GuestRssLangLo--\GuestRssLangHi & \BmRssLangLo--\BmRssLangHi \\
-Allocator effect & \RssAllocDiffLo--\RssAllocDiffHi
-  & \GuestRssAllocLo--\GuestRssAllocHi & \BmRssAllocLo--\BmRssAllocHi \\
+Language effect & $\RssLangDiffLo$--$\RssLangDiffHi$
+  & $\GuestRssLangLo$--$\GuestRssLangHi$ & $\BmRssLangLo$--$\BmRssLangHi$ \\
+Allocator effect & $\RssAllocDiffLo$--$\RssAllocDiffHi$
+  & $\GuestRssAllocLo$--$\GuestRssAllocHi$ & $\BmRssAllocLo$--$\BmRssAllocHi$ \\
 \hline
 \end{tabular}
 \end{table}
@@ -1638,10 +1640,9 @@ The second bare-metal host provides more detail about the source of the
 additional Rust RAM. Table~\ref{tab:resident} separates the process memory
 into allocator metadata, live application allocation, and
 allocator-resident memory. Compared with C\texttt{++}, Rust uses
-$\BmJeMetadataDelta$~MiB more arena metadata, but
-$\BmJeAllocatedDelta$~MiB less live application allocation and
-$\BmJeResidentDelta$~MiB less allocator-resident memory. Despite using
-less live application and allocator-resident memory, the Rust process still
+$\BmJeMetadataDelta$~MiB more arena metadata. Its live application allocation
+differs by $\BmJeAllocatedDelta$~MiB, and its allocator-resident memory differs
+by $\BmJeResidentDelta$~MiB. Although both are lower, the Rust process still
 has a peak RSS that is $\BmJeRssDelta$~MiB higher.
 
 Therefore, the higher Rust RSS is not caused by Rust holding more live
@@ -1650,7 +1651,7 @@ application data. Instead, it is mainly a fixed process-level cost.
 \paragraph{CPU usage.}
 CPU usage does not follow the memory pattern. At $\ReprLoad$~kops/s, Rust
 uses at most $\CpuDiffAbsMax$ percentage points less CPU than
-C\texttt{++}. At $\OverloadLoad$~kops/s that ratio is
+C\texttt{++}. At $\ProbeAfterOverloadLoad$~kops/s that ratio is
 $\ProbeAfterCpuPerOpRatio$, with \ProbeAfterCpuPerOpHigher{} the higher
 one. A throughput lead remains, and Section~\ref{sec:overload} traces it
 to how the queue is locked.
@@ -1662,9 +1663,10 @@ an isolated call. There is no queue, no offered load, and therefore no
 competition between requests for shared resources. The measurements show
 how much CPU work is needed to process one request when it runs by itself.
 
-For this isolated call, Rust retires 11\% fewer instructions and completes
-in 15\% fewer CPU cycles than C\texttt{++}. It also has 29\% more cache
-misses per thousand instructions. Thus, Rust completes the isolated call
+For this isolated call, Rust retires $\BmInstrDelta\%$ \BmInstrDeltaDir{}
+instructions and completes in $\BmCycleDelta\%$ \BmCycleDeltaDir{} CPU cycles
+than C\texttt{++}. It also has $\BmMissDelta\%$ \BmMissDeltaDir{} cache misses
+per thousand instructions. Thus, Rust completes the isolated call
 faster even though its cache-miss rate is higher.
 
 These measurements show why Rust is faster than C\texttt{++} when a single
@@ -1866,17 +1868,19 @@ recorded after the timed window, so they do not add recording overhead while
 the timer is running. Therefore, these measurements should not be used to rank
 the services.
 
-A more meaningful comparison comes from timing the actual work while several
-requests are in flight. Under this measurement, the performance order depends on
-the allocator. The measured delay includes the time before queue entry, the
-time waiting for the signal, and the overhead of the mixed lifecycle.
-
-After saturation, Rust still completes more calls with both allocators. This
+Completed throughput is a separate measure because it counts calls finished
+during the timed window. After saturation, Rust completes more calls with both
+allocators. This
 advantage appears to come from the handoff between threads, where
 C\texttt{++} spends more kernel time per call. On the host where the queue was
 swapped, replacing the Rust queue with the C\texttt{++} queue removed the
 advantage. This suggests that the difference is caused by the queue and
 thread-handoff mechanism rather than by the Rust language itself.
+
+A separate experiment times each request while several requests are in flight.
+It covers both the signal workload and the mixed lifecycle. For each workload,
+the measured delay includes the wait before queue entry and the time in service.
+Under this measurement, the performance order depends on the allocator.
 
 The lower Rust p99 reported in the earlier run does not provide evidence about
 tail performance for RQ1. That experiment intentionally excludes the stalls,
@@ -2126,9 +2130,9 @@ measurements are retained rather than discarded.
 \chapter{Conclusion and Future Work\label{chapter:conclusions}}
 
 The thesis set modern C++ against Rust. The object is a UE Context Management
-service. It keeps per-device state, as a gNB-CU-CP does. It looked at how late
+service. It keeps per-device state, as a gNB-CU-CP does. This thesis looked at how late
 the tail is, which defects a compile step can stop, the cost of the safe code
-model, and the cost of adding Rust a piece at a time. Both
+model, and the cost of adding Rust one piece at a time. Both
 sides were built against one frozen spec. They were driven along the same code
 paths. That is what lets a language effect be told apart from a gap of design or
 of skill.
@@ -2146,9 +2150,9 @@ a rewrite. The two model checkers flag the concurrency cases only after each
 defect is recast into their parts.
 
 On migration that layer is small. An unchanged Rust core
-can be driven from C++ across the C-ABI layer where the two languages meet. It has
-$\FfiEntryPoints$ entry points in $\FfiSeamLines$ lines, and its
-$\FfiUnsafeFns$ raw-pointer functions contain all of the \texttt{unsafe}. The
+can be driven from C++ across the C-ABI layer where the two languages meet. The
+C-ABI layer has $\FfiEntryPoints$ entry points in $\FfiSeamLines$ lines, and its
+$\FfiUnsafeFns$ raw-pointer functions contain all \texttt{unsafe} code. The
 core has $\CoreUnsafe$ \texttt{unsafe} sites. The cost on a real signal call is
 bounded at $\FfiOpBoundPct\%$ of that call.
 Prior work identifies API design and the learning curve as adoption costs, but
@@ -2168,7 +2172,7 @@ core is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster{} in that
 measurement. At the chosen load of $\ReprLoad$~kops/s the paired test finds
 $\PFiftyDiffAbsMax\,\mu$s in Rust's favour. At p99.99 the slowest Rust variant sits
 $\FarTailLangSep\,\mu$s below the fastest C++ one. Past saturation Rust still
-finishes more calls at $\OverloadLoad$~kops/s. Extra delay samples are written
+finishes more calls at $\ProbeAfterOverloadLoad$~kops/s. Extra delay samples are written
 after the timed window. CPU per completed call is
 $\ProbeAfterCpuPerOpRatio$. On one further host, giving Rust the
 C\texttt{++} queue removes that lead, so it comes from how calls pass
@@ -2213,7 +2217,7 @@ would split the runtime from the language in the tail
 result~\cite{arvidsson2025async}. Timing what a split of the two
 allocators in one process costs would price what keeping a core free of \texttt{unsafe} is
 worth~\cite{rivera2021galeed,kirth2022pkrusafe}. A longer case study would track
-defect counts and review effort while adding Rust a piece at a time. That is what would
+defect counts and review effort while adding Rust one piece at a time. That is what would
 settle the human cost this study can only name.
 
 % Declaration of generative-AI use, required by the University when a language model has
@@ -2236,8 +2240,8 @@ settle the human cost this study can only name.
 \appendix{Host and campaign configuration\label{appendix:config}}
 Table~\ref{tab:testbed} itemises the three machines the campaigns ran on: the bare-metal host of
 Section~\ref{sec:testbed} that every performance and resource table of the main sweep is drawn from,
-the virtualised host it replaced, and the second bare-metal host at a different design that
-Section~\ref{sec:testbed} reads against it. The resident-set decomposition belongs to the
+the virtualised host it replaced, and a second bare-metal host with a different design.
+Section~\ref{sec:testbed} compares that second host with the reported host. The resident-set decomposition belongs to the
 second bare-metal host and is reported in Section~\ref{sec:resources}. The fault catalogue was
 compiled and run on the development machine, whose toolchain its own caption records. Of the
 adoption-cost axes only build time is host-sensitive, which is why that one is reported as a
@@ -2248,9 +2252,9 @@ here for the field-by-field record of what each campaign captured. Every column 
 measured, and the protocol they are read against is published as \texttt{bench/TESTBED.md}.
 Table~\ref{tab:params} gathers the configuration of the service, the workload and the campaign.
 Each adjacent column pair isolates one change, except where the Kernel and Toolchain rows
-record otherwise: against the virtualised host the design and container image match but the
-machine and \texttt{g++} point release differ; against the second bare-metal host the shard
-count, load grid, repeat count and compiler differ too.
+record otherwise. Against the virtualised host, the design and container image match but the
+machine and \texttt{g++} point release differ. Against the second bare-metal host, the shard
+count, load grid, repeat count, and compiler differ too.
 
 % The float is 111pt taller than one page. [tp] parked it at the bottom and clipped the last
 % rows. enlargethispage belongs on the table page, after clearpage, not under the intro.
@@ -2268,7 +2272,7 @@ two rows are prose, because what an instrument set is adequate for is a judgemen
 field. Rows where all three agree describe the source or the method rather than any machine. The
 \emph{Short of protocol} marks are deliberate and are argued where they appear.\label{tab:testbed}}
 \renewcommand{\arraystretch}{1.0}
-\footnotesize
+\scriptsize
 \begin{tabular}{@{}R{0.14\linewidth} R{0.26\linewidth} R{0.27\linewidth} R{0.25\linewidth}@{}}
 \hline\hline
 Aspect & Reported sweep & Virtualised host, same design & Second bare-metal host, different design \\
@@ -2282,7 +2286,7 @@ Isolation & \texttt{nohz\_full} \MainNohzFull{}. \texttt{isolcpus} \MainIsolcpus
 Large pages & \MainThp{} & \GuestThp{}, and only the system-allocator variant inherits it & \BmThp{} \\
 Toolchain & \texttt{g++~\MainGpp}, \texttt{rustc~\MainRustc}, pinned in a container image & \texttt{g++~\GuestGpp}, \texttt{rustc~\GuestRustc} & \texttt{g++~\BmGpp}, \texttt{rustc~\BmRustc}, so a compiler change is tested too \\
 Pinning & Cores \MainPinned{}, $7$ shards, $7$ producers & Cores $2$--$15$, \GuestShards{} shards, \GuestProducers{} producers & Cores \BmPinned{}, \BmShards{} shards, \BmProducers{} producers \\
-SMT & \MainSmt{}, verified & Absent from the topology the guest is shown, and decided on the host & \BmSmt{}, verified \\
+SMT & \MainSmt{}, verified & Absent from the topology exposed to the guest, and decided on the host & \BmSmt{}, verified \\
 Repeats & \NRepeats{} over \NLoadLevels{} loads, \NRuns{} runs & \GuestRepeats{} over \GuestLoadLevels{} loads, \GuestRuns{} runs & \BmRepeats{} over \BmLoadLevels{} loads, \BmRuns{} runs. \emph{Short of protocol} \\
 Instruments & Counters, pooled HDR sidecars, jitter, allocator accounting & None available in the guest & Counters at two scopes, HDR sidecars, allocator accounting \\
 \hline
@@ -2300,8 +2304,9 @@ shard count is set to match the cores the host offers (Section~\ref{sec:testbed}
 that one included, are identical in both languages. Campaign figures are generated from the
 measurement logs together with the
 tables that report them. The representative load is fixed rather than derived, for the reason
-Section~\ref{sec:workload} gives. The flat stretch is the lowest of the four, and they differ.\label{tab:params}}
-\footnotesize
+Section~\ref{sec:workload} gives. The common tracking limit is the lowest of the four
+variant-specific limits. The variants diverge at the next load.\label{tab:params}}
+\scriptsize
 \renewcommand{\arraystretch}{1.05}
 \begin{tabular}{@{}R{0.28\linewidth} R{0.28\linewidth} R{0.36\linewidth}@{}}
 \hline\hline
@@ -2312,7 +2317,7 @@ Shards, and worker threads & $7$ & one thread owns one shard. Identical in both 
 Queue bound per shard & $1\,024$ requests & bounded and blocking, so overload is observable \\
 Initial map capacity & $4\,096$ entries & reserved so steady state does not rehash \\
 Bearers per context & at most $8$ & \\
-Signaling payload & $64$ bytes & \\
+Signalling payload & $64$ bytes & \\
 Context ceiling per shard & $200\,000$ & \\
 Shard selection & SplitMix64, then modulo & pinned: diffuses sequential identifiers \\
 Intra-shard hash & FNV-1a, 64-bit & pinned on both sides and checked bit-for-bit \\
@@ -2322,7 +2327,7 @@ Workloads & signal, mixed & mixed walks the full RAN lifecycle \\
 Active UEs & \SweepUes{} & \\
 Offered-load levels & \NLoadLevels{} & up to $\MaxOfferedLoad$~kops/s \\
 Representative load & $\ReprLoad$~kops/s & fixed, see caption \\
-Flat throughput & $\SatKnee$~kops/s achieved & both languages track through $\TrackingLoad$~kops/s. Past saturation, extra delay samples are written after the timed window (Section~\ref{sec:overload}) \\
+Flat throughput & $\SatKnee$~kops/s achieved & all four variants track through $\TrackingLoad$~kops/s. Rust with \texttt{jemalloc} also tracks at $\TrackingLoadRustJemalloc$~kops/s. Past saturation, extra delay samples are written after the timed window (Section~\ref{sec:overload}) \\
 Load model & open loop, fixed intended schedule & latency measured from intended send time \\
 \hline
 \multicolumn{3}{@{}l}{\emph{Campaign}} \\
@@ -2401,7 +2406,7 @@ and $p \ProbeAfterThrPJemalloc$ under \texttt{jemalloc}. CPU per completed
 operation is $\ProbeAfterCpuPerOpRatio$.
 A throughput lead remains.
 
-The tables that follow are the measurements the main text cites from this appendix.
+The tables that follow provide supporting measurements for the main text.
 
 \begin{table}[ht]
 \centering
