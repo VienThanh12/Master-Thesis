@@ -135,18 +135,27 @@
       parity tests, and the evaluation adds fault injection and a foreign function interface
       (FFI) prototype.
       
-      Safe Rust rejects seven injected memory-safety and data-race classes at compile time.
-      The same seven compile in C++, while seven boundary classes fail in both. At
-      sustainable load, Rust's median is up to $\PFiftyDiffAbsMax\,\mu$s lower in paired tests.
-      Core work is only $\BudgetCoreShareMax\%$ of the round-trip. This clock therefore cannot
-      bound a compiler effect. C++ tracks offered rate through
-      $\TrackingLoadCpp$~kops/s, Rust through $\TrackingLoadRust$~kops/s. At
-      $\OverloadLoad$~kops/s, Rust finishes more calls with both allocators. That delay includes
-      schedule drift and cannot rank service time. A separate-host test keeps several requests
-      in flight, and its ranking depends on the allocator. Rust leads with \texttt{jemalloc},
-      while C++ leads with the system allocator. Rust uses a few MiB more
-      peak RAM with both allocators across three hosts. The FFI keeps \texttt{unsafe} at the
-      boundary and costs at most $\FfiOpBoundPct\%$ of a signal call.
+      Safe Rust refuses to compile all seven injected memory-safety and data-race defects, but
+      C++ compiles them. Seven further defects, such as deadlocks, compile in both languages.
+
+      Each version was run with two memory allocators, the system default and \texttt{jemalloc}.
+      While the service keeps up with its requests, Rust answers a typical request up to
+      $\PFiftyDiffAbsMax\,\mu$s faster in paired tests. Most of a request's time, though, is
+      spent passing it between threads. The service's own work, looking up and updating one
+      device's record, is only $\BudgetCoreShareMax\%$ of the time from sending a request to
+      receiving its reply. This timing therefore cannot show how much of the gap comes from the
+      language. At $\OverloadLoad$ thousand requests per second, more than either can handle,
+      Rust completes more requests with both allocators. At that load the measured delay also
+      includes how far the sender has fallen behind its own schedule, so it cannot show which
+      service works faster. In a separate test on another machine, with several requests in
+      progress at once, the delay depends on the allocator. Requests wait less in Rust with
+      \texttt{jemalloc} and in C++ with the system allocator.
+
+      Rust uses a few MiB more peak memory than C++ with both allocators, on all three machines
+      tested. Existing C++ code can call the unchanged Rust service through a thin C interface.
+      All Rust code marked \texttt{unsafe}, which the compiler does not check, stays inside that
+      interface. Calling through it adds at most $\FfiOpBoundPct\%$ to the cost of one
+      signalling request.
       
 \end{abstract}
 \end{otherlanguage}
