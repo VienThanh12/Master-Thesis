@@ -139,23 +139,16 @@
       C++ compiles them. Seven further defects, such as deadlocks, compile in both languages.
 
       Each version was run with two memory allocators, the system default and \texttt{jemalloc}.
-      While the service keeps up with its requests, Rust answers a typical request up to
-      $\PFiftyDiffAbsMax\,\mu$s faster in paired tests. Most of a request's time, though, is
-      spent passing it between threads. The service's own work, looking up and updating one
-      device's record, is only $\BudgetCoreShareMax\%$ of the time from sending a request to
-      receiving its reply. This timing therefore cannot show how much of the gap comes from the
-      language. At $\OverloadLoad$ thousand requests per second, more than either can handle,
-      Rust completes more requests with both allocators. At that load the measured delay also
-      includes how far the sender has fallen behind its own schedule, so it cannot show which
-      service works faster. In a separate test on another machine, with several requests in
-      progress at once, the delay depends on the allocator. Requests wait less in Rust with
-      \texttt{jemalloc} and in C++ with the system allocator.
+      Rust answers a typical request up to $\PFiftyDiffAbsMax\,\mu$s faster. This holds while
+      the service keeps up. The service's own work is only $\BudgetCoreShareMax\%$ of a request.
+      At $\OverloadLoad$ thousand requests per second, Rust completes more requests
+      with both allocators. On another machine, with several requests in progress at once,
+      the wait depends on the allocator. Requests wait less in Rust with \texttt{jemalloc} and in C++ with the system
+      allocator.
 
       Rust uses a few MiB more peak memory than C++ with both allocators, on all three machines
-      tested. Existing C++ code can call the unchanged Rust service through a thin C interface.
-      All Rust code marked \texttt{unsafe}, which the compiler does not check, stays inside that
-      interface. Calling through it adds at most $\FfiOpBoundPct\%$ to the cost of one
-      signalling request.
+      tested. Existing C++ code can call the unchanged Rust service through a thin C interface,
+      adding at most $\FfiOpBoundPct\%$ to one request.
       
 \end{abstract}
 \end{otherlanguage}
