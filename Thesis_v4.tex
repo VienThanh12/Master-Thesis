@@ -141,8 +141,8 @@
 
       Each version was run with two memory allocators, the system default and \texttt{jemalloc}.
       Before overload, Rust answers a typical request up to $\PFiftyDiffAbsMax\,\mu$s faster
-      than C++. Only $\BudgetCoreShareMax\%$ of each request is language work. Most of the
-      time goes to handing the request between threads. At $\OverloadLoad$ thousand
+      than C++. Only $\BudgetCoreShareMax\%$ of each request is spent in Rust or C++
+      code. Most of the time goes to handing the request between threads. At $\OverloadLoad$ thousand
       requests per second, Rust completes more requests with both allocators. When several
       requests are in progress at once, the wait depends on the allocator. The wait is shorter
       for Rust with \texttt{jemalloc} and for C++ with the system allocator.
