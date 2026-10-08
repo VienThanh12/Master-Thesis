@@ -124,31 +124,32 @@
       well-known cost in memory safety and concurrency. Rust promises comparable performance with
       compile-time safety, but its fit for this latency-critical setting is unproven.
       
-      The thesis compares modern C++ and Rust on a user equipment (UE) Context Management service
-      that keeps per-device state, as a 5G base-station control plane (gNB-CU-CP) does.
+      The thesis compares modern C++ and Rust using a user equipment (UE) Context Management
+      service that keeps per-device state, as a 5G base-station control plane (gNB-CU-CP) does.
       Average-throughput comparisons leave four dimensions open: tail latency, the defect classes
       Rust prevents at compile time, safety-model overhead, and incremental adoption.
       
-      One language-agnostic specification is frozen, then implemented in C++ and Rust with
-      matched algorithms, concurrency model, allocator, and build settings, with forced-idiom
-      gaps logged. A synthetic workload is increased to overload, both versions pass the same
-      parity tests, and the evaluation adds fault injection and a foreign function interface
-      (FFI) prototype.
+      One language-agnostic specification is frozen and then implemented in both C++ and Rust.
+      The two versions use matched algorithms, the same concurrency model, allocator, and build
+      settings. Forced-idiom gaps are logged. The synthetic workload is increased until overload.
+      Both versions pass the same parity tests. The evaluation also adds fault injection and a
+      foreign function interface (FFI) prototype.
       
-      Safe Rust refuses to compile all seven injected memory-safety and data-race defects, but
-      C++ compiles them. Seven further defects, such as deadlocks, compile in both languages.
+      Safe Rust refuses to compile code that contains any of the seven injected memory-safety
+      and data-race defects, whereas C++ compiles the same code. Both languages compile code
+      that contains seven further defects, such as deadlocks.
 
       Each version was run with two memory allocators, the system default and \texttt{jemalloc}.
-      Rust answers a typical request up to $\PFiftyDiffAbsMax\,\mu$s faster. This holds while
-      the service keeps up. The service's own work is only $\BudgetCoreShareMax\%$ of a request.
-      At $\OverloadLoad$ thousand requests per second, Rust completes more requests
-      with both allocators. On another machine, with several requests in progress at once,
-      the wait depends on the allocator. Requests wait less in Rust with \texttt{jemalloc} and in C++ with the system
-      allocator.
+      Rust answers a typical request up to $\PFiftyDiffAbsMax\,\mu$s faster than C++. The
+      difference appears while the service keeps up. The service's own work is only
+      $\BudgetCoreShareMax\%$ of the time taken by a request. At $\OverloadLoad$ thousand
+      requests per second, Rust completes more requests with both allocators. When several
+      requests are in progress at once, the wait depends on the allocator. The wait is shorter
+      for Rust with \texttt{jemalloc} and for C++ with the system allocator.
 
-      Rust uses a few MiB more peak memory than C++ with both allocators, on all three machines
-      tested. Existing C++ code can call the unchanged Rust service through a thin C interface,
-      adding at most $\FfiOpBoundPct\%$ to one request.
+      On all three machines tested, Rust uses a few MiB more peak memory than C++ with both
+      allocators. Existing C++ code can call the unchanged Rust service through a thin C
+      interface. The interface adds at most $\FfiOpBoundPct\%$ to one request.
       
 \end{abstract}
 \end{otherlanguage}
