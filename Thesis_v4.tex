@@ -876,7 +876,7 @@ saturation, with any difference only in the far tail. One hypothesis then has
 to hold for the delay and for the resources together, which is why that wording
 is its main weakness. The two need not move together. Chapter 6 returns to that wording.
 
-RQ2 records whether the compiler accepts the program and what the C++ sanitizers report. 
+RQ2 records whether the compiler accepts the program and what the C++ sanitisers report. 
 These results are independent of the machine. Most of RQ4 consists of sizes or counts, 
 which are likewise machine-independent. Build time is measured with a stopwatch. 
 A faster machine reduces both the Rust and C++ build times, so absolute times depend 
@@ -889,7 +889,7 @@ Thus, the comparison is made within the same machine, rather than across machine
 \small
 \caption[How each research question is answered]{How each research question is
 answered. RQ1 and RQ3 use two methods. The first measures the full round trip, 
-from deployment to completion. This shows the delay that a real deployment 
+from sending a request to its completion. This shows the delay that a real deployment 
 would experience below saturation. The second separates the core work from the handoff. 
 This shows how much of the delay comes from the language itself. 
 Past saturation, extra delay samples are written after the timed window.
@@ -984,7 +984,7 @@ processor's recent memory and recent branch guesses close. The cache is the
 small fast memory next to the processor. A branch guess is the processor's
 guess about which way a condition will go. The test does not empty the cache
 between builds. It also does not first let the processor practise those
-guesses. The work and the cores stay fixed. It does
+guesses. The work and the cores stay fixed. The test does
 not hold the CPU’s recent memory and branch history fixed.
 
 \section{Statistical treatment}\label{sec:statsbrief}
@@ -1775,7 +1775,7 @@ $\FfiUnsafeFns$ functions, leaving the main Rust core free of
 \texttt{unsafe} code.
 
 We observe no measurable runtime overhead from crossing this boundary when
-comparing the same signal call made directly with the call made through the
+comparing the same signal call made directly and the same call made through the
 C-ABI. Thus, any per-call overhead introduced by the boundary is bounded by
 $\FfiOpBoundPct\%$ of the call cost in our measurements. Figure~\ref{fig:ffiseam}
 shows the structure of this boundary.
@@ -2115,7 +2115,7 @@ cannot support. A vendor could interpret the RQ2 result as permission to
 describe a migrated component as ``safe.'' However, the seven defect classes
 that Rust does not prevent show why such a conclusion would be incorrect. A
 deadlocked control plane can cause an outage, while a silent lost-update bug can
-lead to incorrect mobility decisions. The results presented here prevent
+lead to incorrect mobility decisions. Rust prevents
 neither problem.
 
 The second responsibility concerns the scope of the evidence. Tail-latency
@@ -2137,7 +2137,7 @@ The safety mechanisms act at different stages. Safe Rust rejects all seven
 injected memory-safety and data-race classes before they become programs that
 can run. The same seven compile in C++, where a sanitiser can report a defect
 only if a test executes the relevant path. The other seven compile
-and fail in both languages. On two of them the C++ tools flag what Rust's do
+and fail in both languages. On two of them the C++ tools flag what Rust's tools do
 not. Rust therefore drops data races and aliasing errors. It does not drop
 race conditions, lock-order errors, leaks, wrapping arithmetic, or the blast
 radius of a failed worker. It drops nothing inside an \texttt{unsafe} block.
@@ -2181,7 +2181,7 @@ the same direction and MiB scale on all three hosts timed. The
 allocator choice costs about as much on both bare-metal hosts, and an order of
 magnitude more on the guest this study used first.
 
-Taken as a set these support a narrow claim. It is for stateful, concurrent,
+Taken as a set, these support a narrow claim. It is for stateful, concurrent,
 partitionable control plane services of this kind. At the loads where the
 service still meets its sent rate, the choice is which classes of defect a
 team wants to make impossible to write. The other half is whether it will pay the
@@ -2189,7 +2189,7 @@ design and training cost of getting them. Past that point the campaign gives no 
 schedule drift. The ranking from several requests in flight depends on the
 allocator, and that run sits outside the tested family. What the
 thesis adds is the frozen spec,
-the parity tested pair, and a timing harness that reaches past the saturation
+the parity-tested pair, and a timing harness that reaches past the saturation
 region. A split of the
 round-trip says how much of what it times the language can own. A defect
 list maps where the guarantee stops.
@@ -2206,9 +2206,9 @@ bare-metal host does. The large-page setting is the candidate this study
 can name but not test, because it was not the same on each host and only the
 system allocator variant gets it. Beyond that, replaying anonymised production
 traces would check the call mix. The harness can also take further
-control plane parts or the data heavy layer-2 and physical layer (PHY)
+control plane parts or the data-heavy layer-2 and physical layer (PHY)
 path. A part with truly shared mutable state would work the two
-sides in a way a shared-nothing design does not. Testing Rust async runtimes against the thread per shard model
+sides in a way a shared-nothing design does not. Testing Rust async runtimes against the thread-per-shard model
 would split the runtime from the language in the tail
 result~\cite{arvidsson2025async}. Timing what a split of the two
 allocators in one process costs would price what keeping a core free of \texttt{unsafe} is
