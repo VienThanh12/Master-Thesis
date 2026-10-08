@@ -13,18 +13,21 @@ The thesis source was renamed from `Ha_Vien_Mastersthesis_2026.tex` to `Ha_Vien_
 
 Interactive canvases live beside this file. The standing full-draft grade is
 `thesis-grade-csm-sep07-rev2.canvas.tsx`. The latest pass, of the supervisor skeleton, is
-`thesis-grade-csm-sep29.canvas.tsx`. This file is the durable copy.
+`thesis-grade-csm-oct08.canvas.tsx`. This file is the durable copy.
 
 > **Current for the submission draft: twenty-second pass, 7 September 2026 afternoon, mean 4.83.**
 > Areas 1, 2, 3 and 5 at 5, areas 4 and 6 at **4.5**. Caps: toolchain parity at three prose sites
 > plus `tab:testbed`, §6.4.7's hand-typed `g++ 15.1.1`, and `tab:findings`' "on bare metal". Canvas:
 > `thesis-grade-csm-sep07-rev2.canvas.tsx`. The twenty-eighth pass did not re-read the draft.
 >
-> **Latest pass: twenty-eighth, 29 September 2026, of `Thesis_v4.tex` only, mean 4.92.**
-> Areas 1 to 5 at 5, area 6 at **4.5**. The cap is finishing polish: the host table overruns
-> its page by 111 pt, and the problem statement prints "unknow" and "that affects". Canvas:
-> `thesis-grade-csm-sep29.canvas.tsx`. The twenty-seventh pass's integration defects are closed
-> in this PDF. Do not copy this mean onto the draft.
+> **Latest pass: twenty-ninth, 8 October 2026, of `Thesis_v4.tex` only, mean 4.83.**
+> Areas 1, 2, 3 and 5 at 5, areas 4 and 6 at **4.5**. The cap moved from appendix layout to the
+> abstract: pipeline and overload findings are stated without the host and clock scope the body
+> uses. Canvas: `thesis-grade-csm-oct08.canvas.tsx`. Do not copy this mean onto the draft.
+>
+> **Twenty-eighth pass, 29 September 2026, mean 4.92.** Areas 1 to 5 at 5, area 6 at **4.5**.
+> Superseded on area 4 by the abstract regression noted above. Canvas:
+> `thesis-grade-csm-sep29.canvas.tsx`.
 >
 > **The summary table immediately below is the first pass** and is kept as history, not as the
 > standing view. Twenty-one passes are on record and they do not all agree. Read the passes in
@@ -5238,3 +5241,75 @@ under the supervisor-reading standard it does not set the grade.
 This pass changed no thesis prose. It rebuilt `Thesis_v4.pdf`, which moved the
 abstract-form date to 29 September 2026, created the grading canvas, and
 appended this record.
+
+---
+
+## Twenty-ninth pass — 8 October 2026
+
+Graded independently against the CSM matrix of 9 April 2024, on
+**`Thesis_v4.tex` / `Thesis_v4.pdf`**, after grammar, scope, and layout fixes
+applied earlier on 8 October 2026. Standard applied: a supervisor reading the
+current 71-page PDF, not a submitted maturity test. The full draft was not
+re-read.
+
+**Build verified.** `latexmk -pdf Thesis_v4.tex` produced 71 physical pages.
+`texaudit.py` passes every hard gate: no LaTeX errors, undefined references or
+citations, floats too large, or overfull boxes. `tab:jitter` is still never
+referenced from the body. Prose screens: Flesch 59.1, acronym gate clean, no
+semicolons. The AI statement truthfully says the abstract has not been
+rewritten unaided.
+
+Canvas: [`thesis-grade-csm-oct08.canvas.tsx`](/home/vienha/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-oct08.canvas.tsx).
+
+| Area | 28th pass (29 Sep) | This pass | Clause that sets it |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Hold. Named gap, four traceable questions, three prior hypotheses |
+| 2. Scholarly framework and sources | 5 | **5** | Hold. Contrary findings engaged, primary standards and method sources |
+| 3. Research data and method | 5 | **5** | Hold. Canonical bare-metal campaign, exact permutation, same-host fill control |
+| 4. Presentation of results | 5 | **4.5** | Level 5 aptness fails: abstract reports pipeline and overload leads without host or clock scope |
+| 5. Discussion and conclusions | 5 | **5** | Hold. H1 not accepted, throughput kept separate from campaign delay |
+| 6. Academic text | 4.5 | **4.5** | Finishing improved to level 5; abstract consistency still blocks level 5 |
+| 7. Work during the thesis process | n/a | **n/a** | Not assessable from a manuscript |
+| **Mean of the six assessable** | 4.92 | **4.83** | Four areas at 5, two at 4.5 |
+
+### What closed since the twenty-eighth pass
+
+1. `tab:testbed` and `tab:params` fit their pages after `\scriptsize` and caption tightening.
+2. Problem-statement grammar: "unknown" and "classes that affect" are correct.
+3. Tracking limits name the shared floor and the Rust jemalloc extension.
+4. Fairness interleaving paragraph is no longer self-contradictory.
+5. Discussion separates completed throughput from campaign-clock delay.
+6. Signed resident-set deltas no longer print a direction word beside the sign.
+7. Hardware-counter prose uses `\BmInstrDelta`, `\BmCycleDelta`, and `\BmMissDelta`.
+
+### What caps the grade now
+
+1. **Abstract scope (areas 4 and 6).** The body scopes the pipeline experiment to a
+   separate host (`\PipeCpu{}`) and outside the tested family. The abstract reports the
+   allocator-dependent wait without that qualification. The body quotes deferred-fill
+   throughput (`\ProbeAfterThr*`) when it says Rust completes more calls past saturation.
+   The abstract uses `\OverloadLoad` without naming that clock. Campaign in-window macros
+   (`\OverloadThrCpp` 140, `\OverloadThrRust` 84) are not quoted in this file and would
+   read the other way.
+2. **Abstract wording (area 4).** "Of the time taken by a request" should name the measured
+   end-to-end round trip. The FFI bound should read "of one signalling request's measured
+   cost", as the conclusion already does.
+3. **Maturity test (submission, not this grade).** `ai_statement.tex` keeps
+   `\abstractunaidedfalse`. The author must rewrite the abstract without a model before
+   submission.
+4. **`tab:jitter` (minor).** Still unreferenced. Does not move the grade on its own.
+
+### Reconciliation with the twenty-eighth pass
+
+I agree on areas 1, 2, 3, 5, and on area 6 at 4.5. I disagree on area 4: the
+twenty-eighth pass held it at 5 because the abstract then qualified the fill and left
+overload service latency unresolved. The current abstract was simplified and no longer
+carries those qualifications, so area 4 drops to 4.5. Area 6 finishing improved because
+the table overflow and grammar errors are closed, but the abstract cap remains.
+
+### What is outstanding
+
+1. **Editing, minutes.** Fix the abstract scope and wording. Areas 4 and 6.
+2. **Author, unaided.** Rewrite the abstract and set `\abstractunaidedtrue`. Submission rule.
+3. **Editing, minutes, does not move the current grade.** Cite `tab:jitter` or leave the
+   appendix sentence as supporting measurements only.
