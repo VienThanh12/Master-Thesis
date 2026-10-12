@@ -14,10 +14,11 @@ primary control against implementation bias.
 
 The measurement work is finished and the canonical bare-metal repeat is the thesis's main dataset.
 
-**Two grades, not interchangeable.** The submission draft (`Ha_Vien_Mastersthesis_2026.tex`) stands
-at the twenty-second pass, 7 September 2026 afternoon: areas 1, 2, 3 and 5 at 5, areas 4 and 6 at
-**4.5**, mean **4.83**. The supervisor skeleton (`Thesis_v4.tex`) stands at the twenty-fourth pass,
-11 September 2026: all six assessable areas at **5**. Do not copy that 5 onto the draft.
+**Submission manuscript:** edit `Thesis_v4.tex` only. `bench/refresh_thesis.sh` mirrors it to
+`Ha_Vien_Mastersthesis_2026.tex` / `.pdf` for the UH filename. **Grade the submission file:**
+twenty-ninth pass, 8 October 2026, mean **4.83** (areas 4 and 6 at **4.5** before the 12 October
+abstract scope fix). See `docs/ASSESSMENT.md`. The retired long-form draft is
+`Ha_Vien_Mastersthesis_2026.recovered-20260920.tex`.
 `\abstractunaidedtrue` still ships, the AI declaration prints that the abstract was written unaided,
 the PDF contains no Not submittable, and the §2.2 header overflow is still closed. Grade reasoning
 is in `docs/ASSESSMENT.md` and `AGENT.md` §2.
@@ -819,8 +820,8 @@ latexmk -C                   # clean build artifacts
 
 ## Phase 9b - Companion documents (assign a status, then keep them in step)
 
-The repo now carries several documents besides `Ha_Vien_Mastersthesis_2026.tex`. Only `Ha_Vien_Mastersthesis_2026.tex` is the submission
-artefact; the rest are unlabelled, which is how two of them drifted without it being visible.
+The repo now carries several documents besides `Thesis_v4.tex`. **`Thesis_v4.tex` is the submission
+manuscript**; `Ha_Vien_Mastersthesis_2026.*` is the UH filename mirror from `bench/refresh_thesis.sh`.
 
 - [x] `plain_thesis.tex` - plain-language variant (121 pages) for a reader with no 5G
       background. Same argument, same data, same generated macros, and it built clean.
@@ -833,7 +834,7 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       decomposition, and the corrected RQ3 reading. Moved to `archive/` on 18 Aug 2026, where it
       reads as a superseded variant rather than unfinished work. Reviving it means porting the
       generated macros across, not just running bibtex.
-- [x] `Thesis_v4.tex` - supervisor read-through of the eight-chapter argument (50 physical pages,
+- [x] `Thesis_v4.tex` - **submission manuscript** (supervisor read-through of the eight-chapter argument; 50 physical pages at 12 September 2026,
       last body folio 41, measured 12 September 2026). **Reviewed — supervisor-facing.** Chapter 1 is
       the full introduction from the draft (copied 27 Aug 2026, cross-refs retargeted). Chapter 2 is
       a related-work spine as of 21 September 2026. Chapters 3 to 8 keep five argument paragraphs each, as plain prose rather than itemize. Cut from nine
@@ -916,7 +917,7 @@ artefact; the rest are unlabelled, which is how two of them drifted without it b
       last entry predicted:** both gates passed on every stale build, because they check placement
       and punctuation and not agreement with the source. Nothing in the repository compares deck
       prose against the thesis, and a claim only becomes gated when it is spelled as a macro.
-- [ ] Final PDF + submission (`Ha_Vien_Mastersthesis_2026.pdf`, written directly by `bench/refresh_thesis.sh`)
+- [ ] Final PDF + submission (`Thesis_v4.tex` → `Ha_Vien_Mastersthesis_2026.pdf` via `bench/refresh_thesis.sh`; abstract unaided rewrite + `\abstractunaidedtrue` still blocking maturity test)
 
 ### After the bare-metal campaign: what each re-check returned (26 Aug 2026)
 

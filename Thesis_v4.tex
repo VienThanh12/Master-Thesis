@@ -141,15 +141,19 @@
 
       Each version was run with two memory allocators, the system default and \texttt{jemalloc}.
       Before overload, Rust answers a typical request up to $\PFiftyDiffAbsMax\,\mu$s faster
-      than C++. Only $\BudgetCoreShareMax\%$ of each request is spent in Rust or C++
-      code. Most of the time goes to handing the request between threads. At $\OverloadLoad$ thousand
-      requests per second, Rust completes more requests with both allocators. When several
-      requests are in progress at once, the wait depends on the allocator. The wait is shorter
-      for Rust with \texttt{jemalloc} and for C++ with the system allocator.
+      than C++ on the end-to-end round trip. Only $\BudgetCoreShareMax\%$ of that trip is
+      spent in Rust or C++ code. Most of the rest is thread handoff. On a same-host clock that
+      defers coordinated-omission fill past the timed window, Rust still finishes more calls at
+      $\ProbeAfterOverloadLoad$ thousand requests per second with both allocators. That clock
+      times schedule drift, not service time, so overload service latency is left unresolved.
+      On a further host, with several requests in flight outside the main tested family, median
+      delay before queue entry ranks the builds by allocator. The wait is shorter for Rust with
+      \texttt{jemalloc} and for C++ with the system allocator.
 
       On all three machines tested, Rust uses a few MiB more peak memory than C++ with both
       allocators. Existing C++ code can call the unchanged Rust service through a thin C
-      interface. The interface adds at most $\FfiOpBoundPct\%$ to one request.
+      interface. The crossing adds at most $\FfiOpBoundPct\%$ of one signalling call's measured
+      cost.
       
 \end{abstract}
 \end{otherlanguage}

@@ -130,14 +130,18 @@ else
   echo "  SKIP: .venv-pptx not present; keeping existing Rust_vs_Cpp_Nokia_RAN_thesis.pptx"
 fi
 
-# The source carries the UH submission filename directly
-# (Lastname_Firstname_Mastersthesis_Year, ASCII only), so the build writes the
-# submission PDF and there is no second copy to keep in step.
-thesis="Ha_Vien_Mastersthesis_2026"
+# Canonical manuscript is Thesis_v4.tex. The UH deposit filename is still
+# Ha_Vien_Mastersthesis_2026 (Lastname_Firstname_Mastersthesis_Year, ASCII only).
+thesis="Thesis_v4"
+submission="Ha_Vien_Mastersthesis_2026"
+
+echo "== syncing $submission.tex from $thesis.tex =="
+cp "$root/$thesis.tex" "$root/$submission.tex"
 
 echo "== rebuilding $thesis.pdf =="
 cd "$root"
 latexmk -pdf -interaction=nonstopmode "$thesis.tex" >/dev/null 2>&1 || true
+cp "$root/$thesis.pdf" "$root/$submission.pdf"
 
 # .latexmkrc keeps intermediates in build/ so the repository root stays readable.
 # Fall back to the root copy in case the last build came from a tool that
@@ -155,7 +159,7 @@ if grep -q 'LaTeX Warning' "$thesis_log" 2>/dev/null; then
   echo "WARN: unresolved LaTeX warnings (undefined refs/citations?):"
   grep -n 'LaTeX Warning' "$thesis_log" | head
 fi
-echo "OK: $thesis.pdf rebuilt."
+echo "OK: $thesis.pdf rebuilt; $submission.pdf updated."
 
 echo
 echo "Campaign numbers now in the prose (figures/gen_macros.tex):"

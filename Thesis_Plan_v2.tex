@@ -205,7 +205,8 @@ intended send time and the cap, and writes the fill after the timed window.
 The processor, the pin and \texttt{nohz\_full} stay the same. That control
 removes the large high-load gaps and leaves a smaller Rust throughput lead.
 CPU per completed operation falls with the fill, so the large ratio is the
-recorder. The smaller lead is reported and not explained. A no-fill clock
+recorder. The smaller lead tracks extra kernel time per handoff, which queue
+swaps on a further host isolate from the core call. A no-fill clock
 from an earlier host is coordinated-omission biased by construction and was
 not repeated here. The deferred-fill clock reports cumulative schedule drift
 rather than service time. Overload service latency is therefore left unresolved.
@@ -295,7 +296,8 @@ November & Submit & Final revisions, colloquium presentation, submission. \\
 
 \textbf{Risks.} The far tail is now resolved on bare metal below saturation. The
 same-host fill control is done: the large high-load gaps move with the recorder,
-and a smaller Rust throughput lead remains unexplained. One open question still
+and the smaller Rust throughput lead is tied to kernel time on the handoff path.
+One open question still
 needs no new machine. It is the transparent-hugepage candidate for the allocator effect, a
 two-setting comparison on one host with everything else pinned. The language effect on
 peak resident set size keeps its sign and its MiB scale on all three hosts measured. The

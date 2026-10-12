@@ -17,21 +17,21 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 | Document | Source | Status | Role |
 | --- | --- | --- | --- |
 | **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v4.tex`. |
-| **`Thesis_v4.pdf`** | `Thesis_v4.tex` | **Reviewed — supervisor-facing** | Supervisor read-through of the eight-chapter argument. Chapter 1 is the full introduction from the draft (copied 27 Aug 2026, cross-refs retargeted). Chapter 2 is a related-work spine as of 21 September 2026. Chapters 3 to 8 keep five argument paragraphs each, as plain prose rather than itemize. Cut from nine chapters to eight on 26 Aug 2026, when the standalone `Objectives` chapter was folded into the introduction to match the draft (§4). Carries **14 figures** (list of figures in the front matter). Abstract written 11 September 2026. Twenty-sixth grading pass, 16 September 2026: all six assessable areas still at 5 after the 14–15 September diagram and wording edits (two new figures, the uncited predictability section removed, 48 physical pages). That grade is the skeleton's, not the draft's. This is what goes to the supervisor alongside the plan. Called `Thesis_v3` until 28 September 2026, and `Thesis_v2` until 8 September 2026. Older notes and commits use those names. |
-| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft — not yet final** | Canonical long-form thesis. At 26 Aug 2026, after the bare-metal campaign and a priced length pass: abstract form declaring **101 pages + 6 appendix pages** (115 physical). **Re-measured 31 Aug 2026 it declares 95 + 12 at the same 115 physical**, because the appendix list of §4 has grown to seven: the total is unchanged and six pages sit on the other side of the `\appendix` boundary. Read the split from the `.aux` and never from this line. It peaked at 105 when the `je` decomposition landed, and the length pass took it to 101 by the only two levers that return anything (a `\scriptsize` bibliography and §5.4.1's state-machine narration, whose two semantic commitments moved to §5.5). **Do not go looking for more: §5, *Length and layout*, now records every lever measured, and all but the bibliography return zero.** Before the campaign, the same day, it read 99 + 6 (113 physical). It read 100 and 102 on 25 Aug, 105 from 23 to 24 Aug, and 99 before the RQ4 adoption-cost axes landed (`tab:adoption`) and `tab:equivalence` was placed. Six pages came back across three §6.4 passes on 25 and 26 August and none of them cost an argument: three from layout, two from cutting re-derived argument, and one from merging two single-panel figures into `fig:loadsweep`. Chapter 6 went 27 pages to 25 over the same work. See §5, *Length and layout*, for the ordering rule that made each of them pay. A snapshot, not a budget. Rich figures, generated numbers, full argument. **Everything still needs review** before submission. The filename is the UH submission format `Lastname_Firstname_Mastersthesis_Year` (ASCII), and the build writes it directly, so no second copy has to be kept in step. Called `Thesis_POC` until 19 August 2026, which is the name older notes and commits use. |
+| **`Thesis_v4.pdf`** | `Thesis_v4.tex` | **Submission manuscript (edit here)** | Canonical source for the UH deposit. `bench/refresh_thesis.sh` copies it to `Ha_Vien_Mastersthesis_2026.tex` and rebuilds both PDFs so the required filename stays in step. Supervisor read-through of the eight-chapter argument. Chapter 1 is the full introduction from the draft (copied 27 Aug 2026, cross-refs retargeted). Chapter 2 is a related-work spine as of 21 September 2026. Chapters 3 to 8 keep five argument paragraphs each, as plain prose rather than itemize. Cut from nine chapters to eight on 26 Aug 2026, when the standalone `Objectives` chapter was folded into the introduction to match the draft (§4). Carries **14 figures** (list of figures in the front matter). Abstract written 11 September 2026. Twenty-sixth grading pass, 16 September 2026: all six assessable areas still at 5 after the 14–15 September diagram and wording edits (two new figures, the uncited predictability section removed, 48 physical pages). That grade is the skeleton's, not the draft's. This is what goes to the supervisor alongside the plan. Called `Thesis_v3` until 28 September 2026, and `Thesis_v2` until 8 September 2026. Older notes and commits use those names. |
+| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Submission filename mirror** | UH deposit name (`Lastname_Firstname_Mastersthesis_Year`). Overwritten by `bench/refresh_thesis.sh` from `Thesis_v4.*`. Do not edit by hand. The retired long-form draft lives in `Ha_Vien_Mastersthesis_2026.recovered-20260920.tex` and the 24 September PDF snapshot. |
 | **`Ha_Vien_Mastersthesis_2026_short.pdf`** | `Ha_Vien_Mastersthesis_2026_short.tex` | **Compression pass, in progress** | A shorter cut of the full draft off the same class, macros, figures and bibliography. Measured 8 September 2026 it declares **55 pages with the same 12 appendix pages** (76 physical) against the draft's 97 and 12. Both documents are `oneside`. Material is relocated to appendices or merged rather than deleted, which is why its appendix count has not moved. **It is neither supervisor-facing nor a submission candidate**, and no claim may be edited into it that is not in the draft. Its tooling is `.compress/`, and `.compress/shortcheck.py` is the check that a pass dropped no citation key, label, cross-reference or generated macro. Run it after every compression edit, because a dropped label is exactly the defect no build gate catches |
 | `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v4.tex` and `Ha_Vien_Mastersthesis_2026_short.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex`, `Thesis_v3-vi.tex` (Vietnamese skeleton snapshot of 11 September 2026), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF, and since 8 September 2026 the retired `UH_DS_MSc.cls` with the `UH-logo.png` only that class loaded, plus the dated `rollback-20260827-220354/` snapshot. See `archive/README.md`. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
-| Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Ha_Vien_Mastersthesis_2026.tex`. |
+| Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Thesis_v4.tex`. |
 
 ### Sync rule
 
 When you change **claims, RQs, scope, methodology, or contributions**:
 
-1. Update **`Thesis_v4.tex`** if the supervisor skeleton should reflect it.
+1. Update **`Thesis_v4.tex`** (submission manuscript).
 2. Update **`Thesis_Plan_v2.tex`** if the plan’s status, timeline, or framing changes.
-3. Update **`Ha_Vien_Mastersthesis_2026.tex`** for the full argument, figures, tables, and cross-references.
-4. Rebuild affected PDFs and run the verification steps in §5.
+3. Run **`bench/refresh_thesis.sh`** or `latexmk -pdf Thesis_v4.tex` so `Ha_Vien_Mastersthesis_2026.*` stays a mirror.
+4. Re-run the verification steps in §5.
 
 When you change **measured numbers**:
 
@@ -59,22 +59,12 @@ wrong prefix is wrong in a way no build gate catches.**
 Host descriptions are generated too: `\Main*` from the reported campaign's own environment capture
 (matched by timestamp, not by taking the newest file), `\Guest*` and `\Bm*` from theirs.
 
-**30 September 2026: the smaller Rust lead now has a named carrier, in `Thesis_v4.tex` only.**
-Seven sites carry it: the cause paragraph closing `sec:overload`, the resource paragraph, §6.1,
-§6.2, the threats paragraph, the conclusion and future work. The author chose to change Thesis_v4
-alone, so two documents now disagree with it and must be synced before either goes out.
-`Thesis_Plan_v2.tex` still says the lead is "reported and not explained" (around lines 208 and 297).
-The full draft's source `Ha_Vien_Mastersthesis_2026.tex` has been **empty (0 bytes) since 25
-September 2026**, and `Ha_Vien_Mastersthesis_2026_short.tex` since 30 September. The last built draft
-PDF (24 September) predates this finding. `refresh_thesis.sh` therefore fails at its final step until
-the draft is restored. The editor's local history held a 20 September snapshot of the draft, now
-copied beside it as `Ha_Vien_Mastersthesis_2026.recovered-20260920.tex` with nothing overwritten.
-That copy predates the Chicago promotion: it still quotes the seven `\KneeGap*` macros and
-`\RssLowRunOffset`, which the current campaign no longer emits, so it does not build as it stands.
-`archive/rollback-20260827-220354/` holds an older copy. Restoring either is the author's decision. The same
-day `ai_statement.tex` changed from "Every measurement was run by the author" to say the author
-directed every measurement and some runs on rented machines were started by the models over a remote
-login, because the Singapore probes were.
+**30 September 2026:** the smaller Rust throughput lead is tied to kernel time on the handoff path
+(queue swaps on a further host). `Thesis_Plan_v2.tex` was synced on 12 October 2026. The retired
+long-form draft is `Ha_Vien_Mastersthesis_2026.recovered-20260920.tex` (does not build against the
+current macros). `Ha_Vien_Mastersthesis_2026_short.tex` is empty since 30 September 2026.
+`ai_statement.tex` records that the author directed every measurement and that some rented-machine
+runs were started over a remote login.
 
 **`\MainDistro` is the container image's userland and `\MainHostDistro` is the machine's**, added 8
 September 2026 because the capture beside the reported campaign was written inside the container:
