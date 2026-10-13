@@ -485,16 +485,17 @@ than on stateful, concurrent, latency-critical telecom workloads.
 
 Bringing these threads together, the concrete problem this thesis addresses is the following.
 Telecom vendors are under growing pressure, both technical and increasingly regulatory, to adopt
-memory-safe languages, yet for the RAN control plane they lack \emph{direct, controlled}
+memory-safe languages. For the RAN control plane they still lack \emph{direct, controlled}
 evidence on which to base that decision. It is not established whether a Rust implementation of
 a stateful, concurrent control-plane subsystem can match modern C++ in \emph{tail latency and
-predictability under overload} (as opposed to average throughput). It is also unknown whether Rust's compile-time
-guarantees actually eliminate the specific defect classes that affect the existing C++ code,
-and what incremental adoption \emph{costs} inside a large C++ codebase. The available evidence
-is largely general-purpose and average-case~\cite{balasubramanian2017rust,qin2020rust}, leaving
-four questions open for a representative subsystem: predictability, prevented-defect scope,
-resource overhead, and migration cost. Answering them under controlled, reproducible conditions is the
-problem this thesis sets out to solve.
+predictability under overload} (as opposed to average throughput). It is also unknown whether
+Rust's compile-time guarantees actually eliminate the specific defect classes that affect the
+existing C++ code, and what incremental adoption \emph{costs} inside a large C++ codebase. The
+available evidence is largely general-purpose and
+average-case~\cite{balasubramanian2017rust,qin2020rust}. Four questions therefore stay open
+for a representative subsystem: predictability, prevented-defect scope, resource overhead, and
+migration cost. Answering them under controlled, reproducible conditions is the problem this
+thesis sets out to solve.
 
 \section{Research questions and hypotheses}\label{sec:rqs}
 The thesis is organised around four research questions. They put latency predictability
@@ -925,8 +926,8 @@ boundary size, \texttt{unsafe} scope, per-call cost \\
 RQ1 and RQ3 use an open-loop load sweep. The sweep runs from a light load to
 well past saturation. Open-loop means the generator keeps to its send
 schedule. It does not wait for a reply before sending the next
-request~\cite{schroeder2006openclosed}. Four builds are compared. They take
-turns inside each repeat, so a noisy moment hits all four.
+request~\cite{schroeder2006openclosed}. Four builds take turns inside each
+repeat, so a noisy moment hits all four.
 
 The time from send to reply mixes two costs. The core operation is the work
 the language does on the device record. The handoff passes that work to the
@@ -1241,10 +1242,11 @@ from the host system. Instead, both the C++ and Rust programs are built and
 executed inside the same container image. The image is based on \MainDistro{}
 and provides \texttt{g++~\MainGpp} and \texttt{rustc~\MainRustc}. This
 ensures that the build environment is controlled and reproducible rather
-than depending on the software installed on the host machine. The image specifies the major version of the GNU Compiler Collection (GCC)
-toolset, but not its exact point release. As a result, the compiler version
-used in this experiment is \texttt{g++~\MainGpp}. The use of a container does not completely isolate the experiment from the
-host system. In particular, a container uses the host's Linux kernel.
+than depending on the software installed on the host machine. The image specifies the major
+version of the GNU Compiler Collection (GCC) toolset, but not its exact point release. As a
+result, the compiler version used in this experiment is \texttt{g++~\MainGpp}. A container
+does not completely isolate the experiment from the host system. It still uses the host's
+Linux kernel.
 
 Until late in the study, the load sweep was performed inside a
 Kernel-based Virtual Machine (KVM) running on an \GuestCpu{}. The CPU core
@@ -1257,12 +1259,9 @@ kernel. The earlier sweep showed substantial variation in the measurements. For 
 variant, the $95\%$ bootstrap confidence interval for p99 latency had a
 width of $\GuestPNineNineMaxCI\,\mu$s. Across the four variants, the
 difference between the smallest and largest p99 values was only
-$\GuestPNineNineRange\,\mu$s. In other words, the uncertainty in the
-measurement of one variant was larger than the difference observed between
-all four variants. This means that, although the four variants had different
-measured p99 values, those differences were small relative to the variability 
-of the experiment. The results should therefore be interpreted with caution: 
-the observed differences between the variants are small compared with the uncertainty in the measurements. We nevertheless retain this earlier sweep because it used the same
+$\GuestPNineNineRange\,\mu$s. The uncertainty in one variant's p99 measurement was
+therefore larger than the spread among all four variants, so those ranked differences
+cannot be read with confidence. We nevertheless retain this earlier sweep because it used the same
 experimental design as the main experiment. This makes it useful for a
 side-by-side comparison. The purpose of this comparison is to examine
 whether the observed findings are consistent across different environments
@@ -2242,10 +2241,11 @@ settle the human cost this study can only name.
 
 % The only appendix. The label stays appendix:config.
 \appendix{Host and campaign configuration\label{appendix:config}}
-Table~\ref{tab:testbed} itemises the three machines the campaigns ran on: the bare-metal host of
-Section~\ref{sec:testbed} that every performance and resource table of the main sweep is drawn from,
-the virtualised host it replaced, and a second bare-metal host with a different design.
-Section~\ref{sec:testbed} compares that second host with the reported host. The resident-set decomposition belongs to the
+Table~\ref{tab:testbed} itemises the three machines the campaigns ran on. The first is the
+bare-metal host of Section~\ref{sec:testbed} that every performance and resource table of the
+main sweep is drawn from. The second is the virtualised host it replaced. The third is a second
+bare-metal host with a different design. Section~\ref{sec:testbed} compares that third host
+with the reported host. The resident-set decomposition belongs to the
 second bare-metal host and is reported in Section~\ref{sec:resources}. The fault catalogue was
 compiled and run on the development machine, whose toolchain its own caption records. Of the
 adoption-cost axes only build time is host-sensitive, which is why that one is reported as a
@@ -2351,19 +2351,19 @@ Attainable $p$ floors & $\MinAttainableP$ / $\CorrectedFloor$ & uncorrected / af
 Each of the $\NRuns$ runs of the factorial design in Table~\ref{tab:params} contributes one
 newline-delimited JSON record. Nothing is aggregated at capture time. A record carries the
 configuration (language, allocator, workload, shard and producer counts, target rate), the
-outcome (operations completed, errors, wall-clock duration, achieved throughput), the latency
-distribution from the HDR histogram (mean, standard deviation, the quartiles, p50, p90, p99,
-p99.9, p99.99 and the maximum, in nanoseconds), a shorter block for inter-operation latency
-variation (mean, standard deviation, p50, p99, p99.9, the maximum and a sample count), the
-resource counters from \texttt{getrusage} (peak resident set size, user and system CPU seconds,
-CPU utilisation), and the per-operation-kind counts. A \texttt{jemalloc} variant adds that
-allocator's own accounting. A system-allocator variant stores those fields as unavailable rather than
-as zero, on the same principle as the clock setting and the turbo state. The kind counts are what makes a
-divergence between the languages show up as a parity failure (Chapter~\ref{chapter:design}) instead
-of a performance difference. Each run also persists its complete HDR bucket contents to a sidecar,
-so the repeats can be pooled before a far-tail percentile is read
-(Section~\ref{sec:statsbrief}), and a separate file records \texttt{perf} counters at two scopes, the
-end-to-end path and the operation on its own.
+outcome (operations completed, errors, wall-clock duration, achieved throughput), and the
+latency distribution from the HDR histogram (mean, standard deviation, the quartiles, p50, p90,
+p99, p99.9, p99.99 and the maximum, in nanoseconds). It also carries a shorter block for
+inter-operation latency variation (mean, standard deviation, p50, p99, p99.9, the maximum and a
+sample count), the resource counters from \texttt{getrusage} (peak resident set size, user and
+system CPU seconds, CPU utilisation), and the per-operation-kind counts. A \texttt{jemalloc}
+variant adds that allocator's own accounting. A system-allocator variant stores those fields as
+unavailable rather than as zero, on the same principle as the clock setting and the turbo state.
+The kind counts are what makes a divergence between the languages show up as a parity failure
+(Chapter~\ref{chapter:design}) instead of a performance difference. Each run also persists its
+complete HDR bucket contents to a sidecar, so the repeats can be pooled before a far-tail
+percentile is read (Section~\ref{sec:statsbrief}). A separate file records \texttt{perf}
+counters at two scopes, the end-to-end path and the operation on its own.
 
 The three small paired experiments have a different shape. For each of \BudgetRepeats{}
 interleaved repeats the decomposition records the batch-mean cost in both languages, once for
