@@ -317,7 +317,7 @@ Use-after-move & Reading from a value after its contents have been moved elsewhe
 Ownership & Rust's rule that each value has one owner. A read of a record whose owner is already gone does not compile \\
 Borrowing & A temporary loan of a value. The compiler rejects a loan that lasts longer than the value \\
 Safe Rust & Code outside \texttt{unsafe} blocks, where ownership, borrowing, and aliasing are checked at compile time \\
-Unsafe & A region the programmer marks so the Rust compiler stops checking it. C++ has no such mark \\
+Unsafe & An \texttt{unsafe} block or function where the programmer takes responsibility and the usual checks do not apply. C++ has no such mark \\
 Sanitiser & A tool that watches a running C++ program and reports some defects. It can report only a path a test actually runs \\
 \hline
 \end{longtable}
@@ -544,6 +544,22 @@ Three hypotheses are written down before any measurement.
         piece at a time is engineering work, not slower calls.
 \end{description}
 Chapter~\ref{chapter:discussion} revisits all three hypotheses against the facts.
+
+\paragraph{Rust safety model.}\label{*sec:rustsafety*}
+Rust separates code into \emph{safe Rust} and code that uses \texttt{unsafe}. 
+In safe Rust, the compiler checks how memory is used, including ownership and borrowing, 
+to prevent many common programming errors. When code uses an \texttt{unsafe} block or an 
+\texttt{unsafe} function, the programmer must ensure that certain operations are used 
+correctly because the compiler cannot check all their safety requirements.
+
+Unsafe code is often needed when Rust interacts with C code through a C ABI or uses raw 
+pointers. Unlike Rust, C++ does not have a specific keyword to mark code that requires 
+these additional safety guarantees.
+
+In RQ2, the compile-time safety claims apply only to safe Rust, where the compiler can 
+enforce its safety rules. Both the measured service core and the injected defects are 
+written in safe Rust. Chapter~\ref{chapter:design} explains how the adoption prototype 
+keeps \texttt{unsafe} code limited to the C ABI boundary.
 
 The RQ2 list has fourteen defect classes. Safe Rust is expected to stop seven of
 them at compile time. It is expected not to stop the other seven. That split is
@@ -793,8 +809,8 @@ returns a typed error and leaves the context unchanged. That closed set lets
 the same tests and the same workload drive both versions along the same
 paths.
 
-RQ2 asks which defects safe Rust stops at compile time, and which ones it does not.
-Section~\ref{sec:defects} sets out the catalogue. For each defect, the expected
+As Section~\ref{sec:rustsafety} states, RQ2 asks which defects safe Rust stops at compile
+time, and which ones it does not. Section~\ref{sec:defects} sets out the catalogue. For each defect, the expected
 result was written down before the programs were run.
 Section~\ref{sec:safetyresults} reports what each one did.
 
@@ -1200,8 +1216,7 @@ request becomes a tagged struct holding each field any operation might need,
 $\CppRequestBytes$~bytes against Rust's $\RustRequestBytes$. The net result is
 a Rust core $\NlocRise\%$ longer in code lines. Its branching complexity is
 $\CcnTotalDrop\%$ lower~\cite{lizard}. The Rust library contains no
-\texttt{unsafe} at all. In Rust, unsafe
-is the block where the compiler’s checks are switched off.
+\texttt{unsafe} at all, as Section~\ref{sec:rustsafety} defines safe Rust.
 
 Parity is tested and not assumed. Language-neutral vectors run in both
 versions. Their logs are diffed operation by operation. A cross-diff cannot tell ``both
