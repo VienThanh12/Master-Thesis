@@ -2391,11 +2391,11 @@ Every load sweep writes the environment record of Section~\ref{sec:repro} beside
 including the fields a given host does not expose. The clock setting and the turbo state are stored as
 unavailable rather than left out, so the limitation of Section~\ref{sec:testbed} is a property
 of the dataset. The virtualised campaign shares the sweep's design and predates the later
-instruments: its records carry the percentiles and the resource counters and nothing else. That
+instruments. Its records carry the percentiles and the resource counters and nothing else. That
 absence is the measurement-validity argument of Section~\ref{sec:testbed}, which is why the
 campaign is kept. The second bare-metal campaign carries the same record shape as the reported
 sweep, including the allocator accounting that lets Section~\ref{sec:resources} decompose the
-resident set, but runs a different shard count, load grid, repeat count and toolchain. Each
+resident set. It runs a different shard count, load grid, repeat count and toolchain. Each
 campaign has its own generator and macro prefix.
 
 The two timing checks each cover the same fourteen-load, two-language,
@@ -2458,11 +2458,12 @@ explain why it cannot. The first profile ran closed loop at $\BmProfThroughput$~
 flat stretch bracketed at $\BmKneeLo$--$\BmKneeHi$~kops/s. Repeating it at a swept load below saturation
 shrank the discrepancy by most of its size and did not remove it. What remains is that
 profiling requires an allocator built to sample every allocation and record a backtrace, so the
-variant under profile is not the variant the campaign measured. Each symbolised profile puts almost all
-of its flat bytes on a frame that allocates nothing, $\BmProfFlatCppPct\%$ on a deallocation
-symbol in the C++ variant and $\BmProfFlatRustPct\%$ on the allocator's own backtrace routine in the
-Rust one. Attributing the footprint would need a profile taken at a swept load, on a build
-whose peak RSS reproduces the campaign's ordering.
+variant under profile is not the variant the campaign measured. Each symbolised profile puts
+almost all of its flat bytes on a frame that allocates nothing. In the C++ variant
+$\BmProfFlatCppPct\%$ sit on a deallocation symbol. In the Rust variant
+$\BmProfFlatRustPct\%$ sit on the allocator's own backtrace routine. Attributing the footprint
+would need a profile taken at a swept load, on a build whose peak RSS reproduces the campaign's
+ordering.
 
 \end{appendices}
 
