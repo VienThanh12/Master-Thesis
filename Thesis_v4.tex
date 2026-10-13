@@ -316,6 +316,7 @@ Double-free & Giving the same memory back twice \\
 Use-after-move & Reading from a value after its contents have been moved elsewhere. The old name is still valid but empty \\
 Ownership & Rust's rule that each value has one owner. A read of a record whose owner is already gone does not compile \\
 Borrowing & A temporary loan of a value. The compiler rejects a loan that lasts longer than the value \\
+Safe Rust & Code outside \texttt{unsafe} blocks, where ownership, borrowing, and aliasing are checked at compile time \\
 Unsafe & A region the programmer marks so the Rust compiler stops checking it. C++ has no such mark \\
 Sanitiser & A tool that watches a running C++ program and reports some defects. It can report only a path a test actually runs \\
 \hline
