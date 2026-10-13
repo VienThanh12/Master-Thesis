@@ -355,20 +355,20 @@ This control-plane software is, today, written mostly in C++. The choice is a
 practical one: C++ offers the low-level control, mature tooling, and performance that
 latency-critical systems demand. But that performance comes with a well-known cost. C++
 places the burden of memory and concurrency management on the programmer, and decades of
-experience show that this burden is routinely mishandled, producing use-after-free errors,
-double-frees, data races, and related defects that are expensive to find, dangerous in
-production, and responsible for a large share of security vulnerabilities in industry
-practice~\cite{msrc2019memory,google2022android}. Rust has emerged as the first mainstream
-systems language to promise an escape from this trade-off: memory safety and data-race
-freedom enforced at compile time on machine-checked
-foundations~\cite{klabnik2023rust,jung2018rustbelt}, with performance intended to be
-competitive with C++~\cite{balasubramanian2017rust}. Whether that promise holds for a
-telecom-grade, latency-critical control plane, where predictability under overload matters
-as much as raw speed, is not well understood. This thesis, carried out at Nokia, addresses
-the question directly: it develops two functionally equivalent implementations of a
-representative RAN subsystem, a UE Context Management service that keeps per-device
-state, as a gNB-CU-CP does, in modern C++ and in Rust, and compares them under a realistic
-synthetic signalling workload.
+experience show that this burden is routinely mishandled. The typical failures are
+use-after-free errors, double-frees, data races, and related defects. They are expensive
+to find, dangerous in production, and responsible for a large share of security
+vulnerabilities in industry practice~\cite{msrc2019memory,google2022android}. Rust has
+emerged as the first mainstream systems language to promise an escape from this
+trade-off: memory safety and data-race freedom enforced at compile time on
+machine-checked foundations~\cite{klabnik2023rust,jung2018rustbelt}, with performance
+intended to be competitive with C++~\cite{balasubramanian2017rust}. Whether that promise
+holds for a telecom-grade, latency-critical control plane is not well understood.
+Predictability under overload matters as much as raw speed there. This thesis, carried
+out at Nokia, addresses the question directly. It develops two functionally equivalent
+implementations of a representative RAN subsystem, a UE Context Management service that
+keeps per-device state, as a gNB-CU-CP does, in modern C++ and in Rust. It compares them
+under a realistic synthetic signalling workload.
 
 
 Three terms recur throughout, and the first is the \emph{gNB-CU-CP}, the control-plane class this work sits in.
