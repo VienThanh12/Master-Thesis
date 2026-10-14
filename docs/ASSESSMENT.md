@@ -13,17 +13,14 @@ The thesis source was renamed from `Ha_Vien_Mastersthesis_2026.tex` to `Ha_Vien_
 
 Interactive canvases live beside this file. The standing full-draft grade is
 `thesis-grade-csm-sep07-rev2.canvas.tsx`. The latest pass, of the supervisor skeleton, is
-`thesis-grade-csm-oct08.canvas.tsx`. This file is the durable copy.
+`thesis-grade-csm-oct14.canvas.tsx`. This file is the durable copy.
 
-> **Current for the submission draft: twenty-second pass, 7 September 2026 afternoon, mean 4.83.**
-> Areas 1, 2, 3 and 5 at 5, areas 4 and 6 at **4.5**. Caps: toolchain parity at three prose sites
-> plus `tab:testbed`, §6.4.7's hand-typed `g++ 15.1.1`, and `tab:findings`' "on bare metal". Canvas:
-> `thesis-grade-csm-sep07-rev2.canvas.tsx`. The twenty-eighth pass did not re-read the draft.
->
-> **Latest pass: twenty-ninth, 8 October 2026, of `Thesis_v4.tex` only, mean 4.83.**
-> Areas 1, 2, 3 and 5 at 5, areas 4 and 6 at **4.5**. The cap moved from appendix layout to the
-> abstract: pipeline and overload findings are stated without the host and clock scope the body
-> uses. Canvas: `thesis-grade-csm-oct08.canvas.tsx`. Do not copy this mean onto the draft.
+> **Latest pass: thirtieth, 14 October 2026, of `Thesis_v4.tex` only, mean 4.83.**
+> Areas 1 to 4 are at 5, and areas 5 and 6 are **4.5**. The abstract scope defect from
+> 8 October is closed. The live caps are one contradictory allocator explanation in the
+> discussion and finalisation defects: undefined references, overfull defect-table cells,
+> ABI bare at first use, and the not-submittable abstract declaration. Canvas:
+> `thesis-grade-csm-oct14.canvas.tsx`.
 >
 > **Twenty-eighth pass, 29 September 2026, mean 4.92.** Areas 1 to 5 at 5, area 6 at **4.5**.
 > Superseded on area 4 by the abstract regression noted above. Canvas:
@@ -5313,3 +5310,149 @@ the table overflow and grammar errors are closed, but the abstract cap remains.
 2. **Author, unaided.** Rewrite the abstract and set `\abstractunaidedtrue`. Submission rule.
 3. **Editing, minutes, does not move the current grade.** Cite `tab:jitter` or leave the
    appendix sentence as supporting measurements only.
+
+## Thirtieth pass — 14 October 2026
+
+Graded against the CSM matrix of 9 April 2024 on **`Thesis_v4.tex` /
+`Thesis_v4.pdf`** after rebuilding the current source. Standard applied: the
+current manuscript as a submission candidate. This pass grades the document,
+not evidence that exists only in the repository.
+
+**Build verified.** `latexmk -pdf -interaction=nonstopmode -halt-on-error
+Thesis_v4.tex` produced 73 physical pages. There are no LaTeX errors,
+undefined citations, oversized floats, or placeholders. Two references to
+`sec:rustsafety` are undefined because the source label is
+`*sec:rustsafety*`. Four `Crash/corruption` cells in `tab:defectmap` overrun
+their columns by 12.5 pt. The acronym gate reports ABI at first use. The
+shared AI statement still sets `\abstractunaidedfalse` and prints that the
+document is not submittable.
+
+Canvas: [`thesis-grade-csm-oct14.canvas.tsx`](/home/vienha/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-oct14.canvas.tsx).
+
+| Area | 29th pass (8 Oct) | This pass | Clause that sets it |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Hold. Named gap, four traceable questions, falsifiable seven-plus-seven RQ2 catalogue |
+| 2. Scholarly framework and sources | 5 | **5** | Hold. Contrary findings engaged, primary standards and method sources |
+| 3. Research data and method | 5 | **5** | Hold. Frozen specification, parity oracle, bare-metal campaign, exact paired tests and Holm correction |
+| 4. Presentation of results | 4.5 | **5** | The abstract now carries the host and clock qualifications that the previous pass found missing |
+| 5. Discussion and conclusions | 5 | **4.5** | The resident-set explanation in the discussion contradicts the results section |
+| 6. Academic text | 4.5 | **4.5** | Scientific presentation reads at level 5; camera-ready finishing does not |
+| 7. Work during the thesis process | n/a | **n/a** | Not assessable from a manuscript |
+| **Mean of the six assessable** | 4.83 | **4.83** | Area 7 excluded |
+
+### 1. Thesis objective and research questions — 5
+
+**Carries it.** The research gap is located in named weaknesses of the closest
+telecom studies. The four questions trace to methods, artefacts, and metrics.
+RQ2 can disconfirm its own premise through seven defect classes inside safe
+Rust's guarantee and seven outside it. Three hypotheses were fixed before
+measurement, and H1 is later rejected as written.
+
+**Caps it.** Nothing in the level-5 descriptor fails. The topic and design are
+strong enough to support a scientific publication.
+
+### 2. Scholarly framework and use of sources — 5
+
+**Carries it.** Primary 3GPP standards ground the network domain. The review
+engages contrary findings on tail latency, throughput, and memory instead of
+listing only work favourable to Rust. Primary method sources support the
+statistical treatment and fault injection. Every citation used in this
+manuscript resolves.
+
+**Caps it.** Nothing in the level-5 descriptor fails. The 50 unused entries
+belong to the shared bibliography and do not appear as references in this
+manuscript.
+
+### 3. Research data and method — 5
+
+**Carries it.** The method combines a frozen specification, an independent
+parity oracle, interleaved variants, a 1,120-run bare-metal campaign, exact
+paired permutation tests over 20 repeats, Holm correction, and a pooled far
+tail kept outside the paired family. Descriptive follow-up experiments are
+identified as such, and the text states what each clock cannot establish.
+
+**Caps it.** Nothing in the level-5 descriptor fails. The methods and data
+selection are analysed in depth rather than merely listed.
+
+### 4. Presentation of thesis results — 5
+
+**Carries it.** The abstract now names the same-host deferred-fill clock,
+states that its overload delay is schedule drift, and scopes the
+allocator-dependent pipeline result to a further host outside the tested
+family. This closes the twenty-ninth pass's cap. Generated macros and tables
+carry the measured quantities, and the main text separates campaign delay,
+completed throughput, isolated core time, and several-requests-in-flight
+delay.
+
+**Caps it.** No level-5 clause fails. `tab:jitter` remains unreferenced from
+the body, but its caption marks it as supporting evidence rather than an
+answer to a research question. That isolated defect does not move the area.
+
+### 5. Discussion and conclusions — 4.5
+
+**Carries it.** The discussion revisits all three hypotheses. H1 is not
+accepted without an equivalence margin, H2 is narrowed to safe Rust and the
+tested classes, and H3 rests on an upper bound rather than a non-significant
+test. The chapter keeps completed throughput separate from overload delay,
+engages contrary prior work, names residual risks, and includes an ethical
+reflection.
+
+**Caps it.** Level 5 asks for clear and reliable conclusions and evaluations.
+Lines 2008–2009 say that the quieter-host memory cost is largely explained by
+the allocator itself. Lines 1681–1691 report the opposite result: allocator-
+resident memory is lower in Rust while process peak RSS is higher, so the
+difference sits outside the allocator as a fixed process-level cost. The
+reasoning otherwise reads at level 5, while this reliability inconsistency
+reads at level 4. The split sets 4.5.
+
+### 6. The thesis as an academic text — 4.5
+
+**Carries it.** The argument is readable and well structured. Terms are
+defined, citations resolve, figures and tables are integrated with the
+argument, and the build has no oversized float. The prose screens report
+Flesch 59.9, no semicolons, and no sentences longer than 50 words.
+
+**Caps it.** Level 5 requires technically camera-ready presentation and
+excellent finishing polish. Two printed internal references are undefined,
+four cells overrun the defect table, and ABI is not written out at first body
+use. The memory explanation also contradicts the results. The declaration
+states that the abstract has not been rewritten unaided and marks the PDF as
+not submittable. Scientific presentation reads at level 5, while finishing
+reads at level 4. That named split sets 4.5.
+
+### 7. Work during the thesis process — n/a
+
+The manuscript cannot show how the author used feedback, worked
+independently, or followed the schedule. Supervisors assess this area.
+
+### Reconciliation with the twenty-ninth pass
+
+I agree on areas 1, 2, and 3. Area 4 returns to 5 because the revised abstract
+now supplies the separate-host and deferred-fill-clock scope that was missing
+on 8 October. I disagree on area 5 because the current discussion contradicts
+the resident-set decomposition beside it. Area 6 holds at 4.5: the current PDF
+has undefined references, overfull result cells, a first-use acronym failure,
+an internal results contradiction, and an explicit not-submittable
+declaration, but the scientific presentation itself remains at level 5.
+
+An independent source-only read placed areas 1 to 5 at 5 and area 6 at 4.5,
+for a mean of 4.92. I agree with its area-6 calibration. I retain area 5 at
+4.5 because its reading did not reconcile the statement that the allocator
+explains the quieter-host memory cost with the results section's conclusion
+that Rust's extra peak RSS sits outside allocator-resident memory.
+
+### Work that raises the grade, cheapest first
+
+1. **Author, unaided.** Rewrite the abstract without model assistance and set
+   `\abstractunaidedtrue` only after that work is complete. This closes the
+   submission gate.
+2. **Editing, minutes.** Rename the malformed Rust-safety label so its two
+   references resolve. Area 6.
+3. **Editing, minutes.** Widen or reword the Result column in
+   `tab:defectmap` so `Crash/corruption` fits. Area 6.
+4. **Editing, minutes.** Replace the discussion's allocator explanation with
+   the conclusion supported by the resident-set decomposition. Areas 5 and 6.
+5. **Editing, minutes.** Write out application binary interface at the first
+   body use before ABI. Area 6.
+6. **Optional.** Cite `tab:jitter` from the body or remove it if it adds no
+   claim. This protects area 4 but does not move the present grade.

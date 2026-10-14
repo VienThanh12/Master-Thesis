@@ -100,11 +100,21 @@ thesis process, which no manuscript can settle. It is reproduced as issued in
 four passes on record, and the build-gate script live in the same skill. Use it for any new
 grading pass so passes stay comparable.
 
-**Current grades for the submission draft are the twenty-second pass's, 7 September 2026
+**Historical draft grade from the twenty-second pass, 7 September 2026
 afternoon: mean 4.83.** Areas 1, 2, 3 and 5 at 5, areas 4 and 6 at **4.5**. Caps: three prose
 sites plus `tab:testbed` claiming toolchain parity with the guest (`\GuestGpp` 15.1.1 against
 `\MainGpp` 15.2.1), §6.4.7 hand-typing 15.1.1 as the measurement host's compiler, and
 `tab:findings`' RQ3 cell saying “on bare metal”. The twentieth pass, 3 September, held 5.00.
+
+**Thirtieth pass, 14 October 2026, graded `Thesis_v4.tex` only, mean 4.83.**
+Areas 1 to 4 are at 5, and areas 5 and 6 are 4.5. The abstract now
+carries the host and clock scope that capped area 4 on 8 October. A stale
+discussion sentence says the quieter-host memory cost is explained by the
+allocator, while the results locate Rust's extra peak RSS outside allocator-
+resident memory. The rebuilt PDF also has two undefined uses of
+`sec:rustsafety`, four 12.5 pt overfull cells in `tab:defectmap`, ABI bare at
+first body use, and `\abstractunaidedfalse`. See the thirtieth pass in
+`docs/ASSESSMENT.md`.
 
 **Twenty-ninth pass, 8 October 2026, graded `Thesis_v4.tex` only, mean 4.83.**
 Areas 1, 2, 3 and 5 at 5, areas 4 and 6 at **4.5**. Layout gates pass and the body is
@@ -211,14 +221,14 @@ closed, and the reader-facing record is `source_audit.pdf` with the durable one 
 `docs/Sources_evidence.md`. **After any compression pass, re-read what each surviving citation now
 sits next to.**
 
-| # | Criterion | Target | Current (22nd pass, draft, 7 Sep 2026) | What still blocks a 5 |
+| # | Criterion | Target | Current (30th pass, 14 Oct 2026) | What still blocks a 5 |
 | --- | --- | --- | --- | --- |
 | **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (7 inside + 7 outside guarantee). The RQ1 alignment item is **closed**: RQ1 now names p99.99 in the draft, in `Thesis_v4.tex` and in `Thesis_Plan_v2.tex`, and §7.7 says the question was widened rather than claiming it always named the metric. |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
 | **3** | **Research data and method** | Sound method + decision-grade data | **5** | Nothing. The canonical repeat closed the data half (7/7/14/20, 1120 runs, no hypervisor, SMT off, `nohz_full`, zero errors) and the description half is repaired and independently re-checked. What earns the level is a pattern of refusals: the pre-committed reading rule is kept on a host where it costs nothing and said to be kept for that reason, the 448 kops/s rung is described and not tested because its operating point was found after the data, and the pooled and per-repeat statistics are held apart hard enough that the generator returns `None` rather than falling back and `fig:tailpct` was narrowed so the figure could not quote the disowned statistic either. **Do not add `isolcpus`. Do not restore the derived load rule. Do not let a fallback to the per-run `p9999` back in.** |
-| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.5** | Standing draft cap from the 21st/22nd passes. The current source remediates the three sites (toolchain disclosure, §6.4.7's compiler, `tab:findings` RQ3 host). That is not a re-grade. The skeleton is at 5 as of the 24th pass. Do not copy that onto the draft. |
-| **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **5** | Nothing. All four chapter-7 sites that described a virtual machine are synced, and §7.2 now refuses a verdict on RQ1's overload half: it reports that the two effects run in opposite directions and names which deployment question each answers. Maintain register: “cannot tell” ≠ “equivalent”, the memory result is *located* and not *attributed to a call site*, the counters explain the operation-level timing and nothing about the footprint, and the 448 kops/s rung is described and not tested. |
-| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | Standing draft cap from the 21st/22nd passes. The current source restores the §1.4 copula and discloses the GCC split. That is not a re-grade. Writing itself reads at 5 and the build is camera-ready: zero `Overfull` of any kind, zero semicolons, both colon checks at 0, `.acronyms.py` clean on both documents. The 83-word sentence is **not** counted, per the twentieth pass. Housekeeping: `\censors{}{}{}` when faculty assigns examiners. |
+| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **5** | Nothing outstanding. The abstract now scopes the deferred-fill and pipeline results to their clocks and hosts. Keep `tab:jitter` either cited or explicitly supporting-only. |
+| **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **4.5** | Lines 2008–2009 say the quieter-host memory cost is explained by the allocator, while §6.3 locates Rust's extra peak RSS outside allocator-resident memory. Replace the stale explanation with the result the decomposition supports. |
+| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | Scientific presentation reads at 5, but the current build has two undefined uses of `sec:rustsafety`, four overfull `Crash/corruption` cells, ABI bare at first body use, the memory contradiction, and `\abstractunaidedfalse`. |
 
 **Overall mean (unweighted): 4.83** for the submission draft at the twenty-second pass, 7 September 2026 afternoon. The supervisor skeleton is **5.00** at the twenty-sixth pass, 16 September 2026 (a hold of the twenty-fourth and twenty-fifth). Do not copy that 5.00 onto the draft.
 **The lesson is the one this record keeps rediscovering in a new place: the values that regenerate
