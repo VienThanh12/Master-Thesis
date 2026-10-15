@@ -895,7 +895,7 @@ Forgotten lock guard & Lock is not released after an early return & Hang & Not p
 The study runs experiments on a matched pair of versions. It builds that
 pair, plus the harness that drives them. The harness is the program that sends
 the load and records the times. Both are built from one
-frozen spec. Evidence comes from three separate methods: a load sweep contributes to
+fixed spec. Evidence comes from three separate methods: a load sweep contributes to
 RQ1 and RQ3, controlled fault injection answers RQ2, and an FFI migration
 prototype answers RQ4. A weakness in one method does not weaken the others. How much the host can move the
 tail, for example, does not change the fault-injection result.
