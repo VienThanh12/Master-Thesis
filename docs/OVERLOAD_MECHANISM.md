@@ -585,7 +585,7 @@ The 7443P run is in the thesis as a cause sentence. Campaign macros were not
 replaced. Sites that now carry that sentence:
 
 - `sec:overload` and `sec:contention` in both `Ha_Vien_Mastersthesis_2026.tex`
-  and `Thesis_v4.tex`
+  and `Thesis_v5.tex`
 - `tab:threats` construct row
 - `tab:findings` RQ1 evidence cell
 - Chapter 8 / conclusion overload sentence
@@ -597,7 +597,7 @@ replaced. Sites that now carry that sentence:
 `bench/refresh_thesis.sh` is not required unless a compared-pair number moves.
 These probes must not move the compared pair.
 
-**30 September 2026.** `Thesis_v4.tex` now carries the §4.12 cause at seven
+**30 September 2026.** `Thesis_v5.tex` now carries the §4.12 cause at seven
 sites: the cause paragraph closing `sec:overload`, the resource paragraph,
 §6.1, §6.2, the threats paragraph, the conclusion, and future work. The full
 draft was not changed, by the author's choice. Its source file has been empty

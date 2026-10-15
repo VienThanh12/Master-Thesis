@@ -14,12 +14,12 @@ out of the root.** Every `.tex` file resolves `figures/`, `diagrams/pdf/`,
 | Path | What it is |
 | --- | --- |
 | `Ha_Vien_Mastersthesis_2026.tex` | Canonical **full draft**. UH submission filename. Not supervisor-approved. |
-| `Thesis_v4.tex` | Supervisor-facing skeleton: full Chapter 1, a related-work spine in Chapter 2, five argument paragraphs in chapters 3-8. |
+| `Thesis_v5.tex` | Supervisor-facing skeleton: full Chapter 1, a related-work spine in Chapter 2, five argument paragraphs in chapters 3-8. |
 | `Thesis_Plan_v2.tex` | Supervisor-facing plan. |
 | `Ha_Vien_Mastersthesis_2026_short.tex` | Compression pass of the full draft. Not a deliverable. Tooling in `.compress/`. |
 | `ai_statement.tex` | Shared declaration on generative-AI use. Edit this file, never a copy. |
 | `source_audit.tex` | Generated citation-audit document for the full draft. Only the Part 1 review tick is hand-edited. |
-| `source_audit_v4.tex` | Same audit scoped to `Thesis_v4`. Own numbering, own tick sidecar (`.bibaudit/reviewed_v4.txt`). |
+| `source_audit_v5.tex` | Same audit scoped to `Thesis_v5`. Own numbering, own tick sidecar (`.bibaudit/reviewed_v5.txt`). |
 | `bibliography.bib` | Hand-written BibTeX. Not bulk-exported from Scholar. |
 | `HYthesisML.cls` | Department class file all of the above build on. |
 | `AGENT.md` | Working contract for edits. |
@@ -80,7 +80,7 @@ Details: [06 Prose screens](06-prose.md).
 
 | Path | What it is | Git |
 | --- | --- | --- |
-| `.bibaudit/` | Builds `source_audit.tex` (full draft) and `source_audit_v4.tex` (`--document v4`) from the bibliography, `.bbl`, and the evidence notes. `reviewed.txt` and `reviewed_v4.txt` mirror Part 1 ticks. | Tracked |
+| `.bibaudit/` | Builds `source_audit.tex` (full draft) and `source_audit_v5.tex` (`--document v5`) from the bibliography, `.bbl`, and the evidence notes. `reviewed.txt` and `reviewed_v5.txt` mirror Part 1 ticks. | Tracked |
 | `.compress/` | One-shot tools for the short cut. Run from the repository root. | Tracked |
 | `.cursor/rules/thesis-quality.mdc` | Cursor rule: read `AGENT.md` before thesis edits. | Tracked |
 | `.cursor/skills/` | `thesis-grade-csm`, `create-pptx-master-thesis`, `drawio`, `code-visualizer-thesis`. | Tracked (pptx toolkit path is gitignored) |
@@ -103,7 +103,7 @@ Details: [06 Prose screens](06-prose.md).
 | `Ha_Vien_Mastersthesis_2026.pdf` (and the other PDFs) | Built documents. | Tracked when they are the current deliverable |
 | `Rust_vs_Cpp_Nokia_RAN_thesis.pptx` | Colloquium deck from `build_deck.py`. | Gitignored |
 | `source_audit.pdf` | Citation-audit PDF of the full draft. | Tracked |
-| `source_audit_v4.pdf` | Same audit scoped to `Thesis_v4`. | Tracked |
+| `source_audit_v5.pdf` | Same audit scoped to `Thesis_v5`. | Tracked |
 
 ## What `.gitignore` is protecting
 

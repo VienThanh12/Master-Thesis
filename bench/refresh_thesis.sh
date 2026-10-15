@@ -130,9 +130,9 @@ else
   echo "  SKIP: .venv-pptx not present; keeping existing Rust_vs_Cpp_Nokia_RAN_thesis.pptx"
 fi
 
-# Canonical manuscript is Thesis_v4.tex. The UH deposit filename is still
+# Canonical manuscript is Thesis_v5.tex. The UH deposit filename is still
 # Ha_Vien_Mastersthesis_2026 (Lastname_Firstname_Mastersthesis_Year, ASCII only).
-thesis="Thesis_v4"
+thesis="Thesis_v5"
 submission="Ha_Vien_Mastersthesis_2026"
 
 echo "== syncing $submission.tex from $thesis.tex =="

@@ -429,13 +429,13 @@ def sg_facts(macros):
     lead = med["rust-channel"] - med["cpp-deque"]
     closed = (med["rust-channel"] - med["rust-mutexq"]) / lead if lead > 0 else 0.0
     slower = sum(m < s for m, s in zip(thr["rust-mutexq"], thr["rust-channel"]))
-    # Thesis_v4 says the C++ queue removed the lead and quotes no share. That
+    # Thesis_v5 says the C++ queue removed the lead and quotes no share. That
     # was the reading fixed before the run for a swap that closes all of the
     # lead in at least 8 of 10 pairs. A log that breaks it breaks the sentence.
     if closed < 1.0 or slower < 0.8 * len(reps):
         raise SystemExit(
             f"probe_facts: the queue swap closes {closed:.0%} of the lead, slower "
-            f"in {slower} of {len(reps)} pairs. Thesis_v4 says it removed the lead."
+            f"in {slower} of {len(reps)} pairs. Thesis_v5 says it removed the lead."
         )
     def sys_us_per_call(arm):
         rs = list(queue[arm].values())
@@ -443,11 +443,11 @@ def sg_facts(macros):
         return rate / median([r["throughput_ops_s"] for r in rs]) * 1e6
 
     sys_us = {a: sys_us_per_call(a) for a in queue}
-    # Thesis_v4 also says the C++ queue adds kernel time to each handoff.
+    # Thesis_v5 also says the C++ queue adds kernel time to each handoff.
     if sys_us["rust-mutexq"] <= sys_us["rust-channel"]:
         raise SystemExit(
             "probe_facts: Rust with the C++ queue no longer spends more kernel "
-            "time per call than stock Rust. Thesis_v4 says it does."
+            "time per call than stock Rust. Thesis_v5 says it does."
         )
     _effect, p, _n = paired_permutation_test(thr["rust-channel"], thr["rust-mutexq"])
     for arm, tag in (("cpp-deque", "Cpp"), ("rust-channel", "Rust"),

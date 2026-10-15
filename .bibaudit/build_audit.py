@@ -11,7 +11,7 @@ from the .tex sources, and the per-entry evidence comes from docs/Sources_eviden
 docs/LITERATURE_NOTES.md as the fallback. A key with no record is reported as having none.
 
     .bibaudit/build_audit.py                     # write source_audit.tex (full draft)
-    .bibaudit/build_audit.py --document v4       # write source_audit_v4.tex (Thesis_v4)
+    .bibaudit/build_audit.py --document v5       # write source_audit_v5.tex (Thesis_v5)
     .bibaudit/build_audit.py --dump records      # inspect the parsed evidence records
     .bibaudit/build_audit.py --dump sites        # inspect cite sites and printed numbers
 
@@ -48,25 +48,26 @@ TICK_ROW = re.compile(r"(?m)^\d+ [^\n]*?\\texttt\{\\small ([^}]+)\}[^\n]*?"
 # printed numbers are the ones in square brackets, and its citing sentences are the ones shown.
 DOCUMENTS = [
     ("Ha_Vien_Mastersthesis_2026.tex", "draft", "Full draft"),
-    ("Thesis_v4.tex", "v4", "Thesis_v4"),
+    ("Thesis_v5.tex", "v5", "Thesis_v5"),
     ("Thesis_Plan_v2.tex", "plan", "Plan"),
 ]
+DOCUMENT_ALIASES = {"v4": "v5"}  # Thesis_v4 renamed Thesis_v5, 15 Oct 2026
 BY_TAG = {tag: doc for doc in DOCUMENTS for tag in [doc[1]]}
 AUDIT_OUT = {
     "draft": ROOT / "source_audit.tex",
-    "v4": ROOT / "source_audit_v4.tex",
+    "v5": ROOT / "source_audit_v5.tex",
     "plan": ROOT / "source_audit_plan.tex",
 }
 AUDIT_REVIEWED = {
     "draft": HERE / "reviewed.txt",
-    "v4": HERE / "reviewed_v4.txt",
+    "v5": HERE / "reviewed_v5.txt",
     "plan": HERE / "reviewed_plan.txt",
 }
-COL_HEADER = {"draft": "dr", "v4": "v4", "plan": "pl"}
+COL_HEADER = {"draft": "dr", "v5": "v5", "plan": "pl"}
 
 # The audit covers the canonical draft by default. It cites all 111 entries, so scoping to it
 # loses no entry, and the numbers a reader checks against are the submission document's own.
-# --document v4 (or plan) scopes the spine to that file and writes a sibling audit beside it.
+# --document v5 (or plan) scopes the spine to that file and writes a sibling audit beside it.
 # --all-documents widens to the other two, which number the same works differently.
 ACTIVE = DOCUMENTS[:1]
 OUT = AUDIT_OUT["draft"]
@@ -87,6 +88,7 @@ def other_docs() -> list:
 def configure(tag: str, all_documents: bool) -> None:
     """Set the spine document, the output path, and which sources contribute citing sentences."""
     global ACTIVE, OUT, REVIEWED, SPINE_TAG
+    tag = DOCUMENT_ALIASES.get(tag, tag)
     if tag not in BY_TAG:
         raise SystemExit(f"unknown --document {tag!r}; choose from {', '.join(BY_TAG)}")
     spine = BY_TAG[tag]
@@ -1042,8 +1044,8 @@ work carries in that document's reference list, so entry \textbf{{[17]}} here is
         extra = extra.replace(". ", ".\n") if extra else extra
         # Keep the historical two-document sentence when the spine is the draft.
         if SPINE_TAG == "draft":
-            extra = (f"""\\texttt{{Thesis\\_v4}} cites
-{len(numbering.get('v4', {}))} of them and the plan {len(numbering.get('plan', {}))}.
+            extra = (f"""\\texttt{{Thesis\\_v5}} cites
+{len(numbering.get('v5', {}))} of them and the plan {len(numbering.get('plan', {}))}.
 """)
 
     return r"""
@@ -1141,8 +1143,8 @@ def part1(bib, records, spine, numbering, total_sites) -> str:
         rows.append(" & ".join(cells) + r" \\")
 
     if multi() and SPINE_TAG == "draft":
-        scope = (r"""\textbf{v4} and \textbf{pl} give
-the number the same work carries in \texttt{Thesis\_v4} and in the plan, and a blank means that
+        scope = (r"""\textbf{v5} and \textbf{pl} give
+the number the same work carries in \texttt{Thesis\_v5} and in the plan, and a blank means that
 document does not cite it. \textbf{cit} counts the places the work is cited across all three
 documents.""")
     elif multi():
@@ -1378,8 +1380,8 @@ def part3(bib, records, spine, numbering, unlocated, level_c) -> str:
         items = []
         for k in sorted(keys, key=lambda k: numbering[SPINE_TAG][k]):
             marks = f"[{numbering[SPINE_TAG][k]}]"
-            if SPINE_TAG == "draft" and k in numbering.get("v4", {}):
-                marks += f", v4 [{numbering['v4'][k]}]"
+            if SPINE_TAG == "draft" and k in numbering.get("v5", {}):
+                marks += f", v5 [{numbering['v5'][k]}]"
             items.append(f"\\item \\texttt{{{tex_escape_plain(k)}}}\\hfill {marks}")
         return ("\\begin{itemize}[leftmargin=1.4em,itemsep=0pt,topsep=2pt]\n"
                 + "\n".join(items) + "\n\\end{itemize}")
@@ -1389,9 +1391,9 @@ def part3(bib, records, spine, numbering, unlocated, level_c) -> str:
         nums = []
         for k in [x.strip() for x in keys.split(",")]:
             if SPINE_TAG == "draft":
-                if k in numbering.get("v4", {}):
-                    nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, \\texttt{{Thesis\\_v4}} "
-                                f"[{numbering['v4'][k]}], thesis [{numbering['draft'][k]}]")
+                if k in numbering.get("v5", {}):
+                    nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, \\texttt{{Thesis\\_v5}} "
+                                f"[{numbering['v5'][k]}], thesis [{numbering['draft'][k]}]")
                 else:
                     nums.append(f"\\texttt{{{tex_escape_plain(k)}}}, thesis [{numbering['draft'][k]}]")
             else:
@@ -1405,14 +1407,14 @@ def part3(bib, records, spine, numbering, unlocated, level_c) -> str:
 
     benign = "\n".join(f"\\item \\textbf{{{name}.}} {text}" for name, text in BENIGN)
 
-    v4_unlocated = [k for k in unlocated if k in numbering.get("v4", {})]
+    v5_unlocated = [k for k in unlocated if k in numbering.get("v5", {})]
     if not unlocated:
         unlocated_blurb = "None. This list is closed."
     elif SPINE_TAG == "draft":
         unlocated_blurb = (
             f'''These {len(unlocated)} entries carry a sweep note rather than a located passage, so no page or
-clause is given and no evidence level is assigned. {len(v4_unlocated)} of them are cited by
-\\texttt{{Thesis\\_v4}}.''')
+clause is given and no evidence level is assigned. {len(v5_unlocated)} of them are cited by
+\\texttt{{Thesis\\_v5}}.''')
     else:
         unlocated_blurb = (
             f'''These {len(unlocated)} entries carry a sweep note rather than a located passage, so no page or
@@ -1445,10 +1447,10 @@ here because the pattern recurs. In every case the work itself was sound and cit
 elsewhere, so each was closed by moving or dropping the citation rather than by replacing the
 source. No source was added that the bibliography did not already hold.
 
-Four of the six existed only in \\texttt{{Thesis\\_v4}} and the full draft had them right, which
+Four of the six existed only in \\texttt{{Thesis\\_v5}} and the full draft had them right, which
 locates the cause: compressing a chapter into five paragraphs detaches a citation from the clause
 it was attached to. The two that reached the full draft are both in Chapter~1, which
-\\texttt{{Thesis\\_v4}} carries as a copy. So the rule for the next compression pass is to re-read
+\\texttt{{Thesis\\_v5}} carries as a copy. So the rule for the next compression pass is to re-read
 what each surviving citation now sits next to.""" + r"""
 
 \begin{enumerate}[leftmargin=1.6em,itemsep=4pt]
@@ -1540,8 +1542,8 @@ cites every one of them. They do not appear in this document's reference list.
         unused_block = ""
     extra = ""
     if multi() and SPINE_TAG == "draft":
-        extra = (f"""\\texttt{{Thesis\\_v4}} cites
-{len(numbering.get('v4', {}))} of the {len(spine)} and the plan {len(numbering.get('plan', {}))}.
+        extra = (f"""\\texttt{{Thesis\\_v5}} cites
+{len(numbering.get('v5', {}))} of the {len(spine)} and the plan {len(numbering.get('plan', {}))}.
 """)
     return (r"""
 \clearpage

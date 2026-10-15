@@ -4,7 +4,7 @@
 Cursor's built-in PDF webview does not work in this WSL setup, so pages are
 rasterised to images that the editor can open directly.
 
-    ./pdfpreview.py Thesis_v4.pdf             # all pages
+    ./pdfpreview.py Thesis_v5.pdf             # all pages
     ./pdfpreview.py Ha_Vien_Mastersthesis_2026.pdf 1-5   # the thesis, page range
     ./pdfpreview.py Ha_Vien_Mastersthesis_2026.pdf 12 --dpi 200   # one page, higher zoom
 """

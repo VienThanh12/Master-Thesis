@@ -16,21 +16,21 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 
 | Document | Source | Status | Role |
 | --- | --- | --- | --- |
-| **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v4.tex`. |
-| **`Thesis_v4.pdf`** | `Thesis_v4.tex` | **Submission manuscript (edit here)** | Canonical source for the UH deposit. `bench/refresh_thesis.sh` copies it to `Ha_Vien_Mastersthesis_2026.tex` and rebuilds both PDFs so the required filename stays in step. Supervisor read-through of the eight-chapter argument. Chapter 1 is the full introduction from the draft (copied 27 Aug 2026, cross-refs retargeted). Chapter 2 is a related-work spine as of 21 September 2026. Chapters 3 to 8 keep five argument paragraphs each, as plain prose rather than itemize. Cut from nine chapters to eight on 26 Aug 2026, when the standalone `Objectives` chapter was folded into the introduction to match the draft (§4). Carries **14 figures** (list of figures in the front matter). Abstract written 11 September 2026. Twenty-sixth grading pass, 16 September 2026: all six assessable areas still at 5 after the 14–15 September diagram and wording edits (two new figures, the uncited predictability section removed, 48 physical pages). That grade is the skeleton's, not the draft's. This is what goes to the supervisor alongside the plan. Called `Thesis_v3` until 28 September 2026, and `Thesis_v2` until 8 September 2026. Older notes and commits use those names. |
-| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Submission filename mirror** | UH deposit name (`Lastname_Firstname_Mastersthesis_Year`). Overwritten by `bench/refresh_thesis.sh` from `Thesis_v4.*`. Do not edit by hand. The retired long-form draft lives in `Ha_Vien_Mastersthesis_2026.recovered-20260920.tex` and the 24 September PDF snapshot. |
+| **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v5.tex`. |
+| **`Thesis_v5.pdf`** | `Thesis_v5.tex` | **Submission manuscript (edit here)** | Canonical source for the UH deposit. `bench/refresh_thesis.sh` copies it to `Ha_Vien_Mastersthesis_2026.tex` and rebuilds both PDFs so the required filename stays in step. Supervisor read-through of the eight-chapter argument. Chapter 1 is the full introduction from the draft (copied 27 Aug 2026, cross-refs retargeted). Chapter 2 is a related-work spine as of 21 September 2026. Chapters 3 to 8 keep five argument paragraphs each, as plain prose rather than itemize. Cut from nine chapters to eight on 26 Aug 2026, when the standalone `Objectives` chapter was folded into the introduction to match the draft (§4). Carries **14 figures** (list of figures in the front matter). Abstract written 11 September 2026. Twenty-sixth grading pass, 16 September 2026: all six assessable areas still at 5 after the 14–15 September diagram and wording edits (two new figures, the uncited predictability section removed, 48 physical pages). That grade is the skeleton's, not the draft's. This is what goes to the supervisor alongside the plan. Called `Thesis_v4` until 15 October 2026, `Thesis_v3` until 28 September 2026, and `Thesis_v2` until 8 September 2026. Older notes and commits use those names. |
+| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Submission filename mirror** | UH deposit name (`Lastname_Firstname_Mastersthesis_Year`). Overwritten by `bench/refresh_thesis.sh` from `Thesis_v5.*`. Do not edit by hand. The retired long-form draft lives in `Ha_Vien_Mastersthesis_2026.recovered-20260920.tex` and the 24 September PDF snapshot. |
 | **`Ha_Vien_Mastersthesis_2026_short.pdf`** | `Ha_Vien_Mastersthesis_2026_short.tex` | **Compression pass, in progress** | A shorter cut of the full draft off the same class, macros, figures and bibliography. Measured 8 September 2026 it declares **55 pages with the same 12 appendix pages** (76 physical) against the draft's 97 and 12. Both documents are `oneside`. Material is relocated to appendices or merged rather than deleted, which is why its appendix count has not moved. **It is neither supervisor-facing nor a submission candidate**, and no claim may be edited into it that is not in the draft. Its tooling is `.compress/`, and `.compress/shortcheck.py` is the check that a pass dropped no citation key, label, cross-reference or generated macro. Run it after every compression edit, because a dropped label is exactly the defect no build gate catches |
-| `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v4.tex` and `Ha_Vien_Mastersthesis_2026_short.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
+| `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v5.tex` and `Ha_Vien_Mastersthesis_2026_short.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex`, `Thesis_v3-vi.tex` (Vietnamese skeleton snapshot of 11 September 2026), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF, and since 8 September 2026 the retired `UH_DS_MSc.cls` with the `UH-logo.png` only that class loaded, plus the dated `rollback-20260827-220354/` snapshot. See `archive/README.md`. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
-| Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Thesis_v4.tex`. |
+| Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Thesis_v5.tex`. |
 
 ### Sync rule
 
 When you change **claims, RQs, scope, methodology, or contributions**:
 
-1. Update **`Thesis_v4.tex`** (submission manuscript).
+1. Update **`Thesis_v5.tex`** (submission manuscript).
 2. Update **`Thesis_Plan_v2.tex`** if the plan’s status, timeline, or framing changes.
-3. Run **`bench/refresh_thesis.sh`** or `latexmk -pdf Thesis_v4.tex` so `Ha_Vien_Mastersthesis_2026.*` stays a mirror.
+3. Run **`bench/refresh_thesis.sh`** or `latexmk -pdf Thesis_v5.tex` so `Ha_Vien_Mastersthesis_2026.*` stays a mirror.
 4. Re-run the verification steps in §5.
 
 When you change **measured numbers**:
@@ -52,9 +52,9 @@ wrong prefix is wrong in a way no build gate catches.**
 | `bench/results/campaign-20260812-154528.jsonl` — KVM guest, identical design | `\Guest*`, `gen_guest.tex` | The measurement-validity comparison in §`sec:hostcompare`. Same code, same design, a host that could not resolve the far tail. `g++` is one patch apart (`\GuestGpp` 15.1.1, `\MainGpp` 15.2.1). `rustc` matches at 1.97.1. Do not write that they share a toolchain |
 | `bench/results-baremetal/campaign-20260826-*.jsonl` — bare metal, 8/8, 15 repeats, 8 loads | `\Bm*`, `gen_baremetal.tex` | Whether findings survive a change of shard count, load grid, repeat count and compiler |
 | `bench/results/fair-start-*.jsonl` and `fair-after-*.jsonl` — canonical 7/7/14/20 grid, 1120 runs each | `\ProbeStart*` and `\ProbeAfter*`, `gen_probes.tex` | **Clock B is the same-host fill control. Clock A is an earlier host.** They test whether the high-load split persists when coordinated-omission fill is removed or deferred. Clock A (`\ProbeStartOrigin` origin, cap `\ProbeStartCap`) drops the fill, and its percentiles are **coordinated-omission biased by construction**, so they must never be quoted as a tail result. It was not repeated on the Chicago host. Clock B (`\ProbeAfterWhen`, `fair-after-20260924-100100.jsonl`) keeps the origin and cap and defers the fill on the campaign host, the same pin and the same `nohz_full`. Past saturation its percentiles are **schedule drift in seconds, not service time**. `probe_facts.py` refuses to emit those percentiles. The large campaign gaps move with the fill. A smaller Rust throughput lead remains on both heaps. Its kernel and user CPU per call (`\ProbeAfterSys*`, same median chain as `CpuPerOp`) place it at the handoff: C++ spends more kernel time per call at every load, and the probes in the next row name what carries it. Shared `\ProbeCpu` and `\ProbeNohzFull` are emitted only when the two captures agree. `refresh_thesis.sh` runs `plot_figures.py` before `probe_facts.py`, so the knee rung is the one just written |
-| `bench/results-pipeline-20261006-louse/pipeline-20261006-120913.jsonl` — several requests in flight, one frozen load, 20 repeats | `\Pipe*`, `gen_pipeline.tex` | **A further host, not the reported campaign and not in its tested family.** Cherry Chicago `major-louse`, AMD EPYC 7443P, 6 October 2026. Signal only. `pipeline_facts.py` checks the allocator split before writing the macros. `Thesis_v4.tex` quotes the split in `sec:overload` and the discussion. It does not put the run in the campaign's tested family |
-| `bench/results-pipeline-20261006-louse/pipeline-mixed-20261006-130745.jsonl` — mixed lifecycle, same clock, same host, 560000 per producer frozen by the same rule from `pipeline-mixed-20261006-130135.jsonl`, 20 repeats | `\PipeMixed*`, `gen_pipeline_mixed.tex` | **Same further host, not the reported campaign.** `pipeline_mixed_facts.py` checks the load-selection rule, lifecycle parity, validity gates, allocator split, and delay components before writing the macros. `Thesis_v4.tex` quotes them beside the signal result. The campaign clock still has no after-saturation service ranking |
-| `bench/results-probes-20260930-sg/` — swap probes on a further host with the same processor, fill after the window | `\Sg*`, `gen_probes.tex` | **Diagnostics, not the compared pair and not in the Holm family.** Cherry Singapore `immune-bullfrog`, AMD EPYC 7443P, `nohz_full=2-17`, SMT off, Rocky image. An open-addressed C++ map leaves the Rust lead in place (`\SgFlat*`). Giving Rust the C++ queue design removes it, and a C++ ring buffer with the same lock changes nothing (`\SgQueue*`, read from the `nocount` session, because counting context switches with `perf` slowed every arm and hid the lead). Thread switches per call are equal across builds (`\SgSwitchLow`). `probe_facts.py` exits if a log stops supporting the two Thesis_v4 sentences that depend on it (the swap removing the lead, and adding kernel time). The `env-*` captures before `env-20260930-125434.txt` predate the `nohz_full` reboot and describe no run. Always say "a further host", never "second host", which already means the 26 August machine |
+| `bench/results-pipeline-20261006-louse/pipeline-20261006-120913.jsonl` — several requests in flight, one frozen load, 20 repeats | `\Pipe*`, `gen_pipeline.tex` | **A further host, not the reported campaign and not in its tested family.** Cherry Chicago `major-louse`, AMD EPYC 7443P, 6 October 2026. Signal only. `pipeline_facts.py` checks the allocator split before writing the macros. `Thesis_v5.tex` quotes the split in `sec:overload` and the discussion. It does not put the run in the campaign's tested family |
+| `bench/results-pipeline-20261006-louse/pipeline-mixed-20261006-130745.jsonl` — mixed lifecycle, same clock, same host, 560000 per producer frozen by the same rule from `pipeline-mixed-20261006-130135.jsonl`, 20 repeats | `\PipeMixed*`, `gen_pipeline_mixed.tex` | **Same further host, not the reported campaign.** `pipeline_mixed_facts.py` checks the load-selection rule, lifecycle parity, validity gates, allocator split, and delay components before writing the macros. `Thesis_v5.tex` quotes them beside the signal result. The campaign clock still has no after-saturation service ranking |
+| `bench/results-probes-20260930-sg/` — swap probes on a further host with the same processor, fill after the window | `\Sg*`, `gen_probes.tex` | **Diagnostics, not the compared pair and not in the Holm family.** Cherry Singapore `immune-bullfrog`, AMD EPYC 7443P, `nohz_full=2-17`, SMT off, Rocky image. An open-addressed C++ map leaves the Rust lead in place (`\SgFlat*`). Giving Rust the C++ queue design removes it, and a C++ ring buffer with the same lock changes nothing (`\SgQueue*`, read from the `nocount` session, because counting context switches with `perf` slowed every arm and hid the lead). Thread switches per call are equal across builds (`\SgSwitchLow`). `probe_facts.py` exits if a log stops supporting the two Thesis_v5 sentences that depend on it (the swap removing the lead, and adding kernel time). The `env-*` captures before `env-20260930-125434.txt` predate the `nohz_full` reboot and describe no run. Always say "a further host", never "second host", which already means the 26 August machine |
 
 Host descriptions are generated too: `\Main*` from the reported campaign's own environment capture
 (matched by timestamp, not by taking the newest file), `\Guest*` and `\Bm*` from theirs.
@@ -106,7 +106,7 @@ sites plus `tab:testbed` claiming toolchain parity with the guest (`\GuestGpp` 1
 `\MainGpp` 15.2.1), §6.4.7 hand-typing 15.1.1 as the measurement host's compiler, and
 `tab:findings`' RQ3 cell saying “on bare metal”. The twentieth pass, 3 September, held 5.00.
 
-**Thirtieth pass, 14 October 2026, graded `Thesis_v4.tex` only, mean 4.83.**
+**Thirtieth pass, 14 October 2026, graded `Thesis_v5.tex` only, mean 4.83.**
 Areas 1 to 4 are at 5, and areas 5 and 6 are 4.5. The abstract now
 carries the host and clock scope that capped area 4 on 8 October. A stale
 discussion sentence says the quieter-host memory cost is explained by the
@@ -116,7 +116,7 @@ resident memory. The rebuilt PDF also has two undefined uses of
 first body use, and `\abstractunaidedfalse`. See the thirtieth pass in
 `docs/ASSESSMENT.md`.
 
-**Twenty-ninth pass, 8 October 2026, graded `Thesis_v4.tex` only, mean 4.83.**
+**Twenty-ninth pass, 8 October 2026, graded `Thesis_v5.tex` only, mean 4.83.**
 Areas 1, 2, 3 and 5 at 5, areas 4 and 6 at **4.5**. Layout gates pass and the body is
 consistent. The cap is the abstract: pipeline and overload findings are stated without the host
 and clock scope the main text uses. Do not copy this mean onto the draft. See the
@@ -189,7 +189,7 @@ which moves an area. First, **the word *operation* carries two referents a facto
 §6.4.1 defines it as the nanosecond-scale inner quantity that is `\BudgetCoreShareMax`% of the
 sweep, and §7.1 l. 3621, l. 3623 and §7.3 l. 3863 then attach the bare noun to the
 `\PFiftyMedian`-microsecond end-to-end round-trip. §1.4 l. 672 has the right wording
-("end-to-end round-trip") to copy. Second, **`Thesis_v4.tex`'s new abstract has diverged from the
+("end-to-end round-trip") to copy. Second, **`Thesis_v5.tex`'s new abstract has diverged from the
 draft's** and carries three items of its own: a bare `\FfiOpBoundPct`% with the denominator
 dropped, a point (5) attributing the full path to a language after point (4) said that clock
 cannot, and "mixed-order repeats" for the named *interleaved* control that §1.4 of the same file
@@ -214,7 +214,7 @@ right), and a figure title asserting a conclusion its own bars refute.
 
 **A fourth shape joined them on 31 August 2026: a citation detached from the clause it supports.**
 Six sentences cited a work that does not carry the claim they make, and **four existed only in
-`Thesis_v4.tex` where the full draft had them right**, which names the cause. Compressing a chapter
+`Thesis_v5.tex` where the full draft had them right**, which names the cause. Compressing a chapter
 into five paragraphs moves clauses together and leaves each citation where the sentence boundary
 fell. No gate sees it, because the key still resolves and the number still prints. All six are
 closed, and the reader-facing record is `source_audit.pdf` with the durable one in
@@ -223,7 +223,7 @@ sits next to.**
 
 | # | Criterion | Target | Current (30th pass, 14 Oct 2026) | What still blocks a 5 |
 | --- | --- | --- | --- | --- |
-| **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (7 inside + 7 outside guarantee). The RQ1 alignment item is **closed**: RQ1 now names p99.99 in the draft, in `Thesis_v4.tex` and in `Thesis_Plan_v2.tex`, and §7.7 says the question was widened rather than claiming it always named the metric. |
+| **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (7 inside + 7 outside guarantee). The RQ1 alignment item is **closed**: RQ1 now names p99.99 in the draft, in `Thesis_v5.tex` and in `Thesis_Plan_v2.tex`, and §7.7 says the question was widened rather than claiming it always named the metric. |
 | **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
 | **3** | **Research data and method** | Sound method + decision-grade data | **5** | Nothing. The canonical repeat closed the data half (7/7/14/20, 1120 runs, no hypervisor, SMT off, `nohz_full`, zero errors) and the description half is repaired and independently re-checked. What earns the level is a pattern of refusals: the pre-committed reading rule is kept on a host where it costs nothing and said to be kept for that reason, the 448 kops/s rung is described and not tested because its operating point was found after the data, and the pooled and per-repeat statistics are held apart hard enough that the generator returns `None` rather than falling back and `fig:tailpct` was narrowed so the figure could not quote the disowned statistic either. **Do not add `isolcpus`. Do not restore the derived load rule. Do not let a fallback to the per-run `p9999` back in.** |
 | **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **5** | Nothing outstanding. The abstract now scopes the deferred-fill and pipeline results to their clocks and hosts. Keep `tab:jitter` either cited or explicitly supporting-only. |
@@ -466,12 +466,12 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 
 **Acronyms live in the front matter, not in Appendix A, as of 4 September 2026.** A `List of
 acronyms` follows the list of tables in `Ha_Vien_Mastersthesis_2026.tex` and the contents in
-`Thesis_v4.tex`, titled from the class's own `\nomname` and set as a `longtable` so it can run
+`Thesis_v5.tex`, titled from the class's own `\nomname` and set as a `longtable` so it can run
 past a page without floating away from its heading. It carries no `\caption`, or a front-matter
 table would be announced in a list of tables printed before it. Appendix A keeps only the terms
 that are not acronyms and is retitled to match. Three things follow for any edit. Every acronym
 is written out at its first use in the body, so adding one means adding both the expansion and
-the row. The scoped list in `Thesis_v4.tex` is a subset, so an acronym added there needs its own
+the row. The scoped list in `Thesis_v5.tex` is a subset, so an acronym added there needs its own
 row. And `consistency.py --acronyms` from the `academic-writing` skill now reads the list itself
 as prose and reports each row as an unexpanded first use, so scope it past the `longtable` before
 believing its output. **Expansions are sentence case as of 7 September 2026**, on the author's
@@ -486,7 +486,7 @@ form is read before the list of acronyms. `\abstractunaidedtrue` still ships. Do
 claims, and do not gloss further unless asked.
 
 **The skeleton and the full draft carry the same chapter list again, resolved 26 August 2026 on
-the author's decision.** `Thesis_v4.tex` had nine chapters, because it kept a standalone
+the author's decision.** `Thesis_v5.tex` had nine chapters, because it kept a standalone
 `Objectives` chapter between problem context and methodology where the draft has eight and no
 such chapter. **The draft was the canonical list**, and the archive is why: `archive/plain_thesis.tex`
 and `archive/thesis_wbm_full_backup.tex` both carry an `Objectives` chapter with live
@@ -502,7 +502,7 @@ the scope exclusions folded into the contributions bullet, mirroring §1.4. **Th
 objectives O1 to O5 are gone on purpose**, because the draft has no numbered objectives anywhere
 and keeping them would have re-opened the divergence in a different form.
 
-`Thesis_v4.tex` still has one argument move per paragraph, but it is no longer an itemize
+`Thesis_v5.tex` still has one argument move per paragraph, but it is no longer an itemize
 skeleton. On 27 August 2026 the author asked for the draft Chapter 1 in full and for plain
 prose in every chapter. Chapter 1 is therefore the introduction from
 `Ha_Vien_Mastersthesis_2026.tex`, with appendix and later-section references retargeted to
@@ -538,7 +538,7 @@ that cites each figure rather than in the caption, because `.acronyms.py` reads 
 label as a use and the labels come before the caption in source order.
 
 Because the results chapters and now the figure captions quote measured values,
-`Thesis_v4.tex` reads the shared generated macro files plus the two further-host
+`Thesis_v5.tex` reads the shared generated macro files plus the two further-host
 pipeline files, `gen_pipeline.tex` and `gen_pipeline_mixed.tex`. The full draft
 remains empty and cannot be synced until the author chooses a recovery source.
 The skeleton therefore has to be rebuilt whenever those files are regenerated,
@@ -571,7 +571,7 @@ rust/coverage.sh                 # needs `cargo install cargo-llvm-cov --locked`
 bench/refresh_thesis.sh
 
 # Supervisor documents (when their sources changed)
-latexmk -pdf Thesis_v4.tex
+latexmk -pdf Thesis_v5.tex
 latexmk -pdf Thesis_Plan_v2.tex
 ```
 
@@ -648,7 +648,7 @@ have passed it.
    of that shape were found and moved with it, so the two documents agree.
    **Everything else stays lowercase**, which is the large majority: a colon amplifying a clause
    that already began, a list, or a phrase. The single-clause case is where the guides split, APA
-   capitalising and Chicago not, and the thesis keeps its 17 such sites in `Thesis_v4.tex`
+   capitalising and Chicago not, and the thesis keeps its 17 such sites in `Thesis_v5.tex`
    lowercase. Do not sweep them without being asked. Display type (titles, captions, `\paragraph`
    headings) takes the capital as the chapter titles do, and the draft has **13 that do not**,
    deferred deliberately on 4 September. `.aitells.py` reports `lowercase after a label colon` and
@@ -732,7 +732,7 @@ discussion, and it should be added without first hunting for pages to sacrifice.
 `\pagesCount` and let the author decide whether to spend the difference.
 
 Three traps. The first two were found by measurement on 19 August 2026. The
-third is the last-in-chapter float, closed in `Thesis_v4.tex` on 14 September 2026:
+third is the last-in-chapter float, closed in `Thesis_v5.tex` on 14 September 2026:
 
 - **Line spacing cannot be set in the preamble.** The class's `\maketitle` calls
   `\onehalfspacing` itself, so a preamble setting is silently overwritten and the PDF comes out
@@ -762,7 +762,7 @@ third is the last-in-chapter float, closed in `Thesis_v4.tex` on 14 September 20
   then `\clearpage`s it onto its own page, centred. `[section]{placeins}` does
   the same at the next `\section`. The fix is local: `\enlargethispage{...}`
   plus `[!ht]`, sized to the shortfall, then rebuild and check the folio. One
-  site in `Thesis_v4.tex` still does this: `fig:ffiseam`
+  site in `Thesis_v5.tex` still does this: `fig:ffiseam`
   (`52pt`, 14 September 2026, `\chapter{Discussion}`). `fig:ngran` is the
   exception: the author chose a page break over an enlarge or a shorter
   diagram, so a `\clearpage` before that figure stays. Do not `\newpage` the
@@ -886,7 +886,7 @@ are 71 per cent of the section. That was the reading problem, and no amount of w
 it. RQ2's 33 per cent share is untouched and is the next place to look, but most of that subsection
 is protected by §3 item 3.
 
-**That was fixed on 26 August by consolidating §6.4 to the grouping `Thesis_v4.tex` already uses.**
+**That was fixed on 26 August by consolidating §6.4 to the grouping `Thesis_v5.tex` already uses.**
 The skeleton organises this chapter as five argument bullets, and the full draft's eight
 subsections did not match it. §6.4 is now **five subsections**: below saturation (RQ1, RQ3), past
 saturation (RQ1), resource use (RQ3), safety (RQ2), migration (RQ4). RQ1 went from five subsections
@@ -977,14 +977,14 @@ which is criterion 1's blocker.
 
 ## 6. What agents should not do
 
-- **Do not** treat `Ha_Vien_Mastersthesis_2026.pdf` as supervisor-approved. The submission filename says nothing about review status: only `Thesis_Plan_v2.pdf` and `Thesis_v4.pdf` are in that bucket today.
+- **Do not** treat `Ha_Vien_Mastersthesis_2026.pdf` as supervisor-approved. The submission filename says nothing about review status: only `Thesis_Plan_v2.pdf` and `Thesis_v5.pdf` are in that bucket today.
 - **Do not** hand-edit generated files under `figures/` except source diagrams in `diagrams/`.
 - **Do not** transcribe measured numbers into `build_deck.py`; it reads them from the generated artefacts and fails loudly when one is missing.
 - **Do not** leave an em dash or a semicolon where a reader can see it, in the thesis source or on a slide. The deck build refuses to pass one.
 - **Do not** claim testbed-grade tail latency from the virtualised host.
 - **Do not** write that the guest and reported campaigns share a toolchain. `\GuestGpp` is 15.1.1 and `\MainGpp` is 15.2.1.
 - **Do not** remove boundary defect classes or sanitiser-only C++ outcomes to tidy the narrative.
-- **Do not** expand `Thesis_v4.tex` chapters 3--8 beyond five argument paragraphs, compress Chapter 2 back to five paragraphs, or replace Chapter 1 with a shorter skeleton. Chapter 1 is the draft introduction. Chapter 2 is a related-work spine as of 21 September 2026. Chapters 3--8 stay a five-move skeleton in plain prose, and the document is supervisor-facing.
+- **Do not** expand `Thesis_v5.tex` chapters 3--8 beyond five argument paragraphs, compress Chapter 2 back to five paragraphs, or replace Chapter 1 with a shorter skeleton. Chapter 1 is the draft introduction. Chapter 2 is a related-work spine as of 21 September 2026. Chapters 3--8 stay a five-move skeleton in plain prose, and the document is supervisor-facing.
 - **Do not** treat `Ha_Vien_Mastersthesis_2026_short.pdf` as a deliverable or let a claim reach it that is not in the full draft. It is a compression pass over that draft and the draft stays canonical. Run `.compress/shortcheck.py` after editing it.
 - **Do not** move the document sources, the four prose checks, or `bibliography.bib` out of the repository root. Every document resolves `figures/`, `diagrams/pdf/` and `template/figures/` from there, which is why `archive/` no longer builds, and `refresh_thesis.sh`, `diagrams/check_labels.py`, the grading skill and `.cursor/rules/thesis-quality.mdc` all name the checks by path.
 - **Do not** commit secrets, Nokia-internal identifiers, or confidential traces.
@@ -1003,7 +1003,7 @@ which is criterion 1's blocker.
 | `docs/CODE_REVIEW.md` | Agent pass over production `cpp/`, `rust/src`, and `ffi/` against the frozen spec (16 September 2026). Not D2. |
 | `docs/LITERATURE_NOTES.md` | Citation upgrades and literature gaps |
 | `docs/Sources_evidence.md` | The citation audit's durable record: per entry, whether the metadata matches the publisher, what claim the citation carries, and the page or clause the supporting passage was read from, graded A (passage located), B (deposited record carries it) or C (metadata only). 80 entries have a full record, 7 more are covered by the 24 August pass, and the rest are reached through `LITERATURE_NOTES.md` |
-| `.bibaudit/build_audit.py` | Generates **`source_audit.tex`**, the source-checking document: all 111 entries, ordered by the number each carries in `Ha_Vien_Mastersthesis_2026`'s reference list, with every citing sentence beside the source's own words. **Scoped to that document by default**, which loses no entry because it cites all 111, and means a number in the audit is always the submission document's own. `--document v4` writes **`source_audit_v4.tex`** instead, ordered by the number each work carries in `Thesis_v4` (61 cited of 111, with the unused 50 listed in Part 4). `--all-documents` widens to the other two documents, adding columns for the numbers those give the same work. Reads `bibliography.bib`, the `.bbl` of each document in scope, their `.tex` sources, and the two `docs/` records. **Never hand-edit `source_audit.tex`, with one exception: Part 1's last column is the author's review tick**, and changing a `$\square$` to a `$\blacksquare$` there is how the source-checking pass records progress. The generator reads those ticks back out of the previous document before overwriting it and mirrors them to `.bibaudit/reviewed.txt`, so they survive a regeneration and a delete, and unticking a row is respected. It reports `review ticks: N of 111 entries marked reviewed, carried over` on every run. **Read that line after regenerating**: on 1 September 2026 a regeneration silently wiped 22 ticks, and they were recovered only from the editor's local history. Everything else in the file is derived and a hand edit to it is lost on the next run. Three further things about it are load-bearing. It prints references through `\fullcite` rather than retyping them, so it cannot disagree with the thesis bibliography. It takes printed numbers from `\entry{}` order in each `.bbl` and **refuses to run when a `.bbl` disagrees with its source's cite keys**, because stale numbers would defeat the document's whole purpose (`--allow-stale` overrides and should not be used). And it rewrites em dashes and prose semicolons in its own prose while passing quoted source text through untouched, since altering a quotation misquotes it, so `.aitells.py` hits inside a quotation are expected and Part 0 says so. Rebuild with `.bibaudit/build_audit.py && latexmk -pdf source_audit.tex` |
+| `.bibaudit/build_audit.py` | Generates **`source_audit.tex`**, the source-checking document: all 111 entries, ordered by the number each carries in `Ha_Vien_Mastersthesis_2026`'s reference list, with every citing sentence beside the source's own words. **Scoped to that document by default**, which loses no entry because it cites all 111, and means a number in the audit is always the submission document's own. `--document v5` writes **`source_audit_v5.tex`** instead, ordered by the number each work carries in `Thesis_v5` (61 cited of 111, with the unused 50 listed in Part 4). `--all-documents` widens to the other two documents, adding columns for the numbers those give the same work. Reads `bibliography.bib`, the `.bbl` of each document in scope, their `.tex` sources, and the two `docs/` records. **Never hand-edit `source_audit.tex`, with one exception: Part 1's last column is the author's review tick**, and changing a `$\square$` to a `$\blacksquare$` there is how the source-checking pass records progress. The generator reads those ticks back out of the previous document before overwriting it and mirrors them to `.bibaudit/reviewed.txt`, so they survive a regeneration and a delete, and unticking a row is respected. It reports `review ticks: N of 111 entries marked reviewed, carried over` on every run. **Read that line after regenerating**: on 1 September 2026 a regeneration silently wiped 22 ticks, and they were recovered only from the editor's local history. Everything else in the file is derived and a hand edit to it is lost on the next run. Three further things about it are load-bearing. It prints references through `\fullcite` rather than retyping them, so it cannot disagree with the thesis bibliography. It takes printed numbers from `\entry{}` order in each `.bbl` and **refuses to run when a `.bbl` disagrees with its source's cite keys**, because stale numbers would defeat the document's whole purpose (`--allow-stale` overrides and should not be used). And it rewrites em dashes and prose semicolons in its own prose while passing quoted source text through untouched, since altering a quotation misquotes it, so `.aitells.py` hits inside a quotation are expected and Part 0 says so. Rebuild with `.bibaudit/build_audit.py && latexmk -pdf source_audit.tex` |
 | `bench/TESTBED.md` | Bare-metal protocol (only path to criterion 3/4 → 5 on tail) |
 | `bench/artefact_facts.py` | Generates `figures/gen_artefacts.tex`: record sizes (compiled probes), parity-suite coverage, conformance campaign size, FFI seam size, **fault-catalogue outcomes** (deadlock detection rate, lost-update counts, undetected-class count) and **suite size** (C++ binaries, Rust tests). Anything measured that no campaign log holds belongs here, not in the prose. The deadlock rate is read from `taxonomy.csv` *and* recounted from the per-run logs, and a mismatch is a hard error |
 | `bench/complexity.py` | Generates `figures/tab_complexity.tex`, **`figures/tab_loc.tex`** and `gen_complexity.tex`. The `CONCERNS` partition decomposes the line-count gap and the script refuses to write the table unless every measured file is assigned to exactly one row and each column sums to its measured total. That check is why Table 5.4 can no longer go six lines short of its own printed total |
@@ -1024,10 +1024,10 @@ When preparing material for **Keijo Heljanko** (supervisor) and Nokia instructor
 (**Christoph Luneburg**, **Petteri Kotimaa**):
 
 1. `Thesis_Plan_v2.pdf` — plan, status, timeline (dated; status table must match repo reality).
-2. `Thesis_v4.pdf` — supervisor read-through: full Chapter 1, a related-work spine in Chapter 2, five prose paragraphs in each of chapters 3--8, and 14 figures (50 physical pages, last body folio 41, measured 14 September 2026). The skeleton's class writes no `\pagesCount`, so read its declared length from the printed folios: arabic 1 sits on physical page 11 and the last body page prints 41. It read 46 physical and 38 declared before the figures.
+2. `Thesis_v5.pdf` — supervisor read-through: full Chapter 1, a related-work spine in Chapter 2, five prose paragraphs in each of chapters 3--8, and 14 figures (50 physical pages, last body folio 41, measured 14 September 2026). The skeleton's class writes no `\pagesCount`, so read its declared length from the printed folios: arabic 1 sits on physical page 11 and the last body page prints 41. It read 46 physical and 38 declared before the figures.
 3. Optionally reference `Ha_Vien_Mastersthesis_2026.pdf` as the **working full draft** (clearly labelled not final).
 
-Port supervisor feedback into `Thesis_v4.tex` and `Ha_Vien_Mastersthesis_2026.tex` in the same
+Port supervisor feedback into `Thesis_v5.tex` and `Ha_Vien_Mastersthesis_2026.tex` in the same
 edit pass so the two do not diverge.
 
 ---
@@ -1182,7 +1182,7 @@ the author must rewrite unaided, and the bare-metal campaign.*
 (`bench/adoption_cost.py`, `docs/TODO.md` Phase 11 item 7) and wrote them into §7.6, Table 8.1, §8.4,
 §5.4 and the conclusion. Declared length moved 99 to 104 pages. Four passages that called RQ4
 environment-insensitive without qualification were corrected, since build time is a timing
-measurement. The preceding pass, on 20 August, filled `Thesis_v4.tex` chapters 6–9 at the author's
+measurement. The preceding pass, on 20 August, filled `Thesis_v5.tex` chapters 6–9 at the author's
 request (five bullets each, 24 pages to 35) and the skeleton began reading the generated macro
 files. The pass before that, on 19 August, renamed `Thesis_POC.tex` to
 `Ha_Vien_Mastersthesis_2026.tex`, retired the separate submission copy, and brought the declared

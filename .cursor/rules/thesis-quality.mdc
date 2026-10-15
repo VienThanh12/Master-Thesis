@@ -12,7 +12,7 @@ alwaysApply: true
 | Document | Status |
 | --- | --- |
 | `Thesis_Plan_v2.tex` / `.pdf` | **Supervisor-facing, reviewed** |
-| `Thesis_v4.tex` / `.pdf` | **Supervisor-facing, reviewed** (Chapter 1 is the draft introduction; Chapter 2 is a related-work spine as of 21 Sep 2026; chapters 3--8 are five prose paragraphs each) |
+| `Thesis_v5.tex` / `.pdf` | **Supervisor-facing, reviewed** (Chapter 1 is the draft introduction; Chapter 2 is a related-work spine as of 21 Sep 2026; chapters 3--8 are five prose paragraphs each) |
 | `Ha_Vien_Mastersthesis_2026.tex` / `.pdf` | **Full draft**, canonical but still needs review. Submission filename, was `Thesis_POC` until 19 Aug 2026 |
 | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Evidence; must match thesis claims |
 
@@ -25,9 +25,9 @@ When claims, RQs, methodology, or numbers change: sync plan + v1 + `Ha_Vien_Mast
 | 1 | Objectives & RQs | 5 | Keep falsifiable RQ2 (7 in-guarantee + 7 boundary defects) |
 | 2 | Scholarly sources | 5 | Acknowledge contrary results; consistent terminology |
 | 3 | Method & data | 5 | Bare-metal tail campaign is done. Do not add `isolcpus` |
-| 4 | Results presentation | 4.5 draft / **5** `Thesis_v4` | Draft: `tab:testbed` caption vs its own Toolchain row (`g++` 15.2.1 vs 15.1.1). §6.4.7 hand-types the guest's compiler as the measurement host's. `tab:findings` RQ3 "on bare metal" cannot pick out a host. Skeleton 5.00 as of 11 Sep: do not re-open abstract register, `\CpuDiffAbsMax` scope, or drop `tab:latency` |
+| 4 | Results presentation | 4.5 draft / **5** `Thesis_v5` | Draft: `tab:testbed` caption vs its own Toolchain row (`g++` 15.2.1 vs 15.1.1). §6.4.7 hand-types the guest's compiler as the measurement host's. `tab:findings` RQ3 "on bare metal" cannot pick out a host. Skeleton 5.00 as of 11 Sep: do not re-open abstract register, `\CpuDiffAbsMax` scope, or drop `tab:latency` |
 | 5 | Discussion | 5 | No over-claim: “cannot tell” ≠ “equivalent” |
-| 6 | Academic text | 4.5 draft / **5** `Thesis_v4` | Draft: three prose sites claim toolchain parity the table refutes. §1.4 of the draft: "is not:" with no predicate. Skeleton 5.00 as of 11 Sep: do not re-introduce `TBD`, “mixed-order”, or a bare `\FfiOpBoundPct` |
+| 6 | Academic text | 4.5 draft / **5** `Thesis_v5` | Draft: three prose sites claim toolchain parity the table refutes. §1.4 of the draft: "is not:" with no predicate. Skeleton 5.00 as of 11 Sep: do not re-introduce `TBD`, “mixed-order”, or a bare `\FfiOpBoundPct` |
 
 Full notes: `docs/ASSESSMENT.md`. Checklist per edit: `AGENT.md` §2.
 
@@ -117,7 +117,7 @@ introduced a term.
 suggestion, judges it, and pastes it, so an unscreened suggestion puts the defect in the document
 by a longer route. The failure this rule exists for is real and recent: a shortening pass on
 §1.2's second trend was offered as easier to read and measured Flesch 38.5 and grade 14.0 with
-**no sentence under 15 words at all**, against 46.8 and 11.0 for `Thesis_v4.tex` as a whole. The
+**no sentence under 15 words at all**, against 46.8 and 11.0 for `Thesis_v5.tex` as a whole. The
 author had to say twice that it was hard to follow. Rewriting it plainly took one pass and moved
 it to 53.1 and 10.5, so the cost of screening first is minutes and the cost of skipping it is the
 author's trust.
@@ -136,7 +136,7 @@ python3 .vocab.py .prose-scratch/candidate.tex
 under 15 words** goes back regardless of how it reads, because the reader gets no footing. And
 Flesch below the host document's own figure means the suggestion is harder than the thesis it
 joins, which is the opposite of the request every time shortening or clarifying is asked for. Read
-the document's baseline rather than assuming one: `python3 .readability.py Thesis_v4.tex`.
+the document's baseline rather than assuming one: `python3 .readability.py Thesis_v5.tex`.
 
 **Then read it three times, each pass with one job**, because the screens cannot see sense:
 
@@ -204,11 +204,11 @@ a generated table cell of `---` marks a value that does not exist, which `detex(
 
 ## After substantive changes
 
-Run `bench/refresh_thesis.sh` when numbers change (it regenerates figures/tables, the colloquium deck, and `Ha_Vien_Mastersthesis_2026.pdf`). Rebuild `Thesis_Plan_v2.tex` when its source changes, and `Thesis_v4.tex` whenever either its source or the generated macros change, since its results paragraphs now read them. Zero LaTeX errors and undefined refs required.
+Run `bench/refresh_thesis.sh` when numbers change (it regenerates figures/tables, the colloquium deck, and `Ha_Vien_Mastersthesis_2026.pdf`). Rebuild `Thesis_Plan_v2.tex` when its source changes, and `Thesis_v5.tex` whenever either its source or the generated macros change, since its results paragraphs now read them. Zero LaTeX errors and undefined refs required.
 
 ## Do not
 
 - Leave a last-in-chapter figure alone on a centred float page. Keep it with the citing subsection via `\enlargethispage` and `[!ht]` (`.cursor/rules/thesis-float-last-in-chapter.mdc`).
 - Treat `Ha_Vien_Mastersthesis_2026.pdf` as supervisor-approved. The submission filename says nothing about review status.
-- Expand `Thesis_v4.tex` chapters 3--8 beyond five argument paragraphs, or replace Chapter 1 with a shorter skeleton. Chapter 1 is the draft introduction. Chapter 2 is a related-work spine as of 21 September 2026. Do not compress it back to five paragraphs. Chapters 3--8 stay a five-move skeleton in plain prose.
+- Expand `Thesis_v5.tex` chapters 3--8 beyond five argument paragraphs, or replace Chapter 1 with a shorter skeleton. Chapter 1 is the draft introduction. Chapter 2 is a related-work spine as of 21 September 2026. Do not compress it back to five paragraphs. Chapters 3--8 stay a five-move skeleton in plain prose.
 - Commit unless explicitly asked.

@@ -15,7 +15,7 @@ Interactive canvases live beside this file. The standing full-draft grade is
 `thesis-grade-csm-sep07-rev2.canvas.tsx`. The latest pass, of the supervisor skeleton, is
 `thesis-grade-csm-oct14.canvas.tsx`. This file is the durable copy.
 
-> **Latest pass: thirtieth, 14 October 2026, of `Thesis_v4.tex` only, mean 4.83.**
+> **Latest pass: thirtieth, 14 October 2026, of `Thesis_v5.tex` only, mean 4.83.**
 > Areas 1 to 4 are at 5, and areas 5 and 6 are **4.5**. The abstract scope defect from
 > 8 October is closed. The live caps are one contradictory allocator explanation in the
 > discussion and finalisation defects: undefined references, overfull defect-table cells,
@@ -5096,7 +5096,7 @@ This pass changed no thesis prose. It rebuilt `Thesis_v3.pdf` and
 ## Twenty-eighth pass — 29 September 2026
 
 Graded independently against the CSM matrix of 9 April 2024, on
-**`Thesis_v4.tex` / `Thesis_v4.pdf`**, after the coordinated-omission account
+**`Thesis_v5.tex` / `Thesis_v5.pdf`**, after the coordinated-omission account
 had been rewritten. Standard applied: a supervisor reading the current 60-page
 PDF, not a submitted maturity test. The full draft was not re-read. This pass
 formed its view from the source, the generated macros, the latency table, and
@@ -5235,7 +5235,7 @@ under the supervisor-reading standard it does not set the grade.
    `\abstractunaidedtrue` in the shared statement. A model must not draft that
    page. This is a submission rule, not the cap on this pass.
 
-This pass changed no thesis prose. It rebuilt `Thesis_v4.pdf`, which moved the
+This pass changed no thesis prose. It rebuilt `Thesis_v5.pdf`, which moved the
 abstract-form date to 29 September 2026, created the grading canvas, and
 appended this record.
 
@@ -5244,12 +5244,12 @@ appended this record.
 ## Twenty-ninth pass — 8 October 2026
 
 Graded independently against the CSM matrix of 9 April 2024, on
-**`Thesis_v4.tex` / `Thesis_v4.pdf`**, after grammar, scope, and layout fixes
+**`Thesis_v5.tex` / `Thesis_v5.pdf`**, after grammar, scope, and layout fixes
 applied earlier on 8 October 2026. Standard applied: a supervisor reading the
 current 71-page PDF, not a submitted maturity test. The full draft was not
 re-read.
 
-**Build verified.** `latexmk -pdf Thesis_v4.tex` produced 71 physical pages.
+**Build verified.** `latexmk -pdf Thesis_v5.tex` produced 71 physical pages.
 `texaudit.py` passes every hard gate: no LaTeX errors, undefined references or
 citations, floats too large, or overfull boxes. `tab:jitter` is still never
 referenced from the body. Prose screens: Flesch 59.1, acronym gate clean, no
@@ -5313,13 +5313,13 @@ the table overflow and grammar errors are closed, but the abstract cap remains.
 
 ## Thirtieth pass — 14 October 2026
 
-Graded against the CSM matrix of 9 April 2024 on **`Thesis_v4.tex` /
-`Thesis_v4.pdf`** after rebuilding the current source. Standard applied: the
+Graded against the CSM matrix of 9 April 2024 on **`Thesis_v5.tex` /
+`Thesis_v5.pdf`** after rebuilding the current source. Standard applied: the
 current manuscript as a submission candidate. This pass grades the document,
 not evidence that exists only in the repository.
 
 **Build verified.** `latexmk -pdf -interaction=nonstopmode -halt-on-error
-Thesis_v4.tex` produced 73 physical pages. There are no LaTeX errors,
+Thesis_v5.tex` produced 73 physical pages. There are no LaTeX errors,
 undefined citations, oversized floats, or placeholders. Two references to
 `sec:rustsafety` are undefined because the source label is
 `*sec:rustsafety*`. Four `Crash/corruption` cells in `tab:defectmap` overrun

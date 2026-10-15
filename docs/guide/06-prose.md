@@ -42,7 +42,7 @@ Frequency is the signal. Aim low rather than at zero.
 
 ```bash
 ./.aitells.py Ha_Vien_Mastersthesis_2026.tex
-./.aitells.py Thesis_v4.tex
+./.aitells.py Thesis_v5.tex
 ```
 
 Looks for dash asides, antithesis frames, transition openers, promotional
@@ -67,14 +67,14 @@ the REPLACE list. Terms of art, acronyms, and `\texttt` identifiers are split
 out. Produces a list to read, not a verdict.
 
 ```bash
-python3 .b2.py Thesis_v4.tex
-python3 .b2.py Thesis_v4.tex --band c1
+python3 .b2.py Thesis_v5.tex
+python3 .b2.py Thesis_v5.tex --band c1
 ```
 
 ### `.readability.py` — whole-document load
 
 ```bash
-python3 .readability.py Thesis_v4.tex
+python3 .readability.py Thesis_v5.tex
 python3 .readability.py Ha_Vien_Mastersthesis_2026.tex
 ```
 
@@ -89,7 +89,7 @@ figure is harder than the thesis it would join.
 ### `.chapter_readability.py` — same counters, per chapter
 
 ```bash
-python3 .chapter_readability.py Thesis_v4.tex -o docs/CHAPTER_READABILITY.md
+python3 .chapter_readability.py Thesis_v5.tex -o docs/CHAPTER_READABILITY.md
 ```
 
 Writes [`docs/CHAPTER_READABILITY.md`](../CHAPTER_READABILITY.md). That file
@@ -100,7 +100,7 @@ script includes and drops.
 
 ```bash
 ./.acronyms.py                         # full draft
-./.acronyms.py Thesis_v4.tex
+./.acronyms.py Thesis_v5.tex
 ```
 
 The front-matter list is the source of truth. Exits non-zero if a listed

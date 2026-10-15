@@ -597,14 +597,22 @@ it costs to catch them.
 \chaptermark{Background}
 
 \section{RAN control-plane systems and the gNB-CU-CP}\label{sec:ranarch}
-The next-generation radio access network (NG-RAN) is the setting for this comparison.
-Event rates are high: UEs move, and signalling can spike. Latency bounds are
-tight and must stay stable. The 5G service and RAN specs state those bounds as key
-performance indicators (KPIs)~\cite{3gpp38913,3gpp22261}. The software lives
-for a long time and keeps growing. Many threads run at once. Those bounds are
-on the latency of a signalling call. A late call still misses them when the
-average call is on time. So the worst case and the tail of that latency matter
-more than the mean. That is why this thesis measures the tail.
+This thesis compares modern C++ and Rust in the next-generation radio access network (NG-RAN).
+In this network, user equipment (UE) moves between cells, generating signalling events such as
+handovers. These events can occur frequently and place a high load on the network. At the same
+time, signalling procedures must complete within strict time limits, as defined by the key
+performance indicators (KPIs) in the 5G service and RAN specifications~\cite{3gpp38913,3gpp22261}.
+
+NG-RAN software is continuously developed and must handle many operations at the same time.
+This makes it important to understand not only how quickly operations usually complete, but also
+how slowly they can complete under heavy load. For example, a handover must finish within a
+specified time limit. If most handovers finish quickly but a few take too long, the average
+latency may still look good even though the time limit is exceeded for some handovers. These
+delays can affect the users involved and cause the KPI to be violated.
+
+For this reason, this thesis focuses on tail latency, which describes the delays experienced by
+the slowest operations. By measuring tail latency, the comparison can reveal performance problems
+that average latency alone may hide.
 
 The gNB is split on two axes. The first split is central versus distributed.
 The gNB runs a protocol stack: a set of layered radio protocols from the air

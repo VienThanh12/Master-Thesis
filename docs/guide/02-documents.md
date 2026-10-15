@@ -10,8 +10,8 @@ is a working map: what to open, what to rebuild, what not to confuse.
 
 | File | Source | Status | Role |
 | --- | --- | --- | --- |
-| `Thesis_Plan_v2.pdf` | `Thesis_Plan_v2.tex` | **Reviewed, supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v4.tex`. |
-| `Thesis_v4.pdf` | `Thesis_v4.tex` | **Reviewed, supervisor-facing** | Eight-chapter argument the supervisor reads. Chapter 1 is the draft introduction. Chapter 2 is a related-work spine as of 21 September 2026. Chapters 3-8 are five argument paragraphs each, in plain prose. Quotes generated macros. Abstract dated 11 September 2026. Was `Thesis_v3` until 28 September 2026, and `Thesis_v2` until 8 September 2026. |
+| `Thesis_Plan_v2.pdf` | `Thesis_Plan_v2.tex` | **Reviewed, supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v5.tex`. |
+| `Thesis_v5.pdf` | `Thesis_v5.tex` | **Reviewed, supervisor-facing** | Eight-chapter argument the supervisor reads. Chapter 1 is the draft introduction. Chapter 2 is a related-work spine as of 21 September 2026. Chapters 3-8 are five argument paragraphs each, in plain prose. Quotes generated macros. Abstract dated 11 September 2026. Was `Thesis_v3` until 28 September 2026, and `Thesis_v2` until 8 September 2026. |
 | `Ha_Vien_Mastersthesis_2026.pdf` | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft, not final** | Canonical long-form thesis. UH submission filename (`Lastname_Firstname_Mastersthesis_Year`). That name says nothing about review. Was `Thesis_POC` until 19 August 2026. |
 | `Ha_Vien_Mastersthesis_2026_short.pdf` | `Ha_Vien_Mastersthesis_2026_short.tex` | Compression pass, in progress | Shorter cut of the **same** draft. Neither supervisor-facing nor a submission candidate. No claim may appear here that is not in the full draft. |
 
@@ -29,7 +29,7 @@ is a working map: what to open, what to rebuild, what not to confuse.
 
 ## How the skeleton differs from the full draft
 
-- **Chapter 1** of `Thesis_v4.tex` is the draft introduction, with later-section
+- **Chapter 1** of `Thesis_v5.tex` is the draft introduction, with later-section
   and appendix references retargeted to labels this file actually has.
 - **Chapter 2** is a related-work spine as of 21 September 2026. Do not
   compress it back to five paragraphs.
@@ -42,8 +42,8 @@ is a working map: what to open, what to rebuild, what not to confuse.
   has. It needs no further appendix.
 - It carries a subset of the draft's figures. Captions are trimmed. Image
   sources are shared, not copied.
-- `bench/refresh_thesis.sh` rebuilds the **full draft PDF**, not `Thesis_v4.pdf`.
-  After macros move, rebuild the skeleton with `latexmk -pdf Thesis_v4.tex`.
+- `bench/refresh_thesis.sh` rebuilds the **full draft PDF**, not `Thesis_v5.pdf`.
+  After macros move, rebuild the skeleton with `latexmk -pdf Thesis_v5.tex`.
 
 Older notes that call the evaluation chapter 7 or the discussion chapter 8
 are using a retired nine-chapter numbering. The draft and the skeleton have
@@ -54,17 +54,17 @@ matched eight-chapter lists since 26 August 2026.
 | File | Role |
 | --- | --- |
 | `source_audit.pdf` | Every bibliography entry, ordered as in the full draft's reference list, with the citing sentence beside the source's own words. Built by `.bibaudit/build_audit.py`. See [07 Tooling](07-tooling.md). |
-| `source_audit_v4.pdf` | The same audit scoped to `Thesis_v4`: 61 cited works with that document's numbering, and the 50 shared-`.bib` entries it does not cite. `--document v4`. |
+| `source_audit_v5.pdf` | The same audit scoped to `Thesis_v5`: 61 cited works with that document's numbering, and the 50 shared-`.bib` entries it does not cite. `--document v5`. |
 | `Rust_vs_Cpp_Nokia_RAN_thesis.pptx` | Colloquium deck. Gitignored. Built by `build_deck.py`. |
 
 ## How to rebuild
 
 ```bash
 latexmk -pdf Ha_Vien_Mastersthesis_2026.tex   # full draft
-latexmk -pdf Thesis_v4.tex                    # supervisor skeleton
+latexmk -pdf Thesis_v5.tex                    # supervisor skeleton
 latexmk -pdf Thesis_Plan_v2.tex               # plan
 .bibaudit/build_audit.py && latexmk -pdf source_audit.tex
-.bibaudit/build_audit.py --document v4 && latexmk -pdf source_audit_v4.tex
+.bibaudit/build_audit.py --document v5 && latexmk -pdf source_audit_v5.tex
 bench/refresh_thesis.sh                       # regenerate figures + macros + full-draft PDF + deck
 ```
 
@@ -83,6 +83,6 @@ PDF, the retired `UH_DS_MSc.cls`, and `rollback-20260827-220354/`. Details:
 ## Supervisor bundle
 
 When preparing material for the supervisor: `Thesis_Plan_v2.pdf` and
-`Thesis_v4.pdf`. Optionally point at `Ha_Vien_Mastersthesis_2026.pdf` as the
+`Thesis_v5.pdf`. Optionally point at `Ha_Vien_Mastersthesis_2026.pdf` as the
 working full draft, labelled not final. Port feedback into **both**
-`Thesis_v4.tex` and `Ha_Vien_Mastersthesis_2026.tex` in the same pass.
+`Thesis_v5.tex` and `Ha_Vien_Mastersthesis_2026.tex` in the same pass.

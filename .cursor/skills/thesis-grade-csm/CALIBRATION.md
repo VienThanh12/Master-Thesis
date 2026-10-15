@@ -198,7 +198,7 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
-**`Thesis_v4.tex` only, twenty-eighth pass, 29 September 2026. Mean 4.92.** Areas 1 to 5 at 5,
+**`Thesis_v5.tex` only, twenty-eighth pass, 29 September 2026. Mean 4.92.** Areas 1 to 5 at 5,
 area 6 at 4.5. The twenty-seventh pass's caps are closed in this PDF: Clock B is the same host
 and `nohz_full` as the campaign, the probe tests use all 20 pairs and the canonical paired
 permutation, and the abstract, motivation, hypotheses, guidelines, and conclusion describe that

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a review-only diagram pack for Thesis_v4.tex.
+"""Build a review-only diagram pack for Thesis_v5.tex.
 
 These pages explain the skeleton's argument in more detail than the five
 paragraphs per chapter can. They are not inserted into any .tex file. Numbers
@@ -96,7 +96,7 @@ def chip_row(d, x, y, items, fill, color, stroke, h=28, gap=12, size=11):
 def how_to_read():
     d = Diagram(
         "30_how_to_read", 880, 620,
-        "How to read Thesis_v4, in one page",
+        "How to read Thesis_v5, in one page",
         "Chapter 1 is the draft introduction. Chapters 2 to 7 keep five "
         "argument paragraphs each.",
     )
@@ -124,7 +124,7 @@ def how_to_read():
     d.lines(36, y + 48, [
         "Each later page unpacks one move the skeleton has to make in five "
         "paragraphs. Open the combined .drawio and step the tabs.",
-        "Nothing here is cited by Thesis_v4.tex. Pick a page, then we can "
+        "Nothing here is cited by Thesis_v5.tex. Pick a page, then we can "
         "shrink it to a thesis figure if it earns a caption.",
     ], 11.5, BODY, lh=16)
     d.footer([
@@ -1842,7 +1842,7 @@ def guest_could_not_resolve():
 
 # --------------------------------------------------------------------------
 PAGES = [
-    ("How to read Thesis_v4", how_to_read),
+    ("How to read Thesis_v5", how_to_read),
     ("Three trends", three_trends),
     ("Problem, RQs, hypotheses", problem_rqs_hs),
     ("Three methods", three_methods),
@@ -1895,7 +1895,7 @@ def write_gallery(built):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Thesis_v4 diagram review</title>
+<title>Thesis_v5 diagram review</title>
 <style>
   :root {{
     --navy: #12233a;
@@ -1959,7 +1959,7 @@ def write_gallery(built):
 </head>
 <body>
 <header>
-  <h1>Thesis_v4 diagram review</h1>
+  <h1>Thesis_v5 diagram review</h1>
   <p class="lead">
     {len(built)} pages. Scroll, or use the numbers to jump.
     This pack is not in the PDF. The .drawio files are for editing.
@@ -1981,7 +1981,7 @@ def write_gallery(built):
 def as_mxfile(pages):
     chunks = [
         '<?xml version="1.0" encoding="UTF-8"?>',
-        '<mxfile host="app.diagrams.net" agent="Thesis_v4 review pack" '
+        '<mxfile host="app.diagrams.net" agent="Thesis_v5 review pack" '
         'version="22.1.0" type="device">',
     ]
     for title, diag in pages:
@@ -2027,7 +2027,7 @@ def main():
             hits.append(f"{d.name}: {kind}")
         print(f"built {d.name}: svg + drawio  ({d.w}x{d.h})")
 
-    combined = os.path.join(OUT, "thesis_v4_review.drawio")
+    combined = os.path.join(OUT, "thesis_v5_review.drawio")
     with open(combined, "w", encoding="utf-8") as fh:
         fh.write(as_mxfile([(t, d) for t, d in built]))
     print(f"\ncombined {len(built)} pages -> {combined}")

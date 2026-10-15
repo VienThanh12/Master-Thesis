@@ -11,11 +11,11 @@ submission quality.
 
 ## Document roles (do not mix)
 
-- `Thesis_Plan_v2` and `Thesis_v4` are supervisor-facing and reviewed. `Thesis_v4` was `Thesis_v3` until 28 September 2026.
+- `Thesis_Plan_v2` and `Thesis_v5` are supervisor-facing and reviewed. `Thesis_v5` was `Thesis_v3` until 28 September 2026.
 - `Ha_Vien_Mastersthesis_2026` is the canonical full draft and still needs
   review. The submission filename is not a review stamp.
 - `Ha_Vien_Mastersthesis_2026_short` is a compression pass, not a deliverable.
-- Do not expand `Thesis_v4.tex` chapters 3-8 beyond five argument paragraphs, and do not compress Chapter 2 back to five paragraphs. Chapter 2 is a related-work spine as of 21 September 2026.
+- Do not expand `Thesis_v5.tex` chapters 3-8 beyond five argument paragraphs, and do not compress Chapter 2 back to five paragraphs. Chapter 2 is a related-work spine as of 21 September 2026.
 - Do not replace Chapter 1 of the skeleton with a shorter stub.
 
 ## Sync when claims or numbers move
@@ -26,7 +26,7 @@ draft for the long argument. Rebuild the affected PDFs.
 
 **Measured numbers:** `bench/refresh_thesis.sh`. Never hand-edit
 `figures/gen_*.tex`. Re-read every prose site that cites those macros. Rebuild
-`Thesis_v4.tex` yourself. The refresh script does not.
+`Thesis_v5.tex` yourself. The refresh script does not.
 
 ## Non-negotiable claims
 
