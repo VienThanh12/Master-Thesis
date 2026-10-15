@@ -1211,10 +1211,12 @@ the two standard libraries would have been the measurement.
 
 Where the languages cannot meet a need the same way, the gap is written into a
 forced-idiom log and then measured. Two of those gaps were candidates for the
-overload lead of Section~\ref{sec:overload}. The first is the bounded queue, and Rust takes it
-from \texttt{sync\_channel}. C++23 still has no such primitive, so C++ builds
-one from a mutex and two condition variables. The other is the reply handle,
-\texttt{std::promise} against a fresh \texttt{mpsc} channel per request. Tests
+overload lead of Section~\ref{sec:overload}. The first is the bounded queue.
+Rust uses \texttt{sync\_channel}. C++23 still has no matching primitive, so the
+C++ build implements the same blocking semantics with a mutex and two condition
+variables. The second is the one-shot reply handle. C++ pairs
+\texttt{std::promise} with \texttt{std::future}. Rust allocates a fresh
+\texttt{mpsc} channel for each request. Tests
 of those primitives and a replacement reply handle were run on an earlier
 host. They do not explain the remaining lead on this one once the
 extra delay samples are written after the interval. A
