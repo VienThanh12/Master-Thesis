@@ -682,7 +682,7 @@ highlighted inside the gNB-CU-CP.\label{fig:ngran}}
 The RAN control plane has many threads and
 tight latency bounds. Tail latency under too much load, not mean throughput, sets
 the quality the network delivers. C++ gives the control and speed the domain
-needs. But it defers detection of whole classes of memory and thread bugs
+needs. But it defers detection of whole classes of memory and concurrency bugs
 to runtime. Rust promises to block those classes of errors at compile time at no
 run-time overhead. It also offers a step-by-step adoption path through the C
 application binary interface (ABI).

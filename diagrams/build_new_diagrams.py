@@ -1149,7 +1149,7 @@ def research_gap():
     d.rect(x0, by, W - 2 * x0, box_h, BLUE_FILL, BLUE, rx=9, sw=1.7)
     label_x = x0 + 16
     gap_lines = [
-        "most of the telecom studies change two things at once: the language, and how the program is run.",
+        "Most of the telecom studies change two things at once: the language, and how the program is run.",
         "Emberg and Wadsten keep the design the same, but they still test a stateless program.",
         "None holds the concurrency model fixed and then drives a stateful subsystem past saturation.",
     ]

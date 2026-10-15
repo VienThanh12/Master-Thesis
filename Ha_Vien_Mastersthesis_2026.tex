@@ -682,16 +682,16 @@ highlighted inside the gNB-CU-CP.\label{fig:ngran}}
 The RAN control plane has many threads and
 tight latency bounds. Tail latency under too much load, not mean throughput, sets
 the quality the network delivers. C++ gives the control and speed the domain
-needs. But it defers detection of whole classes of memory and thread bugs
+needs. But it defers detection of whole classes of memory and concurrency bugs
 to runtime. Rust promises to block those classes of errors at compile time at no
 run-time overhead. It also offers a step-by-step adoption path through the C
 application binary interface (ABI).
 
 Five vendor-hosted Master's theses, all
 done at Ericsson, have compared candidate languages for RAN and telecom
-software. One weighs run-time cost against how fast people can build, across
-C++, Rust, and Go~\cite{karlback2021ran}. One asks whether Rust could replace
-C in RAN node management~\cite{olsson2023ranmgmt}. One builds a packet
+software. One compares run-time performance with development effort for C++,
+Rust, and Go~\cite{karlback2021ran}. One tests whether Rust can replace C in
+RAN node management~\cite{olsson2023ranmgmt}. One builds a packet
 processor, one thread per core, in async Rust. It measures that processor
 against the Data Plane Development Kit (DPDK) program it
 mirrors~\cite{olsson2023asyncpackets}. One measures median and p99 latency for
