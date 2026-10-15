@@ -446,7 +446,7 @@ networks. The language choice is a production concern.
 
 UECM is small enough to reimplement faithfully and reason about in full. It still
 carries the properties that make control-plane code hard. The implementation follows a
-public, frozen specification, not proprietary code, so readers outside Nokia can
+public, fixed specification, not proprietary code, so readers outside Nokia can
 reproduce the comparison.
 
 \paragraph{A decision with a generational horizon.}
@@ -1019,7 +1019,7 @@ language sit in that layer~\cite{li2022crosslang}.
 
 \section{Fairness as a controlled variable}\label{sec:controlsbrief}
 A language comparison is only as good as what it keeps the same. The spec
-is frozen before either version exists. Several choices are then matched on
+is fixed before either version exists. Several choices are then matched on
 both sides, and never tuned to favour one language. Those choices are the
 thread model, the allocator and its arena count, the opt level, the hash
 function, the histogram method, and the load schedule. The opt level is how
@@ -1111,7 +1111,7 @@ The code, raw logs, and rebuild scripts live in
 \url{https://github.com/VienThanh12/Master-Thesis}. Access to that repository is
 restricted during review, and the same package is submitted with this thesis.
 A reader with either copy can rebuild the results without access to Nokia's
-private code. The versions are driven entirely by the public frozen spec. The
+private code. The versions are driven entirely by the public fixed spec. The
 benchmarking harness, the fault catalogue and its runner, and the FFI
 prototype are part of that package. Each plot of measured data is rebuilt by
 one script from the raw logs. So is each quoted number in the results. The
@@ -1129,7 +1129,7 @@ hand.
 \chapter{Design and Implementation\label{chapter:design}}
 \chaptermark{Design}
 
-Nothing is built until the spec is frozen. It fixes the public API, the UE
+Nothing is built until the spec is fixed. It fixes the public API, the UE
 state machine, the data layout and the steps on it, the locks and shard size,
 and the thread model. Both versions follow it. The test then times the
 language, not a gap of design or of skill. The spec is itself a result of
@@ -2178,7 +2178,7 @@ The thesis set modern C++ against Rust. The object is a UE Context Management
 service. It keeps per-device state, as a gNB-CU-CP does. This thesis looked at how late
 the tail is, which defects a compile step can stop, the cost of the safe code
 model, and the cost of adding Rust one piece at a time. Both
-sides were built against one frozen spec. They were driven along the same code
+sides were built against one fixed spec. They were driven along the same code
 paths. That is what lets a language effect be told apart from a gap of design or
 of skill.
 
@@ -2243,7 +2243,7 @@ schedule drift. The ranking from several requests in flight depends on the
 allocator, and that run sits outside the tested family. What the thesis adds is
 these three artefacts:
 \begin{compactitem}
-\item a frozen specification
+\item a fixed specification
 \item a parity-tested implementation pair
 \item a timing harness that reaches past the saturation region
 \end{compactitem}
@@ -2360,7 +2360,7 @@ Adequate for & The pre-committed campaign-clock results. Not overload service la
 \centering
 \small
 \caption[Configuration of the service, the workload, and the campaign]{Configuration of the service under test, the workload driving it, and the measurement
-campaign. Service parameters are fixed by the frozen specification, with one exception: the
+campaign. Service parameters are fixed by the fixed specification, with one exception: the
 shard count is set to match the cores the host offers (Section~\ref{sec:testbed}). All of them,
 that one included, are identical in both languages. Campaign figures are generated from the
 measurement logs together with the
