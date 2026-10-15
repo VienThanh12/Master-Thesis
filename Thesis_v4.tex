@@ -135,10 +135,11 @@
       Rust prevents at compile time, safety-model overhead, and incremental adoption.
       
       One language-agnostic specification is fixed and then implemented in both C++ and Rust.
-      The two versions use matched algorithms and the same concurrency model, allocator, and
-      build settings. Forced-idiom gaps are logged. The synthetic workload is increased until overload.
-      Both versions pass the same parity tests. The evaluation also adds fault injection and a
-      foreign function interface (FFI) prototype.
+      The two versions use the same algorithms, thread layout, memory allocator, and build settings.
+      Where C++ and Rust cannot match line for line, the difference is written down and kept in
+      the measurement. Both versions pass the same parity tests. The benchmark then raises the request
+      rate step by step until the service overloads. The evaluation also adds fault injection and
+      a foreign function interface (FFI) prototype.
       
       Safe Rust refuses to compile code that contains any of the seven injected memory-safety
       and data-race defects, whereas C++ compiles the same code. Both languages compile code
