@@ -23,6 +23,22 @@ abstract scope fix). See `docs/ASSESSMENT.md`. The retired long-form draft is
 the PDF contains no Not submittable, and the §2.2 header overflow is still closed. Grade reasoning
 is in `docs/ASSESSMENT.md` and `AGENT.md` §2.
 
+**Refresh drift found 20 October 2026, not yet decided.** A full `bench/refresh_thesis.sh` moves
+numbers the overload update did not touch, so after it ran the six affected generated files were
+restored to their committed state. None of the causes is the overload work:
+
+- The size and complexity tables (`tab_loc.tex`, `tab_complexity.tex`, `gen_complexity.tex`) predate
+  the committed code. Measured on the committed tree, C++ is 588 lines and Rust 879 against the 517
+  and 621 printed, and Rust has 29 tests against 27. Check whether those additions are probe
+  scaffolding the filter misses or core changes before accepting the new sizes.
+- The static footprint (`gen_adoption.tex`, `tab_adoption.tex`) comes out at 114 and 737 KiB shipped
+  against the 106 and 723 printed, for the same committed code, so the laptop's toolchain moved (an
+  apt upgrade on 9 October is the candidate). `\FootShippedRatio` would go from 6.8 to 6.4. Decide
+  whether the footprint should be measured in the pinned container instead.
+- The batch probe was being counted in both. That part is fixed: `complexity.py` strips its blocks,
+  `artefact_facts.py` skips its tests, and the working tree now measures the same as the committed
+  code.
+
 **Item I is closed.** The skeleton abstract is written (11 September 2026). Do **L** before sending:
 re-read every surviving citation against the clause it now sits next to.
 
