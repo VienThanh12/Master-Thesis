@@ -577,13 +577,15 @@ fn main() {
                         }
                     }
                 }
+                // The window closes before the deferred fill, as in bench.cpp, so
+                // throughput is not charged for writing the synthetic samples.
+                meas_hi_ns.fetch_max(wall_start.elapsed().as_nanos() as u64, Ordering::Relaxed);
                 if interval_ns > 0
                     && args.latency_origin != "start"
                     && args.correction_when == "after"
                 {
                     correct_after(&mut hist, interval_ns, args.correction_cap);
                 }
-                meas_hi_ns.fetch_max(wall_start.elapsed().as_nanos() as u64, Ordering::Relaxed);
                 errors.fetch_add(local_errors, Ordering::Relaxed);
                 measured_ops.fetch_add(local_measured, Ordering::Relaxed);
                 merged.lock().unwrap().add(&hist).expect("compatible hists");

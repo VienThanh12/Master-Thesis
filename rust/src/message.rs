@@ -84,5 +84,13 @@ pub enum Request {
     Count {
         resp: CompletionTx<u64>,
     },
+    #[cfg(feature = "batch-probe")]
+    /// PROBE ONLY (`--features batch-probe`): several signalling operations for UEs
+    /// of one shard, answered once with the reply type a single `Signal` uses.
+    SignalBatch {
+        ue_ids: Vec<UeId>,
+        msg: SignalingMsg,
+        resp: CompletionTx<Completion<OpResult<SignalingAck>>>,
+    },
     Stop,
 }

@@ -416,6 +416,28 @@ impl Service {
             .expect("completion")
             .value
     }
+    #[cfg(feature = "batch-probe")]
+    /// PROBE ONLY (`--features batch-probe`). Runs `handle_signaling` for every id in
+    /// one message to the shard that owns `ue_ids[0]` and answers once. The ack counts
+    /// the operations that succeeded in `new_messages_handled`, and `accepted` is true
+    /// when all of them did. An id owned by another shard counts as a failure.
+    pub fn handle_signaling_batch(&self, ue_ids: Vec<UeId>, msg: SignalingMsg) -> OpResult<SignalingAck> {
+        let Some(&first) = ue_ids.first() else {
+            return Ok(SignalingAck {
+                accepted: true,
+                new_messages_handled: 0,
+            });
+        };
+        let (rtx, rrx) = completion_channel();
+        self.shard_tx(first)
+            .send(Request::SignalBatch {
+                ue_ids,
+                msg,
+                resp: rtx,
+            })
+            .expect("worker alive");
+        rrx.recv().expect("completion").value
+    }
 
     /// Total contexts across all shards (routed per shard, summed). Not a snapshot:
     /// see §6.7. Panics if the service is not running (§7.1).
@@ -548,6 +570,20 @@ fn worker_loop(cfg: Config, seq: Arc<AtomicU64>, rx: Receiver<Request>) {
             }
             Request::Count { resp } => {
                 let _ = resp.send(core.count());
+            }
+            #[cfg(feature = "batch-probe")]
+            Request::SignalBatch { ue_ids, msg, resp } => {
+                let mut ok = 0u64;
+                for &id in &ue_ids {
+                    if core.handle_signaling(id, &msg).is_ok() {
+                        ok += 1;
+                    }
+                }
+                let ack = SignalingAck {
+                    accepted: ok == ue_ids.len() as u64,
+                    new_messages_handled: ok,
+                };
+                let _ = resp.send(completed(Ok(ack), false, started, unstamped));
             }
             Request::Stop => break,
         }
