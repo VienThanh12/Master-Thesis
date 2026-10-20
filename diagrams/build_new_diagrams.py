@@ -19,7 +19,7 @@ from dsl import (
     Diagram,
     AMBER, AMBER_CHIP, AMBER_DEEP, AMBER_EDGE, AMBER_FILL,
     BLUE, BLUE_CHIP, BLUE_DEEP, BLUE_EDGE, BLUE_FILL,
-    BODY, FAINT, GREY_EDGE, GREY_FILL, MUTED, NAVY, WHITE,
+    BODY, FAINT, GREY_DEEP, GREY_EDGE, GREY_FILL, MUTED, NAVY, WHITE,
     GREEN, GREEN_CHIP, GREEN_DEEP, GREEN_EDGE, GREEN_FILL,
     ORANGE, ORANGE_CHIP, ORANGE_DEEP, ORANGE_EDGE, ORANGE_FILL,
     RED, RED_CHIP, RED_DEEP, RED_EDGE, RED_FILL,
@@ -28,7 +28,7 @@ from dsl import (
 HERE = os.path.dirname(os.path.abspath(__file__))
 FIGURES = os.path.join(HERE, os.pardir, "figures")
 MACRO_FILES = ("gen_macros.tex", "gen_artefacts.tex", "gen_adoption.tex",
-               "gen_probes.tex")
+               "gen_probes.tex", "gen_handoff.tex")
 
 
 def load_macros():
@@ -58,7 +58,9 @@ def load_macros():
                "ProbeAfterKneeLoad", "ProbeAfterKneeThrCpp",
                "ProbeAfterKneeThrRust", "ProbeAfterThrCpp",
                "ProbeAfterThrRust", "ProbeAfterTrackCpp",
-               "ProbeAfterTrackRust"} - values.keys()
+               "ProbeAfterTrackRust", "HandoffPairs", "HandoffStockLeadSystem",
+               "HandoffSameLeadSystem", "HandoffEmptyWakesCpp",
+               "HandoffEmptyWakesRust", "HandoffSyscallsSame"} - values.keys()
     if missing:
         raise SystemExit(f"{' and '.join(MACRO_FILES)} are missing {sorted(missing)}")
     if "KneeGapLoad" not in values and "KneeSplitLoad" not in values:
@@ -814,6 +816,96 @@ def e2e_clock():
     return d
 
 
+def _handoff_row(d, y, label, label_color, cards, fill, stroke, title_color, tag):
+    """One row: sender, queue, worker, reply, left to right with arrows.
+
+    The worker card is grey in every row because it runs the same code in all
+    four. ``cards`` gives the queue and the reply as (title, lines), and ``tag``
+    names the row's per-part times in gen_handoff.tex, printed on each title line.
+    """
+    d.text(30, y + 42, label, 16, label_color, weight=700)
+    xs = [96, 290, 484, 678]
+    w, h = 168, 72
+    queue, reply = cards
+    specs = [
+        ("sender", ["prepares the", "next request"], WHITE, stroke, title_color, "Sender"),
+        (queue[0], queue[1], fill, stroke, title_color, "Queue"),
+        ("worker", ["runs the same", "ShardCore code"], GREY_FILL, GREY_EDGE, NAVY,
+         "Worker"),
+        (reply[0], reply[1], fill, stroke, title_color, "Reply"),
+    ]
+    for x, (title, body, f, s, tc, part) in zip(xs, specs):
+        d.card(x, y, w, h, title, body, fill=f, stroke=s, rx=7, sw=1.3,
+               title_size=14.5, title_color=tc, body_size=13.5, body_color=BODY,
+               pad=11, lh=16, gap=20)
+        d.text(x + w - 11, y + 23, f"{M[f'Stage{part}{tag}']} \u00b5s", 13.5, tc,
+               weight=700, anchor="end")
+    for left, right in zip(xs, xs[1:]):
+        d.arrow(left + w + 2, y + h / 2, right - 3, y + h / 2, color=NAVY, sw=1.6)
+
+
+def same_handoff():
+    """Each language's own handoff against one written the same way in both.
+
+    The worker runs the same ShardCore in every row, so the rows differ only in
+    how a request reaches it and how the reply comes back. Each card carries the
+    mean time of its part of a call, and the bars stack the parts into the whole
+    call. Every number is read from gen_handoff.tex.
+    """
+    d = Diagram("32_same_handoff", 880, 676)
+
+    d.panel(16, 16, 848, 222, "Each language's own standard library", WHITE,
+            GREY_DEEP, header_h=36, header_size=15)
+    _handoff_row(d, 62, "C++", BLUE_DEEP,
+                 (("queue", ["a mutex and two", "condition variables"]),
+                  ("reply", ["std::promise"])),
+                 BLUE_CHIP, BLUE_EDGE, BLUE_DEEP, "CppOwn")
+    _handoff_row(d, 146, "Rust", GREEN_DEEP,
+                 (("queue", ["standard", "sync_channel"]),
+                  ("reply", ["standard", "channel()"])),
+                 GREEN_CHIP, GREEN_EDGE, GREEN_DEEP, "RustOwn")
+
+    d.panel(16, 250, 848, 246, "One handoff written the same way in both",
+            WHITE, AMBER_EDGE, header_color=AMBER_DEEP, header_h=36,
+            header_size=15)
+    same = (("queue", ["ring behind", "one futex lock"]),
+            ("reply", ["one slot", "per sender"]))
+    _handoff_row(d, 296, "C++", BLUE_DEEP, same, AMBER_CHIP, AMBER_EDGE,
+                 AMBER_DEEP, "CppSame")
+    _handoff_row(d, 380, "Rust", GREEN_DEEP, same, AMBER_CHIP, AMBER_EDGE,
+                 AMBER_DEEP, "RustSame")
+    d.text(440, 478, "A sleeping thread is woken with one futex call. "
+           "A thread that is awake is not woken.", 13, MUTED, anchor="middle")
+
+    d.rect(16, 508, 848, 160, GREY_FILL, GREY_EDGE, rx=10, sw=1.2)
+    d.text(440, 529, f"Mean time per call in \u00b5s, system allocator, "
+           f"{M['StagePairs']} paired repeats", 12.5, FAINT, anchor="middle")
+    parts = (("Queue", GREY_DEEP), ("Worker", ORANGE), ("Reply", FAINT),
+             ("Sender", GREY_EDGE))
+    bars = (("C++, own library", "CppOwn", BLUE_DEEP),
+            ("Rust, own library", "RustOwn", GREEN_DEEP),
+            ("C++, same handoff", "CppSame", BLUE_DEEP),
+            ("Rust, same handoff", "RustSame", GREEN_DEEP))
+    longest = max(float(M[f"StageCall{tag}"]) for _, tag, _ in bars)
+    x0, span = 196, 560
+    for i, (label, tag, color) in enumerate(bars):
+        y = 542 + 26 * i
+        d.text(36, y + 14, label, 13, color, weight=700)
+        x = float(x0)
+        for part, fill in parts:
+            w = span * float(M[f"Stage{part}{tag}"]) / longest
+            d.rect(round(x, 2), y, round(max(w, 1.5), 2), 18, fill)
+            x += w
+        d.text(round(x + 10, 2), y + 14, f"{M[f'StageCall{tag}']}", 13, NAVY,
+               weight=700)
+    lx = 196
+    for part, fill in parts:
+        d.rect(lx, 650, 14, 12, fill, rx=2)
+        d.text(lx + 20, 661, part.lower(), 12.5, BODY)
+        lx += 130
+    return d
+
+
 # --------------------------------------------------------------------------
 def ffi_seam():
     """C++ host, thin seam, unmodified core: where unsafe sits, and the cost."""
@@ -1165,7 +1257,7 @@ BUILDERS = [
     benchmark_harness, evidence_classes, traceability_map, stats_pipeline,
     repro_artifacts, threats_validity, contributions, workload_timeline,
     service_lifecycle, research_gap,
-    load_regimes, e2e_clock,
+    load_regimes, e2e_clock, same_handoff,
 ]
 
 

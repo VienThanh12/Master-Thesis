@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 676" width="880" height="676" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs><marker id="a0" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#12233a"/></marker></defs>
+  <rect x="0" y="0" width="880" height="676" fill="#ffffff"/>
+  <rect x="16" y="16" width="848" height="222" rx="11" fill="#ffffff" stroke="#4a5b6b" stroke-width="2.0"/>
+  <rect x="16" y="16" width="848" height="36" rx="11" fill="#4a5b6b"/>
+  <rect x="16" y="41" width="848" height="11" fill="#4a5b6b"/>
+  <text x="440.0" y="39.0" font-size="15" fill="#ffffff" text-anchor="middle" font-weight="700">Each language's own standard library</text>
+  <text x="30" y="104" font-size="16" fill="#1c4e86" font-weight="700">C++</text>
+  <rect x="96" y="62" width="168" height="72" rx="7" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.3"/>
+  <text x="107" y="84.975" font-size="14.5" fill="#1c4e86" font-weight="700">sender</text>
+  <text x="107" y="104.975" font-size="13.5" fill="#33475b">prepares the</text>
+  <text x="107" y="120.975" font-size="13.5" fill="#33475b">next request</text>
+  <text x="253" y="85" font-size="13.5" fill="#1c4e86" text-anchor="end" font-weight="700">0.08 µs</text>
+  <rect x="290" y="62" width="168" height="72" rx="7" fill="#dce8f7" stroke="#bcd0e8" stroke-width="1.3"/>
+  <text x="301" y="84.975" font-size="14.5" fill="#1c4e86" font-weight="700">queue</text>
+  <text x="301" y="104.975" font-size="13.5" fill="#33475b">a mutex and two</text>
+  <text x="301" y="120.975" font-size="13.5" fill="#33475b">condition variables</text>
+  <text x="447" y="85" font-size="13.5" fill="#1c4e86" text-anchor="end" font-weight="700">7.67 µs</text>
+  <rect x="484" y="62" width="168" height="72" rx="7" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.3"/>
+  <text x="495" y="84.975" font-size="14.5" fill="#12233a" font-weight="700">worker</text>
+  <text x="495" y="104.975" font-size="13.5" fill="#33475b">runs the same</text>
+  <text x="495" y="120.975" font-size="13.5" fill="#33475b">ShardCore code</text>
+  <text x="641" y="85" font-size="13.5" fill="#12233a" text-anchor="end" font-weight="700">0.21 µs</text>
+  <rect x="678" y="62" width="168" height="72" rx="7" fill="#dce8f7" stroke="#bcd0e8" stroke-width="1.3"/>
+  <text x="689" y="84.975" font-size="14.5" fill="#1c4e86" font-weight="700">reply</text>
+  <text x="689" y="104.975" font-size="13.5" fill="#33475b">std::promise</text>
+  <text x="835" y="85" font-size="13.5" fill="#1c4e86" text-anchor="end" font-weight="700">7.69 µs</text>
+  <line x1="266" y1="98.0" x2="287" y2="98.0" stroke="#12233a" stroke-width="1.6" marker-end="url(#a0)"/>
+  <line x1="460" y1="98.0" x2="481" y2="98.0" stroke="#12233a" stroke-width="1.6" marker-end="url(#a0)"/>
+  <line x1="654" y1="98.0" x2="675" y2="98.0" stroke="#12233a" stroke-width="1.6" marker-end="url(#a0)"/>
+  <text x="30" y="188" font-size="16" fill="#1f6b41" font-weight="700">Rust</text>
+  <rect x="96" y="146" width="168" height="72" rx="7" fill="#ffffff" stroke="#a8d7bb" stroke-width="1.3"/>
+  <text x="107" y="168.975" font-size="14.5" fill="#1f6b41" font-weight="700">sender</text>
+  <text x="107" y="188.975" font-size="13.5" fill="#33475b">prepares the</text>
+  <text x="107" y="204.975" font-size="13.5" fill="#33475b">next request</text>
+  <text x="253" y="169" font-size="13.5" fill="#1f6b41" text-anchor="end" font-weight="700">0.07 µs</text>
+  <rect x="290" y="146" width="168" height="72" rx="7" fill="#d9f0dd" stroke="#a8d7bb" stroke-width="1.3"/>
+  <text x="301" y="168.975" font-size="14.5" fill="#1f6b41" font-weight="700">queue</text>
+  <text x="301" y="188.975" font-size="13.5" fill="#33475b">standard</text>
+  <text x="301" y="204.975" font-size="13.5" fill="#33475b">sync_channel</text>
+  <text x="447" y="169" font-size="13.5" fill="#1f6b41" text-anchor="end" font-weight="700">6.55 µs</text>
+  <rect x="484" y="146" width="168" height="72" rx="7" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.3"/>
+  <text x="495" y="168.975" font-size="14.5" fill="#12233a" font-weight="700">worker</text>
+  <text x="495" y="188.975" font-size="13.5" fill="#33475b">runs the same</text>
+  <text x="495" y="204.975" font-size="13.5" fill="#33475b">ShardCore code</text>
+  <text x="641" y="169" font-size="13.5" fill="#12233a" text-anchor="end" font-weight="700">0.16 µs</text>
+  <rect x="678" y="146" width="168" height="72" rx="7" fill="#d9f0dd" stroke="#a8d7bb" stroke-width="1.3"/>
+  <text x="689" y="168.975" font-size="14.5" fill="#1f6b41" font-weight="700">reply</text>
+  <text x="689" y="188.975" font-size="13.5" fill="#33475b">standard</text>
+  <text x="689" y="204.975" font-size="13.5" fill="#33475b">channel()</text>
+  <text x="835" y="169" font-size="13.5" fill="#1f6b41" text-anchor="end" font-weight="700">7.55 µs</text>
+  <line x1="266" y1="182.0" x2="287" y2="182.0" stroke="#12233a" stroke-width="1.6" marker-end="url(#a0)"/>
+  <line x1="460" y1="182.0" x2="481" y2="182.0" stroke="#12233a" stroke-width="1.6" marker-end="url(#a0)"/>
+  <line x1="654" y1="182.0" x2="675" y2="182.0" stroke="#12233a" stroke-width="1.6" marker-end="url(#a0)"/>
+  <rect x="16" y="250" width="848" height="246" rx="11" fill="#ffffff" stroke="#c8860d" stroke-width="2.0"/>
+  <rect x="16" y="250" width="848" height="36" rx="11" fill="#a5700c"/>
+  <rect x="16" y="275" width="848" height="11" fill="#a5700c"/>
+  <text x="440.0" y="273.0" font-size="15" fill="#ffffff" text-anchor="middle" font-weight="700">One handoff written the same way in both</text>
+  <text x="30" y="338" font-size="16" fill="#1c4e86" font-weight="700">C++</text>
+  <rect x="96" y="296" width="168" height="72" rx="7" fill="#ffffff" stroke="#c8860d" stroke-width="1.3"/>
+  <text x="107" y="318.975" font-size="14.5" fill="#a5700c" font-weight="700">sender</text>
+  <text x="107" y="338.975" font-size="13.5" fill="#33475b">prepares the</text>
+  <text x="107" y="354.975" font-size="13.5" fill="#33475b">next request</text>
+  <text x="253" y="319" font-size="13.5" fill="#a5700c" text-anchor="end" font-weight="700">0.18 µs</text>
+  <rect x="290" y="296" width="168" height="72" rx="7" fill="#fdecc8" stroke="#c8860d" stroke-width="1.3"/>
+  <text x="301" y="318.975" font-size="14.5" fill="#a5700c" font-weight="700">queue</text>
+  <text x="301" y="338.975" font-size="13.5" fill="#33475b">ring behind</text>
+  <text x="301" y="354.975" font-size="13.5" fill="#33475b">one futex lock</text>
+  <text x="447" y="319" font-size="13.5" fill="#a5700c" text-anchor="end" font-weight="700">6.31 µs</text>
+  <rect x="484" y="296" width="168" height="72" rx="7" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.3"/>
+  <text x="495" y="318.975" font-size="14.5" fill="#12233a" font-weight="700">worker</text>
+  <text x="495" y="338.975" font-size="13.5" fill="#33475b">runs the same</text>
+  <text x="495" y="354.975" font-size="13.5" fill="#33475b">ShardCore code</text>
+  <text x="641" y="319" font-size="13.5" fill="#12233a" text-anchor="end" font-weight="700">0.20 µs</text>
+  <rect x="678" y="296" width="168" height="72" rx="7" fill="#fdecc8" stroke="#c8860d" stroke-width="1.3"/>
+  <text x="689" y="318.975" font-size="14.5" fill="#a5700c" font-weight="700">reply</text>
+  <text x="689" y="338.975" font-size="13.5" fill="#33475b">one slot</text>
+  <text x="689" y="354.975" font-size="13.5" fill="#33475b">per sender</text>
+  <text x="835" y="319" font-size="13.5" fill="#a5700c" text-anchor="end" font-weight="700">6.25 µs</text>
+  <line x1="266" y1="332.0" x2="287" y2="332.0" stroke="#12233a" stroke-width="1.6" marker-end="url(#a0)"/>
+  <line x1="460" y1="332.0" x2="481" y2="332.0" stroke="#12233a" stroke-width="1.6" marker-end="url(#a0)"/>
+  <line x1="654" y1="332.0" x2="675" y2="332.0" stroke="#12233a" stroke-width="1.6" marker-end="url(#a0)"/>
+  <text x="30" y="422" font-size="16" fill="#1f6b41" font-weight="700">Rust</text>
+  <rect x="96" y="380" width="168" height="72" rx="7" fill="#ffffff" stroke="#c8860d" stroke-width="1.3"/>
+  <text x="107" y="402.975" font-size="14.5" fill="#a5700c" font-weight="700">sender</text>
+  <text x="107" y="422.975" font-size="13.5" fill="#33475b">prepares the</text>
+  <text x="107" y="438.975" font-size="13.5" fill="#33475b">next request</text>
+  <text x="253" y="403" font-size="13.5" fill="#a5700c" text-anchor="end" font-weight="700">0.15 µs</text>
+  <rect x="290" y="380" width="168" height="72" rx="7" fill="#fdecc8" stroke="#c8860d" stroke-width="1.3"/>
+  <text x="301" y="402.975" font-size="14.5" fill="#a5700c" font-weight="700">queue</text>
+  <text x="301" y="422.975" font-size="13.5" fill="#33475b">ring behind</text>
+  <text x="301" y="438.975" font-size="13.5" fill="#33475b">one futex lock</text>
+  <text x="447" y="403" font-size="13.5" fill="#a5700c" text-anchor="end" font-weight="700">6.41 µs</text>
+  <rect x="484" y="380" width="168" height="72" rx="7" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.3"/>
+  <text x="495" y="402.975" font-size="14.5" fill="#12233a" font-weight="700">worker</text>
+  <text x="495" y="422.975" font-size="13.5" fill="#33475b">runs the same</text>
+  <text x="495" y="438.975" font-size="13.5" fill="#33475b">ShardCore code</text>
+  <text x="641" y="403" font-size="13.5" fill="#12233a" text-anchor="end" font-weight="700">0.16 µs</text>
+  <rect x="678" y="380" width="168" height="72" rx="7" fill="#fdecc8" stroke="#c8860d" stroke-width="1.3"/>
+  <text x="689" y="402.975" font-size="14.5" fill="#a5700c" font-weight="700">reply</text>
+  <text x="689" y="422.975" font-size="13.5" fill="#33475b">one slot</text>
+  <text x="689" y="438.975" font-size="13.5" fill="#33475b">per sender</text>
+  <text x="835" y="403" font-size="13.5" fill="#a5700c" text-anchor="end" font-weight="700">6.26 µs</text>
+  <line x1="266" y1="416.0" x2="287" y2="416.0" stroke="#12233a" stroke-width="1.6" marker-end="url(#a0)"/>
+  <line x1="460" y1="416.0" x2="481" y2="416.0" stroke="#12233a" stroke-width="1.6" marker-end="url(#a0)"/>
+  <line x1="654" y1="416.0" x2="675" y2="416.0" stroke="#12233a" stroke-width="1.6" marker-end="url(#a0)"/>
+  <text x="440" y="478" font-size="13" fill="#5b6b7b" text-anchor="middle">A sleeping thread is woken with one futex call. A thread that is awake is not woken.</text>
+  <rect x="16" y="508" width="848" height="160" rx="10" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.2"/>
+  <text x="440" y="529" font-size="12.5" fill="#8794a3" text-anchor="middle">Mean time per call in µs, system allocator, 20 paired repeats</text>
+  <text x="36" y="556" font-size="13" fill="#1c4e86" font-weight="700">C++, own library</text>
+  <rect x="196.0" y="542" width="274.45" height="18" fill="#4a5b6b"/>
+  <rect x="470.45" y="542" width="7.51" height="18" fill="#d35400"/>
+  <rect x="477.97" y="542" width="275.17" height="18" fill="#8794a3"/>
+  <rect x="753.14" y="542" width="2.86" height="18" fill="#d7dde3"/>
+  <text x="766.0" y="556" font-size="13" fill="#12233a" font-weight="700">15.65</text>
+  <text x="36" y="582" font-size="13" fill="#1f6b41" font-weight="700">Rust, own library</text>
+  <rect x="196.0" y="568" width="234.38" height="18" fill="#4a5b6b"/>
+  <rect x="430.38" y="568" width="5.73" height="18" fill="#d35400"/>
+  <rect x="436.1" y="568" width="270.16" height="18" fill="#8794a3"/>
+  <rect x="706.26" y="568" width="2.5" height="18" fill="#d7dde3"/>
+  <text x="718.77" y="582" font-size="13" fill="#12233a" font-weight="700">14.32</text>
+  <text x="36" y="608" font-size="13" fill="#1c4e86" font-weight="700">C++, same handoff</text>
+  <rect x="196.0" y="594" width="225.79" height="18" fill="#4a5b6b"/>
+  <rect x="421.79" y="594" width="7.16" height="18" fill="#d35400"/>
+  <rect x="428.95" y="594" width="223.64" height="18" fill="#8794a3"/>
+  <rect x="652.59" y="594" width="6.44" height="18" fill="#d7dde3"/>
+  <text x="669.03" y="608" font-size="13" fill="#12233a" font-weight="700">12.94</text>
+  <text x="36" y="634" font-size="13" fill="#1f6b41" font-weight="700">Rust, same handoff</text>
+  <rect x="196.0" y="620" width="229.37" height="18" fill="#4a5b6b"/>
+  <rect x="425.37" y="620" width="5.73" height="18" fill="#d35400"/>
+  <rect x="431.09" y="620" width="224.0" height="18" fill="#8794a3"/>
+  <rect x="655.09" y="620" width="5.37" height="18" fill="#d7dde3"/>
+  <text x="670.46" y="634" font-size="13" fill="#12233a" font-weight="700">12.98</text>
+  <rect x="196" y="650" width="14" height="12" rx="2" fill="#4a5b6b"/>
+  <text x="216" y="661" font-size="12.5" fill="#33475b">queue</text>
+  <rect x="326" y="650" width="14" height="12" rx="2" fill="#d35400"/>
+  <text x="346" y="661" font-size="12.5" fill="#33475b">worker</text>
+  <rect x="456" y="650" width="14" height="12" rx="2" fill="#8794a3"/>
+  <text x="476" y="661" font-size="12.5" fill="#33475b">reply</text>
+  <rect x="586" y="650" width="14" height="12" rx="2" fill="#d7dde3"/>
+  <text x="606" y="661" font-size="12.5" fill="#33475b">sender</text>
+</svg>
