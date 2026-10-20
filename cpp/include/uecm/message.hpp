@@ -3,6 +3,9 @@
 #include <cstdint>
 #include <future>
 #include <variant>
+#ifdef UECM_BATCH_PROBE
+#include <vector>
+#endif
 
 #include "uecm/error.hpp"
 #include "uecm/types.hpp"
@@ -24,6 +27,9 @@ enum class OpKind : std::uint8_t {
   ReleaseContext,
   Lookup,
   Count,
+#ifdef UECM_BATCH_PROBE
+  SignalBatch,  // PROBE ONLY: several handle_signaling operations for one shard
+#endif
   Stop,  // sentinel to terminate a worker (spec §7.1)
 };
 
@@ -54,6 +60,10 @@ struct Request {
   DrbEntry drb{};
   ReconfigParams reconfig{};
   bool stamp_completion = false;
+#ifdef UECM_BATCH_PROBE
+  // PROBE ONLY: the UEs of one SignalBatch, all owned by the receiving shard.
+  std::vector<UeId> batch_ids;
+#endif
   std::promise<TimedResponse> completion;
 };
 

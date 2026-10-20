@@ -47,6 +47,14 @@ class Service {
   OpResult<UeContextView> lookup(UeId ue_id);
   std::uint64_t           count();  // sum across shards (routed per shard)
 
+#ifdef UECM_BATCH_PROBE
+  // PROBE ONLY. Runs handle_signaling for every id in one message to the shard that owns
+  // ue_ids.front() and answers once, with the response type a single signal call uses.
+  // new_messages_handled counts the operations that succeeded, and accepted is true when
+  // all of them did. An id owned by another shard counts as a failure.
+  OpResult<SignalingAck>  handle_signaling_batch(std::vector<UeId> ue_ids, const SignalingMsg& msg);
+
+#endif
   Completion create_context_async(UeId ue_id, const CreateParams& params,
                                   bool stamp_completion = true);
   Completion setup_connection_async(UeId ue_id, bool stamp_completion = true);

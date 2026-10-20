@@ -93,6 +93,15 @@ void Service::worker_loop(Shard& shard) {
       case OpKind::Count:
         complete(OpResult<std::uint64_t>(core.count()));
         break;
+#ifdef UECM_BATCH_PROBE
+      case OpKind::SignalBatch: {
+        std::uint64_t ok = 0;
+        for (const UeId id : req.batch_ids)
+          if (core.handle_signaling(id, req.signaling).has_value()) ++ok;
+        complete(OpResult<SignalingAck>(SignalingAck{ok == req.batch_ids.size(), ok}));
+        break;
+      }
+#endif
       case OpKind::Stop:
         return;
     }
@@ -211,6 +220,19 @@ OpResult<UeContextView> Service::lookup(UeId ue_id) {
   return std::get<OpResult<UeContextView>>(lookup_async(ue_id, false).get().response);
 }
 
+#ifdef UECM_BATCH_PROBE
+OpResult<SignalingAck> Service::handle_signaling_batch(std::vector<UeId> ue_ids,
+                                                       const SignalingMsg& msg) {
+  if (ue_ids.empty()) return SignalingAck{true, 0};
+  const UeId first = ue_ids.front();
+  Request req;
+  req.signaling = msg;
+  req.batch_ids = std::move(ue_ids);
+  return std::get<OpResult<SignalingAck>>(
+      submit_async(OpKind::SignalBatch, first, std::move(req)).get().response);
+}
+
+#endif
 std::uint64_t Service::count() {
   if (!running_) throw std::logic_error(kNotRunning);
   std::uint64_t total = 0;
