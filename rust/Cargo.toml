@@ -49,6 +49,16 @@ mutex-queue = []
 # block). Tests whether the overload floor is the oneshot allocation. Completions
 # stay 1:1 and blocking. See spec/SPECIFICATION.md §12 and docs/OVERLOAD_MECHANISM.md.
 sync-oneshot = []
+# PROBE ONLY, never a reported arm: one message may carry several signalling
+# operations for one shard (Service::handle_signaling_batch), so the batch probe can
+# separate the cost of a handoff from the cost of an operation in a loaded service.
+# Twin of the C++ option UECM_BATCH_PROBE. See docs/OVERLOAD_MECHANISM.md Method 2.
+batch-probe = []
+# PROBE ONLY, never a reported arm: builds the matched-design probe, the same
+# hand-written queue and reply slot in both languages around the real ShardCore.
+# Changes nothing in the library. Twin of the C++ option UECM_MATCHED_PROBE. See
+# docs/OVERLOAD_MECHANISM.md §4.16.
+matched-probe = []
 
 # The benchmark lives as an example so it can use the dev-dependency (hdrhistogram)
 # while keeping the library itself free of runtime dependencies.
@@ -59,3 +69,13 @@ name = "bench"
 # reported closed-call instrument stays untouched.
 [[example]]
 name = "pipeline"
+
+# Batch probe (Method 2 of docs/OVERLOAD_MECHANISM.md). Twin of cpp/bench/batch.cpp.
+[[example]]
+name = "batch"
+required-features = ["batch-probe"]
+
+# Matched-design probe (§4.16 of docs/OVERLOAD_MECHANISM.md). Twin of cpp/bench/matched.cpp.
+[[example]]
+name = "matched"
+required-features = ["matched-probe"]
