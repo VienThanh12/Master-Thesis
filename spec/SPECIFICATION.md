@@ -982,6 +982,97 @@ which stays true for the recorder-dominated gap it was measured on. It was not r
 the campaign host. Prose quotes the `\Sg*` macros in `gen_probes.tex`. **Do not copy these
 kops/s into `figures/gen_macros.tex`.**
 
+**Further-host session and call profile (recorded 2026-10-19, not compared configurations).**
+Full account in `docs/OVERLOAD_MECHANISM.md` §4.13 to §4.17.
+
+- **Host.** Cherry Servers Lithuania `composed-killdeer`, AMD EPYC 7443P, 64 GB, Ubuntu 26.04.1,
+  kernel 7.0.0-34-generic, `virtualisation: none`, SMT off, boost off, performance governor,
+  `nohz_full=2-17 rcu_nocbs=2-17`, no `isolcpus`, THP `madvise`. The campaign image
+  (`g++` 15.2.1, `rustc` 1.97.1) copied rather than rebuilt, pin 2-17. **A further host, not the
+  campaign host.** `bench/run_campaign_followups.sh --tag 20261019-killdeer` wrote
+  `bench/results-pipeline-20261019-killdeer/` and `bench/results-probes-20261019-killdeer/`.
+  The driver now refuses the campaign tag on any machine whose root UUID is not the campaign
+  host's, so these logs cannot be filed as campaign-host data. The macro generators read neither.
+- **Replications.** With several requests in flight, the capacity rule froze 560000 per producer
+  (as on `major-louse`). Signal and mixed, 20 repeats each: Rust waits less than C++ in 20 and 18
+  of 20 repeats on jemalloc and in 3 and 0 of 20 on the system allocator. Past saturation, the
+  queue swap (fill after, 784 kops/s, 10 repeats): `cpp-deque` 431.8, `cpp-ring` 436.0,
+  `rust-channel` 442.5, `rust-mutexq` 421.7 kops/s. Rust with the C++ queue is slower than stock
+  Rust in 9 of 10 (*p* = 3.91×10⁻³) and falls behind C++ on that clock, which charges Rust for
+  its own fill (last bullet). Without the fill it is about level with C++.
+- **Reply handle.** Allocation per request, by an LD_PRELOAD tracker in the campaign image
+  (deterministic, `bench/results-alloc-20261019-wsl2/`): C++ about 390 bytes (`std::promise`
+  about 220, plus a 480-byte deque chunk every third request freed by the worker), Rust about
+  2,360 bytes, of which a 1,744-byte block is allocated by the worker and freed by the sender
+  every request, and Rust with `--features sync-oneshot` about 810 bytes with nothing freed
+  across threads. In flight (`pipeline_pilot.sh --reply`, 10 repeats per workload), the one-slot
+  reply lifts Rust on the system allocator from 2443 to 3171 kops/s (signal) and 2420 to 3065
+  (mixed), lower wait in 10 of 10 both times, and puts it ahead of C++ on both allocators. Past
+  saturation (`bench/reply_probes.sh`, 10 repeats) it changes nothing detectable: +1.3%
+  (*p* = 0.88) and +0.3% (*p* = 0.79). The in-flight allocator split comes from the standard
+  reply channel. The deferred-clock lead does not.
+- **Kernel calls per request** (`bench/futex_counts.sh`, bpftrace on the host, separate session,
+  3 repeats). Futex waits that slept and wakes that woke a thread: 1.43 to 1.48 per request in
+  all five builds. Wakes that found nobody: `cpp-deque` 1.63, `cpp-ring` 1.63, `rust-mutexq`
+  1.59, `rust-channel` 0.22, `rust-oneshot` 0.20. Rust's `Condvar::notify_one` always makes the
+  call, which is why the Rust copy of the C++ design reproduces them.
+- **Where a call's CPU goes** (Method 1: debug-info builds with unchanged code, `perf` cycle
+  sampling in the container with DWARF unwinding, inline frames named by `addr2line`, 3 repeats,
+  scripts in `bench/results-probes-20261019-killdeer/profile/scripts/`). µs per call at 784
+  kops/s offered: UE operation C++ 0.13 and Rust 0.11, shard queue 4.20 and 3.88, reply handle
+  6.34 and 6.51, dispatch 0.20 and 0.04, harness 0.16 and 0.16, total 11.10 and 10.82. Rust
+  spends 1.25 µs more in user-space queue and reply code and 1.40 µs less in the kernel. A first
+  pass sampled with `task-clock` was biased and is not used.
+- **Work per handoff** (Method 2, `bench/batch_probes.sh`). A probe-only batched request,
+  `Service::handle_signaling_batch` under `--features batch-probe` and `-DUECM_BATCH_PROBE=ON`,
+  carries B signalling operations for one shard and is answered once with the reply type of a
+  single signal call. One sender per shard, back to back, B = 1 to 1024, 5 repeats. Fitting
+  T(B) = h + B·t on the system allocator: C++ h 13.4 µs and t 167 ns, Rust h 11.8 µs and t 107 ns.
+  One operation in a loaded worker costs C++ 1.57 times what it costs Rust [1.53, 1.62] (1.42 on
+  jemalloc), and the operation outweighs the handoff from about 80 (C++) and 111 (Rust)
+  operations per message. The script's 5% stability check fired on 8 of 44 cells, so the run is
+  not certified by its own rule. Its jemalloc builds, like those of `reply_probes.sh` and
+  `pipeline_pilot.sh --reply` that day, used the allocator's defaults rather than
+  `thp:never,narenas:16`.
+- **Matched design** (`bench/matched_probes.sh`, `docs/OVERLOAD_MECHANISM.md` §4.16). A
+  probe-only program per language (`cpp/bench/matched.cpp`, `rust/examples/matched.rs`) runs the
+  real `ShardCore` behind one hand-written handoff, the same in both: a fixed ring per shard
+  under a three-state futex mutex, one reply slot per sender, and the same futex calls, made
+  only when a thread sleeps. The same binary can instead send through the reported `Service`.
+  A self-test gives 20,000 operations identical results in both designs and both languages.
+  Seven senders back to back, 20 interleaved repeats, campaign jemalloc settings. Through the
+  standard libraries Rust leads by 9.0% (system) and 11.8% (jemalloc), 20 of 20 both times.
+  With the matched handoff it leads by 1.3% (17 of 20, *p* = 5.2×10⁻⁵) and 1.4% (16 of 20,
+  *p* = 0.17, cannot tell). Kernel calls per request are equal (3.19 against 3.19, bpftrace),
+  and so is kernel time per operation (7.60 against 7.55 µs). Rust uses 0.12 µs less user CPU
+  per operation. The script's 5% stability rule passed.
+- **Deferred fill inside Rust's window** (§4.17 of the same note). With
+  `--correction-when after`, `bench.cpp` stamps the end of its measured window before
+  `correct_after` and `bench.rs` after it. Setting the cap to 0, which in that mode removes only
+  the deferred fill, lifts Rust by 2.4% (9 of 10, *p* = 0.014) and leaves C++ unchanged (−1.0%,
+  *p* = 0.68). Rust's lead at 784 kops/s offered is then +5.9% rather than +2.4%, 10 of 10 both
+  times. Every comparison across languages on the deferred clock understates Rust, including
+  `figures/gen_probes.tex`'s `\ProbeAfter*` ratios and the `\SgQueue*` swap. The default mode,
+  which every reported campaign used, runs no deferred fill and is unaffected. `bench.rs` now
+  stamps the window's end before the fill, as `bench.cpp` does. Rerun with the fixed build, the
+  fill no longer lowers Rust (*p* = 0.096, opposite sign), and Rust's lead at that load is +7.0%
+  with the fill and +4.0% without it. Deferred-mode logs written before 19 October keep the
+  bias.
+
+- **Time per part, and a second host** (recorded 2026-10-20, `docs/OVERLOAD_MECHANISM.md` §4.18).
+  Cherry Chicago `select-bream`, set up as above. `bench/matched_probes.sh --stages` stamps every
+  call four times on one clock, using the reported services' own `started` and `done` stamps, and
+  splits it into queue, worker, reply and sender. Past saturation the queue and reply take 97 to
+  98% of a call, roughly half each, and the operation at most 1.5%. Through the standard
+  libraries 1.14 µs of Rust's 1.39 µs shorter call is in the queue. With the same handoff the
+  queue and reply match within 0.10 µs. The untimed comparison repeated there gives 7.8% and
+  0.6% (system allocator, 20 repeats each).
+
+What this licenses: on those hosts the language's own work is about 1% of a call past
+saturation, and the builds differ in how their standard libraries hand work between threads.
+With the handoff matched, about 1% separates the languages. It was not measured on the
+campaign host. **Do not copy these numbers into `figures/gen_macros.tex`.**
+
 **Benchmark harness (recorded 2026-07, `bench/`):**
 - Latency capture: C++ uses a from-scratch, header-only HDR histogram
   (`cpp/bench/hdr.hpp`, a port of the canonical HdrHistogram bucketing algorithm);
@@ -1186,6 +1277,22 @@ sweep is `bench/fair_latency_sweep.sh`, and its Clock A run on `calm-husky`
 is certified in the same section. Clock B is certified there too. Compared
 pair, API, and conformance vectors are unchanged. Version remains 1.0. Tag
 `spec-v1.0` is unchanged.
+
+**Amendment 2026-10-19 (recording only, requirements unchanged).** §12 records the
+19 October further-host session, the call profile, the batch probe, the matched-design probe,
+and the deferred-fill window finding. New probe-only tooling: `bench/run_campaign_followups.sh
+--tag`, `bench/pipeline_pilot.sh --reply`, `bench/reply_probes.sh`, `bench/futex_counts.sh`
+(and its `--matched` mode), `bench/batch_probes.sh`, `bench/matched_probes.sh`, and the
+profiling and fill-window scripts kept with their results. Rust gains `--features batch-probe`
+and C++ `-DUECM_BATCH_PROBE=ON`: `Service::handle_signaling_batch`, one message carrying several
+signalling operations for one shard, with a parity test on each side. Rust gains
+`--features matched-probe` and C++ `-DUECM_MATCHED_PROBE=ON`, which build the matched-design
+probe programs and change nothing in either library. Their `--stages` mode (2026-10-20) stamps
+each call with the services' existing `started` and `done` fields. None of these is compiled into a reported
+build. One harness change: `rust/examples/bench.rs` now closes its measured window before the
+deferred fill of `--correction-when after`, as `cpp/bench/bench.cpp` always has. The default
+mode is unchanged. Compared pair, API, and conformance vectors are unchanged. Version remains
+1.0. Tag `spec-v1.0` is unchanged.
 
 ---
 
