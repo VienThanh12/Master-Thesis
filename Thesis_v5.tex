@@ -443,9 +443,9 @@ no longer has the host to itself. It shares the central processing unit
 (CPU), memory, and cache with inference work it does not schedule. When
 that neighbour takes capacity, the control plane saturates sooner: it
 stops keeping up with demand at a lower load than it would alone.
-Chapter~\ref{chapter:eval} finds the widest campaign-clock gaps past
-that point. Later diagnostic sweeps do not reproduce either gap, so they
-cannot be read as a ranking of the two services.
+Chapter~\ref{chapter:eval} therefore drives both implementations past that point.
+It also separates the time spent passing work between threads from the time
+spent in each language's own code.
 
 \item \textbf{Memory-safe languages.} Large software organisations report that the
 majority of their serious security vulnerabilities stem from memory-safety errors,
@@ -587,8 +587,8 @@ to prevent many common programming errors. When code uses an \texttt{unsafe} blo
 \texttt{unsafe} function, the programmer must ensure that certain operations are used 
 correctly because the compiler cannot check all their safety requirements.
 
-Unsafe code is often needed when Rust interacts with C code through a C ABI or uses raw 
-pointers. Unlike Rust, C++ does not have a specific keyword to mark code that requires 
+Unsafe code is often needed when Rust interacts with C code through a C application
+binary interface (ABI) or uses raw pointers. Unlike Rust, C++ does not have a specific keyword to mark code that requires 
 these additional safety guarantees.
 
 In RQ2, the compile-time safety claims apply only to safe Rust, where the compiler can 
