@@ -21,8 +21,10 @@ drain_timeout_s=30
 seed=42
 pin=""
 diagnose=0
+reply=0
 workload=signal
 active_ues=5000
+out_dir=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -38,14 +40,23 @@ while [ $# -gt 0 ]; do
     --seed) seed="$2"; shift 2;;
     --pin) pin="$2"; shift 2;;
     --diagnose) diagnose=1; shift;;
+    # PROBE ONLY: adds Rust with a one-slot reply channel (--features sync-oneshot)
+    # on both allocators. Writes pipeline-reply-* so it can never be read as the
+    # four-variant confirmatory log.
+    --reply) reply=1; shift;;
     --workload) workload="$2"; shift 2;;
     --active-ues) active_ues="$2"; shift 2;;
+    --out-dir) out_dir="$2"; shift 2;;
     *) echo "unknown arg: $1" >&2; exit 2;;
   esac
 done
 
 if [ "$workload" != signal ] && [ "$workload" != mixed ]; then
   echo "unknown --workload '$workload' (use signal|mixed)" >&2
+  exit 2
+fi
+if [ "$diagnose" -eq 1 ] && [ "$reply" -eq 1 ]; then
+  echo "--diagnose and --reply are separate probes; run them one at a time" >&2
   exit 2
 fi
 
@@ -57,12 +68,15 @@ done
   [ "$producers" -gt 0 ] || { echo "repeats, duration, shards, and producers must be > 0" >&2; exit 2; }
 
 mkdir -p "$here/.bin" "$here/results"
+results_root="$here/results"
+[ -n "$out_dir" ] && results_root="$out_dir" && mkdir -p "$results_root"
 stamp="$(date +%Y%m%d-%H%M%S)"
 prefix="pipeline"
 [ "$diagnose" -eq 1 ] && prefix="pipeline-diagnose"
+[ "$reply" -eq 1 ] && prefix="pipeline-reply"
 [ "$workload" = mixed ] && prefix="${prefix}-mixed"
-out="$here/results/$prefix-$stamp.jsonl"
-hist="$here/results/$prefix-$stamp.hist.jsonl"
+out="$results_root/$prefix-$stamp.jsonl"
+hist="$results_root/$prefix-$stamp.hist.jsonl"
 : >"$out"
 : >"$hist"
 
@@ -85,6 +99,14 @@ if [ "$diagnose" -eq 1 ]; then
     --features jemalloc,mutex-queue >/dev/null
   cp "$rust/target/release/examples/pipeline" "$here/.bin/pipeline-rust-jemalloc-mutex"
 fi
+if [ "$reply" -eq 1 ]; then
+  cargo build --release --manifest-path "$rust/Cargo.toml" --example pipeline \
+    --features sync-oneshot >/dev/null
+  cp "$rust/target/release/examples/pipeline" "$here/.bin/pipeline-rust-system-oneshot"
+  cargo build --release --manifest-path "$rust/Cargo.toml" --example pipeline \
+    --features jemalloc,sync-oneshot >/dev/null
+  cp "$rust/target/release/examples/pipeline" "$here/.bin/pipeline-rust-jemalloc-oneshot"
+fi
 
 declare -A binary=(
   [cpp-system]="$cpp/build/pipeline"
@@ -93,9 +115,13 @@ declare -A binary=(
   [rust-jemalloc]="$here/.bin/pipeline-rust-jemalloc"
   [rust-system-mutex]="$here/.bin/pipeline-rust-system-mutex"
   [rust-jemalloc-mutex]="$here/.bin/pipeline-rust-jemalloc-mutex"
+  [rust-system-oneshot]="$here/.bin/pipeline-rust-system-oneshot"
+  [rust-jemalloc-oneshot]="$here/.bin/pipeline-rust-jemalloc-oneshot"
 )
 if [ "$diagnose" -eq 1 ]; then
   variants=(cpp-system rust-system cpp-jemalloc rust-jemalloc rust-system-mutex rust-jemalloc-mutex)
+elif [ "$reply" -eq 1 ]; then
+  variants=(cpp-system rust-system cpp-jemalloc rust-jemalloc rust-system-oneshot rust-jemalloc-oneshot)
 else
   variants=(cpp-system rust-system cpp-jemalloc rust-jemalloc)
 fi
