@@ -1,0 +1,43 @@
+== uecm-bench:el8-gcc15-rust1.97.1 on cores 2-17 (seccomp off, network none) ==
+
+== pinning probes to cores: 2-17 ==
+== building the six arms ==
+== probing at 112000 per producer (784000 offered): 10 repeats x 6 arms = 60 runs ==
+   fill timing: --correction-when after
+  run 1/60 (rep 1, cpp-system)          run 2/60 (rep 1, rust-system)          run 3/60 (rep 1, rust-system-oneshot)          run 4/60 (rep 1, cpp-jemalloc)          run 5/60 (rep 1, rust-jemalloc)          run 6/60 (rep 1, rust-jemalloc-oneshot)          run 7/60 (rep 2, rust-system)          run 8/60 (rep 2, rust-system-oneshot)          run 9/60 (rep 2, cpp-jemalloc)          run 10/60 (rep 2, rust-jemalloc)          run 11/60 (rep 2, rust-jemalloc-oneshot)          run 12/60 (rep 2, cpp-system)          run 13/60 (rep 3, rust-system-oneshot)          run 14/60 (rep 3, cpp-jemalloc)          run 15/60 (rep 3, rust-jemalloc)          run 16/60 (rep 3, rust-jemalloc-oneshot)          run 17/60 (rep 3, cpp-system)          run 18/60 (rep 3, rust-system)          run 19/60 (rep 4, cpp-jemalloc)          run 20/60 (rep 4, rust-jemalloc)          run 21/60 (rep 4, rust-jemalloc-oneshot)          run 22/60 (rep 4, cpp-system)          run 23/60 (rep 4, rust-system)          run 24/60 (rep 4, rust-system-oneshot)          run 25/60 (rep 5, rust-jemalloc)          run 26/60 (rep 5, rust-jemalloc-oneshot)          run 27/60 (rep 5, cpp-system)          run 28/60 (rep 5, rust-system)          run 29/60 (rep 5, rust-system-oneshot)          run 30/60 (rep 5, cpp-jemalloc)          run 31/60 (rep 6, rust-jemalloc-oneshot)          run 32/60 (rep 6, cpp-system)          run 33/60 (rep 6, rust-system)          run 34/60 (rep 6, rust-system-oneshot)          run 35/60 (rep 6, cpp-jemalloc)          run 36/60 (rep 6, rust-jemalloc)          run 37/60 (rep 7, cpp-system)          run 38/60 (rep 7, rust-system)          run 39/60 (rep 7, rust-system-oneshot)          run 40/60 (rep 7, cpp-jemalloc)          run 41/60 (rep 7, rust-jemalloc)          run 42/60 (rep 7, rust-jemalloc-oneshot)          run 43/60 (rep 8, rust-system)          run 44/60 (rep 8, rust-system-oneshot)          run 45/60 (rep 8, cpp-jemalloc)          run 46/60 (rep 8, rust-jemalloc)          run 47/60 (rep 8, rust-jemalloc-oneshot)          run 48/60 (rep 8, cpp-system)          run 49/60 (rep 9, rust-system-oneshot)          run 50/60 (rep 9, cpp-jemalloc)          run 51/60 (rep 9, rust-jemalloc)          run 52/60 (rep 9, rust-jemalloc-oneshot)          run 53/60 (rep 9, cpp-system)          run 54/60 (rep 9, rust-system)          run 55/60 (rep 10, cpp-jemalloc)          run 56/60 (rep 10, rust-jemalloc)          run 57/60 (rep 10, rust-jemalloc-oneshot)          run 58/60 (rep 10, cpp-system)          run 59/60 (rep 10, rust-system)          run 60/60 (rep 10, rust-system-oneshot)        
+
+offered 784,000 ops/s, 10 paired repeats per arm
+
+arm                        kops/s              95% CI  user us/call  kernel us/call
+cpp-system                  437.1      [431.1, 443.0]          5.22            8.51
+rust-system                 443.5      [442.5, 449.7]          6.14            7.65
+rust-system-oneshot         449.3      [438.6, 453.3]          5.89            7.71
+cpp-jemalloc                428.4      [424.5, 434.8]          5.41            8.54
+rust-jemalloc               464.0      [458.8, 469.4]          5.63            7.58
+rust-jemalloc-oneshot       465.5      [446.6, 471.4]          5.51            7.62
+
+1. The lighter reply, per allocator
+   system allocator:
+    rust-system 443.5 against rust-system-oneshot 449.3 kops/s, +1.3%, rust-system-oneshot higher in 7 of 10, paired p=8.81e-01
+   jemalloc:
+    rust-jemalloc 464.0 against rust-jemalloc-oneshot 465.5 kops/s, +0.3%, rust-jemalloc-oneshot higher in 4 of 10, paired p=7.89e-01
+
+2. The allocator difference, with each reply
+   Rust, standard reply:
+    rust-system 443.5 against rust-jemalloc 464.0 kops/s, +4.6%, rust-jemalloc higher in 10 of 10, paired p=1.95e-03
+   Rust, one-slot reply:
+    rust-system-oneshot 449.3 against rust-jemalloc-oneshot 465.5 kops/s, +3.6%, rust-jemalloc-oneshot higher in 7 of 10, paired p=2.15e-02
+   C++ for reference:
+    cpp-system 437.1 against cpp-jemalloc 428.4 kops/s, -2.0%, cpp-jemalloc higher in 1 of 10, paired p=5.86e-03
+
+3. The Rust lead over C++
+   system, standard reply:
+    cpp-system 437.1 against rust-system 443.5 kops/s, +1.5%, rust-system higher in 9 of 10, paired p=9.77e-03
+   system, one-slot reply:
+    cpp-system 437.1 against rust-system-oneshot 449.3 kops/s, +2.8%, rust-system-oneshot higher in 8 of 10, paired p=5.66e-02
+   jemalloc, standard reply:
+    cpp-jemalloc 428.4 against rust-jemalloc 464.0 kops/s, +8.3%, rust-jemalloc higher in 10 of 10, paired p=1.95e-03
+   jemalloc, one-slot reply:
+    cpp-jemalloc 428.4 against rust-jemalloc-oneshot 465.5 kops/s, +8.7%, rust-jemalloc-oneshot higher in 10 of 10, paired p=1.95e-03
+
+wrote /root/thesis.local/bench/results/reply_probes-20261019-120919.jsonl

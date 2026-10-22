@@ -1,0 +1,42 @@
+== uecm-bench:el8-gcc15-rust1.97.1 on cores 2-17 (seccomp off, network none) ==
+
+== pinning probes to cores: 2-17 ==
+== building the four arms ==
+== probing at 112000 per producer (784000 offered): 10 repeats x 4 arms = 40 runs ==
+   fill timing: --correction-when after
+  run 1/40 (rep 1, cpp-deque)        run 2/40 (rep 1, cpp-ring)        run 3/40 (rep 1, rust-channel)        run 4/40 (rep 1, rust-mutexq)        run 5/40 (rep 2, cpp-deque)        run 6/40 (rep 2, cpp-ring)        run 7/40 (rep 2, rust-channel)        run 8/40 (rep 2, rust-mutexq)        run 9/40 (rep 3, cpp-deque)        run 10/40 (rep 3, cpp-ring)        run 11/40 (rep 3, rust-channel)        run 12/40 (rep 3, rust-mutexq)        run 13/40 (rep 4, cpp-deque)        run 14/40 (rep 4, cpp-ring)        run 15/40 (rep 4, rust-channel)        run 16/40 (rep 4, rust-mutexq)        run 17/40 (rep 5, cpp-deque)        run 18/40 (rep 5, cpp-ring)        run 19/40 (rep 5, rust-channel)        run 20/40 (rep 5, rust-mutexq)        run 21/40 (rep 6, cpp-deque)        run 22/40 (rep 6, cpp-ring)        run 23/40 (rep 6, rust-channel)        run 24/40 (rep 6, rust-mutexq)        run 25/40 (rep 7, cpp-deque)        run 26/40 (rep 7, cpp-ring)        run 27/40 (rep 7, rust-channel)        run 28/40 (rep 7, rust-mutexq)        run 29/40 (rep 8, cpp-deque)        run 30/40 (rep 8, cpp-ring)        run 31/40 (rep 8, rust-channel)        run 32/40 (rep 8, rust-mutexq)        run 33/40 (rep 9, cpp-deque)        run 34/40 (rep 9, cpp-ring)        run 35/40 (rep 9, rust-channel)        run 36/40 (rep 9, rust-mutexq)        run 37/40 (rep 10, cpp-deque)        run 38/40 (rep 10, cpp-ring)        run 39/40 (rep 10, rust-channel)        run 40/40 (rep 10, rust-mutexq)      
+
+offered 784,000 ops/s, 10 repeats per arm
+
+arm             sustained kops/s                95% CI
+cpp-deque                 431.81      [429.64, 436.99]
+cpp-ring                  436.01      [433.89, 438.14]
+rust-channel              442.49      [439.41, 447.29]
+rust-mutexq               421.72      [418.95, 429.29]
+
+Divergence and what each substitution does to it
+
+    Baseline divergence, C++ over Rust: 0.98x
+
+Probe 1, Rust queue design matched to the C++ arm:
+    rust-channel 442.49 against rust-mutexq 421.72 kops/s, -4.7%, paired p=3.91e-03
+    Closes the divergence only if Rust moves up towards C++.
+
+Probe 2, C++ hot-path allocation removed:
+    cpp-deque 431.81 against cpp-ring 436.01 kops/s, +1.0%, paired p=2.34e-02
+    Explains the divergence only if C++ moves down towards Rust.
+
+    Ratio with the Rust queue substituted: 1.02x
+    Ratio with the C++ allocation removed: 0.99x
+
+arm             user us/call  kernel us/call  switches/call
+cpp-deque               5.26            8.59            n/a
+cpp-ring                5.06            8.55            n/a
+rust-channel            6.13            7.72            n/a
+rust-mutexq             6.47            8.10            n/a
+
+    Rust ahead of C++ in 8 of 10 paired repeats
+    Share of that lead the C++ queue design removes: 194%
+    Rust with the C++ queue slower than stock Rust in 9 of 10
+
+wrote /root/thesis.local/bench/results/queue_probes-20261019-114434.jsonl

@@ -1,0 +1,163 @@
+{
+ "path": "/root/thesis.local/bench/results/matched_probes-20261019-145238.jsonl",
+ "repeats": 20,
+ "certified": true,
+ "arms": {
+  "cpp-stock-system": {
+   "kops": 452.3245,
+   "lo": 450.818,
+   "hi": 453.0078,
+   "us_per_call": 15.4756,
+   "user_us_per_op": 5.005686005278122,
+   "sys_us_per_op": 8.510677212613816
+  },
+  "rust-stock-system": {
+   "kops": 493.24185,
+   "lo": 490.28465,
+   "hi": 494.9472,
+   "us_per_call": 14.1918,
+   "user_us_per_op": 5.495845122426605,
+   "sys_us_per_op": 7.428117200911803
+  },
+  "cpp-matched-system": {
+   "kops": 550.35315,
+   "lo": 549.0385,
+   "hi": 551.208,
+   "us_per_call": 12.719100000000001,
+   "user_us_per_op": 3.3747246052347917,
+   "sys_us_per_op": 7.601909158495747
+  },
+  "rust-matched-system": {
+   "kops": 556.73815,
+   "lo": 554.7878499999999,
+   "hi": 557.62965,
+   "us_per_call": 12.57325,
+   "user_us_per_op": 3.2544414219229107,
+   "sys_us_per_op": 7.554568687948361
+  },
+  "cpp-stock-jemalloc": {
+   "kops": 449.383,
+   "lo": 442.0545,
+   "hi": 452.16815,
+   "us_per_call": 15.576899999999998,
+   "user_us_per_op": 5.05463025007597,
+   "sys_us_per_op": 8.521153050272403
+  },
+  "rust-stock-jemalloc": {
+   "kops": 504.0767,
+   "lo": 500.18265,
+   "hi": 505.9403,
+   "us_per_call": 13.88675,
+   "user_us_per_op": 5.183373544259272,
+   "sys_us_per_op": 7.427538238072721
+  },
+  "cpp-matched-jemalloc": {
+   "kops": 546.38535,
+   "lo": 539.37165,
+   "hi": 552.19415,
+   "us_per_call": 12.8115,
+   "user_us_per_op": 3.368280693673602,
+   "sys_us_per_op": 7.656081604918423
+  },
+  "rust-matched-jemalloc": {
+   "kops": 554.5735,
+   "lo": 550.06835,
+   "hi": 557.444,
+   "us_per_call": 12.6224,
+   "user_us_per_op": 3.267455638487248,
+   "sys_us_per_op": 7.5981192831289786
+  }
+ },
+ "contrasts": {
+  "rust-stock-system vs cpp-stock-system": {
+   "pct": 9.003485433559025,
+   "lo": 8.47223400763588,
+   "hi": 9.716751954013787,
+   "ahead": 20,
+   "n": 20,
+   "p": 1.9073486328125e-06
+  },
+  "rust-matched-system vs cpp-matched-system": {
+   "pct": 1.2571114574164914,
+   "lo": 0.7938887304271306,
+   "hi": 1.6196193886602912,
+   "ahead": 17,
+   "n": 20,
+   "p": 5.14984130859375e-05
+  },
+  "rust-stock-jemalloc vs cpp-stock-jemalloc": {
+   "pct": 11.83969571610385,
+   "lo": 10.916415021317412,
+   "hi": 14.34152254042948,
+   "ahead": 20,
+   "n": 20,
+   "p": 1.9073486328125e-06
+  },
+  "rust-matched-jemalloc vs cpp-matched-jemalloc": {
+   "pct": 1.3748281364625736,
+   "lo": 0.11895245178570135,
+   "hi": 2.3321186052067766,
+   "ahead": 16,
+   "n": 20,
+   "p": 0.17411231994628906
+  },
+  "cpp-matched-system vs cpp-stock-system": {
+   "pct": 21.726736445526953,
+   "lo": 21.472745398898645,
+   "hi": 22.06170368364143,
+   "ahead": 20,
+   "n": 20,
+   "p": 1.9073486328125e-06
+  },
+  "rust-matched-system vs rust-stock-system": {
+   "pct": 12.732450772965239,
+   "lo": 12.20537709645016,
+   "hi": 13.906770521894053,
+   "ahead": 20,
+   "n": 20,
+   "p": 1.9073486328125e-06
+  },
+  "cpp-matched-jemalloc vs cpp-stock-jemalloc": {
+   "pct": 22.446243828093465,
+   "lo": 21.200254081225143,
+   "hi": 23.81789631832782,
+   "ahead": 20,
+   "n": 20,
+   "p": 1.9073486328125e-06
+  },
+  "rust-matched-jemalloc vs rust-stock-jemalloc": {
+   "pct": 9.842549248900074,
+   "lo": 8.541702804672276,
+   "hi": 10.831583006362406,
+   "ahead": 20,
+   "n": 20,
+   "p": 1.9073486328125e-06
+  },
+  "cpp-matched-jemalloc vs cpp-matched-system": {
+   "pct": -0.7866829454356931,
+   "lo": -2.0375951792372047,
+   "hi": 0.1460851712531767,
+   "ahead": 7,
+   "n": 20,
+   "p": 0.012117385864257812
+  },
+  "rust-matched-jemalloc vs rust-matched-system": {
+   "pct": -0.7383899861566343,
+   "lo": -1.2824186264220416,
+   "hi": 0.100620344457294,
+   "ahead": 7,
+   "n": 20,
+   "p": 0.04842948913574219
+  },
+  "gap change system": {
+   "stock_pct": 9.003463117657251,
+   "matched_pct": 1.2571113568600856,
+   "p": 1.9073486328125e-06
+  },
+  "gap change jemalloc": {
+   "stock_pct": 11.839652645321653,
+   "matched_pct": 1.3746952576532356,
+   "p": 3.814697265625e-06
+  }
+ }
+}
