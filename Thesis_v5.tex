@@ -290,9 +290,9 @@ words used in the thesis.
 
 \begingroup
 \singlespacing
-\setlength{\tabcolsep}{4pt}
-\renewcommand{\arraystretch}{1.15}
-\begin{longtable}{@{}>{\footnotesize\raggedright\arraybackslash}p{0.34\linewidth} >{\footnotesize\raggedright\arraybackslash}p{0.62\linewidth}@{}}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{longtable}{@{}>{\scriptsize\raggedright\arraybackslash}p{0.32\linewidth} >{\scriptsize\raggedright\arraybackslash}p{0.64\linewidth}@{}}
 \hline\hline
 Term & Meaning \\
 \hline
@@ -301,7 +301,7 @@ Term & Meaning \\
 Term & Meaning \\
 \hline
 \endhead
-\multicolumn{2}{@{}l}{\footnotesize\emph{Network}}\\*[2pt]
+\multicolumn{2}{@{}l}{\scriptsize\emph{Network}}\\*[1pt]
 Control plane & The messages that set up and control a call. The user's data travels on the user plane \\
 User plane & The path that carries the user's data. The control plane sets that path up and takes it down \\
 Signalling & The messages that create, change, and end a connection \\
@@ -309,13 +309,14 @@ Handover & Moving one connected device from one cell to another, so the call can
 Cell & One coverage area of the radio network \\
 Mobility & A connected device changing cell while the call continues \\
 UE context & The stored record for one device. A handover or a release changes that record \\
+Bearer & A data channel for one device's user data. The UE context lists its bearers \\
 Reconfiguration & A change to a connection that stays up, such as adding a data channel \\
 Release & Ending one device's connection and deleting its record \\
 Procedure & One action a person would notice, such as setting up a call or moving between cells. It is made of many smaller steps \\
 Open-RAN & The same split base station, opened so each part may come from a different company and run as ordinary software \\
 5G core & The network behind the base station. It forwards each call onward \\
-\\[6pt]
-\multicolumn{2}{@{}l}{\footnotesize\emph{The service}}\\*[2pt]
+\\[2pt]
+\multicolumn{2}{@{}l}{\scriptsize\emph{The service}}\\*[1pt]
 Shard & One slice of the device records. Exactly one thread owns that slice \\
 Producer & A thread that sends the test's requests and waits for each reply \\
 Worker & The thread that owns one shard and carries out the requests for it \\
@@ -323,20 +324,24 @@ Bounded queue & The queue in front of a shard. It has a fixed size and waits whe
 Operation & One request for one device, such as setup or release \\
 Variant & One of the four builds under test. The four are C++ or Rust, each linked with one of the two memory libraries \\
 Allocator & The library that hands out memory and takes it back \\
-\\[6pt]
-\multicolumn{2}{@{}l}{\footnotesize\emph{Timing}}\\*[2pt]
+\\[2pt]
+\multicolumn{2}{@{}l}{\scriptsize\emph{Timing}}\\*[1pt]
 Tail latency & How long the slow calls take, rather than the average call. This thesis reads that from the p99, the p99.9, and the p99.99 \\
 Median & The middle call, once the calls are ordered by how long they took. Half are faster and half are slower \\
 Histogram & The record of how long each call took. Tail latency is read from its slow end \\
+Open-loop & The sender keeps to its send schedule and does not wait for each reply \\
 Offered load & The rate the test tries to send, counted whether or not the service answers in time \\
-Throughput & How many requests the service finishes each second. Offered load is how many the test tries to send \\
+Achieved rate & How fast the service finishes work. It matches offered load until saturation \\
+Throughput & How many requests the service finishes each second \\
 Saturation & The load at which the service can no longer keep up and requests start to wait \\
 Overload & Load past saturation. Requests wait because the service cannot keep up \\
 Round-trip & The time from the planned send until the reply comes back. It includes the wait in the queue \\
 Bare metal & The program runs on the computer itself, with no virtual machine between it and the hardware \\
+Hypervisor & Software that runs virtual machines. The reported campaign has none between the test and the hardware \\
 Guest & A virtual machine an earlier measurement ran in. The reported results come from the bare-metal computer \\
-\\[6pt]
-\multicolumn{2}{@{}l}{\footnotesize\emph{Safety}}\\*[2pt]
+Userland & Programs and libraries above the kernel. The container supplies the compilers; the host supplies the kernel \\
+\\[2pt]
+\multicolumn{2}{@{}l}{\scriptsize\emph{Safety}}\\*[1pt]
 Data race & Two threads use the same memory at once and at least one writes, with nothing to keep the two uses in order \\
 Race condition & A bug that depends on which of two steps finishes first. Safe Rust still compiles these \\
 Use-after-free & Using memory after it has been given back \\
@@ -347,6 +352,8 @@ Borrowing & A temporary loan of a value. The compiler rejects a loan that lasts 
 Safe Rust & Code outside \texttt{unsafe} blocks, where ownership, borrowing, and aliasing are checked at compile time \\
 Unsafe & An \texttt{unsafe} block or function where the programmer takes responsibility and the usual checks do not apply. C++ has no such mark \\
 Sanitiser & A tool that watches a running C++ program and reports some defects. It can report only a path a test actually runs \\
+Undefined behaviour & An operation the C++ standard gives no meaning, such as signed integer overflow. The compiler may assume it never happens \\
+Static analyser & A tool that inspects source code without running it. This study ran none \\
 \hline
 \end{longtable}
 \endgroup
