@@ -54,6 +54,8 @@ python3 "$here/probe_facts.py"
 echo "== regenerating further-host overload macros =="
 python3 "$here/pipeline_facts.py"
 python3 "$here/pipeline_mixed_facts.py"
+# Before the diagrams: 32_same_handoff reads gen_handoff.tex.
+python3 "$here/handoff_facts.py"
 
 # The bare-metal confirmation campaign is a separate dataset with its own design,
 # so it has its own generator rather than a flag on the one above. It describes a
