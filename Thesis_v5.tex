@@ -28,6 +28,30 @@
 % Ragged-right paragraph column: avoids stretched inter-word spacing in narrow cells.
 \newcolumntype{R}[1]{>{\raggedright\arraybackslash}p{#1}}
 
+% Code excerpts. Spaces keep their full width so the rustc carets in fig:uam
+% stay under the code they point at.
+\usepackage{listings}
+\lstdefinelanguage{Rust}{
+  morekeywords={as,break,const,continue,crate,else,enum,extern,false,fn,for,if,
+    impl,in,let,loop,match,mod,move,mut,pub,ref,return,self,Self,static,struct,
+    super,trait,true,type,unsafe,use,where,while},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+}
+\lstset{
+  basicstyle=\ttfamily\scriptsize,
+  columns=fullflexible,
+  keepspaces=true,
+  upquote=true,
+  showstringspaces=false,
+  keywordstyle=\bfseries,
+  commentstyle=\itshape\color{black!60},
+  aboveskip=3pt,
+  belowskip=3pt,
+}
+
 \onehalfspacing 
 
 \sloppy
