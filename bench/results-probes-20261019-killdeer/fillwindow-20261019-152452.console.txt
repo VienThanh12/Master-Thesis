@@ -1,0 +1,53 @@
+== uecm-bench:el8-gcc15-rust1.97.1 on cores 2-17 (seccomp off, network none) ==
+
+  rep 1 cpp-10000   440.4 kops/s, window 5.340 s
+  rep 1 rust-10000  470.6 kops/s, window 4.998 s
+  rep 1 cpp-0       426.3 kops/s, window 5.517 s
+  rep 1 rust-0      455.6 kops/s, window 5.162 s
+  rep 2 rust-10000  452.2 kops/s, window 5.202 s
+  rep 2 cpp-0       435.5 kops/s, window 5.401 s
+  rep 2 rust-0      430.2 kops/s, window 5.467 s
+  rep 2 cpp-10000   429.7 kops/s, window 5.474 s
+  rep 3 cpp-0       426.6 kops/s, window 5.513 s
+  rep 3 rust-0      447.8 kops/s, window 5.252 s
+  rep 3 cpp-10000   414.1 kops/s, window 5.680 s
+  rep 3 rust-10000  455.4 kops/s, window 5.165 s
+  rep 4 rust-0      457.1 kops/s, window 5.145 s
+  rep 4 cpp-10000   437.5 kops/s, window 5.376 s
+  rep 4 rust-10000  468.7 kops/s, window 5.018 s
+  rep 4 cpp-0       444.0 kops/s, window 5.298 s
+  rep 5 cpp-10000   442.2 kops/s, window 5.319 s
+  rep 5 rust-10000  453.1 kops/s, window 5.190 s
+  rep 5 cpp-0       439.2 kops/s, window 5.355 s
+  rep 5 rust-0      474.3 kops/s, window 4.959 s
+  rep 6 rust-10000  451.0 kops/s, window 5.216 s
+  rep 6 cpp-0       429.7 kops/s, window 5.473 s
+  rep 6 rust-0      454.8 kops/s, window 5.171 s
+  rep 6 cpp-10000   426.8 kops/s, window 5.511 s
+  rep 7 cpp-0       431.7 kops/s, window 5.448 s
+  rep 7 rust-0      454.1 kops/s, window 5.180 s
+  rep 7 cpp-10000   427.8 kops/s, window 5.498 s
+  rep 7 rust-10000  467.6 kops/s, window 5.030 s
+  rep 8 rust-0      452.4 kops/s, window 5.199 s
+  rep 8 cpp-10000   423.6 kops/s, window 5.552 s
+  rep 8 rust-10000  463.3 kops/s, window 5.077 s
+  rep 8 cpp-0       440.3 kops/s, window 5.342 s
+  rep 9 cpp-10000   427.6 kops/s, window 5.501 s
+  rep 9 rust-10000  461.2 kops/s, window 5.100 s
+  rep 9 cpp-0       426.3 kops/s, window 5.517 s
+  rep 9 rust-0      429.7 kops/s, window 5.473 s
+  rep 10 rust-10000  451.9 kops/s, window 5.204 s
+  rep 10 cpp-0       440.9 kops/s, window 5.335 s
+  rep 10 rust-0      452.3 kops/s, window 5.200 s
+  rep 10 cpp-10000   438.5 kops/s, window 5.364 s
+
+cpp-10000     428.7 kops/s   window 5.486 s
+cpp-0         433.6 kops/s   window 5.424 s
+rust-10000    458.3 kops/s   window 5.133 s
+rust-0        453.2 kops/s   window 5.189 s
+cpp: cap 0 against cap 10000 +0.8%, higher in 7 of 10, paired p=2.52e-01; window longer with the fill by 44 ms
+rust: cap 0 against cap 10000 -2.4%, higher in 3 of 10, paired p=9.57e-02; window longer with the fill by -124 ms
+Rust against C++ at cap 10000: +7.0%, higher in 10 of 10, paired p=1.95e-03
+Rust against C++ at cap 0: +4.0%, higher in 9 of 10, paired p=5.86e-03
+wrote bench/results/fillwindow-20261019-152452.jsonl
+exit: 0 at 2026-10-19T15:29:35+00:00
