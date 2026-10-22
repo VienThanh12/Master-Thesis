@@ -1,0 +1,40 @@
+=== bench: per request, difference of 120000 and 20000 ops per sender ===
+  cpp-stock     allocs 2.33/req  same-thread frees 1.92  cross-thread frees 0.41  ~  387 B allocated, ~  171 B freed across threads
+         48-63    B  alloc  1.00  freed same thread  0.96  freed by other thread  0.04
+        160-175   B  alloc  1.00  freed same thread  0.96  freed by other thread  0.04
+        480-495   B  alloc  0.33  freed same thread  0.00  freed by other thread  0.33
+  cpp-ring      allocs 2.00/req  same-thread frees 1.95  cross-thread frees 0.05  ~  224 B allocated, ~    6 B freed across threads
+         48-63    B  alloc  1.00  freed same thread  0.98  freed by other thread  0.02
+        160-175   B  alloc  1.00  freed same thread  0.98  freed by other thread  0.02
+  rust-stock    allocs 2.83/req  same-thread frees 1.80  cross-thread frees 1.03  ~ 2358 B allocated, ~ 1761 B freed across threads
+         96-111   B  alloc  0.83  freed same thread  0.81  freed by other thread  0.02
+        512-527   B  alloc  1.00  freed same thread  0.98  freed by other thread  0.02
+       1744-1759  B  alloc  1.00  freed same thread  0.00  freed by other thread  1.00
+  rust-oneshot  allocs 2.83/req  same-thread frees 2.76  cross-thread frees 0.06  ~  806 B allocated, ~   18 B freed across threads
+         64-79    B  alloc  1.00  freed same thread  0.98  freed by other thread  0.02
+         96-111   B  alloc  0.83  freed same thread  0.80  freed by other thread  0.02
+        640-655   B  alloc  1.00  freed same thread  0.98  freed by other thread  0.02
+  rust-mutexq   allocs 2.99/req  same-thread frees 1.96  cross-thread frees 1.03  ~ 2375 B allocated, ~ 1762 B freed across threads
+         96-111   B  alloc  0.99  freed same thread  0.98  freed by other thread  0.02
+        512-527   B  alloc  1.00  freed same thread  0.98  freed by other thread  0.02
+       1744-1759  B  alloc  1.00  freed same thread  0.00  freed by other thread  1.00
+
+=== pipeline: per request, difference of 120000 and 20000 ops per sender ===
+  cpp-stock     allocs 2.42/req  same-thread frees 2.08  cross-thread frees 0.34  ~  427 B allocated, ~  163 B freed across threads
+         48-63    B  alloc  1.00  freed same thread  1.00  freed by other thread  0.00
+        160-175   B  alloc  1.00  freed same thread  1.00  freed by other thread  0.00
+        480-495   B  alloc  0.42  freed same thread  0.08  freed by other thread  0.33
+  cpp-ring      allocs 2.08/req  same-thread frees 2.08  cross-thread frees -0.00  ~  265 B allocated, ~   -0 B freed across threads
+         48-63    B  alloc  1.00  freed same thread  1.00  freed by other thread -0.00
+        160-175   B  alloc  1.00  freed same thread  1.00  freed by other thread -0.00
+        480-495   B  alloc  0.08  freed same thread  0.08  freed by other thread  0.00
+  rust-stock    allocs 2.00/req  same-thread frees 1.00  cross-thread frees 1.00  ~ 2272 B allocated, ~ 1751 B freed across threads
+        512-527   B  alloc  1.00  freed same thread  1.00  freed by other thread -0.00
+       1744-1759  B  alloc  1.00  freed same thread  0.00  freed by other thread  1.00
+  rust-oneshot  allocs 2.00/req  same-thread frees 2.00  cross-thread frees 0.00  ~  720 B allocated, ~    0 B freed across threads
+         64-79    B  alloc  1.00  freed same thread  1.00  freed by other thread  0.00
+        640-655   B  alloc  1.00  freed same thread  1.00  freed by other thread  0.00
+  rust-mutexq   allocs 2.00/req  same-thread frees 1.00  cross-thread frees 1.00  ~ 2272 B allocated, ~ 1752 B freed across threads
+        512-527   B  alloc  1.00  freed same thread  1.00  freed by other thread  0.00
+       1744-1759  B  alloc  1.00  freed same thread  0.00  freed by other thread  1.00
+
