@@ -1,0 +1,163 @@
+{
+ "path": "/root/thesis.local/bench/results/matched_probes-20261020-115041.jsonl",
+ "repeats": 20,
+ "certified": true,
+ "arms": {
+  "cpp-stock-system": {
+   "kops": 452.78835,
+   "lo": 450.8058,
+   "hi": 454.2535,
+   "us_per_call": 15.459800000000001,
+   "user_us_per_op": 4.929021571821245,
+   "sys_us_per_op": 8.571396503683797
+  },
+  "rust-stock-system": {
+   "kops": 489.45734999999996,
+   "lo": 487.389,
+   "hi": 490.415,
+   "us_per_call": 14.301549999999999,
+   "user_us_per_op": 5.520741058306156,
+   "sys_us_per_op": 7.5251363019506785
+  },
+  "cpp-matched-system": {
+   "kops": 548.17385,
+   "lo": 545.591,
+   "hi": 550.31915,
+   "us_per_call": 12.76965,
+   "user_us_per_op": 3.298755260194294,
+   "sys_us_per_op": 7.681672562329295
+  },
+  "rust-matched-system": {
+   "kops": 552.25665,
+   "lo": 550.6465,
+   "hi": 554.26665,
+   "us_per_call": 12.67525,
+   "user_us_per_op": 3.223392108095121,
+   "sys_us_per_op": 7.641852940064894
+  },
+  "cpp-stock-jemalloc": {
+   "kops": 447.7233,
+   "lo": 444.97085,
+   "hi": 451.4665,
+   "us_per_call": 15.63465,
+   "user_us_per_op": 4.993073690552473,
+   "sys_us_per_op": 8.637290536195607
+  },
+  "rust-stock-jemalloc": {
+   "kops": 504.0907,
+   "lo": 502.4225,
+   "hi": 506.3703,
+   "us_per_call": 13.8864,
+   "user_us_per_op": 5.1097486579931655,
+   "sys_us_per_op": 7.4603919270802
+  },
+  "cpp-matched-jemalloc": {
+   "kops": 544.307,
+   "lo": 534.70885,
+   "hi": 547.701,
+   "us_per_call": 12.86045,
+   "user_us_per_op": 3.2844826036923944,
+   "sys_us_per_op": 7.77122681874008
+  },
+  "rust-matched-jemalloc": {
+   "kops": 550.158,
+   "lo": 548.3276500000001,
+   "hi": 551.35635,
+   "us_per_call": 12.723600000000001,
+   "user_us_per_op": 3.2523031035351213,
+   "sys_us_per_op": 7.685572493741324
+  }
+ },
+ "contrasts": {
+  "rust-stock-system vs cpp-stock-system": {
+   "pct": 7.811917118694433,
+   "lo": 7.491485807935419,
+   "hi": 8.443818544488476,
+   "ahead": 20,
+   "n": 20,
+   "p": 1.9073486328125e-06
+  },
+  "rust-matched-system vs cpp-matched-system": {
+   "pct": 0.6297252774361246,
+   "lo": 0.2428771340327654,
+   "hi": 1.287206579726529,
+   "ahead": 16,
+   "n": 20,
+   "p": 0.006992340087890625
+  },
+  "rust-stock-jemalloc vs cpp-stock-jemalloc": {
+   "pct": 12.292901657318374,
+   "lo": 11.456076503600336,
+   "hi": 13.200929057262567,
+   "ahead": 19,
+   "n": 20,
+   "p": 3.814697265625e-06
+  },
+  "rust-matched-jemalloc vs cpp-matched-jemalloc": {
+   "pct": 0.7272683819670841,
+   "lo": 0.15950936426157686,
+   "hi": 2.7904405387111826,
+   "ahead": 14,
+   "n": 20,
+   "p": 0.03461456298828125
+  },
+  "cpp-matched-system vs cpp-stock-system": {
+   "pct": 21.427241392165023,
+   "lo": 20.51887856966946,
+   "hi": 21.79437796331849,
+   "ahead": 20,
+   "n": 20,
+   "p": 1.9073486328125e-06
+  },
+  "rust-matched-system vs rust-stock-system": {
+   "pct": 12.780804315521618,
+   "lo": 12.492759411223098,
+   "hi": 13.246277183351921,
+   "ahead": 20,
+   "n": 20,
+   "p": 1.9073486328125e-06
+  },
+  "cpp-matched-jemalloc vs cpp-stock-jemalloc": {
+   "pct": 21.54285286309185,
+   "lo": 20.639370022451835,
+   "hi": 22.42022937146856,
+   "ahead": 20,
+   "n": 20,
+   "p": 1.9073486328125e-06
+  },
+  "rust-matched-jemalloc vs rust-stock-jemalloc": {
+   "pct": 9.015452214146544,
+   "lo": 8.552907416093575,
+   "hi": 9.659669266390424,
+   "ahead": 20,
+   "n": 20,
+   "p": 1.9073486328125e-06
+  },
+  "cpp-matched-jemalloc vs cpp-matched-system": {
+   "pct": -0.5141109876988622,
+   "lo": -2.603825851525034,
+   "hi": 0.1649718834642167,
+   "ahead": 8,
+   "n": 20,
+   "p": 0.019208908081054688
+  },
+  "rust-matched-jemalloc vs rust-matched-system": {
+   "pct": -0.3224063473778508,
+   "lo": -0.7866293649482747,
+   "hi": 0.132680739138476,
+   "ahead": 8,
+   "n": 20,
+   "p": 0.06968498229980469
+  },
+  "gap change system": {
+   "stock_pct": 7.811862254644897,
+   "matched_pct": 0.6296797388353426,
+   "p": 1.9073486328125e-06
+  },
+  "gap change jemalloc": {
+   "stock_pct": 12.292602623063464,
+   "matched_pct": 0.7272657643124347,
+   "p": 4.9591064453125e-05
+  }
+ }
+}
