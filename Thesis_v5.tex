@@ -725,11 +725,10 @@ Five vendor-hosted Master's theses, all
 done at Ericsson, have compared candidate languages for RAN and telecom
 software. One compares run-time performance with development effort for C++,
 Rust, and Go~\cite{karlback2021ran}. One tests whether Rust can replace C in
-RAN node management~\cite{olsson2023ranmgmt}. One builds a packet
-processor, one thread per core, in async Rust. It measures that processor
-against the Data Plane Development Kit (DPDK) program it
-mirrors~\cite{olsson2023asyncpackets}. One measures median and p99 latency for
-control-plane steps across five async
+RAN node management~\cite{olsson2023ranmgmt}. One builds a packet processor in
+async Rust, with one thread per core, and measures it against the Data Plane
+Development Kit (DPDK) program it mirrors~\cite{olsson2023asyncpackets}. One
+measures median and p99 latency for control-plane steps across five async
 frameworks~\cite{arvidsson2025async}. The last builds matched C++ and Rust
 versions of one program. That program turns a packed Abstract Syntax Notation
 One (ASN.1) message back into a readable form. It compares
