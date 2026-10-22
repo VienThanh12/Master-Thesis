@@ -1,0 +1,385 @@
+{
+ "label": "rust-channel-7",
+ "throughput_ops_s": 428515.5,
+ "window_s": 4.003297000000202,
+ "samples_ns_total": 18634981365,
+ "us_per_call_total": 10.86287084805924,
+ "us_per_call": {
+  "kernel|reply handle": 4.835391128771205,
+  "kernel|shard queue": 2.978181226870655,
+  "own code|harness": 0.14922967196689912,
+  "own code|reply handle": 1.1856763780495032,
+  "own code|UE operation": 0.10142954266500175,
+  "own code|shard queue": 0.8773072512116531,
+  "allocator|reply handle": 0.5817625493084584,
+  "kernel|unknown": 0.03322691914887989,
+  "own code|unknown": 0.022151279432586587,
+  "kernel|handoff, unresolved": 0.025065921463190085,
+  "own code|service dispatch": 0.037890346397845484,
+  "allocator|unknown": 0.02390006465094869,
+  "own code|handoff, unresolved": 0.009326854497931195,
+  "allocator|UE operation": 0.002331713624482799
+ },
+ "kernel_us_per_call": {
+  "reply handle|putting a thread to sleep": 2.760166002981513,
+  "reply handle|waking a thread": 0.9169463828278607,
+  "shard queue|putting a thread to sleep": 1.7038997310908053,
+  "shard queue|waking a thread": 0.5975016162737172,
+  "reply handle|other kernel": 1.0510199162356215,
+  "shard queue|other kernel": 0.611491898020614,
+  "reply handle|entering or leaving the kernel": 0.05188062814474227,
+  "shard queue|entering or leaving the kernel": 0.025065921463190085,
+  "unknown|other kernel": 0.03322691914887989,
+  "reply handle|other futex": 0.05537819858146647,
+  "handoff, unresolved|other kernel": 0.025065921463190085,
+  "shard queue|other futex": 0.04022206002232828
+ },
+ "role_us_per_call": {
+  "sender": 6.066535922498122,
+  "worker": 4.796334925561117
+ },
+ "owner_found_by_us_per_call": {
+  "named frame": 7.295349002600557,
+  "thread and direction": 3.453850806265146,
+  "named frame overruled": 2.067647056510122,
+  "unresolved": 0.11367103919353644
+ },
+ "rule_check_us_per_call": {
+  "agree": 3.334933411416523,
+  "disagree": 2.0688129133223634
+ },
+ "threads": {
+  "60": "sender",
+  "54": "worker",
+  "65": "sender",
+  "53": "worker",
+  "58": "worker",
+  "61": "sender",
+  "59": "worker",
+  "63": "sender",
+  "56": "worker",
+  "66": "sender",
+  "55": "worker",
+  "57": "worker",
+  "64": "sender",
+  "62": "sender"
+ },
+ "top": {
+  "kernel|reply handle": [
+   [
+    "delay_halt_mwaitx",
+    0.38123517760293757
+   ],
+   [
+    "entry_SYSRETQ_unsafe_stack",
+    0.37190832310500643
+   ],
+   [
+    "futex_hash",
+    0.2168493670769003
+   ],
+   [
+    "native_read_msr",
+    0.1742955934300892
+   ],
+   [
+    "ttwu_queue_wakelist",
+    0.15389309921586475
+   ],
+   [
+    "dequeue_entity",
+    0.13990281746896793
+   ]
+  ],
+  "kernel|shard queue": [
+   [
+    "delay_halt_mwaitx",
+    0.2518250714441423
+   ],
+   [
+    "entry_SYSRETQ_unsafe_stack",
+    0.223261579544228
+   ],
+   [
+    "futex_hash",
+    0.14281745949957145
+   ],
+   [
+    "native_read_msr",
+    0.09968075744663965
+   ],
+   [
+    "ttwu_queue_wakelist",
+    0.09501733019767405
+   ],
+   [
+    "futex_wake",
+    0.08802218932422566
+   ]
+  ],
+  "own code|harness": [
+   [
+    "[unknown]",
+    0.07869533482629446
+   ],
+   [
+    "<bench::workload::Workload>::next",
+    0.014573210153017494
+   ],
+   [
+    "__clock_gettime_2",
+    0.009909782904051895
+   ],
+   [
+    "<u64>::saturating_add",
+    0.009909782904051895
+   ],
+   [
+    "bench::main::{closure#1}::{closure#0}",
+    0.009326854497931195
+   ],
+   [
+    "<std::sys::time::unix::Instant>::now",
+    0.0034975704367241982
+   ]
+  ],
+  "own code|reply handle": [
+   [
+    "<std::sync::mpmc::waker::Waker>::try_select::{closure#0}",
+    0.1579735980587096
+   ],
+   [
+    "<std::sys::sync::thread_parking::futex::Parker>::park",
+    0.12474667890982974
+   ],
+   [
+    "<std::sys::sync::thread_parking::futex::Parker>::unpark",
+    0.09268561657319126
+   ],
+   [
+    "__memmove_avx_unaligned_erms",
+    0.08977097454258776
+   ],
+   [
+    "<alloc::sync::Arc<std::sync::mpmc::context::Inner> as core::clone::Clone>::clone",
+    0.07986119163853586
+   ],
+   [
+    "<std::sync::mpmc::list::Slot<uecm::message::Completion<core::result::Result<uecm::types::SignalingAck, uecm::error::OpError>>>>::wait_write",
+    0.056544055393707875
+   ]
+  ],
+  "own code|UE operation": [
+   [
+    "core::intrinsics::likely",
+    0.027397635087672886
+   ],
+   [
+    "<uecm::shard_core::ShardCore>::handle_signaling",
+    0.025648849869310788
+   ],
+   [
+    "core::core_arch::x86::sse2::_mm_movemask_epi8",
+    0.011075639716293294
+   ],
+   [
+    "<uecm::shard_core::ShardCore>::begin_reconfigure",
+    0.004663427248965598
+   ],
+   [
+    "<uecm::shard_core::ShardCore>::finish_reconfigure",
+    0.004080498842844898
+   ],
+   [
+    "<uecm::shard_core::ShardCore>::add_drb",
+    0.0034975704367241982
+   ]
+  ],
+  "own code|shard queue": [
+   [
+    "<std::sync::mpmc::array::Channel<uecm::message::Request>>::start_send",
+    0.15156138559138194
+   ],
+   [
+    "<std::sync::mpmc::Sender<uecm::message::Request>>::send",
+    0.11192225397517434
+   ],
+   [
+    "<std::sys::sync::mutex::futex::Mutex>::spin",
+    0.08977097454258776
+   ],
+   [
+    "<std::sync::mpmc::waker::Waker>::try_select::{closure#0}",
+    0.07869533482629446
+   ],
+   [
+    "<std::sys::sync::thread_parking::futex::Parker>::park",
+    0.07578069279569097
+   ],
+   [
+    "<std::sys::sync::mutex::futex::Mutex>::lock",
+    0.07053433714060467
+   ]
+  ],
+  "allocator|reply handle": [
+   [
+    "_int_free",
+    0.1842053763341411
+   ],
+   [
+    "__memset_avx2_unaligned_erms",
+    0.10900761194457086
+   ],
+   [
+    "__calloc",
+    0.09035390294870846
+   ],
+   [
+    "_int_malloc",
+    0.06353919626715628
+   ],
+   [
+    "__GI___libc_free",
+    0.06179041104879417
+   ],
+   [
+    "unlink_chunk.isra.2",
+    0.045468415677414574
+   ]
+  ],
+  "kernel|unknown": [
+   [
+    "entry_SYSCALL_64_safe_stack",
+    0.02448299305706939
+   ],
+   [
+    "entry_SYSCALL_64_after_hwframe",
+    0.008743926091810496
+   ]
+  ],
+  "own code|unknown": [
+   [
+    "<alloc::raw_vec::RawVecInner>::deallocate",
+    0.011075639716293294
+   ],
+   [
+    "<alloc::raw_vec::RawVecInner>::finish_grow",
+    0.0029146420306034987
+   ],
+   [
+    "__rustc::__rust_no_alloc_shim_is_unstable_v2",
+    0.0017487852183620991
+   ],
+   [
+    "<alloc::raw_vec::RawVec<std::sync::mpmc::waker::Entry>>::grow_one",
+    0.0011658568122413994
+   ],
+   [
+    "<std::time::Instant>::duration_since",
+    0.0011658568122413994
+   ],
+   [
+    "core::mem::replace::<core::slice::iter::Iter<std::sync::mpmc::waker::Entry>>",
+    0.0011658568122413994
+   ]
+  ],
+  "kernel|handoff, unresolved": [
+   [
+    "entry_SYSCALL_64",
+    0.022734207838707287
+   ],
+   [
+    "syscall_return_via_sysret",
+    0.002331713624482799
+   ]
+  ],
+  "own code|service dispatch": [
+   [
+    "uecm::service::worker_loop",
+    0.006412212467327697
+   ],
+   [
+    "uecm::service::completed::<core::result::Result<uecm::types::SignalingAck, uecm::error::OpError>>",
+    0.0058292840612069975
+   ],
+   [
+    "<uecm::service::Service>::handle_signaling",
+    0.0058292840612069975
+   ],
+   [
+    "<uecm::service::Service>::handle_signaling_completion",
+    0.0034975704367241982
+   ],
+   [
+    "<uecm::service::Service>::shard_tx",
+    0.0029146420306034987
+   ],
+   [
+    "<uecm::service::Service>::add_drb_completion",
+    0.0029146420306034987
+   ]
+  ],
+  "allocator|unknown": [
+   [
+    "__GI___libc_free",
+    0.011658568122413995
+   ],
+   [
+    "__GI___libc_malloc",
+    0.005246355655086297
+   ],
+   [
+    "_int_free",
+    0.0029146420306034987
+   ],
+   [
+    "__rustc::__rust_dealloc",
+    0.0011658568122413994
+   ],
+   [
+    "_int_malloc",
+    0.0005829284061206997
+   ],
+   [
+    "__memmove_avx_unaligned_erms",
+    0.0005829284061206997
+   ]
+  ],
+  "own code|handoff, unresolved": [
+   [
+    "<std::sys::sync::mutex::futex::Mutex>::unlock",
+    0.0017487852183620991
+   ],
+   [
+    "<std::sys::sync::mutex::futex::Mutex>::lock",
+    0.0017487852183620991
+   ],
+   [
+    "<std::sys::sync::mutex::futex::Mutex>::spin",
+    0.0011658568122413994
+   ],
+   [
+    "<core::ptr::non_null::NonNull<std::sync::mpmc::waker::Entry>>::add",
+    0.0011658568122413994
+   ],
+   [
+    "core::sync::atomic::atomic_load::<usize>",
+    0.0011658568122413994
+   ],
+   [
+    "std::panicking::panic_count::count_is_zero",
+    0.0005829284061206997
+   ]
+  ],
+  "allocator|UE operation": [
+   [
+    "_int_free",
+    0.0017487852183620991
+   ],
+   [
+    "__GI___libc_free",
+    0.0005829284061206997
+   ]
+  ]
+ }
+}

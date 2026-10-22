@@ -1,0 +1,34 @@
+== rust-channel-8: 430.4 kops/s, window 4.00 s, 10.81 us of CPU per finished call ==
+owner                     own code       allocator          kernel   unwind failed     total
+UE operation                 0.089           0.002           0.000           0.000     0.092
+shard queue                  0.906           0.000           2.997           0.000     3.903
+reply handle                 1.148           0.563           4.766           0.000     6.477
+service dispatch             0.042           0.000           0.000           0.000     0.042
+harness                      0.164           0.000           0.000           0.000     0.164
+handoff, unresolved           0.012           0.000           0.039           0.000     0.052
+unknown                      0.024           0.022           0.034           0.000     0.080
+kernel time by what the kernel was doing (us per call):
+    reply handle       putting a thread to sleep    2.749
+    shard queue        putting a thread to sleep    1.675
+    reply handle       other kernel                 0.999
+    reply handle       waking a thread              0.904
+    shard queue        other kernel                 0.662
+    shard queue        waking a thread              0.597
+    reply handle       other futex                  0.060
+    reply handle       entering or leaving the kernel 0.054
+    handoff, unresolved other kernel                 0.039
+    shard queue        other futex                  0.035
+    unknown            other kernel                 0.034
+    shard queue        entering or leaving the kernel 0.027
+by thread: sender 6.07, worker 4.74  (7 workers, 7 senders identified)
+owner found by: named frame 7.24, thread and direction 3.43, named frame overruled 2.05, unresolved 0.13
+thread-and-direction rule matches the named frame for 61.7% of the queue and reply time where both are known (5.35 us per call)
+  top in own code|UE operation:
+        20.9 ns  <uecm::shard_core::ShardCore>::handle_signaling
+        17.4 ns  core::intrinsics::likely
+         9.9 ns  core::core_arch::x86::sse2::_mm_movemask_epi8
+         6.4 ns  <uecm::shard_core::ShardCore>::finish_reconfigure
+         5.8 ns  <uecm::shard_core::ShardCore>::begin_reconfigure
+         5.2 ns  <u64>::wrapping_mul
+         4.6 ns  <uecm::shard_core::ShardCore>::add_drb
+         3.5 ns  <uecm::shard_core::ShardCore>::create_context

@@ -1,0 +1,34 @@
+== rust-channel-7: 428.5 kops/s, window 4.00 s, 10.86 us of CPU per finished call ==
+owner                     own code       allocator          kernel   unwind failed     total
+UE operation                 0.101           0.002           0.000           0.000     0.104
+shard queue                  0.877           0.000           2.978           0.000     3.855
+reply handle                 1.186           0.582           4.835           0.000     6.603
+service dispatch             0.038           0.000           0.000           0.000     0.038
+harness                      0.149           0.000           0.000           0.000     0.149
+handoff, unresolved           0.009           0.000           0.025           0.000     0.034
+unknown                      0.022           0.024           0.033           0.000     0.079
+kernel time by what the kernel was doing (us per call):
+    reply handle       putting a thread to sleep    2.760
+    shard queue        putting a thread to sleep    1.704
+    reply handle       other kernel                 1.051
+    reply handle       waking a thread              0.917
+    shard queue        other kernel                 0.611
+    shard queue        waking a thread              0.598
+    reply handle       other futex                  0.055
+    reply handle       entering or leaving the kernel 0.052
+    shard queue        other futex                  0.040
+    unknown            other kernel                 0.033
+    shard queue        entering or leaving the kernel 0.025
+    handoff, unresolved other kernel                 0.025
+by thread: sender 6.07, worker 4.80  (7 workers, 7 senders identified)
+owner found by: named frame 7.30, thread and direction 3.45, named frame overruled 2.07, unresolved 0.11
+thread-and-direction rule matches the named frame for 61.7% of the queue and reply time where both are known (5.40 us per call)
+  top in own code|UE operation:
+        27.4 ns  core::intrinsics::likely
+        25.6 ns  <uecm::shard_core::ShardCore>::handle_signaling
+        11.1 ns  core::core_arch::x86::sse2::_mm_movemask_epi8
+         4.7 ns  <uecm::shard_core::ShardCore>::begin_reconfigure
+         4.1 ns  <uecm::shard_core::ShardCore>::finish_reconfigure
+         3.5 ns  <uecm::shard_core::ShardCore>::add_drb
+         3.5 ns  <uecm::shard_core::ShardCore>::create_context
+         3.5 ns  <core::slice::iter::Iter<uecm::types::DrbEntry> as core::iter::traits::iterator::Iterator>::any::<<uecm::shard_core::Sha

@@ -1,0 +1,23 @@
+== rust-oneshot-8: 439.0 kops/s, window 4.00 s, 10.61 us of CPU per finished call ==
+owner                     own code       allocator          kernel   unwind failed     total
+shard queue                  0.583           0.130           4.140           0.000     4.853
+reply handle                 1.620           0.217           3.506           0.000     5.343
+service dispatch             0.107           0.002           0.002           0.000     0.111
+harness                      0.148           0.013           0.000           0.000     0.160
+handoff, unresolved           0.011           0.001           0.045           0.000     0.057
+unknown                      0.040           0.012           0.037           0.000     0.089
+kernel time by what the kernel was doing (us per call):
+    shard queue        putting a thread to sleep    3.985
+    reply handle       other kernel                 1.561
+    reply handle       waking a thread              1.432
+    reply handle       putting a thread to sleep    0.396
+    shard queue        waking a thread              0.090
+    reply handle       other futex                  0.073
+    shard queue        other kernel                 0.059
+    handoff, unresolved other kernel                 0.045
+    reply handle       entering or leaving the kernel 0.044
+    unknown            other kernel                 0.037
+by thread: sender 0.86, worker 9.75  (13 workers, 1 senders identified)
+owner found by: named frame 7.10, named frame overruled 3.99, thread and direction 3.37, unresolved 0.15
+thread-and-direction rule matches the named frame for 9.3% of the queue and reply time where both are known (4.40 us per call)
+  top in own code|UE operation:

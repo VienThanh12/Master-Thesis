@@ -1,0 +1,32 @@
+== cpp-deque-8: 408.6 kops/s, window 4.00 s, 11.12 us of CPU per finished call ==
+owner                     own code       allocator          kernel   unwind failed     total
+UE operation                 0.163           0.006           0.000           0.000     0.169
+shard queue                  0.651           0.145           3.474           0.000     4.270
+reply handle                 0.549           0.045           5.690           0.000     6.283
+service dispatch             0.176           0.000           0.000           0.000     0.176
+harness                      0.165           0.000           0.000           0.000     0.165
+handoff, unresolved           0.000           0.000           0.006           0.000     0.006
+unknown                      0.000           0.000           0.051           0.000     0.051
+kernel time by what the kernel was doing (us per call):
+    reply handle       putting a thread to sleep    2.921
+    shard queue        putting a thread to sleep    1.659
+    reply handle       other kernel                 1.492
+    reply handle       waking a thread              1.199
+    shard queue        other kernel                 1.069
+    shard queue        waking a thread              0.681
+    reply handle       other futex                  0.063
+    shard queue        other futex                  0.057
+    unknown            other kernel                 0.051
+    reply handle       entering or leaving the kernel 0.015
+by thread: sender 5.58, worker 5.54  (7 workers, 7 senders identified)
+owner found by: named frame 11.06, unresolved 0.06
+thread-and-direction rule matches the named frame for 98.7% of the queue and reply time where both are known (8.57 us per call)
+  top in own code|UE operation:
+        53.8 ns  std::_Hashtable<unsigned long, std::pair<unsigned long const, uecm::UeContext>, std::allocator<std::pair<unsigned long c
+        44.6 ns  uecm::ShardCore::handle_signaling(unsigned long, uecm::SignalingMsg const&)
+        14.1 ns  uecm::fnv1a_64(unsigned long)
+        10.4 ns  uecm::ShardCore::complete_reconfigure(unsigned long)
+         8.6 ns  uecm::ShardCore::add_drb(unsigned long, uecm::DrbEntry const&)
+         6.1 ns  uecm::ShardCore::begin_reconfigure(unsigned long, uecm::ReconfigParams const&)
+         5.5 ns  uecm::ShardCore::setup_connection(unsigned long)
+         4.9 ns  std::_Hashtable<unsigned long, std::pair<unsigned long const, uecm::UeContext>, std::allocator<std::pair<unsigned long c

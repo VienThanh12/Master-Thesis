@@ -1,0 +1,324 @@
+{
+ "label": "cpp-deque-7",
+ "throughput_ops_s": 409916.1,
+ "window_s": 4.001796000000468,
+ "samples_ns_total": 18201981798,
+ "us_per_call_total": 11.096058910629164,
+ "us_per_call": {
+  "kernel|reply handle": 5.8095506767550775,
+  "kernel|shard queue": 3.392460599805038,
+  "allocator|reply handle": 0.04754931298918112,
+  "allocator|shard queue": 0.142038332390759,
+  "own code|shard queue": 0.5925375926344109,
+  "own code|service dispatch": 0.21153348214417755,
+  "own code|UE operation": 0.11826367589616843,
+  "own code|reply handle": 0.5590092309112704,
+  "kernel|handoff, unresolved": 0.004267246037490614,
+  "kernel|unknown": 0.05669341164094672,
+  "own code|harness": 0.15971692311750582,
+  "allocator|UE operation": 0.0018288197303531202,
+  "allocator|service dispatch": 0.0006096065767843734
+ },
+ "kernel_us_per_call": {
+  "reply handle|putting a thread to sleep": 2.960249536864917,
+  "reply handle|waking a thread": 1.199705743111647,
+  "reply handle|other kernel": 1.5679081154894083,
+  "shard queue|other kernel": 1.0521809515298284,
+  "shard queue|waking a thread": 0.6504502174289264,
+  "shard queue|putting a thread to sleep": 1.6203342810928643,
+  "handoff, unresolved|other kernel": 0.004267246037490614,
+  "shard queue|entering or leaving the kernel": 0.010363311805334348,
+  "unknown|other kernel": 0.05669341164094672,
+  "shard queue|other futex": 0.059131837948084215,
+  "reply handle|other futex": 0.06583751029271233,
+  "reply handle|entering or leaving the kernel": 0.01584977099639371
+ },
+ "role_us_per_call": {
+  "sender": 5.562050406580623,
+  "worker": 5.534008504048542
+ },
+ "owner_found_by_us_per_call": {
+  "named frame": 11.035098252950727,
+  "unresolved": 0.060960657678437336
+ },
+ "rule_check_us_per_call": {
+  "agree": 8.442441481886787,
+  "disagree": 0.12740777454793403
+ },
+ "threads": {
+  "30": "sender",
+  "22": "worker",
+  "23": "worker",
+  "26": "worker",
+  "27": "worker",
+  "21": "worker",
+  "24": "worker",
+  "31": "sender",
+  "25": "worker",
+  "29": "sender",
+  "32": "sender",
+  "28": "sender",
+  "34": "sender",
+  "33": "sender"
+ },
+ "top": {
+  "kernel|reply handle": [
+   [
+    "entry_SYSRETQ_unsafe_stack",
+    0.5779070347915859
+   ],
+   [
+    "delay_halt_mwaitx",
+    0.3931962420259208
+   ],
+   [
+    "futex_hash",
+    0.21884876106559006
+   ],
+   [
+    "try_grab_folio_fast",
+    0.20421820322276507
+   ],
+   [
+    "native_read_msr",
+    0.16276495600142768
+   ],
+   [
+    "futex_wake",
+    0.15971692311750582
+   ]
+  ],
+  "kernel|shard queue": [
+   [
+    "entry_SYSRETQ_unsafe_stack",
+    0.3785656841830959
+   ],
+   [
+    "delay_halt_mwaitx",
+    0.20482780979954945
+   ],
+   [
+    "futex_hash",
+    0.16642259546213392
+   ],
+   [
+    "native_sched_clock",
+    0.12070210220330593
+   ],
+   [
+    "do_syscall_64",
+    0.11155800355154033
+   ],
+   [
+    "futex_wake",
+    0.09753705228549973
+   ]
+  ],
+  "allocator|reply handle": [
+   [
+    "__GI___libc_free",
+    0.02682268937851243
+   ],
+   [
+    "_int_free",
+    0.012192131535687467
+   ],
+   [
+    "__GI___libc_malloc",
+    0.007924885498196855
+   ],
+   [
+    "operator new@plt",
+    0.0006096065767843734
+   ]
+  ],
+  "allocator|shard queue": [
+   [
+    "_int_malloc",
+    0.0481589195659655
+   ],
+   [
+    "_int_free",
+    0.04754931298918112
+   ],
+   [
+    "__GI___libc_free",
+    0.021336230187453068
+   ],
+   [
+    "__GI___libc_malloc",
+    0.012801738112471841
+   ],
+   [
+    "void std::__assign_one<false, uecm::Request**, uecm::Request**>(uecm::Request**&, uecm::Request**&)",
+    0.006096065767843733
+   ],
+   [
+    "operator delete",
+    0.0024384263071374934
+   ]
+  ],
+  "own code|shard queue": [
+   [
+    "__pthread_cond_signal",
+    0.13411344689256213
+   ],
+   [
+    "__GI___pthread_mutex_lock",
+    0.13350384031577778
+   ],
+   [
+    "__pthread_cond_wait",
+    0.11094839697475595
+   ],
+   [
+    "uecm::Request::Request(uecm::Request&&)",
+    0.09692744570871537
+   ],
+   [
+    "__pthread_mutex_unlock_usercnt",
+    0.035357181453493654
+   ],
+   [
+    "void std::deque<uecm::Request, std::allocator<uecm::Request> >::_M_push_back_aux<uecm::Request>(uecm::Request&&)",
+    0.01097291838211872
+   ]
+  ],
+  "own code|service dispatch": [
+   [
+    "uecm::Service::submit_async(uecm::OpKind, unsigned long, uecm::Request&&)",
+    0.08107767471232165
+   ],
+   [
+    "uecm::Service::worker_loop(uecm::Service::Shard&)",
+    0.05608380506416235
+   ],
+   [
+    "uecm::Request::Request(uecm::Request&&)",
+    0.018288197303531203
+   ],
+   [
+    "uecm::Request::~Request()",
+    0.009753705228549974
+   ],
+   [
+    "uecm::Service::worker_loop(uecm::Service::Shard&)::{lambda(std::variant<std::expected<void, uecm::OpError>, std::expected<uecm::SignalingAck, uecm::OpError>, std::expected<uecm::UeContextView, uecm::OpError>, std::expected<unsigned long, uecm::OpError> >)#1}::operator()(std::variant<std::expected<void, uecm::OpError>, std::expected<uecm::SignalingAck, uecm::OpError>, std::expected<uecm::UeContextView, uecm::OpError>, std::expected<unsigned long, uecm::OpError> >) const",
+    0.007924885498196855
+   ],
+   [
+    "std::__detail::__variant::_Variant_storage<false, std::expected<void, uecm::OpError>, std::expected<uecm::SignalingAck, uecm::OpError>, std::expected<uecm::UeContextView, uecm::OpError>, std::expected<unsigned long, uecm::OpError> >::_M_reset()",
+    0.0067056723446281075
+   ]
+  ],
+  "own code|UE operation": [
+   [
+    "uecm::ShardCore::handle_signaling(unsigned long, uecm::SignalingMsg const&)",
+    0.039624427490984264
+   ],
+   [
+    "std::_Hashtable<unsigned long, std::pair<unsigned long const, uecm::UeContext>, std::allocator<std::pair<unsigned long const, uecm::UeContext> >, std::__detail::_Select1st, std::equal_to<unsigned long>, uecm::FnvHash, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_find_before_node(unsigned long, unsigned long const&, unsigned long) const",
+    0.03108993541600304
+   ],
+   [
+    "uecm::ShardCore::begin_reconfigure(unsigned long, uecm::ReconfigParams const&)",
+    0.008534492074981227
+   ],
+   [
+    "uecm::ShardCore::add_drb(unsigned long, uecm::DrbEntry const&)",
+    0.007924885498196855
+   ],
+   [
+    "uecm::fnv1a_64(unsigned long)",
+    0.007315278921412481
+   ],
+   [
+    "std::__detail::_Hash_code_base<unsigned long, std::pair<unsigned long const, uecm::UeContext>, std::__detail::_Select1st, uecm::FnvHash, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, false>::_M_hash_code(unsigned long const&) const",
+    0.004876852614274987
+   ]
+  ],
+  "own code|reply handle": [
+   [
+    "std::__atomic_futex_unsigned<2147483648u>::_M_load(std::memory_order)",
+    0.12801738112471842
+   ],
+   [
+    "std::__exception_ptr::operator==(std::__exception_ptr::exception_ptr const&, std::__exception_ptr::exception_ptr const&)",
+    0.054864591910593605
+   ],
+   [
+    "std::promise<uecm::TimedResponse>::~promise()",
+    0.04450128010525926
+   ],
+   [
+    "std::future<uecm::TimedResponse>::get()",
+    0.039014820914199895
+   ],
+   [
+    "__pthread_once_slow",
+    0.030480328839218668
+   ],
+   [
+    "decltype(auto) std::__do_visit<std::__detail::__variant::__variant_idx_cookie, std::__detail::__variant::_Move_ctor_base<false, std::expected<void, uecm::OpError>, std::expected<uecm::SignalingAck, uecm::OpError>, std::expected<uecm::UeContextView, uecm::OpError>, std::expected<unsigned long, uecm::OpError> >::_Move_ctor_base(std::__detail::__variant::_Move_ctor_base<false, std::expected<void, uecm::OpError>, std::expected<uecm::SignalingAck, uecm::OpError>, std::expected<uecm::UeContextView, uecm::OpError>, std::expected<unsigned long, uecm::OpError> >&&)::{lambda(auto:1&&, auto:2)#1}, std::variant<std::expected<void, uecm::OpError>, std::expected<uecm::SignalingAck, uecm::OpError>, std::expected<uecm::UeContextView, uecm::OpError>, std::expected<unsigned long, uecm::OpError> > >(std::__detail::__variant::_Move_ctor_base<false, std::expected<void, uecm::OpError>, std::expected<uecm::SignalingAck, uecm::OpError>, std::expected<uecm::UeContextView, uecm::OpError>, std::expected<unsigned long, uecm::OpError> >::_Move_ctor_base(std::__detail::__variant::_Move_ctor_base<false, std::expected<void, uecm::OpError>, std::expected<uecm::SignalingAck, uecm::OpError>, std::expected<uecm::UeContextView, uecm::OpError>, std::expected<unsigned long, uecm::OpError> >&&)::{lambda(auto:1&&, auto:2)#1}&&, std::variant<std::expected<void, uecm::OpError>, std::expected<uecm::SignalingAck, uecm::OpError>, std::expected<uecm::UeContextView, uecm::OpError>, std::expected<unsigned long, uecm::OpError> >&&)",
+    0.028041902532081175
+   ]
+  ],
+  "kernel|handoff, unresolved": [
+   [
+    "syscall_return_via_sysret",
+    0.004267246037490614
+   ]
+  ],
+  "kernel|unknown": [
+   [
+    "entry_SYSCALL_64_safe_stack",
+    0.04389167352847488
+   ],
+   [
+    "entry_SYSCALL_64_after_hwframe",
+    0.012192131535687467
+   ],
+   [
+    "entry_SYSCALL_64",
+    0.0006096065767843734
+   ]
+  ],
+  "own code|harness": [
+   [
+    "[unknown]",
+    0.09448901940157788
+   ],
+   [
+    "bench::Workload::next()",
+    0.014630557842824961
+   ],
+   [
+    "std::chrono::_V2::steady_clock::now",
+    0.012801738112471841
+   ],
+   [
+    "bench::HdrHistogram::record(long)",
+    0.009753705228549974
+   ],
+   [
+    "__clock_gettime_2",
+    0.00548645919105936
+   ],
+   [
+    "std::expected<uecm::SignalingAck, uecm::OpError>::has_value() const",
+    0.004267246037490614
+   ]
+  ],
+  "allocator|UE operation": [
+   [
+    "__GI___libc_malloc",
+    0.0018288197303531202
+   ]
+  ],
+  "allocator|service dispatch": [
+   [
+    "_int_free",
+    0.0006096065767843734
+   ]
+  ]
+ }
+}
