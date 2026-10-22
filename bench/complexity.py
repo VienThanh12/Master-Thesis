@@ -82,7 +82,9 @@ CONCERNS = [
 # naming a probe goes, the branch it selects goes, and the branch the compared build
 # takes stays. Comments are left alone; a comment explaining a build option belongs to
 # the compared source as much as to the probe.
-PROBE_SYMBOLS = ("UECM_FLAT_MAP", "UECM_RING_QUEUE", 'feature = "mutex-queue"')
+# The batch probe of docs/OVERLOAD_MECHANISM.md §4.15 joined them on 19 October 2026.
+PROBE_SYMBOLS = ("UECM_FLAT_MAP", "UECM_RING_QUEUE", 'feature = "mutex-queue"',
+                 "UECM_BATCH_PROBE", 'feature = "batch-probe"')
 
 
 def mentions_probe(line):
@@ -109,24 +111,30 @@ def strip_probe_cpp(text):
 
 
 def strip_probe_rust(text):
-    out, drop_guarded_item = [], False
+    out, drop_guarded_item, depth, opened = [], False, 0, False
     for line in text.splitlines(keepends=True):
         s = line.strip()
-        if s.startswith("#[cfg(") and mentions_probe(s):
+        if not drop_guarded_item and s.startswith("#[cfg(") and mentions_probe(s):
             # `#[cfg(feature = "mutex-queue")]` guards the probe, so the attribute
             # and the item under it both go; `#[cfg(not(...))]` guards the compared
             # build, so only the attribute goes.
             drop_guarded_item = "not(" not in s
+            depth, opened = 0, False
             continue
         if drop_guarded_item:
-            if not s.endswith(";"):
-                raise SystemExit(
-                    "complexity.py: a probe #[cfg] now guards a multi-line item "
-                    f"({s!r}); teach strip_probe_rust about it before trusting "
-                    "the proxies")
-            drop_guarded_item = False
+            # A one-line item ends at its semicolon. A braced item (a function, a
+            # variant with fields, a match arm) ends where its braces balance.
+            # Doc comments placed under the attribute go with the item.
+            depth += s.count("{") - s.count("}")
+            opened = opened or "{" in s
+            if (opened and depth <= 0) or (not opened and s.endswith(";")):
+                drop_guarded_item = False
             continue
         out.append(line)
+    if drop_guarded_item:
+        raise SystemExit(
+            "complexity.py: a probe #[cfg] item never closed; teach strip_probe_rust "
+            "about its shape before trusting the proxies")
     return "".join(out)
 
 

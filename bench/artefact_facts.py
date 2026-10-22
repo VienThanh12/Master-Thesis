@@ -215,13 +215,25 @@ def suite_sizes(root):
     `cargo test --release` runs for the compared build. The three in
     rust/src/mutex_queue.rs belong to the specification section 12 attribution
     probe and compile only under `--features mutex-queue`, so counting them
-    would report a configuration the campaign never measured.
+    would report a configuration the campaign never measured. The batch probe's
+    tests are left out for the same reason: a Rust test file whose crate-level
+    `#![cfg]` names a probe feature, and a C++ test that CMake builds only inside
+    a probe option's `if()` block.
     """
-    binaries = glob.glob(os.path.join(root, "cpp/tests/test_*.cpp"))
+    with open(os.path.join(root, "cpp/CMakeLists.txt"), encoding="utf-8") as fh:
+        cmake = fh.read()
+    probe_cpp = set()
+    for block in re.findall(r"if\(UECM_\w*PROBE\w*\)(.*?)endif\(\)", cmake, re.S):
+        probe_cpp.update(re.findall(r"add_executable\((test_\w+)", block))
+    binaries = [p for p in glob.glob(os.path.join(root, "cpp/tests/test_*.cpp"))
+                if os.path.basename(p)[:-len(".cpp")] not in probe_cpp]
     tests = 0
     for path in glob.glob(os.path.join(root, "rust/tests/*.rs")):
         with open(path, encoding="utf-8") as fh:
-            tests += len(re.findall(r"^\s*#\[test\]", fh.read(), re.M))
+            text = fh.read()
+        if re.search(r'^#!\[cfg\(feature = "[\w-]*probe[\w-]*"\)\]', text, re.M):
+            continue
+        tests += len(re.findall(r"^\s*#\[test\]", text, re.M))
     return {"CppTestBinaries": len(binaries), "RustTests": tests}
 
 

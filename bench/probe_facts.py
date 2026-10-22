@@ -52,7 +52,20 @@ ROOT = os.path.dirname(HERE)
 RESULTS = os.path.join(HERE, "results")
 # Swap probes from the 30 September 2026 host. Kept out of results/ so that
 # refresh_thesis.sh can never take one of them for a campaign.
-SG_DIR = os.path.join(HERE, "results-probes-20260930-sg")
+SG_DIR_LEGACY = os.path.join(HERE, "results-probes-20260930-sg")
+SG_DIR_CAMPAIGN = os.path.join(HERE, "results-probes-campaign-jaybird")
+
+
+def sg_dir():
+    override = os.environ.get("THESIS_SG_DIR")
+    if override:
+        return override
+    if os.path.isdir(SG_DIR_CAMPAIGN):
+        import glob
+
+        if glob.glob(os.path.join(SG_DIR_CAMPAIGN, "probe-sg-queue-nocount-*.jsonl")):
+            return SG_DIR_CAMPAIGN
+    return SG_DIR_LEGACY
 OUT = os.path.join(ROOT, "figures", "gen_probes.tex")
 
 NS_PER_US = 1000.0
@@ -390,11 +403,12 @@ def sg_facts(macros):
     session supplies only switches per call, at a load where the send schedule
     and not the counter sets the rate.
     """
-    flat_log = newest("probe-sg-flatmap-112000-*.jsonl", SG_DIR)
-    queue_log = newest("probe-sg-queue-nocount-112000-*.jsonl", SG_DIR)
-    count_log = newest("probe-sg-queue-8000-*.jsonl", SG_DIR)
+    sg_root = sg_dir()
+    flat_log = newest("probe-sg-flatmap-112000-*.jsonl", SG_DIR_LEGACY)
+    queue_log = newest("probe-sg-queue-nocount-112000-*.jsonl", sg_root)
+    count_log = newest("probe-sg-queue-8000-*.jsonl", SG_DIR_LEGACY)
 
-    host_facts(matching_env(queue_log, SG_DIR), "Sg", macros)
+    host_facts(matching_env(queue_log, sg_root), "Sg", macros)
     # That capture was taken on the host, outside the container, so it lists
     # every online CPU. The runs were pinned to 2-17 by the container.
     del macros["SgPinned"]
@@ -521,8 +535,9 @@ def main():
         fh.write("% Clock A is the newest fair-start log and is not this campaign's host.\n")
         fh.write("% Clock B is the newest fair-after log. When it shares the campaign host,\n")
         fh.write("% it is the fill control. Clock B percentiles are not emitted.\n")
-        fh.write("% Sg* are swap probes on a further host with the same processor,\n")
-        fh.write("% read from bench/results-probes-20260930-sg/. Not in the tested family.\n")
+        fh.write("% Sg* queue swap: campaign host when bench/results-probes-campaign-jaybird/\n")
+        fh.write("% exists; otherwise bench/results-probes-20260930-sg/. Flat-map probe stays\n")
+        fh.write("% on the further host. Not in the Holm-tested family.\n")
         for name in sorted(macros):
             fh.write(f"\\newcommand{{\\{name}}}{{{macros[name]}}}\n")
     print(f"wrote {OUT} ({len(macros)} macros)")
