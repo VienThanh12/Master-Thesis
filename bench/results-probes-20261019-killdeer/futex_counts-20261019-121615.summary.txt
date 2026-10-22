@@ -1,0 +1,26 @@
+Per finished request, median over repeats (difference of 6 s and 3 s runs).
+Tracing slows every arm, so the throughput column is not the comparison.
+
+                               cpp-deque  rust-channel   rust-mutexq      cpp-ring  rust-oneshot
+kops/s while traced                330.4         398.9         339.7         336.3         401.9
+wait slept                         1.477         1.433         1.450         1.473         1.433
+wait returned at once              0.088         0.152         0.095         0.080         0.142
+wait other error                   0.000         0.000         0.000         0.000         0.000
+wake woke a thread                 1.477         1.433         1.450         1.473         1.433
+wake found nobody                  1.634         0.224         1.594         1.625         0.202
+other futex ops                    0.000         0.000         0.000         0.000         0.000
+blocked switches                   1.477         1.433         1.450         1.473         1.433
+preempted                          0.000         0.000         0.000         0.000         0.000
+all syscalls                       4.671         3.240         4.591         4.657         3.200
+kernel us                         14.456        11.651        14.081        14.408        11.693
+user us                            4.942         5.857         6.264         4.810         5.636
+syscall futex                      4.671         3.240         4.591         4.657         3.200
+syscall 10                         0.000         0.000         0.000         0.000         0.000
+syscall 273                        0.000         0.000         0.000         0.000         0.000
+syscall write                      0.000         0.000         0.000         0.000         0.000
+syscall brk                        0.000         0.000         0.000         0.000         0.000
+syscall 318                        0.000         0.000         0.000         0.000         0.000
+syscall mmap                       0.000         0.000         0.000         0.000         0.000
+syscall 4                          0.000         0.000         0.000         0.000         0.000
+
+raw: /root/thesis.local/bench/results-probes-20261019-killdeer/futex_counts-20261019-121615.jsonl

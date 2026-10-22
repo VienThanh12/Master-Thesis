@@ -1,0 +1,54 @@
+== building the matched-design probe in the campaign container ==
+
+== counting the matched-design probe, 3 repeats, windows of 3 s and 6 s ==
+  rep 1 cpp-mstock    3s done
+  rep 1 cpp-mstock    6s done
+  rep 1 rust-mstock   3s done
+  rep 1 rust-mstock   6s done
+  rep 1 cpp-matched   3s done
+  rep 1 cpp-matched   6s done
+  rep 1 rust-matched  3s done
+  rep 1 rust-matched  6s done
+  rep 2 rust-mstock   3s done
+  rep 2 rust-mstock   6s done
+  rep 2 cpp-matched   3s done
+  rep 2 cpp-matched   6s done
+  rep 2 rust-matched  3s done
+  rep 2 rust-matched  6s done
+  rep 2 cpp-mstock    3s done
+  rep 2 cpp-mstock    6s done
+  rep 3 cpp-matched   3s done
+  rep 3 cpp-matched   6s done
+  rep 3 rust-matched  3s done
+  rep 3 rust-matched  6s done
+  rep 3 cpp-mstock    3s done
+  rep 3 cpp-mstock    6s done
+  rep 3 rust-mstock   3s done
+  rep 3 rust-mstock   6s done
+Per finished request, median over repeats (difference of 6 s and 3 s runs).
+Tracing slows every arm, so the throughput column is not the comparison.
+
+                              cpp-mstock   rust-mstock   cpp-matched  rust-matched
+kops/s while traced                335.3         408.7         465.0         464.7
+wait slept                         1.477         1.444         1.427         1.423
+wait returned at once              0.085         0.127         0.144         0.146
+wait other error                   0.000         0.000         0.000         0.000
+wake woke a thread                 1.477         1.444         1.427         1.423
+wake found nobody                  1.632         0.185         0.187         0.193
+other futex ops                    0.000         0.000         0.000         0.000
+blocked switches                   1.477         1.444         1.427         1.423
+preempted                          0.000         0.000         0.000         0.000
+all syscalls                       4.670         3.208         3.187         3.193
+kernel us                         14.565        11.989        11.462        11.669
+user us                            4.826         5.540         3.073         3.013
+syscall futex                      4.670         3.208         3.187         3.193
+syscall 10                         0.000         0.000         0.000         0.000
+syscall 56                         0.000         0.000         0.000         0.000
+syscall sched_yield                0.000         0.000         0.000         0.000
+syscall 257                        0.000         0.000         0.000         0.000
+syscall write                      0.000         0.000         0.000         0.000
+syscall 60                         0.000         0.000         0.000         0.000
+syscall clock_nanosleep            0.000         0.000         0.000         0.000
+
+raw: bench/results-probes-matched/futex_counts-20261019-150347.jsonl
+futex exit: 0 at 2026-10-19T15:06:30+00:00
