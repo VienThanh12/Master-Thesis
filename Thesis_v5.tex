@@ -546,7 +546,7 @@ Three hypotheses are written down before any measurement.
 \end{description}
 Chapter~\ref{chapter:discussion} revisits all three hypotheses against the facts.
 
-\paragraph{Rust safety model.}\label{*sec:rustsafety*}
+\paragraph{Rust safety model.}\label{sec:rustsafety}
 Rust separates code into \emph{safe Rust} and code that uses \texttt{unsafe}. 
 In safe Rust, the compiler checks how memory is used, including ownership and borrowing, 
 to prevent many common programming errors. When code uses an \texttt{unsafe} block or an 
@@ -1042,12 +1042,12 @@ guesses before each build. The work and the cores stay fixed, but the
 processor's recent memory and branch history do not.
 
 \section{Statistical treatment}\label{sec:statsbrief}
-The statistical analysis plan was decided before the experiment was run. We first
+The statistical analysis plan was decided before the experiment was run. The plan first
 specified which comparisons would be tested. These comparisons could not be changed
 after seeing the results. In particular, a load could not be added to the statistical
 analysis because its results looked interesting in the load sweep.
 
-For each planned comparison, we use an exact paired permutation test over \NRepeats{}
+For each planned comparison, the study uses an exact paired permutation test over \NRepeats{}
 interleaved repeats. The test is \emph{paired} because C++ and Rust are compared
 within the same repeat. This means that both languages are measured under the same
 conditions at approximately the same time. For example, if the system is temporarily
@@ -1060,20 +1060,20 @@ as the observed difference occurs after these swaps. A small $p$-value means tha
 difference of this size would be unusual if there were no real difference between
 the languages.
 
-For each comparison, we also calculate a bootstrap confidence
-interval~\cite{efron1993bootstrap}. The confidence interval shows the uncertainty
+For each comparison, a bootstrap confidence interval is also
+calculated~\cite{efron1993bootstrap}. The confidence interval shows the uncertainty
 around the measured difference. It indicates the range of differences that are
 reasonably compatible with the observed repeats.
 
-Because several comparisons are tested, we apply the Holm
-correction~\cite{holm1979simple}. Without a correction, testing many comparisons
+Because several comparisons are tested, the Holm
+correction~\cite{holm1979simple} is applied. Without a correction, testing many comparisons
 increases the chance that at least one comparison appears statistically significant
 simply by chance. The Holm correction accounts for the fact that several tests are
 performed.
 
 There is a limit to how small the $p$-value can be with a fixed number of repeats.
 Before the Holm correction, this limit is $\MinAttainableP$. After the correction,
-it is $\CorrectedFloor$. We report these limits so that a reader can distinguish
+it is $\CorrectedFloor$. These limits are reported so that a reader can distinguish
 between a result showing no detectable difference and a result where the test does
 not have enough resolution to distinguish a smaller $p$-value. In this study, a
 \emph{tie} means that the test found no statistically detectable difference between
@@ -1311,9 +1311,9 @@ width of $\GuestPNineNineMaxCI\,\mu$s. Across the four variants, the
 difference between the smallest and largest p99 values was only
 $\GuestPNineNineRange\,\mu$s. The uncertainty in one variant's p99 measurement was
 therefore larger than the spread among all four variants, so those ranked differences
-cannot be read with confidence. We nevertheless retain this earlier sweep because it used the same
-experimental design as the main experiment. This makes it useful for a
-side-by-side comparison. The purpose of this comparison is to examine
+cannot be read with confidence. This earlier sweep is nevertheless retained because it used the same
+experimental design as the main experiment. That retention makes a
+side-by-side comparison possible. The purpose of this comparison is to examine
 whether the observed findings are consistent across different environments
 and therefore less likely to be specific to one particular machine or
 environment.
@@ -1324,7 +1324,7 @@ the same time: the shard count, the set of offered loads, the number of
 repetitions, and the tools used. It therefore provides a broader
 robustness check. Specifically, it tests whether the findings remain
 similar when several experimental choices are changed together. It does
-not allow us to determine the effect of any one of these changes
+not isolate the effect of any one of these changes
 separately.
 
 Appendix~\ref{appendix:config} provides a field-by-field description of
