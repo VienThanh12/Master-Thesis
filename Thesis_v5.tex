@@ -744,7 +744,7 @@ Wadsten's pair is comparable in one session. It is $85$--$91\%$ worse in the
 next~\cite{emberg2023asn1}.
 
 Three of them change the language together with the run-time and the thread
-model. A measured gap then cannot be blamed on the language rather than on the
+model, so a measured gap cannot be blamed on the language rather than on the
 framework~\cite{karlback2021ran,olsson2023asyncpackets,arvidsson2025async}.
 In that packet-processor study the DPDK program does two to five times as much
 work~\cite{olsson2023asyncpackets}. A compiler does not move throughput that
@@ -824,7 +824,7 @@ Section~\ref{sec:workload} walks each UE through that machine.
         (reconf) edge[bend left=18] node[below,font=\scriptsize]{complete / abort} (conn)
         (conn)  edge node[right,font=\scriptsize,pos=0.45]{release} (rel)
         (idle)  edge[bend right=32] node[below=8pt,font=\scriptsize,pos=0.55]{release} (rel);
-  \path (conn) edge[loop above] node[font=\scriptsize]{signal / add DRB} (conn);
+  \path (conn) edge[loop above] node[font=\scriptsize]{signal / add bearer} (conn);
 \end{tikzpicture}
 \caption[UE-context lifecycle state machine]{UE-context lifecycle state machine.
 Operations invalid for the current state return an error instead of changing
@@ -856,8 +856,8 @@ time, and which ones it does not. Section~\ref{sec:defects} sets out the catalog
 result was written down before the programs were run.
 Section~\ref{sec:safetyresults} reports what each one did.
 
-The study measures the tail. The tail is the slow calls, not the ordinary ones. Two facts
-about this part make those slow calls the right thing to measure.
+The study measures tail latency, not the ordinary calls. Two facts about this part make
+that the right choice.
 
 The first fact is what a phone user waits for. Setting up a call, or moving a phone to the
 next cell, is not one step. It is a chain of control-plane steps, and they have to finish in
@@ -865,10 +865,9 @@ order. The user is still waiting until the slowest step in that chain is done. A
 runs thousands of these chains every second. A call that is slow only rarely therefore still
 happens often enough to notice.
 
-The second fact is about the test clock. The sender follows a fixed timetable. A late reply
-does not hold back the next request. That rule is called an open-loop clock. Offered load
-is how fast the timetable sends work. Achieved rate is how fast the service finishes it.
-While the timetable is gentle, the two rates match and the delay stays small.
+The second fact is about the test clock. The sender is open-loop: a late reply does not hold
+back the next request. While offered load stays below saturation, achieved rate matches it
+and delay stays small.
 
 When the timetable is made faster, a limit appears and the delay jumps. That limit can
 be the service, or work the sender still does while the timer is running, such as writing
@@ -914,7 +913,7 @@ Thread-unsafe handle & Non-atomic handle is shared between workers & Corrupted r
 Lock-order deadlock & Two handovers acquire locks in opposite orders & Hang & Not prevented \\
 Lost update & Two workers overwrite each other's updates & Wrong value & Not prevented \\
 Reference-cycle leak & Contexts keep references to each other & Memory leak & Not prevented \\
-Integer overflow & TEID calculation exceeds the integer range & Wrong value & Not prevented \\
+Integer overflow & A bearer's tunnel identifier overflows a signed 32-bit integer & Wrong value & Not prevented \\
 Worker failure & Worker fails while holding shard state & Wider outage & Not prevented \\
 Double-free across FFI & C++ releases a Rust handle twice & Crash/corruption & Not prevented \\
 Forgotten lock guard & Lock is not released after an early return & Hang & Not prevented \\
@@ -1005,10 +1004,8 @@ boundary size, \texttt{unsafe} scope, per-call cost \\
 \end{table}
 
 \section[Methods per research question]{Methods per research question, in outline}\label{sec:methodbrief}
-RQ1 and RQ3 use an open-loop load sweep. The sweep runs from a light load to
-well past saturation. Open-loop means the generator keeps to its send
-schedule. It does not wait for a reply before sending the next
-request~\cite{schroeder2006openclosed}. Four builds take turns inside each
+RQ1 and RQ3 use an open-loop load sweep from a light load to well past
+saturation~\cite{schroeder2006openclosed}. Four builds take turns inside each
 repeat, so a noisy moment hits all four.
 
 The time from send to reply mixes two costs. The core operation is the work
@@ -1234,16 +1231,143 @@ shard, and that shard's worker drains it.\label{fig:arch}}
 \end{figure}
 
 Fairness is kept below the design as well as in it. Both builds link the same
-\texttt{jemalloc}. Both keep a system-allocator build as a control. Both
-compile at the same opt level. Both record latency through one high-dynamic-range
-(HDR) histogram set up the same way~\cite{tene_hdrhistogram}. Hashing is pinned
-on both sides. SplitMix64 assigns the shard~\cite{steele2014splitmix}. FNV-1a, the
-Fowler--Noll--Vo hash~\cite{rfc9923}, is used inside the map. C++'s default hash of an
-integer is often just the number itself. Rust's is strong on purpose. Left as they came,
-the two standard libraries would have been the measurement.
+\texttt{jemalloc} and keep a system-allocator build as a control. Both compile
+at the same optimisation level, \texttt{-O2} for \texttt{g++} and
+\texttt{opt-level = 2} for Cargo, and both record latency through one
+high-dynamic-range (HDR) histogram set up the same way~\cite{tene_hdrhistogram}.
+Hashing is pinned on both sides. SplitMix64 assigns the
+shard~\cite{steele2014splitmix}, and FNV-1a, the Fowler--Noll--Vo
+hash~\cite{rfc9923}, is used inside the map. C++'s default hash of an integer is
+often just the number itself, whereas Rust's is strong on purpose. Left as they
+came, the two standard libraries would have been the measurement.
+
+\begin{figure}[!tbp]
+\centering
+\begin{minipage}[t]{0.595\linewidth}
+{\footnotesize\textbf{Rust}}
+\begin{lstlisting}[language=Rust]
+pub enum Request {
+    // Create is left out here.
+    Setup {
+        ue_id: UeId,
+        stamp_completion: bool,
+        resp: CompletionTx<Completion<OpResult<()>>>,
+    },
+    Signal {
+        ue_id: UeId,
+        msg: SignalingMsg,
+        stamp_completion: bool,
+        resp: CompletionTx<Completion<OpResult<SignalingAck>>>,
+    },
+    // AddDrb, BeginReconf, CompleteReconf, AbortReconf,
+    // Release, Lookup and Count are left out here.
+    Stop,
+}
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.39\linewidth}
+{\footnotesize\textbf{C++}}
+\begin{lstlisting}[language=C++]
+using Response = std::variant<
+    OpResult<void>,
+    OpResult<SignalingAck>,
+    OpResult<UeContextView>,
+    OpResult<std::uint64_t>>;
+
+struct Request {
+  OpKind kind{};
+  UeId ue_id = 0;
+  CreateParams create_params{};
+  SignalingMsg signaling{};
+  DrbEntry drb{};
+  ReconfigParams reconfig{};
+  bool stamp_completion = false;
+  std::promise<TimedResponse> completion;
+};
+\end{lstlisting}
+\end{minipage}
+\caption[The request type in each language]{The request type in each language,
+excerpted from \texttt{rust/src/message.rs} and
+\texttt{cpp/include/uecm/message.hpp} with comments and probe-only code
+removed, and with the \texttt{TimedResponse} struct left out. Each Rust variant
+except \texttt{Stop} holds only its own operation's fields and a reply channel
+typed to that operation's result. The C++ struct holds every
+operation's fields in every request, $\CppRequestBytes$~bytes against Rust's
+$\RustRequestBytes$. It replies through a \texttt{std::promise} whose
+\texttt{TimedResponse} wraps the \texttt{Response} variant of all
+results.\label{fig:request}}
+\end{figure}
+
+\enlargethispage{20pt}
+\begin{table}[!ht]
+\centering
+\small
+\caption[The forced-idiom log]{The forced-idiom log. Each row is one requirement
+of the specification and the way each language meets it.\label{tab:idioms}}
+\footnotesize
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}R{0.16\linewidth} R{0.41\linewidth} R{0.37\linewidth}@{}}
+\hline\hline
+Concern & C++ & Rust \\
+\hline
+Result type & \texttt{std::expected<T, OpError>} & \texttt{Result<T, OpError>} \\
+Request type & Tagged struct with every operation's fields, $\CppRequestBytes$~bytes & \texttt{enum}, each variant with only its own fields, $\RustRequestBytes$~bytes \\
+Reply type & A \texttt{std::variant} of four results & Each operation's own result type \\
+Bounded queue & Hand-written in $\CppBoundedQueueLines$ lines from a mutex and two condition variables & Standard \texttt{sync\_channel(capacity)} \\
+Reply handle & \texttt{std::promise} and \texttt{std::future} & One \texttt{mpsc::channel()} per request \\
+Per-shard map & \texttt{std::unordered\_map} with \texttt{FnvHash} & \texttt{HashMap} with \texttt{FnvBuildHasher} \\
+Shared counter & \texttt{std::atomic<uint64\_t>} by reference & \texttt{Arc<AtomicU64>}, cloned per worker \\
+Not running & A call throws \texttt{std::logic\_error} & A call panics \\
+Teardown & The destructor calls \texttt{shutdown()} & \texttt{Drop} calls \texttt{shutdown()} \\
+Optimisation & \texttt{-O2} & \texttt{opt-level = 2} \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[!tbp]
+\centering
+\begin{minipage}{\linewidth}
+{\footnotesize\textbf{C header and C++ host}}
+\begin{lstlisting}[language=C++]
+typedef struct UecmService UecmService;
+int32_t uecm_setup_connection(UecmService* h, uint64_t ue_id);
+
+s = uecm_setup_connection(svc, ue);
+check(s == UECM_OK, "setup_connection", s);
+\end{lstlisting}
+{\footnotesize\textbf{Rust layer}}
+\begin{lstlisting}[language=Rust]
+#[inline]
+unsafe fn as_service<'a>(h: *mut UecmService) -> Option<&'a UecmService> {
+    if h.is_null() {
+        None
+    } else {
+        Some(&*h)
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn uecm_setup_connection(h: *mut UecmService, ue_id: u64) -> i32 {
+    match as_service(h) {
+        None => UECM_ERR_NULL,
+        Some(s) => status(s.inner.setup_connection(ue_id)),
+    }
+}
+\end{lstlisting}
+\end{minipage}
+\caption[One entry point of the C layer]{One of the $\FfiEntryPoints$ entry
+points of the C layer that lets C++ call the Rust service, excerpted without
+comments from \texttt{ffi/rust-uecm-ffi/include/uecm\_ffi.h},
+\texttt{ffi/cpp-host/main.cpp} and \texttt{ffi/rust-uecm-ffi/src/lib.rs}. The C++ host holds only an opaque handle.
+The Rust side checks that handle for null and dereferences it inside
+\texttt{unsafe} code, then calls the unchanged safe core, and \texttt{status}
+turns the core's typed error into an integer code. The layer marks
+$\FfiUnsafeFns$ functions \texttt{unsafe}, and the core has $\CoreUnsafe$
+\texttt{unsafe} sites.\label{fig:ffilisting}}
+\end{figure}
 
 Where the languages cannot meet a need the same way, the gap is written into a
-forced-idiom log and then measured. Two of those gaps were candidates for the
+forced-idiom log, which Table~\ref{tab:idioms} lists. Two of those gaps were candidates for the
 overload lead of Section~\ref{sec:overload}. The first is the bounded queue.
 Rust uses \texttt{sync\_channel}. C++23 still has no matching primitive, so the
 C++ build implements the same blocking semantics with a mutex and two condition
@@ -1457,6 +1581,9 @@ in the upper tail.
 
 Table~\ref{tab:latency} reports p99.9 and the maximum at the chosen load.
 The maximum is kept out of the tested family, as the pooled p99.99 is.
+% The leftover under this paragraph is just short of the table. Deferred, it
+% takes the next page's top and holds the load sweep and both clock figures back.
+\enlargethispage{36pt}
 \begin{table}[ht]
 \centering
 \small
@@ -1531,15 +1658,17 @@ proportion. \textbf{(b)} Both operation measurements are too short for that cloc
 \clearpage
 \subsection{Past saturation (RQ1)}\label{sec:overload}
 
-This part explains what happens when the test sends more work than the
-service can process. Every request has a planned send time. When the
-service is slow, the sender is still waiting after that time has passed.
-If the log kept only the calls that finished, the wait would not show up
-as delay. The harness writes extra delay samples for the requests that
-should have been sent during the wait. Those samples are written after
-the timed window, so they do not add recorder work while the timer is
-running. The run uses the same grid and is repeated for
-$\ProbeAfterRuns$ runs.
+Past saturation Rust finishes more calls than C\texttt{++} on both
+allocators. The lead comes from how each standard library hands a request to
+the worker and the reply back, not from the core operation. With several
+requests in flight, which language waits less depends on the allocator.
+
+Every request has a planned send time. When the service is slow, the sender
+is still waiting after that time has passed, and a log of finished calls
+alone would hide the wait. The harness therefore writes extra delay samples
+for the requests that should have been sent meanwhile. It writes them after
+the timed window, so they add no recorder work while the timer runs. The
+sweep uses the same grid and is repeated for $\ProbeAfterRuns$ runs.
 
 Figure~\ref{fig:loadmap} maps the representative load, the shared tracking
 load, the load where C\texttt{++} first falls behind, and the overload
