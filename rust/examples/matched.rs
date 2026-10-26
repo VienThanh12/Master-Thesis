@@ -14,18 +14,27 @@
 //! back, which is the overload state of the campaign. `--self-test` runs one sender
 //! through both designs and checks that every operation gets the same result.
 //!
+//! `--stages` splits each call into four parts on one clock: the queue (from just before
+//! the sender hands the request over until the worker starts it), the worker (the
+//! operation), the reply (from the worker finishing until the sender holds the result),
+//! and the sender (its own time until it hands over the next request). The worker's two
+//! stamps are the reported services' own `started` and `done`, so both designs pay the
+//! same two extra clock reads. The parts add up to the time per call.
+//!
 //! The `unsafe` is confined to this probe: the futex system call and the ring that the
 //! futex mutex guards. The UECM library itself contains no `unsafe`.
 
 use std::cell::UnsafeCell;
 use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
+use std::sync::mpsc::Receiver;
 use std::sync::Arc;
 use std::thread;
 use std::time::{Duration, Instant};
 
 use uecm::hash::shard_index;
 use uecm::{
-    Config, CreateParams, DrbEntry, ReconfigParams, Service, ShardCore, SignalingMsg, UeId,
+    Completion, Config, CreateParams, DrbEntry, OpResult, ReconfigParams, Service, ShardCore,
+    SignalingMsg, UeId,
 };
 
 #[cfg(feature = "jemalloc")]
@@ -266,21 +275,40 @@ const WAITING: u32 = 1;
 const READY: u32 = 2;
 
 /// One per sender, reused for every request it sends. The worker wakes the sender only if
-/// the sender is asleep.
+/// the sender is asleep. The two stamps are written only under `--stages`.
 #[repr(C, align(64))]
 struct ReplySlot {
     state: AtomicU32,
     ok: AtomicU32,
+    started_ns: AtomicU64,
+    done_ns: AtomicU64,
+}
+
+/// Nanoseconds since `base` on the monotonic clock every thread reads.
+fn ns_since(base: Instant) -> u64 {
+    base.elapsed().as_nanos() as u64
 }
 
 // --- The two designs ---------------------------------------------------------------------
 
 trait Backend: Sync {
     fn exec(&self, sender: usize, r: Request) -> bool;
+    /// The same call, also returning when the worker started and finished it.
+    fn exec_staged(&self, sender: usize, r: Request) -> (bool, u64, u64);
 }
 
 struct Stock {
     svc: Service,
+    base: Instant,
+}
+
+fn take<T>(rx: Receiver<Completion<OpResult<T>>>, base: Instant) -> (bool, u64, u64) {
+    let c = rx.recv().expect("completion");
+    (
+        c.value.is_ok(),
+        c.started.duration_since(base).as_nanos() as u64,
+        c.done.duration_since(base).as_nanos() as u64,
+    )
 }
 
 impl Backend for Stock {
@@ -296,6 +324,21 @@ impl Backend for Stock {
             Kind::AbortReconf => s.abort_reconfigure(r.ue_id).is_ok(),
             Kind::Release => s.release_context(r.ue_id).is_ok(),
             Kind::Stop => false,
+        }
+    }
+
+    fn exec_staged(&self, _sender: usize, r: Request) -> (bool, u64, u64) {
+        let (s, b) = (&self.svc, self.base);
+        match r.kind {
+            Kind::Create => take(s.create_context_async(r.ue_id, r.create), b),
+            Kind::Setup => take(s.setup_connection_async(r.ue_id), b),
+            Kind::Signal => take(s.handle_signaling_async(r.ue_id, r.signaling), b),
+            Kind::AddDrb => take(s.add_drb_async(r.ue_id, r.drb), b),
+            Kind::BeginReconf => take(s.begin_reconfigure_async(r.ue_id, r.reconfig), b),
+            Kind::CompleteReconf => take(s.complete_reconfigure_async(r.ue_id), b),
+            Kind::AbortReconf => take(s.abort_reconfigure_async(r.ue_id), b),
+            Kind::Release => take(s.release_context_async(r.ue_id), b),
+            Kind::Stop => (false, 0, 0),
         }
     }
 }
@@ -326,12 +369,31 @@ impl Backend for Matched {
         slot.state.store(EMPTY, Ordering::Relaxed);
         ok
     }
+
+    fn exec_staged(&self, sender: usize, r: Request) -> (bool, u64, u64) {
+        // The worker wrote both stamps before its Release swap, which exec observed.
+        let ok = self.exec(sender, r);
+        let slot = &self.slots[sender];
+        (
+            ok,
+            slot.started_ns.load(Ordering::Relaxed),
+            slot.done_ns.load(Ordering::Relaxed),
+        )
+    }
 }
 
-fn worker(queue: &Queue, slots: &[ReplySlot], cfg: Config, seq: Arc<AtomicU64>) {
+fn worker(
+    queue: &Queue,
+    slots: &[ReplySlot],
+    cfg: Config,
+    seq: Arc<AtomicU64>,
+    base: Instant,
+    stamp: bool,
+) {
     let mut core = ShardCore::new(cfg, seq);
     loop {
         let r = queue.pop();
+        let started = if stamp { ns_since(base) } else { 0 };
         let ok = match r.kind {
             Kind::Create => core.create_context(r.ue_id, &r.create).is_ok(),
             Kind::Setup => core.setup_connection(r.ue_id).is_ok(),
@@ -344,6 +406,10 @@ fn worker(queue: &Queue, slots: &[ReplySlot], cfg: Config, seq: Arc<AtomicU64>) 
             Kind::Stop => return,
         };
         let slot = &slots[r.reply as usize];
+        if stamp {
+            slot.done_ns.store(ns_since(base), Ordering::Relaxed);
+            slot.started_ns.store(started, Ordering::Relaxed);
+        }
         slot.ok.store(ok as u32, Ordering::Relaxed);
         if slot.state.swap(READY, Ordering::Release) == WAITING {
             futex_wake_one(&slot.state);
@@ -362,6 +428,7 @@ struct Args {
     warmup_s: f64,
     seed: u64,
     self_test: bool,
+    stages: bool,
     json: bool,
 }
 
@@ -375,6 +442,7 @@ fn parse() -> Args {
         warmup_s: 1.0,
         seed: 42,
         self_test: false,
+        stages: false,
         json: false,
     };
     let argv: Vec<String> = std::env::args().collect();
@@ -394,6 +462,7 @@ fn parse() -> Args {
             "--warmup-s" => a.warmup_s = val().parse().expect("--warmup-s"),
             "--seed" => a.seed = val().parse().expect("--seed"),
             "--self-test" => a.self_test = true,
+            "--stages" => a.stages = true,
             "--json" => a.json = true,
             other => {
                 eprintln!("unknown arg: {other}");
@@ -472,24 +541,58 @@ fn request_for(op: &WOp, id: UeId, reply: u32) -> Request {
 struct SenderOut {
     ops: u64,
     errors: u64,
+    queue_ns: u64,
+    worker_ns: u64,
+    reply_ns: u64,
+    sender_ns: u64,
+    gaps: u64,
 }
 
 /// Senders send back to back. Operations that finish inside [t0, t1] are counted, and
 /// process CPU is read at t0 and t1.
-fn drive<B: Backend>(b: &B, a: &Args) -> (Vec<SenderOut>, (f64, f64), (f64, f64)) {
+fn drive<B: Backend>(b: &B, a: &Args, clock: Instant) -> (Vec<SenderOut>, (f64, f64), (f64, f64)) {
     let start = Instant::now();
     let t0 = start + Duration::from_secs_f64(a.warmup_s);
     let t1 = t0 + Duration::from_secs_f64(a.duration_s);
+    let (t0_ns, t1_ns) = (
+        t0.duration_since(clock).as_nanos() as u64,
+        t1.duration_since(clock).as_nanos() as u64,
+    );
     thread::scope(|sc| {
         let handles: Vec<_> = (0..a.producers)
             .map(|p| {
                 sc.spawn(move || {
                     let mut wl = Workload::new(a.active_ues, a.seed + p);
-                    let base = p * 100_000_000 + 1;
+                    let id_base = p * 100_000_000 + 1;
                     let mut out = SenderOut::default();
+                    let mut prev_back: Option<u64> = None;
                     loop {
                         let op = wl.next();
-                        let ok = b.exec(p as usize, request_for(&op, base + op.slot, p as u32));
+                        let req = request_for(&op, id_base + op.slot, p as u32);
+                        if a.stages {
+                            let sent = ns_since(clock);
+                            let (ok, started, finished) = b.exec_staged(p as usize, req);
+                            let back = ns_since(clock);
+                            if back >= t1_ns {
+                                break;
+                            }
+                            if back >= t0_ns {
+                                out.ops += 1;
+                                if !ok {
+                                    out.errors += 1;
+                                }
+                                out.queue_ns += started.saturating_sub(sent);
+                                out.worker_ns += finished.saturating_sub(started);
+                                out.reply_ns += back.saturating_sub(finished);
+                                if let Some(prev) = prev_back {
+                                    out.sender_ns += sent.saturating_sub(prev);
+                                    out.gaps += 1;
+                                }
+                            }
+                            prev_back = Some(back);
+                            continue;
+                        }
+                        let ok = b.exec(p as usize, req);
                         let done = Instant::now();
                         if done >= t1 {
                             break;
@@ -515,7 +618,7 @@ fn drive<B: Backend>(b: &B, a: &Args) -> (Vec<SenderOut>, (f64, f64), (f64, f64)
 }
 
 /// Runs `f` with the matched mini-service up, then stops its workers.
-fn with_matched<R>(a: &Args, f: impl FnOnce(&Matched) -> R) -> R {
+fn with_matched<R>(a: &Args, clock: Instant, f: impl FnOnce(&Matched) -> R) -> R {
     let m = Matched {
         n_shards: a.shards,
         queues: (0..a.shards).map(|_| Queue::new()).collect(),
@@ -523,6 +626,8 @@ fn with_matched<R>(a: &Args, f: impl FnOnce(&Matched) -> R) -> R {
             .map(|_| ReplySlot {
                 state: AtomicU32::new(EMPTY),
                 ok: AtomicU32::new(0),
+                started_ns: AtomicU64::new(0),
+                done_ns: AtomicU64::new(0),
             })
             .collect(),
     };
@@ -531,10 +636,11 @@ fn with_matched<R>(a: &Args, f: impl FnOnce(&Matched) -> R) -> R {
         ..Config::default()
     };
     let seq = Arc::new(AtomicU64::new(0));
+    let stamp = a.stages;
     thread::scope(|sc| {
         for s in 0..a.shards as usize {
             let (queue, slots, seq) = (&m.queues[s], &m.slots[..], Arc::clone(&seq));
-            sc.spawn(move || worker(queue, slots, cfg, seq));
+            sc.spawn(move || worker(queue, slots, cfg, seq, clock, stamp));
         }
         let result = f(&m);
         for q in &m.queues {
@@ -544,14 +650,15 @@ fn with_matched<R>(a: &Args, f: impl FnOnce(&Matched) -> R) -> R {
     })
 }
 
-fn with_stock<R>(a: &Args, f: impl FnOnce(&Stock) -> R) -> R {
+fn with_stock<R>(a: &Args, clock: Instant, f: impl FnOnce(&Stock) -> R) -> R {
     let cfg = Config {
         n_shards: a.shards,
+        stamp_start: a.stages,
         ..Config::default()
     };
     let mut svc = Service::new(cfg);
     svc.start();
-    let mut stock = Stock { svc };
+    let mut stock = Stock { svc, base: clock };
     let result = f(&stock);
     stock.svc.shutdown();
     result
@@ -575,10 +682,11 @@ fn sequence<B: Backend>(b: &B, a: &Args, n: u64) -> (u64, u64, [u64; 8]) {
 
 fn main() {
     let a = parse();
+    let clock = Instant::now();
     if a.self_test {
         let n = 20_000;
-        let s = with_stock(&a, |b| sequence(b, &a, n));
-        let m = with_matched(&a, |b| sequence(b, &a, n));
+        let s = with_stock(&a, clock, |b| sequence(b, &a, n));
+        let m = with_matched(&a, clock, |b| sequence(b, &a, n));
         println!(
             "self-test rust: stock ok {} err {} kinds {:?} | matched ok {} err {} kinds {:?}",
             s.0, s.1, s.2, m.0, m.1, m.2
@@ -586,12 +694,28 @@ fn main() {
         std::process::exit(if s == m { 0 } else { 1 });
     }
     let (outs, cpu0, cpu1) = if a.design == "matched" {
-        with_matched(&a, |b| drive(b, &a))
+        with_matched(&a, clock, |b| drive(b, &a, clock))
     } else {
-        with_stock(&a, |b| drive(b, &a))
+        with_stock(&a, clock, |b| drive(b, &a, clock))
     };
     let ops: u64 = outs.iter().map(|o| o.ops).sum();
     let errors: u64 = outs.iter().map(|o| o.errors).sum();
+    let per_op_us = |field: fn(&SenderOut) -> u64| {
+        let n: u64 = if ops > 0 { ops } else { 1 };
+        outs.iter().map(field).sum::<u64>() as f64 / n as f64 / 1e3
+    };
+    let gaps: u64 = outs.iter().map(|o| o.gaps).sum::<u64>().max(1);
+    let stages = if a.stages {
+        format!(
+            ",\"stages\":true,\"queue_us\":{:.4},\"worker_us\":{:.4},\"reply_us\":{:.4},\"sender_us\":{:.4}",
+            per_op_us(|o| o.queue_ns),
+            per_op_us(|o| o.worker_ns),
+            per_op_us(|o| o.reply_ns),
+            outs.iter().map(|o| o.sender_ns).sum::<u64>() as f64 / gaps as f64 / 1e3
+        )
+    } else {
+        String::new()
+    };
     let user = cpu1.0 - cpu0.0;
     let sys = cpu1.1 - cpu0.1;
     let ops_per_s = ops as f64 / a.duration_s;
@@ -606,7 +730,7 @@ fn main() {
             "{{\"schema\":\"matched\",\"lang\":\"rust\",\"alloc\":\"{ALLOC_NAME}\",\"design\":\"{}\",\
 \"shards\":{},\"producers\":{},\"active_ues\":{},\"seed\":{},\"duration_s\":{:.3},\"warmup_s\":{:.3},\
 \"ops\":{ops},\"errors\":{errors},\"ops_per_s\":{ops_per_s:.1},\"us_per_op_per_sender\":{us_per_op_per_sender:.4},\
-\"cpu_user_s\":{user:.4},\"cpu_sys_s\":{sys:.4},\"cpu_us_per_op\":{cpu_us_per_op:.4}}}",
+\"cpu_user_s\":{user:.4},\"cpu_sys_s\":{sys:.4},\"cpu_us_per_op\":{cpu_us_per_op:.4}{stages}}}",
             a.design, a.shards, a.producers, a.active_ues, a.seed, a.duration_s, a.warmup_s
         );
     } else {

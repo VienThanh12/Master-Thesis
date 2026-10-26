@@ -1041,7 +1041,7 @@ def workload_timeline():
         ("create", 88, "Idle"),
         ("setup", 88, "Connected"),
         ("signal", 88, "Connected"),
-        ("add DRB", 92, "Connected"),
+        ("add bearer", 92, "Connected"),
         ("begin", 80, "Reconf."),
         ("complete / abort", 124, "Connected"),
         ("release", 88, "Released"),
