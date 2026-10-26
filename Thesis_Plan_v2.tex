@@ -205,8 +205,8 @@ intended send time and the cap, and writes the fill after the timed window.
 The processor, the pin and \texttt{nohz\_full} stay the same. That control
 removes the large high-load gaps and leaves a smaller Rust throughput lead.
 CPU per completed operation falls with the fill, so the large ratio is the
-recorder. The smaller lead tracks extra kernel time per handoff, which queue
-swaps on a further host isolate from the core call. A no-fill clock
+recorder. The smaller lead tracks extra kernel time per handoff, which a queue
+swap on the reported campaign host isolates from the core call. A no-fill clock
 from an earlier host is coordinated-omission biased by construction and was
 not repeated here. The deferred-fill clock reports cumulative schedule drift
 rather than service time. Overload service latency is therefore left unresolved.
