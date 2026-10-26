@@ -178,9 +178,10 @@
       spent in Rust or C++ code. Most of the rest is thread handoff. On a same-host clock that
       defers coordinated-omission fill past the timed window, Rust still finishes more calls at
       $\ProbeAfterOverloadLoad$ thousand requests per second with both allocators. That clock
-      times schedule drift, not service time, so overload service latency is left unresolved.
-      On a further host, with several requests in flight outside the main tested family, median
-      delay before queue entry ranks the builds by allocator. The wait is shorter for Rust with
+      times schedule drift, not service time, and it understated Rust's throughput. On further
+      hosts, outside the tested family, most of the lead comes from the queue. Matching
+      the handoff leaves Rust $\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ ahead on the system
+      allocator. With several requests in flight on a further host, the wait is shorter for Rust with
       \texttt{jemalloc} and for C++ with the system allocator.
 
       On all three machines tested, Rust uses a few MiB more peak memory than C++ with both
@@ -414,8 +415,7 @@ under a realistic synthetic signalling workload.
 
 Three terms recur throughout, and the first is the \emph{gNB-CU-CP}, the control-plane class this work sits in.
 \emph{UE Context Management (UECM)} is the compact service reimplemented and measured.
-\emph{Tail latency}, the p99, p99.9 and p99.99 percentiles rather than the mean, is the property that,
-more than average speed, decides whether such a system meets its
+\emph{Tail latency} is the third. More than average speed, it decides whether such a system meets its
 latency budgets~\cite{dean2013tail,barroso2017microseconds}. 
 \section{Motivation}\label{sec:motivation}
 Three trends make this comparison timely.
@@ -2038,7 +2038,7 @@ integer overflow in C++, while Rust defines the same operation to wrap when
 overflow checks are disabled. ThreadSanitizer detects the lock-order inversion
 in $\DeadlockTsanHits$ of $\DeadlockTsanRuns$ runs, although this result varies
 between runs. The tool records lock-order relationships only when the
-relevant locks are successfully acquired. If a thread becomes stuck while 
+relevant locks are successfully acquired. If a thread becomes stuck while
 waiting for the first lock, the other lock may never be acquired, and the tool
 then cannot see the full sequence it needs to report the deadlock.
 
