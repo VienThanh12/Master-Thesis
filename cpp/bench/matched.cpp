@@ -13,6 +13,13 @@
 // within one binary the two modes differ only in the handoff. Senders send back to back,
 // which is the overload state of the campaign. --self-test runs one sender through both
 // designs and checks that every operation gets the same result.
+//
+// --stages splits each call into four parts on one clock: the queue (from just before the
+// sender hands the request over until the worker starts it), the worker (the operation),
+// the reply (from the worker finishing until the sender holds the result), and the sender
+// (its own time until it hands over the next request). The worker's two stamps are the
+// reported services' own started and done, so both designs pay the same two extra clock
+// reads. The parts add up to the time per call.
 
 #include <array>
 #include <atomic>
@@ -178,17 +185,57 @@ constexpr std::uint32_t kWaiting = 1;
 constexpr std::uint32_t kReady = 2;
 
 // One per sender, reused for every request it sends. The worker wakes the sender only if
-// the sender is asleep.
+// the sender is asleep. The two stamps are written only under --stages.
 struct alignas(64) ReplySlot {
   std::atomic<std::uint32_t> state{kEmpty};
   std::atomic<std::uint32_t> ok{0};
+  std::atomic<std::uint64_t> started_ns{0};
+  std::atomic<std::uint64_t> done_ns{0};
+};
+
+// Nanoseconds from base to t on the monotonic clock every thread reads.
+std::uint64_t ns_of(clock_type::time_point t, clock_type::time_point base) {
+  const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t - base).count();
+  return ns > 0 ? static_cast<std::uint64_t>(ns) : 0;
+}
+
+std::uint64_t ns_since(clock_type::time_point base) { return ns_of(clock_type::now(), base); }
+
+// A call's result, with when the worker started and finished it.
+struct Staged {
+  bool ok;
+  std::uint64_t started;
+  std::uint64_t done;
 };
 
 // --- The two designs -----------------------------------------------------------------------
 
+Staged take(Service::Completion c, clock_type::time_point base) {
+  const TimedResponse t = c.get();
+  const bool ok = std::visit([](const auto& v) { return v.has_value(); }, t.response);
+  return {ok, ns_of(t.started, base), ns_of(t.done, base)};
+}
+
 struct Stock {
   Service svc;
-  explicit Stock(const Config& cfg) : svc(cfg) {}
+  clock_type::time_point base;
+  Stock(const Config& cfg, clock_type::time_point b) : svc(cfg), base(b) {}
+
+  Staged exec_staged(std::size_t, const Request& r) {
+    switch (r.kind) {
+      case Kind::Create: return take(svc.create_context_async(r.ue_id, r.create, true), base);
+      case Kind::Setup: return take(svc.setup_connection_async(r.ue_id, true), base);
+      case Kind::Signal: return take(svc.handle_signaling_async(r.ue_id, r.signaling, true), base);
+      case Kind::AddDrb: return take(svc.add_drb_async(r.ue_id, r.drb, true), base);
+      case Kind::BeginReconf:
+        return take(svc.begin_reconfigure_async(r.ue_id, r.reconfig, true), base);
+      case Kind::CompleteReconf: return take(svc.complete_reconfigure_async(r.ue_id, true), base);
+      case Kind::AbortReconf: return take(svc.abort_reconfigure_async(r.ue_id, true), base);
+      case Kind::Release: return take(svc.release_context_async(r.ue_id, true), base);
+      case Kind::Stop: return {false, 0, 0};
+    }
+    return {false, 0, 0};
+  }
 
   bool exec(std::size_t, const Request& r) {
     switch (r.kind) {
@@ -228,13 +275,22 @@ struct Matched {
     slot.state.store(kEmpty, std::memory_order_relaxed);
     return ok;
   }
+
+  Staged exec_staged(std::size_t sender, const Request& r) {
+    // The worker wrote both stamps before its release exchange, which exec observed.
+    const bool ok = exec(sender, r);
+    const ReplySlot& slot = slots[sender];
+    return {ok, slot.started_ns.load(std::memory_order_relaxed),
+            slot.done_ns.load(std::memory_order_relaxed)};
+  }
 };
 
 void worker(Queue& queue, std::vector<ReplySlot>& slots, const Config& cfg,
-            std::atomic<std::uint64_t>& seq) {
+            std::atomic<std::uint64_t>& seq, clock_type::time_point base, bool stamp) {
   ShardCore core(cfg, seq);
   for (;;) {
     const Request r = queue.pop();
+    const std::uint64_t started = stamp ? ns_since(base) : 0;
     bool ok = false;
     switch (r.kind) {
       case Kind::Create: ok = core.create_context(r.ue_id, r.create).has_value(); break;
@@ -248,6 +304,10 @@ void worker(Queue& queue, std::vector<ReplySlot>& slots, const Config& cfg,
       case Kind::Stop: return;
     }
     ReplySlot& slot = slots[r.reply];
+    if (stamp) {
+      slot.done_ns.store(ns_since(base), std::memory_order_relaxed);
+      slot.started_ns.store(started, std::memory_order_relaxed);
+    }
     slot.ok.store(ok ? 1 : 0, std::memory_order_relaxed);
     if (slot.state.exchange(kReady, std::memory_order_release) == kWaiting)
       futex_wake_one(slot.state);
@@ -265,6 +325,7 @@ struct Args {
   double warmup_s = 1.0;
   std::uint64_t seed = 42;
   bool self_test = false;
+  bool stages = false;
   bool json = false;
 };
 
@@ -281,6 +342,7 @@ Args parse(int argc, char** argv) {
     else if (k == "--warmup-s") a.warmup_s = std::strtod(val(), nullptr);
     else if (k == "--seed") a.seed = std::strtoull(val(), nullptr, 10);
     else if (k == "--self-test") a.self_test = true;
+    else if (k == "--stages") a.stages = true;
     else if (k == "--json") a.json = true;
     else { std::fprintf(stderr, "unknown arg: %s\n", k.c_str()); std::exit(2); }
   }
@@ -337,6 +399,11 @@ Request request_for(const WOp& op, UeId id, std::uint32_t reply) {
 struct SenderOut {
   std::uint64_t ops = 0;
   std::uint64_t errors = 0;
+  std::uint64_t queue_ns = 0;
+  std::uint64_t worker_ns = 0;
+  std::uint64_t reply_ns = 0;
+  std::uint64_t sender_ns = 0;
+  std::uint64_t gaps = 0;
 };
 
 struct Drive {
@@ -344,26 +411,54 @@ struct Drive {
   std::pair<double, double> cpu0, cpu1;
 };
 
+std::uint64_t gap(std::uint64_t later, std::uint64_t earlier) {
+  return later > earlier ? later - earlier : 0;
+}
+
 // Senders send back to back. Operations that finish inside [t0, t1] are counted, and
 // process CPU is read at t0 and t1.
 template <class B>
-Drive drive(B& b, const Args& a) {
+Drive drive(B& b, const Args& a, clock_type::time_point clock) {
   const auto start = clock_type::now();
   const auto t0 = start + std::chrono::duration_cast<clock_type::duration>(
                               std::chrono::duration<double>(a.warmup_s));
   const auto t1 = t0 + std::chrono::duration_cast<clock_type::duration>(
                            std::chrono::duration<double>(a.duration_s));
+  const std::uint64_t t0_ns = ns_of(t0, clock), t1_ns = ns_of(t1, clock);
   Drive d;
   d.outs.resize(a.producers);
   std::vector<std::thread> ts;
   for (std::uint64_t p = 0; p < a.producers; ++p) {
     ts.emplace_back([&, p]() {
       Workload wl(a.active_ues, a.seed + p);
-      const std::uint64_t base = p * 100000000ULL + 1;
+      const std::uint64_t id_base = p * 100000000ULL + 1;
       SenderOut out;
+      bool have_prev = false;
+      std::uint64_t prev_back = 0;
       for (;;) {
         const WOp op = wl.next();
-        const bool ok = b.exec(p, request_for(op, base + op.slot, static_cast<std::uint32_t>(p)));
+        const Request req = request_for(op, id_base + op.slot, static_cast<std::uint32_t>(p));
+        if (a.stages) {
+          const std::uint64_t sent = ns_since(clock);
+          const Staged s = b.exec_staged(p, req);
+          const std::uint64_t back = ns_since(clock);
+          if (back >= t1_ns) break;
+          if (back >= t0_ns) {
+            ++out.ops;
+            if (!s.ok) ++out.errors;
+            out.queue_ns += gap(s.started, sent);
+            out.worker_ns += gap(s.done, s.started);
+            out.reply_ns += gap(back, s.done);
+            if (have_prev) {
+              out.sender_ns += gap(sent, prev_back);
+              ++out.gaps;
+            }
+          }
+          have_prev = true;
+          prev_back = back;
+          continue;
+        }
+        const bool ok = b.exec(p, req);
         const auto done = clock_type::now();
         if (done >= t1) break;
         if (done >= t0) {
@@ -384,14 +479,15 @@ Drive drive(B& b, const Args& a) {
 
 // Runs f with the matched mini-service up, then stops its workers.
 template <class F>
-auto with_matched(const Args& a, F f) {
+auto with_matched(const Args& a, clock_type::time_point clock, F f) {
   Matched m(a.shards, a.producers);
   Config cfg;
   cfg.n_shards = a.shards;
   std::atomic<std::uint64_t> seq{0};
   std::vector<std::thread> workers;
   for (std::uint64_t s = 0; s < a.shards; ++s)
-    workers.emplace_back([&, s]() { worker(m.queues[s], m.slots, cfg, seq); });
+    workers.emplace_back(
+        [&, s]() { worker(m.queues[s], m.slots, cfg, seq, clock, a.stages); });
   auto result = f(m);
   for (auto& q : m.queues) q.push(Request{});
   for (auto& t : workers) t.join();
@@ -399,10 +495,11 @@ auto with_matched(const Args& a, F f) {
 }
 
 template <class F>
-auto with_stock(const Args& a, F f) {
+auto with_stock(const Args& a, clock_type::time_point clock, F f) {
   Config cfg;
   cfg.n_shards = a.shards;
-  Stock stock(cfg);
+  cfg.stamp_start = a.stages;
+  Stock stock(cfg, clock);
   stock.svc.start();
   auto result = f(stock);
   stock.svc.shutdown();
@@ -445,10 +542,11 @@ void print_sequence(const char* name, const Sequence& s) {
 
 int main(int argc, char** argv) {
   const Args a = parse(argc, argv);
+  const auto clock = clock_type::now();
   if (a.self_test) {
     const std::uint64_t n = 20000;
-    const Sequence s = with_stock(a, [&](Stock& b) { return sequence(b, a, n); });
-    const Sequence m = with_matched(a, [&](Matched& b) { return sequence(b, a, n); });
+    const Sequence s = with_stock(a, clock, [&](Stock& b) { return sequence(b, a, n); });
+    const Sequence m = with_matched(a, clock, [&](Matched& b) { return sequence(b, a, n); });
     std::printf("self-test cpp: ");
     print_sequence("stock", s);
     std::printf(" | ");
@@ -457,12 +555,27 @@ int main(int argc, char** argv) {
     return s == m ? 0 : 1;
   }
   const Drive d = a.design == "matched"
-                      ? with_matched(a, [&](Matched& b) { return drive(b, a); })
-                      : with_stock(a, [&](Stock& b) { return drive(b, a); });
-  std::uint64_t ops = 0, errors = 0;
+                      ? with_matched(a, clock, [&](Matched& b) { return drive(b, a, clock); })
+                      : with_stock(a, clock, [&](Stock& b) { return drive(b, a, clock); });
+  std::uint64_t ops = 0, errors = 0, queue_ns = 0, worker_ns = 0, reply_ns = 0, sender_ns = 0,
+                gaps = 0;
   for (const auto& o : d.outs) {
     ops += o.ops;
     errors += o.errors;
+    queue_ns += o.queue_ns;
+    worker_ns += o.worker_ns;
+    reply_ns += o.reply_ns;
+    sender_ns += o.sender_ns;
+    gaps += o.gaps;
+  }
+  char stages[256] = "";
+  if (a.stages) {
+    const double n = ops > 0 ? static_cast<double>(ops) : 1.0;
+    const double g = gaps > 0 ? static_cast<double>(gaps) : 1.0;
+    std::snprintf(stages, sizeof stages,
+                  ",\"stages\":true,\"queue_us\":%.4f,\"worker_us\":%.4f,\"reply_us\":%.4f,"
+                  "\"sender_us\":%.4f",
+                  queue_ns / n / 1e3, worker_ns / n / 1e3, reply_ns / n / 1e3, sender_ns / g / 1e3);
   }
   const double user = d.cpu1.first - d.cpu0.first;
   const double sys = d.cpu1.second - d.cpu0.second;
@@ -475,11 +588,12 @@ int main(int argc, char** argv) {
         "\"shards\":%llu,\"producers\":%llu,\"active_ues\":%llu,\"seed\":%llu,\"duration_s\":%.3f,"
         "\"warmup_s\":%.3f,\"ops\":%llu,\"errors\":%llu,\"ops_per_s\":%.1f,"
         "\"us_per_op_per_sender\":%.4f,\"cpu_user_s\":%.4f,\"cpu_sys_s\":%.4f,"
-        "\"cpu_us_per_op\":%.4f}\n",
+        "\"cpu_us_per_op\":%.4f%s}\n",
         UECM_ALLOC_NAME, a.design.c_str(), (unsigned long long)a.shards,
         (unsigned long long)a.producers, (unsigned long long)a.active_ues,
         (unsigned long long)a.seed, a.duration_s, a.warmup_s, (unsigned long long)ops,
-        (unsigned long long)errors, ops_per_s, us_per_op_per_sender, user, sys, cpu_us_per_op);
+        (unsigned long long)errors, ops_per_s, us_per_op_per_sender, user, sys, cpu_us_per_op,
+        stages);
   } else {
     std::printf(
         "UECM matched probe [cpp, alloc=%s, design=%s] ops/s=%.0f us/op/sender=%.3f "
