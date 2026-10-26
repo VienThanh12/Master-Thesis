@@ -2,8 +2,9 @@
 % Clock A is the newest fair-start log and is not this campaign's host.
 % Clock B is the newest fair-after log. When it shares the campaign host,
 % it is the fill control. Clock B percentiles are not emitted.
-% Sg* are swap probes on a further host with the same processor,
-% read from bench/results-probes-20260930-sg/. Not in the tested family.
+% Sg* queue swap: campaign host when bench/results-probes-campaign-jaybird/
+% exists; otherwise bench/results-probes-20260930-sg/. Flat-map probe stays
+% on the further host. Not in the Holm-tested family.
 \newcommand{\ProbeAfterCap}{10\,000}
 \newcommand{\ProbeAfterCpu}{AMD EPYC 7443P}
 \newcommand{\ProbeAfterCpuPerOpCpp}{1.44}
