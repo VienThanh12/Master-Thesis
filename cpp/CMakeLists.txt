@@ -100,6 +100,16 @@ if(UECM_RING_QUEUE)
   target_compile_definitions(uecm PUBLIC UECM_RING_QUEUE)
 endif()
 
+# Lets one message carry several signalling operations for one shard
+# (Service::handle_signaling_batch), so the batch probe can separate the cost of a
+# handoff from the cost of an operation in a loaded service. Twin of the Rust feature
+# batch-probe. See docs/OVERLOAD_MECHANISM.md, Method 2.
+option(UECM_BATCH_PROBE "PROBE ONLY: batched signalling request and the batch probe" OFF)
+if(UECM_BATCH_PROBE)
+  message(STATUS "uecm: PROBE build -- batched signalling request, not the reported configuration")
+  target_compile_definitions(uecm PUBLIC UECM_BATCH_PROBE)
+endif()
+
 # --- Optional jemalloc (spec §3: identical allocator across languages) --------
 option(UECM_USE_JEMALLOC "Link jemalloc to isolate language effects from allocator" OFF)
 if(UECM_USE_JEMALLOC)
@@ -137,6 +147,36 @@ else()
   target_compile_definitions(pipeline PRIVATE UECM_ALLOC_NAME="system")
 endif()
 
+# --- Batch probe (Method 2, not the campaign bench) ----------------------------
+# Twin of rust/examples/batch.rs. Built only with UECM_BATCH_PROBE.
+if(UECM_BATCH_PROBE)
+  add_executable(batch bench/batch.cpp)
+  target_include_directories(batch PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/bench)
+  target_link_libraries(batch PRIVATE uecm)
+  if(UECM_USE_JEMALLOC AND JEMALLOC_LIB)
+    target_compile_definitions(batch PRIVATE UECM_ALLOC_NAME="jemalloc")
+  else()
+    target_compile_definitions(batch PRIVATE UECM_ALLOC_NAME="system")
+  endif()
+endif()
+
+# --- Matched-design probe (not the campaign bench) -----------------------------
+# The same hand-written queue and reply slot in both languages around the real
+# ShardCore. Changes nothing in the library, and stays off so the full build that
+# bench/adoption_cost.py times is unchanged. Twin of rust/examples/matched.rs.
+# See docs/OVERLOAD_MECHANISM.md §4.16.
+option(UECM_MATCHED_PROBE "PROBE ONLY: matched-design probe executable" OFF)
+if(UECM_MATCHED_PROBE)
+  add_executable(matched bench/matched.cpp)
+  target_include_directories(matched PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/bench)
+  target_link_libraries(matched PRIVATE uecm)
+  if(UECM_USE_JEMALLOC AND JEMALLOC_LIB)
+    target_compile_definitions(matched PRIVATE UECM_ALLOC_NAME="jemalloc")
+  else()
+    target_compile_definitions(matched PRIVATE UECM_ALLOC_NAME="system")
+  endif()
+endif()
+
 # --- Latency-budget decomposition ---------------------------------------------
 # Separates the operation's own work from the cross-thread handoff the sweep
 # bundles into it. See bench/latency_budget.cpp.
@@ -159,4 +199,9 @@ if(UECM_BUILD_TESTS)
     target_link_libraries(${t} PRIVATE uecm)
     add_test(NAME ${t} COMMAND ${t})
   endforeach()
+  if(UECM_BATCH_PROBE)
+    add_executable(test_batch tests/test_batch.cpp)
+    target_link_libraries(test_batch PRIVATE uecm)
+    add_test(NAME test_batch COMMAND test_batch)
+  endif()
 endif()
