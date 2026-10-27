@@ -580,21 +580,14 @@ Three hypotheses are written down before any measurement.
 \end{description}
 Chapter~\ref{chapter:discussion} revisits all three hypotheses against the facts.
 
-\paragraph{Rust safety model.}\label{sec:rustsafety}
-Rust separates code into \emph{safe Rust} and code that uses \texttt{unsafe}. 
-In safe Rust, the compiler checks how memory is used, including ownership and borrowing, 
-to prevent many common programming errors. When code uses an \texttt{unsafe} block or an 
-\texttt{unsafe} function, the programmer must ensure that certain operations are used 
-correctly because the compiler cannot check all their safety requirements.
-
-Unsafe code is often needed when Rust interacts with C code through a C application
-binary interface (ABI) or uses raw pointers. Unlike Rust, C++ does not have a specific keyword to mark code that requires 
-these additional safety guarantees.
-
-In RQ2, the compile-time safety claims apply only to safe Rust, where the compiler can 
-enforce its safety rules. Both the measured service core and the injected defects are 
-written in safe Rust. Chapter~\ref{chapter:design} explains how the adoption prototype 
-keeps \texttt{unsafe} code limited to the C ABI boundary.
+\paragraph{What RQ2 covers.}
+The compile-time safety claims of RQ2 apply only to \emph{safe Rust}, the code outside
+\texttt{unsafe} blocks, where the compiler can enforce its rules
+(Section~\ref{sec:rustsafety}). The measured service core is written in safe Rust, and so
+is every injected defect but one, which bypasses the checks inside \texttt{unsafe} on
+purpose (Section~\ref{sec:safetyresults}). Chapter~\ref{chapter:design} explains how the
+adoption prototype keeps \texttt{unsafe} code limited to its C application binary
+interface (ABI), the layer where C++ calls into Rust.
 
 The RQ2 list has fourteen defect classes. Safe Rust is expected to stop seven of
 them at compile time. It is expected not to stop the other seven. That split is
@@ -604,9 +597,9 @@ boundary classes are these:
 \item lock-order deadlock
 \item lost update
 \item reference-cycle leak
-\item release-build overflow
+\item integer overflow in a release build
 \item worker-failure blast radius
-\item seam double-free
+\item double-free inside \texttt{unsafe}
 \item forgotten lock guard
 \end{compactitem}
 
@@ -729,6 +722,34 @@ subsystem. It does not stand for the control plane as a whole.
 highlighted inside the gNB-CU-CP.\label{fig:ngran}}
 \end{figure}
 
+\section{Memory safety and latency measurement}\label{sec:rustsafety}
+Rust separates code into \emph{safe Rust} and code that uses \texttt{unsafe}. In safe
+Rust, the compiler checks how memory is used, including ownership and borrowing, to
+prevent many common programming errors~\cite{klabnik2023rust,jung2018rustbelt}. When code
+uses an \texttt{unsafe} block or an \texttt{unsafe} function, the programmer must make sure
+that certain operations are used correctly, because the compiler cannot check all their
+safety requirements. Unsafe code is often needed when Rust calls C code through the C ABI
+or uses raw pointers. C++ has no keyword that marks such code.
+
+C++ manages many resources through Resource Acquisition Is Initialization (RAII), in
+which an object releases what it holds when it goes out of scope. Nothing in the language
+stops a program from keeping a pointer to that object afterwards, or from sharing it
+between threads without a lock. C++ projects therefore catch them
+with tools that watch a running program. This study runs three of them, AddressSanitizer,
+ThreadSanitizer and UndefinedBehaviorSanitizer (Section~\ref{sec:methodbrief}). A sanitiser can report a
+defect only on a path a test actually runs, so a clean report covers the tests and not the
+program.
+
+How a test sends its requests decides whether its slow calls are counted. A test that
+waits for each reply before sending the next request slows down whenever the service does.
+It then sends fewer requests during a slow spell and records fewer slow calls than users
+would see. A test that keeps to a fixed send schedule avoids most of
+this~\cite{schroeder2006openclosed}. It can still fall behind its schedule, so HdrHistogram
+adds a delay sample for each request that should have been sent during that
+time~\cite{tene_hdrhistogram}. Section~\ref{sec:workload} describes how the harness adds
+How each research question isthese samples, and Section~\ref{sec:overload} shows that when they are written can change
+a result.
+
 \section{Research gap}\label{sec:gap}
 The RAN control plane has many threads and
 tight latency bounds. Tail latency under too much load, not mean throughput, sets
@@ -757,7 +778,7 @@ more steeply past a threshold rate~\cite{arvidsson2025async}. Karlb\"ack and
 Or\"o pick C++ where speed is critical. They still find Rust lightest on peak
 memory~\cite{karlback2021ran}. Olsson's management software is as fast as C or
 faster. It uses more peak memory~\cite{olsson2023ranmgmt}. Emberg and
-Wadsten's pair is comparable in one session. It is $85$--$91\%$ worse in the
+Wadsten's Rust version is comparable to C++ in one session. It is $85$--$91\%$ worse in the
 next~\cite{emberg2023asn1}.
 
 Three of them change the language together with the run-time and the thread
@@ -868,13 +889,13 @@ returns a typed error and leaves the context unchanged. That closed set lets
 the same tests and the same workload drive both versions along the same
 paths.
 
-As Section~\ref{sec:rustsafety} states, RQ2 asks which defects safe Rust stops at compile
+As Section~\ref{sec:rqs} states, RQ2 asks which defects safe Rust stops at compile
 time, and which ones it does not. Section~\ref{sec:defects} sets out the catalogue. For each defect, the expected
 result was written down before the programs were run.
 Section~\ref{sec:safetyresults} reports what each one did.
 
-The study measures tail latency, not the ordinary calls. Two facts about this part make
-that the right choice.
+The study reads tail latency as well as the typical call. Two facts make that the right
+choice.
 
 The first fact is what a phone user waits for. Setting up a call, or moving a phone to the
 next cell, is not one step. It is a chain of control-plane steps, and they have to finish in
@@ -915,13 +936,13 @@ measured.
 Defect & Example in UECM & Result & Safe Rust \\
 \hline
 \multicolumn{4}{@{}l}{\emph{Memory safety}} \\
-Use-after-free & Handler uses a context after it was released & Crash/corruption & Prevented \\
-Double-free & Release frees the same context twice & Crash/corruption & Prevented \\
+Use-after-free & Handler uses a context after it was released & Crash or corruption & Prevented \\
+Double-free & Release frees the same context twice & Crash or corruption & Prevented \\
 Use-after-move & Request uses a context after it was moved & Empty identity & Prevented \\
 Buffer overflow & No applicable scenario in the context store & n/a & Not injected \\
 \hline
 \multicolumn{4}{@{}l}{\emph{Concurrency}} \\
-Iterator invalidation & Bearer list changes while it is being iterated & Crash/corruption & Prevented \\
+Iterator invalidation & Bearer list changes while it is being iterated & Crash or corruption & Prevented \\
 Data race & Two workers update the same field at once & Wrong value & Prevented \\
 Unguarded shared mutation & Multiple workers mutate the same context & Wrong value & Prevented \\
 Thread-unsafe handle & Non-atomic handle is shared between workers & Corrupted refcount & Prevented \\
@@ -960,13 +981,20 @@ answer is still by a fixed plan, in words. That is how this study treats the
 kind of guarantee in RQ2. RQ4 asks about the design cost of the application
 programming interface (API).
 
-The closest prior work is the five vendor-hosted theses of
-Section~\ref{sec:gap}. They appear in no citation database. They had to be
-found by searching each university's own archive by hand. The same searches
-found no Finnish thesis on Rust in a radio-access setting. They found no
-indexed paper mentioning Rust from the vendor hosting this work. The search
-returned no study that measures the tail of a Rust and a C++ version of the
-same stateful, multi-thread control-plane part under too much load.
+The closest prior work is the five vendor-hosted theses of Section~\ref{sec:gap}.
+The wider literature came from the digital libraries of the Association for Computing
+Machinery and the Institute of Electrical and Electronics Engineers, the proceedings of the
+USENIX Association, and Google Scholar. The searches combined the terms \emph{Rust},
+\emph{C++}, \emph{memory safety}, \emph{tail latency}, \emph{systems programming},
+\emph{performance comparison}, and \emph{RAN} or \emph{5G control plane}, and citation
+chaining extended them. The five theses appear in none of the citation databases, neither
+Crossref, OpenAlex nor Semantic Scholar, so chaining cannot reach them. They were found by
+searching the university repositories directly, the Digitala Vetenskapliga Arkivet portal for
+the Nordic universities and Finna for the Finnish ones. Finna returns no thesis on Rust in
+a radio-access or telecom setting. An affiliation search of the vendor's indexed works in
+OpenAlex finds one that mentions Rust, an unrelated preprint. No search returned a study
+that measures the tail of a Rust and a C++ version of the same stateful, multi-thread
+control-plane part under too much load.
 
 Table~\ref{tab:design} is the map for the rest of this chapter. Each row is one research question.
 The columns say which test answers it, what was built for that test, which data the test
