@@ -625,6 +625,23 @@ RQ2 asks the same question of programs that are built and run.
 That is how it can say when the types still open are caught, and what
 it costs to catch them.
 
+\section{Contributions and outline}\label{sec:contrib}
+The thesis leaves three artefacts for reuse: a fixed, language-neutral specification of the
+service, a C++ and a Rust implementation that pass the same parity tests, and a timing
+harness that reaches past saturation. The first of its results compares latency and resource
+use below and past saturation, and separates the core operation from the handoff around it.
+The second maps where Rust's compile-time guarantee stops, using defects built on both sides
+of it. The third bounds what one call from C++ into Rust costs. The discussion turns these
+into guidelines for adding Rust one piece at a time.
+
+Chapter~\ref{chapter:background} places the work in the 5G base station and among earlier
+comparisons, and introduces the two safety models and how tail latency is measured.
+Chapter~\ref{chapter:methodology} gives the method for each research question.
+Chapter~\ref{chapter:design} describes the two implementations, and Chapter~\ref{chapter:eval}
+the machines, the workload and the results. Chapter~\ref{chapter:discussion} answers the
+research questions, revisits the hypotheses and states the limitations, and
+Chapter~\ref{chapter:conclusions} concludes.
+
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
 % The class prints the chapter titles in the running head in capitals, where the
 % full title of this chapter runs into the margin.
