@@ -340,7 +340,7 @@ Round-trip & The time from the planned send until the reply comes back. It inclu
 Bare metal & The program runs on the computer itself, with no virtual machine between it and the hardware \\
 Hypervisor & Software that runs virtual machines. The reported campaign has none between the test and the hardware \\
 Guest & A virtual machine an earlier measurement ran in. The reported results come from the bare-metal computer \\
-Userland & Programs and libraries above the kernel. The container supplies the compilers; the host supplies the kernel \\
+Userland & Programs and libraries above the kernel. The container supplies the compilers, and the host supplies the kernel \\
 \\[2pt]
 \multicolumn{2}{@{}l}{\scriptsize\emph{Safety}}\\*[1pt]
 Data race & Two threads use the same memory at once and at least one writes, with nothing to keep the two uses in order \\
@@ -445,7 +445,7 @@ that neighbour takes capacity, the control plane saturates sooner: it
 stops keeping up with demand at a lower load than it would alone.
 Chapter~\ref{chapter:eval} therefore drives both implementations past that point.
 It also separates the time spent passing work between threads from the time
-spent in each language's own code.
+spent doing the work itself.
 
 \item \textbf{Memory-safe languages.} Large software organisations report that the
 majority of their serious security vulnerabilities stem from memory-safety errors,
