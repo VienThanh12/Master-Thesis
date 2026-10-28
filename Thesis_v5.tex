@@ -1513,10 +1513,10 @@ test may use only cores \MainPinned{}. There is no hypervisor. A hypervisor
 is the program that would run a virtual machine. The
 program runs on the host itself, not inside a virtual machine. On those
 cores the kernel turns off its timer tick (\texttt{nohz\_full}).
-If left on, those ticks would show up in the latency numbers. The study does
-not use \texttt{isolcpus}. That flag also stops the kernel sharing work
-across the allowed cores. Each test thread is placed on
-one core.
+If left on, those ticks would show up in the latency numbers. The study does not use another Linux setting, \texttt{isolcpus}. That setting
+would stop Linux from moving threads between the allowed cores. Every test
+thread would then stay on the first of those cores and wait its turn there.
+Without the setting, Linux spreads the test's threads across the allowed cores.
 
 The compiler and build tools used in the experiment are not taken directly
 from the host system. Instead, both the C++ and Rust programs are built and
@@ -1569,15 +1569,18 @@ steps walks each UE through the connection lifecycle those rules
 define. The \emph{signal} work first connects a set of UEs, then sends the
 same signal call again and again. That picks out the common path. The
 \emph{mixed} work walks each UE through context creation, setup,
-signal, bearer setup, reconfiguration or handover, and release. The same seed gives C++ and Rust the same planned list of calls. Below
-saturation both finish that list, so each kind of call has the same count
-each time the two are compared. That match is the check that both did the
-same work. Past saturation a run stops before the list is finished. The two
-languages can stop at different points, so the counts can differ. The reported
-campaign and its follow-up run use the mixed workload. The signal workload is
-used only when several requests are in flight
-(Section~\ref{sec:overload}). Figure~\ref{fig:workload} shows the two
-workloads and the steps the mixed one walks.
+signal, bearer setup, reconfiguration or handover, and release. The order of the requests is random, but it can be repeated. A starting
+number, called the seed, fixes that order. With the same seed, the C++ version
+and the Rust version get exactly the same list of requests. Below saturation,
+while the service still keeps up, both versions finish the whole list. Each
+kind of request, such as a setup or a release, then appears the same number of
+times in both. That match shows that the two versions did the same work. Past
+saturation, a run reaches its time limit before the list is finished. The two
+versions can stop at different places in the list, so their counts can differ.
+The main measurements and their follow-up both use the mixed workload. The
+signal workload is used only in the test where several requests can wait for an
+answer at the same time (Section~\ref{sec:overload}). Figure~\ref{fig:workload}
+shows the two workloads and the steps that the mixed one goes through.
 
 \begin{figure}[ht]
 \centering
@@ -1675,11 +1678,13 @@ lower in each. That matches the median: the language gap is detectable at the
 typical call and in the upper tail. Table~\ref{tab:significance} lists every
 planned comparison at this load.
 
-Table~\ref{tab:latency} reports p99.9 and the maximum at the chosen load.
-The maximum, which RQ1 names, separates the languages more widely than any
-percentile, and the C\texttt{++} and Rust intervals do not overlap. It is
-still not one of the planned comparisons, like the pooled p99.99, because one
-disturbed call per run can set it.
+Table~\ref{tab:latency} shows the p99.9 and the maximum at the chosen load.
+The maximum is the slowest call in a run, and the first research question,
+RQ1, asks about it. C++ and Rust are further apart there than at any
+percentile in the table, and Rust is the lower of the two. The C++ and Rust
+intervals do not overlap. The planned comparisons leave the maximum out,
+because one call slowed by a disturbance can set it for the whole run. The
+pooled p99.99 is left out as well.
 \begin{table}[ht]
 \centering
 \small
@@ -1700,7 +1705,7 @@ disturbed call can set it.
 \end{tabular}
 \end{table}
 
-\begin{figure}[ht]
+\begin{figure}[!tbp]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_load_sweep.pdf}
 \caption[The load sweep: tail latency and achieved throughput]{Panel (a) is
@@ -1722,68 +1727,153 @@ The runs' histograms are pooled, which
 gives \FarTailSamplesMin{} to \FarTailSamplesMax{} calls per variant. The
 two \FarTailLower{} variants sit below both C++ variants. The widest pair
 differs by $\FarTailRange\,\mu$s. The slowest Rust variant still sits
-$\FarTailLangSep\,\mu$s below the fastest C++ one. A second bare-metal host at another shard count agrees,
-running $\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s for the C++ variants against
-$\BmFarTailRustLo$--$\BmFarTailRustHi\,\mu$s for the Rust ones, and the ranges do not meet.
-A second limit does not come from the host. No host would remove it. An
-end-to-end round-trip spends only $\BudgetCoreShareMax\%$ of its time on the
-work the language does. The rest is passing the request to another thread,
-and that time is charged to the operating system. When the work inside the
-language is this small, time spent crossing from thread to thread
-dominates~\cite{zhou2025oltp}. Figure~\ref{fig:e2eclock} draws that split.
-This sweep cannot bound a language effect
-either way, which Figure~\ref{fig:budget} sets beside what the sweep can
-still show. Timed on its own, the core call is $\BudgetCoreRatio\times$
-faster in \BudgetCoreFaster{}. The test does not trace the cause. The stock
-hash map is one candidate. Compiler code generation may also own part of the
-gap.
+$\FarTailLangSep\,\mu$s below the fastest C++ one. A second computer also runs the test without a virtual machine, but it is set
+up differently (Section~\ref{sec:testbed}). It shows the same pattern for the
+slowest requests. Here that means the delay that 9{,}999 of every 10{,}000
+requests stay under. At loads from $\BmFarTailSepLoad$ to $\BmFarTailSepHi$
+thousand requests per second, that delay is
+$\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s in the C++ builds and
+$\BmFarTailRustLo$--$\BmFarTailRustHi\,\mu$s in the Rust builds. The two ranges
+do not overlap. Rust is faster there. At lower loads the two languages cannot
+be told apart. The highest load on that computer, $\BmFarTailTopLoad$ thousand
+requests per second, is left out. At that load the typical request got faster,
+while the slower requests did not change, and the data from that computer do
+not explain why.
+
+Two more limits come from the test itself, not from the computer, so running it
+on another computer would not remove them. The first is what the timer
+includes. Every request has a planned send time, and its delay is counted from
+that time. Until then, the thread that sends it, called the producer, is
+asleep. That thread runs at normal priority, so Linux may wake it up to
+$50\,\mu$s late~\cite{linux2026timerslack}. The timer can therefore start while
+the producer is still asleep. That late wake-up is part of every delay in
+Table~\ref{tab:latency}.
+
+The virtual machine was timed in two ways. In the main test, the typical delay
+was about $\GuestPFifty\,\mu$s. In a separate test, each request was sent as
+soon as the last one was answered, and a round trip took $\BudgetSvcCpp\,\mu$s.
+The late wake-up is probably also why the delay in panel~(a) of
+Figure~\ref{fig:loadsweep} drops a little as the load rises. At a higher rate,
+a producer sleeps less often. Each test program sleeps with its own language's
+built-in sleep function. So a small difference between C++ and Rust at this
+load may come partly from the two sleep functions, and not only from the two
+services.
+
+The second limit is how little real work each request needs. That work, the
+core operation, reads or changes the stored record for one device. A separate
+timing found that it takes at most $\BudgetCoreShareMax\%$ of a round trip. The
+rest is the handoff. In the handoff, the request waits in a queue for the
+worker thread, the answer is sent back, and Linux puts threads to sleep and
+wakes them up. When the real work is this small, passing requests between
+threads takes most of the time~\cite{zhou2025oltp}. Figure~\ref{fig:e2eclock}
+shows this split.
+
+The difference between the languages in the typical delay is up to
+$\PFiftyDiffAbsMax\,\mu$s. That is many times longer than the whole core
+operation. Even if one language did the core operation in no time at all, that
+would explain only a small part of the difference. Most of it must come from
+the handoff, which the two versions build in different ways
+(Section~\ref{sec:overload}), or from the producers' sleep. So this test cannot
+tell which language does the core operation faster (Figure~\ref{fig:budget}).
+Timed on its own on the virtual machine, the core operation is
+$\BudgetCoreRatio$ times faster in \BudgetCoreFaster{}. The study did not find
+out why. Two possible reasons are the hash map that comes with each language,
+which stores the records, and the machine code that each compiler produces.
 
 \enlargethispage{36pt}
 \begin{figure}[!ht]
 \centering
 \includegraphics[width=\linewidth]{diagrams/pdf/31_e2e_clock.pdf}
-\caption[Where the end-to-end clock goes]{Where an end-to-end
-round-trip's clock goes. The language share is
-$\BudgetCoreShareMax\%$. A clock that spends the rest on handoff cannot bound
-a language effect.\label{fig:e2eclock}}
+\caption[Where the end-to-end clock goes]{Where the time of one round trip
+goes, from the separate timing of its parts on the virtual machine of
+Appendix~\ref{appendix:config}. The core operation, labelled language in the
+drawing, takes $\BudgetCoreShareMax\%$. A clock that spends the rest on the
+handoff cannot bound a difference in the core operation. The campaign's own clock also
+holds the producer's late wake-up, which this split leaves out.\label{fig:e2eclock}}
 \end{figure}
 
 \begin{figure}[!ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_budget_thesis.pdf}
 \caption[How small the language’s share of a round-trip is]{Where
-an end-to-end round-trip's cost goes. \textbf{(a)} The round-trip at true
-proportion. \textbf{(b)} Both operation measurements are too short for that clock to separate, by a factor of $\BudgetBoundVsCore$.\label{fig:budget}}
+an end-to-end round trip's cost goes. \textbf{(a)} The round trip at true
+proportion, from the same separate timing on the virtual machine of
+Appendix~\ref{appendix:config}. \textbf{(b)} The operation costs from that
+timing beside the widest bound of this campaign's median comparison,
+$\PFiftyDiffCIMax\,\mu$s, which is $\BudgetBoundVsCore$ times the whole
+operation, so that comparison cannot resolve a difference in
+it.\label{fig:budget}}
 \end{figure}
 
-\clearpage
+% Keeps the two figures above this subsection without forcing a page break.
+% A \clearpage here left fig:budget alone on its own page.
+\FloatBarrier
 \subsection{Past saturation (RQ1)}\label{sec:overload}
 
-Past saturation Rust finishes more calls than C\texttt{++} on both
-allocators. The lead comes from how each standard library hands a request to
-the worker and the reply back, not from the core operation. With several
-requests in flight, which language waits less depends on the allocator.
+Past saturation the answer depends on what the timer includes. The planned
+comparison on the reported campaign has C\texttt{++} finishing more calls, but
+that clock also times the sender's own recording. Once the recording moves
+outside the timed window, Rust finishes more calls on both allocators. That lead
+comes from the handoff each build uses to pass a request to the worker and the
+reply back, not from the core operation. With several requests in flight, which
+language waits less depends on the allocator.
 
-Each request has a scheduled send time. When the service is slow, some 
-requests are still waiting to be sent even after their scheduled time has passed. 
-Looking only at completed calls would miss these delays.
+\paragraph{The planned comparison.}
+At $\OverloadLoad$~kops/s offered, C\texttt{++} sustains $\OverloadThrCpp$~kops/s
+and Rust $\OverloadThrRust$, a ratio of $\OverloadThrRatio$ that holds in
+$\OverloadThrAgree$ paired repeats under each allocator and clears the Holm
+correction (Table~\ref{tab:overloadtest}). Panel~(c) of
+Figure~\ref{fig:loadsweep} draws it. This clock does not time the service alone,
+though. Each request has a scheduled send time, and when the service falls
+behind, the sender writes extra delay samples for the requests it missed
+(Section~\ref{sec:workload}). In the reported campaign it writes them while the
+timer runs, so past saturation the sender spends part of the timed window
+recording instead of sending.
 
-To capture them, the harness records additional delay samples for requests that 
-should have been sent during that time. These samples are recorded after the timed 
-test ends, so they do not add extra work during the test. The same set of test points 
-is used for each of the \(\ProbeAfterRuns\) runs.
+\begin{table}[!ht]
+\centering
+\small
+\caption[The four planned comparisons past saturation]{The four planned
+comparisons at $\OverloadLoad$~kops/s offered on the reported campaign, Rust
+minus C\texttt{++} with the allocator held fixed. Each cell gives the median
+paired difference over \NRepeats{} repeats above its bootstrap $95\%$ interval,
+and Agree counts the repeats with that sign. Holm $p$ is corrected across all
+\NTests{} planned comparisons. The sender records extra delay samples inside
+the timed window here, so these differences measure that recording as well as
+the service.\label{tab:overloadtest}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}p{0.24\linewidth} l r c r r@{}}
+\hline\hline
+Metric & Allocator & Rust minus C\texttt{++} & Agree & $p$ & Holm $p$ \\
+\hline
+\input{figures/tab_overload_test.tex}\\
+\hline
+\end{tabular}
+\end{table}
 
-\paragraph{What the sweep shows.}
-Rust keeps up to $\ProbeAfterTrackRust$~kops/s and C\texttt{++} only to
-$\ProbeAfterTrackCpp$ (Figure~\ref{fig:loadmap}). At $\KneeSplitLoad$~kops/s,
+\paragraph{With the recording after the window.}
+A follow-up run of the same grid on the same host, with the same pin and
+\texttt{nohz\_full}, writes those samples after the timed window instead. It is a
+check, and its comparisons were not among the planned tests. On it, Rust
+keeps up to $\ProbeAfterTrackRust$~kops/s and C\texttt{++} only to
+$\ProbeAfterTrackCpp$ (Figure~\ref{fig:loadmap}). At $\ProbeAfterKneeLoad$~kops/s,
 C\texttt{++} serves $\ProbeAfterKneeThrCpp$~kops/s and Rust serves
-$\ProbeAfterKneeThrRust$. At the highest load, C\texttt{++} finishes
-$\ProbeAfterThrRatioSystem$ of Rust's throughput on the system allocator
-($p \ProbeAfterThrPSystem$) and $\ProbeAfterThrRatioJemalloc$ under
-\texttt{jemalloc} ($p \ProbeAfterThrPJemalloc$). These comparisons were not
-in the tests chosen before the experiment. Once throughput stops rising, CPU
-per finished call differs by a factor of $\ProbeAfterCpuPerOpRatio$, with
-\ProbeAfterCpuPerOpHigher{} the higher one.
+$\ProbeAfterKneeThrRust$. At the highest load the planned order reverses.
+C\texttt{++} finishes $\ProbeAfterThrRatioSystem$ of Rust's throughput on the
+system allocator ($p \ProbeAfterThrPSystem$) and $\ProbeAfterThrRatioJemalloc$
+under \texttt{jemalloc} ($p \ProbeAfterThrPJemalloc$). At the highest load, CPU
+per finished call differs by a factor of $\ProbeAfterCpuPerOpRatio$,
+with \ProbeAfterCpuPerOpHigher{} the higher one. The large ratio of the planned
+comparison therefore measures the recording more than the service.
+
+The follow-up run still understates Rust. The C\texttt{++} harness stopped its
+timer before writing the extra samples and the Rust harness after, so Rust's
+window was longer than its work. A timer test on host B sized the error. Without
+the samples, Rust's throughput at the highest load rose by
+$\FillWindowRustGain\%$ and C\texttt{++}'s did not move
+(Appendix~\ref{appendix:probes}). Every comparison across the languages on this
+run therefore understates Rust's lead, while comparisons within one language are
+unaffected. The directions stand, and Rust's true lead is, if anything, larger.
 
 \begin{figure}[ht]
 \centering
@@ -1792,15 +1882,15 @@ per finished call differs by a factor of $\ProbeAfterCpuPerOpRatio$, with
 four load points, ranging from light load to overload. These points
 are placed along the offered-load axis for easy reading. Their positions
 are not to scale. The tick marks show $\ReprLoad$, the shared tracking
-load $\TrackingLoad$, the load where C\texttt{++} first falls behind at
-$\KneeSplitLoad$, and the overload point at $\OverloadLoad$~kops/s. The
-bars show finished throughput, with extra delay samples written after
-the timed window.
+load $\TrackingLoad$, the load where C\texttt{++} first falls behind on this
+run at $\ProbeAfterKneeLoad$, and the overload point at $\OverloadLoad$~kops/s.
+The bars show finished throughput on the follow-up run, which writes the extra
+delay samples after the timed window and is not among the planned tests.
 \label{fig:loadmap}}
 \end{figure}
 
 \paragraph{Where the lead comes from.}
-Rust finishes more calls past saturation, but not because its core call is
+On the follow-up run Rust finishes more calls, but not because its core call is
 faster. Each sender waits for its reply before sending again, so finished
 throughput tracks the full round-trip time, not the shard logic alone. That logic is at most
 $\BudgetCoreShareMax\%$ of the trip. At the highest load, $\ProbeAfterSysShareLo$
@@ -1814,24 +1904,34 @@ Each follow-up run changes one part of the build and reruns the comparison.
 These runs were on further hosts, other machines with the same processor
 (Table~\ref{tab:probes}). Changing the C\texttt{++} map does
 not shrink the lead. Giving Rust the C\texttt{++} lock and queue design
-removes it. Changing only the buffer behind that lock does not move
-C\texttt{++}. The lead therefore comes from how the queue is locked and
-signaled. On the C\texttt{++} path the kernel sees $\HandoffEmptyWakesCpp$
+removes it, within the timer error above. Changing only the buffer behind that
+lock does not move C\texttt{++}. The lead therefore comes from how the queue is
+locked and signalled. In the C\texttt{++} build that queue is the study's own
+code, a mutex and two condition variables (Table~\ref{tab:idioms}), so the lead
+belongs to the two handoff designs as written rather than to either language in
+general. On the C\texttt{++} path the kernel sees $\HandoffEmptyWakesCpp$
 wake calls per request that find no sleeping thread, against
-$\HandoffEmptyWakesRust$ for Rust's channel. A final probe gives both
-languages one hand-written queue and reply around the same
-\texttt{ShardCore} (Figure~\ref{fig:samehandoff}). The lead then falls to
-$\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ on two hosts. What remains
-is each language's own code around that shared path.
+$\HandoffEmptyWakesRust$ for Rust's channel. A final follow-up run gives both languages one hand-written queue and reply.
+Both put that queue and reply around the same \texttt{ShardCore}, the code
+that reads or changes one device's record (Figure~\ref{fig:samehandoff}). With
+the system allocator, Rust's lead then falls to $\HandoffSameLeadLo\%$ to
+$\HandoffSameLeadHi\%$ on hosts B and C. With \texttt{jemalloc} on host B, the
+test cannot tell the remaining gap from no difference
+(Appendix~\ref{appendix:probes}). Once that queue and reply are shared, what
+is left to differ is the code each language writes around them. An earlier
+session timed the queue and the reply on their own, with no service around
+them, and could not tell C++ from Rust (Appendix~\ref{appendix:config}). That
+session has no environment record, no note of the computer it ran on. It can
+neither support these follow-up runs nor contradict them.
 
 \begin{table}[!ht]
 \centering
 \small
-\caption[Follow-up runs that locate the lead past saturation]{Follow-up runs
-that locate the Rust lead past saturation. Each run changes one part of a
+\caption[Probes that locate the lead past saturation]{Probes that locate the
+Rust lead past saturation. Each run changes one part of a
 build and keeps the rest. Hosts A to C are other machines with the same
 processor, listed in Appendix~\ref{appendix:probes}. None of these runs is
-part of the Holm-tested family.\label{tab:probes}}
+one of the planned comparisons.\label{tab:probes}}
 \renewcommand{\arraystretch}{1.2}
 \setlength{\tabcolsep}{6pt}
 \begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.4\linewidth}%
@@ -1842,14 +1942,14 @@ Host & What changed & What happened to the Rust lead \\
 A & C\texttt{++} uses an open-addressed map, as Rust does &
 Stayed. Rust ahead in $\SgFlatRustAhead$ of $\SgFlatPairs$ repeats \\
 A & Rust uses the C\texttt{++} queue design, one lock and two condition
-variables & Gone. Rust slower than with its own channel in
-$\SgQueueMutexSlower$ of $\SgQueuePairs$ repeats \\
+variables & Gone. The swap closes $\SgQueueClosedPct\%$ of the lead, and Rust is slower
+than with its own channel in $\SgQueueMutexSlower$ of $\SgQueuePairs$ repeats \\
 A & C\texttt{++} keeps that lock with a fixed ring instead of a growable
 buffer & No change. C\texttt{++} moved by $\SgQueueRingAbsPct\%$ \\
 B, C & Both languages use one hand-written queue and reply &
 Fell from $\HandoffStockLeadSystem\%$ to $\HandoffSameLeadSystem\%$ on host B,
 and from $\HandoffRepStockLeadSystem\%$ to $\HandoffRepSameLeadSystem\%$ on
-host C \\
+host C, with the system allocator \\
 \hline
 \end{tabular}
 \end{table}
@@ -1859,7 +1959,7 @@ Timing each part of a call on host C shows where the round trip goes
 (Table~\ref{tab:callparts} and the bars in Figure~\ref{fig:samehandoff}). The two handoffs take at least
 $\StageHandoffShareMin\%$ of every call, split roughly in half between the
 queue and the reply. The worker's operation is at most
-$\StageWorkerShareMax\%$ of a call. Through the standard libraries,
+$\StageWorkerShareMax\%$ of a call. With each build's own queue and reply,
 $\StageQueueGapOwn$~\textmu s of Rust's $\StageCallGapOwn$~\textmu s shorter
 call sits in the queue. With the same handoff, the queue and the reply take
 the same time in both languages within $\StageSameMaxDiff$~\textmu s. The
@@ -1871,12 +1971,12 @@ the untimed runs.
 \includegraphics[width=0.94\linewidth]{diagrams/pdf/32_same_handoff.pdf}
 \caption[One handoff written the same way in both languages]{How a request
 reaches a worker, how the reply returns, and how long each part takes. The
-upper panel shows each language's own standard library, as in the reported
-service. The lower panel shows one hand-written queue and reply slot that both
+upper panel shows each build's own queue and reply, as in the reported
+service, where the C\texttt{++} queue is the study's own code. The lower panel shows one hand-written queue and reply slot that both
 languages use. The worker runs the same \texttt{ShardCore} code in every row.
 Each box gives the mean time of its part, and the bars stack the parts into
 the whole call. The times come from host C, a further host with the same
-processor. This probe is outside the Holm-tested family.\label{fig:samehandoff}}
+processor. This probe is not one of the planned comparisons.\label{fig:samehandoff}}
 
 \vspace{1.4em}
 {\small
@@ -1886,13 +1986,13 @@ allocator, median over $\StagePairs$ paired repeats. The queue runs from the
 sender handing the request over until the worker starts it. The reply runs
 from the worker finishing until the sender holds the result. The sender part
 is its own work before the next call. Rounded parts may miss the whole call in
-the last digit. This probe is outside the Holm-tested family.\label{tab:callparts}}
+the last digit. This probe is not one of the planned comparisons.\label{tab:callparts}}
 \vspace{0.6em}
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{8pt}
 \begin{tabular}{@{}l*{4}{>{\raggedleft\arraybackslash}p{1.45cm}}@{}}
 \hline\hline
- & \multicolumn{2}{c}{Own standard library} & \multicolumn{2}{c}{Same handoff} \\
+ & \multicolumn{2}{c}{Own queue and reply} & \multicolumn{2}{c}{Same handoff} \\
 \cline{2-3}\cline{4-5}
 Part & C\texttt{++} & Rust & C\texttt{++} & Rust \\
 \hline
@@ -1918,23 +2018,26 @@ arrival time, and timing stops when the worker finishes it. The offered load
 is $\PipeOfferedKops$~kops/s. It is the first measured load where every
 variant completes fewer than $99\%$ of its planned requests within their
 arrival windows. That rule was fixed before looking at which variant did
-better. The experiment is not part of the Holm-tested family of the main
+better. The experiment is not one of the planned comparisons of the main
 sweep.
 
 Table~\ref{tab:pipeline} gives the median for the signal workload and for the
 mixed lifecycle. With \texttt{jemalloc}, Rust has the lower median in every
 repetition for both workloads. With the system allocator, C\texttt{++} has
 the lower median throughout. The difference comes from waiting to enter the
-queue, not from doing the work.
+queue, not from doing the work, and the time after entering the queue is shorter
+for Rust under both allocators. The two \texttt{jemalloc} builds are different
+releases (Chapter~\ref{chapter:design}), so part of this split may belong to the
+allocator builds rather than to the languages.
 
 \begin{table}[!ht]
 \centering
 \small
 \caption[Delay with several requests in flight]{Delay with several requests
-in flight on host D at $\PipeOfferedKops$~kops/s. The median is the
-time spent waiting before entering the queue. In-service time is measured
-after queue entry until completion. This experiment is outside the Holm-tested
-family of the main sweep.\label{tab:pipeline}}
+in flight on host D at $\PipeOfferedKops$~kops/s. The median runs from the
+planned arrival to completion, and nearly all of it is the wait before entering
+the queue. In-service time runs from queue entry to completion. This experiment is not one of the planned
+comparisons of the main sweep.\label{tab:pipeline}}
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{8pt}
 \begin{tabular}{@{}lrrrr@{}}
