@@ -44,6 +44,12 @@ not errors: frequency is the signal, so aim low rather than at zero.
 - **No semicolons in thesis prose or on a slide.** Use a full stop, a comma, a colon, or two
   sentences instead. Source code shown verbatim would be the one exception, and no slide in the
   deck shows any.
+- **No U+2212 minus sign anywhere a reader sees one, chat included.** The author asked for
+  this on 28 October 2026. Write a negative number with the plain hyphen (`-0.16`) and a
+  difference in words (`Rust minus C++`, `110.0 minus 87.9`). `Thesis_v5.tex` remaps math-mode
+  `-` to the hyphen in its preamble, so `$-0.16$` and the generated tables already comply there.
+  `Ha_Vien_Mastersthesis_2026.tex` and the plot scripts (matplotlib's `axes.unicode_minus`, the
+  `\u2212` label in `plot_figures.py`) do not yet.
 - **Capitalise after a colon when the words after it begin a unit of their own, and only then.**
   The supervisor asked for this on 4 September 2026, and it is the APA convention that scientific
   writing follows. Two shapes qualify. A run-in label such as `\textbf{H1:}` is not part of the

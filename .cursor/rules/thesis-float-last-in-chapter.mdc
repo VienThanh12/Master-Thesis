@@ -22,7 +22,7 @@ Local enlarge plus here-placement, sized to the shortfall, then rebuild and look
 | --- | --- | --- |
 | `fig:ffiseam` | `52pt` (14 Sep 2026) | `\chapter{Discussion}` |
 
-`fig:ngran` does not use this fix. A `64pt` enlarge put the caption in the bottom margin, and a shorter stack was rejected. A `\clearpage` before the figure sends it to the next page at full size, and the following section continues under it. Do not put the enlarge back and do not shrink the diagram.
+`fig:ngran` sits on the same page as the paragraph that cites it. The citing lines are short enough for the diagram at its own size, so there is no `\clearpage` and no `\enlargethispage`. A page break there put the diagram under the next section's running head. Do not put that break back, and do not shrink the diagram.
 
 ```latex
 % leftover is short of the diagram plus caption, so [ht] defers it

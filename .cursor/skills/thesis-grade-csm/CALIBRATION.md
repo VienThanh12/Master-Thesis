@@ -30,6 +30,8 @@ is that they are fixed points.
 | 6 | 2 | Template dummies surviving on the abstract page, three different dates, duplicated and undefined labels, a stray Cyrillic word in the results, dense grammar errors, and no statement of AI use in the document. |
 | 4 | 5 → 4.5 | The twenty-first pass, on level 5's aptness clause, and **the smallest defect ever to move an area here**. `tab:testbed`'s caption says the columns are arranged so each adjacent pair isolates one change, and its own Toolchain row prints `g++ 15.2.1` for the reported sweep against `g++ 15.1.1` for the guest. A caption refuted by a row of its own table is the same shape as a figure title refuted by its own bars. Beside it, one hand-typed compiler version that is simply wrong, and one guest-era phrase (`on bare metal`) that can no longer pick out a host. **Calibration point: a single wrong configuration value plus a caption over-claim is a 4.5, not a 4.0.** The thirteenth pass's 4.0 took thirteen disagreeing statements, six of them wrong. |
 | 6 | 5 → 4.5 | The twenty-first pass, on **both** level 4's "consistent … description of research setup" (three prose sites claiming toolchain parity that an appendix table refutes) and level 5's finishing polish (an elliptical `is not` with no predicate, in §1.4 of both documents). The half grade splits writing from consistency-and-finishing, which is what a 4.5 means here. **The 83-word sentence was explicitly not counted**, because the twentieth pass ruled it not a failing clause and a later pass does not relitigate a ruling on unchanged text. |
+| 3 | 5 → 4.5, test program not host | The thirty-first pass. The host was clean bare metal, and the half grade came back from the **test program**. Each sender sleeps at ordinary priority, so up to 50 µs of timer slack sits inside a clock whose median is about 73 µs and whose core call is 34 ns. Past saturation, the planned comparison timed the sender's own recording. All of it is disclosed and none of it is rerun. **The same anchor shape as the guest: an instrument effect the size of the quantity measured.** Editing cannot lift it. |
+| 2 | 5 → 4.5, plain words | The thirty-first pass. A plain-words rewrite raised Flesch and removed "coordinated omission" from the body, the field's term for the problem the main overload result turns on. It coined "histogram fill" instead. With a 1,600-word background and no C++-side safety position, level 5's "in-depth command" failed. **Keep the plain sentence and add the term of art once, cited.** The plain-label rule covers diagrams, slides and chat, not the body. |
 | 7 | n/a | Every pass. The manuscript cannot settle it. |
 
 ## The defect class the thirteenth pass added
@@ -197,6 +199,22 @@ These have each consumed part of a pass and were wrong.
   `plot_figures.py` into a scratch `--outdir` and diffing settles it in a minute.
 
 ## Standing blockers on this thesis
+
+**`Thesis_v5.tex` only, thirty-first pass, 27 October 2026. Mean 4.67, graded as the deposit
+manuscript.** Area 1 at 5, areas 2 to 6 at 4.5. Every cap of the thirtieth pass is closed, and
+about 35 claims checked against the generated tables found no wrong value. The new caps:
+
+- **Area 2.** Coordinated omission is never named. The plain-words pass removed it. There is no
+  C++-side safety position, although Sutter, Vandevoorde and Baxter are in the bibliography.
+- **Area 3, which needs a rerun.** RQ1's clock carries the sender's wake-up lateness below
+  saturation and a 2.4% window error past it, and the build order is fixed.
+- **Area 4.** `31_e2e_clock` and `32_same_handoff` credit "the language" with what the text
+  credits to two handoff designs.
+- **Area 5.** The H1 revisit drops the sleep-path caveat.
+- **Area 6.** Basic terms are re-defined in the body, and the sentence rhythm is out of band.
+
+The abstract box is empty and `\abstractunaidedfalse` ships. Following the tenth pass, that is
+not scored. Do not re-report the thirtieth pass's five items.
 
 **`Thesis_v5.tex` only, twenty-eighth pass, 29 September 2026. Mean 4.92.** Areas 1 to 5 at 5,
 area 6 at 4.5. The twenty-seventh pass's caps are closed in this PDF: Clock B is the same host
