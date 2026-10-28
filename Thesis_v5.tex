@@ -2095,13 +2095,13 @@ of the host environment, rather than a general property of Rust or
 \centering
 \small
 \caption[Extra peak RAM on each host]{Extra peak RAM on each host, in MiB.
-The language effect is the difference in peak RSS between Rust and
-C\texttt{++}, averaged across the two allocators. The allocator effect is
-the difference in peak RSS between \texttt{jemalloc} and the system
-allocator, averaged across the two languages. Each cell reports the range
-of these differences computed from the medians of the repeated runs. The
-reported host is measured at $\ReprLoad$~kops/s. The other two hosts are
-measured at their respective steady-state loads.\label{tab:rsshosts}}
+The language effect is Rust's peak RSS minus C\texttt{++}'s with the allocator
+held fixed, and the allocator effect is \texttt{jemalloc}'s minus the system
+allocator's with the language held fixed. Each cell gives the smallest and the
+largest of those differences. On the reported host they are medians of paired
+differences at $\ReprLoad$~kops/s, one for each allocator or language. On the
+other two hosts they are differences of medians, taken at each of their
+steady-state loads as well.\label{tab:rsshosts}}
 \renewcommand{\arraystretch}{1.2}
 \begin{tabular}{@{}lccc@{}}
 \hline\hline
@@ -2119,14 +2119,17 @@ Allocator effect & $\RssAllocDiffLo$--$\RssAllocDiffHi$
 The second bare-metal host provides more detail about the source of the
 additional Rust RAM. Table~\ref{tab:resident} separates the process memory
 into allocator metadata, live application allocation, and
-allocator-resident memory. Compared with C\texttt{++}, Rust uses
-$\BmJeMetadataDelta$~MiB more arena metadata. Its live application allocation
-differs by $\BmJeAllocatedDelta$~MiB, and its allocator-resident memory differs
-by $\BmJeResidentDelta$~MiB. Although both are lower, the Rust process still
-has a peak RSS that is $\BmJeRssDelta$~MiB higher.
+allocator-resident memory. Each difference below is Rust minus C\texttt{++}. Arena
+metadata differs by $\BmJeMetadataDelta$~MiB, live application allocation by
+$\BmJeAllocatedDelta$~MiB, and allocator-resident memory by $\BmJeResidentDelta$~MiB.
+Although the last two are lower, the peak RSS of the Rust process differs by
+$\BmJeRssDelta$~MiB. The metadata is counted inside
+the allocator-resident figure, so the extra metadata does not explain the higher
+peak. The two \texttt{jemalloc} builds also differ (Chapter~\ref{chapter:design}),
+which may account for part of the metadata gap.
 
-Therefore, the higher Rust RSS is not caused by Rust holding more live
-application data. Instead, it is mainly a fixed process-level cost.
+On that host, therefore, the higher Rust RSS is not caused by Rust holding more
+live application data. Instead, it is mainly a fixed cost of the process.
 
 \paragraph{CPU usage.}
 CPU usage does not follow the memory pattern. At $\ReprLoad$~kops/s, Rust
