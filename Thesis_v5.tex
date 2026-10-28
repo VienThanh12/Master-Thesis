@@ -2345,35 +2345,43 @@ $\FfiCrossing$~ns and bounds only itself.\label{fig:ffiseam}}
 
 \section{Summary of findings}
 \begin{compactitem}
-\item \textbf{RQ1 (latency).} At $\ReprLoad$~kops/s, the variants show similar
-performance: their median latency differs by only $\PFiftyRange\,\mu$s, while the pooled far
-tail favours \FarTailLower{}. Because only $\BudgetCoreShareMax\%$ of the end-to-end round trip
-is spent on language-specific work, the overall measurement cannot be used to establish a
-language-level performance effect. When the same core is timed separately, $\BudgetCoreRatio\times$
-higher performance is observed in \BudgetCoreFaster{}. At higher loads, however, Rust still
-completes more calls. This advantage appears to come from the inter-thread handoff rather than
-from the language itself. On further hosts with the same processor, giving Rust the
-C\texttt{++} queue removes that advantage, and giving both languages the same handoff shrinks
-it to $\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$. Past saturation the campaign delay is \emph{schedule drift} as defined in
+\item \textbf{RQ1 (latency).} At $\ReprLoad$~kops/s, Rust is faster by a small but
+significant margin, up to $\PFiftyDiffAbsMax\,\mu$s at the median and lower at p99 and p99.9,
+while the pooled far tail and the maximum favour \FarTailLower{} by more. That end-to-end gap
+lies outside the core operation, which is a small fraction of a round trip, and the clock
+also holds each producer's late wake-up before sending, so it cannot establish a difference in
+the core operation. Timed on its own on the virtual machine, the core
+is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster{}. Past saturation the planned
+comparison has C\texttt{++} finishing more calls, but that clock also times the sender's
+recording. With the recording moved after the window, Rust finishes more calls, a lead that
+comes from the handoff designs and not from the core operation. On further hosts with the
+same processor, giving Rust the C\texttt{++} queue removes that lead, and giving both
+languages the same handoff shrinks it to $\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ with
+the system allocator.
+The campaign's delay past saturation is \emph{schedule drift} as defined in
 Section~\ref{sec:statsbrief}, so it does not compare the services. Timing the work with
-several requests in flight provides a more meaningful comparison. As discussed in
-Section~\ref{sec:overload}, the performance order in that case depends on the allocator.
+several requests in flight does. There the order of the total delay depends on the allocator,
+while the time after entering the queue is shorter for Rust under both.
 
-\item \textbf{RQ2 (defects).} The outcome is fully determined by the fourteen-class catalogue
-defined in advance and is consistent across hosts. All seven classes of errors that safe Rust is
+\item \textbf{RQ2 (defects).} The outcome follows from the fourteen-class catalogue defined
+in advance and does not depend on the host, apart from the intermittent ThreadSanitizer
+report on the lock-order deadlock. All seven classes of errors that safe Rust is
 designed to reject result in compile-time errors. The remaining seven compile. They fail at
 runtime in both Rust and C\texttt{++}.
 
 \item \textbf{RQ3 (resources).} Rust has higher peak RSS under both allocators. The difference is
 $\RssLangDiffLo$--$\RssLangDiffHi$~MiB on the campaign host, $\GuestRssLangLo$--$\GuestRssLangHi$~MiB
 on the guest, and $\BmRssLangLo$--$\BmRssLangHi$~MiB on the second bare-metal host. Below
-saturation, Rust uses slightly less CPU. After correcting for high-load effects, however, the
-throughput measurements do not support a general performance ranking between the languages.
+saturation, Rust uses slightly less CPU. Past saturation the throughput order depends on
+where the sender records its extra delay samples, so the study gives no single throughput
+ranking. None of these differences is traced to the bounds checks, copies or abstraction
+cost that RQ3 names, which the study did not isolate.
 
-\item \textbf{RQ4 (adoption).} The foreign function interface layer contributes little overhead:
-its per-call cost is bounded by $\FfiOpBoundPct\%$ of the corresponding call. Other factors, such
-as API design and learning effort, remain literature-backed adoption costs, but they are outside
-the scope of what this study measures directly.
+\item \textbf{RQ4 (adoption).} The per-call cost of the foreign function interface layer is
+bounded by $\FfiOpBoundPct\%$ of the corresponding call. Effort is measured only through
+proxies: code size and complexity, the size of the \texttt{unsafe} layer, and build cost. API
+design and learning effort remain literature-backed adoption costs that this study does not
+measure.
 \end{compactitem}
 
 \section{Discussion on the research questions}\label{sec:rqdiscussion}
