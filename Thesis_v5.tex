@@ -2428,15 +2428,14 @@ compares two handoff designs as written more than two languages.
 On host D, a separate experiment times each request while several requests
 are in flight. It covers both the signal workload and the mixed lifecycle. For
 each workload, the measured delay includes the wait before queue entry and the
-time in service. Under this measurement, the performance order depends on the
-allocator.
+time in service. Under this measurement, the order of the total delay depends on the
+allocator, and the time in service is shorter for Rust under both.
 
-The closest prior work reports a similar performance degradation above a
-threshold rate and attributes it to stackless
+The closest prior work reports Rust's p99 rising more steeply above a threshold
+rate and attributes it to stackless
 \texttt{async}/\texttt{await}~\cite{arvidsson2025async}. That explanation does
-not apply here because neither implementation uses an asynchronous runtime.
-Similarly, changing Rust's reply handle on an earlier host does not explain the
-remaining performance advantage observed here.
+not apply here, because neither implementation uses an asynchronous runtime, and
+on the follow-up run it is C\texttt{++} that falls behind first.
 
 The throughput advantage should therefore not be interpreted as showing that
 one service has a higher maximum rate in all conditions. The original prediction
