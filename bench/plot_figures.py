@@ -984,13 +984,18 @@ def fig_taxonomy(taxonomy_csv, outdir):
     boundary = [r for r in rows if r["rust_expected"].strip() != "prevented"]
     rows = prevented + boundary
     defects = []
+    # The reader sees the class names of tab:defectmap and the RQ2 list, not the
+    # file ids. Three CSV labels are worded differently from that table, so the
+    # table's wording wins here.
+    same_as_table = {
+        "thread_unsafe_sharing": "Thread-unsafe handle",
+        "integer_overflow": "Integer overflow (release build)",
+        "seam_double_free": "Double-free inside unsafe",
+    }
     for r in rows:
-        # The id seam_double_free is the file name. The reader sees the plain
-        # label, the same words as the table.
-        if r["defect"].strip() == "seam_double_free":
-            defects.append("double-free in unsafe")
-        else:
-            defects.append(r["defect"].replace("_", " "))
+        key = r["defect"].strip()
+        label = same_as_table.get(key) or r.get("label", "").strip()
+        defects.append(label or key.replace("_", " "))
     # UBSan is a third axis, not a refinement of the other two: signed overflow
     # is invisible to ASan and TSan alike, so without its own column the
     # integer-overflow row would read as undetected in C++ when it is not.
@@ -1496,9 +1501,9 @@ def fig_budget(budget, sig_results, outdir, for_thesis=False):
     core_us = [core[l] / NS_PER_US for l in langs]
     hand_us = [handoff[l] / NS_PER_US for l in langs]
     ax_a.barh(ypos, core_us, height=0.45, color="#c0392b",
-              label="operation (the language)")
+              label="core operation")
     ax_a.barh(ypos, hand_us, height=0.45, left=core_us, color="#b6c2cf",
-              label="cross-thread handoff (the OS)")
+              label="cross-thread handoff (queue, reply, kernel)")
     ax_a.set_yticks(ypos)
     ax_a.set_yticklabels([names[l] for l in langs],
                          fontsize=tick_pt if for_thesis else None)
