@@ -111,6 +111,18 @@ sites plus `tab:testbed` claiming toolchain parity with the guest (`\GuestGpp` 1
 `\MainGpp` 15.2.1), §6.4.7 hand-typing 15.1.1 as the measurement host's compiler, and
 `tab:findings`' RQ3 cell saying “on bare metal”. The twentieth pass, 3 September, held 5.00.
 
+**Thirty-first pass, 27 October 2026, graded `Thesis_v5.tex` only (uncommitted
+working tree, 85 pages), mean 4.67.** Area 1 at 5 and areas 2 to 6 at 4.5, graded
+as the deposit manuscript. Every cap of the thirtieth pass is closed and no measured
+value is wrong. Five new caps replace them. The background does not name coordinated
+omission (removed by the plain-words pass) and gives no C++-side safety position.
+RQ1's clock carries the sender's wake-up lateness below saturation and a 2.4% window
+error past it, which only a rerun removes. Figures 5.3 and 5.6 credit "the language"
+with what the text credits to two handoff designs. The H1 revisit drops the sleep-path
+caveat. Basic terms are re-defined in the body. The abstract box is empty, which is
+not scored because only the author may write it. See the thirty-first pass in
+`docs/ASSESSMENT.md`.
+
 **Thirtieth pass, 14 October 2026, graded `Thesis_v5.tex` only, mean 4.83.**
 Areas 1 to 4 are at 5, and areas 5 and 6 are 4.5. The abstract now
 carries the host and clock scope that capped area 4 on 8 October. A stale
@@ -226,14 +238,14 @@ closed, and the reader-facing record is `source_audit.pdf` with the durable one 
 `docs/Sources_evidence.md`. **After any compression pass, re-read what each surviving citation now
 sits next to.**
 
-| # | Criterion | Target | Current (30th pass, 14 Oct 2026) | What still blocks a 5 |
+| # | Criterion | Target | Current (31st pass, 27 Oct 2026) | What still blocks a 5 |
 | --- | --- | --- | --- | --- |
 | **1** | **Thesis objective and research questions** | Clear gap, traceable RQs, falsifiable design | **5** | Nothing outstanding. Keep RQ2 two-sided (7 inside + 7 outside guarantee). The RQ1 alignment item is **closed**: RQ1 now names p99.99 in the draft, in `Thesis_v5.tex` and in `Thesis_Plan_v2.tex`, and §7.7 says the question was widened rather than claiming it always named the metric. |
-| **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **5** | Optional: replace the remaining arXiv load-bearing cite (`Bugden`) with a peer-reviewed equivalent. The `Zhang` deadlock cite is now the journal version (`zhang2026deadlock`). |
-| **3** | **Research data and method** | Sound method + decision-grade data | **5** | Nothing. The canonical repeat closed the data half (7/7/14/20, 1120 runs, no hypervisor, SMT off, `nohz_full`, zero errors) and the description half is repaired and independently re-checked. What earns the level is a pattern of refusals: the pre-committed reading rule is kept on a host where it costs nothing and said to be kept for that reason, the 448 kops/s rung is described and not tested because its operating point was found after the data, and the pooled and per-repeat statistics are held apart hard enough that the generator returns `None` rather than falling back and `fig:tailpct` was narrowed so the figure could not quote the disowned statistic either. **Do not add `isolcpus`. Do not restore the derived load rule. Do not let a fallback to the per-run `p9999` back in.** |
-| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **5** | Nothing outstanding. The abstract now scopes the deferred-fill and pipeline results to their clocks and hosts. Keep `tab:jitter` either cited or explicitly supporting-only. |
-| **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **4.5** | Lines 2008–2009 say the quieter-host memory cost is explained by the allocator, while §6.3 locates Rust's extra peak RSS outside allocator-resident memory. Replace the stale explanation with the result the decomposition supports. |
-| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | Scientific presentation reads at 5, but the current build has two undefined uses of `sec:rustsafety`, four overfull `Crash/corruption` cells, ABI bare at first body use, the memory contradiction, and `\abstractunaidedfalse`. |
+| **2** | **Scholarly framework and use of sources** | Auditable literature search, critical maturity, consistent concepts | **4.5** | Name coordinated omission once beside the plain sentences in §2.2 and §5.2, and name open and closed load generation where Schroeder is cited. Add one paragraph on the C++ side's safety direction (`sutter2025profiles`, `vandevoorde2026profiles`, `baxter2024safecpp`, all already in the bibliography). `alsoran` belongs in the gap paragraph. |
+| **3** | **Research data and method** | Sound method + decision-grade data | **4.5** | **New measurement only.** RQ1's clock times the test program: the sender's wake-up lateness (up to 50 µs at ordinary priority) below saturation, the in-window recording past it, and a 2.4% Rust-side window error in the corrective run. The build order is fixed, C++ first. One rerun with minimal timer slack or a spinning sender, the fixed `bench.rs`, and a rotated order lifts it. The method half still reads at 5. Earlier note: the canonical repeat closed the data half (7/7/14/20, 1120 runs, no hypervisor, SMT off, `nohz_full`, zero errors) and the description half is repaired and independently re-checked. What earns the level is a pattern of refusals: the pre-committed reading rule is kept on a host where it costs nothing and said to be kept for that reason, the 448 kops/s rung is described and not tested because its operating point was found after the data, and the pooled and per-repeat statistics are held apart hard enough that the generator returns `None` rather than falling back and `fig:tailpct` was narrowed so the figure could not quote the disowned statistic either. **Do not add `isolcpus`. Do not restore the derived load rule. Do not let a fallback to the per-run `p9999` back in.** |
+| **4** | **Presentation of thesis results** | Honest, reproducible, figure–table consistency | **4.5** | `31_e2e_clock` labels the core call "language", and `32_same_handoff` heads a panel "Each language's own standard library", against captions and text that credit two handoff designs as written. `fig:taxonomy` omits Loom, Shuttle and Miri. `fig:boundary` shows 7 of 14 classes unannounced. `fig:loadmap` pools both allocators unannounced. |
+| **5** | **Discussion and conclusions** | Validity analysis, no over-claiming, hypotheses revisited | **4.5** | The H1 revisit and §6.2's RQ1 paragraph lack the sleep-path caveat that §5.3.1, §6.1, limitation 1 and Chapter 7 carry. §6.2's "show none for bounds checks" contradicts "isolated none of them". Future work omits the test-program fixes. The 14 October memory cap is closed. |
+| **6** | **Academic text** | Precise prose, no contradictions, clean structure | **4.5** | Basic terms are re-defined in the body (median, cache, seed, tail latency five times, "no virtual machine" three times in §5.1). 49.6% short sentences and a stdev of 7.4 to 7.8. L. 581 opens with a numeral and says "bugs" for "vulnerabilities". The abstract box is empty, which is not scored and is author-only. All 14 October items are closed. |
 
 **Overall mean (unweighted): 4.83** for the submission draft at the twenty-second pass, 7 September 2026 afternoon. The supervisor skeleton is **5.00** at the twenty-sixth pass, 16 September 2026 (a hold of the twenty-fourth and twenty-fifth). Do not copy that 5.00 onto the draft.
 **The lesson is the one this record keeps rediscovering in a new place: the values that regenerate
@@ -804,11 +816,13 @@ third is the last-in-chapter float, closed in `Thesis_v5.tex` on 14 September 20
   the same at the next `\section`. The fix is local: `\enlargethispage{...}`
   plus `[!ht]`, sized to the shortfall, then rebuild and check the folio. One
   site in `Thesis_v5.tex` still does this: `fig:ffiseam`
-  (`52pt`, 14 September 2026, `\chapter{Discussion}`). `fig:ngran` is the
-  exception: the author chose a page break over an enlarge or a shorter
-  diagram, so a `\clearpage` before that figure stays. Do not `\newpage` the
-  subsection (the hole moves to the page before) and do not reach for `[H]`
-  (the table trap above). Cursor rule:
+  (`52pt`, 14 September 2026, `\chapter{Discussion}`). `fig:ngran` stays with
+  the paragraph that cites it. Those lines are short enough for the diagram
+  at its own size, so the page has no `\clearpage` and no enlarge. A break
+  there put the diagram on the next page, under the following section's
+  running head. Do not put that break back, do not shrink the diagram, do
+  not `\newpage` the subsection (the hole moves to the page before) and do
+  not reach for `[H]` (the table trap above). Cursor rule:
   `.cursor/rules/thesis-float-last-in-chapter.mdc`.
 
 Measured cost of the layout settings, cumulative, at unchanged content: 1.5 spacing 22 pages,
