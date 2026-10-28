@@ -2437,22 +2437,25 @@ rate and attributes it to stackless
 not apply here, because neither implementation uses an asynchronous runtime, and
 on the follow-up run it is C\texttt{++} that falls behind first.
 
-The throughput advantage should therefore not be interpreted as showing that
-one service has a higher maximum rate in all conditions. The original prediction
-attributed the difference to bounds and overflow
-checking~\cite{zhang2022runtime,harris2023morello}. The results do not support
-that explanation. At nominal load, however, the median results are still
-consistent with previous evidence that Rust's safety checks are largely absorbed
-by modern out-of-order CPUs~\cite{balasubramanian2017rust,emmerich2019drivers}.
+So a lead in finished calls does not, on its own, mean that one service has a
+higher maximum rate in every condition. Earlier studies would expect Rust to be
+slower. It checks that each index stays inside an array, a bounds check, and it
+can check that a number does not grow past what its type can hold, an overflow
+check~\cite{zhang2022runtime,harris2023morello}. The results show no such
+slowdown for the bounds checks. At the chosen load, $\ReprLoad$~kops/s, the
+faster build is Rust, and Rust is the one that makes those checks. Rust's
+release build turns the overflow checks off. Their cost was not measured. The
+median at that load fits earlier evidence about a modern out-of-order processor,
+one that can run a check at the same time as other work, so most of the cost
+does not show up as extra delay~\cite{balasubramanian2017rust,emmerich2019drivers}.
 
-For safe Rust code, some defects result in compilation errors and therefore
-never produce a program that can run. The seven classes of defects that Rust
-does not prevent are therefore part of the result, rather than an additional
-warning. A compiler that rejects a program rules out a defect for every run of
-that program. A sanitiser can rule out a defect only for the executions
-covered by the sanitiser test. In other words, sanitisation improves the
-coverage of the tested executions, but it does not reduce the overall range
-of possible defects.
+In safe Rust, some defects make the compiler refuse the program. Nothing is
+produced that can run, so that defect never happens in a run. If the compiler
+accepts only programs free of one kind of defect, that kind is absent from every
+run. A sanitiser can catch a defect only on the paths its tests actually run.
+Rust does not stop seven kinds of defect (Section~\ref{sec:rqs}). Those seven
+show where the compiler's guarantee ends. The study set out to find that edge,
+so they are part of the result.
 
 Figure~\ref{fig:boundary} shows where the guarantees provided by each
 approach stop. Rust provides strong guarantees about memory safety and
@@ -2479,7 +2482,7 @@ memory safety involved \texttt{unsafe} code. The exception was a compiler
 bug~\cite{xu2021rustcve}.
 
 This is why keeping the core free of \texttt{unsafe} code is important. It also
-explains why the spread of \texttt{unsafe} code through dependent crates should
+explains why the spread of \texttt{unsafe} code through dependent libraries should
 be treated as a review concern~\cite{evans2020rust}.
 
 \begin{figure}[ht]
@@ -2503,8 +2506,8 @@ a corresponding test or enforcement mechanism leaves each implementation
 vulnerable to its own failure modes.
 
 RQ3 gives different results depending on the resource being measured. The RAM
-result is consistent across both allocators and on a second host using a newer
-compiler. Peak RSS measures the maximum memory used during the entire run, so
+result is consistent across both allocators and on a second bare-metal host with
+a different compiler pair, \texttt{g++~\BmGpp} and \texttt{rustc~\BmRustc}. Peak RSS measures the maximum memory used during the entire run, so
 the jitter that affects p99 latency does not directly affect this metric. On
 both bare-metal hosts the language effect and the allocator effect are of the
 same few-MiB scale. On the guest system, however, the allocator effect is an
@@ -2513,7 +2516,7 @@ that varies by host. What depends most on the host is how it compares with the
 allocator's cost.
 
 The second bare-metal host shows where Rust's extra memory sits under
-\texttt{jemalloc}. It lies outside what the allocator holds, mainly as a fixed
+\texttt{jemalloc}. On that host it lies outside what the allocator holds, mainly as a fixed
 cost of the process and not as more live data (Section~\ref{sec:resources}). One related study reports the opposite
 result, with Rust using less memory and the difference increasing with
 concurrency~\cite{karlback2021ran}. These results can be reconciled if the
@@ -2525,30 +2528,44 @@ allocates a stack for each fiber. The Rust implementation uses Tokio, where a
 task is represented by a small future stored on the heap. Therefore, the
 measured difference is partly a difference between two concurrency runtimes.
 
-Two additional studies are consistent with the findings reported
-here~\cite{olsson2023ranmgmt,sundvisson2026drivers}. Below saturation, Rust
-uses slightly less CPU. After saturation, the CPU ratio reaches
-$\ProbeAfterCpuPerOpRatio$. This difference cannot be directly attributed to
-Rust's safe-code model. Nevertheless, Rust still maintains a throughput
-advantage.
+Two further studies also found Rust using more memory than C, in a radio
+network management service and in a user-space device
+driver~\cite{olsson2023ranmgmt,sundvisson2026drivers}. Below saturation, Rust
+uses slightly less CPU. On the follow-up run past saturation, CPU per finished
+call differs by a factor of $\ProbeAfterCpuPerOpRatio$, with
+\ProbeAfterCpuPerOpHigher{} the higher one, and Rust keeps a throughput lead.
+Neither difference can be attributed to Rust's safe-code model.
 
-RQ4 shows that the boundary between the two languages adds relatively little
-overhead. A C\texttt{++} host can call an unchanged Rust core through a thin
-C-ABI layer, and the overhead of a real signal call is bounded by
-$\FfiOpBoundPct\%$ of the total call time. Previous work identifies design and
-learning as important human costs~\cite{fulton2021adopting,crichton2024learning},
-but this study does not measure their magnitude.
+RQ3 names three costs of Rust's safety model: bounds checks, ownership-driven
+copies and abstraction cost. The study isolated none of them, for example by
+building without bounds checks. What it measures is the net cost of the Rust
+build. Below saturation that net cost is lower CPU and a faster core operation, against a few
+MiB more memory, which on the second bare-metal host sits outside the allocator. Past
+saturation the planned CPU comparison has Rust drawing more, on a clock that also times the
+sender's recording. Whatever the
+three named costs are in this service, they are smaller than whatever makes the
+Rust build faster.
+
+RQ4 bounds what the boundary between the two languages adds. A C\texttt{++} host
+can call an unchanged Rust core through a thin C-ABI layer, and the overhead of a
+real signal call is bounded by $\FfiOpBoundPct\%$ of the total call time. RQ4
+also names effort. The study measures its proxies: code size and complexity
+(Chapter~\ref{chapter:design}), the size of the \texttt{unsafe} layer, and build
+cost. It does not measure the time people spend. Previous work identifies design
+and learning as important human costs~\cite{fulton2021adopting,crichton2024learning},
+and this study does not measure their magnitude.
 
 Keeping \texttt{unsafe} code inside the interface layer limits the amount of
 code that requires additional review, although it does not eliminate the
 possibility of memory corruption. The host and the Rust component share the
 same address space~\cite{rivera2021galeed,kirth2022pkrusafe}. The build-size
 and footprint results point in the same direction: organisations concerned about
-these factors should examine their dependency and crate budgets before
+these factors should examine their dependency and library budgets before
 attributing the cost to the compiler.
 
-The main area where C\texttt{++} has a clear advantage is the edit-and-compile
-cycle for changes that affect only a single source file. The
+C\texttt{++} keeps a clear advantage in build time: its clean build is faster, and so is its
+edit-and-compile cycle for changes inside a single source file
+(Section~\ref{sec:migrationresults}). The
 $\FootShippedRatio\times$ size result also shows that the relative size depends
 on the chosen linkage policy. The ordering changes when the same policy is
 applied to both implementations.
