@@ -2266,18 +2266,20 @@ the compiler is able to prevent it. Miri detects the Rust double-free, but it
 cannot execute the C++ host code behind the foreign-function boundary.
 
 Some concurrency defects cannot be found directly by the sanitiser tools. To
-investigate these cases, this study used Loom and
-Shuttle~\cite{bornholt2021shardstore}. They systematically explore different
-possible orders in which threads can execute. These tools operate on small
-models rather than the full application. Each defect had to be converted into
-the tool's model and simplified to the smallest example that still reproduced
-the problem.
+investigate these cases, this study used two Rust tools that try many thread
+orders~\cite{bornholt2021shardstore}. Loom tries the possible orders one by
+one, and Shuttle picks them at random. Both work on small test programs rather
+than the full application, so each defect had to be rewritten as the smallest
+program that still showed it. On those programs both tools report the
+lock-order deadlock and the lost update, and both report nothing on a fixed
+version of each.
 
-Rust's Resource Acquisition Is Initialization (RAII) prevents one common
-concurrency defect, forgetting to unlock a mutex. The lock is automatically
-released when its guard is dropped. RAII does not eliminate all lock-related
-defects. The two forgotten-guard cases in the study still caused the programs
-to hang, and neither tool reported these hangs. Figure~\ref{fig:taxonomy}
+RAII prevents the ordinary form of a forgotten lock in Rust. The guard releases
+the mutex when it is dropped, so the early return that strands the C++ lock
+cannot strand the Rust one. The Rust program therefore leaks its guard with
+\texttt{mem::forget}, a safe function that stands for any path that keeps a
+guard alive past the procedure that took it. Both programs then hang, and none
+of the three sanitisers reports the C++ hang. Figure~\ref{fig:taxonomy}
 draws the whole list as an outcome matrix.
 
 % Full column width no longer fits in the leftover under the safety paragraph.
@@ -2299,32 +2301,43 @@ outcomes as a matrix, generated from the taxonomy log.\label{fig:taxonomy}}
 \subsection{Migration (RQ4)}\label{sec:migrationresults}
 The C-ABI boundary between the C\texttt{++} host and the Rust core is
 small. It consists of $\FfiEntryPoints$ C entry points implemented across
-$\FfiSeamLines$ lines of Rust. All raw-pointer operations are isolated in
+$\FfiSeamLines$ lines of Rust, one of which Figure~\ref{fig:ffilisting} shows.
+All raw-pointer operations are isolated in
 $\FfiUnsafeFns$ functions, leaving the main Rust core free of
 \texttt{unsafe} code.
 
-No measurable runtime overhead is observed from crossing this boundary when
-comparing the same signal call made directly and the same call made through the
-C-ABI. Thus, any per-call overhead introduced by the boundary is bounded by
+In the paired FFI experiment, which ran on the virtual machine,
+the same signal call made directly and through the C-ABI cannot be told apart.
+Any per-call overhead the boundary adds is therefore bounded by
 $\FfiOpBoundPct\%$ of the call cost in these measurements. Figure~\ref{fig:ffiseam}
 shows the structure of this boundary.
 
 Three practical costs of adopting Rust beyond the FFI
 boundary were also measured: build time, compiler cost for the project's own source, and
 shipped binary size. Third-party code accounts for
-$\BuildDepShareCpu\%$ of the CPU time in a clean Rust build. For the
-project's own source alone, the Rust build requires
-$\BuildAllFirstPartyCpuRatio$ times as much CPU as the corresponding
-\texttt{g++} build.
+$\BuildDepShareCpu\%$ of the CPU time in a clean Rust build, which takes
+$\BuildAllRustWall$~s against $\BuildAllCppWall$~s for C\texttt{++}. For the
+project's own source, the Rust build needs less CPU than the whole
+\texttt{g++} build, $\BuildAllFirstPartyCpuRatio$ times as much, although the core
+library alone needs $\BuildLibCpuRatio$ times as much CPU in Rust as in
+C\texttt{++}. Incremental builds split the other way. After an edit inside one C\texttt{++} source file
+the C\texttt{++} build finishes in $\BuildIncCppTu$~s, against
+$\BuildIncRust$~s after the same edit in the Rust library, but an edit to the
+matching C\texttt{++} header, which other files include, takes
+$\BuildIncCppHeader$~s.
 
-The observed $\FootShippedRatio\times$ binary-size difference is also
-strongly affected by the linkage policy. When the same linkage policy is
-used for both languages, the size difference changes and can even reverse.
-Finally, the Rust code used in this comparison contains no third-party
-crates and no \texttt{unsafe} sites ($\DepsCore$ crates and
-$\CoreUnsafe$ \texttt{unsafe} sites). These controls make the comparison
-more directly attributable to the language and build configuration rather
-than to dependencies or unsafe code.
+The shipped binaries differ by $\FootShippedRatio\times$, with Rust's the
+larger, mostly because the C\texttt{++} build leaves its standard library to
+the loader and the Rust build links its own in. Linked the same way, the order
+depends on the policy. Statically linked, the \FootStaticSmaller{} binary is
+the smaller, and dynamically linked, the \FootDynamicSmaller{} one is.
+Finally, the Rust core itself uses no third-party libraries and contains no
+\texttt{unsafe} sites ($\DepsCore$ libraries and $\CoreUnsafe$ sites). Rust's
+name for one library is a crate. The
+third-party code in the build belongs to the benchmark harness and the
+\texttt{jemalloc} binding, $\DepsHarness$ and $\DepsJemalloc$ libraries. The core
+comparison is therefore attributable to the language and build configuration
+rather than to dependencies or unsafe code.
 
 
 % After the paragraph the leftover is short of the diagram plus caption, so
@@ -2336,7 +2349,8 @@ than to dependencies or unsafe code.
 \includegraphics[width=\linewidth]{diagrams/pdf/07_ffi_seam.pdf}
 \caption[The thin layer where C++ calls the Rust service]{The layer where C++ calls the Rust service.
 The same signalling operation costs $\FfiOpNative$~\textmu s directly and
-$\FfiOpSeam$~\textmu s through that layer, a paired difference bounded at
+$\FfiOpSeam$~\textmu s through that layer, measured on the virtual machine of
+Appendix~\ref{appendix:config}, a paired difference bounded at
 $\FfiOpBoundPct\%$ of that call. A do-nothing crossing costs
 $\FfiCrossing$~ns and bounds only itself.\label{fig:ffiseam}}
 \end{figure}
@@ -2386,27 +2400,30 @@ measure.
 
 \section{Discussion on the research questions}\label{sec:rqdiscussion}
 RQ1 has two answers, depending on the workload level. At $\ReprLoad$~kops/s,
-the campaign detects differences in the median, p99, and p99.9 latencies, while
-the pooled p99.99 latency favours Rust. However, the end-to-end measurements
-cannot be used to isolate a language effect because the core operation accounts
-for only $\BudgetCoreShareMax\%$ of the measured time.
+the campaign detects differences in the median, p99, and p99.9 latencies, all
+favouring Rust, and the pooled p99.99 and the maximum, which RQ1 also names,
+favour Rust by more. However, the end-to-end measurements cannot isolate a
+difference in the core operation, because that operation is a small fraction of
+a round trip.
 
 After the system reaches saturation, the campaign delay mainly reflects
-scheduling drift rather than service performance. Additional delay samples are
-recorded after the timed window, so they do not add recording overhead while
-the timer is running. Therefore, these measurements should not be used to rank
-the services.
+schedule drift rather than service performance, so it should not be used to
+rank the services.
 
-Completed throughput is a separate measure because it counts calls finished
-during the timed window. After saturation, Rust completes more calls with both
-allocators. This
-advantage appears to come from the handoff between threads, where
-C\texttt{++} spends more kernel time per call. On a further host with the same processor,
-replacing the Rust queue with the C\texttt{++} queue removed the
-advantage. With the same handoff in both languages, Rust stayed only
-$\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ ahead on two further hosts. Most of the
-difference therefore comes from the queue and
-thread-handoff mechanism rather than from the Rust language itself.
+Completed throughput counts calls finished during the timed window, but in the
+reported campaign that window also holds the sender's recording of extra delay
+samples. On that clock \OverloadSustainedFaster{} completes $\OverloadThrRatio$
+times as many calls as \OverloadSustainedSlower{}. That is the planned result.
+With the recording moved after the window on the same host, the order reverses
+and Rust completes more calls with both allocators. This lead comes from the
+handoff between threads, where C\texttt{++} spends more kernel time per call. On
+a further host with the same processor, replacing the Rust queue with the
+C\texttt{++} queue removed the lead. With the same handoff in both languages,
+Rust stayed only $\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ ahead on two
+further hosts with the system allocator. Most of the difference therefore comes from the queue and
+thread-handoff mechanism rather than from the core operation. In the
+C\texttt{++} build that mechanism is the study's own queue, so the result
+compares two handoff designs as written more than two languages.
 
 On host D, a separate experiment times each request while several requests
 are in flight. It covers both the signal workload and the mixed lifecycle. For
