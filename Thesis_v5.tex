@@ -2245,16 +2245,17 @@ none.\label{fig:uam}}
 
 The seven boundary classes also compile in Rust, one of them only inside
 \texttt{unsafe}, so their faulty behaviour can still happen when the program runs. Some can nevertheless be detected by
-specialised tools. LeakSanitizer detects the reference cycle because the
-resulting memory leak is permitted by Rust's ownership model
-\cite{hughes2025gcrust,cui2024rcanary}. UndefinedBehaviorSanitizer detects the
+specialised tools. In C\texttt{++}, LeakSanitizer, which runs as part of
+AddressSanitizer, reports the reference cycle. Rust's ownership model permits
+the same leak, so the Rust version compiles and
+leaks~\cite{hughes2025gcrust,cui2024rcanary}. UndefinedBehaviorSanitizer detects the
 integer overflow in C++, while Rust defines the same operation to wrap when
 overflow checks are disabled. ThreadSanitizer detects the lock-order inversion
 in $\DeadlockTsanHits$ of $\DeadlockTsanRuns$ runs, although this result varies
-between runs. The tool records lock-order relationships only when the
-relevant locks are successfully acquired. If a thread becomes stuck while
-waiting for the first lock, the other lock may never be acquired, and the tool
-then cannot see the full sequence it needs to report the deadlock.
+between runs. The tool records a lock order only when a thread that already
+holds one lock acquires the other. If each thread takes its first lock and then
+blocks on its second, neither order is ever recorded, and the tool cannot see
+the cycle it needs to report~\cite{tsandeadlock}.
 
 
 The double-free inside \texttt{unsafe} Rust is not a separate defect class,
