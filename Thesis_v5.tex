@@ -2133,11 +2133,14 @@ live application data. Instead, it is mainly a fixed cost of the process.
 
 \paragraph{CPU usage.}
 CPU usage does not follow the memory pattern. At $\ReprLoad$~kops/s, Rust
-uses at most $\CpuDiffAbsMax$ percentage points less CPU than
-C\texttt{++}. At $\ProbeAfterOverloadLoad$~kops/s that ratio is
-$\ProbeAfterCpuPerOpRatio$, with \ProbeAfterCpuPerOpHigher{} the higher
-one. A throughput lead remains, and Section~\ref{sec:overload} traces it
-to how the queue is locked.
+uses up to $\CpuDiffAbsMax$ percentage points less CPU than C\texttt{++}, and
+both CPU comparisons clear the Holm correction (Table~\ref{tab:significance}).
+Past saturation the planned CPU comparison has Rust drawing more
+(Table~\ref{tab:overloadtest}), but that clock includes the recording. On the
+follow-up run, CPU per finished call at $\ProbeAfterOverloadLoad$~kops/s
+differs by a factor of $\ProbeAfterCpuPerOpRatio$, with
+\ProbeAfterCpuPerOpHigher{} the higher one. A throughput lead remains there, and
+Section~\ref{sec:overload} traces it to how the queue is locked.
 
 \paragraph{Hardware counter reading.}
 
@@ -2152,8 +2155,11 @@ than C\texttt{++}. It also has $\BmMissDelta\%$ \BmMissDeltaDir{} cache misses
 per thousand instructions. Thus, Rust completes the isolated call
 faster even though its cache-miss rate is higher.
 
-These measurements show why Rust is faster than C\texttt{++} when a single
-call is processed in isolation. However, the overload experiment is
+These measurements agree in direction with the isolated timing of
+Section~\ref{sec:perfresults}, though not in size: $\BmCycleDelta\%$ fewer
+cycles here against $\BudgetCoreRatio\times$ there, on a different host with a
+different compiler pair. They describe how much work the faster build does, not
+which code saves it. However, the overload experiment is
 different: many requests arrive at the same time and must share the queue
 and its lock. Some requests therefore spend time waiting for the queue or
 for other threads to release the lock. This waiting does not occur in the
@@ -2181,8 +2187,9 @@ threads.\label{fig:resources}}
 % Same drift as the throughput figure: the RAM chart was opening the safety subsection.
 \FloatBarrier
 \subsection{Safety via fault injection (RQ2)}\label{sec:safetyresults}
-Safe code is evaluated by injecting $\FaultClasses$ defect classes into the
-implementations. Seven of these defects fall within the safety guarantees that
+Safe code is evaluated with $\FaultClasses$ defect classes, each written as a
+small program in both languages (Section~\ref{sec:methodbrief}) rather than
+injected into the service itself. Seven of these defects fall within the safety guarantees that
 Rust is intended to provide, while the other seven represent defects that safe
 Rust is not expected to prevent. The first seven defects are prevented by the 
 Rust compiler at compile time. In C++, the same defective code is allowed to 
