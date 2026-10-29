@@ -75,7 +75,7 @@
 \title{Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia RAN Control-Plane Systems}
 \author{Ha Vien}
 \date{11 September 2026}
-\supervisors{Prof. Keijo Heljanko, Christoph Luneburg, Petteri Kotimaa}
+\supervisors{Prof. Keijo Heljanko, Christoph Luneburg}
 \examiners{Prof. Keijo Heljanko}
 \keywords{Rust, C++, RAN control plane, tail latency, memory safety, fault injection, incremental adoption}
 \additionalinformation{\translate{\track}}
@@ -150,12 +150,12 @@
 % it is set single-spaced as in the template. The \singlespacing here is what
 % undoes the 1.5 spacing that the class applies in \maketitle. Overflow is
 % neither clipped nor reported: it overprints the keyword heading. The class
-% sets 2ex between the five blocks. That is more than this text leaves for the
-% CCS paths, so parskip is 1ex here. Look at page 3 after editing.
+% sets 2ex between the blocks. At 1ex the last CCS line still sat on
+% Avainsanat, so parskip is 0.4ex. Look at the abstract page after editing.
 {\singlespacing
 \begin{otherlanguage}{english}
 \begin{abstract}
-      \setlength{\parskip}{1ex}
+      \setlength{\parskip}{0.4ex}
       Radio access network (RAN) control planes are written mostly in C++ for performance, at a
       well-known cost in memory safety and potential for concurrency bugs. Rust promises comparable performance with
       compile-time safety, but its fit for this latency-critical setting is unproven.
@@ -176,22 +176,26 @@
       and data-race defects, whereas C++ compiles the same code. Both languages compile code
       that contains seven further defects, such as deadlocks.
 
-      Each version was run with two memory allocators, the system default and \texttt{jemalloc}.
-      Before overload, Rust answers a typical request up to $\PFiftyDiffAbsMax\,\mu$s faster
-      than C++ on the end-to-end round trip. Only $\BudgetCoreShareMax\%$ of that trip is
-      spent in Rust or C++ code. Most of the rest is thread handoff. On a same-host clock that
-      defers coordinated-omission fill past the timed window, Rust still finishes more calls at
-      $\ProbeAfterOverloadLoad$ thousand requests per second with both allocators. That clock
-      times schedule drift, not service time, and it understated Rust's throughput. On further
-      hosts, outside the tested family, most of the lead comes from the queue. Matching
-      the handoff leaves Rust $\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ ahead on the system
-      allocator. With several requests in flight on a further host, the wait is shorter for Rust with
-      \texttt{jemalloc} and for C++ with the system allocator.
-
-      On all three machines tested, Rust uses a few MiB more peak memory than C++ with both
-      allocators. Existing C++ code can call the unchanged Rust service through a thin C
-      interface. The crossing adds at most $\FfiOpBoundPct\%$ of one signalling call's measured
-      cost.
+      While the service can still keep up, a typical request is up to
+      $\PFiftyDiffAbsMax\,\mu$s faster in Rust, and Rust uses slightly less
+      processor time. Only $\BudgetCoreShareMax\%$ of that request is the work
+      written in C++ or Rust. Most of the time is spent passing the request from
+      one thread to another. Once the service falls behind, the result depends on
+      the test clock. If the test writes its extra delay records while the clock
+      is running, C++ finishes more requests. If those records are written
+      afterwards, Rust finishes more, at $\ProbeAfterOverloadLoad$ thousand
+      requests per second with both memory libraries, and the way that run stopped
+      the clock made Rust's lead look smaller than it was. Most of the lead is in
+      the queue between the threads. When both languages use the same queue, Rust
+      finishes $\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ more requests with
+      the operating system's memory library. When several requests wait at once,
+      Rust waits less with \texttt{jemalloc}, and C++ waits less with the system's
+      own library. 
+      
+      On all three computers tested, Rust uses a few megabytes more
+      memory. Existing C++ code can call the unchanged Rust service through a thin
+      C interface. That extra step adds at most $\FfiOpBoundPct\%$ of the time of
+      one signalling message.
       
 \end{abstract}
 \end{otherlanguage}
@@ -2816,10 +2820,6 @@ free of \texttt{unsafe} is worth~\cite{rivera2021galeed,kirth2022pkrusafe}.
 \item Run a longer case study that tracks defect counts and review effort while adding Rust one
 piece at a time. That is what would settle the human cost this study can only name.
 \end{compactitem}
-
-% Declaration of generative-AI use, required by the University when a language model has
-% been used. Shared with Ha_Vien_Mastersthesis_2026_draft.tex: edit ai_statement.tex, not a copy.
-\input{ai_statement.tex}
 
 % STEP 5:
 % The bibliography style is selected with the biblatex options in the preamble.
