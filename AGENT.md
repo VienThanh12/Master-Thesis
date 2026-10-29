@@ -16,21 +16,21 @@ Not every PDF in this repo has the same status. **Do not treat them as interchan
 
 | Document | Source | Status | Role |
 | --- | --- | --- | --- |
-| **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v5.tex`. |
-| **`Thesis_v5.pdf`** | `Thesis_v5.tex` | **Submission manuscript (edit here)** | Canonical source for the UH deposit. `bench/refresh_thesis.sh` copies it to `Ha_Vien_Mastersthesis_2026.tex` and rebuilds both PDFs so the required filename stays in step. Supervisor read-through of the eight-chapter argument. Chapter 1 is the full introduction from the draft (copied 27 Aug 2026, cross-refs retargeted). Chapter 2 is a related-work spine as of 21 September 2026. Chapters 3 to 8 keep five argument paragraphs each, as plain prose rather than itemize. Cut from nine chapters to eight on 26 Aug 2026, when the standalone `Objectives` chapter was folded into the introduction to match the draft (§4). Carries **14 figures** (list of figures in the front matter). Abstract written 11 September 2026. Twenty-sixth grading pass, 16 September 2026: all six assessable areas still at 5 after the 14–15 September diagram and wording edits (two new figures, the uncited predictability section removed, 48 physical pages). That grade is the skeleton's, not the draft's. This is what goes to the supervisor alongside the plan. Called `Thesis_v4` until 15 October 2026, `Thesis_v3` until 28 September 2026, and `Thesis_v2` until 8 September 2026. Older notes and commits use those names. |
-| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Submission filename mirror** | UH deposit name (`Lastname_Firstname_Mastersthesis_Year`). Overwritten by `bench/refresh_thesis.sh` from `Thesis_v5.*`. Do not edit by hand. The retired long-form draft lives in `Ha_Vien_Mastersthesis_2026.recovered-20260920.tex` and the 24 September PDF snapshot. |
+| **`Thesis_Plan_v2.pdf`** | `Thesis_Plan_v2.tex` | **Reviewed — supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Ha_Vien_Mastersthesis_2026.tex`. |
+| **`Ha_Vien_Mastersthesis_2026.pdf`** | `Ha_Vien_Mastersthesis_2026.tex` | **Submission manuscript (edit here)** | Canonical source for the UH deposit (`Lastname_Firstname_Mastersthesis_Year`). `bench/refresh_thesis.sh` rebuilds this PDF and does not copy it from another file. Supervisor read-through of the eight-chapter argument. Chapter 1 is the full introduction from the draft (copied 27 Aug 2026, cross-refs retargeted). Chapter 2 is a related-work spine as of 21 September 2026. Chapters 3 to 8 keep five argument paragraphs each, as plain prose rather than itemize. Cut from nine chapters to eight on 26 Aug 2026, when the standalone `Objectives` chapter was folded into the introduction to match the draft (§4). Carries **14 figures** (list of figures in the front matter). Abstract written 11 September 2026. Twenty-sixth grading pass, 16 September 2026: all six assessable areas still at 5 after the 14–15 September diagram and wording edits (two new figures, the uncited predictability section removed, 48 physical pages). That grade is the skeleton's, not the draft's. This is what goes to the supervisor alongside the plan. Called `Thesis_v5` until 29 October 2026, `Thesis_v4` until 15 October 2026, `Thesis_v3` until 28 September 2026, and `Thesis_v2` until 8 September 2026. Older notes and commits use those names. |
+| **`Ha_Vien_Mastersthesis_2026_draft.pdf`** | `Ha_Vien_Mastersthesis_2026_draft.tex` | **Draft, not for submission** | The file that held the university name until 29 October 2026. It had already diverged from the submission manuscript, so it is not a copy of it. Do not edit it into the deposit, and do not let a refresh overwrite it. The September long-form draft remains `Ha_Vien_Mastersthesis_2026.recovered-20260920.tex`. |
 | **`Ha_Vien_Mastersthesis_2026_short.pdf`** | `Ha_Vien_Mastersthesis_2026_short.tex` | **Compression pass, in progress** | A shorter cut of the full draft off the same class, macros, figures and bibliography. Measured 8 September 2026 it declares **55 pages with the same 12 appendix pages** (76 physical) against the draft's 97 and 12. Both documents are `oneside`. Material is relocated to appendices or merged rather than deleted, which is why its appendix count has not moved. **It is neither supervisor-facing nor a submission candidate**, and no claim may be edited into it that is not in the draft. Its tooling is `.compress/`, and `.compress/shortcheck.py` is the check that a pass dropped no citation key, label, cross-reference or generated macro. Run it after every compression edit, because a dropped label is exactly the defect no build gate catches |
-| `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex`, `Thesis_v5.tex` and `Ha_Vien_Mastersthesis_2026_short.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
+| `ai_statement.tex` | — | **Declaration in the author's name** | Required statement on generative-AI use, `\input` by `Ha_Vien_Mastersthesis_2026.tex`, `Ha_Vien_Mastersthesis_2026_draft.tex` and `Ha_Vien_Mastersthesis_2026_short.tex` before the bibliography. Shared on purpose: edit this file, never a copy. It must keep describing what actually happened, so revise it whenever the workflow changes. |
 | `archive/*` | earlier variants | Superseded / stale | `plain_thesis.tex`, `thesis-vi.tex`, `Thesis_v3-vi.tex` (Vietnamese skeleton snapshot of 11 September 2026), `thesis_wbm_full_backup.tex`, the pre-cuts `Thesis_POC.tex.bak-before-cuts`, the v1 plan PDF, and since 8 September 2026 the retired `UH_DS_MSc.cls` with the `UH-logo.png` only that class loaded, plus the dated `rollback-20260827-220354/` snapshot. See `archive/README.md`. They resolve `figures/` and `diagrams/` from the repository root, so they no longer build in place. Do not edit unless explicitly asked. |
-| Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Thesis_v5.tex`. |
+| Artefacts | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Implementation + evidence | Must stay consistent with claims in `Ha_Vien_Mastersthesis_2026.tex`. |
 
 ### Sync rule
 
 When you change **claims, RQs, scope, methodology, or contributions**:
 
-1. Update **`Thesis_v5.tex`** (submission manuscript).
+1. Update **`Ha_Vien_Mastersthesis_2026.tex`** (submission manuscript).
 2. Update **`Thesis_Plan_v2.tex`** if the plan’s status, timeline, or framing changes.
-3. Run **`bench/refresh_thesis.sh`** or `latexmk -pdf Thesis_v5.tex` so `Ha_Vien_Mastersthesis_2026.*` stays a mirror.
+3. Run **`bench/refresh_thesis.sh`** or `latexmk -pdf Ha_Vien_Mastersthesis_2026.tex`.
 4. Re-run the verification steps in §5.
 
 When you change **measured numbers**:
@@ -482,13 +482,13 @@ These are load-bearing for the whole thesis. **Do not weaken them in edits.**
 | App. A–G | Key terms, literature search protocol, statistical design, host and campaign configuration, fault-injection example, implementation of the two cores, engineering guidelines for incremental adoption | 2, 3, 4 |
 
 **Acronyms live in the front matter, not in Appendix A, as of 4 September 2026.** A `List of
-acronyms` follows the list of tables in `Ha_Vien_Mastersthesis_2026.tex` and the contents in
-`Thesis_v5.tex`, titled from the class's own `\nomname` and set as a `longtable` so it can run
+acronyms` follows the lists of figures and tables in `Ha_Vien_Mastersthesis_2026.tex`,
+titled from the class's own `\nomname` and set as a `longtable` so it can run
 past a page without floating away from its heading. It carries no `\caption`, or a front-matter
 table would be announced in a list of tables printed before it. Appendix A keeps only the terms
 that are not acronyms and is retitled to match. Three things follow for any edit. Every acronym
 is written out at its first use in the body, so adding one means adding both the expansion and
-the row. The scoped list in `Thesis_v5.tex` is a subset, so an acronym added there needs its own
+the row. The list in `Ha_Vien_Mastersthesis_2026.tex` is the one an edit extends, so an acronym added there needs its own
 row. And `consistency.py --acronyms` from the `academic-writing` skill now reads the list itself
 as prose and reports each row as an unexpanded first use, so scope it past the `longtable` before
 believing its output. **Expansions are sentence case as of 7 September 2026**, on the author's
@@ -620,11 +620,11 @@ rust/miri.sh                     # needs `rustup toolchain install nightly --com
 cpp/coverage.sh                  # gcov line coverage of the parity suite
 rust/coverage.sh                 # needs `cargo install cargo-llvm-cov --locked`
 
-# Regenerate figures/tables and rebuild canonical thesis
+# Regenerate figures/tables and rebuild the submission thesis
 bench/refresh_thesis.sh
 
-# Supervisor documents (when their sources changed)
-latexmk -pdf Thesis_v5.tex
+# Plan, when its source changed. A prose-only rebuild of the submission:
+latexmk -pdf Ha_Vien_Mastersthesis_2026.tex
 latexmk -pdf Thesis_Plan_v2.tex
 ```
 
@@ -815,7 +815,7 @@ third is the last-in-chapter float, closed in `Thesis_v5.tex` on 14 September 20
   then `\clearpage`s it onto its own page, centred. `[section]{placeins}` does
   the same at the next `\section`. The fix is local: `\enlargethispage{...}`
   plus `[!ht]`, sized to the shortfall, then rebuild and check the folio. One
-  site in `Thesis_v5.tex` still does this: `fig:ffiseam`
+  site in `Ha_Vien_Mastersthesis_2026.tex` still does this: `fig:ffiseam`
   (`52pt`, 14 September 2026, `\chapter{Discussion}`). `fig:ngran` stays with
   the paragraph that cites it. Those lines are short enough for the diagram
   at its own size, so the page has no `\clearpage` and no enlarge. A break
@@ -1039,7 +1039,7 @@ which is criterion 1's blocker.
 - **Do not** claim testbed-grade tail latency from the virtualised host.
 - **Do not** write that the guest and reported campaigns share a toolchain. `\GuestGpp` is 15.1.1 and `\MainGpp` is 15.2.1.
 - **Do not** remove boundary defect classes or sanitiser-only C++ outcomes to tidy the narrative.
-- **Do not** expand `Thesis_v5.tex` chapters 3--8 beyond five argument paragraphs, compress Chapter 2 back to five paragraphs, or replace Chapter 1 with a shorter skeleton. Chapter 1 is the draft introduction. Chapter 2 is a related-work spine as of 21 September 2026. Chapters 3--8 stay a five-move skeleton in plain prose, and the document is supervisor-facing.
+- **Do not** expand `Ha_Vien_Mastersthesis_2026.tex` chapters 3--8 beyond five argument paragraphs, compress Chapter 2 back to five paragraphs, or replace Chapter 1 with a shorter skeleton. Chapter 1 is the full introduction. Chapter 2 is a related-work spine as of 21 September 2026. Chapters 3--8 stay a five-move skeleton in plain prose.
 - **Do not** treat `Ha_Vien_Mastersthesis_2026_short.pdf` as a deliverable or let a claim reach it that is not in the full draft. It is a compression pass over that draft and the draft stays canonical. Run `.compress/shortcheck.py` after editing it.
 - **Do not** move the document sources, the four prose checks, or `bibliography.bib` out of the repository root. Every document resolves `figures/`, `diagrams/pdf/` and `template/figures/` from there, which is why `archive/` no longer builds, and `refresh_thesis.sh`, `diagrams/check_labels.py`, the grading skill and `.cursor/rules/thesis-quality.mdc` all name the checks by path.
 - **Do not** commit secrets, Nokia-internal identifiers, or confidential traces.
@@ -1080,11 +1080,10 @@ When preparing material for **Keijo Heljanko** (supervisor) and Nokia instructor
 (**Christoph Luneburg**, **Petteri Kotimaa**):
 
 1. `Thesis_Plan_v2.pdf` — plan, status, timeline (dated; status table must match repo reality).
-2. `Thesis_v5.pdf` — supervisor read-through: full Chapter 1, a related-work spine in Chapter 2, five prose paragraphs in each of chapters 3--8, and 14 figures (50 physical pages, last body folio 41, measured 14 September 2026). The skeleton's class writes no `\pagesCount`, so read its declared length from the printed folios: arabic 1 sits on physical page 11 and the last body page prints 41. It read 46 physical and 38 declared before the figures.
-3. Optionally reference `Ha_Vien_Mastersthesis_2026.pdf` as the **working full draft** (clearly labelled not final).
+2. `Ha_Vien_Mastersthesis_2026.pdf` — the submission manuscript, called `Thesis_v5` until 29 October 2026. Full Chapter 1, a related-work spine in Chapter 2, five prose paragraphs in each of chapters 3--8.
 
-Port supervisor feedback into `Thesis_v5.tex` and `Ha_Vien_Mastersthesis_2026.tex` in the same
-edit pass so the two do not diverge.
+Port supervisor feedback into `Ha_Vien_Mastersthesis_2026.tex`.
+`Ha_Vien_Mastersthesis_2026_draft.pdf` is the previous file of the university name and is not the deposit.
 
 ---
 

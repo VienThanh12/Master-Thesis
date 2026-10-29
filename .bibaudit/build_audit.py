@@ -11,7 +11,7 @@ from the .tex sources, and the per-entry evidence comes from docs/Sources_eviden
 docs/LITERATURE_NOTES.md as the fallback. A key with no record is reported as having none.
 
     .bibaudit/build_audit.py                     # write source_audit.tex (full draft)
-    .bibaudit/build_audit.py --document v5       # write source_audit_v5.tex (Thesis_v5)
+    .bibaudit/build_audit.py --document v5       # write source_audit_v5.tex (submission)
     .bibaudit/build_audit.py --dump records      # inspect the parsed evidence records
     .bibaudit/build_audit.py --dump sites        # inspect cite sites and printed numbers
 
@@ -47,8 +47,8 @@ TICK_ROW = re.compile(r"(?m)^\d+ [^\n]*?\\texttt\{\\small ([^}]+)\}[^\n]*?"
 # the .bbl that fixes their printed numbering. The first of ACTIVE is the audit's spine: its
 # printed numbers are the ones in square brackets, and its citing sentences are the ones shown.
 DOCUMENTS = [
-    ("Ha_Vien_Mastersthesis_2026.tex", "draft", "Full draft"),
-    ("Thesis_v5.tex", "v5", "Thesis_v5"),
+    ("Ha_Vien_Mastersthesis_2026_draft.tex", "draft", "Draft"),
+    ("Ha_Vien_Mastersthesis_2026.tex", "v5", "Submission"),
     ("Thesis_Plan_v2.tex", "plan", "Plan"),
 ]
 DOCUMENT_ALIASES = {"v4": "v5"}  # Thesis_v4 renamed Thesis_v5, 15 Oct 2026
@@ -65,10 +65,11 @@ AUDIT_REVIEWED = {
 }
 COL_HEADER = {"draft": "dr", "v5": "v5", "plan": "pl"}
 
-# The audit covers the canonical draft by default. It cites all 111 entries, so scoping to it
-# loses no entry, and the numbers a reader checks against are the submission document's own.
-# --document v5 (or plan) scopes the spine to that file and writes a sibling audit beside it.
-# --all-documents widens to the other two, which number the same works differently.
+# The default spine is the retired draft (Ha_Vien_Mastersthesis_2026_draft.tex).
+# --document v5 is the submission manuscript, Ha_Vien_Mastersthesis_2026.tex,
+# called Thesis_v5 until 29 October 2026. It writes source_audit_v5.tex.
+# --document plan scopes the plan. --all-documents widens to the other two,
+# which number the same works differently.
 ACTIVE = DOCUMENTS[:1]
 OUT = AUDIT_OUT["draft"]
 REVIEWED = AUDIT_REVIEWED["draft"]

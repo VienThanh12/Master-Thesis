@@ -6,8 +6,8 @@ description: >-
   grade and the cheapest work that lifts it. Produces a grading canvas and a dated pass in
   docs/ASSESSMENT.md. Use when the user asks what grade the thesis would get, how an examiner,
   supervisor, or opponent would assess it, what blocks a 5 in an area, whether an edit protects
-  the grade, or for an examiner-style review of Ha_Vien_Mastersthesis_2026.tex, Thesis_v5.tex,
-  Thesis_Plan_v2.tex, or an external manuscript.
+  the grade, or for an examiner-style review of Ha_Vien_Mastersthesis_2026.tex,
+  Ha_Vien_Mastersthesis_2026_draft.tex, Thesis_Plan_v2.tex, or an external manuscript.
 ---
 
 # Grading a thesis against the CSM matrix

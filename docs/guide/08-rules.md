@@ -11,22 +11,18 @@ submission quality.
 
 ## Document roles (do not mix)
 
-- `Thesis_Plan_v2` and `Thesis_v5` are supervisor-facing and reviewed. `Thesis_v5` was `Thesis_v3` until 28 September 2026.
-- `Ha_Vien_Mastersthesis_2026` is the canonical full draft and still needs
-  review. The submission filename is not a review stamp.
+- `Thesis_Plan_v2` is supervisor-facing and reviewed. `Ha_Vien_Mastersthesis_2026` is the submission manuscript. It was `Thesis_v5` until 29 October 2026, and `Thesis_v3` until 28 September 2026.
+- `Ha_Vien_Mastersthesis_2026_draft` is the previous file of the university name. It is not the deposit. The filename of the submission manuscript is not a review stamp.
 - `Ha_Vien_Mastersthesis_2026_short` is a compression pass, not a deliverable.
-- Do not expand `Thesis_v5.tex` chapters 3-8 beyond five argument paragraphs, and do not compress Chapter 2 back to five paragraphs. Chapter 2 is a related-work spine as of 21 September 2026.
-- Do not replace Chapter 1 of the skeleton with a shorter stub.
+- Do not expand `Ha_Vien_Mastersthesis_2026.tex` chapters 3-8 beyond five argument paragraphs, and do not compress Chapter 2 back to five paragraphs. Chapter 2 is a related-work spine as of 21 September 2026.
+- Do not replace Chapter 1 of the submission manuscript with a shorter stub.
 
 ## Sync when claims or numbers move
 
-**Claims, RQs, methodology, contributions:** update the skeleton if the
-supervisor should see it, the plan if status or timeline moved, and the full
-draft for the long argument. Rebuild the affected PDFs.
+**Claims, RQs, methodology, contributions:** update `Ha_Vien_Mastersthesis_2026.tex`, and the plan if status or timeline moved. Rebuild the affected PDFs.
 
 **Measured numbers:** `bench/refresh_thesis.sh`. Never hand-edit
-`figures/gen_*.tex`. Re-read every prose site that cites those macros. Rebuild
-`Thesis_v5.tex` yourself. The refresh script does not.
+`figures/gen_*.tex`. Re-read every prose site that cites those macros. The refresh rebuilds the submission PDF.
 
 ## Non-negotiable claims
 

@@ -10,16 +10,16 @@ is a working map: what to open, what to rebuild, what not to confuse.
 
 | File | Source | Status | Role |
 | --- | --- | --- | --- |
-| `Thesis_Plan_v2.pdf` | `Thesis_Plan_v2.tex` | **Reviewed, supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Thesis_v5.tex`. |
-| `Thesis_v5.pdf` | `Thesis_v5.tex` | **Reviewed, supervisor-facing** | Eight-chapter argument the supervisor reads. Chapter 1 is the draft introduction. Chapter 2 is a related-work spine as of 21 September 2026. Chapters 3-8 are five argument paragraphs each, in plain prose. Quotes generated macros. Abstract dated 11 September 2026. Was `Thesis_v3` until 28 September 2026, and `Thesis_v2` until 8 September 2026. |
-| `Ha_Vien_Mastersthesis_2026.pdf` | `Ha_Vien_Mastersthesis_2026.tex` | **Full draft, not final** | Canonical long-form thesis. UH submission filename (`Lastname_Firstname_Mastersthesis_Year`). That name says nothing about review. Was `Thesis_POC` until 19 August 2026. |
+| `Thesis_Plan_v2.pdf` | `Thesis_Plan_v2.tex` | **Reviewed, supervisor-facing** | Approved plan: gap, RQs, methodology, timeline, contributions. Keep in sync with `Ha_Vien_Mastersthesis_2026.tex`. |
+| `Ha_Vien_Mastersthesis_2026.pdf` | `Ha_Vien_Mastersthesis_2026.tex` | **Submission manuscript** | University filename (`Lastname_Firstname_Mastersthesis_Year`). Called `Thesis_v5` until 29 October 2026. Chapter 1 is the full introduction. Chapter 2 is a related-work spine as of 21 September 2026. Chapters 3-8 are five argument paragraphs each, in plain prose. |
+| `Ha_Vien_Mastersthesis_2026_draft.pdf` | `Ha_Vien_Mastersthesis_2026_draft.tex` | **Draft, not for submission** | The previous file of the university name, retired 29 October 2026. Not a copy of the submission manuscript. |
 | `Ha_Vien_Mastersthesis_2026_short.pdf` | `Ha_Vien_Mastersthesis_2026_short.tex` | Compression pass, in progress | Shorter cut of the **same** draft. Neither supervisor-facing nor a submission candidate. No claim may appear here that is not in the full draft. |
 
 ## Shared pieces
 
 | File | Role |
 | --- | --- |
-| `ai_statement.tex` | `\input` by the full draft, the skeleton, and the short cut, before the bibliography. One file. Keep it describing what actually happened. |
+| `ai_statement.tex` | `\input` by the submission manuscript, the draft, and the short cut, before the bibliography. One file. Keep it describing what actually happened. |
 | `bibliography.bib` | Shared bibliography. |
 | `HYthesisML.cls` | Class. Loaded from the repository root. |
 | `template/` | Cover dictionaries and HY logo the class loads by path. |
@@ -27,23 +27,19 @@ is a working map: what to open, what to rebuild, what not to confuse.
 | `figures/tab_*.tex`, `figures/fig_*.pdf` | Generated tables and plots. |
 | `diagrams/pdf/` | Diagrams included by the documents. |
 
-## How the skeleton differs from the full draft
+## How the submission manuscript is shaped
 
-- **Chapter 1** of `Thesis_v5.tex` is the draft introduction, with later-section
+- **Chapter 1** of `Ha_Vien_Mastersthesis_2026.tex` is the full introduction, with later-section
   and appendix references retargeted to labels this file actually has.
 - **Chapter 2** is a related-work spine as of 21 September 2026. Do not
   compress it back to five paragraphs.
 - **Chapters 3-8** stay five argument paragraphs. Do not add a sixth. Do not
-  expand them into the full draft's chapter prose. Do not put Chapter 1 back
-  to a short skeleton.
-- Key terms sit in the front matter, after the list of acronyms. The skeleton
+  put Chapter 1 back to a short skeleton.
+- Key terms sit in the front matter, after the list of acronyms. The manuscript
   carries one appendix, Host and campaign configuration (`appendix:config`).
-  Cross-references inside that appendix are retargeted to labels this file
-  has. It needs no further appendix.
-- It carries a subset of the draft's figures. Captions are trimmed. Image
-  sources are shared, not copied.
-- `bench/refresh_thesis.sh` rebuilds the **full draft PDF**, not `Thesis_v5.pdf`.
-  After macros move, rebuild the skeleton with `latexmk -pdf Thesis_v5.tex`.
+- `bench/refresh_thesis.sh` rebuilds `Ha_Vien_Mastersthesis_2026.pdf`.
+  A prose-only rebuild is `latexmk -pdf Ha_Vien_Mastersthesis_2026.tex`.
+  The draft is not rebuilt.
 
 Older notes that call the evaluation chapter 7 or the discussion chapter 8
 are using a retired nine-chapter numbering. The draft and the skeleton have
@@ -54,18 +50,17 @@ matched eight-chapter lists since 26 August 2026.
 | File | Role |
 | --- | --- |
 | `source_audit.pdf` | Every bibliography entry, ordered as in the full draft's reference list, with the citing sentence beside the source's own words. Built by `.bibaudit/build_audit.py`. See [07 Tooling](07-tooling.md). |
-| `source_audit_v5.pdf` | The same audit scoped to `Thesis_v5`: 61 cited works with that document's numbering, and the 50 shared-`.bib` entries it does not cite. `--document v5`. |
+| `source_audit_v5.pdf` | The same audit scoped to the submission manuscript. `--document v5`. |
 | `Rust_vs_Cpp_Nokia_RAN_thesis.pptx` | Colloquium deck. Gitignored. Built by `build_deck.py`. |
 
 ## How to rebuild
 
 ```bash
-latexmk -pdf Ha_Vien_Mastersthesis_2026.tex   # full draft
-latexmk -pdf Thesis_v5.tex                    # supervisor skeleton
+latexmk -pdf Ha_Vien_Mastersthesis_2026.tex   # submission manuscript
 latexmk -pdf Thesis_Plan_v2.tex               # plan
 .bibaudit/build_audit.py && latexmk -pdf source_audit.tex
 .bibaudit/build_audit.py --document v5 && latexmk -pdf source_audit_v5.tex
-bench/refresh_thesis.sh                       # regenerate figures + macros + full-draft PDF + deck
+bench/refresh_thesis.sh                       # regenerate figures + macros + submission PDF + deck
 ```
 
 `.latexmkrc` writes intermediates to `build/` and the PDF beside the source.
@@ -83,6 +78,5 @@ PDF, the retired `UH_DS_MSc.cls`, and `rollback-20260827-220354/`. Details:
 ## Supervisor bundle
 
 When preparing material for the supervisor: `Thesis_Plan_v2.pdf` and
-`Thesis_v5.pdf`. Optionally point at `Ha_Vien_Mastersthesis_2026.pdf` as the
-working full draft, labelled not final. Port feedback into **both**
-`Thesis_v5.tex` and `Ha_Vien_Mastersthesis_2026.tex` in the same pass.
+`Ha_Vien_Mastersthesis_2026.pdf`. The draft is
+`Ha_Vien_Mastersthesis_2026_draft.pdf`, and it is not the deposit.

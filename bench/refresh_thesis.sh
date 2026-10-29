@@ -132,18 +132,14 @@ else
   echo "  SKIP: .venv-pptx not present; keeping existing Rust_vs_Cpp_Nokia_RAN_thesis.pptx"
 fi
 
-# Canonical manuscript is Thesis_v5.tex. The UH deposit filename is still
-# Ha_Vien_Mastersthesis_2026 (Lastname_Firstname_Mastersthesis_Year, ASCII only).
-thesis="Thesis_v5"
-submission="Ha_Vien_Mastersthesis_2026"
-
-echo "== syncing $submission.tex from $thesis.tex =="
-cp "$root/$thesis.tex" "$root/$submission.tex"
+# Canonical manuscript is the UH deposit file
+# (Lastname_Firstname_Mastersthesis_Year, ASCII only).
+# Ha_Vien_Mastersthesis_2026_draft.tex is the previous copy and is not overwritten.
+thesis="Ha_Vien_Mastersthesis_2026"
 
 echo "== rebuilding $thesis.pdf =="
 cd "$root"
 latexmk -pdf -interaction=nonstopmode "$thesis.tex" >/dev/null 2>&1 || true
-cp "$root/$thesis.pdf" "$root/$submission.pdf"
 
 # .latexmkrc keeps intermediates in build/ so the repository root stays readable.
 # Fall back to the root copy in case the last build came from a tool that
@@ -161,7 +157,7 @@ if grep -q 'LaTeX Warning' "$thesis_log" 2>/dev/null; then
   echo "WARN: unresolved LaTeX warnings (undefined refs/citations?):"
   grep -n 'LaTeX Warning' "$thesis_log" | head
 fi
-echo "OK: $thesis.pdf rebuilt; $submission.pdf updated."
+echo "OK: $thesis.pdf rebuilt."
 
 echo
 echo "Campaign numbers now in the prose (figures/gen_macros.tex):"

@@ -93,5 +93,5 @@ WSL2 remains WSL2. See [`docker/README.md`](../../docker/README.md) and
 bench/refresh_thesis.sh --campaign bench/results/campaign-20260827-151927.jsonl
 ```
 
-Without `--campaign`, the newest log in `bench/results/` is used. Then rebuild
-`Thesis_v5.tex` by hand if the skeleton should show the new macros.
+Without `--campaign`, the newest log in `bench/results/` is used. The refresh
+rebuilds `Ha_Vien_Mastersthesis_2026.pdf`.

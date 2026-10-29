@@ -4,8 +4,8 @@
 Same counters as .readability.py (naive vowel-group syllables, floats dropped).
 Not part of the thesis build.
 
-    python3 .chapter_readability.py Thesis_v5.tex
-    python3 .chapter_readability.py Thesis_v5.tex -o docs/CHAPTER_READABILITY.md
+    python3 .chapter_readability.py Ha_Vien_Mastersthesis_2026.tex
+    python3 .chapter_readability.py Ha_Vien_Mastersthesis_2026.tex -o docs/CHAPTER_READABILITY.md
 """
 from __future__ import annotations
 
@@ -357,7 +357,7 @@ def how_computed(rows: list[dict]) -> list[str]:
 
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("src", nargs="?", default="Thesis_v5.tex")
+    p.add_argument("src", nargs="?", default="Ha_Vien_Mastersthesis_2026.tex")
     p.add_argument("-o", "--output", default="docs/CHAPTER_READABILITY.md")
     p.add_argument("--stdout", action="store_true", help="print Markdown only, do not write a file")
     args = p.parse_args()

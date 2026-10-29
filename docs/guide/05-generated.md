@@ -28,7 +28,7 @@ or a fault-injection run:
 8. `build_deck.py`.
 9. `latexmk -pdf Ha_Vien_Mastersthesis_2026.tex`.
 
-It does **not** rebuild `Thesis_v5.pdf`, `Thesis_Plan_v2.pdf`,
+It does **not** rebuild `Ha_Vien_Mastersthesis_2026_draft.pdf`, `Thesis_Plan_v2.pdf`,
 `source_audit.pdf`, or `source_audit_v5.pdf`.
 
 ## `figures/` — plots, tables, macros
@@ -84,7 +84,7 @@ gets no em dash.
 ## Sync rule when numbers change
 
 1. Regenerate via `bench/refresh_thesis.sh` (never hand-edit macros).
-2. Re-read every prose claim that cites those macros in the full draft
-   **and** in `Thesis_v5.tex`.
-3. Rebuild `Thesis_v5.tex` and the plan if they quote the new macros.
+2. Re-read every prose claim that cites those macros in
+   `Ha_Vien_Mastersthesis_2026.tex`.
+3. Rebuild the plan if it quotes the new macros. The refresh already rebuilds the submission PDF.
 4. Check `docs/ASSESSMENT.md` / `docs/TODO.md` if tail or RSS claims moved.

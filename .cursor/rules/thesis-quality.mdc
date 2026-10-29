@@ -12,11 +12,11 @@ alwaysApply: true
 | Document | Status |
 | --- | --- |
 | `Thesis_Plan_v2.tex` / `.pdf` | **Supervisor-facing, reviewed** |
-| `Thesis_v5.tex` / `.pdf` | **Supervisor-facing, reviewed** (Chapter 1 is the draft introduction; Chapter 2 is a related-work spine as of 21 Sep 2026; chapters 3--8 are five prose paragraphs each) |
-| `Ha_Vien_Mastersthesis_2026.tex` / `.pdf` | **Full draft**, canonical but still needs review. Submission filename, was `Thesis_POC` until 19 Aug 2026 |
+| `Ha_Vien_Mastersthesis_2026.tex` / `.pdf` | **Submission manuscript.** University filename (`Lastname_Firstname_Mastersthesis_Year`). Called `Thesis_v5` until 29 Oct 2026. Chapter 1 is the full introduction. Chapter 2 is a related-work spine as of 21 Sep 2026. Chapters 3--8 are five prose paragraphs each. |
+| `Ha_Vien_Mastersthesis_2026_draft.tex` / `.pdf` | **Draft.** The previous file of the university name, retired 29 Oct 2026. Not the deposit. |
 | `spec/`, `cpp/`, `rust/`, `bench/`, `faults/`, `ffi/` | Evidence; must match thesis claims |
 
-When claims, RQs, methodology, or numbers change: sync plan + v1 + `Ha_Vien_Mastersthesis_2026.tex`, then regenerate via `bench/refresh_thesis.sh` (never hand-edit `figures/gen_macros.tex`).
+When claims, RQs, methodology, or numbers change: sync the plan and `Ha_Vien_Mastersthesis_2026.tex`, then regenerate via `bench/refresh_thesis.sh` (never hand-edit `figures/gen_macros.tex`).
 
 ## Grade criteria (Finnish 1–5): every edit must protect these
 
@@ -46,9 +46,9 @@ not errors: frequency is the signal, so aim low rather than at zero.
   deck shows any.
 - **No U+2212 minus sign anywhere a reader sees one, chat included.** The author asked for
   this on 28 October 2026. Write a negative number with the plain hyphen (`-0.16`) and a
-  difference in words (`Rust minus C++`, `110.0 minus 87.9`). `Thesis_v5.tex` remaps math-mode
+  difference in words (`Rust minus C++`, `110.0 minus 87.9`). `Ha_Vien_Mastersthesis_2026.tex` remaps math-mode
   `-` to the hyphen in its preamble, so `$-0.16$` and the generated tables already comply there.
-  `Ha_Vien_Mastersthesis_2026.tex` and the plot scripts (matplotlib's `axes.unicode_minus`, the
+  `Ha_Vien_Mastersthesis_2026_draft.tex` and the plot scripts (matplotlib's `axes.unicode_minus`, the
   `\u2212` label in `plot_figures.py`) do not yet.
 - **Capitalise after a colon when the words after it begin a unit of their own, and only then.**
   The supervisor asked for this on 4 September 2026, and it is the APA convention that scientific
@@ -142,7 +142,7 @@ python3 .vocab.py .prose-scratch/candidate.tex
 under 15 words** goes back regardless of how it reads, because the reader gets no footing. And
 Flesch below the host document's own figure means the suggestion is harder than the thesis it
 joins, which is the opposite of the request every time shortening or clarifying is asked for. Read
-the document's baseline rather than assuming one: `python3 .readability.py Thesis_v5.tex`.
+the document's baseline rather than assuming one: `python3 .readability.py Ha_Vien_Mastersthesis_2026.tex`.
 
 **Then read it three times, each pass with one job**, because the screens cannot see sense:
 
@@ -210,11 +210,12 @@ a generated table cell of `---` marks a value that does not exist, which `detex(
 
 ## After substantive changes
 
-Run `bench/refresh_thesis.sh` when numbers change (it regenerates figures/tables, the colloquium deck, and `Ha_Vien_Mastersthesis_2026.pdf`). Rebuild `Thesis_Plan_v2.tex` when its source changes, and `Thesis_v5.tex` whenever either its source or the generated macros change, since its results paragraphs now read them. Zero LaTeX errors and undefined refs required.
+Run `bench/refresh_thesis.sh` when numbers change (it regenerates figures/tables, the colloquium deck, and `Ha_Vien_Mastersthesis_2026.pdf`). Rebuild `Thesis_Plan_v2.tex` when its source changes. A prose-only change is `latexmk -pdf Ha_Vien_Mastersthesis_2026.tex`. Zero LaTeX errors and undefined refs required.
 
 ## Do not
 
 - Leave a last-in-chapter figure alone on a centred float page. Keep it with the citing subsection via `\enlargethispage` and `[!ht]` (`.cursor/rules/thesis-float-last-in-chapter.mdc`).
-- Treat `Ha_Vien_Mastersthesis_2026.pdf` as supervisor-approved. The submission filename says nothing about review status.
-- Expand `Thesis_v5.tex` chapters 3--8 beyond five argument paragraphs, or replace Chapter 1 with a shorter skeleton. Chapter 1 is the draft introduction. Chapter 2 is a related-work spine as of 21 September 2026. Do not compress it back to five paragraphs. Chapters 3--8 stay a five-move skeleton in plain prose.
+- Treat `Ha_Vien_Mastersthesis_2026.pdf` as supervisor-approved. The university filename says nothing about review status.
+- Expand `Ha_Vien_Mastersthesis_2026.tex` chapters 3--8 beyond five argument paragraphs, or replace Chapter 1 with a shorter skeleton. Chapter 1 is the full introduction. Chapter 2 is a related-work spine as of 21 September 2026. Do not compress it back to five paragraphs. Chapters 3--8 stay a five-move skeleton in plain prose.
+- Edit `Ha_Vien_Mastersthesis_2026_draft.tex` into the deposit. It is the retired copy.
 - Commit unless explicitly asked.

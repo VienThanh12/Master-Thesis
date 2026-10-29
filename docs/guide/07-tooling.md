@@ -14,7 +14,7 @@ repository root unless a component README says otherwise.
 | `build/` | Intermediates. Gitignored. |
 
 ```bash
-latexmk -pdf Thesis_v5.tex
+latexmk -pdf Ha_Vien_Mastersthesis_2026.tex
 ```
 
 An editor that overrides the aux directory will still drop `.aux` and `.log`
@@ -58,7 +58,7 @@ value. `check_prose_style` walks the saved deck.
 
 | Script | Role |
 | --- | --- |
-| `build_audit.py` | Generates `source_audit.tex` by default (full draft, all 111 keys). `--document v5` writes `source_audit_v5.tex` with `Thesis_v5`'s own numbering (61 cited of 111). `--all-documents` adds the other documents' numbers as extra columns. Refuses to run when a `.bbl` disagrees with cite keys (`--allow-stale` exists and should not be used). |
+| `build_audit.py` | Generates `source_audit.tex` by default (the retired draft). `--document v5` writes `source_audit_v5.tex` with the submission manuscript's own numbering. `--all-documents` adds the other documents' numbers as extra columns. Refuses to run when a `.bbl` disagrees with cite keys (`--allow-stale` exists and should not be used). |
 | `reviewed.txt` | Mirror of Part 1 review ticks for the draft audit. |
 | `reviewed_v5.txt` | Same sidecar for `source_audit_v5.tex`. Separate on purpose: a draft tick does not mean the skeleton's citing sentence was checked. |
 | `cite_audit.py` | Cite-key helper. |
@@ -69,7 +69,7 @@ value. `check_prose_style` walks the saved deck.
 
 **Never hand-edit `source_audit.tex` or `source_audit_v5.tex` except the Part 1 tick** (`$\square$` →
 `$\blacksquare$`). The generator reads ticks back before overwriting and
-prints `review ticks: N of 111` for the draft (or `N of 61` for `Thesis_v5`). Read that line after every rebuild: a
+prints `review ticks: N of 111` for the draft (or the submission count for `--document v5`). Read that line after every rebuild: a
 regeneration silently wiped 22 of them on 1 September 2026.
 
 Quoted source text is passed through, em dashes included, so `.aitells.py`
@@ -102,7 +102,7 @@ the defect no LaTeX build catches.
 
 | Script | Role |
 | --- | --- |
-| `pdfpreview.py` | Rasterise pages to `.pdf-preview/` for the WSL editor. `./pdfpreview.py Thesis_v5.pdf`, or a page range. |
+| `pdfpreview.py` | Rasterise pages to `.pdf-preview/` for the WSL editor. `./pdfpreview.py Ha_Vien_Mastersthesis_2026.pdf`, or a page range. |
 | `pdfannots.py` | Extract highlights and comments from `docs/review/*.pdf`. |
 
 `docs/review/` is gitignored. Create it locally. A marked-up copy may carry

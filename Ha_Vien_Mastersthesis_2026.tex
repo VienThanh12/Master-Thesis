@@ -62,6 +62,10 @@
 \addto\extrasenglish{\frenchspacing}
 \AtBeginDocument{\frenchspacing}
 
+% The author does not want the U+2212 minus sign anywhere a reader sees one, so a
+% minus in math mode, including the generated tables and macros, prints as a hyphen.
+\DeclareMathSymbol{-}{\mathbin}{operators}{"2D}
+
 % Median above a bootstrap interval, used by figures/tab_latency.tex.
 \newcommand{\mci}[3]{%
   \begin{tabular}[t]{@{}r@{}}%
@@ -728,14 +732,8 @@ highlighted inside the gNB-CU-CP.\label{fig:ngran}}
 \section{Memory safety and latency measurement}\label{sec:rustsafety}
 Rust separates code into \emph{safe Rust} and code that uses \texttt{unsafe}. In safe
 Rust, the compiler checks how memory is used, including ownership and borrowing, to
-prevent many common programming errors~\cite{klabnik2023rust,jung2018rustbelt}. Two marker
-traits carry the same checks across threads. A value may move to another thread only if its
-type is \texttt{Send}, and may be shared between threads only if it is \texttt{Sync}, so a
-type such as a reference count that is not atomic cannot reach a second
-thread~\cite{klabnik2023rust,jung2018rustbelt}. Together with the borrowing rule that a value
-has either one writer or any number of readers at a time, these two traits are what rule out
-data races in safe Rust.
-When code uses an \texttt{unsafe} block or an \texttt{unsafe} function, the programmer must make sure
+prevent many common programming errors~\cite{klabnik2023rust,jung2018rustbelt}. When code
+uses an \texttt{unsafe} block or an \texttt{unsafe} function, the programmer must make sure
 that certain operations are used correctly, because the compiler cannot check all their
 safety requirements. Unsafe code is often needed when Rust calls C code through the C ABI
 or uses raw pointers. C++ has no keyword that marks such code.
@@ -745,19 +743,14 @@ which an object releases what it holds when it goes out of scope. Nothing in the
 stops a program from keeping a pointer to that object afterwards, or from sharing it
 between threads without a lock. C++ projects therefore catch these mistakes
 with tools that watch a running program. This study runs three of them, AddressSanitizer,
-ThreadSanitizer and UndefinedBehaviorSanitizer (Section~\ref{sec:methodbrief}).
-AddressSanitizer surrounds each allocation with bytes marked off limits, keeps freed memory
-marked for a while, and checks every load and store against that
-map~\cite{serebryany2012asan}. ThreadSanitizer records which memory accesses locks and other
-synchronisation put in order. It reports two accesses to the same memory from different
-threads, one of them a write, that nothing orders~\cite{serebryany2009tsan}. A sanitiser can report a
+ThreadSanitizer and UndefinedBehaviorSanitizer (Section~\ref{sec:methodbrief}). A sanitiser can report a
 defect only on a path a test actually runs, so a clean report covers the tests and not the
 program.
 
 How a test sends its requests decides whether its slow calls are counted. A test that
 waits for each reply before sending the next request slows down whenever the service does.
 It then sends fewer requests during a slow spell and records fewer slow calls than users
-would see~\cite{schroeder2006openclosed}. Timing each request from its planned send time,
+Defects safe Rust does not automatically preventwould see~\cite{schroeder2006openclosed}. Timing each request from its planned send time,
 and not from when it was actually sent, puts that waiting back into the result. A test that
 still waits for each reply can fall behind its schedule, so HdrHistogram adds a delay sample
 for each request that should have been sent during that time~\cite{tene_hdrhistogram}. The
@@ -1137,18 +1130,15 @@ written the same way, the gap is written down and left in place.
 The two sides are shown to match by comparing their logs, operation by
 operation. For a given seed they also run the operations in the same order.
 A seed is the starting number of that random order, so the same seed repeats
-the same sequence. The four builds take turns on the same set of cores
-inside each repeat. The test may run only on those cores, and the kernel
-moves its regular timer interrupts and some of its background work off them, but
-nothing else keeps other work away (Section~\ref{sec:testbed}). Running the
-builds one after another inside each repeat spreads slow changes in the
-machine's state across all four. The order is the same in every repeat, so a
-steady effect of running first or last would read as a language difference
-(Section~\ref{sec:standing}). The cache is the small fast memory next to
-the processor, and a branch guess is the processor's guess about which way a
-condition will go. Neither is reset between builds. Instead, each run starts
-with one second of requests at the offered rate that are sent but not
-recorded, so the measured window does not begin cold.
+the same sequence. The four builds take turns on the same pinned cores
+inside each repeat. A pinned core is reserved for the test, and no other work
+is allowed to use it. Running the same work one build after another reduces
+differences caused by changes over time in the processor's recent memory and
+branch guesses. The cache is the small fast memory next to the processor. A
+branch guess is the processor's guess about which way a condition will go.
+The test neither empties the cache nor lets the processor practise those
+guesses before each build. The work and the cores stay fixed, but the
+processor's recent memory and branch history do not.
 
 \section{Statistical treatment}\label{sec:statsbrief}
 The statistical analysis plan was decided before the experiment was run. The plan first
@@ -1173,13 +1163,10 @@ have occurred by chance. To answer this, the test repeatedly swaps the C++ and R
 labels within the paired measurements. It then checks how often a difference as large
 as the observed difference occurs after these swaps. A small $p$-value means that a
 difference of this size would be unusual if there were no real difference between
-the languages. Each run contributes one value per metric, such as its own p99 or its
-peak RSS. The test statistic is the mean of the \NRepeats{} paired differences, and every
-way of swapping the labels within pairs is tried, so the $p$-value is exact. The
-effect reported beside it is the median paired difference.
+the languages.
 
-For each comparison, a percentile bootstrap confidence interval for the median paired
-difference, from 2{,}000 resamples, is also calculated~\cite{efron1993bootstrap}. The confidence interval shows the uncertainty
+For each comparison, a bootstrap confidence interval is also
+calculated~\cite{efron1993bootstrap}. The confidence interval shows the uncertainty
 around the measured difference. It indicates the range of differences that are
 reasonably compatible with the observed repeats.
 
@@ -1204,9 +1191,8 @@ Throughput at the selected load is not tested because the experiment itself fixe
 the request rate. The test sends requests at the selected rate, so this value is
 already determined by the experimental setup.
 
-Jitter, how much latency varies from one call to the next, is reported only as a
-description (Table~\ref{tab:jitter}), because RQ1 reads predictability from the
-percentiles it names.
+Jitter measures how much latency varies from one call to the next. It is reported
+as a descriptive measure because it is not part of the research questions.
 
 Maximum latency is also not tested. The maximum is determined by a single call. One
 unusual or disturbed call can therefore determine the entire value. Pairing the
@@ -1324,11 +1310,8 @@ thread-per-shard architecture. Producers submit to a bounded MPSC queue per
 shard, and that shard's worker drains it.\label{fig:arch}}
 \end{figure}
 
-Fairness is kept below the design as well as in it. Each language is built
-with \texttt{jemalloc}, with the same arena count, and again with the system
-allocator as a control. The two \texttt{jemalloc} builds are not the same
-release. The C\texttt{++} build links the copy the distribution ships, and the
-Rust build compiles a newer release from source through its crate. Both compile
+Fairness is kept below the design as well as in it. Both builds link the same
+\texttt{jemalloc} and keep a system-allocator build as a control. Both compile
 at the same optimisation level, \texttt{-O2} for \texttt{g++} and
 \texttt{opt-level = 2} for Cargo, and both record latency through one
 high-dynamic-range (HDR) histogram set up the same way~\cite{tene_hdrhistogram}.
@@ -1386,9 +1369,7 @@ struct Request {
 \caption[The request type in each language]{The request type in each language,
 excerpted from \texttt{rust/src/message.rs} and
 \texttt{cpp/include/uecm/message.hpp} with comments and probe-only code
-removed, and with the \texttt{TimedResponse} struct left out. The excerpt is from
-the current source, which adds a completion stamp for later probes. The campaign's
-build lacked that field and wrapper, and the request sizes are the same in both. Each Rust variant
+removed, and with the \texttt{TimedResponse} struct left out. Each Rust variant
 except \texttt{Stop} holds only its own operation's fields and a reply channel
 typed to that operation's result. The C++ struct holds every
 operation's fields in every request, $\CppRequestBytes$~bytes against Rust's
@@ -1478,8 +1459,7 @@ together. A third carries the core-operation result of Section~\ref{sec:perfresu
 per-shard container is each language's own standard hash map. A fourth is the
 request encoding. C++ has no payload-carrying enumeration in this idiom, so a
 request becomes a tagged struct holding each field any operation might need,
-$\CppRequestBytes$~bytes against Rust's $\RustRequestBytes$
-(Figure~\ref{fig:request}). The net result is
+$\CppRequestBytes$~bytes against Rust's $\RustRequestBytes$. The net result is
 a Rust core $\NlocRise\%$ longer in code lines. Its branching complexity is
 $\CcnTotalDrop\%$ lower~\cite{lizard}. The Rust library contains no
 \texttt{unsafe} at all, as Section~\ref{sec:rustsafety} defines safe Rust.
@@ -1537,21 +1517,19 @@ test may use only cores \MainPinned{}. There is no hypervisor. A hypervisor
 is the program that would run a virtual machine. The
 program runs on the host itself, not inside a virtual machine. On those
 cores the kernel turns off its timer tick (\texttt{nohz\_full}).
-If left on, those ticks would show up in the latency numbers. The study does
-not use \texttt{isolcpus}. That flag also stops the kernel sharing work
-across the allowed cores, and the harness relies on that sharing. The harness
-confines the test to those cores and lets the kernel spread the worker and
-producer threads across them. The producers run at ordinary priority, not
-real-time priority.
+If left on, those ticks would show up in the latency numbers. The study does not use another Linux setting, \texttt{isolcpus}. That setting
+would stop Linux from moving threads between the allowed cores. Every test
+thread would then stay on the first of those cores and wait its turn there.
+Without the setting, Linux spreads the test's threads across the allowed cores.
 
 The compiler and build tools used in the experiment are not taken directly
 from the host system. Instead, both the C++ and Rust programs are built and
 executed inside the same container image. The image is based on \MainDistro{}
 and provides \texttt{g++~\MainGpp} and \texttt{rustc~\MainRustc}. This
-keeps the build environment controlled rather than dependent on the
-software installed on the host machine. The image specifies the major
-version of the GNU Compiler Collection (GCC) toolset, but not its exact point release, and
-the point release in this campaign's image is \texttt{g++~\MainGpp}. A container
+ensures that the build environment is controlled and reproducible rather
+than depending on the software installed on the host machine. The image specifies the major
+version of the GNU Compiler Collection (GCC) toolset, but not its exact point release. As a
+result, the compiler version used in this experiment is \texttt{g++~\MainGpp}. A container
 does not completely isolate the experiment from the host system. It still uses the host's
 Linux kernel.
 
@@ -1560,8 +1538,9 @@ Kernel-based Virtual Machine (KVM) running on an \GuestCpu{}. The CPU core
 controls described above were not applied during this earlier sweep. The
 experimental notes record the hypervisor as \GuestVirt{}, the guest
 operating system as \GuestDistro{}, and the guest kernel as \GuestKernel{}.
-Here, the guest refers to the virtual machine itself. The earlier sweep showed
-substantial variation in the measurements. For one
+Here, the guest refers to the virtual machine itself, while userland refers
+to the programs and libraries that run on top of the operating-system
+kernel. The earlier sweep showed substantial variation in the measurements. For one
 variant, the $95\%$ bootstrap confidence interval for p99 latency had a
 width of $\GuestPNineNineMaxCI\,\mu$s. Across the four variants, the
 difference between the smallest and largest p99 values was only
@@ -1594,14 +1573,18 @@ steps walks each UE through the connection lifecycle those rules
 define. The \emph{signal} work first connects a set of UEs, then sends the
 same signal call again and again. That picks out the common path. The
 \emph{mixed} work walks each UE through context creation, setup,
-signal, bearer setup, reconfiguration or handover, and release. A fixed
-random order makes both sides see the same counts of each call kind
-for a given seed. That is also a check that the two sides did the same
-work, and below saturation the counts match in every pair. Past saturation they
-cannot, because a run then stops before all its requests are sent. The reported
-campaign and its follow-up run use the mixed workload. The signal workload runs
-in the experiment with several requests in flight (Section~\ref{sec:overload}).
-Figure~\ref{fig:workload} shows the two loads and the steps the mixed one walks.
+signal, bearer setup, reconfiguration or handover, and release. The order of the requests is random, but it can be repeated. A starting
+number, called the seed, fixes that order. With the same seed, the C++ version
+and the Rust version get exactly the same list of requests. Below saturation,
+while the service still keeps up, both versions finish the whole list. Each
+kind of request, such as a setup or a release, then appears the same number of
+times in both. That match shows that the two versions did the same work. Past
+saturation, a run reaches its time limit before the list is finished. The two
+versions can stop at different places in the list, so their counts can differ.
+The main measurements and their follow-up both use the mixed workload. The
+signal workload is used only in the test where several requests can wait for an
+answer at the same time (Section~\ref{sec:overload}). Figure~\ref{fig:workload}
+shows the two workloads and the steps that the mixed one goes through.
 
 \begin{figure}[ht]
 \centering
@@ -1699,11 +1682,13 @@ lower in each. That matches the median: the language gap is detectable at the
 typical call and in the upper tail. Table~\ref{tab:significance} lists every
 planned comparison at this load.
 
-Table~\ref{tab:latency} reports p99.9 and the maximum at the chosen load.
-The maximum, which RQ1 names, separates the languages more widely than any
-percentile, and the C\texttt{++} and Rust intervals do not overlap. It is
-still not one of the planned comparisons, like the pooled p99.99, because one
-disturbed call per run can set it.
+Table~\ref{tab:latency} shows the p99.9 and the maximum at the chosen load.
+The maximum is the slowest call in a run, and the first research question,
+RQ1, asks about it. C++ and Rust are further apart there than at any
+percentile in the table, and Rust is the lower of the two. The C++ and Rust
+intervals do not overlap. The planned comparisons leave the maximum out,
+because one call slowed by a disturbance can set it for the whole run. The
+pooled p99.99 is left out as well.
 \begin{table}[ht]
 \centering
 \small
@@ -1746,38 +1731,58 @@ The runs' histograms are pooled, which
 gives \FarTailSamplesMin{} to \FarTailSamplesMax{} calls per variant. The
 two \FarTailLower{} variants sit below both C++ variants. The widest pair
 differs by $\FarTailRange\,\mu$s. The slowest Rust variant still sits
-$\FarTailLangSep\,\mu$s below the fastest C++ one. A second bare-metal host at another
-shard count agrees over the loads from $\BmFarTailSepLoad$ to $\BmFarTailSepHi$~kops/s.
-There it runs $\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s for the C++ variants against
-$\BmFarTailRustLo$--$\BmFarTailRustHi\,\mu$s for the Rust ones, and the ranges do not
-meet. Below that range its two languages cannot be told apart. Its highest load,
-$\BmFarTailTopLoad$~kops/s, is left out, because there the pooled median falls while every
-percentile above it stays flat, a shape that campaign does not explain.
+$\FarTailLangSep\,\mu$s below the fastest C++ one. A second computer also runs the test without a virtual machine, but it is set
+up differently (Section~\ref{sec:testbed}). It shows the same pattern for the
+slowest requests. Here that means the delay that 9{,}999 of every 10{,}000
+requests stay under. At loads from $\BmFarTailSepLoad$ to $\BmFarTailSepHi$
+thousand requests per second, that delay is
+$\BmFarTailCppLo$--$\BmFarTailCppHi\,\mu$s in the C++ builds and
+$\BmFarTailRustLo$--$\BmFarTailRustHi\,\mu$s in the Rust builds. The two ranges
+do not overlap. Rust is faster there. At lower loads the two languages cannot
+be told apart. The highest load on that computer, $\BmFarTailTopLoad$ thousand
+requests per second, is left out. At that load the typical request got faster,
+while the slower requests did not change, and the data from that computer do
+not explain why.
 
-Two further limits do not come from the host, so no host would remove them. The first is
-what the clock contains. Each delay is timed from the request's planned send time, and
-below saturation a producer sleeps until that time at ordinary priority, which lets Linux
-wake it up to $50\,\mu$s late~\cite{linux2026timerslack}. That lateness sits inside every
-value in Table~\ref{tab:latency}. On the virtual machine, where both were measured, the
-campaign's median was about $\GuestPFifty\,\mu$s, while a separate timing of back-to-back
-calls put the round trip at $\BudgetSvcCpp\,\mu$s. The same lateness is the likely reason
-the delay in panel~(a) of Figure~\ref{fig:loadsweep} falls slightly as the load rises: at
-higher rates a producer sleeps less often. Each harness sleeps through its own language's
-standard library, so the paired gaps at this load compare the two sleep paths as well as the
-two services.
+Two more limits come from the test itself, not from the computer, so running it
+on another computer would not remove them. The first is what the timer
+includes. Every request has a planned send time, and its delay is counted from
+that time. Until then, the thread that sends it, called the producer, is
+asleep. That thread runs at normal priority, so Linux may wake it up to
+$50\,\mu$s late~\cite{linux2026timerslack}. The timer can therefore start while
+the producer is still asleep. That late wake-up is part of every delay in
+Table~\ref{tab:latency}.
 
-The second limit is how small the core operation is. The separate timing found it at most
-$\BudgetCoreShareMax\%$ of the round trip. The rest is the handoff, made of the queue, the
-reply handle, and the kernel calls that put threads to sleep and wake them. When the core
-work is this small, time spent crossing from thread to thread
-dominates~\cite{zhou2025oltp}. Figure~\ref{fig:e2eclock} draws that split. The median gap
-of up to $\PFiftyDiffAbsMax\,\mu$s is itself many times longer than the whole core
-operation, so it must come from outside it: from the handoff, the part of the path whose
-design differs between the builds (Section~\ref{sec:overload}), or from the producers'
-sleep. So this sweep cannot bound a difference in the core operation either way
-(Figure~\ref{fig:budget}). Timed on its own on the virtual machine, the core call is
-$\BudgetCoreRatio\times$ faster in \BudgetCoreFaster{}. The cause is not traced, but the
-stock hash map and code generation are candidates.
+The virtual machine was timed in two ways. In the main test, the typical delay
+was about $\GuestPFifty\,\mu$s. In a separate test, each request was sent as
+soon as the last one was answered, and a round trip took $\BudgetSvcCpp\,\mu$s.
+The late wake-up is probably also why the delay in panel~(a) of
+Figure~\ref{fig:loadsweep} drops a little as the load rises. At a higher rate,
+a producer sleeps less often. Each test program sleeps with its own language's
+built-in sleep function. So a small difference between C++ and Rust at this
+load may come partly from the two sleep functions, and not only from the two
+services.
+
+The second limit is how little real work each request needs. That work, the
+core operation, reads or changes the stored record for one device. A separate
+timing found that it takes at most $\BudgetCoreShareMax\%$ of a round trip. The
+rest is the handoff. In the handoff, the request waits in a queue for the
+worker thread, the answer is sent back, and Linux puts threads to sleep and
+wakes them up. When the real work is this small, passing requests between
+threads takes most of the time~\cite{zhou2025oltp}. Figure~\ref{fig:e2eclock}
+shows this split.
+
+The difference between the languages in the typical delay is up to
+$\PFiftyDiffAbsMax\,\mu$s. That is many times longer than the whole core
+operation. Even if one language did the core operation in no time at all, that
+would explain only a small part of the difference. Most of it must come from
+the handoff, which the two versions build in different ways
+(Section~\ref{sec:overload}), or from the producers' sleep. So this test cannot
+tell which language does the core operation faster (Figure~\ref{fig:budget}).
+Timed on its own on the virtual machine, the core operation is
+$\BudgetCoreRatio$ times faster in \BudgetCoreFaster{}. The study did not find
+out why. Two possible reasons are the hash map that comes with each language,
+which stores the records, and the machine code that each compiler produces.
 
 \enlargethispage{36pt}
 \begin{figure}[!ht]
@@ -1804,7 +1809,9 @@ operation, so that comparison cannot resolve a difference in
 it.\label{fig:budget}}
 \end{figure}
 
-\clearpage
+% Keeps the two figures above this subsection without forcing a page break.
+% A \clearpage here left fig:budget alone on its own page.
+\FloatBarrier
 \subsection{Past saturation (RQ1)}\label{sec:overload}
 
 Past saturation the answer depends on what the timer includes. The planned
@@ -1841,7 +1848,7 @@ the service.\label{tab:overloadtest}}
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}p{0.24\linewidth} l r c r r@{}}
 \hline\hline
-Metric & Allocator & Rust $-$ C\texttt{++} & Agree & $p$ & Holm $p$ \\
+Metric & Allocator & Rust minus C\texttt{++} & Agree & $p$ & Holm $p$ \\
 \hline
 \input{figures/tab_overload_test.tex}\\
 \hline
@@ -1889,16 +1896,16 @@ delay samples after the timed window and is not among the planned tests.
 \paragraph{Where the lead comes from.}
 On the follow-up run Rust finishes more calls, but not because its core call is
 faster. Each sender waits for its reply before sending again, so finished
-throughput tracks the full round-trip time, not the shard logic alone. That
-logic is a small fraction of the trip (Section~\ref{sec:perfresults}). At the highest load, $\ProbeAfterSysShareLo$
-to $\ProbeAfterSysShareHi\%$ of a call's CPU is spent in the kernel.
-\ProbeAfterSysHigher{} spends more of that
+throughput tracks the full round-trip time, not the shard logic alone. That logic is at most
+$\BudgetCoreShareMax\%$ of the trip. At the highest load, $\ProbeAfterSysShareLo$
+to $\ProbeAfterSysShareHi\%$ of a call's CPU is kernel time spent putting
+threads to sleep and waking them. \ProbeAfterSysHigher{} spends more of that
 kernel time per call than \ProbeAfterSysLower{} on $\ProbeAfterSysLowerLoads$
 of the $\ProbeAfterLoads$ load levels on both allocators, and
 $\ProbeAfterSysRatio$ times as much at the top load.
 
-Each probe changes one part of the build and reruns the comparison. The
-probes ran on further hosts, other machines with the same processor
+Each follow-up run changes one part of the build and reruns the comparison.
+These runs were on further hosts, other machines with the same processor
 (Table~\ref{tab:probes}). Changing the C\texttt{++} map does
 not shrink the lead. Giving Rust the C\texttt{++} lock and queue design
 removes it, within the timer error above. Changing only the buffer behind that
@@ -1908,15 +1915,18 @@ code, a mutex and two condition variables (Table~\ref{tab:idioms}), so the lead
 belongs to the two handoff designs as written rather than to either language in
 general. On the C\texttt{++} path the kernel sees $\HandoffEmptyWakesCpp$
 wake calls per request that find no sleeping thread, against
-$\HandoffEmptyWakesRust$ for Rust's channel. A final probe gives both
-languages one hand-written queue and reply around the same
-\texttt{ShardCore} (Figure~\ref{fig:samehandoff}). With the system allocator the lead
-then falls to $\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ on two hosts, and with
-\texttt{jemalloc} on host B to a gap the test cannot separate from none
-(Appendix~\ref{appendix:probes}). What remains is each language's own code around that
-shared path. Timed on their own in an earlier session, without the service around them,
-the queue and reply primitives could not be told apart (Appendix~\ref{appendix:config}). That test has no
-environment record, so it neither supports nor contradicts the probes.
+$\HandoffEmptyWakesRust$ for Rust's channel. A final follow-up run gives both languages one hand-written queue and reply.
+Both put that queue and reply around the same \texttt{ShardCore}, the code
+that reads or changes one device's record (Figure~\ref{fig:samehandoff}). With
+the system allocator, Rust's lead then falls to $\HandoffSameLeadLo\%$ to
+$\HandoffSameLeadHi\%$ on hosts B and C. With \texttt{jemalloc} on host B, the
+test cannot tell the remaining gap from no difference
+(Appendix~\ref{appendix:probes}). Once that queue and reply are shared, what
+is left to differ is the code each language writes around them. An earlier
+session timed the queue and the reply on their own, with no service around
+them, and could not tell C++ from Rust (Appendix~\ref{appendix:config}). That
+session has no environment record, no note of the computer it ran on. It can
+neither support these follow-up runs nor contradict them.
 
 \begin{table}[!ht]
 \centering
@@ -2252,12 +2262,12 @@ blocks on its second, neither order is ever recorded, and the tool cannot see
 the cycle it needs to report~\cite{tsandeadlock}.
 
 
-The double-free inside \texttt{unsafe} Rust repeats the double-free class
-with Rust's checks bypassed. It is counted among the fourteen because it is
-where the boundary is crossed by choice. The C++ program is unchanged, so only
-the Rust column moves. Miri reports the Rust double-free and reports nothing on
-a fixed version of the same program, but it cannot execute the C++ host code
-behind the foreign-function boundary.
+The double-free inside \texttt{unsafe} Rust is not a separate defect class,
+but the same double-free error occurring in code where Rust's normal safety
+checks have been bypassed. The C++ implementation contains the corresponding
+error, so the difference between the two implementations is only in whether
+the compiler is able to prevent it. Miri detects the Rust double-free, but it
+cannot execute the C++ host code behind the foreign-function boundary.
 
 Some concurrency defects cannot be found directly by the sanitiser tools. To
 investigate these cases, this study used two Rust tools that try many thread
@@ -2316,7 +2326,7 @@ project's own source, the Rust build needs less CPU than the whole
 library alone needs $\BuildLibCpuRatio$ times as much CPU in Rust as in
 C\texttt{++}. Incremental builds split the other way. After an edit inside one C\texttt{++} source file
 the C\texttt{++} build finishes in $\BuildIncCppTu$~s, against
-$\BuildIncRust$~s after the same edit in the Rust crate, but an edit to the
+$\BuildIncRust$~s after the same edit in the Rust library, but an edit to the
 matching C\texttt{++} header, which other files include, takes
 $\BuildIncCppHeader$~s.
 
@@ -2325,10 +2335,11 @@ larger, mostly because the C\texttt{++} build leaves its standard library to
 the loader and the Rust build links its own in. Linked the same way, the order
 depends on the policy. Statically linked, the \FootStaticSmaller{} binary is
 the smaller, and dynamically linked, the \FootDynamicSmaller{} one is.
-Finally, the Rust core itself uses no third-party crates and contains no
-\texttt{unsafe} sites ($\DepsCore$ crates and $\CoreUnsafe$ sites). The
+Finally, the Rust core itself uses no third-party libraries and contains no
+\texttt{unsafe} sites ($\DepsCore$ libraries and $\CoreUnsafe$ sites). Rust's
+name for one library is a crate. The
 third-party code in the build belongs to the benchmark harness and the
-\texttt{jemalloc} binding, $\DepsHarness$ and $\DepsJemalloc$ crates. The core
+\texttt{jemalloc} binding, $\DepsHarness$ and $\DepsJemalloc$ libraries. The core
 comparison is therefore attributable to the language and build configuration
 rather than to dependencies or unsafe code.
 
@@ -2430,21 +2441,25 @@ rate and attributes it to stackless
 not apply here, because neither implementation uses an asynchronous runtime, and
 on the follow-up run it is C\texttt{++} that falls behind first.
 
-The throughput lead should therefore not be read as showing that one service
-has a higher maximum rate in all conditions. Prior work would predict a Rust
-deficit from bounds and overflow checking~\cite{zhang2022runtime,harris2023morello}.
-The results show none for bounds checks, since the faster build is the one that performs
-them. Its release profile leaves overflow checks off, so their cost was not measured.
-At nominal load the median results are consistent with previous evidence that
-Rust's safety checks are largely absorbed by modern out-of-order
-CPUs~\cite{balasubramanian2017rust,emmerich2019drivers}.
+So a lead in finished calls does not, on its own, mean that one service has a
+higher maximum rate in every condition. Earlier studies would expect Rust to be
+slower. It checks that each index stays inside an array, a bounds check, and it
+can check that a number does not grow past what its type can hold, an overflow
+check~\cite{zhang2022runtime,harris2023morello}. The results show no such
+slowdown for the bounds checks. At the chosen load, $\ReprLoad$~kops/s, the
+faster build is Rust, and Rust is the one that makes those checks. Rust's
+release build turns the overflow checks off. Their cost was not measured. The
+median at that load fits earlier evidence about a modern out-of-order processor,
+one that can run a check at the same time as other work, so most of the cost
+does not show up as extra delay~\cite{balasubramanian2017rust,emmerich2019drivers}.
 
-For safe Rust code, some defects result in compilation errors and therefore
-never produce a program that can run. A compiler that accepts only programs
-free of a defect class rules that class out for every run. A sanitiser can rule
-out a defect only for the executions its tests cover. The seven classes that
-Rust does not prevent mark where the compile-time guarantee stops, so they are
-part of the result rather than a warning attached to it.
+In safe Rust, some defects make the compiler refuse the program. Nothing is
+produced that can run, so that defect never happens in a run. If the compiler
+accepts only programs free of one kind of defect, that kind is absent from every
+run. A sanitiser can catch a defect only on the paths its tests actually run.
+Rust does not stop seven kinds of defect (Section~\ref{sec:rqs}). Those seven
+show where the compiler's guarantee ends. The study set out to find that edge,
+so they are part of the result.
 
 Figure~\ref{fig:boundary} shows where the guarantees provided by each
 approach stop. Rust provides strong guarantees about memory safety and
@@ -2471,7 +2486,7 @@ memory safety involved \texttt{unsafe} code. The exception was a compiler
 bug~\cite{xu2021rustcve}.
 
 This is why keeping the core free of \texttt{unsafe} code is important. It also
-explains why the spread of \texttt{unsafe} code through dependent crates should
+explains why the spread of \texttt{unsafe} code through dependent libraries should
 be treated as a review concern~\cite{evans2020rust}.
 
 \begin{figure}[ht]
@@ -2549,7 +2564,7 @@ code that requires additional review, although it does not eliminate the
 possibility of memory corruption. The host and the Rust component share the
 same address space~\cite{rivera2021galeed,kirth2022pkrusafe}. The build-size
 and footprint results point in the same direction: organisations concerned about
-these factors should examine their dependency and crate budgets before
+these factors should examine their dependency and library budgets before
 attributing the cost to the compiler.
 
 C\texttt{++} keeps a clear advantage in build time: its clean build is faster, and so is its
@@ -2566,11 +2581,12 @@ which are not.
 
 \begin{description}
   \item[H1] H1 is not supported. Its second clause, that any difference
-        appears only in the far tail, is refuted. At $\ReprLoad$~kops/s the
+        appears only in the far tail, is shown to be wrong. At $\ReprLoad$~kops/s the
         paired test detects differences of up to $\PFiftyDiffAbsMax\,\mu$s in
         the median and also at p99 and p99.9. Its first clause cannot be tested
         as written, because no equivalence margin was defined, so a small
-        significant difference neither confirms nor refutes equivalence. H1
+        significant difference cannot show that the two are equivalent, and it
+        cannot show that they are not. H1
         also had to cover the resources of RQ3, and they move apart, with peak
         RSS favouring C\texttt{++} and CPU favouring Rust. Holding one hypothesis for
         both was the weakness Section~\ref{sec:approach} named in advance.
@@ -2731,7 +2747,7 @@ core has $\CoreUnsafe$ \texttt{unsafe} sites. The cost on a real signal call is
 bounded at $\FfiOpBoundPct\%$ of that call.
 Prior work identifies API design and the learning curve as adoption costs, but
 this study does not measure their size.
-Most of the Rust build's extra cost is compiling third-party crates, not the
+Most of the Rust build's extra cost is compiling third-party libraries, not the
 project's own source. The size gap comes from the linkage policy, and under a
 matched policy the order depends on which one is chosen. C++ leads the clean build and the
 edit-and-compile loop for edits that stay inside one source file.
@@ -2802,7 +2818,7 @@ piece at a time. That is what would settle the human cost this study can only na
 \end{compactitem}
 
 % Declaration of generative-AI use, required by the University when a language model has
-% been used. Shared with Ha_Vien_Mastersthesis_2026.tex: edit ai_statement.tex, not a copy.
+% been used. Shared with Ha_Vien_Mastersthesis_2026_draft.tex: edit ai_statement.tex, not a copy.
 \input{ai_statement.tex}
 
 % STEP 5:
@@ -2946,7 +2962,7 @@ statistics that a few disturbed calls cannot move, and the lower block the high 
 those calls define.\label{tab:significance}}
 \begin{tabular}{@{}l l r r r@{}}
 \hline\hline
-Metric & Allocator & Rust $-$ C\texttt{++} & $p$ & Holm $p$ \\
+Metric & Allocator & Rust minus C\texttt{++} & $p$ & Holm $p$ \\
 \hline
 \input{figures/tab_significance.tex}\\
 \hline
