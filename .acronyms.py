@@ -26,8 +26,8 @@ its entries are printed rather than hidden, so waiving one is a decision on the
 record instead of a silent pass. A heuristic loose enough to accept them all
 would have accepted the one real defect this script found.
 
-    ./.acronyms.py                                  # the full draft
-    ./.acronyms.py Thesis_v5.tex                    # any other document
+    ./.acronyms.py                                  # the submission manuscript
+    ./.acronyms.py Ha_Vien_Mastersthesis_2026_draft.tex   # any other document
 """
 from __future__ import annotations
 

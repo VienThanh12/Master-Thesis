@@ -19,8 +19,8 @@ thesis exists to use, so they are reported apart and the question for them is
 whether first use glosses them. Acronyms are already gated by .acronyms.py.
 Identifiers in \texttt are code, not prose.
 
-    python3 .b2.py                              # the full draft
-    python3 .b2.py Thesis_v5.tex --band c1      # one band only
+    python3 .b2.py                              # the submission manuscript
+    python3 .b2.py Ha_Vien_Mastersthesis_2026_draft.tex --band c1      # one band only
     python3 .b2.py --context                    # every line, not just four
 """
 import re
