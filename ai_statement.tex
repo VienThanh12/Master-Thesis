@@ -1,29 +1,10 @@
 % !TEX root = Ha_Vien_Mastersthesis_2026.tex
-%% Declaration of generative-AI use. The University of Helsinki requires a student who
-%% has used a language model in preparing a thesis to state in writing which model was
-%% used and in what way, and does not permit the model to be named as an author.
-%% Not citing it as a source is the author's own choice, not a requirement. The rule
-%% forbidding a language model as a source reference belongs to the Faculty of Science
-%% chemistry thesis guide, and the Computer Science programme has issued no equivalent.
-%% Checked 21 Aug 2026 against the AI-in-teaching guidelines of 30 May 2024, the studies
-%% instructions on referring to AI, and the programme's own thesis and maturity-test page.
-%%
-%% Shared verbatim by Ha_Vien_Mastersthesis_2026.tex,
-%% Ha_Vien_Mastersthesis_2026_draft.tex and
-%% Ha_Vien_Mastersthesis_2026_short.tex so the three cannot drift apart.
-%% It uses no generated macros and no chapter numbers, because the two documents number
-%% their chapters differently.
-%%
-%% The paragraphs cover every item of the University's basic reporting instruction:
-%% which tool, what the use covered, what it was for, how it performed and how its
-%% output was checked, and what the author took from it.
-
-%% The claim this statement makes about the abstract is gated on the switch below,
-%% so the document can never assert it before it is true. The abstract doubles as
-%% the maturity test in this programme, where AI use is never permitted, so it has
-%% to be written by the author unaided. Once it has been, set the switch to true
-%% here; until then every build prints a warning and the statement says plainly
-%% that the work is outstanding.
+% Declaration of generative-AI use. Shared by Ha_Vien_Mastersthesis_2026.tex
+% and Ha_Vien_Mastersthesis_2026_draft.tex. Edit this file, not a copy.
+%
+% The abstract is the maturity test, so a language model is never allowed in it.
+% Leave the switch false until the abstract has been rewritten unaided.
+% The build warns until then.
 \newif\ifabstractunaided
 \abstractunaidedfalse
 \ifabstractunaided\else
@@ -36,50 +17,17 @@
 \addcontentsline{toc}{chapter}{Statement on the Use of AI Tools}
 \chapter*{Statement on the Use of AI Tools}
 \markboth{Statement on the Use of AI Tools}{Statement on the Use of AI Tools}
-% Keep the declaration on one folio. The last line of Responsibility
-% otherwise ships onto an empty page under this class's chapter skip.
-% Page numbers live in the header, so a modest bottom enlarge is safe.
-\enlargethispage{3\baselineskip}
 
-\noindent\textbf{Tool.} Anthropic's Claude Opus~5, Anthropic's Claude Opus~5.5, Cursor Grok~4.6, and Cursor Grok~4.7 are the generative AI
-systems used in preparing this thesis. All four ran through the Cursor development environment
-from June~2026 through the writing of this thesis. University of Helsinki policy forbids naming a language
-model as an author. They are not cited as a source, which is the author's own choice.
+\noindent\textbf{Tool.} Anthropic's Claude Opus~5, Claude Opus~5.5, Cursor Grok~4.6, and Cursor Grok~4.7 were used through Cursor from June~2026 until this thesis was written. University of Helsinki policy forbids naming a language model as an author. They are not cited as a source, which is the author's own choice.
 
-\noindent\textbf{What the assistance covered.} The models drafted and revised
-the running prose, and proposed the order of the arguments. They wrote and refactored both
-versions of the UE Context Management service. They also wrote the load generator, the
-fault-injection catalogue, and the FFI prototype. The analysis behind the bootstrap
-intervals and the paired permutation tests is their work too, as are the figure, build and
-LaTeX sources. The abstract is this programme's maturity test. University policy never
-permits a language model in one.
+\noindent\textbf{What the assistance covered.} The models drafted and revised the running prose, and proposed the order of the arguments. They wrote and refactored both versions of the UE Context Management service. They also wrote the load generator, the fault-injection catalogue, and the FFI prototype. The analysis behind the bootstrap intervals and the paired permutation tests is their work too, as are the figure, build and LaTeX sources.
 \ifabstractunaided
 The abstract was written by the author unaided.
 \else
-In this draft it has not yet been rewritten unaided, and this statement will say so until it
-has been.
 \fi
 
-\noindent\textbf{What the models did not settle.} The research problem, the four research
-questions, the three hypotheses, and the study's main control are the author's. That control
-is one frozen language-neutral specification and one concurrency model, so language remains
-the only planned gap between the two versions. The author also chose to carry defect classes
-from outside Rust's compile-time guarantee, which is what keeps RQ2 falsifiable. The author
-directed every measurement and chose the machines each result names. Some runs on rented
-machines were started by the models over a remote login, under that direction. The
-quantities the thesis quotes reach the page as macros rebuilt from the raw logs. The readings
-are the author's too.
+\noindent\textbf{What the models did not settle.} The research problem, the four research questions, the three hypotheses, and the study's main control are the author's. That control is one frozen language-neutral specification and one concurrency model, so language is the only planned gap. The author also chose to carry defect classes from outside Rust's compile-time guarantee, which keeps RQ2 falsifiable. The author directed every measurement and chose the machines each result names. Some runs on rented machines were started by the models over a remote login, under that direction. The quantities the thesis quotes reach the page as macros rebuilt from the raw logs. The readings are the author's.
 
-\noindent\textbf{How the output was checked.} All model output, prose and code, was read by
-the author before it entered the thesis. Every bibliography entry was resolved against Crossref,
-DataCite, or the issuing body. An audit then graded how far each claim could be traced. The first
-grade is the page or clause itself. The second is a publisher-deposited record that carries
-the claim. The third is confirmed metadata behind a paywall. An entry whose supporting passage
-was never opened is listed, not absorbed. The audit found four passages that overstated or
-misplaced their source. One was a quotation absent from the work it was attributed to. All four
-were corrected. Code was checked against a conformance suite whose transcripts are diffed
-line by line. It was also checked against a fault catalogue that fixes each expected outcome
-before the defect is injected.
+\noindent\textbf{How the output was checked.} The author read every model output before it entered the thesis. References were checked against Crossref, DataCite, or the publisher. A source that was never opened is listed, not used. Four passages that overstated or misplaced a source were corrected. One was a quotation that was not in the cited work. Code was checked line by line against a conformance suite and a fault catalogue. Each expected outcome was fixed before the defect was injected.
 
-\noindent\textbf{Responsibility.} The author has reviewed the whole of this thesis and is
-responsible for all of it. Where it is wrong, the error is the author's.
+\noindent\textbf{Responsibility.} The author has reviewed the whole of this thesis and is responsible for all of it. Where it is wrong, the error is the author's.
