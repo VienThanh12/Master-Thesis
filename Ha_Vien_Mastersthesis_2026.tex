@@ -15,7 +15,7 @@
 \usepackage{array} 
 \usepackage{longtable}
 \usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
-\usepackage[section]{placeins} % flush pending floats before each \section
+\usepackage[section]{placeins}
 \usepackage{enumitem}
 \newlist{compactitem}{itemize}{1}
 \setlist[compactitem]{leftmargin=1.6em, itemsep=0.4ex, topsep=0.8ex, parsep=0pt,
@@ -53,15 +53,9 @@
 \onehalfspacing 
 
 \sloppy
-% Sentence-ending punctuation keeps the same interword space as the
-% rest of the line. TeX's default extra glue after `.` is the gap
-% after "gap." in the research-gap paragraph. Attached to babel's
-% English extras so a language switch cannot put the extra glue back.
 \addto\extrasenglish{\frenchspacing}
 \AtBeginDocument{\frenchspacing}
 
-% The author does not want the U+2212 minus sign anywhere a reader sees one, so a
-% minus in math mode, including the generated tables and macros, prints as a hyphen.
 \DeclareMathSymbol{-}{\mathbin}{operators}{"2D}
 
 % Median above a bootstrap interval, used by figures/tab_latency.tex.
