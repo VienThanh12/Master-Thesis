@@ -58,7 +58,6 @@
 
 \DeclareMathSymbol{-}{\mathbin}{operators}{"2D}
 
-% Median above a bootstrap interval, used by figures/tab_latency.tex.
 \newcommand{\mci}[3]{%
   \begin{tabular}[t]{@{}r@{}}%
     $#1$\\[-2pt]{\scriptsize$[#2,\,#3]$}%
@@ -80,24 +79,23 @@
 }}
 
 \hypersetup{
-    %bookmarks=true,         % show bookmarks bar first?
-    unicode=true,           % to show non-Latin characters in Acrobat’s bookmarks
-    pdftoolbar=true,        % show Acrobat’s toolbar?
-    pdfmenubar=true,        % show Acrobat’s menu?
-    pdffitwindow=false,     % window fit to page when opened
-    pdfstartview={FitH},    % fits the width of the page to the window
+    unicode=true,
+    pdftoolbar=true,
+    pdfmenubar=true,
+    pdffitwindow=false,
+    pdfstartview={FitH},
     pdftitle={Performance, Safety, and Engineering Trade-offs of Rust and C++ in Nokia RAN Control-Plane Systems},
     pdfauthor={Ha Vien},
     pdfsubject={Master's thesis, Computer Science},
     pdfcreator={Ha Vien},
-    pdfproducer={pdfLaTeX}, % producer of the document
+    pdfproducer={pdfLaTeX},
     pdfkeywords={Rust} {C++} {RAN control plane} {tail latency} {memory safety},
-    pdfnewwindow=true,      % links in new window
-    colorlinks=true,        % false: boxed links; true: colored links
-    linkcolor=black,        % color of internal links
-    citecolor=black,        % color of links to bibliography
-    filecolor=magenta,      % color of file links
-    urlcolor=cyan           % color of external links
+    pdfnewwindow=true,
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    filecolor=magenta,
+    urlcolor=cyan
 }
 
 
@@ -108,17 +106,10 @@
 \input{figures/gen_baremetal.tex}
 \input{figures/gen_guest.tex}
 \input{figures/gen_probes.tex}
-% In-flight overload clocks on the campaign host when bench/results-pipeline-campaign-jaybird/
-% exists. Flat-map swap probes stay on the further host in bench/results-probes-20260930-sg/.
 \input{figures/gen_pipeline.tex}
 \input{figures/gen_pipeline_mixed.tex}
-% Same-handoff probe and the deferred-fill timer test, on a further host.
 \input{figures/gen_handoff.tex}
 
-% The 12 cm minipage ends on the keyword rule. The class \vfill parks CCS on
-% that rule, so spare space lands between Conclusions and CCS and the last
-% classification line still kisses Avainsanat. Drop the fill so unused height
-% sits under CCS. Look at page 3 after editing.
 \makeatletter
 \renewenvironment{@summary}{%
     \abst@small
@@ -138,12 +129,6 @@
 
 \maketitle
 
-% The abstract form is a fixed 12 cm box that also has to hold the CCS paths, so
-% it is set single-spaced as in the template. The \singlespacing here is what
-% undoes the 1.5 spacing that the class applies in \maketitle. Overflow is
-% neither clipped nor reported: it overprints the keyword heading. The class
-% sets 2ex between the blocks. At 1ex the last CCS line still sat on
-% Avainsanat, so parskip is 0.4ex. Look at the abstract page after editing.
 {\singlespacing
 \begin{otherlanguage}{english}
 \begin{abstract}
@@ -208,11 +193,6 @@
 \addcontentsline{toc}{chapter}{\listtablename}
 \listoftables
 
-% The class already names this list: \nomname is set to "List of acronyms" in
-% \captionsenglish. Scoped to the acronyms this document uses, which is a subset of
-% the full draft's. Expansions are sentence case. The five gNB rows keep a
-% lowercase g, which is the token's own spelling and not an oversight. Terms that
-% are not acronyms follow this list, still in the front matter.
 \cleardoublepage
 \phantomsection
 \addcontentsline{toc}{chapter}{\nomname}
@@ -277,8 +257,6 @@ UECM & UE Context Management, the subsystem reimplemented and measured here \\
 \end{longtable}
 \endgroup
 
-% Key terms sit in the front matter, with the acronyms, so a reader meets them
-% before Chapter 1. The label keeps the name appendix:terms.
 \cleardoublepage
 \phantomsection
 \addcontentsline{toc}{chapter}{Key terms}
@@ -327,7 +305,7 @@ Variant & One of the four builds under test. The four are C++ or Rust, each link
 Allocator & The library that hands out memory and takes it back \\
 \\[2pt]
 \multicolumn{2}{@{}l}{\scriptsize\emph{Timing}}\\*[1pt]
-Tail latency & How long the slow calls take, rather than the average call. This thesis reads that from the p99, the p99.9, and the p99.99 \\
+Tail latency & How long the slow calls take, rather than the average call. A p99 means 99 of 100 calls were faster than that time, a p99.9 means 999 of 1,000, and a p99.99 means 9,999 of 10,000 \\
 Median & The middle call, once the calls are ordered by how long they took. Half are faster and half are slower \\
 Histogram & The record of how long each call took. Tail latency is read from its slow end \\
 Send schedule & The planned time of each request. A producer sends at that time, waits for the reply, and sends the next request at once if it is already late \\
@@ -367,29 +345,36 @@ Static analyser & A tool that inspects source code without running it. This stud
 \chapter{Introduction}
 
 Mobile networks are moving from specialised hardware to software on ordinary servers.
-Functions that once ran on fixed-purpose, vertically integrated equipment are now
-reimplemented as programs on general-purpose machines. The radio access network (RAN),
-long the most hardware-centric part of the stack, is part of that shift.
+Functions that once ran on vertically integrated equipment, built for one job and sold
+as one piece, are now reimplemented as programs on general-purpose machines. The radio
+access network (RAN) reaches the phone over the air. It was long the part of the
+network stack that depended most on specialised hardware, and it is part of the same shift.
 
-In 5G, the base station, formally the next-generation NodeB (gNB), is split into a central
-unit and one or more distributed units. The central unit is split again into control-plane
-and user-plane functions~\cite{3gpp38401,3gpp38300}. The control plane carries the signalling, the messages that set up and control
-the call. The user plane carries the phone’s data. Open-RAN pushes the same idea further:
-the RAN becomes virtualised, multi-vendor software linked by open
-interfaces~\cite{polese2023oran}. The control plane that results, the gNB central unit
-control plane (gNB-CU-CP), is a large, stateful, highly concurrent program. It tracks every
-connected device. The standards call each device a user equipment (UE). The control plane runs
+In 5G, the base station is the radio site a phone connects to. The standards call it a
+next-generation NodeB (gNB). They split it into a central unit and one or more
+distributed units, and they split the central unit again into a control plane and a
+user plane~\cite{3gpp38401,3gpp38300}. The control plane carries the signalling, the
+messages that set up and control the call. The user plane carries the phone’s data.
+Open-RAN pushes the same idea further: the RAN becomes virtualised, multi-vendor
+software linked by open interfaces, so each part may come from a different
+company~\cite{polese2023oran}. The control plane that results, the gNB central unit
+control plane (gNB-CU-CP), keeps a record for every connected device and handles many
+of them at the same time. A program that does both is called stateful and highly
+concurrent. The standards call each device a user equipment (UE). The control plane runs
 Radio Resource Control (RRC) signalling~\cite{3gpp38331} and coordinates mobility and
-handovers, all within strict latency limits.
+handovers, moving a live call from one coverage area to another, all within strict
+latency limits.
 
-A single site runs many connection-management and
-mobility procedures every second. Each procedure has to complete within the millisecond-scale
-budget the 5G system sets for control-plane signalling~\cite{3gpp38913}. A deployed control plane tracks every connected
-device at once. As the RAN moves to cloud-native, disaggregated deployments, the
-correctness, reliability, and timing of this software increasingly set the quality of the
-whole network. An outage here is not a local defect. Neither is a tail-latency
-spike: a few calls take much longer than the rest, even when the average still
-looks fine. Every device the site serves is
+A single site runs many connection-management and mobility procedures every second,
+such as setting up a call or moving it between cells. Each procedure has to complete
+within the millisecond-scale budget the 5G system sets for control-plane
+signalling~\cite{3gpp38913}. A deployed control plane tracks every connected device at
+once. The RAN is moving to cloud-native deployments, onto ordinary servers instead of
+purpose-built hardware. It is also moving to disaggregated ones, where the parts may
+come from different companies. The correctness, reliability, and timing of this
+software then increasingly set the quality of the whole network. An outage here is not
+a local defect. Neither is a tail-latency spike: a few calls take much longer than the
+rest, even when the average still looks fine. Every device the site serves is
 affected~\cite{dean2013tail,barroso2017microseconds}.
 
 
@@ -440,7 +425,8 @@ communication as one named job for 6G~\cite{itu2023imt2030}. The architecture
 forming around that job is AI-RAN, in which AI and radio work share one
 accelerated server~\cite{airan2026orchestrator}. A control plane there
 no longer has the host to itself. It shares the central processing unit
-(CPU), memory, and cache with inference work it does not schedule. When
+(CPU), memory, and cache with inference work it does not schedule. Inference
+here means running a trained model so that it produces an answer. When
 that neighbour takes capacity, the control plane saturates sooner: it
 stops keeping up with demand at a lower load than it would alone.
 Chapter~\ref{chapter:eval} therefore drives both implementations past that point.
@@ -465,7 +451,8 @@ still missing. Providing it is the motivation for this work.
 This thesis is carried out at Nokia. The company is one of the small number of vendors
 that build, maintain, and evolve production RAN software end to end. The five largest
 suppliers took 96\% of worldwide RAN revenue over the first three quarters of 2025, with
-concentration by Herfindahl--Hirschman Index at a ten-year
+concentration by the Herfindahl--Hirschman Index, a measure of how far a few
+firms dominate a market, at a ten-year
 high~\cite{delloro2025ran3q,delloro2026ran}. The subsystem this thesis studies, UECM, is a compact model of the per-UE state work a
 gNB-CU-CP does.
 
@@ -636,8 +623,6 @@ research questions, revisits the hypotheses and states the limitations, and
 Chapter~\ref{chapter:conclusions} concludes.
 
 \chapter{Background: Systems Languages for Latency-Critical Software\label{chapter:background}}
-% The class prints the chapter titles in the running head in capitals, where the
-% full title of this chapter runs into the margin.
 \chaptermark{Background}
 
 \section{RAN control-plane systems and the gNB-CU-CP}\label{sec:ranarch}
@@ -658,15 +643,17 @@ For this reason, this thesis focuses on tail latency, which describes the delays
 the slowest operations. By measuring tail latency, the comparison can reveal performance problems
 that average latency alone may hide.
 
-The gNB is split on two axes. The first split is central versus distributed.
+The gNB is split in two ways. The first split is central versus distributed.
 The gNB runs a protocol stack: a set of layered radio protocols from the air
 interface up to RRC signalling. A central unit (gNB-CU) hosts the higher layers.
 One or more distributed units (gNB-DU) host the lower layers. Those layers sit close to
 the radio and have strict low-latency requirements. The second split is control versus user
 plane, inside the central unit. It splits the control-plane function
 (gNB-CU-CP) from the user-plane function (gNB-CU-UP). These parts talk over
-standard links. Uu is the radio link from the device. NG goes toward the 5G core, F1 sits between the CU and the DU,
-and E1 sits between the CU-CP and the CU-UP~\cite{3gpp38401,3gpp38300,3gpp38463}.
+standard links. Uu is the radio link from the device. NG goes from the base station
+toward the 5G core. F1 sits between the central unit and the distributed unit, and
+E1 sits between the control-plane half and the user-plane
+half~\cite{3gpp38401,3gpp38300,3gpp38463}.
 Open-RAN pushes the same links further. Each part can then come from a
 different vendor and run as software on ordinary
 machines~\cite{polese2023oran}. Figure~\ref{fig:ngran} shows the part studied in this thesis, UE Context Management (UECM), inside the gNB-CU-CP. UECM owns the per-UE
@@ -674,10 +661,6 @@ control-plane state. It also handles RRC signalling and mobility. These are
 integral control-plane functions, which makes UECM a representative stateful
 subsystem. It does not stand for the control plane as a whole.
 
-% The citing paragraph is only a few lines, so the diagram fits on the
-% same page at its own size. A clearpage here put it under the next
-% section's running head. Do not put that break back, and do not shrink
-% the diagram.
 \begin{figure}[!ht]
 \centering
 \begin{tikzpicture}[
@@ -693,15 +676,10 @@ subsystem. It does not stand for the control plane as a whole.
   \node[box] (ue) at (0,0)   {UE};
   \node[box] (du) at (2.4,0) {gNB-DU};
 
-  % Control plane, with UE Context Management shown nested inside it
   \node[font=\footnotesize\bfseries] (cpttl) at (7.2,1.7) {gNB-CU-CP};
   \node[uecm] (uecm) at (7.2,0.85) {UE Context\\ Management};
-  % User plane
   \node[upbox] (up) at (7.2,-0.95) {gNB-CU-UP};
 
-  % The background layer paints in source order and the central unit's fill is opaque, so
-  % the control-plane box has to be drawn after it. Node (cp) carries the geometry that the
-  % central unit and the E1 arrow are measured against.
   \begin{scope}[on background layer]
     \node[fit=(cpttl)(uecm), inner sep=6pt] (cp) {};
     \node[draw, dashed, rounded corners, fill=gray!3,
@@ -727,7 +705,7 @@ prevent many common programming errors~\cite{klabnik2023rust,jung2018rustbelt}. 
 uses an \texttt{unsafe} block or an \texttt{unsafe} function, the programmer must make sure
 that certain operations are used correctly, because the compiler cannot check all their
 safety requirements. Unsafe code is often needed when Rust calls C code through the C ABI
-or uses raw pointers. C++ has no keyword that marks such code.
+or uses raw pointers, memory addresses the compiler does not check. C++ has no keyword that marks such code.
 
 C++ manages many resources through Resource Acquisition Is Initialization (RAII), in
 which an object releases what it holds when it goes out of scope. Nothing in the language
@@ -738,15 +716,19 @@ ThreadSanitizer and UndefinedBehaviorSanitizer (Section~\ref{sec:methodbrief}). 
 defect only on a path a test actually runs, so a clean report covers the tests and not the
 program.
 
-How a test sends its requests decides whether its slow calls are counted. A test that
-waits for each reply before sending the next request slows down whenever the service does.
-It then sends fewer requests during a slow spell and records fewer slow calls than users
-Defects safe Rust does not automatically preventwould see~\cite{schroeder2006openclosed}. Timing each request from its planned send time,
-and not from when it was actually sent, puts that waiting back into the result. A test that
-still waits for each reply can fall behind its schedule, so HdrHistogram adds a delay sample
-for each request that should have been sent during that time~\cite{tene_hdrhistogram}. The
-harness in this study does both, as Section~\ref{sec:workload} describes, and
-Section~\ref{sec:overload} shows that when these samples are written can change a result.
+How a test sends its requests decides whether its slow calls are counted. Waiting for
+each reply before the next request is closed-loop load generation, and sending on a
+fixed clock whether or not the reply has come back is open-loop load
+generation~\cite{schroeder2006openclosed}. A closed loop slows down whenever the
+service does. It then sends fewer requests during a slow spell and records fewer
+slow calls than users would see. That missing part of the slow end is called
+coordinated omission~\cite{tene_hdrhistogram}. Timing each request from its planned
+send time, and not from when it was actually sent, puts that waiting back into the
+result. A test that still waits for each reply can fall behind its schedule, so
+HdrHistogram adds a delay sample for each request that should have been sent during
+that time~\cite{tene_hdrhistogram}. The harness in this study does both, as
+Section~\ref{sec:workload} describes, and Section~\ref{sec:overload} shows that the
+moment these samples are written can change a result.
 
 \section{Research gap}\label{sec:gap}
 The RAN control plane has many threads and
@@ -759,7 +741,8 @@ application binary interface (ABI).
 
 Five vendor-hosted Master's theses, all
 done at Ericsson, have compared candidate languages for RAN and telecom
-software. One compares run-time performance with development effort for C++,
+software. They do not all favour Rust. One compares run-time performance with
+development effort for C++,
 Rust, and Go~\cite{karlback2021ran}. One tests whether Rust can replace C in
 RAN node management~\cite{olsson2023ranmgmt}. One builds a packet processor in
 async Rust, with one thread per core, and measures it against the Data Plane
@@ -769,7 +752,7 @@ frameworks~\cite{arvidsson2025async}. The last builds matched C++ and Rust
 versions of one program. That program turns a packed Abstract Syntax Notation
 One (ASN.1) message back into a readable form. It compares
 them with statistical tests~\cite{emberg2023asn1}. All five are directly
-relevant. They do not all favour Rust. Olsson and Stenstr\"om's packet
+relevant. Olsson and Stenstr\"om's packet
 processor reaches a fifth to a half of DPDK's throughput, with far worse
 latency~\cite{olsson2023asyncpackets}. Arvidsson and Kaller's Rust p99 rises
 more steeply past a threshold rate~\cite{arvidsson2025async}. Karlb\"ack and
@@ -813,10 +796,6 @@ property a controlled answer would need, and each column is a group of studies.
 The vendor-RAN column is the other Ericsson theses.
 Emberg and Wadsten have their own column because they keep the design the same in both languages.\label{fig:gapmap}}
 \end{figure}
-% The figure fills the text block. Stretching the page to hold this
-% paragraph pushed the last lines into the bottom margin, past where
-% every other page stops. Break here so the paragraph stays whole on
-% the next folio and this page ends on the same line as the rest.
 \filbreak
 
 What is missing from prior work is a direct, controlled test of a typical
@@ -1496,8 +1475,7 @@ thread. Extra threads on a core are \MainSmt{}. The host runs
 lower each core's clock as load and heat change. The clock is held
 fixed. That clock setting is \MainGovernor{}, and boost, a further rise of that clock, is off. The
 test may use only cores \MainPinned{}. There is no hypervisor. A hypervisor
-is the program that would run a virtual machine. The
-program runs on the host itself, not inside a virtual machine. On those
+is the program that would run a virtual machine. On those
 cores the kernel turns off its timer tick (\texttt{nohz\_full}).
 If left on, those ticks would show up in the latency numbers. The study does not use another Linux setting, \texttt{isolcpus}. That setting
 would stop Linux from moving threads between the allowed cores. Every test
@@ -1596,7 +1574,8 @@ lateness is part of every delay this clock records (Section~\ref{sec:perfresults
 If a producer falls behind its schedule, the test harness adds samples to
 the delay histogram for requests that should have been sent during the missed
 period. This is the correction HdrHistogram makes for a sender that falls
-behind~\cite{schroeder2006openclosed,tene_hdrhistogram}. In this study,
+behind~\cite{schroeder2006openclosed,tene_hdrhistogram}. The missing samples are
+the error called coordinated omission. In this study,
 this process is referred to as \emph{histogram fill}, with up to
 $\ProbeAfterCap$ synthetic samples added for each completed call. These
 additional samples represent delays that could otherwise be missed when the
@@ -1784,8 +1763,6 @@ operation, so that comparison cannot resolve a difference in
 it.\label{fig:budget}}
 \end{figure}
 
-% Keeps the two figures above this subsection without forcing a page break.
-% A \clearpage here left fig:budget alone on its own page.
 \FloatBarrier
 \subsection{Past saturation (RQ1)}\label{sec:overload}
 
@@ -2046,8 +2023,6 @@ language effect. Thus, the relative size of the two effects is a property
 of the host environment, rather than a general property of Rust or
 \texttt{jemalloc}.
 
-% [!ht] and the barrier below keep the table with the paragraph that cites it.
-% Without them [ht] defers the float and it can land in the next paragraph.
 \enlargethispage{24pt}
 \begin{table}[!ht]
 \centering
@@ -2123,9 +2098,6 @@ an isolated call, but they do not explain the additional delays
 that appear when the system is overloaded.
 
 
-
-% After the citing paragraph so the chart cannot open the next page in the
-% middle of that paragraph. [!ht] keeps it with this subsection.
 \begin{figure}[!ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_resources_column.pdf}
@@ -2135,7 +2107,6 @@ repeats with bootstrap $95\%$ intervals, and CPU in (b) is summed across
 threads.\label{fig:resources}}
 \end{figure}
 
-% Same drift as the throughput figure: the RAM chart was opening the safety subsection.
 \FloatBarrier
 \subsection{Safety via fault injection (RQ2)}\label{sec:safetyresults}
 Safe code is evaluated with $\FaultClasses$ defect classes, each written as a
@@ -2233,8 +2204,6 @@ guard alive past the procedure that took it. Both programs then hang, and none
 of the three sanitisers reports the C++ hang. Figure~\ref{fig:taxonomy}
 draws the whole list as an outcome matrix.
 
-% Full column width no longer fits in the leftover under the safety paragraph.
-% [ht] would park the matrix above the next subsection.
 \enlargethispage{48pt}
 \begin{figure}[!ht]
 \centering
@@ -2243,10 +2212,6 @@ draws the whole list as an outcome matrix.
 outcomes as a matrix, generated from the taxonomy log.\label{fig:taxonomy}}
 \end{figure}
 
-% The outcome matrix was opening the migration subsection. The layer diagram
-% does not fit under that matrix, and the following chapter would otherwise
-% leave it alone on the next page. The subsection starts on a fresh page so
-% the diagram stays with the paragraph that cites it.
 \FloatBarrier
 \newpage
 \subsection{Migration (RQ4)}\label{sec:migrationresults}
@@ -2291,9 +2256,6 @@ comparison is therefore attributable to the language and build configuration
 rather than to dependencies or unsafe code.
 
 
-% After the paragraph the leftover is short of the diagram plus caption, so
-% [ht] defers it and \chapter flushes it onto an empty float page. A page
-% enlarge plus [!ht] keeps the figure with the subsection that cites it.
 \enlargethispage{52pt}
 \begin{figure}[!ht]
 \centering
@@ -2766,19 +2728,15 @@ piece at a time. That is what would settle the human cost this study can only na
 
 \input{ai_statement.tex}
 
-% STEP 5:
-% The bibliography style is selected with the biblatex options in the preamble.
-
-\cleardoublepage %fixes the position of bibliography in bookmarks
+\cleardoublepage
 \phantomsection
 
-\addcontentsline{toc}{chapter}{\bibname} % This lines adds the bibliography to the ToC
+\addcontentsline{toc}{chapter}{\bibname}
 \printbibliography
 
 \backmatter
 \begin{appendices}
 
-% Appendix A. The label stays appendix:config.
 \appendix{Host and campaign configuration\label{appendix:config}}
 Table~\ref{tab:testbed} itemises the three machines the campaigns ran on. The first is the
 bare-metal host of Section~\ref{sec:testbed} that every performance and resource table of the
@@ -2806,8 +2764,6 @@ the configuration of the service, the workload and the campaign, and
 Table~\ref{tab:significance} lists the ten planned comparisons below saturation.
 Table~\ref{tab:overloadtest} in Section~\ref{sec:overload} gives the four past it.
 
-% The float is 111pt taller than one page. [tp] parked it at the bottom and clipped the last
-% rows. enlargethispage belongs on the table page, after clearpage, not under the intro.
 \clearpage
 \enlargethispage{160pt}
 \begin{table}[!ht]
@@ -3071,9 +3027,6 @@ call.
 
 \end{appendices}
 
-% The class writes the page counts for the abstract form from \AtEndDocument, which
-% runs before \end{document} flushes the last page. Without this the final appendix
-% page is never counted and the form reports no appendix pages at all.
 \clearpage
 
 \end{document}
