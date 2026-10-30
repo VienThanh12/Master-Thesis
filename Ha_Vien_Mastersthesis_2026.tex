@@ -10,9 +10,9 @@
   \chapter*{#1}%
   \markboth{#1}{#1}}
 
-\usepackage[pdftex, plainpages=false]{hyperref} % For hyperlinks and pdf metadata
+\usepackage[pdftex, plainpages=false]{hyperref}
 \usepackage{fancyhdr} 
-\usepackage{array} % Ragged-right p-columns in the host table
+\usepackage{array} 
 \usepackage{longtable}
 \usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
 \usepackage[section]{placeins} % flush pending floats before each \section
@@ -25,11 +25,9 @@
 \renewcommand{\textfraction}{0.08}
 \renewcommand{\floatpagefraction}{0.75}
 
-% Ragged-right paragraph column: avoids stretched inter-word spacing in narrow cells.
 \newcolumntype{R}[1]{>{\raggedright\arraybackslash}p{#1}}
 
-% Code excerpts. Spaces keep their full width so the rustc carets in fig:uam
-% stay under the code they point at.
+
 \usepackage{listings}
 \lstdefinelanguage{Rust}{
   morekeywords={as,break,const,continue,crate,else,enum,extern,false,fn,for,if,
