@@ -354,9 +354,9 @@ messages that set up and control the call. The user plane carries the phone’s 
 Open-RAN pushes the same idea further: the RAN becomes virtualised, multi-vendor
 software linked by open interfaces, so each part may come from a different
 company~\cite{polese2023oran}. The control plane that results, the gNB central unit
-control plane (gNB-CU-CP), keeps a record for every connected device and handles many
-of them at the same time. A program that does both is called stateful and highly
-concurrent. The standards call each device a user equipment (UE). The control plane runs
+control plane (gNB-CU-CP), tracks every connected device, which are called user equipment (UE). It keeps a record
+for each of them and handles many at the same time. A program that does both
+is called stateful and highly concurrent. The control plane runs
 Radio Resource Control (RRC) signalling~\cite{3gpp38331} and coordinates mobility and
 handovers, moving a live call from one coverage area to another, all within strict
 latency limits.
