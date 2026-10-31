@@ -228,7 +228,6 @@ EU & European Union \\
 FFI & Foreign function interface \\
 FIFO & First in, first out \\
 FNV-1a & Fowler--Noll--Vo hash function, variant 1a \\
-GCC & GNU Compiler Collection \\
 gNB & Next-generation NodeB, the 5G base station \\
 gNB-CU & gNB central unit \\
 gNB-CU-CP & gNB central unit control plane, the domain this work sits in \\
@@ -1485,7 +1484,7 @@ executed inside the same container image. The image is based on \MainDistro{}
 and provides \texttt{g++~\MainGpp} and \texttt{rustc~\MainRustc}. This
 ensures that the build environment is controlled and reproducible rather
 than depending on the software installed on the host machine. The image specifies the major
-version of the GNU Compiler Collection (GCC) toolset, but not its exact point release. As a
+version of the C++ compiler, but not its exact point release. As a
 result, the compiler version used in this experiment is \texttt{g++~\MainGpp}. A container
 does not completely isolate the experiment from the host system. It still uses the host's
 Linux kernel.
