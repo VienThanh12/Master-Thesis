@@ -319,7 +319,7 @@ Userland & Programs and libraries above the kernel. The container supplies the c
 \multicolumn{2}{@{}l}{\scriptsize\emph{Safety}}\\*[1pt]
 Data race & Two threads use the same memory at once and at least one writes, with nothing to keep the two uses in order \\
 Race condition & A bug that depends on which of two steps finishes first. Safe Rust still compiles these \\
-Use-after-free & Using memory after it has been given back \\
+Use-after-free & Using memory after it has been freed \\
 Double-free & Giving the same memory back twice \\
 Use-after-move & Reading from a value after its contents have been moved elsewhere. The old name is still valid but empty \\
 Ownership & Rust's rule that each value has one owner. A read of a record whose owner is already gone does not compile \\
