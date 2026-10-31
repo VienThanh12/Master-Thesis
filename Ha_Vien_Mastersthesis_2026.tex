@@ -553,7 +553,7 @@ first, then defect scope, then resource cost, then incremental adoption:
 Three hypotheses are written down before any measurement.
 \begin{description}
   \item[H1] For this workload the two languages are performance-equivalent below
-        saturation, with any difference only in the far tail.
+        saturation, with any difference only among the slowest calls.
   \item[H2] Safe Rust prevents at compile time the memory-safety and concurrency defect
         classes that C++ only tries to catch after the program is built.
   \item[H3] Calling the Rust service from C++ through the FFI adds only a small
@@ -970,7 +970,7 @@ produces, and which number is reported.
 RQ1 asks how long a call takes, and RQ3 asks how much processor time and memory
 the service uses. H1 is the hypothesis for
 both questions. It says the two languages are performance-equivalent below
-saturation, with any difference only in the far tail. One hypothesis then has
+saturation, with any difference only among the slowest calls. One hypothesis then has
 to hold for the delay and for the resources together, which is why that wording
 is its main weakness. The two need not move together. Chapter 6 returns to that wording.
 
@@ -1669,7 +1669,7 @@ they time that recording as well as the service
 (Section~\ref{sec:overload}).\label{fig:loadsweep}}
 \end{figure}
 
-The far tail shows the same separation between the languages.
+The slowest calls show the same separation between the languages.
 The runs' histograms are pooled, which
 gives \FarTailSamplesMin{} to \FarTailSamplesMax{} calls per variant. The
 two \FarTailLower{} variants sit below both C++ variants. The widest pair
@@ -2263,7 +2263,7 @@ $\FfiCrossing$~ns and bounds only itself.\label{fig:ffiseam}}
 \begin{compactitem}
 \item \textbf{RQ1 (latency).} At $\ReprLoad$~kops/s, Rust is faster by a small but
 significant margin, up to $\PFiftyDiffAbsMax\,\mu$s at the median and lower at p99 and p99.9,
-while the pooled far tail and the maximum favour \FarTailLower{} by more. That end-to-end gap
+while the slowest calls, pooled across repeats, and the maximum favour \FarTailLower{} by more. That end-to-end gap
 lies outside the core operation, which is a small fraction of a round trip, and the clock
 also holds each producer's late wake-up before sending, so it cannot establish a difference in
 the core operation. Timed on its own on the virtual machine, the core
@@ -2479,7 +2479,7 @@ which are not.
 
 \begin{description}
   \item[H1] H1 is not supported. Its second clause, that any difference
-        appears only in the far tail, is shown to be wrong. At $\ReprLoad$~kops/s the
+        appears only among the slowest calls, is shown to be wrong. At $\ReprLoad$~kops/s the
         paired test detects differences of up to $\PFiftyDiffAbsMax\,\mu$s in
         the median and also at p99 and p99.9. Its first clause cannot be tested
         as written, because no equivalence margin was defined, so a small
@@ -2778,7 +2778,7 @@ SMT & \MainSmt{}, verified & Absent from the topology exposed to the guest, and 
 Repeats & \NRepeats{} over \NLoadLevels{} loads, \NRuns{} runs & \GuestRepeats{} over \GuestLoadLevels{} loads, \GuestRuns{} runs & \BmRepeats{} over \BmLoadLevels{} loads, \BmRuns{} runs. \emph{Short of protocol} \\
 Instruments & Pooled HDR sidecars, jitter, allocator accounting & None available in the guest & Counters at two scopes, HDR sidecars, allocator accounting \\
 \hline
-Adequate for & The pre-committed campaign-clock results. Not overload service latency & Median, CPU, overload, and peak RSS on the system allocator. Not p99, p99.9 or the far tail & Confirming campaign-clock directions survive a change of design \\
+Adequate for & The pre-committed campaign-clock results. Not overload service latency & Median, CPU, overload, and peak RSS on the system allocator. Not p99, p99.9 or p99.99 & Confirming campaign-clock directions survive a change of design \\
 \hline
 \end{tabular}
 \end{table}
@@ -2852,8 +2852,8 @@ variant adds that allocator's own accounting. A system-allocator variant stores 
 unavailable rather than as zero, on the same principle as the turbo state.
 The kind counts are what makes a divergence between the languages show up as a parity failure
 (Chapter~\ref{chapter:design}) instead of a performance difference. Each run also persists its
-complete HDR bucket contents to a sidecar, so the repeats can be pooled before a far-tail
-percentile is read (Section~\ref{sec:statsbrief}). The second bare-metal campaign also has a
+complete HDR bucket contents to a sidecar, so the repeats can be pooled before the
+time of the slowest calls is read (Section~\ref{sec:statsbrief}). The second bare-metal campaign also has a
 separate file of \texttt{perf} counters at two scopes, the end-to-end path and the operation on
 its own.
 
