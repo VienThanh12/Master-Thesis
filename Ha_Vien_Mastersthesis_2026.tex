@@ -640,8 +640,9 @@ One or more distributed units (gNB-DU) host the lower layers. Those layers sit c
 the radio and have strict low-latency requirements. The second split is control versus user
 plane, inside the central unit. It splits the control-plane function
 (gNB-CU-CP) from the user-plane function (gNB-CU-UP). These parts communicate through
-standard links. Uu is the radio link from the device. NG goes from the base station
-toward the 5G core. F1 sits between the central unit and the distributed unit, and
+standard links. The Uu interface is the radio link from the device to the
+distributed unit of the gNB. The NG interface runs between the gNB and the 5G core.
+F1 sits between the central unit and the distributed unit, and
 E1 sits between the control-plane half and the user-plane
 half~\cite{3gpp38401,3gpp38300,3gpp38463}.
 Open-RAN pushes the same links further. Each part can then come from a
@@ -688,7 +689,7 @@ subsystem. It does not stand for the control plane as a whole.
 highlighted inside the gNB-CU-CP.\label{fig:ngran}}
 \end{figure}
 
-\section{Memory safety and latency measurement}\label{sec:rustsafety}
+\section{Memory safety}\label{sec:rustsafety}
 Rust separates code into \emph{safe Rust} and code that uses \texttt{unsafe}. In safe
 Rust, the compiler checks how memory is used, including ownership and borrowing, to
 prevent many common programming errors~\cite{klabnik2023rust,jung2018rustbelt}. When code
@@ -705,20 +706,6 @@ with tools that watch a running program. This study runs three of them, AddressS
 ThreadSanitizer and UndefinedBehaviorSanitizer (Section~\ref{sec:methodbrief}). A sanitiser can report a
 defect only on a path a test actually runs, so a clean report covers the tests and not the
 program.
-
-How a test sends its requests decides whether its slow calls are counted. Waiting for
-each reply before the next request is closed-loop load generation, and sending on a
-fixed clock whether or not the reply has come back is open-loop load
-generation~\cite{schroeder2006openclosed}. A closed loop slows down whenever the
-service does. It then sends fewer requests during a slow spell and records fewer
-slow calls than users would see. That missing part of the slow end is called
-coordinated omission~\cite{tene_hdrhistogram}. Timing each request from its planned
-send time, and not from when it was actually sent, puts that waiting back into the
-result. A test that still waits for each reply can fall behind its schedule, so
-HdrHistogram adds a delay sample for each request that should have been sent during
-that time~\cite{tene_hdrhistogram}. The harness in this study does both, as
-Section~\ref{sec:workload} describes, and Section~\ref{sec:overload} shows that the
-moment these samples are written can change a result.
 
 \section{Research gap}\label{sec:gap}
 The RAN control plane has many threads and
