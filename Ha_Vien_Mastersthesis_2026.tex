@@ -802,7 +802,8 @@ sets out the method.
 \chapter{Research Methodology\label{chapter:methodology}}
 \chaptermark{Methodology}
 
-The previous chapter said what earlier studies leave out. This chapter says how the study closes that gap.
+After explaining the research gap in the previous chapter, 
+this chapter shows the methodology used in this thesis to close it.
 
 \section{The UE Context Management subsystem}\label{sec:uecm}
 The part under study is a UE Context Management service. Its operations follow the
@@ -844,7 +845,7 @@ For the move from a battery-saving idle state to the start of sending data, that
 The procedure is a chain of steps. It is late if the chain is late, even when most steps are fast.
 Findings about how a language
 handles those traits are most relevant to other stateful, multi-thread
-control-plane services of this kind. The part is also small enough to specify in full and build twice.
+control-plane services of this kind. The part is also small enough to specify in full and build  in C++ and Rust.
 That is what makes a parity-tested comparison possible.
 
 The interface is small and built around the lifecycle. It can create and
