@@ -155,14 +155,11 @@
 
       While the service can still keep up, a typical request is up to
       $\PFiftyDiffAbsMax\,\mu$s faster in Rust, and Rust uses slightly less
-      processor time. Only $\BudgetCoreShareMax\%$ of that request is the work
-      written in C++ or Rust. Most of the time is spent passing the request from
-      one thread to another. Once the service falls behind, the result depends on
+      processor time. Once the service falls behind, the result depends on
       the test clock. If the test writes its extra delay records while the clock
       is running, C++ finishes more requests. If those records are written
       afterwards, Rust finishes more, at $\ProbeAfterOverloadLoad$ thousand
-      requests per second with both memory libraries, and the way that run stopped
-      the clock made Rust's lead look smaller than it was. Most of the lead is in
+      requests per second with both memory libraries. Most of the lead is in
       the queue between the threads. When both languages use the same queue, Rust
       finishes $\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ more requests with
       the operating system's memory library. When several requests wait at once,
