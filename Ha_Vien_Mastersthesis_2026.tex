@@ -321,7 +321,7 @@ Data race & Two threads use the same memory at once and at least one writes, wit
 Race condition & A bug that depends on which of two steps finishes first. Safe Rust still compiles these \\
 Use-after-free & Using memory after it has been freed \\
 Double-free & Giving the same memory back twice \\
-Use-after-move & Reading from a value after its contents have been moved elsewhere. The old name is still valid but empty \\
+Use-after-move & Reading a variable after its contents have been moved elsewhere. The object is still there and still valid, but what it holds is unspecified \\
 Ownership & Rust's rule that each value has one owner. A read of a record whose owner is already gone does not compile \\
 Borrowing & A temporary loan of a value. The compiler rejects a loan that lasts longer than the value \\
 Safe Rust & Code outside \texttt{unsafe} blocks, where ownership, borrowing, and aliasing are checked at compile time \\
