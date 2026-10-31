@@ -482,11 +482,11 @@ The measurements here use a current-generation subsystem and published requireme
 A moving train full of passengers stands for the connected UEs at one site.
 A handover moves one passenger from one cell to another, and the call can
 continue. Each passenger has a stored record, the UE context. When many
-passengers move at once, the control plane is under a mobility storm. One
-passenger leaves, so that record is deleted, while a message for that
-passenger is still being handled. Which of those two steps finishes first is a
-race condition. If the read comes after the delete, it is a use-after-free.
-In C++ this still compiles. Tests that do not hit that ordering can pass.
+passengers move at once, the control plane is under a mobility storm. A
+handover for one passenger is still in progress. The cell the passenger is
+leaving deletes the stored record, while a message for that passenger is still
+being handled. Which of those two steps finishes first is a race condition. If
+the read comes after the delete, it is a use-after-free which still compiles in C++. Tests that do not hit that ordering can pass.
 When many calls run at once, the bug can corrupt another passenger's record.
 That race can crash the thread that is serving the call. A few calls can
 become much slower than the rest. That jump in the slowest calls is a
