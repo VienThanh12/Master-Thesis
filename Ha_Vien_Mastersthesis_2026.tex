@@ -625,8 +625,9 @@ NG-RAN software is continuously developed and must handle many operations at the
 This makes it important to understand not only how quickly operations usually complete, but also
 how slowly they can complete under heavy load. For example, a handover must finish within a
 specified time limit. If most handovers finish quickly but a few take too long, the average
-latency may still look good even though the time limit is exceeded for some handovers. These
-delays can affect the users involved and cause the KPI to be violated.
+latency may still look good even though the time limit is exceeded for some handovers. 
+These delays decrease the user experience and lead to KPI degradation
+
 
 For this reason, this thesis focuses on tail latency, which describes the delays experienced by
 the slowest operations. By measuring tail latency, the comparison can reveal performance problems
