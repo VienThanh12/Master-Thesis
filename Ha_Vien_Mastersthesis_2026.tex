@@ -864,12 +864,7 @@ resolved slowly, due to the high amount of calls, the impact is still noticeable
 
 Secondly, the test clock is of interest, as each request is planned with a specific send time. 
 If a sender falls behind it's schedule, it adds lag to the overall system. When the system stays 
-below saturation, the achieve rate is solid and delays stay small.  
-
-When the timetable is made faster, a limit appears and the delay jumps. That limit can
-be the service, or work the sender still does while the timer is running, such as writing
-down the late replies. Because either one can cause the jump, the study sends more work
-than the service can finish and then checks which of the two the timer was counting.
+below saturation, the achieve rate is solid and delays stay small.
 
 \section{The defect catalogue}\label{sec:defects}
 The defects considered in this study fall into two broad families:
@@ -880,19 +875,20 @@ provide different guarantees for them.
 
 Table~\ref{tab:defectmap} lists the $\FaultClasses$ classes injected in
 Chapter~\ref{chapter:eval}, each in the form it would take in UE Context
-Management, with the outcome expected of safe Rust before the study was run.
+Management. The third column is how the defect fails if it occurs. The last
+column is what safe Rust was expected to do, written down before the study was run.
 Section~\ref{sec:safetyresults} and Figure~\ref{fig:taxonomy} report what was
 measured.
 
 \begin{table}[!ht]
 \centering
 \small
-\caption[Injected defects and the expected outcome]{Defects the study injected, and what safe Rust was expected to do. Buffer overflow is listed but not injected.\label{tab:defectmap}}
+\caption[Injected defects and the expected outcome]{Defects the study injected, and how safe Rust was expected to handle these. The third column is how the defect fails if it occurs. Buffer overflow is listed but not injected.\label{tab:defectmap}}
 \footnotesize
 \renewcommand{\arraystretch}{0.95}
 \begin{tabular}{@{}R{0.19\linewidth} R{0.38\linewidth} R{0.14\linewidth} @{\hspace{2em}} R{0.14\linewidth}@{}}
 \hline\hline
-Defect & Example in UECM & Result & Safe Rust \\
+Defect & Example in UECM & How it fails & Safe Rust \\
 \hline
 \multicolumn{4}{@{}l}{\emph{Memory safety}} \\
 Use-after-free & Handler uses a context after it was released & Crash or corruption & Prevented \\
