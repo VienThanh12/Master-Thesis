@@ -729,24 +729,26 @@ frameworks~\cite{arvidsson2025async}. The last builds matched C++ and Rust
 versions of one program. That program turns a packed Abstract Syntax Notation
 One (ASN.1) message back into a readable form. It compares
 them with statistical tests~\cite{emberg2023asn1}. All five are directly
-relevant. Olsson and Stenstr\"om's packet
-processor reaches a fifth to a half of DPDK's throughput, with far worse
-latency~\cite{olsson2023asyncpackets}. Arvidsson and Kaller's Rust p99 rises
+relevant. Olsson and Stenstr\"om's async Rust packet
+processor reaches a fifth to a half of the DPDK program's throughput, and its
+latency is far worse~\cite{olsson2023asyncpackets}. Arvidsson and Kaller's Rust p99 rises
 more steeply past a threshold rate~\cite{arvidsson2025async}. Karlb\"ack and
 Or\"o pick C++ where speed is critical. They still find Rust lightest on peak
 memory~\cite{karlback2021ran}. Olsson's management software is as fast as C or
 faster. It uses more peak memory~\cite{olsson2023ranmgmt}. Emberg and
-Wadsten's Rust version is comparable to C++ in one session. It is $85$--$91\%$ worse in the
-next~\cite{emberg2023asn1}.
+Wadsten's Rust version is comparable to C++ in one session. In the next, its
+execution time is $85$--$91\%$ longer than the C++ version~\cite{emberg2023asn1}.
 
 Three of them change the language together with the run-time and the thread
-model, so a measured gap cannot be blamed on the language rather than on the
-framework~\cite{karlback2021ran,olsson2023asyncpackets,arvidsson2025async}.
-In that packet-processor study the DPDK program does two to five times as much
-work~\cite{olsson2023asyncpackets}. A compiler does not move throughput that
-far. The run-time does. Olsson's management study and Emberg and Wadsten do
-not change the run-time with the language~\cite{olsson2023ranmgmt,emberg2023asn1}. But they
-report run time and peak memory, not tail latency under rising load. Emberg and
+model, so a measured gap cannot solely be blamed on the language, 
+but potentially on the framework as well~\cite{karlback2021ran,olsson2023asyncpackets,arvidsson2025async}.
+In that packet-processor study the DPDK program has two to five times the Rust
+program's throughput~\cite{olsson2023asyncpackets}. A compiler change is too small
+to explain a gap of that size. The framework can explain it. The Rust program
+runs on an async runtime, and the other program runs on DPDK. Olsson's management study and Emberg and Wadsten do
+not change the run-time with the language~\cite{olsson2023ranmgmt,emberg2023asn1}. They
+report execution time, and Olsson also reports peak memory. Neither measures
+tail latency under rising load. Emberg and
 Wadsten come closest in method to this thesis. Their program keeps no state
 between calls. The service in this thesis stores state and uses many threads.
 Figure~\ref{fig:gapmap} places the five vendor theses beside the
@@ -2555,8 +2557,8 @@ and much of the code in both was drafted by the same language models, as the
 statement on the use of AI tools records. This can introduce bias or differences
 in optimisation effort, and the models may write one language better than the
 other. A similar problem affected a previous comparison, where the result
-initially appeared comparable after code review but later showed Rust performing
-$85$--$91\%$ worse after additional optimisation work~\cite{emberg2023asn1}. A
+initially appeared comparable after code review but later showed the Rust version taking
+$85$--$91\%$ longer than the C++ version, after further optimisation of both~\cite{emberg2023asn1}. A
 parity test suite establishes that the implementations behave alike, not that
 they perform alike. The builds also differ below the source: \texttt{g++} and
 \texttt{rustc} generate code differently, and the two \texttt{jemalloc} builds
