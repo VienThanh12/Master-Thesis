@@ -742,10 +742,12 @@ execution time is $85$--$91\%$ longer than the C++ version~\cite{emberg2023asn1}
 Three of them change the language together with the run-time and the thread
 model, so a measured gap cannot solely be blamed on the language, 
 but potentially on the framework as well~\cite{karlback2021ran,olsson2023asyncpackets,arvidsson2025async}.
-In that packet-processor study the DPDK program has two to five times the Rust
-program's throughput~\cite{olsson2023asyncpackets}. A compiler change is too small
-to explain a gap of that size. The framework can explain it. The Rust program
-runs on an async runtime, and the other program runs on DPDK. Olsson's management study and Emberg and Wadsten do
+In that packet-processor study the two programs differ in more than the language.
+The Rust program uses an async library to schedule its work, and the other
+program is built on DPDK. The DPDK program then finishes two to five times as
+much in the same time~\cite{olsson2023asyncpackets}. A difference in the library
+can be that large. A compiler translating the same design cannot change the
+result by that much. Olsson's management study and Emberg and Wadsten do
 not change the run-time with the language~\cite{olsson2023ranmgmt,emberg2023asn1}. They
 report execution time, and Olsson also reports peak memory. Neither measures
 tail latency under rising load. Emberg and
@@ -849,7 +851,7 @@ paths.
 As Section~\ref{sec:rqs} states, RQ2 asks which defects safe Rust stops at compile
 time, and which ones it does not. Section~\ref{sec:defects} sets out the catalogue. For each defect, the expected
 result was written down before the programs were run.
-Section~\ref{sec:safetyresults} reports what each one did.
+Section~\ref{sec:safetyresults} reports how the coding languages handled the different defect classes.
 
 The study reads tail latency as well as the typical call. Two facts make that the right
 choice.
