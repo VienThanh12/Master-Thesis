@@ -853,13 +853,13 @@ time, and which ones it does not. Section~\ref{sec:defects} sets out the catalog
 result was written down before the programs were run.
 Section~\ref{sec:safetyresults} reports how the coding languages handled the different defect classes.
 
-The study reads tail latency and the delay of the middle request. Two facts make that the right
-choice.
-
-The first fact is what a phone user waits for. Setting up a call, or moving a phone to the
-next cell, is not one step. It is a chain of control-plane steps, and they have to finish in
-order. The user is still waiting until the slowest step in that chain is done. A busy site
-runs many of these chains every second. Even if only a small percentage of the chains are 
+The study reads tail latency and the delay of the middle request. Two aspects were taken into consideration 
+when choosing to measure these. 
+Firstly, all the processes needed for a phone user to set up a call or perform a handover 
+to another cell. These are not one step processes, but a chain of steps happening in the 
+control-plane, which have to finish in order.  If all the steps happen in order, 
+the user waits for all the steps (also slow ones) to be done. A busy site runs many of 
+these chains every second. Even if only a small percentage of the chains are 
 resolved slowly, due to the high amount of calls, the impact is still noticeable. 
 
 
