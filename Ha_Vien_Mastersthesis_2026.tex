@@ -917,10 +917,11 @@ Forgotten lock guard & Lock stays held after an early return in C++, or a leaked
 \FloatBarrier
       
 \section{Research approach}\label{sec:approach}
-The study runs experiments on two versions of the UE Context Management service.
+The study runs experiments on a matched pair of the UE Context Management service.
 One is written in C++ and the other in Rust. It builds both, plus the harness
 that drives them. The harness is the program that sends the requests. It records
-how long each one takes, from the planned send until the reply. Both versions are built from one
+how long each request takes. That time starts when the request should have been
+sent, and stops when the reply comes back. Both versions are built from one
 fixed specification. Evidence comes from three separate methods: a load sweep contributes to
 RQ1 and RQ3, controlled fault injection answers RQ2, and an FFI migration
 prototype answers RQ4. A weakness in one method does not weaken the others. How much the host can move the
