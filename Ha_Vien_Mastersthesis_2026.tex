@@ -862,10 +862,9 @@ the user waits for all the steps (also slow ones) to be done. A busy site runs m
 these chains every second. Even if only a small percentage of the chains are 
 resolved slowly, due to the high amount of calls, the impact is still noticeable. 
 
-
-The second fact is about the test clock. Each request is timed from its planned send time, so
-a sender that falls behind its schedule adds that lag to the delay it records. While offered
-load stays below saturation, achieved rate matches it and delay stays small.
+Secondly, the test clock is of interest, as each request is planned with a specific send time. 
+If a sender falls behind it's schedule, it adds lag to the overall system. When the system stays 
+below saturation, the achieve rate is solid and delays stay small.  
 
 When the timetable is made faster, a limit appears and the delay jumps. That limit can
 be the service, or work the sender still does while the timer is running, such as writing
