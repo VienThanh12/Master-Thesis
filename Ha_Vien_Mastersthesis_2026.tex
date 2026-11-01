@@ -919,8 +919,8 @@ Forgotten lock guard & Lock stays held after an early return in C++, or a leaked
 \section{Research approach}\label{sec:approach}
 The study runs experiments on two versions of the UE Context Management service.
 One is written in C++ and the other in Rust. It builds both, plus the harness
-that drives them. The harness is the program that sends
-the load and records the times. Both versions are built from one
+that drives them. The harness is the program that sends the requests. It records
+how long each one takes, from the planned send until the reply. Both versions are built from one
 fixed specification. Evidence comes from three separate methods: a load sweep contributes to
 RQ1 and RQ3, controlled fault injection answers RQ2, and an FFI migration
 prototype answers RQ4. A weakness in one method does not weaken the others. How much the host can move the
@@ -931,7 +931,7 @@ language has to be the only planned gap between the two objects under test.
 That rules out the most common way to compare languages. In that form two
 programs written on their own are measured, and the gap is taken to be the
 language. Such a gap also carries the design, the libraries, and the skill of
-their authors. Building both sides from one spec removes that confound. Where
+their authors. Building both sides from one specification removes that confound. Where
 a question can be answered with numbers, it uses numbers. Where it cannot, the
 answer is still by a fixed plan, in words. That is how this study treats the
 kind of guarantee in RQ2. For RQ4 the prototype measures the application programming
@@ -1056,7 +1056,7 @@ operation and not inferred from an empty crossing. Memory bugs that cross a
 language sit in that layer~\cite{li2022crosslang}.
 
 \section{Fairness as a controlled variable}\label{sec:controlsbrief}
-A language comparison is only as good as what it keeps the same. The spec
+A language comparison is only as good as what it keeps the same. The specification
 is fixed before either version exists. Several choices are then matched on
 both sides, and never tuned to favour one language. Those choices are the
 thread model, the allocator and its number of memory pools, the opt level,
@@ -1157,7 +1157,7 @@ The code, raw logs, and rebuild scripts live in
 \url{https://github.com/VienThanh12/Master-Thesis}. Access to that repository is
 restricted during review, and the same package is submitted with this thesis.
 A reader with either copy can rebuild the results without access to Nokia's
-private code. The versions are driven entirely by the public fixed spec. The
+private code. The versions are driven entirely by the public fixed specification. The
 benchmarking harness, the fault catalogue and its runner, and the FFI
 prototype are part of that package. Each plot of measured data is rebuilt by
 one script from the raw logs. So is each quoted number in the results. The
@@ -1178,11 +1178,11 @@ hand.
 \chapter{Design and Implementation\label{chapter:design}}
 \chaptermark{Design}
 
-Nothing is built until the spec is fixed. It fixes the public API, the UE
+Nothing is built until the specification is fixed. It fixes the public API, the UE
 state machine, the data layout and the steps on it, the locks and shard size,
 and the thread model. Both versions follow it. A gap between them then comes
 from the language and the idioms it forces, which Table~\ref{tab:idioms} logs,
-rather than from two different designs. The spec is itself a result of
+rather than from two different designs. The specification is itself a result of
 the study. It is the main guard against favouring one language while writing either version.
 
 One thread model is used on both sides: shared-nothing and thread-per-shard.
@@ -2608,7 +2608,7 @@ This thesis compared modern C++ and Rust on a UE Context Management service
 that keeps per-device state, as a gNB-CU-CP does. It asked how late the tail
 is, which defects a compiler can stop, what the safe code model costs, and what
 adding Rust one piece at a time costs. Both versions were built from one fixed
-spec and driven along the same code paths. That separates a language effect from
+specification and driven along the same code paths. That separates a language effect from
 most gaps in design, and the forced-idiom log records the rest.
 
 \paragraph{Safety results.}
