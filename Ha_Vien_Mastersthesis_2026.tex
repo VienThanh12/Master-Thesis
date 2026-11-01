@@ -917,10 +917,11 @@ Forgotten lock guard & Lock stays held after an early return in C++, or a leaked
 \FloatBarrier
       
 \section{Research approach}\label{sec:approach}
-The study runs experiments on a matched pair of versions. It builds that
-pair, plus the harness that drives them. The harness is the program that sends
-the load and records the times. Both are built from one
-fixed spec. Evidence comes from three separate methods: a load sweep contributes to
+The study runs experiments on two versions of the UE Context Management service.
+One is written in C++ and the other in Rust. It builds both, plus the harness
+that drives them. The harness is the program that sends
+the load and records the times. Both versions are built from one
+fixed specification. Evidence comes from three separate methods: a load sweep contributes to
 RQ1 and RQ3, controlled fault injection answers RQ2, and an FFI migration
 prototype answers RQ4. A weakness in one method does not weaken the others. How much the host can move the
 tail, for example, does not change the fault-injection result.
