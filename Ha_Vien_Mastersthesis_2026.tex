@@ -934,9 +934,11 @@ language has to be the only planned difference between the two objects under tes
 In that form two programs written on their own are measured, and the difference in the results stem from the language. 
 By building both versions from one set of specification, choosing the same design strategies and similar libraries further 
 improves the comparability of the obtained results.
+
 For RQ4 the prototype measures the application programming
-interface (API) between the two languages and the code behind it, and the cost of designing
-that interface is left to prior work.
+interface (API) between the two languages and the code behind it. Prior work
+says designing that interface has a cost. This study does not measure it. A
+longer study would have to measure it.
 
 The closest prior work is the five vendor-hosted theses of Section~\ref{sec:gap}.
 The wider literature came from the digital libraries of the Association for Computing
@@ -953,7 +955,7 @@ OpenAlex finds one that mentions Rust, an unrelated preprint. No search returned
 that measures the tail of a Rust and a C++ version of the same stateful, multi-thread
 control-plane part under too much load.
 
-Table~\ref{tab:design} is the map for the rest of this chapter. Each row is one research question.
+Table~\ref{tab:design} summarizes the content of the rest of this chapter. Each row is one research question.
 The columns say which test answers it, what was built for that test, which data the test
 produces, and which number is reported.
 
