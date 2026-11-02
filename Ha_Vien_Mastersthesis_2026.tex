@@ -1617,11 +1617,13 @@ each build's p99 has a margin of error, and on this computer that margin is at
 most $\PNineNineMaxCI\,\mu$s. The fastest of the four builds and the slowest
 are $\PNineNineRange\,\mu$s apart. The margin is too small to close that gap.
 
-Both p99 comparisons and both p99.9 comparisons remain significant after
-correction for multiple comparisons, \NTailSignificant{} in all, with Rust
-lower in each. That matches the median: the language gap is detectable at the
-typical call and in the upper tail. Table~\ref{tab:significance} lists every
-planned comparison at this load.
+One comparison can show a gap by luck. Across \NTests{} planned comparisons
+those lucky gaps add up. The Holm correction stops the adding up: it keeps a
+gap only when luck would rarely produce one that large anywhere in the plan.
+Both p99 comparisons and both p99.9 comparisons are kept, and Rust is lower
+in each of the \NTailSignificant{} comparisons. That matches the median:
+the language gap is detectable at the typical call and in the upper tail.
+Table~\ref{tab:significance} lists every planned comparison at this load.
 
 Table~\ref{tab:latency} shows the p99.9 and the maximum at the chosen load.
 The maximum is the slowest call in a run, and the first research question,
