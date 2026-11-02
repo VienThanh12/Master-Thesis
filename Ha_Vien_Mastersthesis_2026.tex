@@ -1507,42 +1507,49 @@ Appendix~\ref{appendix:config} provides a field-by-field description of
 the three hosts and their corresponding experimental settings.
 
 \section[Workload and measurements]{Workload and measurements\label{sec:workload}}
-The work is made for the test. The steps it takes come from the 3GPP
-rules~\cite{3gpp38401,3gpp38331}. A driver that always sends the same
-steps walks each UE through the connection lifecycle those rules
-define. The \emph{signal} work first connects a set of UEs, then sends the
-same signal call again and again. That picks out the common path. The
-\emph{mixed} work walks each UE through context creation, setup,
-signal, bearer setup, reconfiguration or handover, and release. The order of the requests is random, but it can be repeated. A starting
-number, called the seed, fixes that order. With the same seed, the C++ version
-and the Rust version get exactly the same list of requests. Below saturation,
-while the service still keeps up, both versions finish the whole list. Each
-kind of request, such as a setup or a release, then appears the same number of
-times in both. That match shows that the two versions did the same work. Past
-saturation, a run reaches its time limit before the list is finished. The two
-versions can stop at different places in the list, so their counts can differ.
-The main measurements and their follow-up both use the mixed workload. The
-signal workload is used only in the test where several requests can wait for an
-answer at the same time (Section~\ref{sec:overload}). Figure~\ref{fig:workload}
-shows the two workloads and the steps that the mixed one goes through.
+The test sends a list of requests. This study made the list. The requests
+follow the 3GPP rules for one device's
+connection~\cite{3gpp38401,3gpp38331}. The driver is the program that sends
+the list. It takes each device, called a UE, through the steps.
+
+The \emph{signal} list is one workload. The driver connects a group of
+devices, then sends the same signalling request many times. That repeated
+request is the common path. The \emph{mixed} list is the other workload.
+Each device goes through the whole connection. The service makes the
+device's record, starts the connection, handles a signal, adds a data
+channel, changes the connection or moves the device to another cell, and
+then ends the connection. In the test those steps are called context
+creation, setup, signal, bearer setup, reconfiguration or handover, and
+release.
+
+In the mixed list the order of the steps is random. A starting number, the
+seed, fixes the order, and the same seed repeats it. With one seed, the C++
+version and the Rust version get the same list. While the service keeps up,
+both finish the list. Each kind of request, such as a setup or a release,
+then happens the same number of times in both. The two versions did the same
+work. When the service falls behind, the run reaches its time limit before
+the list is finished. The two versions can stop in different places, so the
+counts can differ.
+
+The main tests and the follow-up use the mixed list. The signal list is used
+only when several requests can be waiting at once
+(Section~\ref{sec:overload}). Figure~\ref{fig:workload} shows both lists, and
+the steps of the mixed one.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.78\linewidth]{diagrams/pdf/27_workload_timeline.pdf}
 \caption[The two test workloads]{The two
-workloads, and the lifecycle the mixed one walks. Signal repeats the common
-path, and mixed walks each UE through the procedure sequence drawn
-below.\label{fig:workload}}
+lists. Signal repeats the common path. Mixed takes each device through the
+steps drawn below.\label{fig:workload}}
 \end{figure}
 
-The test follows the 3GPP rules, which do not specify a particular mix of
-call types. In a real mobile cell, the handover rate depends on factors such
-as the location of the site and the time of day. There is no single publicly
-defined handover rate. Therefore, the call mix used in this study may differ
-from that of a real cell. However, the same mix is applied to all variants, so
-any difference in the mix affects all variants in the same way. It may change
-the absolute results, but it does not make the comparison between variants
-unfair.
+The 3GPP rules do not fix how many of each step a cell should send. In a
+real cell, how often devices change cell depends on where the site is and on
+the time of day. No published rate gives that number. The mix in this test
+can differ from a real cell. All four builds get the same mix. The mix can
+change the size of the numbers. It changes them for every build, so the
+comparison between builds stays fair.
 
 Each producer sends its requests on a planned schedule. It sleeps until a
 request's planned time, sends it, waits for the reply, and sends the next request
