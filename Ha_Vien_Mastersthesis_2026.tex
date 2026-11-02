@@ -1596,14 +1596,10 @@ load, but the other three variants do not.
 \section{Results}
 The safe-code results and most migration results do not depend on the host used. 
 However, the speed and RSS results do.
-Unless the text or a caption says otherwise, the measurements below come from the host
-described in Section~\ref{sec:testbed}. The second bare-metal host and the further hosts
-A to D are named wherever their results appear. Three small paired experiments ran earlier,
-before the move to bare metal: the split of a round trip into core operation and handoff
-and the FFI comparison on the virtual machine, and the timing of the queue and reply on
-their own on a host that was not recorded. None carries an environment record, so each is
-read only as a ratio between two builds measured alternately in one session
-(Appendix~\ref{appendix:config}).
+The numbers below come from one computer, unless the text or a caption names
+another. That computer ran the reported campaign. It is the bare-metal
+\MainCpu{} in Section~\ref{sec:testbed}. The second bare-metal host and the further hosts
+A to D are named wherever their results appear.
 \subsection{Below saturation (RQ1, RQ3)}\label{sec:perfresults}
 This part compares the two languages while the service is still able to
 keep up with the offered workload. At the chosen load of $\ReprLoad$~kops/s,
