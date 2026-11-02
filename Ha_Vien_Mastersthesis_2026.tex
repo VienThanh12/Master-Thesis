@@ -1055,7 +1055,7 @@ RQ4 is answered by a working
 prototype in the direction a real migration takes. A C++ host calls an
 unchanged Rust core across a C ABI. That thin layer converts between the C++ host and the Rust core.
 The per-call cost is measured on a real
-operation and not inferred from an empty crossing. Memory bugs that cross a
+signalling operation. Memory bugs that cross a
 language sit in that layer~\cite{li2022crosslang}.
 
 \section{Fairness as a controlled variable}\label{sec:controlsbrief}
@@ -1425,10 +1425,8 @@ actually ran.
 
 This chapter first describes the machines used in the experiment and 
 the workloads that were run on them. It then presents the experimental results. 
-Load comes first, as the service is swept from a light load to
-overload. The remaining research questions follow.
-
-
+First the experiments about the impact of increasing load on the component are 
+described, followed by experiments for the remaining research questions.
 Several terms carry a specific meaning throughout this chapter.
 
 \textbf{Offered load} is the rate at which the test sends requests to the
