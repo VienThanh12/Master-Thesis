@@ -1539,9 +1539,8 @@ the steps of the mixed one.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.78\linewidth]{diagrams/pdf/27_workload_timeline.pdf}
-\caption[The two test workloads]{The two
-lists. Signal repeats the common path. Mixed takes each device through the
-steps drawn below.\label{fig:workload}}
+\caption[The two test workloads]{The two work loads used in the experiments of this thesis. The \emph{signal} workload only repeats signaling of connected UEs. 
+The \emph{mixed} workload goes through the whole lifecycle of a UE. \label{fig:workload}}
 \end{figure}
 
 The 3GPP rules do not fix how many of each step a cell should send. In a
@@ -1553,8 +1552,8 @@ comparison between builds stays fair.
 
 Each producer sends its requests on a planned schedule. It sleeps until a
 request's planned time, sends it, waits for the reply, and sends the next request
-at once if it is already late, so each producer has at most one request in
-flight. Every delay is timed from the planned send time. Because the producers
+directly if it is already late, so each producer has at most one request ongoing. 
+Every delay is measured against the planned send time. Because the producers
 run at ordinary priority, Linux may wake a sleeping producer up to $50\,\mu$s
 after the time it asked for~\cite{linux2026timerslack}, and below saturation that
 lateness is part of every delay this clock records (Section~\ref{sec:perfresults}).
