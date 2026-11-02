@@ -924,8 +924,10 @@ how long each request takes. That time starts when the request should have been
 sent, and stops when the reply comes back. Both versions are built from one
 fixed specification. Evidence comes from three separate methods: a load sweep contributes to
 RQ1 and RQ3, controlled fault injection answers RQ2, and an FFI migration
-prototype answers RQ4. A weakness in one method does not weaken the others. How much the host can move the
-tail, for example, does not change the fault-injection result.
+prototype answers RQ4. The studied research questions do not influence each other. 
+The fault rejection results are not affecting how much the tail latency is changed 
+by saturation in the different coding languages. 
+
 
 Each question asks how one outcome depends on one variable, the language. The
 language has to be the only planned gap between the two objects under test.
