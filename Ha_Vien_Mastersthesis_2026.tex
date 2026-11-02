@@ -312,6 +312,7 @@ Saturation & The load at which the service can no longer keep up and requests st
 Overload & Load past saturation. Requests wait because the service cannot keep up \\
 Round-trip & The time from the planned send until the reply comes back. It includes the wait in the queue \\
 Bare metal & The program runs on the computer itself, with no virtual machine between it and the hardware \\
+Campaign & One complete timing experiment on one machine. The same loads and the same four builds are run many times, and those runs are kept as one set of numbers. The reported campaign is the bare-metal experiment this thesis uses for its main numbers. The earlier virtual machine and the second bare-metal machine each have a campaign of their own \\
 Hypervisor & Software that runs virtual machines. The reported campaign has none between the test and the hardware \\
 Guest & A virtual machine an earlier measurement ran in. The reported results come from the bare-metal computer \\
 Userland & Programs and libraries above the kernel. The container supplies the compilers, and the host supplies the kernel \\
@@ -1025,9 +1026,10 @@ split above, this helps narrow down which part of the path may contribute to the
 overload delay.
 
 Past saturation, the sender records extra delay samples for the requests it
-fell behind on (Section~\ref{sec:workload}). In the reported campaign, whose
-overload comparisons are among the planned tests, it records them while the
-timer runs. A follow-up run on the same host writes them after the timed
+fell behind on (Section~\ref{sec:workload}). The reported campaign is the full
+set of timing runs this thesis reports. In that set the sender records those
+samples while the timer runs. Those overload comparisons are among the planned
+tests. A follow-up run on the same host writes them after the timed
 window, so that the recording cannot slow the sender. It is reported as a
 check, not as one of the planned tests.
 
@@ -1411,7 +1413,7 @@ correct'' from ``both wrong in the same way''. A third version in Python acts
 as an independent oracle. An
 oracle is a third program, written on its own, whose answers the other two have to match.
 It has to reproduce all $\ConfHandOps$ hand-derived
-expectations before it may generate any of its own. A campaign of
+expectations before it may generate any of its own. A set of
 $\ConfGenOps$ generated operations found no mismatch. The C++ side runs under
 AddressSanitizer, ThreadSanitizer and UndefinedBehaviorSanitizer. The Rust
 side runs under Miri, an interpreter that checks \texttt{unsafe} Rust for
