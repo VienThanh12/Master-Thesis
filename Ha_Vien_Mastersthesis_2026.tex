@@ -1452,8 +1452,8 @@ one bare-metal host, a single-socket \MainCpu{}. Bare metal means the program ru
 with no virtual machine in between. Each core runs one
 thread. Extra threads on a core are \MainSmt{}. The host runs
 \MainHostDistro{} on kernel \MainKernel{}. Linux can raise and
-lower each core's clock as load and heat change. The clock is held
-fixed. That clock setting is \MainGovernor{}, and boost, a further rise of that clock, is off. The
+lower each core's clock as load and heat change. For the experiments, the core's clock is held
+constant, by the \MainGovernor{} setting and by disabling boost, a further rise of that clock. The
 test may use only cores \MainPinned{}. There is no hypervisor. A hypervisor
 is the program that would run a virtual machine. On those
 cores the kernel turns off its timer tick (\texttt{nohz\_full}).
