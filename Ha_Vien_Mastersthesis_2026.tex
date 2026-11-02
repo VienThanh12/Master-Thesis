@@ -1612,12 +1612,10 @@ gap of up to $\PFiftyDiffAbsMax\,\mu$s between the languages. Rust has slightly
 lower median latency than C++ under both memory allocators.
 Figure~\ref{fig:loadsweep} shows the load sweep behind that number.
 
-The same analysis extends to the higher tail percentiles. For one variant,
-the widest $95\%$ band on its own p99 spans $\PNineNineMaxCI\,\mu$s. The four
-variants' p99 values differ by $\PNineNineRange\,\mu$s. The uncertainty on
-one variant is therefore smaller than the gap between them. On the virtual
-machine the same two sizes were $\GuestPNineNineMaxCI\,\mu$s against
-$\GuestPNineNineRange\,\mu$s, the other way around.
+p99 is a slow call. In 100 calls, 99 were faster. The test is repeated, so
+each build's p99 has a margin of error, and on this computer that margin is at
+most $\PNineNineMaxCI\,\mu$s. The fastest of the four builds and the slowest
+are $\PNineNineRange\,\mu$s apart. The margin is too small to close that gap.
 
 Both p99 comparisons and both p99.9 comparisons remain significant after
 correction for multiple comparisons, \NTailSignificant{} in all, with Rust
