@@ -277,19 +277,19 @@ Term & Meaning \\
 \hline
 \endhead
 \multicolumn{2}{@{}l}{\scriptsize\emph{Network}}\\*[1pt]
-Control plane & The messages that set up and control a call. The user's data travels on the user plane \\
-User plane & The data path that carries the user's data. The control plane sets that path up and takes it down \\
-Signalling & The messages that create, change, and end a connection \\
-Handover & Moving one connected device from one cell to another, so the call can continue \\
-Cell & One coverage area of the radio network \\
-Mobility & A connected device changing cell while the call continues \\
-UE context & The stored record for one device. Among other things, a handover or a release can change that record \\
+Control plane & Messages used to set up, manage, and end a call. User data itself travels on the user plane. \\
+User plane & The data path that carries the user’s traffic. The control plane creates and removes this path. \\
+Signalling & Messages used to create, modify, or end a connection. \\
+Handover & Moving a connected device from one cell to another so the call can continue. \\
+Cell & One radio coverage area in the network. \\
+Mobility & A device changing cells while its connection continues. \\
+UE context & The stored network record for one device. It can change during actions such as handover or release. \\
 Bearer & A bearer is a data path used to carry one device’s user traffic, and the UE context keeps a record of the bearers assigned to that device. \\
-Reconfiguration & A change to a connection that stays up, such as adding a data channel \\
-Release & Ending one device's connection and deleting its record \\
-Procedure & One action a person would notice, such as setting up a call or moving between cells. It is made of many smaller steps \\
-Open-RAN & A split base station with open interfaces between its parts. Each part may come from a different vendor and run as ordinary software \\
-5G core & The network behind the base station. It forwards each call onward \\
+Reconfiguration & A change to an active connection, such as adding a data channel. \\
+Release & Ending one device's connection and deleting its record. \\
+Procedure & A complete network action, such as setting up a call or moving between cells. It consists of several smaller steps. \\
+Open-RAN & A base station design with open interfaces between its parts. Different parts can come from different vendors and run as software. \\
+5G core & The network behind the base station that routes and handles the call or data session. \\
 \\[2pt]
 \multicolumn{2}{@{}l}{\scriptsize\emph{The service}}\\*[1pt]
 Shard & One slice of the device records. Exactly one thread owns that slice \\
