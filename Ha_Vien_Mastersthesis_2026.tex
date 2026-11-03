@@ -318,18 +318,18 @@ Guest & A virtual machine used in an earlier measurement. The reported results c
 Userland & Programs and libraries running above the kernel. The container provides the compilers, while the host provides the kernel. \\
 \\[2pt]
 \multicolumn{2}{@{}l}{\scriptsize\emph{Safety}}\\*[1pt]
-Data race & Two threads use the same memory at once and at least one writes, with nothing to keep the two uses in order \\
-Race condition & A bug that depends on which of two steps finishes first. Safe Rust still compiles these \\
-Use-after-free & Using memory after it has been freed \\
-Double-free & Giving the same memory back twice \\
-Use-after-move & Reading a variable after its contents have been moved elsewhere. The object is still there and still valid, but what it holds is unspecified \\
-Ownership & Rust's rule that each value has one owner. A read of a record whose owner is already gone does not compile \\
-Borrowing & A temporary loan of a value. The compiler rejects a loan that lasts longer than the value \\
-Safe Rust & Code outside \texttt{unsafe} blocks, where ownership, borrowing, and aliasing are checked at compile time \\
-Unsafe & An \texttt{unsafe} block or function where the programmer takes responsibility and the usual checks do not apply. C++ has no such mark \\
-Sanitiser & A tool that watches a running C++ program and reports some defects. It can report only a path a test actually runs \\
-Undefined behaviour & An operation the C++ standard gives no meaning, such as signed integer overflow. The compiler may assume it never happens \\
-Static analyser & A tool that inspects source code without running it. This study ran none \\
+Data race & Two threads access the same memory at the same time, at least one writes, and nothing controls the order. \\
+Race condition &  A bug where the result depends on which of two steps happens first. Safe Rust can still have race conditions. \\
+Use-after-free & Using memory after it has already been freed. \\
+Double-free & Freeing the same memory twice. \\
+Use-after-move & Reading a variable after its contents have been moved elsewhere. The object is still there and still valid, but what it holds is unspecified. \\
+Ownership & Rust’s rule that each value has one owner. The compiler rejects use of a value after its owner is gone. \\
+Borrowing & Temporarily using a value without taking ownership. The compiler rejects borrows that last too long. \\
+Safe Rust & Code outside \texttt{unsafe} blocks, where ownership, borrowing, and aliasing are checked at compile time. \\
+Unsafe & An \texttt{unsafe} block or function where the programmer takes responsibility and the usual checks do not apply. C++ has no such mark. \\
+Sanitiser & A tool that checks a running C++ program and reports some memory or safety errors. It only checks code paths that actually run. \\
+Undefined behaviour & An operation the C++ standard gives no meaning, such as signed integer overflow. The compiler may assume it never happens. \\
+Static analyser & A tool that checks source code without running it. This study did not use one. \\
 \hline
 \end{longtable}
 \endgroup
