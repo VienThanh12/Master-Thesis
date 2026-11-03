@@ -303,7 +303,7 @@ Allocator & The library that hands out memory and takes it back \\
 \multicolumn{2}{@{}l}{\scriptsize\emph{Timing}}\\*[1pt]
 Tail latency & How long the slow calls take, rather than the average call. A p99 latency means 99 of 100 calls were faster than that time, a p99.9 means 999 of 1,000, and a p99.99 means 9,999 of 10,000 \\
 Median & The middle call, once the calls are ordered by how long they took. Half are faster and half are slower \\
-Histogram & The record of how long each call took. Tail latency is read from its slow end \\
+Histogram & A record showing how long calls took. Tail latency is the slowest part of that record, showing the longest call times. \\
 Send schedule & The planned time of each request. A producer sends at that time, waits for the reply, and sends the next request at once if it is already late \\
 Offered load & The rate the test tries to send, counted whether or not the service answers in time \\
 Achieved rate & How fast the service finishes work. It matches offered load until saturation \\
