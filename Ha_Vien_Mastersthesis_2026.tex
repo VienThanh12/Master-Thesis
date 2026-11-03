@@ -301,21 +301,21 @@ Variant & One of the four tested builds: C++ or Rust, each combined with one of 
 Allocator & The memory library that gives memory to the program and takes it back when it is no longer needed. \\
 \\[2pt]
 \multicolumn{2}{@{}l}{\scriptsize\emph{Timing}}\\*[1pt]
-Tail latency & How long the slow calls take, rather than the average call. A p99 latency means 99 of 100 calls were faster than that time, a p99.9 means 999 of 1,000, and a p99.99 means 9,999 of 10,000 \\
-Median & The middle call, once the calls are ordered by how long they took. Half are faster and half are slower \\
+Tail latency & How long the slow calls take, rather than the average call. A p99 latency means 99 of 100 calls were faster than that time, a p99.9 means 999 of 1,000, and a p99.99 means 9,999 of 10,000. \\
+Median & The middle call, once the calls are ordered by how long they took. Half are faster and half are slower. \\
 Histogram & A record showing how long calls took. Tail latency is the slowest part of that record, showing the longest call times. \\
-Send schedule & The planned time of each request. A producer sends at that time, waits for the reply, and sends the next request at once if it is already late \\
-Offered load & The rate the test tries to send, counted whether or not the service answers in time \\
-Achieved rate & How fast the service finishes work. It matches offered load until saturation \\
-Throughput & How many requests the service finishes each second \\
-Saturation & The load at which the service can no longer keep up and requests start to wait \\
-Overload & Load past saturation. Requests wait because the service cannot keep up \\
-Round-trip & The time from the planned send until the reply comes back. It includes the wait in the queue \\
-Bare metal & The program runs on the computer itself, with no virtual machine between it and the hardware \\
-Campaign & One complete timing experiment on one machine. The same loads and the same four builds are run many times, and those runs are kept as one set of numbers. The reported campaign is the bare-metal experiment this thesis uses for its main numbers. The earlier virtual machine and the second bare-metal machine each have a campaign of their own \\
-Hypervisor & Software that runs virtual machines. The reported campaign has none between the test and the hardware \\
-Guest & A virtual machine an earlier measurement ran in. The reported results come from the bare-metal computer \\
-Userland & Programs and libraries above the kernel. The container supplies the compilers, and the host supplies the kernel \\
+Send schedule & The planned send time for each request. If a producer is late, it sends the next request immediately after the reply. \\
+Offered load & The rate the test tries to send, counted whether or not the service answers in time. \\
+Achieved rate & How fast the service finishes work. It matches offered load until saturation. \\
+Throughput & How many requests the service finishes each second. \\
+Saturation & The load at which the service can no longer keep up and requests start to wait. \\
+Overload & Load past saturation. Requests wait because the service cannot keep up. \\
+Round-trip & The time from the planned send time until the reply is received, including any queue waiting time. \\
+Bare metal & Running directly on the computer hardware, without a virtual machine. \\
+Campaign & One complete timing experiment on one machine. It includes repeated runs of the same loads and the same four builds. \\
+Hypervisor & Software that runs virtual machines. The reported bare-metal campaign does not use one. \\
+Guest & A virtual machine used in an earlier measurement. The reported results come from the bare-metal machine. \\
+Userland & Programs and libraries running above the kernel. The container provides the compilers, while the host provides the kernel. \\
 \\[2pt]
 \multicolumn{2}{@{}l}{\scriptsize\emph{Safety}}\\*[1pt]
 Data race & Two threads use the same memory at once and at least one writes, with nothing to keep the two uses in order \\
