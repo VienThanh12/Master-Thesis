@@ -449,13 +449,34 @@ still missing. Providing it is the motivation for this work.
 \end{compactitem}
 
 \section{Industrial context}\label{sec:industrial}
-This thesis is carried out at Nokia, one of the few vendors that develop, maintain, and evolve production Radio Access Network (RAN) software end to end. The RAN vendor market is highly concentrated: the five largest suppliers accounted for 96\% of worldwide RAN revenue during the first three quarters of 2025, while the Herfindahl--Hirschman Index, a measure of market concentration, reached a ten-year high~\cite{delloro2025ran3q,delloro2026ran}. This context makes production RAN software an important setting in which to study software design choices.
+This thesis is carried out at Nokia, one of the few vendors that develop, maintain, 
+and evolve production Radio Access Network (RAN) software end to end. The RAN vendor 
+market is highly concentrated: the five largest suppliers accounted for 96\% of worldwide 
+RAN revenue during the first three quarters of 2025, while the Herfindahl--Hirschman Index, 
+a measure of market concentration, reached a ten-year high~\cite{delloro2025ran3q,delloro2026ran}. 
+This context makes production RAN software an important setting in which to study software design choices.
 
-The focus of this thesis is UECM, a subsystem that provides a compact representation of the per-user-equipment, or per-UE, state management performed by the gNB-CU-CP. In the 3rd Generation Partnership Project (3GPP) architecture, the gNB-CU-CP is the control-plane part of the central unit. It hosts the Radio Resource Control (RRC) function and manages the lifecycle of UE contexts~\cite{3gpp38401,3gpp38331}. These tasks must be performed within the millisecond-scale timing constraints defined for 5G control signalling~\cite{3gpp38913}. Chapter~\ref{chapter:background} explains how this control plane fits into the broader design of the 5G base station, the gNB.
+The focus of this thesis is UECM, a subsystem that provides a compact representation of the 
+per-user-equipment, or per-UE, state management performed by the gNB-CU-CP. In the 3rd 
+Generation Partnership Project (3GPP) architecture, the gNB-CU-CP is the control-plane 
+part of the central unit. It hosts the Radio Resource Control (RRC) function and manages 
+the lifecycle of UE contexts~\cite{3gpp38401,3gpp38331}. These tasks must be performed 
+within the millisecond-scale timing constraints defined for 5G control signalling~\cite{3gpp38913}.
+Chapter~\ref{chapter:background} explains how this control plane fits into the broader 
+design of the 5G base station, the gNB.
 
-UECM is particularly suitable for this thesis because it is small enough to reimplement faithfully and analyse in detail, while still capturing the challenges that make control-plane software difficult. It is stateful, highly concurrent, and performance-sensitive. Since it is implemented in C++, it also reflects the trade-offs of that language: high performance on the one hand, and memory-safety and concurrency risks on the other. In this way, UECM brings together the three trends introduced in Section~\ref{sec:motivation}. Because software of this kind runs in live operator networks, the choice of programming language is not only a technical detail but also a production concern.
+UECM is particularly suitable for this thesis because it is small enough to reimplement 
+faithfully and analyse in detail, while still capturing the challenges that make control-plane 
+software difficult. It is stateful, highly concurrent, and performance-sensitive. Since it is 
+implemented in C++, it also reflects the trade-offs of that language: high performance on the 
+one hand, and memory-safety and concurrency risks on the other. In this way, UECM brings together 
+the three trends introduced in Section~\ref{sec:motivation}. Because software of this kind runs in 
+live operator networks, the choice of programming language is not only a technical detail but also a 
+production concern.
 
-The implementation used in this thesis follows a public, fixed specification rather than proprietary Nokia code. This allows readers outside Nokia to reproduce the comparison and assess the results independently.
+The implementation used in this thesis follows a public, fixed specification rather than 
+proprietary Nokia code. This allows readers outside Nokia to reproduce the comparison and 
+assess the results independently.
 
 \paragraph{A decision with a generational horizon.}
 A language choice in software of this class outlives the generation it was made for.
