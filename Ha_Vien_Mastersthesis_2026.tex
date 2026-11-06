@@ -575,13 +575,17 @@ Three hypotheses are written down before any measurement.
 Chapter~\ref{chapter:discussion} revisits all three hypotheses against the facts.
 
 \paragraph{What RQ2 covers.}
-The compile-time safety claims of RQ2 apply only to \emph{safe Rust}, the code outside
-\texttt{unsafe} blocks, where the compiler can enforce its rules
-(Section~\ref{sec:rustsafety}). The measured service core is written in safe Rust, and so
-is every injected defect but one, which bypasses the checks inside \texttt{unsafe} on
-purpose (Section~\ref{sec:safetyresults}). Chapter~\ref{chapter:design} explains how the
-adoption prototype keeps \texttt{unsafe} code limited to its C application binary
-interface (ABI), the layer where C++ calls into Rust.
+The compile-time safety claims in RQ2 apply only to \emph{safe Rust}, 
+meaning code outside \texttt{unsafe} blocks, where the compiler can 
+enforce Rust’s safety rules (Section~\ref{sec:rustsafety}). 
+The measured service core is implemented in safe Rust. 
+The double-free defect is first tested in safe Rust, 
+where the compiler rejects it. The same defect is then 
+deliberately reintroduced inside an \texttt{unsafe} block, 
+where Rust’s usual compile-time checks no longer apply (Section~\ref{sec:safetyresults}). 
+Chapter~\ref{chapter:design} explains how the adoption prototype confines \texttt{unsafe} 
+code to the C application binary interface (ABI), which is the boundary 
+layer through which C++ calls into Rust.
 
 The RQ2 list has fourteen defect classes. Safe Rust is expected to stop seven of
 them at compile time. It is expected not to stop the other seven. That split is
