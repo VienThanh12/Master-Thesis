@@ -574,18 +574,9 @@ Three hypotheses are written down before any measurement.
 \end{description}
 Chapter~\ref{chapter:discussion} revisits all three hypotheses against the facts.
 
-\paragraph{What RQ2 covers.}
-The compile-time safety claims in RQ2 apply only to \emph{safe Rust}, 
-meaning code outside \texttt{unsafe} blocks, where the compiler can 
-enforce Rust’s safety rules (Section~\ref{sec:rustsafety}). 
-The measured service core is implemented in safe Rust. 
-The double-free defect is first tested in safe Rust, 
-where the compiler rejects it. The same defect is then 
-deliberately reintroduced inside an \texttt{unsafe} block, 
-where Rust’s usual compile-time checks no longer apply (Section~\ref{sec:safetyresults}). 
-Chapter~\ref{chapter:design} explains how the adoption prototype confines \texttt{unsafe} 
-code to the C application binary interface (ABI), which is the boundary 
-layer through which C++ calls into Rust.
+The compile-time safety claims in RQ2 apply only to \emph{safe Rust},
+meaning code outside \texttt{unsafe} blocks, where the compiler can
+enforce Rust's safety rules (Section~\ref{sec:rustsafety}).
 
 The RQ2 list has fourteen defect classes. Safe Rust is expected to stop seven of
 them at compile time. It is expected not to stop the other seven. That split is
@@ -711,7 +702,7 @@ Rust, the compiler checks how memory is used, including ownership and borrowing,
 prevent many common programming errors~\cite{klabnik2023rust,jung2018rustbelt}. When code
 uses an \texttt{unsafe} block or an \texttt{unsafe} function, the programmer must make sure
 that certain operations are used correctly, because the compiler cannot check all their
-safety requirements. Unsafe code is often needed when Rust calls C code through the C ABI
+safety requirements. Unsafe code is often needed when Rust calls C code through the C application binary interface (ABI)
 or uses raw pointers, memory addresses the compiler does not check. C++ has no keyword that marks such code.
 
 C++ manages many resources through Resource Acquisition Is Initialization (RAII), in
