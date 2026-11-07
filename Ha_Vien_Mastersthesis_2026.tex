@@ -149,14 +149,16 @@
       rate step by step until the service overloads. The evaluation also adds fault injection and
       a foreign function interface (FFI) prototype.
       
-      Safe Rust refuses to compile code that contains any of the seven injected memory-safety
-      and data-race defects, whereas C++ compiles the same code. Both languages compile code
-      that contains seven further defects, such as deadlocks.
+      
+      Under these experimental conditions, Safe Rust rejects all seven injected memory-safety 
+      and data-race defects at compile time, whereas the corresponding C++ implementation 
+      compiles successfully. However, both languages continue to compile programs containing 
+      other classes of defects, including deadlocks.
 
-      While the service can still keep up, a typical request is up to
+      While the service can still keep up under normal load, a typical request is up to
       $\PFiftyDiffAbsMax\,\mu$s faster in Rust, and Rust uses slightly less
-      processor time. Once the service falls behind, the result depends on
-      the test clock. If the test writes its extra delay records while the clock
+      processor time. As the request rate increases and the service becomes overloaded, 
+      the result depends on the test clock. If the test writes its extra delay records while the clock
       is running, C++ finishes more requests. If those records are written
       afterwards, Rust finishes more, at $\ProbeAfterOverloadLoad$ thousand
       requests per second with both memory libraries. Most of the lead is in
