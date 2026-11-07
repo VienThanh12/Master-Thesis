@@ -166,9 +166,7 @@
       finishes $\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ more requests with
       the operating system's memory library. When several requests wait at once,
       Rust waits less with \texttt{jemalloc}, and C++ waits less with the system's
-      own library. 
-      
-      On all three computers tested, Rust uses a few megabytes more
+      own library. On all three computers tested, Rust uses a few megabytes more
       memory. Existing C++ code can call the unchanged Rust service through a thin
       C interface. That extra step adds at most $\FfiOpBoundPct\%$ of the time of
       one signalling message.
