@@ -349,14 +349,12 @@ Traditionally, it has been one of the most hardware-dependent parts of the netwo
 relying heavily on specialized equipment. However, it is now undergoing the same shift 
 toward more flexible, software-driven infrastructure.
 
-
-
 In 5G, the base station is the radio site a phone connects to. The standards call it a
 next-generation NodeB (gNB). They split it into a central unit and one or more
 distributed units, and they split the central unit again into a control plane and a
 user plane~\cite{3gpp38401,3gpp38300}. The control plane carries the signalling, the
 messages that set up and control the call. The user plane carries the phone’s data.
-Open-RAN pushes the same idea further: the RAN becomes virtualised, multi-vendor
+Open-RAN pushes that split idea further: the RAN becomes virtualised, multi-vendor
 software linked by open interfaces, so each part may come from a different
 company~\cite{polese2023oran}. The control plane that results, the gNB central unit
 control plane (gNB-CU-CP), tracks every connected device, which are called user equipment (UE). It keeps a record
