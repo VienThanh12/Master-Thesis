@@ -222,7 +222,6 @@ API & Application programming interface \\
 ASN.1 & Abstract Syntax Notation One \\
 CPU & Central processing unit \\
 CVE & Common Vulnerabilities and Exposures \\
-CWE & Common Weakness Enumeration \\
 DPDK & Data Plane Development Kit \\
 EU & European Union \\
 FFI & Foreign function interface \\
@@ -589,15 +588,6 @@ boundary classes are these:
 \item double-free inside \texttt{unsafe}
 \item forgotten lock guard
 \end{compactitem}
-
-A previous study already estimated that boundary from a list, not from
-programs that were built.
-It took the Common Weakness Enumeration (CWE), a long list of bug
-types.
-It marked each type as one that safe Rust would stop or would not.
-It then counted real product bugs in 68 open-source C projects.
-58.2\% of those classified bugs sat in types that safe Rust would have
-made almost impossible~\cite{meneely2025justuserust}.
 
 \section{Contributions and outline}\label{sec:contrib}
 The thesis leaves three artefacts for reuse: a fixed, language-neutral specification of the
