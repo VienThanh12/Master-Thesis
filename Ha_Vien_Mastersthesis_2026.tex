@@ -1157,28 +1157,28 @@ the system's behaviour.
   reason, these values are not a fair measure of processing time after saturation.
 \end{itemize}
 \section{Reproducibility and research artefacts}\label{sec:repro}
-The code, raw logs, and rebuild scripts live in
-\url{https://github.com/VienThanh12/Master-Thesis}. Access to that repository is
-restricted during review, and the same package is submitted with this thesis.
-A reader with either copy can rebuild the results without access to Nokia's
-private code. The versions are driven entirely by the public fixed specification. The
-benchmarking harness, the fault catalogue and its runner, and the FFI
-prototype are part of that package. Each plot of measured data is rebuilt by
-one script from the raw logs. So is each quoted number in the results. The
-script is \texttt{bench/refresh\_thesis.sh}. The code size, complexity and binary
-footprint figures are measured from the source tree instead, and they describe it as
-the campaign ran it, before the probe options and the asynchronous interface added in
-October. That claim does not cover the
-hand-drawn schematics, which explain a concept rather than report a result.
-And running the same scripts over another host's campaign rebuilds the
-artefacts by the same procedure, not with the same values.
+The code, raw logs, and scripts required to rebuild the reported results are available at
+\url{https://github.com/VienThanh12/Master-Thesis}. Access to the repository is
+restricted during review. Therefore, the same package is also submitted with this thesis.
+The results can be rebuilt from either copy without access to Nokia's private code, since
+the experiments are driven by the public fixed specification.
 
-The logs that script reads are part of the package. Each campaign has its own
-script and its own macro prefix, so a figure from one cannot reach a sentence
-about another. Each run's host setup is recorded and stored beside the
-campaign data. Nothing in the results chapters is typed from those files by
-hand.
+The package contains the benchmarking harness, the fault catalogue and runner, and the
+FFI prototype. Measured plots and quoted numerical results are regenerated directly from
+the raw logs using \texttt{bench/refresh\_thesis.sh}. The raw logs are included in the
+package, and each campaign has its own script and macro prefix to keep campaign results
+separate.
 
+Code size, complexity, and binary footprint are measured from the source tree rather
+than from the logs. These measurements describe the version used during the campaign,
+before the probe options and asynchronous interface added in October. The reproducibility
+claim does not cover hand-drawn schematics, which are explanatory rather than measured
+results.
+
+For each run, the host setup is recorded and stored with the corresponding campaign data.
+Running the same scripts on data from another host follows the same procedure but may
+produce different numerical values. No results in the thesis are copied by hand. They are
+generated from the stored data by script.
 \chapter{Design and Implementation\label{chapter:design}}
 \chaptermark{Design}
 
