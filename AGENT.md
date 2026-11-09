@@ -555,8 +555,8 @@ that cites each figure rather than in the caption, because `.acronyms.py` reads 
 label as a use and the labels come before the caption in source order.
 
 **Code listings, 22 October 2026.** After an examiner-style review asked for code, `Thesis_v5.tex`
-gained three `listings` excerpts set inside figure floats, so the five-paragraph rule is untouched:
-`fig:request` (the request type) and `fig:ffilisting` (one C entry point) in Chapter 4, and
+gained two `listings` excerpts set inside figure floats, so the five-paragraph rule is untouched:
+`fig:request` (the request type) in Chapter 4, and
 `fig:uam` (use-after-move and its `rustc` E0382 error) in §5.3.4. Every code line is copied
 verbatim from the file its caption names. Comments, probe-only code and the C++ `TimedResponse`
 struct are removed, and elided Rust variants are marked by a comment. The compiler output is the
@@ -587,10 +587,10 @@ Table~\ref{tab:idioms} lists", because rows such as teardown and the result type
 measured. Layout is load-bearing (9 November 2026). `\enlargethispage{-\baselineskip}` after
 `fig:arch` keeps the hash paragraph off that page so `fig:request` cannot split it. The request
 listing is locally `\ttfamily\tiny` so `fig:request`, the hash paragraph, and `tab:idioms` (`[H]`,
-24pt enlarge) share one page. `fig:ffilisting` is `[H]` above the paragraph that cites it. A
-`\Needspace{6\baselineskip}` before the parity paragraph stops a one-line club at the previous
-page's foot. Keep each table cell to one line where possible, because floats here are
-one-and-a-half spaced and a wrapped row costs 15pt.
+24pt enlarge) share one page. The C entry-point listing (`fig:ffilisting`) was removed on
+9 November 2026. A `\Needspace{6\baselineskip}` before the parity paragraph stops a one-line
+club at the previous page's foot. Keep each table cell to one line where possible, because
+floats here are one-and-a-half spaced and a wrapped row costs 15pt.
 
 Because the results chapters and now the figure captions quote measured values,
 `Thesis_v5.tex` reads the shared generated macro files plus the two further-host

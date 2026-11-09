@@ -1352,48 +1352,7 @@ Optimisation & \texttt{-O2} & \texttt{opt-level = 2} \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[H]
-\centering
-\begin{minipage}{\linewidth}
-{\footnotesize\textbf{C header and C++ host}}
-\begin{lstlisting}[language=C++]
-typedef struct UecmService UecmService;
-int32_t uecm_setup_connection(UecmService* h, uint64_t ue_id);
-
-s = uecm_setup_connection(svc, ue);
-check(s == UECM_OK, "setup_connection", s);
-\end{lstlisting}
-{\footnotesize\textbf{Rust layer}}
-\begin{lstlisting}[language=Rust]
-#[inline]
-unsafe fn as_service<'a>(h: *mut UecmService) -> Option<&'a UecmService> {
-    if h.is_null() {
-        None
-    } else {
-        Some(&*h)
-    }
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn uecm_setup_connection(h: *mut UecmService, ue_id: u64) -> i32 {
-    match as_service(h) {
-        None => UECM_ERR_NULL,
-        Some(s) => status(s.inner.setup_connection(ue_id)),
-    }
-}
-\end{lstlisting}
-\end{minipage}
-\caption[One entry point of the C layer]{One of the $\FfiEntryPoints$ entry
-points of the C layer that lets C++ call the Rust service, excerpted without
-comments from \texttt{ffi/rust-uecm-ffi/include/uecm\_ffi.h},
-\texttt{ffi/cpp-host/main.cpp} and \texttt{ffi/rust-uecm-ffi/src/lib.rs}. The C++ host holds only an opaque handle.
-The Rust side checks that handle for null and dereferences it inside
-\texttt{unsafe} code, then calls the unchanged safe core, and \texttt{status}
-turns the core's typed error into an integer code. The layer marks
-$\FfiUnsafeFns$ functions \texttt{unsafe}, and the core has $\CoreUnsafe$
-\texttt{unsafe} sites.\label{fig:ffilisting}}
-\end{figure}
-
+\Needspace{4\baselineskip}
 Where the languages cannot meet a need the same way, the gap is written into a
 forced-idiom log, which Table~\ref{tab:idioms} lists. Two of those gaps were candidates for the
 overload lead of Section~\ref{sec:overload}. The first is the bounded queue.
@@ -2202,7 +2161,7 @@ outcomes as a matrix, generated from the taxonomy log.\label{fig:taxonomy}}
 \subsection{Migration (RQ4)}\label{sec:migrationresults}
 The C-ABI boundary between the C\texttt{++} host and the Rust core is
 small. It consists of $\FfiEntryPoints$ C entry points implemented across
-$\FfiSeamLines$ lines of Rust, one of which Figure~\ref{fig:ffilisting} shows.
+$\FfiSeamLines$ lines of Rust.
 All raw-pointer operations are isolated in
 $\FfiUnsafeFns$ functions, leaving the main Rust core free of
 \texttt{unsafe} code.
