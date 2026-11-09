@@ -1306,16 +1306,13 @@ struct Request {
 };
 \end{lstlisting}
 \end{minipage}
-\caption[The request type in each language]{The request type in each language,
-excerpted from \texttt{rust/src/message.rs} and
-\texttt{cpp/include/uecm/message.hpp} with comments and probe-only code
-removed, and with the \texttt{TimedResponse} struct left out. Each Rust variant
-except \texttt{Stop} holds only its own operation's fields and a reply channel
-typed to that operation's result. The C++ struct holds every
-operation's fields in every request, $\CppRequestBytes$~bytes against Rust's
-$\RustRequestBytes$. It replies through a \texttt{std::promise} whose
-\texttt{TimedResponse} wraps the \texttt{Response} variant of all
-results.\label{fig:request}}
+\caption[The request type in each language]{The request types, taken from rust/src/message.rs 
+and cpp/include/uecm/message.hpp, are shown with comments, probe-only code, and the TimedResponse 
+struct removed. In Rust, each request variant, except Stop, contains only the fields needed for 
+its operation and a reply channel typed to that operation’s result. In C++, each request stores 
+fields for all operations, making it larger: $\CppRequestBytes$~bytes versus Rust's $\RustRequestBytes$. 
+C++ sends replies through a std::promise, where TimedResponse contains a Response variant covering 
+all possible results.\label{fig:request}}
 \endgroup
 \end{figure}
 
