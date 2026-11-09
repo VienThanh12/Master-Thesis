@@ -584,11 +584,13 @@ date, not the probe builds, and the three numbers are macros (`\CppRequestBytes`
 check, which spec §12 records and the old draft's table left out. So the caption no longer says
 "every point" or "in full". The citing sentence was changed from "and then measured" to "which
 Table~\ref{tab:idioms} lists", because rows such as teardown and the result type were never
-measured. Layout is load-bearing. The table sits under the hash paragraph on a 20pt enlarge,
-and `fig:ffilisting` is now *above* the paragraph that cites it in source. Placed after that
-paragraph, it or the table ends up alone on a float page before Chapter 5, and without the
-enlarge the paragraph's last word is stranded on a page of its own. Keep each cell to one line
-where possible, because floats here are one-and-a-half spaced and a wrapped row costs 15pt.
+measured. Layout is load-bearing (9 November 2026). `\enlargethispage{-\baselineskip}` after
+`fig:arch` keeps the hash paragraph off that page so `fig:request` cannot split it. The request
+listing is locally `\ttfamily\tiny` so `fig:request`, the hash paragraph, and `tab:idioms` (`[H]`,
+24pt enlarge) share one page. `fig:ffilisting` is `[H]` above the paragraph that cites it. A
+`\Needspace{6\baselineskip}` before the parity paragraph stops a one-line club at the previous
+page's foot. Keep each table cell to one line where possible, because floats here are
+one-and-a-half spaced and a wrapped row costs 15pt.
 
 Because the results chapters and now the figure captions quote measured values,
 `Thesis_v5.tex` reads the shared generated macro files plus the two further-host

@@ -16,6 +16,8 @@
 \usepackage{longtable}
 \usetikzlibrary{arrows.meta, positioning, automata, shapes.geometric, calc, fit, backgrounds}
 \usepackage[section]{placeins}
+\usepackage{float}
+\usepackage{needspace}
 \usepackage{enumitem}
 \newlist{compactitem}{itemize}{1}
 \setlist[compactitem]{leftmargin=1.6em, itemsep=0.4ex, topsep=0.8ex, parsep=0pt,
@@ -1255,19 +1257,12 @@ thread-per-shard architecture. Producers submit to a bounded MPSC queue per
 shard, and that shard's worker drains it.\label{fig:arch}}
 \end{figure}
 
-Fairness is kept below the design as well as in it. Both builds link the same
-\texttt{jemalloc} and keep a system-allocator build as a control. Both compile
-at the same optimisation level, \texttt{-O2} for \texttt{g++} and
-\texttt{opt-level = 2} for Cargo, and both record latency through one
-high-dynamic-range (HDR) histogram set up the same way~\cite{tene_hdrhistogram}.
-Hashing is pinned on both sides. SplitMix64 assigns the
-shard~\cite{steele2014splitmix}, and FNV-1a, the Fowler--Noll--Vo
-hash~\cite{rfc9923}, is used inside the map. C++'s default hash of an integer is
-often just the number itself, whereas Rust's is strong on purpose. Left as they
-came, the two standard libraries would have been the measurement.
-
-\begin{figure}[!tbp]
+% Keep the fairness paragraph off the arch page so fig:request cannot split it.
+\enlargethispage{-\baselineskip}
+\begin{figure}[!t]
 \centering
+\begingroup
+\lstset{basicstyle=\ttfamily\tiny,aboveskip=1pt,belowskip=1pt}
 \begin{minipage}[t]{0.595\linewidth}
 {\footnotesize\textbf{Rust}}
 \begin{lstlisting}[language=Rust]
@@ -1321,10 +1316,22 @@ operation's fields in every request, $\CppRequestBytes$~bytes against Rust's
 $\RustRequestBytes$. It replies through a \texttt{std::promise} whose
 \texttt{TimedResponse} wraps the \texttt{Response} variant of all
 results.\label{fig:request}}
+\endgroup
 \end{figure}
 
-\enlargethispage{20pt}
-\begin{table}[!ht]
+Fairness is kept below the design as well as in it. Both builds link the same
+\texttt{jemalloc} and keep a system-allocator build as a control. Both compile
+at the same optimisation level, \texttt{-O2} for \texttt{g++} and
+\texttt{opt-level = 2} for Cargo, and both record latency through one
+high-dynamic-range (HDR) histogram set up the same way~\cite{tene_hdrhistogram}.
+Hashing is pinned on both sides. SplitMix64 assigns the
+shard~\cite{steele2014splitmix}, and FNV-1a, the Fowler--Noll--Vo
+hash~\cite{rfc9923}, is used inside the map. C++'s default hash of an integer is
+often just the number itself, whereas Rust's is strong on purpose. Left as they
+came, the two standard libraries would have been the measurement.
+
+\enlargethispage{24pt}
+\begin{table}[H]
 \centering
 \small
 \caption[Where the two languages had to differ]{Where C\texttt{++} and Rust could not use the same design. Each row is one requirement and how each language meets it.\label{tab:idioms}}
@@ -1348,7 +1355,7 @@ Optimisation & \texttt{-O2} & \texttt{opt-level = 2} \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[!tbp]
+\begin{figure}[H]
 \centering
 \begin{minipage}{\linewidth}
 {\footnotesize\textbf{C header and C++ host}}
@@ -1408,6 +1415,7 @@ a Rust core $\NlocRise\%$ longer in code lines. Its branching complexity is
 $\CcnTotalDrop\%$ lower~\cite{lizard}. The Rust library contains no
 \texttt{unsafe} at all, as Section~\ref{sec:rustsafety} defines safe Rust.
 
+\Needspace{6\baselineskip}
 Parity is tested and not assumed. Language-neutral vectors run in both
 versions. Their logs are diffed operation by operation. A cross-diff cannot tell ``both
 correct'' from ``both wrong in the same way''. A third version in Python acts
