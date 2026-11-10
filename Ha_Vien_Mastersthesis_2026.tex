@@ -1693,7 +1693,9 @@ to store the records. Another is the machine code each compiler produces.
 \caption[Where the end-to-end clock goes]{Where the time of one round trip
 goes, from the separate timing of its parts on the virtual machine of
 Appendix~\ref{appendix:config}. The core operation, labelled language in the
-drawing, takes $\BudgetCoreShareMax\%$. A clock that spends the rest on the
+drawing, takes $\BudgetCoreShareMax\%$. The lower bars are that call timed
+alone, $\BudgetCoreRust$ nanoseconds in Rust and $\BudgetCoreCpp$ nanoseconds
+in C++. A clock that spends the rest on the
 handoff cannot bound a difference in the core operation. The campaign's own clock also
 holds the producer's late wake-up, which this split leaves out.\label{fig:e2eclock}}
 \end{figure}

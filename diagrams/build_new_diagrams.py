@@ -50,7 +50,8 @@ def load_macros():
     missing = {"NRepeats", "NLoadLevels", "NRuns", "MaxOfferedLoad", "NTests",
                "MinAttainableP", "CorrectedFloor", "FfiOpBoundPct",
                "BudgetCoreShareMax", "BudgetCoreShareRest", "BudgetCoreRatio",
-               "BudgetCoreFaster", "FaultClassesPrevented",
+               "BudgetCoreFaster", "BudgetCoreCpp", "BudgetCoreRust",
+               "FaultClassesPrevented",
                "FaultClassesBoundary", "FfiEntryPoints", "FfiUnsafeFns",
                "FfiOpNative", "FfiOpSeam", "CoreUnsafe", "ReprLoad",
                "TrackingLoadCpp", "TrackingLoadRust", "OverloadLoad",
@@ -828,9 +829,13 @@ def e2e_clock():
     cpp_w = rust_w * ratio
     d.text(bar_x, 162, "Rust", 16, GREEN_DEEP)
     d.rect(bar_x + 52, 142, rust_w, 28, GREEN, rx=4)
+    d.text(bar_x + 52 + rust_w + 12, 162,
+           f"{M['BudgetCoreRust']} ns", 16, GREEN_DEEP, weight=700)
     d.text(bar_x, 214, "C++", 16, BLUE_DEEP)
     d.rect(bar_x + 52, 194, cpp_w, 28, BLUE, rx=4)
-    d.text(bar_x + 52 + cpp_w + 14, 216,
+    d.text(bar_x + 52 + cpp_w + 12, 214,
+           f"{M['BudgetCoreCpp']} ns", 16, BLUE_DEEP, weight=700)
+    d.text(bar_x + 52 + cpp_w + 94, 214,
            f"{faster} {M['BudgetCoreRatio']}\u00d7 faster", 16, GREEN_DEEP,
            weight=700)
     d.text(440, 268, "That clock cannot bound a language effect", 17, BODY,
