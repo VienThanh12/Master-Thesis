@@ -2592,10 +2592,10 @@ most gaps in design, and the forced-idiom log records the rest.
 The safety mechanisms act at different stages. Safe Rust rejects all seven
 injected memory-safety and data-race classes before they become programs that
 can run. The same seven compile in C++, where a sanitiser can report a defect
-only if a test executes the relevant path. The other seven compile and fail in
+only if a test executes the relevant path. The other seven studied defect compile and fail in
 both languages. On two of them, LeakSanitizer and UndefinedBehaviorSanitizer
-flag the C++ version without a rewrite. The Rust tools this study ran on those
-two flag nothing, although Miri's leak check and a debug build's overflow
+flag the C++ version without a rewrite. For the same defects, the Rust tools did not flag 
+anything, although Miri's leak check and a debug build's overflow
 checks are made for such cases. Rust therefore rules out data races and
 aliasing errors, but not race conditions, lock-order errors, leaks, wrapping
 arithmetic, or the blast radius of a failed worker. It does not stop what an
