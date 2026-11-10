@@ -1835,15 +1835,15 @@ recording instead of sending.
 \caption[The four planned comparisons past saturation]{The four planned
 comparisons at $\OverloadLoad$~kops/s offered on the reported campaign, Rust
 minus C\texttt{++} with the allocator held fixed. Each cell gives the median
-paired difference over \NRepeats{} repeats above its bootstrap $95\%$ interval,
-and Agree counts the repeats with that sign. Holm $p$ is corrected across all
+paired difference over \NRepeats{} repeats above its bootstrap $95\%$ interval.
+Holm $p$ is corrected across all
 \NTests{} planned comparisons. The sender records extra delay samples inside
 the timed window here, so these differences measure that recording as well as
 the service.\label{tab:overloadtest}}
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}p{0.24\linewidth} l r c r r@{}}
+\begin{tabular}{@{}l l r r r@{}}
 \hline\hline
-Metric & Allocator & Rust $-$ C\texttt{++} & Agree & $p$ & Holm $p$ \\
+Metric & Allocator & Rust $-$ C\texttt{++} & $p$ & Holm $p$ \\
 \hline
 \input{figures/tab_overload_test.tex}\\
 \hline

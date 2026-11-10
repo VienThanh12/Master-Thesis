@@ -3098,7 +3098,7 @@ def write_overload_table(rows, results, outdir, overload):
         d = r["decimals"]
         cell = (f"\\mci{{{r['diff']:+.{d}f}}}{{{r['lo']:+.{d}f}}}{{{r['hi']:+.{d}f}}}")
         trows.append(f"{r['metric']} & {r['alloc']} & {cell} & "
-                     f"{r['agree']}/{r['n']} & {fmt_p(r['p'])} & {fmt_p(r['holm'])}")
+                     f"{fmt_p(r['p'])} & {fmt_p(r['holm'])}")
     out2 = os.path.join(outdir, "tab_overload_test.tex")
     with open(out2, "w") as f:
         f.write(" \\\\\n".join(trows) + "\n")
