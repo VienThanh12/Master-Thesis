@@ -1472,7 +1472,7 @@ Appendix~\ref{appendix:config} provides a field-by-field description of
 the three hosts and their corresponding experimental settings.
 
 \section[Workload and measurements]{Workload and measurements\label{sec:workload}}
-The test sends a list of requests, which were designed/generated during this study. The requests
+The test sends a list of requests, which were designed during this study. The requests
 follow the 3GPP rules for one device's
 connection~\cite{3gpp38401,3gpp38331}. The driver is the program that sends
 the list. It takes each device, called a UE, through the steps.
@@ -1508,12 +1508,15 @@ the steps of the mixed one.
 The \emph{mixed} workload goes through the whole lifecycle of a UE. \label{fig:workload}}
 \end{figure}
 
-The 3GPP rules do not fix how many of each step a cell should send. In a
-real cell, how often devices change cell depends on where the site is and on
-the time of day. No published rate gives that number. The mix in this test
-can differ from a real cell. All four builds get the same mix. The mix can
-change the size of the numbers. It changes them for every build, so the
-comparison between builds stays fair.
+The 3GPP specifications do not define how many times each procedure should be 
+triggered by a cell. In a live network, the frequency of cell changes depends 
+on factors such as site location and time of day, and there is no published 
+standard rate for this behavior.
+
+As a result, the traffic mix used in this test may differ from what occurs 
+in a real cell. However, all four builds are tested with the same mix. 
+While the mix may affect the absolute values of the results, 
+it affects all builds equally, so the comparison between builds remains fair.
 
 Each producer sends its requests on a planned schedule. It sleeps until a
 request's planned time, sends it, and waits for the reply. If it is already
