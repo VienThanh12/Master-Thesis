@@ -315,7 +315,6 @@ Bare metal & Running directly on the computer hardware, without a virtual machin
 Campaign & One complete timing experiment on one machine. It includes repeated runs of the same loads and the same four builds. \\
 Hypervisor & Software that runs virtual machines. The reported bare-metal campaign does not use one. \\
 Guest & A virtual machine used in an earlier measurement. The reported results come from the bare-metal machine. \\
-Userland & Programs and libraries running above the kernel. The container provides the compilers, while the host provides the kernel. \\
 \\[2pt]
 \multicolumn{2}{@{}l}{\scriptsize\emph{Safety}}\\*[1pt]
 Data race & Two threads access the same memory at the same time, at least one writes, and nothing controls the order. \\
@@ -1438,38 +1437,10 @@ result, the compiler version used in this experiment is \texttt{g++~\MainGpp}. A
 does not completely isolate the experiment from the host system. It still uses the host's
 Linux kernel.
 
-Until late in the study, the load sweep was performed inside a
-Kernel-based Virtual Machine (KVM) running on an \GuestCpu{}. The CPU core
-controls described above were not applied during this earlier sweep. The
-experimental notes record the hypervisor as \GuestVirt{}, the guest
-operating system as \GuestDistro{}, and the guest kernel as \GuestKernel{}.
-Here, the guest refers to the virtual machine itself, while userland refers
-to the programs and libraries that run on top of the operating-system
-kernel. The earlier sweep showed substantial variation in the measurements. For one
-variant, the $95\%$ bootstrap confidence interval for p99 latency had a
-width of $\GuestPNineNineMaxCI\,\mu$s. Across the four variants, the
-difference between the smallest and largest p99 values was only
-$\GuestPNineNineRange\,\mu$s. The uncertainty in one variant's p99 measurement was
-therefore larger than the spread among all four variants, so those ranked differences
-cannot be read with confidence. This earlier sweep is nevertheless retained because it used the same
-experimental design as the main experiment. That retention makes a
-side-by-side comparison possible. The purpose of this comparison is to examine
-whether the observed findings are consistent across different environments
-and therefore less likely to be specific to one particular machine or
-environment.
-
-A third sweep was performed on a second bare-metal machine with an
-\BmCpu{} processor. This sweep changed several experimental choices at
-the same time: the shard count, the producer count, the set of offered loads,
-the number of repetitions, and the tools used, and it ran without
-\texttt{nohz\_full}. It therefore provides a broader
-robustness check. Specifically, it tests whether the findings remain
-similar when several experimental choices are changed together. It does
-not isolate the effect of any one of these changes
-separately.
-
-Appendix~\ref{appendix:config} provides a field-by-field description of
-the three hosts and their corresponding experimental settings.
+An earlier sweep on a virtual machine used the same design, and a sweep on a
+second bare-metal machine changed several choices at once. Both are kept
+beside the reported campaign. Appendix~\ref{appendix:config} records the
+machines and what each sweep can be used for.
 
 \section[Workload and measurements]{Workload and measurements\label{sec:workload}}
 The test sends a list of requests, which were designed during this study. The requests
@@ -1477,29 +1448,37 @@ follow the 3GPP rules for one device's
 connection~\cite{3gpp38401,3gpp38331}. The driver is the program that sends
 the list. It takes each device, called a UE, through the steps.
 
-The \emph{signal} list is one workload. The driver connects a group of
-devices, then sends the same signalling request many times. That repeated
-request is the common path. The \emph{mixed} list is the other workload.
-Each device goes through the whole connection. The service makes the
-device's record, starts the connection, handles a signal, adds a data
-channel, changes the connection or moves the device to another cell, and
-then ends the connection. In the test those steps are called context
-creation, setup, signal, bearer setup, reconfiguration or handover, and
-release.
+The \emph{signal} list represents one workload. In this workload, the
+driver first connects a group of devices and then repeatedly sends the same
+signalling request. That request is the message sent while the device stays
+connected.
 
-In the mixed list the order of the steps is random. A starting number, the
-seed, fixes the order, and the same seed repeats it. With one seed, the C++
-version and the Rust version get the same list. While the service keeps up,
-both finish the list. Each kind of request, such as a setup or a release,
-then happens the same number of times in both. The two versions did the same
-work. When the service falls behind, the run reaches its time limit before
-the list is finished. The two versions can stop in different places, so the
-counts can differ.
+The \emph{mixed} list represents the second workload. In this workload,
+each device goes through a complete connection lifecycle. The service
+creates the device record, starts the connection, handles a signalling
+request, adds a data channel, either reconfigures the connection or moves
+the device to another cell, and finally releases the connection. In the
+test, these steps are referred to as context creation, setup, signal,
+bearer setup, reconfiguration or handover, and release.
 
-The main tests and the follow-up use the mixed list. The signal list is used
-only when several requests can be waiting at once
-(Section~\ref{sec:overload}). Figure~\ref{fig:workload} shows both lists, and
-the steps of the mixed one.
+In the mixed workload, the order of the steps is randomized. A seed value
+fixes the random order, so using the same seed produces the same sequence
+again. For a given seed, the C++ and Rust implementations receive the same
+request list. As long as the service keeps up with the offered load, both
+implementations complete the full list. In that case, each request type,
+such as setup or release, occurs the same number of times in both runs, so
+the two implementations perform the same amount of work.
+
+If the service falls behind, however, the run may reach its time limit
+before the list is completed. In that case, the two implementations may stop
+at different points in the list, and the number of completed requests of
+each type may differ.
+
+The main tests and the follow-up tests use the mixed workload. The signal
+workload is used only in the overload experiment, where several requests can
+be waiting at the same time (Section~\ref{sec:overload}).
+Figure~\ref{fig:workload} shows both workloads and the individual steps of
+the mixed workload.
 
 \begin{figure}[ht]
 \centering
@@ -2696,9 +2675,9 @@ piece at a time. That is what would settle the human cost this study can only na
 \appendix{Host and campaign configuration\label{appendix:config}}
 Table~\ref{tab:testbed} itemises the three machines the campaigns ran on. The first is the
 bare-metal host of Section~\ref{sec:testbed} that every performance and resource table of the
-main sweep is drawn from. The second is the virtualised host it replaced. The third is a second
-bare-metal host with a different design. Section~\ref{sec:testbed} compares that third host
-with the reported host. The resident-set decomposition belongs to the
+main sweep is drawn from. The second is the virtualised host it replaced. That host ran inside a
+Kernel-based Virtual Machine (KVM). The third is a second
+bare-metal host with a different design. The resident-set decomposition belongs to the
 second bare-metal host and is reported in Section~\ref{sec:resources}. The fault catalogue was
 compiled and run on the development machine. Of the
 adoption-cost axes only build time is host-sensitive, so its seconds describe the development
@@ -2715,10 +2694,16 @@ differ in the machine, the kernel, the core isolation and pinning, the large-pag
 the toolchain. The virtual machine had \texttt{g++~\GuestGpp} installed directly, before the
 container image existed, and the reported sweep took \texttt{g++~\MainGpp} from that image.
 The second bare-metal host differs further in shard count, producer count, load grid, repeat
-count and compiler, and it ran without \texttt{nohz\_full}. Table~\ref{tab:params} gathers
+count and compiler, and it ran without \texttt{nohz\_full}, so that sweep does not isolate any
+one change. Table~\ref{tab:params} gathers
 the configuration of the service, the workload and the campaign, and
 Table~\ref{tab:significance} lists the ten planned comparisons below saturation.
 Table~\ref{tab:overloadtest} in Section~\ref{sec:overload} gives the four past it.
+
+On the virtual machine, one variant's $95\%$ bootstrap confidence interval for p99
+latency was $\GuestPNineNineMaxCI\,\mu$s wide. The four variants' p99 values spanned
+$\GuestPNineNineRange\,\mu$s. The interval was wider than that span, so the sweep is not
+used to rank the variants on p99.
 
 \clearpage
 \enlargethispage{160pt}
