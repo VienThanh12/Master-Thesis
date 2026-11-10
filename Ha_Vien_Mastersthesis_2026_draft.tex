@@ -1874,6 +1874,7 @@ unaffected. The directions stand, and Rust's true lead is, if anything, larger.
 
 \begin{figure}[ht]
 \centering
+\vspace{12pt}
 \includegraphics[width=0.78\linewidth]{diagrams/pdf/30_load_regimes.pdf}
 \caption[Four load points, from a light load to overload]{The figure shows
 four load points, ranging from light load to overload. These points
@@ -1883,6 +1884,8 @@ load $\TrackingLoad$, the load where C\texttt{++} first falls behind on this
 run at $\ProbeAfterKneeLoad$, and the overload point at $\OverloadLoad$~kops/s.
 The bars show finished throughput on the follow-up run, which writes the extra
 delay samples after the timed window and is not among the planned tests.
+Each bar's full length is the offered load at that point. The filled part is
+finished calls, and the grey part is offered load that did not finish.
 \label{fig:loadmap}}
 \end{figure}
 

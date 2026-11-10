@@ -1584,13 +1584,17 @@ each build's p99 has a margin of error, and on this computer that margin is at
 most $\PNineNineMaxCI\,\mu$s. The fastest of the four builds and the slowest
 are $\PNineNineRange\,\mu$s apart. The margin is too small to close that gap.
 
-One comparison can show a gap by luck. Across \NTests{} planned comparisons
-those lucky gaps add up. The Holm correction stops the adding up: it keeps a
-gap only when luck would rarely produce one that large anywhere in the plan.
-Both p99 comparisons and both p99.9 comparisons are kept, and Rust is lower
-in each of the \NTailSignificant{} comparisons. That matches the median:
-the language gap is detectable at the typical call and in the upper tail.
-Table~\ref{tab:significance} lists every planned comparison at this load.
+One comparison may show a difference purely by chance. 
+When \NTests{} planned comparisons are made, the chance of observing such 
+random differences increases. The Holm correction accounts for this by 
+retaining only those differences that are unlikely to have occurred by 
+chance anywhere in the full set of planned comparisons. After applying 
+the correction, both p99 comparisons and both p99.9 comparisons remain 
+significant. In each of the \NTailSignificant{} significant tail-latency 
+comparisons, Rust has lower latency. This is consistent with the median 
+results: the performance difference between languages is visible both 
+for a typical call and in the upper tail. Table~\ref{tab:significance} 
+lists all planned comparisons at this load.
 
 Table~\ref{tab:latency} shows the p99.9 and the maximum at the chosen load.
 The maximum is the slowest call in a run, and the first research question,
@@ -1770,6 +1774,7 @@ unaffected. Rust stays ahead, and the true lead is larger.
 
 \begin{figure}[ht]
 \centering
+\vspace{12pt}
 \includegraphics[width=0.78\linewidth]{diagrams/pdf/30_load_regimes.pdf}
 \caption[Four load points, from a light load to overload]{The figure shows
 four load points, ranging from light load to overload. These points
@@ -1779,6 +1784,8 @@ load $\TrackingLoad$, the load where C\texttt{++} first falls behind on this
 run at $\ProbeAfterKneeLoad$, and the overload point at $\OverloadLoad$~kops/s.
 The bars show finished throughput on the follow-up run, which writes the extra
 delay samples after the timed window and is not among the planned tests.
+Each bar's full length is the offered load at that point. The filled part is
+finished calls, and the grey part is offered load that did not finish.
 \label{fig:loadmap}}
 \end{figure}
 

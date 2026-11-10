@@ -715,21 +715,50 @@ def _chip_row(d, x, y, items, fill, color, stroke, h=28, gap=16, size=11):
     return centres
 
 
-def _thru_bar(d, x, y, w, h, fill, stroke, label, color, size=12):
-    """A throughput bar with its label to the right, width already scaled."""
-    d.rect(x, y, max(w, 4), h, fill, stroke, rx=4, sw=1.4)
-    d.text(x + max(w, 4) + 10, y + h * 0.72, label, size, color, weight=700)
+# Dark enough to read as "not finished" on a tinted panel, and not a data colour.
+MISS = "#b7c3ce"
+
+
+def _offered_bar(d, x, y, w, h, done, offered, fill):
+    """One bar whose full width is the offered load.
+
+    The filled length is what finished. Grey is the offered load that did not.
+    A full bar covers the grey, so a language that kept up shows no remainder.
+    """
+    d.rect(x, y, w, h, MISS, rx=5)
+    frac = 0.0 if offered <= 0 else min(max(done / offered, 0.0), 1.0)
+    fw = w * frac
+    if fw >= 2:
+        d.rect(x, y, fw, h, fill, rx=5)
+
+
+def _result_panel(d, x, y, w, h, load_key, rust_key, cpp_key, panel, edge,
+                  deep, bar):
+    """Finished calls at one offered load, both languages in that load's colour."""
+    d.rect(x, y, w, h, panel, edge, rx=12, sw=1.6)
+    d.text(x + 20, y + 36, f"{M[load_key]} kops/s offered", 26, deep, weight=700)
+    offered = float(M[load_key])
+    bar_x = x + 78
+    bar_w = w - 196
+    for i, (name, key) in enumerate((("Rust", rust_key), ("C++", cpp_key))):
+        by = y + 56 + i * 36
+        d.text(x + 20, by + 20, name, 20, deep, weight=700)
+        _offered_bar(d, bar_x, by, bar_w, 26, float(M[key]), offered, bar)
+        d.text(bar_x + bar_w + 12, by + 20, f"{M[key]}/{M[load_key]}", 20,
+               deep, weight=700)
 
 
 # --------------------------------------------------------------------------
 def load_regimes():
-    """Four operating points on the offered-load axis, plus finished throughput.
+    """Four operating points on the offered-load axis, plus finished calls.
 
-    Spacing is schematic. The ticks and bar lengths come from the same macros
-    the prose cites. Past saturation the bars are finished throughput with
-    extra delay samples written after the timed window.
+    Spacing on the axis is schematic. The ticks and the bar lengths come from
+    the same macros the prose cites. Each result bar's full width is the
+    offered load at that point. The filled part finished, and the grey part
+    did not. Those bars are the follow-up run, which writes the extra delay
+    samples after the timed window.
     """
-    d = Diagram("30_load_regimes", 880, 280)
+    d = Diagram("30_load_regimes", 880, 360)
 
     d.rect(40, 48, 800, 18, GREY_FILL, rx=9)
     d.rect(40, 48, 280, 18, GREEN, rx=9)
@@ -756,27 +785,20 @@ def load_regimes():
     d.chip(640, 88, 180, 36, "overload",
            RED_CHIP, RED_DEEP, size=13, rx=8, stroke=RED)
 
-    d.text(40, 156, "kops/s finished", 12, FAINT)
+    d.text(24, 162,
+           "The full bar is the offered load. Grey is the part that did not finish.",
+           18, NAVY)
 
-    rust = float(M["ProbeAfterKneeThrRust"])
-    cpp = float(M["ProbeAfterKneeThrCpp"])
-    gap_w = 180.0
-    longer = max(rust, cpp, 1.0)
-    d.text(40, 186, f"at {M['ProbeAfterKneeLoad']}", 12, AMBER_DEEP)
-    _thru_bar(d, 220, 172, gap_w * rust / longer, 18, GREEN, GREEN,
-              f"Rust  {M['ProbeAfterKneeThrRust']}", GREEN_DEEP)
-    _thru_bar(d, 220, 196, gap_w * cpp / longer, 18, BLUE, BLUE,
-              f"C++  {M['ProbeAfterKneeThrCpp']}", BLUE_DEEP)
-
-    cpp = float(M["ProbeAfterThrCpp"])
-    rust = float(M["ProbeAfterThrRust"])
-    over_w = 110.0
-    longer = max(cpp, rust, 1.0)
-    d.text(500, 186, f"at {M['OverloadLoad']}", 12, RED_DEEP)
-    _thru_bar(d, 680, 172, over_w * rust / longer, 18, GREEN, GREEN,
-              f"Rust  {M['ProbeAfterThrRust']}", GREEN_DEEP)
-    _thru_bar(d, 680, 196, over_w * cpp / longer, 18, BLUE, BLUE,
-              f"C++  {M['ProbeAfterThrCpp']}", BLUE_DEEP)
+    _result_panel(
+        d, 20, 180, 410, 160,
+        "ProbeAfterKneeLoad", "ProbeAfterKneeThrRust", "ProbeAfterKneeThrCpp",
+        AMBER_FILL, AMBER_EDGE, AMBER_DEEP, AMBER,
+    )
+    _result_panel(
+        d, 450, 180, 410, 160,
+        "OverloadLoad", "ProbeAfterThrRust", "ProbeAfterThrCpp",
+        RED_FILL, RED_EDGE, RED_DEEP, RED,
+    )
     return d
 
 
