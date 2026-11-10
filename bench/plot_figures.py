@@ -1001,14 +1001,17 @@ def fig_taxonomy(taxonomy_csv, outdir):
     # integer-overflow row would read as undetected in C++ when it is not.
     cols = ["C++ ASan", "C++ TSan", "C++ UBSan", "Safe Rust"]
 
-    # code: 3 = prevented at compile time (best), 2 = detected at runtime,
-    #       1 = detected at runtime but only intermittently, 0 = missed.
+    # code: 3 = stopped by the compiler (best), 2 = caught when the program
+    # runs, 1 = caught on some runs, 0 = missed. The cell word is the legend
+    # word. Safe Rust uses the same red word as a sanitiser that gave no
+    # report: two red words read as a slip, and "compiles" sounds like a
+    # success. The black line says which rows Rust stops.
     def cell(value):
         v = value.strip()
         if v == "detected":
-            return 2, "runtime"
+            return 2, "caught"
         if v == "flaky":
-            return 1, "sometimes"
+            return 1, "some runs"
         return 0, "missed"
 
     grid, labels = [], []
@@ -1019,7 +1022,7 @@ def fig_taxonomy(taxonomy_csv, outdir):
         rust_prevented = "compile-time" in r["rust_compile"]
         grid.append([asan[0], tsan[0], ubsan[0], 3 if rust_prevented else 0])
         labels.append([asan[1], tsan[1], ubsan[1],
-                       "compile" if rust_prevented else "none"])
+                       "stopped" if rust_prevented else "missed"])
 
     cmap = matplotlib.colors.ListedColormap(
         ["#c0392b", "#e67e22", "#e6b800", "#1e8449"])
@@ -1056,14 +1059,14 @@ def fig_taxonomy(taxonomy_csv, outdir):
         ax.axhline(len(prevented) - 0.5, color="black", linewidth=2.0)
 
     legend = [
-        Patch(facecolor="#1e8449", label="prevented at compile time"),
-        Patch(facecolor="#e6b800", label="detected at runtime only"),
-        Patch(facecolor="#e67e22", label="detected on some runs only"),
-        Patch(facecolor="#c0392b", label="not detected / not prevented"),
+        Patch(facecolor="#1e8449", label="stopped by the compiler"),
+        Patch(facecolor="#e6b800", label="caught when the program runs"),
+        Patch(facecolor="#e67e22", label="caught on some runs"),
+        Patch(facecolor="#c0392b", label="missed"),
     ]
     if prevented and boundary:
         legend.append(plt.Line2D([], [], color="black", linewidth=2.0,
-                                 label="where the guarantee stops"))
+                                 label="Rust stops the rows above"))
     ax.legend(handles=legend, loc="upper center", bbox_to_anchor=(0.5, -0.14),
               ncol=2, fontsize=8.5, framealpha=0.9)
     fig.tight_layout()
