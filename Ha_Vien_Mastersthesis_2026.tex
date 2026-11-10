@@ -1917,9 +1917,9 @@ better. The experiment is not one of the planned comparisons of the main
 sweep.
 
 Table~\ref{tab:pipeline} gives the median for the signal workload and for the
-mixed lifecycle. With \texttt{jemalloc}, Rust has the lower median in every
-repetition for both workloads. With the system allocator, C\texttt{++} has
-the lower median throughout. The difference comes from waiting to enter the
+mixed lifecycle. With \texttt{jemalloc}, Rust is faster in every
+repetition for both workloads. With the system allocator, C\texttt{++} is
+faster throughout. The difference comes from waiting to enter the
 queue, not from doing the work, and the time after entering the queue is shorter
 for Rust under both allocators. The two \texttt{jemalloc} builds are different
 releases (Chapter~\ref{chapter:design}), so part of this split may belong to the
@@ -1941,7 +1941,7 @@ C\texttt{++} median (ms) & \PipeFiftyMsCppSystem & \PipeFiftyMsCppJemalloc &
 \PipeMixedFiftyMsCppSystem & \PipeMixedFiftyMsCppJemalloc \\
 Rust median (ms) & \PipeFiftyMsRustSystem & \PipeFiftyMsRustJemalloc &
 \PipeMixedFiftyMsRustSystem & \PipeMixedFiftyMsRustJemalloc \\
-Rust lower & \PipeRustLowerSystemPairs/\PipeRepeats &
+Rust faster & \PipeRustLowerSystemPairs/\PipeRepeats &
 \PipeRustLowerJemallocPairs/\PipeRepeats &
 \PipeMixedRustLowerSystemPairs/\PipeMixedRepeats &
 \PipeMixedRustLowerJemallocPairs/\PipeMixedRepeats \\
