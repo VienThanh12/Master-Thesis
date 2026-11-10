@@ -1239,7 +1239,7 @@ def research_gap():
          ["no", "part", "yes", "yes", "yes"]),
         (["Stateful and concurrent", "under load"],
          ["no", "part", "yes", "no", "yes"]),
-        (["Reports the tail, not", "just the average"],
+        (["Reports tail latency,", "not just the average"],
          ["no", "no", "part", "no", "yes"]),
         (["Drives the system", "into overload"],
          ["no", "no", "no", "no", "yes"]),
