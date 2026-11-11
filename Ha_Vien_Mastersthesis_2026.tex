@@ -2017,29 +2017,18 @@ threads.\label{fig:resources}}
 \FloatBarrier
 \paragraph{Hardware counter reading.}
 The hardware-counter measurements on the second bare-metal host cover
-only one request running by itself. There is no queue, no offered load,
-and no competition between requests. They show how much CPU work one
-isolated call needs.
+only one request running by itself. There is no queue and no offered
+load.
 
 For that call, Rust retires $\BmInstrDelta\%$ \BmInstrDeltaDir{}
-instructions and finishes in $\BmCycleDelta\%$ \BmCycleDeltaDir{} CPU
-cycles than C\texttt{++}. It also has $\BmMissDelta\%$
-\BmMissDeltaDir{} cache misses per thousand instructions. Even with the
-higher miss rate, Rust finishes the isolated call faster.
+instructions and takes $\BmCycleDelta\%$ \BmCycleDeltaDir{} CPU cycles
+than C\texttt{++}. It also has $\BmMissDelta\%$ \BmMissDeltaDir{} cache
+misses per thousand instructions. Even with the higher miss rate, Rust
+finishes the isolated call faster.
 
-These results match the isolated timing below saturation in direction,
-though not in size: $\BmCycleDelta\%$ fewer cycles here against
-$\BudgetCoreRatio\times$ there. The hosts and the compiler pairs differ,
-so an exact match is not expected.
-
-The counters do not explain overload. Under overload many requests share
-the same queue and lock, so some wait for the queue or for another thread
-to release the lock. That waiting is not present in the isolated-call
-test. The extra cost past saturation comes from waiting for the queue
-lock and from kernel time spent handing work between threads.
-
-The hardware counters explain why Rust is faster for one isolated
-request. They do not explain the extra delays under overload.
+These counters do not cover overload. Past saturation the extra cost
+comes from waiting on the queue lock and from kernel time on the
+handoff. That waiting is not present in this test.
 
 \FloatBarrier
 \subsection{Safety via fault injection (RQ2)}\label{sec:safetyresults}
