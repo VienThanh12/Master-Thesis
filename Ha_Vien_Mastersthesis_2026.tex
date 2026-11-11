@@ -2244,20 +2244,27 @@ After the system reaches saturation, the campaign delay mainly reflects
 schedule drift rather than service performance, so it should not be used to
 rank the services.
 
-Completed throughput counts calls finished during the timed window, but in the
-reported campaign that window also holds the sender's recording of extra delay
-samples. On that clock \OverloadSustainedFaster{} completes $\OverloadThrRatio$
-times as many calls as \OverloadSustainedSlower{}. That is the planned result.
-With the recording moved after the window on the same host, the order reverses
-and Rust completes more calls with both allocators. This lead comes from the
-handoff between threads, where C\texttt{++} spends more kernel time per call. On
-a further host with the same processor, replacing the Rust queue with the
-C\texttt{++} queue removed the lead. With the same handoff in both languages,
-Rust stayed only $\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ ahead on two
-further hosts with the system allocator. Most of the difference therefore comes from the queue and
-thread-handoff mechanism rather than from the core operation. In the
-C\texttt{++} build that mechanism is the study's own queue, so the result
-compares two handoff designs as written more than two languages.
+Completed throughput measures the number of calls that finish during the timed
+window. In the reported campaign, however, this window also includes the sender's
+work to record extra delay samples. With this timing method,
+\OverloadSustainedFaster{} completes $\OverloadThrRatio$ times as many calls as
+\OverloadSustainedSlower{}. This is the planned result.
+
+When the recording step is moved outside the timed window on the same host, the
+result changes: Rust completes more calls with both allocators. This advantage is
+not due to the core operation. Instead, it comes from the handoff between
+threads, where the C\texttt{++} version spends more kernel time per call.
+
+Additional tests support this interpretation. On another host with the same
+processor, replacing the Rust queue with the C\texttt{++} queue removed Rust's
+lead. On two further hosts, when both languages used the same handoff mechanism
+and the system allocator, Rust remained only $\HandoffSameLeadLo\%$ to
+$\HandoffSameLeadHi\%$ ahead.
+
+Therefore, most of the throughput difference comes from the queue and
+thread-handoff mechanism, not from the core operation. Since the C\texttt{++}
+build uses the study's own queue, this result mainly compares the two handoff
+designs as implemented, rather than comparing the two languages directly.
 
 On host D, a separate experiment times each request while several requests
 are in flight. It covers both the signal workload and the mixed lifecycle. For
