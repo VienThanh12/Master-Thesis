@@ -2132,15 +2132,40 @@ outcomes as a matrix, generated from the taxonomy log.\label{fig:taxonomy}}
 \FloatBarrier
 \newpage
 \subsection{Migration (RQ4)}\label{sec:migrationresults}
-The connection between the C\texttt{++} host and the Rust core is small and controlled. The C\texttt{++} code calls Rust through only $\FfiEntryPoints$ C-style functions, and this boundary is implemented in just $\FfiSeamLines$ lines of Rust code. Any low-level raw-pointer work is isolated inside $\FfiUnsafeFns$ functions. Therefore, the main Rust core does not need \texttt{unsafe} code and remains fully checked by Rust's normal safety rules.
+The connection between the C\texttt{++} host and the Rust core is 
+small and controlled. The C\texttt{++} code calls Rust through 
+only $\FfiEntryPoints$ C-style functions, and this boundary is 
+implemented in just $\FfiSeamLines$ lines of Rust code. 
+Any low-level raw-pointer work is isolated inside $\FfiUnsafeFns$ functions. 
+Therefore, the main Rust core does not need \texttt{unsafe} code and 
+remains fully checked by Rust's normal safety rules.
 
-The FFI experiment was run on the virtual machine. It compared the same signal call in two ways: called directly, and called through the C-ABI boundary. The results were almost the same, so the two cases could not be clearly distinguished. This means that any extra cost added by the C-ABI boundary is very small. In these measurements, it is at most $\FfiOpBoundPct\%$ of the total call cost. Figure~\ref{fig:ffiseam} shows this boundary structure.
+The FFI experiment was run on the virtual machine. It compared the same 
+signal call in two ways: called directly, and called through the C-ABI boundary. 
+The results were almost the same, so the two cases could not be clearly distinguished. 
+This means that any extra cost added by the C-ABI boundary is very small. 
+In these measurements, it is at most $\FfiOpBoundPct\%$ of the total call cost. 
+Figure~\ref{fig:ffiseam} shows this boundary structure.
 
-The study also measured three practical costs of using Rust beyond the FFI boundary: build time, compiler CPU time, and shipped binary size. In a clean Rust build, third-party code accounts for $\BuildDepShareCpu\%$ of the CPU time. The full Rust build takes $\BuildAllRustWall$~s, compared with $\BuildAllCppWall$~s for the C\texttt{++} build. For the project's own code, the Rust build uses less CPU than the full \texttt{g++} build, at $\BuildAllFirstPartyCpuRatio$ times as much CPU. However, when looking only at the core library, the Rust version uses $\BuildLibCpuRatio$ times as much CPU as the C\texttt{++} version.
+The study also measured three practical costs of using Rust beyond the FFI boundary: 
+build time, compiler CPU time, and shipped binary size. In a clean Rust build, 
+third-party code accounts for $\BuildDepShareCpu\%$ of the CPU time. 
+The full Rust build takes $\BuildAllRustWall$~s, compared with $\BuildAllCppWall$~s 
+for the C\texttt{++} build. For the project's own code, the Rust build uses less CPU 
+than the full \texttt{g++} build, at $\BuildAllFirstPartyCpuRatio$ times as much CPU. 
+However, when looking only at the core library, the Rust version uses $\BuildLibCpuRatio$ 
+times as much CPU as the C\texttt{++} version.
 
-Incremental builds show a mixed result. After editing one C\texttt{++} source file, the C\texttt{++} build finishes in $\BuildIncCppTu$~s. After a similar edit in the Rust library, the Rust build takes $\BuildIncRust$~s. However, if the edit is made in a C\texttt{++} header that is included by other files, the C\texttt{++} rebuild takes $\BuildIncCppHeader$~s.
+Incremental builds show a mixed result. After editing one C\texttt{++} source file, 
+the C\texttt{++} build finishes in $\BuildIncCppTu$~s. After a similar edit in the Rust library, 
+the Rust build takes $\BuildIncRust$~s. However, if the edit is made in a C\texttt{++} header 
+that is included by other files, the C\texttt{++} rebuild takes $\BuildIncCppHeader$~s.
 
-The shipped Rust binary is $\FootShippedRatio\times$ larger than the C\texttt{++} binary. This is mainly because the C\texttt{++} build leaves its standard library to be loaded by the system, while the Rust build links its standard library into the binary. When both versions are linked in the same way, the result depends on the linking policy. With static linking, the \FootStaticSmaller{} binary is smaller. With dynamic linking, the \FootDynamicSmaller{} binary is smaller.
+The shipped Rust binary is $\FootShippedRatio\times$ larger than the C\texttt{++} binary. 
+This is mainly because the C\texttt{++} build leaves its standard library to be loaded by the system, 
+while the Rust build links its standard library into the binary. When both versions are linked in the same way, 
+the result depends on the linking policy. With static linking, the \FootStaticSmaller{} binary is smaller. 
+With dynamic linking, the \FootDynamicSmaller{} binary is smaller.
 
 \enlargethispage{52pt}
 \begin{figure}[!ht]
