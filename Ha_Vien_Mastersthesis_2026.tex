@@ -2334,13 +2334,15 @@ guarantee stops, with defect classes grouped by the mechanism that rejects
 them.\label{fig:boundary}}
 \end{figure}
 
-One case shows that testing can also fail to cover a defect. A specification gap
-allowed a call to be sent outside the service's running window. The call passed
-every test, every parity vector, and all three sanitisers because the affected
-path was never executed. On the Rust side, the failure became detectable
-because of a simple bounds check, not because of a compile-time proof. This
-suggests that the useful engineering principle is ``checked by default,'' rather
-than ``ruled out at compile time.''
+One case shows that testing may still miss a defect. A gap in the specification
+allowed a call to be sent outside the service's running window. This call passed
+all tests, all parity vectors, and all three sanitisers because the affected
+execution path was never exercised.
+
+In the Rust implementation, the problem became visible only because a simple
+bounds check detected it at runtime. It was not prevented by a compile-time
+proof. This suggests that the more useful engineering principle is
+``checked by default'' rather than ``guaranteed impossible at compile time.''
 
 The root cause of the problem also belongs to the testing method. A rule without
 a corresponding test or enforcement mechanism leaves each implementation
