@@ -1885,27 +1885,33 @@ Whole call & \StageCallCppOwn & \StageCallRustOwn & \StageCallCppSame & \StageCa
 
 \FloatBarrier
 \paragraph{Delay with several requests in flight.}
-Past saturation the sender falls behind. The delay above then includes two
-things: the service time and the time the sender is behind schedule. That
-delay does not by itself show which service is faster.
+After the system is overloaded, the sender cannot keep up. 
+The measured delay then includes two parts: 
+the time the service takes to handle the request, 
+and the time the sender was already late in sending it. 
+Because of this, that delay alone cannot tell us which service is actually faster.
 
-A separate experiment on host D therefore times the work itself. Several
-requests can be in flight at the same time. Each request keeps its planned
-arrival time, and timing stops when the worker finishes it. The offered load
-is $\PipeOfferedKops$~kops/s. It is the first measured load where every
-variant completes fewer than $99\%$ of its planned requests within their
-arrival windows. That rule was fixed before looking at which variant did
-better. The experiment is not one of the planned comparisons of the main
-sweep.
+To measure the service work more directly, a separate 
+experiment was run on host D. In this experiment, 
+several requests could be active at the same time. 
+Each request kept its original planned arrival time, 
+and the timer stopped when the worker finished that request. 
+The offered load was \PipeOfferedKops~kops/s. 
+This was the first measured load where every variant 
+completed less than 99\% of its planned requests on time. 
+That rule was chosen before checking which variant performed better. 
+This experiment was separate from the main planned comparison.
 
-Table~\ref{tab:pipeline} gives the median for the signal workload and for the
-mixed lifecycle. With \texttt{jemalloc}, Rust is faster in every
-repetition for both workloads. With the system allocator, C\texttt{++} is
-faster throughout. The difference comes from waiting to enter the
-queue, not from doing the work, and the time after entering the queue is shorter
-for Rust under both allocators. The two \texttt{jemalloc} builds are different
-releases (Chapter~\ref{chapter:design}), so part of this split may belong to the
-allocator builds rather than to the languages.
+Table~\ref{tab:pipeline} shows the median results for the signal 
+workload and the mixed lifecycle workload. With \texttt{jemalloc}, 
+Rust was faster in every run for both workloads. 
+With the system allocator, C\texttt{++} was faster in every run. 
+The gap mainly comes from time spent waiting to enter the queue, 
+not from the work done after entering it. Once a request enters the queue, 
+Rust is faster under both allocators. However, the two \texttt{jemalloc} 
+builds use different versions (Chapter~\ref{chapter:design}), 
+so some of the difference may come from the allocator versions rather 
+than from the languages themselves.
 
 \begin{table}[!ht]
 \centering
