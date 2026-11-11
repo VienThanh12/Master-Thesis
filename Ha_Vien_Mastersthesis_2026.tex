@@ -1823,7 +1823,8 @@ A & Rust uses the C\texttt{++} queue design, one lock and two condition
 variables & Gone. The swap closes $\SgQueueClosedPct\%$ of the lead, and Rust is slower
 than with its own channel in $\SgQueueMutexSlower$ of $\SgQueuePairs$ repeats \\
 A & C\texttt{++} keeps that lock with a fixed ring instead of a growable
-buffer & No change. C\texttt{++} moved by $\SgQueueRingAbsPct\%$ \\
+buffer & Stayed. Against the growable buffer, C\texttt{++} changed by only
+$\SgQueueRingAbsPct\%$ \\
 B, C & Both languages use one hand-written queue and reply &
 Fell from $\HandoffStockLeadSystem\%$ to $\HandoffSameLeadSystem\%$ on host B,
 and from $\HandoffRepStockLeadSystem\%$ to $\HandoffRepSameLeadSystem\%$ on
