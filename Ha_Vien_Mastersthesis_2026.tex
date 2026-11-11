@@ -1982,31 +1982,29 @@ Allocator effect & $\RssAllocDiffLo$--$\RssAllocDiffHi$
 \end{table}
 
 \FloatBarrier
-The second bare-metal host provides more detail about the source of the
-additional Rust RAM. Table~\ref{tab:resident} separates the process memory
-into allocator metadata, live application allocation, and
-allocator-resident memory. Each difference below is Rust minus C\texttt{++}. Arena
-metadata differs by $\BmJeMetadataDelta$~MiB, live application allocation by
-$\BmJeAllocatedDelta$~MiB, and allocator-resident memory by $\BmJeResidentDelta$~MiB.
-Although the last two are lower, the peak RSS of the Rust process differs by
-$\BmJeRssDelta$~MiB. The metadata is counted inside
-the allocator-resident figure, so the extra metadata does not explain the higher
-peak. The two \texttt{jemalloc} builds also differ (Chapter~\ref{chapter:design}),
-which may account for part of the metadata gap.
+The second bare-metal host shows where the extra Rust memory sits. Each
+difference is Rust minus C\texttt{++}. Arena metadata differs by
+$\BmJeMetadataDelta$~MiB, live application allocation by
+$\BmJeAllocatedDelta$~MiB, and allocator-resident memory by
+$\BmJeResidentDelta$~MiB. Those last two are lower for Rust. The peak RSS
+of the Rust process is still higher, by $\BmJeRssDelta$~MiB. The metadata
+sits inside the allocator-resident memory, so it does not account for that
+higher peak. The two \texttt{jemalloc} builds are different releases. That
+may explain part of the metadata gap.
 
-On that host, therefore, the higher Rust RSS is not caused by Rust holding more
-live application data. Instead, it is mainly a fixed cost of the process.
+On that host the higher Rust RSS is mainly a fixed cost of the process.
+Rust holds less live application data there.
 
 \paragraph{CPU usage.}
 CPU usage does not follow the memory pattern. At $\ReprLoad$~kops/s, Rust
-uses up to $\CpuDiffAbsMax$ percentage points less CPU than C\texttt{++}, and
-both CPU comparisons clear the Holm correction (Table~\ref{tab:significance}).
-Past saturation the planned CPU comparison has Rust drawing more
-(Table~\ref{tab:overloadtest}), but that clock includes the recording. On the
-follow-up run, CPU per finished call at $\ProbeAfterOverloadLoad$~kops/s
-differs by a factor of $\ProbeAfterCpuPerOpRatio$, with
-\ProbeAfterCpuPerOpHigher{} the higher one. A throughput lead remains there, and
-Section~\ref{sec:overload} traces it to how the queue is locked.
+uses up to $\CpuDiffAbsMax$ percentage points less CPU than C\texttt{++}.
+Both CPU comparisons pass the Holm correction. Past saturation the planned
+comparison has Rust using more CPU, and that clock includes the recording.
+On the follow-up run, CPU per finished call at
+$\ProbeAfterOverloadLoad$~kops/s differs by a factor of
+$\ProbeAfterCpuPerOpRatio$, and \ProbeAfterCpuPerOpHigher{} is the higher
+one. A throughput lead remains on that run. That lead comes from how the
+queue is locked.
 
 \paragraph{Hardware counter reading.}
 
@@ -2891,7 +2889,7 @@ Component & C++ & Rust & Difference \\
 \end{table}
 
 The allocation profile on the second bare-metal host was taken to name the call sites behind
-the resident-set difference of Section~\ref{sec:resources}. Two departures from the campaign
+the resident-set difference of Section~\ref{sec:resources}, listed in Table~\ref{tab:resident}. Two departures from the campaign
 explain why it cannot. The first profile sent requests back to back without a schedule, at
 $\BmProfThroughput$~kops/s, inside the bracket of $\BmKneeLo$--$\BmKneeHi$~kops/s where that
 host's throughput stops rising. Repeating it at a swept load below saturation
