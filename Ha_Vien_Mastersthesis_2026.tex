@@ -1908,11 +1908,7 @@ Rust was faster in every run for both workloads.
 With the system allocator, C\texttt{++} was faster in every run. 
 The gap mainly comes from time spent waiting to enter the queue, 
 not from the work done after entering it. Once a request enters the queue, 
-Rust is faster under both allocators. However, the two \texttt{jemalloc} 
-builds use different versions (Chapter~\ref{chapter:design}), 
-so some of the difference may come from the allocator versions rather 
-than from the languages themselves.
-
+Rust is faster under both allocators.
 \begin{table}[!ht]
 \centering
 \small
