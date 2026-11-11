@@ -1843,9 +1843,12 @@ Rust's call is $\StageCallGapOwn$~\textmu s shorter, and
 $\StageQueueGapOwn$~\textmu s of that difference is in the queue. With the
 same handoff, the queue and the reply take the same time in both languages,
 to within $\StageSameMaxDiff$~\textmu s. Splitting the call adds two clock
-reads, so whole calls are compared on the runs without that split.
+reads, so whole calls are compared on the runs without that split. The queue
+ends when the worker starts, and the reply ends when the sender holds the
+result. Rounded parts may miss the whole call in the last digit.
 
-\begin{figure}[!tbp]
+\enlargethispage{72pt}
+\begin{figure}[!ht]
 \centering
 \includegraphics[width=0.94\linewidth]{diagrams/pdf/32_same_handoff.pdf}
 \caption[One handoff written the same way in both languages]{How a request
@@ -1859,7 +1862,7 @@ processor. This probe is not one of the planned comparisons.\label{fig:samehando
 
 \vspace{1.4em}
 {\small
-\captionof{table}[Time spent in each part of one call]{Time spent in each part of one call on host C, in microseconds, with the system allocator. The queue ends when the worker starts, and the reply ends when the sender holds the result. Rounded parts may miss the whole call in the last digit.\label{tab:callparts}}
+\captionof{table}[Time spent in each part of one call]{Time spent in each part of one call, in microseconds.\label{tab:callparts}}
 \vspace{0.6em}
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{8pt}
@@ -1880,6 +1883,7 @@ Whole call & \StageCallCppOwn & \StageCallRustOwn & \StageCallCppSame & \StageCa
 }
 \end{figure}
 
+\FloatBarrier
 \paragraph{Delay with several requests in flight.}
 Past saturation the sender falls behind. The delay above then includes two
 things: the service time and the time the sender is behind schedule. That
