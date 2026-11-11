@@ -2132,45 +2132,17 @@ outcomes as a matrix, generated from the taxonomy log.\label{fig:taxonomy}}
 \FloatBarrier
 \newpage
 \subsection{Migration (RQ4)}\label{sec:migrationresults}
-The C-ABI boundary between the C\texttt{++} host and the Rust core is
-small. It consists of $\FfiEntryPoints$ C entry points implemented across
-$\FfiSeamLines$ lines of Rust.
-All raw-pointer operations are isolated in
-$\FfiUnsafeFns$ functions, leaving the main Rust core free of
-\texttt{unsafe} code.
+The boundary between the C\texttt{++} host and the Rust core is small. It uses only $\FfiEntryPoints$ C-style entry points, implemented in $\FfiSeamLines$ lines of Rust code. All raw-pointer handling is kept inside $\FfiUnsafeFns$ functions. Because of this, the main Rust core contains no \texttt{unsafe} code.
 
-In the paired FFI experiment, which ran on the virtual machine,
-the same signal call made directly and through the C-ABI cannot be told apart.
-Any per-call overhead the boundary adds is therefore bounded by
-$\FfiOpBoundPct\%$ of the call cost in these measurements. Figure~\ref{fig:ffiseam}
-shows the structure of this boundary.
+The FFI experiment was run on the virtual machine. It compared the same signal call in two ways: called directly, and called through the C-ABI boundary. The results were almost the same, so the two cases could not be clearly distinguished. This means that any extra cost added by the C-ABI boundary is very small. In these measurements, it is at most $\FfiOpBoundPct\%$ of the total call cost. Figure~\ref{fig:ffiseam} shows this boundary structure.
 
-Three practical costs of adopting Rust beyond the FFI
-boundary were also measured: build time, compiler cost for the project's own source, and
-shipped binary size. Third-party code accounts for
-$\BuildDepShareCpu\%$ of the CPU time in a clean Rust build, which takes
-$\BuildAllRustWall$~s against $\BuildAllCppWall$~s for C\texttt{++}. For the
-project's own source, the Rust build needs less CPU than the whole
-\texttt{g++} build, $\BuildAllFirstPartyCpuRatio$ times as much, although the core
-library alone needs $\BuildLibCpuRatio$ times as much CPU in Rust as in
-C\texttt{++}. Incremental builds split the other way. After an edit inside one C\texttt{++} source file
-the C\texttt{++} build finishes in $\BuildIncCppTu$~s, against
-$\BuildIncRust$~s after the same edit in the Rust library, but an edit to the
-matching C\texttt{++} header, which other files include, takes
-$\BuildIncCppHeader$~s.
+The study also measured three practical costs of using Rust beyond the FFI boundary: build time, compiler CPU time, and shipped binary size. In a clean Rust build, third-party code accounts for $\BuildDepShareCpu\%$ of the CPU time. The full Rust build takes $\BuildAllRustWall$~s, compared with $\BuildAllCppWall$~s for the C\texttt{++} build. For the project's own code, the Rust build uses less CPU than the full \texttt{g++} build, at $\BuildAllFirstPartyCpuRatio$ times as much CPU. However, when looking only at the core library, the Rust version uses $\BuildLibCpuRatio$ times as much CPU as the C\texttt{++} version.
 
-The shipped binaries differ by $\FootShippedRatio\times$, with Rust's the
-larger, mostly because the C\texttt{++} build leaves its standard library to
-the loader and the Rust build links its own in. Linked the same way, the order
-depends on the policy. Statically linked, the \FootStaticSmaller{} binary is
-the smaller, and dynamically linked, the \FootDynamicSmaller{} one is.
-Finally, the Rust core itself uses no third-party libraries and contains no
-\texttt{unsafe} sites ($\DepsCore$ libraries and $\CoreUnsafe$ sites). Rust's
-name for one library is a crate. The
-third-party code in the build belongs to the benchmark harness and the
-\texttt{jemalloc} binding, $\DepsHarness$ and $\DepsJemalloc$ libraries. The core
-comparison is therefore attributable to the language and build configuration
-rather than to dependencies or unsafe code.
+Incremental builds show a mixed result. After editing one C\texttt{++} source file, the C\texttt{++} build finishes in $\BuildIncCppTu$~s. After a similar edit in the Rust library, the Rust build takes $\BuildIncRust$~s. However, if the edit is made in a C\texttt{++} header that is included by other files, the C\texttt{++} rebuild takes $\BuildIncCppHeader$~s.
+
+The shipped Rust binary is $\FootShippedRatio\times$ larger than the C\texttt{++} binary. This is mainly because the C\texttt{++} build leaves its standard library to be loaded by the system, while the Rust build links its standard library into the binary. When both versions are linked in the same way, the result depends on the linking policy. With static linking, the \FootStaticSmaller{} binary is smaller. With dynamic linking, the \FootDynamicSmaller{} binary is smaller.
+
+Finally, the Rust core itself has no third-party libraries and no \texttt{unsafe} sites. In other words, it contains $\DepsCore$ libraries and $\CoreUnsafe$ unsafe sites. In Rust, a library is called a crate. The third-party code used in the build comes from the benchmark harness and the \texttt{jemalloc} binding, with $\DepsHarness$ and $\DepsJemalloc$ libraries respectively. Therefore, the comparison mainly reflects the language and build configuration, rather than extra dependencies or unsafe Rust code.
 
 
 \enlargethispage{52pt}
