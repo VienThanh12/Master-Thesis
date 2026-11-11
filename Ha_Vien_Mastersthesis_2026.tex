@@ -2183,22 +2183,39 @@ $\FfiCrossing$~ns and bounds only itself.\label{fig:ffiseam}}
 
 \section{Summary of findings}
 \begin{compactitem}
-\item \textbf{RQ1 (latency).} At $\ReprLoad$~kops/s, Rust is slightly but consistently faster. The largest difference is at the median, where Rust is ahead by up to $\PFiftyDiffAbsMax\,\mu$s. Gaps at p99 and p99.9 are smaller. Across the slowest calls in all repeated runs, and at the maximum latency, \FarTailLower{} leads by more.
+\item \textbf{RQ1 (latency).} At $\ReprLoad$~kops/s, Rust is slightly but consistently faster.
+The largest difference is at the median, where Rust is ahead by up to $\PFiftyDiffAbsMax\,\mu$s. 
+Gaps at p99 and p99.9 are smaller. Across the slowest calls in all repeated runs, and at the maximum 
+latency, \FarTailLower{} leads by more.
 
-That end-to-end gap need not come from the core operation. The core is only a small part of the round-trip, and the measured time also holds any delay from a producer that wakes late before it sends. End-to-end figures therefore cannot prove that one build has a faster core than the other.
-
+That end-to-end gap need not come from the core operation. 
+The core is only a small part of the round-trip, and the measured time 
+also holds any delay from a producer that wakes late before it sends. 
+End-to-end figures therefore cannot prove that one build has a faster core than the other.
 Measured alone on the virtual machine, the core is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster{}.
 
-After saturation, the planned comparison shows C\texttt{++} completing more calls, but that window also holds the sender's recording overhead. With the recording moved outside the measured window, Rust completes more calls instead. This advantage comes from differences in the handoff design, not from the core operation.
+After saturation, the planned comparison shows C\texttt{++} completing more calls, 
+but that window also holds the sender's recording overhead. With the recording moved 
+outside the measured window, Rust completes more calls instead. This advantage comes 
+from differences in the handoff design, not from the core operation.
 
-Probes on hosts with the same processor support this conclusion. When Rust is given the C\texttt{++} queue design, the lead disappears. With the same handoff in both languages, Rust's remaining lead falls to $\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ with the system allocator.
+Probes on hosts with the same processor support this conclusion. 
+When Rust is given the C\texttt{++} queue design, the lead disappears. 
+With the same handoff in both languages, Rust's remaining lead falls 
+to $\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ with the system allocator.
 
-The delay after saturation is \emph{schedule drift}, as defined in Section~\ref{sec:statsbrief}, so it should not rank the services. Timing the work while several requests are in flight is a better comparison. The total-delay ranking then depends on the allocator, but once a request has entered the queue Rust has shorter processing time under both allocator choices.
-\item \textbf{RQ2 (defects).} The outcome follows from the fourteen-class catalogue defined
-in advance and does not depend on the host, apart from the intermittent ThreadSanitizer
-report on the lock-order deadlock. All seven classes of errors that safe Rust is
-designed to reject result in compile-time errors. The remaining seven compile. They fail at
-runtime in both Rust and C\texttt{++}.
+The delay after saturation is \emph{schedule drift}, as defined in Section~\ref{sec:statsbrief}, 
+so it should not rank the services. 
+Timing the work while several requests are in flight is a better comparison. 
+The total-delay ranking then depends on the allocator, but once a request has entered the 
+queue Rust has shorter processing time under both allocator choices.
+
+\item \textbf{RQ2 (defects).} The result is based on the fourteen defect classes that were
+defined before the experiment. Therefore, the conclusion does not depend on which host was
+used, except for one ThreadSanitizer report related to a lock-order deadlock that appeared
+only in some runs. For the seven defect classes that safe Rust is designed to prevent, Rust
+reports errors at compile time. The other seven defect classes are not rejected by the
+compiler. They compile successfully, but fail at runtime in both Rust and C\texttt{++}.
 
 \item \textbf{RQ3 (resources).} Rust has higher peak RSS under both allocators. The difference is
 $\RssLangDiffLo$--$\RssLangDiffHi$~MiB on the campaign host, $\GuestRssLangLo$--$\GuestRssLangHi$~MiB
