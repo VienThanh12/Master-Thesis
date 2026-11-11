@@ -2322,9 +2322,9 @@ published Rust Common Vulnerabilities and Exposures (CVE) entry related to
 memory safety involved \texttt{unsafe} code. The exception was a compiler
 bug~\cite{xu2021rustcve}.
 
-This is why keeping the core free of \texttt{unsafe} code is important. It also
-explains why the spread of \texttt{unsafe} code through dependent libraries should
-be treated as a review concern~\cite{evans2020rust}.
+This motivates keeping the core implementation free of \texttt{unsafe} Rust code.
+It also highlights the need to review dependent libraries carefully, because
+\texttt{unsafe} code can enter the system through those dependencies~\cite{evans2020rust}.
 
 \begin{figure}[ht]
 \centering
