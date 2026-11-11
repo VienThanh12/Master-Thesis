@@ -2047,8 +2047,7 @@ Use-after-move is an important example because it is prevented by Rust even
 though no sanitiser reports it. A moved-from C++ object remains valid, but its
 state is unspecified, so the program may continue running with the expected
 identity missing. There is therefore no invalid memory access for a sanitiser
-to detect, even though the application behaviour is incorrect
-(Section~\ref{sec:defects}). Figure~\ref{fig:uam} shows the C\texttt{++} program
+to detect, even though the application behaviour is incorrect. Figure~\ref{fig:uam} shows the C\texttt{++} program
 above the \texttt{rustc} error for its Rust version.
 
 \begin{figure}[!ht]
