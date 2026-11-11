@@ -1981,16 +1981,6 @@ Allocator effect & $\RssAllocDiffLo$--$\RssAllocDiffHi$
 \end{tabular}
 \end{table}
 
-\begin{figure}[!ht]
-\centering
-\includegraphics[width=\linewidth]{figures/fig_resources_column.pdf}
-\caption[Peak memory and CPU of the four builds]{Resource use at
-$\ReprLoad$~kops/s, grouped by allocator. Bars are medians over \NRepeats{}
-repeats with bootstrap $95\%$ intervals, and CPU in (b) is summed across
-threads.\label{fig:resources}}
-\end{figure}
-
-\FloatBarrier
 The second bare-metal host shows where the extra Rust memory sits. Each
 difference is Rust minus C\texttt{++}. Arena metadata differs by
 $\BmJeMetadataDelta$~MiB, live application allocation by
@@ -2015,6 +2005,16 @@ $\ProbeAfterCpuPerOpRatio$, and \ProbeAfterCpuPerOpHigher{} is the higher
 one. A throughput lead remains on that run. That lead comes from how the
 queue is locked.
 
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_resources_column.pdf}
+\caption[Peak memory and CPU of the four builds]{Resource use at
+$\ReprLoad$~kops/s, grouped by allocator. Bars are medians over \NRepeats{}
+repeats with bootstrap $95\%$ intervals, and CPU in (b) is summed across
+threads.\label{fig:resources}}
+\end{figure}
+
+\FloatBarrier
 \paragraph{Hardware counter reading.}
 The hardware-counter measurements on the second bare-metal host cover
 only one request running by itself. There is no queue, no offered load,
