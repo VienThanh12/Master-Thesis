@@ -1776,42 +1776,32 @@ finished calls, and the grey part is offered load that did not finish.
 \end{figure}
 
 \paragraph{Where the lead comes from.}
-On the follow-up, Rust finishes more calls because the whole trip is shorter.
-The sender waits for the reply before it sends again, so finished calls follow
-the whole round trip. The core work is at most $\BudgetCoreShareMax\%$ of that
-trip. At the highest load, $\ProbeAfterSysShareLo$ to $\ProbeAfterSysShareHi\%$
-of a call's CPU is the kernel putting threads to sleep and waking them.
-\ProbeAfterSysHigher{} spends more of that time per call than
-\ProbeAfterSysLower{}, on $\ProbeAfterSysLowerLoads$ of the $\ProbeAfterLoads$
-load levels and on both allocators, and $\ProbeAfterSysRatio$ times as much at
-the top load.
+On the follow-up run, Rust completes more calls because the 
+full request--reply cycle is shorter. The sender waits for 
+each reply before issuing the next request, so completed-call 
+throughput is determined by the entire round trip rather than 
+by the core operation alone. The core work accounts for at most $\BudgetCoreShareMax\%$ of that trip. At the highest load, $\ProbeAfterSysShareLo\%$ to $\ProbeAfterSysShareHi\%$ of each call's CPU time is spent in kernel operations that put threads to sleep and wake them. \ProbeAfterSysHigher{} spends more of this time per call than \ProbeAfterSysLower{} on $\ProbeAfterSysLowerLoads$ of the $\ProbeAfterLoads$ load levels, under both allocators, and spends $\ProbeAfterSysRatio$ times as much at the highest load.
 
-Later runs change one piece of the build and repeat the comparison. They ran
-on further computers with the same processor (Table~\ref{tab:probes}). Changing
-the C\texttt{++} map leaves the lead in place. Giving Rust the C\texttt{++}
-queue removes it, within the timer error above. That queue is one lock and two
-condition variables. Changing only the buffer behind the lock does not move
-C\texttt{++}. The lead comes from how the queue is locked and how a waiting
-thread is woken. In the C\texttt{++} build that queue is this study's own code
-(Table~\ref{tab:idioms}), so the lead belongs to the two designs as written.
-It does not belong to either language in general. On the C\texttt{++} path the kernel records $\HandoffEmptyWakesCpp$ wake-ups
-per request that find no sleeping thread, against $\HandoffEmptyWakesRust$ for
-Rust.
+The later runs modify one component of the build at a time and repeat 
+the comparison. These runs were conducted on additional machines with 
+the same processor (Table~\ref{tab:probes}). Replacing the C\texttt{++} 
+map does not remove Rust's lead. By contrast, giving Rust the C\texttt{++} 
+queue removes the lead, within the timer error discussed above. That queue 
+consists of one lock and two condition variables. Changing only the buffer 
+protected by the lock does not change C\texttt{++} performance. These results 
+indicate that the lead comes from the queue's locking and wake-up behavior, 
+rather than from the buffer implementation. In the C\texttt{++} build, 
+this queue is custom code written for this study (Table~\ref{tab:idioms}); 
+therefore, the observed lead belongs to the two implementations as written, 
+not to either language in general. On the C\texttt{++} path, the kernel records 
+$\HandoffEmptyWakesCpp$ wake-ups per request that find no sleeping thread, compared with $\HandoffEmptyWakesRust$ for Rust.
 
-One last run gives both languages the same hand-written queue and the same
-hand-written reply. Both wrap that queue around the same \texttt{ShardCore},
-the code that reads or changes one device's record
-(Figure~\ref{fig:samehandoff}). With the system allocator, Rust's lead falls
-to $\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ on hosts B and C. With
-\texttt{jemalloc} on host B, the test cannot separate the remaining gap from
-no difference (Appendix~\ref{appendix:probes}). What can still differ is the
-code each language writes around the shared queue.
+A final run gives both languages the same hand-written queue and the same 
+hand-written reply path. In both cases, the queue wraps the same \texttt{ShardCore}, 
+which is the code that reads or updates a single device record (Figure~\ref{fig:samehandoff}). 
+With the system allocator, Rust's remaining lead falls to $\HandoffSameLeadLo\%$--$\HandoffSameLeadHi\%$ on hosts B and C. With \texttt{jemalloc} on host B, the test cannot distinguish the remaining gap from no difference (Appendix~\ref{appendix:probes}). The remaining possible source of difference is therefore the language-specific code surrounding the shared queue.
 
-An earlier session timed the queue and the reply on their own, with no service
-around them, and could not tell C++ from Rust
-(Appendix~\ref{appendix:config}). The notes do not name the computer, or how
-it was set. Those timings cannot support these follow-up runs, and they cannot
-contradict them.
+An earlier session timed the queue and reply path in isolation, without the surrounding service, and could not distinguish C\texttt{++} from Rust (Appendix~\ref{appendix:config}). However, the notes from that session do not identify the computer used or its configuration. Those timings therefore cannot support the follow-up runs, nor can they contradict them.
 
 \begin{table}[!ht]
 \centering
