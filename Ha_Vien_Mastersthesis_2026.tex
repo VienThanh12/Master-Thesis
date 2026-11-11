@@ -1744,14 +1744,19 @@ by a factor of $\ProbeAfterCpuPerOpRatio$, and \ProbeAfterCpuPerOpHigher{} is
 higher. The large ratio in the planned comparison measures the recording more
 than the service.
 
-The follow-up still understates Rust. The C\texttt{++} harness stopped its
-timer before writing the extra samples, and the Rust harness stopped after, so
-Rust's window included more than its work. A timer test on host B measured the
-difference. Without the samples, Rust's throughput at the highest load rose by
-$\FillWindowRustGain\%$, and C\texttt{++}'s did not move
-(Appendix~\ref{appendix:probes}). Comparisons between the languages on this run
-therefore understate Rust's lead. Comparisons within one language are
-unaffected. Rust stays ahead, and the true lead is larger.
+The follow-up results still underestimate Rust’s performance. 
+In the C\texttt{++} benchmark, the timer was stopped before the 
+extra samples were written, whereas in the Rust benchmark the 
+timer was stopped afterward. As a result, the Rust timing window 
+included additional work that was not included in the C\texttt{++} timing window.
+
+A timer validation test on host B quantified this effect. 
+When the extra sample-writing step was removed, Rust’s throughput 
+at the highest load increased by \FillWindowRustGain\%, 
+while C\texttt{++} throughput was unchanged (Appendix~\ref{appendix:probes}). 
+Therefore, cross-language comparisons from this run understate Rust’s advantage. 
+Comparisons within the same language remain valid. Rust is still faster, and its 
+actual lead is larger than reported.
 
 \begin{figure}[ht]
 \centering
