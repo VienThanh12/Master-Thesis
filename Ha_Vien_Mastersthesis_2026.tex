@@ -1981,6 +1981,15 @@ Allocator effect & $\RssAllocDiffLo$--$\RssAllocDiffHi$
 \end{tabular}
 \end{table}
 
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_resources_column.pdf}
+\caption[Peak memory and CPU of the four builds]{Resource use at
+$\ReprLoad$~kops/s, grouped by allocator. Bars are medians over \NRepeats{}
+repeats with bootstrap $95\%$ intervals, and CPU in (b) is summed across
+threads.\label{fig:resources}}
+\end{figure}
+
 \FloatBarrier
 The second bare-metal host shows where the extra Rust memory sits. Each
 difference is Rust minus C\texttt{++}. Arena metadata differs by
@@ -2007,48 +2016,35 @@ one. A throughput lead remains on that run. That lead comes from how the
 queue is locked.
 
 \paragraph{Hardware counter reading.}
+The hardware-counter measurements on the second bare-metal host cover
+only one request running by itself. There is no queue, no offered load,
+and no competition between requests. They show how much CPU work one
+isolated call needs.
 
-The hardware-counter measurements on the second bare-metal host cover only
-an isolated call. There is no queue, no offered load, and therefore no
-competition between requests for shared resources. The measurements show
-how much CPU work is needed to process one request when it runs by itself.
+For that call, Rust retires $\BmInstrDelta\%$ \BmInstrDeltaDir{}
+instructions and finishes in $\BmCycleDelta\%$ \BmCycleDeltaDir{} CPU
+cycles than C\texttt{++}. It also has $\BmMissDelta\%$
+\BmMissDeltaDir{} cache misses per thousand instructions. Even with the
+higher miss rate, Rust finishes the isolated call faster.
 
-For this isolated call, Rust retires $\BmInstrDelta\%$ \BmInstrDeltaDir{}
-instructions and completes in $\BmCycleDelta\%$ \BmCycleDeltaDir{} CPU cycles
-than C\texttt{++}. It also has $\BmMissDelta\%$ \BmMissDeltaDir{} cache misses
-per thousand instructions. Thus, Rust completes the isolated call
-faster even though its cache-miss rate is higher.
+These results match the isolated timing below saturation in direction,
+though not in size: $\BmCycleDelta\%$ fewer cycles here against
+$\BudgetCoreRatio\times$ there. The hosts and the compiler pairs differ,
+so an exact match is not expected.
 
-These measurements agree in direction with the isolated timing of
-Section~\ref{sec:perfresults}, though not in size: $\BmCycleDelta\%$ fewer
-cycles here against $\BudgetCoreRatio\times$ there, on a different host with a
-different compiler pair. They describe how much work the faster build does, not
-which code saves it. However, the overload experiment is
-different: many requests arrive at the same time and must share the queue
-and its lock. Some requests therefore spend time waiting for the queue or
-for other threads to release the lock. This waiting does not occur in the
-isolated-core experiment and is not captured by the hardware-counter
-measurements. The overload experiment in Section~\ref{sec:overload} showed that 
-the additional overhead comes from waiting for the queue lock and from 
-the kernel time required for each handoff between threads. 
-Therefore, the hardware-counter results explain the performance of 
-an isolated call, but they do not explain the additional delays 
-that appear when the system is overloaded.
+The counters do not explain overload. Under overload many requests share
+the same queue and lock, so some wait for the queue or for another thread
+to release the lock. That waiting is not present in the isolated-call
+test. The extra cost past saturation comes from waiting for the queue
+lock and from kernel time spent handing work between threads.
 
-
-\begin{figure}[!ht]
-\centering
-\includegraphics[width=\linewidth]{figures/fig_resources_column.pdf}
-\caption[Peak memory and CPU of the four builds]{Resource use at
-$\ReprLoad$~kops/s, grouped by allocator. Bars are medians over \NRepeats{}
-repeats with bootstrap $95\%$ intervals, and CPU in (b) is summed across
-threads.\label{fig:resources}}
-\end{figure}
+The hardware counters explain why Rust is faster for one isolated
+request. They do not explain the extra delays under overload.
 
 \FloatBarrier
 \subsection{Safety via fault injection (RQ2)}\label{sec:safetyresults}
 Safe code is evaluated with $\FaultClasses$ defect classes, each written as a
-small program in both languages (Section~\ref{sec:methodbrief}) rather than
+small program in both languages rather than
 injected into the service itself. Seven of these defects fall within the safety guarantees that
 Rust is intended to provide, while the other seven represent defects that safe
 Rust is not expected to prevent. The first seven defects are prevented by the 
