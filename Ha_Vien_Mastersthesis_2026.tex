@@ -2183,24 +2183,17 @@ $\FfiCrossing$~ns and bounds only itself.\label{fig:ffiseam}}
 
 \section{Summary of findings}
 \begin{compactitem}
-\item \textbf{RQ1 (latency).} At $\ReprLoad$~kops/s, Rust is faster by a small but
-significant margin, up to $\PFiftyDiffAbsMax\,\mu$s at the median and lower at p99 and p99.9,
-while the slowest calls, pooled across repeats, and the maximum favour \FarTailLower{} by more. That end-to-end gap
-lies outside the core operation, which is a small fraction of a round trip, and the clock
-also holds each producer's late wake-up before sending, so it cannot establish a difference in
-the core operation. Timed on its own on the virtual machine, the core
-is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster{}. Past saturation the planned
-comparison has C\texttt{++} finishing more calls, but that clock also times the sender's
-recording. With the recording moved after the window, Rust finishes more calls, a lead that
-comes from the handoff designs and not from the core operation. On further hosts with the
-same processor, giving Rust the C\texttt{++} queue removes that lead, and giving both
-languages the same handoff shrinks it to $\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ with
-the system allocator.
-The campaign's delay past saturation is \emph{schedule drift} as defined in
-Section~\ref{sec:statsbrief}, so it does not compare the services. Timing the work with
-several requests in flight does. There the order of the total delay depends on the allocator,
-while the time after entering the queue is shorter for Rust under both.
+\item \textbf{RQ1 (latency).} At $\ReprLoad$~kops/s, Rust is slightly but consistently faster. The largest difference is at the median, where Rust is ahead by up to $\PFiftyDiffAbsMax\,\mu$s. Gaps at p99 and p99.9 are smaller. Across the slowest calls in all repeated runs, and at the maximum latency, \FarTailLower{} leads by more.
 
+That end-to-end gap need not come from the core operation. The core is only a small part of the round-trip, and the measured time also holds any delay from a producer that wakes late before it sends. End-to-end figures therefore cannot prove that one build has a faster core than the other.
+
+Measured alone on the virtual machine, the core is $\BudgetCoreRatio\times$ faster in \BudgetCoreFaster{}.
+
+After saturation, the planned comparison shows C\texttt{++} completing more calls, but that window also holds the sender's recording overhead. With the recording moved outside the measured window, Rust completes more calls instead. This advantage comes from differences in the handoff design, not from the core operation.
+
+Probes on hosts with the same processor support this conclusion. When Rust is given the C\texttt{++} queue design, the lead disappears. With the same handoff in both languages, Rust's remaining lead falls to $\HandoffSameLeadLo\%$ to $\HandoffSameLeadHi\%$ with the system allocator.
+
+The delay after saturation is \emph{schedule drift}, as defined in Section~\ref{sec:statsbrief}, so it should not rank the services. Timing the work while several requests are in flight is a better comparison. The total-delay ranking then depends on the allocator, but once a request has entered the queue Rust has shorter processing time under both allocator choices.
 \item \textbf{RQ2 (defects).} The outcome follows from the fourteen-class catalogue defined
 in advance and does not depend on the host, apart from the intermittent ThreadSanitizer
 report on the lock-order deadlock. All seven classes of errors that safe Rust is
