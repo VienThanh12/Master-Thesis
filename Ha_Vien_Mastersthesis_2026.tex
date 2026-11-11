@@ -2142,9 +2142,6 @@ Incremental builds show a mixed result. After editing one C\texttt{++} source fi
 
 The shipped Rust binary is $\FootShippedRatio\times$ larger than the C\texttt{++} binary. This is mainly because the C\texttt{++} build leaves its standard library to be loaded by the system, while the Rust build links its standard library into the binary. When both versions are linked in the same way, the result depends on the linking policy. With static linking, the \FootStaticSmaller{} binary is smaller. With dynamic linking, the \FootDynamicSmaller{} binary is smaller.
 
-The Rust core has $\DepsCore$ third-party libraries and $\CoreUnsafe$ unsafe sites. The third-party code in the clean Rust build comes from the benchmark harness ($\DepsHarness$ libraries) and the \texttt{jemalloc} binding ($\DepsJemalloc$).
-
-
 \enlargethispage{52pt}
 \begin{figure}[!ht]
 \centering
