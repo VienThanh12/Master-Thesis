@@ -2087,44 +2087,39 @@ with error E0382, shown in part with the path shortened. A static analyser such 
 none.\label{fig:uam}}
 \end{figure}
 
-The seven boundary classes also compile in Rust, one of them only inside
-\texttt{unsafe}, so their faulty behaviour can still happen when the program runs. Some can nevertheless be detected by
-specialised tools. In C\texttt{++}, LeakSanitizer, which runs as part of
-AddressSanitizer, reports the reference cycle. Rust's ownership model permits
-the same leak, so the Rust version compiles and
-leaks~\cite{hughes2025gcrust,cui2024rcanary}. UndefinedBehaviorSanitizer detects the
-integer overflow in C++, while Rust defines the same operation to wrap when
-overflow checks are disabled. ThreadSanitizer detects the lock-order inversion
-in $\DeadlockTsanHits$ of $\DeadlockTsanRuns$ runs, although this result varies
-between runs. The tool records a lock order only when a thread that already
-holds one lock acquires the other. If each thread takes its first lock and then
-blocks on its second, neither order is ever recorded, and the tool cannot see
-the cycle it needs to report~\cite{tsandeadlock}.
+The seven boundary cases also compile in Rust. One of them needs an \texttt{unsafe} block, 
+but the bug can still happen when the program runs. Some of these bugs can be found by special checking tools.
 
+In C\texttt{++}, LeakSanitizer finds the reference-cycle memory leak. 
+Rust can also have this kind of leak, so the Rust version still compiles 
+and leaks memory~\cite{hughes2025gcrust,cui2024rcanary}. 
+UndefinedBehaviorSanitizer finds the integer overflow in C\texttt{++}. 
+In Rust, the same overflow is allowed to wrap around when overflow checks are turned off. 
+ThreadSanitizer sometimes finds the lock-order deadlock. 
+It found it in $\DeadlockTsanHits$ out of $\DeadlockTsanRuns$ runs. 
+The result changes between runs because the tool only sees the problem if it observes one thread 
+taking a second lock while already holding the first. If both threads take their first lock and 
+then block on the second, the tool does not see the full cycle and cannot report the deadlock~\cite{tsandeadlock}.
 
-The double-free inside \texttt{unsafe} Rust is not a separate defect class,
-but the same double-free error occurring in code where Rust's normal safety
-checks have been bypassed. The C++ implementation contains the corresponding
-error, so the difference between the two implementations is only in whether
-the compiler is able to prevent it. Miri detects the Rust double-free, but it
-cannot execute the C++ host code behind the foreign-function boundary.
+The double-free in \texttt{unsafe} Rust is not a new kind of bug. 
+It is the same double-free bug as in C\texttt{++}, but it happens in Rust 
+code where normal safety checks have been bypassed. Miri finds the Rust double-free, 
+but it cannot check the C\texttt{++} code behind the foreign-function interface.
 
-Some concurrency defects cannot be found directly by the sanitiser tools. To
-investigate these cases, this study used two Rust tools that try many thread
-orders~\cite{bornholt2021shardstore}. Loom tries the possible orders one by
-one, and Shuttle picks them at random. Both work on small test programs rather
-than the full application, so each defect had to be rewritten as the smallest
-program that still showed it. On those programs both tools report the
-lock-order deadlock and the lost update, and both report nothing on a fixed
-version of each.
+Some concurrency bugs are not found directly by sanitizers. 
+To check them, this study used two Rust tools, Loom and Shuttle, 
+which try different thread schedules~\cite{bornholt2021shardstore}. 
+Loom checks schedules systematically, while Shuttle chooses them randomly. 
+These tools work only on small test programs, so each bug had to be reduced to a small example. 
+In those examples, both tools found the lock-order deadlock and the lost update. 
+They found no problem after the bugs were fixed.
 
-RAII prevents the ordinary form of a forgotten lock in Rust. The guard releases
-the mutex when it is dropped, so the early return that strands the C++ lock
-cannot strand the Rust one. The Rust program therefore leaks its guard with
-\texttt{mem::forget}, a safe function that stands for any path that keeps a
-guard alive past the procedure that took it. Both programs then hang, and none
-of the three sanitisers reports the C++ hang. Figure~\ref{fig:taxonomy}
-draws the whole list as an outcome matrix.
+Rust’s RAII pattern prevents the normal forgotten-lock bug. 
+When a mutex guard goes out of scope, Rust automatically releases the lock. 
+Therefore, an early return cannot leave the lock held forever as it can in C\texttt{++}. 
+To create the same problem in Rust, the program uses \texttt{mem::forget}, which keeps the 
+guard from being dropped. Then both the Rust and C\texttt{++} programs hang. None of the three 
+sanitizers reports the C\texttt{++} hang. Figure~\ref{fig:taxonomy} shows the full results.
 
 \enlargethispage{48pt}
 \begin{figure}[!ht]
