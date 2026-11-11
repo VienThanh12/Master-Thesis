@@ -1791,8 +1791,8 @@ consists of one lock and two condition variables. Changing only the buffer
 protected by the lock does not change C\texttt{++} performance. These results 
 indicate that the lead comes from the queue's locking and wake-up behavior, 
 rather than from the buffer implementation. In the C\texttt{++} build, 
-this queue is custom code written for this study (Table~\ref{tab:idioms}); 
-therefore, the observed lead belongs to the two implementations as written, 
+this queue is custom code written for this study (Table~\ref{tab:idioms}). 
+Therefore, the observed lead belongs to the two implementations as written, 
 not to either language in general. On the C\texttt{++} path, the kernel records 
 $\HandoffEmptyWakesCpp$ wake-ups per request that find no sleeping thread, compared with $\HandoffEmptyWakesRust$ for Rust.
 
@@ -1801,7 +1801,10 @@ hand-written reply path. In both cases, the queue wraps the same \texttt{ShardCo
 which is the code that reads or updates a single device record (Figure~\ref{fig:samehandoff}). 
 With the system allocator, Rust's remaining lead falls to $\HandoffSameLeadLo\%$--$\HandoffSameLeadHi\%$ on hosts B and C. With \texttt{jemalloc} on host B, the test cannot distinguish the remaining gap from no difference (Appendix~\ref{appendix:probes}). The remaining possible source of difference is therefore the language-specific code surrounding the shared queue.
 
-An earlier session timed the queue and reply path in isolation, without the surrounding service, and could not distinguish C\texttt{++} from Rust (Appendix~\ref{appendix:config}). However, the notes from that session do not identify the computer used or its configuration. Those timings therefore cannot support the follow-up runs, nor can they contradict them.
+An earlier session timed the queue and reply path in isolation, without the surrounding service, 
+and could not distinguish C\texttt{++} from Rust (Appendix~\ref{appendix:config}). 
+However, the notes from that session do not identify the computer used or its configuration. 
+Those timings therefore cannot support the follow-up runs, nor can they contradict them.
 
 \begin{table}[!ht]
 \centering
