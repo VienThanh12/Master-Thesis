@@ -2132,7 +2132,7 @@ outcomes as a matrix, generated from the taxonomy log.\label{fig:taxonomy}}
 \FloatBarrier
 \newpage
 \subsection{Migration (RQ4)}\label{sec:migrationresults}
-The boundary between the C\texttt{++} host and the Rust core is small. It uses only $\FfiEntryPoints$ C-style entry points, implemented in $\FfiSeamLines$ lines of Rust code. All raw-pointer handling is kept inside $\FfiUnsafeFns$ functions. Because of this, the main Rust core contains no \texttt{unsafe} code.
+The connection between the C\texttt{++} host and the Rust core is small and controlled. The C\texttt{++} code calls Rust through only $\FfiEntryPoints$ C-style functions, and this boundary is implemented in just $\FfiSeamLines$ lines of Rust code. Any low-level raw-pointer work is isolated inside $\FfiUnsafeFns$ functions. Therefore, the main Rust core does not need \texttt{unsafe} code and remains fully checked by Rust's normal safety rules.
 
 The FFI experiment was run on the virtual machine. It compared the same signal call in two ways: called directly, and called through the C-ABI boundary. The results were almost the same, so the two cases could not be clearly distinguished. This means that any extra cost added by the C-ABI boundary is very small. In these measurements, it is at most $\FfiOpBoundPct\%$ of the total call cost. Figure~\ref{fig:ffiseam} shows this boundary structure.
 
