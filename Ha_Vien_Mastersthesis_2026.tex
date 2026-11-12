@@ -2646,25 +2646,32 @@ a defect list maps where the guarantee stops.
 
 \paragraph{Future work.}
 \begin{compactitem}
-\item Vary how the kernel uses large pages for ordinary memory on one host with all else held
-fixed. All three hosts agree that the Rust build carries the larger footprint. They disagree
-about how that sits against the cost of the allocator. The guest put it an order of magnitude
-higher, and neither bare-metal host does. The large-page setting is the candidate this study
-can name but not test, because it was not the same on each host and only the system allocator
-variant gets it.
+\item Isolate the effect of kernel large-page policy for ordinary memory by
+varying this setting on a single host while holding all other factors constant.
+Across all three hosts, the Rust build has the larger memory footprint. However,
+the hosts differ in how this footprint compares with allocator cost: the guest
+shows an order-of-magnitude increase, whereas neither bare-metal host does. The
+large-page setting is therefore a plausible explanation that this study can
+identify but not test, because it was not configured uniformly across hosts and
+applies only to the system-allocator variant.
 
-\item Replay anonymised production traces to check the call mix, or extend the harness to further
-control-plane parts or the data-heavy layer-2 and physical layer (PHY) path. A part with truly
-shared mutable state would work the two sides in a way a shared-nothing design does not.
+\item Replay anonymised production traces to validate the observed call mix, or
+extend the benchmark harness to additional control-plane components as well as
+to the data-intensive layer-2 and physical-layer (PHY) paths. Components with
+genuine shared mutable state would exercise the two implementations in ways that
+the current shared-nothing design does not.
 
-\item Test Rust async runtimes against the thread-per-shard model to split the runtime from the
-language in the tail latency result~\cite{arvidsson2025async}.
+\item Compare Rust asynchronous runtimes with the thread-per-shard model in order
+to separate the effect of the runtime model from the effect of the programming
+language in the tail-latency result~\cite{arvidsson2025async}.
 
-\item Time what a split of the two allocators in one process costs to price what keeping a core
-free of \texttt{unsafe} is worth~\cite{rivera2021galeed,kirth2022pkrusafe}.
+\item Measure the cost of using two allocators within a single process, in order
+to estimate the price of keeping a core component free of \texttt{unsafe}
+code~\cite{rivera2021galeed,kirth2022pkrusafe}.
 
-\item Run a longer case study that tracks defect counts and review effort while adding Rust one
-piece at a time. That is what would settle the human cost this study can only name.
+\item Conduct a longer case study that tracks defect counts and review effort as
+Rust is introduced incrementally. Such a study would be needed to quantify the
+human cost that the present study can only identify as an open question.
 \end{compactitem}
 
 \input{ai_statement.tex}
