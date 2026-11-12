@@ -10,34 +10,34 @@ is that they are fixed points.
 
 ## What the levels have looked like
 
-| Area | Grade | The observation that set it |
-| --- | --- | --- |
-| 1 | 5 | Gap located in a named flaw of the closest prior work rather than asserted. Four research questions traced question to method to artefact to metric to verdict. Three hypotheses fixed before measurement, one later refuted by the author's own data. |
-| 1 | 3 | Level 4 asks for a research setup described in suitable detail; the setup was described inconsistently, so the level failed on that clause alone. One question asked what literature exists, which is a review task. "Significantly improve" was never given a threshold. |
-| 2 | 5 | Every bibliography entry cited, concentrated in top venues, domain grounded in primary standards rather than secondary summaries, an auditable written search protocol, and contrary results (Arvidsson's tail, Emmerich's slower driver) engaged rather than omitted. |
-| 2 | 3 | Recent sources and concepts defined before use, but the review summarises rather than argues, cites no contrary or negative finding, mixes citation styles, and leaves quantitative claims uncited. |
-| 3 | 4.5 | Method reads at 5: frozen specification before code, forced-idiom log, allocator control as a replication check, exact paired permutation over every sign assignment, Holm family, attainable p-floors quoted, and a reading rule fixed in advance that costs the author a row rather than rescuing one. Data reads at 4: the host is a KVM guest whose CPU steal is of the same order as the tail being measured, and no hardware counters, so the peak-RSS result is established but unexplained. |
-| 3 | 2 | Train and test boundary not established, every fine-tuning hyperparameter stated twice with different values, the actual contribution given no equations or thresholds, no statistical test despite repeated use of "significantly", one annotator with no agreement measure, no ethics discussion at all. |
-| 4 | 4.5 | Every campaign result reaches the page through a generated macro rebuilt from raw logs, so headline numbers cannot drift from the data. Evidence status stated per research question, and the one schematic says in its own caption that it is not this study's data. Capped by a research question half-answered only in the negative, one table never referenced from the body, and about nine measured values still typed into prose by hand. |
-| 4 | 2 | Roughly 28 values quoted in the results prose disagreed with the tables they described, one reversing the direction of change. A promised baseline and a promised condition were never reported. No result figures at all. |
-| 5 | 5 | Hypotheses revisited individually, including one the author declares ill-posed. Four-way validity analysis with residual risk graded per row. Contradictory prior results reconciled mechanically. The study records its own methodological errors. Register held: "cannot tell" never becomes "equivalent". |
-| 5 | 5 → 4.5 | The eleventh pass took it back the day a new results section landed. Everything above still held, and three sentences in the discussion chapter said an instrument "was not collected" that the results chapter reported the output of, while the revisit of the hypothesis about the far tail did not use the campaign that resolved the far tail. **A discussion one section behind its own results fails the reliability sub-factor even when the reasoning in it is excellent.** Scored from chapter-7 sites only, so it is not the area-4 finding counted twice. |
-| 5 | 2 | No discussion chapter. Own results never compared with previous research, reliability never assessed, ethics absent, and a contribution claimed that the preface credits to the partner. |
-| 6 | 5 → 4.5 | The third pass gave 5 for the writing. The fourth took it back, because level 5 asks for presentation that is technically camera-ready with excellent finishing polish and the *finishing* failed: the printed AI declaration asserted the abstract was written unaided while a source comment recorded it as model-drafted, alongside a float overflowing its page, two overfull boxes, and sentences of 93 and 86 words. Writing quality does not carry this area on its own. |
-| 6 | 4.5 → 4.0 | The eleventh pass, on **level 4's** clause and not level 5's: the whole text logical and consistent on the description of the research setup, findings and conclusions. Four sites failed it after one integration, none of them the abstract, which is graded separately for the reason the tenth pass gives. The pattern to expect: a new results section falsifies the methodology section that said the metric was unavailable, the data section that promised a replacement, the reproducibility section that promised byte-identical reruns, and a table caption that promised the protocol was met. |
-| 3 | 4.5, data half now 5 | The thirteenth pass. The canonical repeat closed the data half, and the half grade **changed sides**: what holds it is the *description* of the method. §4.5 fixes a reading rule in advance and names dropping it for the convenient block as the failure it exists to prevent, and §6.4.1 then does exactly that. And `REPR_LOAD_OPS` is pinned in the generator for a documented reason while §6.2 still states the derived rule the code abandoned. **A 4.5 in this area no longer means "the hardware was inadequate".** Read which half before quoting the number. |
-| 4 | 4.5 → 4.0 | The thirteenth pass, on level 5's aptness clause. Thirteen prose statements disagreed with the artefact beside them, and **six were wrong rather than stale** (see the new defect class below). Level 4 held because no value in any table or figure was wrong, six passes running, and the structure, per-question evidence status and generalisability discussion were intact. |
-| 6 | 2 | Template dummies surviving on the abstract page, three different dates, duplicated and undefined labels, a stray Cyrillic word in the results, dense grammar errors, and no statement of AI use in the document. |
-| 4 | 5 → 4.5 | The twenty-first pass, on level 5's aptness clause, and **the smallest defect ever to move an area here**. `tab:testbed`'s caption says the columns are arranged so each adjacent pair isolates one change, and its own Toolchain row prints `g++ 15.2.1` for the reported sweep against `g++ 15.1.1` for the guest. A caption refuted by a row of its own table is the same shape as a figure title refuted by its own bars. Beside it, one hand-typed compiler version that is simply wrong, and one guest-era phrase (`on bare metal`) that can no longer pick out a host. **Calibration point: a single wrong configuration value plus a caption over-claim is a 4.5, not a 4.0.** The thirteenth pass's 4.0 took thirteen disagreeing statements, six of them wrong. |
-| 6 | 5 → 4.5 | The twenty-first pass, on **both** level 4's "consistent … description of research setup" (three prose sites claiming toolchain parity that an appendix table refutes) and level 5's finishing polish (an elliptical `is not` with no predicate, in §1.4 of both documents). The half grade splits writing from consistency-and-finishing, which is what a 4.5 means here. **The 83-word sentence was explicitly not counted**, because the twentieth pass ruled it not a failing clause and a later pass does not relitigate a ruling on unchanged text. |
-| 3 | 5 → 4.5, test program not host | The thirty-first pass. The host was clean bare metal, and the half grade came back from the **test program**. Each sender sleeps at ordinary priority, so up to 50 µs of timer slack sits inside a clock whose median is about 73 µs and whose core call is 34 ns. Past saturation, the planned comparison timed the sender's own recording. All of it is disclosed and none of it is rerun. **The same anchor shape as the guest: an instrument effect the size of the quantity measured.** Editing cannot lift it. |
-| 2 | 5 → 4.5, plain words | The thirty-first pass. A plain-words rewrite raised Flesch and removed "coordinated omission" from the body, the field's term for the problem the main overload result turns on. It coined "histogram fill" instead. With a 1,600-word background and no C++-side safety position, level 5's "in-depth command" failed. **Keep the plain sentence and add the term of art once, cited.** The plain-label rule covers diagrams, slides and chat, not the body. |
-| 7 | n/a | Every pass. The manuscript cannot settle it. |
+| Area | Grade                          | The observation that set it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ---- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | 5                              | Gap located in a named flaw of the closest prior work rather than asserted. Four research questions traced question to method to artefact to metric to verdict. Three hypotheses fixed before measurement, one later refuted by the author's own data.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| 1    | 3                              | Level 4 asks for a research setup described in suitable detail; the setup was described inconsistently, so the level failed on that clause alone. One question asked what literature exists, which is a review task. "Significantly improve" was never given a threshold.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| 2    | 5                              | Every bibliography entry cited, concentrated in top venues, domain grounded in primary standards rather than secondary summaries, an auditable written search protocol, and contrary results (Arvidsson's tail, Emmerich's slower driver) engaged rather than omitted.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| 2    | 3                              | Recent sources and concepts defined before use, but the review summarises rather than argues, cites no contrary or negative finding, mixes citation styles, and leaves quantitative claims uncited.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| 3    | 4.5                            | Method reads at 5: frozen specification before code, forced-idiom log, allocator control as a replication check, exact paired permutation over every sign assignment, Holm family, attainable p-floors quoted, and a reading rule fixed in advance that costs the author a row rather than rescuing one. Data reads at 4: the host is a KVM guest whose CPU steal is of the same order as the tail being measured, and no hardware counters, so the peak-RSS result is established but unexplained.                                                                                                                                                                                                                                                                       |
+| 3    | 2                              | Train and test boundary not established, every fine-tuning hyperparameter stated twice with different values, the actual contribution given no equations or thresholds, no statistical test despite repeated use of "significantly", one annotator with no agreement measure, no ethics discussion at all.                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| 4    | 4.5                            | Every campaign result reaches the page through a generated macro rebuilt from raw logs, so headline numbers cannot drift from the data. Evidence status stated per research question, and the one schematic says in its own caption that it is not this study's data. Capped by a research question half-answered only in the negative, one table never referenced from the body, and about nine measured values still typed into prose by hand.                                                                                                                                                                                                                                                                                                                          |
+| 4    | 2                              | Roughly 28 values quoted in the results prose disagreed with the tables they described, one reversing the direction of change. A promised baseline and a promised condition were never reported. No result figures at all.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| 5    | 5                              | Hypotheses revisited individually, including one the author declares ill-posed. Four-way validity analysis with residual risk graded per row. Contradictory prior results reconciled mechanically. The study records its own methodological errors. Register held: "cannot tell" never becomes "equivalent".                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| 5    | 5 → 4.5                        | The eleventh pass took it back the day a new results section landed. Everything above still held, and three sentences in the discussion chapter said an instrument "was not collected" that the results chapter reported the output of, while the revisit of the hypothesis about the far tail did not use the campaign that resolved the far tail. **A discussion one section behind its own results fails the reliability sub-factor even when the reasoning in it is excellent.** Scored from chapter-7 sites only, so it is not the area-4 finding counted twice.                                                                                                                                                                                                     |
+| 5    | 2                              | No discussion chapter. Own results never compared with previous research, reliability never assessed, ethics absent, and a contribution claimed that the preface credits to the partner.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| 6    | 5 → 4.5                        | The third pass gave 5 for the writing. The fourth took it back, because level 5 asks for presentation that is technically camera-ready with excellent finishing polish and the _finishing_ failed: the printed AI declaration asserted the abstract was written unaided while a source comment recorded it as model-drafted, alongside a float overflowing its page, two overfull boxes, and sentences of 93 and 86 words. Writing quality does not carry this area on its own.                                                                                                                                                                                                                                                                                           |
+| 6    | 4.5 → 4.0                      | The eleventh pass, on **level 4's** clause and not level 5's: the whole text logical and consistent on the description of the research setup, findings and conclusions. Four sites failed it after one integration, none of them the abstract, which is graded separately for the reason the tenth pass gives. The pattern to expect: a new results section falsifies the methodology section that said the metric was unavailable, the data section that promised a replacement, the reproducibility section that promised byte-identical reruns, and a table caption that promised the protocol was met.                                                                                                                                                                |
+| 3    | 4.5, data half now 5           | The thirteenth pass. The canonical repeat closed the data half, and the half grade **changed sides**: what holds it is the _description_ of the method. §4.5 fixes a reading rule in advance and names dropping it for the convenient block as the failure it exists to prevent, and §6.4.1 then does exactly that. And `REPR_LOAD_OPS` is pinned in the generator for a documented reason while §6.2 still states the derived rule the code abandoned. **A 4.5 in this area no longer means "the hardware was inadequate".** Read which half before quoting the number.                                                                                                                                                                                                  |
+| 4    | 4.5 → 4.0                      | The thirteenth pass, on level 5's aptness clause. Thirteen prose statements disagreed with the artefact beside them, and **six were wrong rather than stale** (see the new defect class below). Level 4 held because no value in any table or figure was wrong, six passes running, and the structure, per-question evidence status and generalisability discussion were intact.                                                                                                                                                                                                                                                                                                                                                                                          |
+| 6    | 2                              | Template dummies surviving on the abstract page, three different dates, duplicated and undefined labels, a stray Cyrillic word in the results, dense grammar errors, and no statement of AI use in the document.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| 4    | 5 → 4.5                        | The twenty-first pass, on level 5's aptness clause, and **the smallest defect ever to move an area here**. `tab:testbed`'s caption says the columns are arranged so each adjacent pair isolates one change, and its own Toolchain row prints `g++ 15.2.1` for the reported sweep against `g++ 15.1.1` for the guest. A caption refuted by a row of its own table is the same shape as a figure title refuted by its own bars. Beside it, one hand-typed compiler version that is simply wrong, and one guest-era phrase (`on bare metal`) that can no longer pick out a host. **Calibration point: a single wrong configuration value plus a caption over-claim is a 4.5, not a 4.0.** The thirteenth pass's 4.0 took thirteen disagreeing statements, six of them wrong. |
+| 6    | 5 → 4.5                        | The twenty-first pass, on **both** level 4's "consistent … description of research setup" (three prose sites claiming toolchain parity that an appendix table refutes) and level 5's finishing polish (an elliptical `is not` with no predicate, in §1.4 of both documents). The half grade splits writing from consistency-and-finishing, which is what a 4.5 means here. **The 83-word sentence was explicitly not counted**, because the twentieth pass ruled it not a failing clause and a later pass does not relitigate a ruling on unchanged text.                                                                                                                                                                                                                 |
+| 3    | 5 → 4.5, test program not host | The thirty-first pass. The host was clean bare metal, and the half grade came back from the **test program**. Each sender sleeps at ordinary priority, so up to 50 µs of timer slack sits inside a clock whose median is about 73 µs and whose core call is 34 ns. Past saturation, the planned comparison timed the sender's own recording. All of it is disclosed and none of it is rerun. **The same anchor shape as the guest: an instrument effect the size of the quantity measured.** Editing cannot lift it.                                                                                                                                                                                                                                                      |
+| 2    | 5 → 4.5, plain words           | The thirty-first pass. A plain-words rewrite raised Flesch and removed "coordinated omission" from the body, the field's term for the problem the main overload result turns on. It coined "histogram fill" instead. With a 1,600-word background and no C++-side safety position, level 5's "in-depth command" failed. **Keep the plain sentence and add the term of art once, cited.** The plain-label rule covers diagrams, slides and chat, not the body.                                                                                                                                                                                                                                                                                                             |
+| 7    | n/a                            | Every pass. The manuscript cannot settle it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 ## The defect class the thirteenth pass added
 
 **A new dataset does not only make claims stale. It can make them false in the opposite direction.**
-Until the thirteenth pass every drop came from prose describing an *older, weaker* state of the
+Until the thirteenth pass every drop came from prose describing an _older, weaker_ state of the
 evidence, which a sweep for "virtualised", "unresolved" or "not collected" finds. Three of that pass's
 findings were not that shape:
 
@@ -48,7 +48,7 @@ findings were not that shape:
 - "the knee also sits at the same place for all four variants". The Rust arms track a full rung
   further, which the figure draws and which hides a result in the author's favour.
 
-None contains a staleness keyword. Each was *true of the guest*. The only check that finds them is
+None contains a staleness keyword. Each was _true of the guest_. The only check that finds them is
 reading every numeric and comparative claim in the results section against the generated table or
 figure beside it, one at a time. **A promotion pass is most tempted to skip that check precisely when
 it is most needed, because the macros all regenerated cleanly.** A clean regeneration says the numbers
@@ -59,7 +59,7 @@ overnight remediation, that pass found four defects and three shared a form: **a
 attached to the wrong scope.** A caption said peak RSS "separates the two languages" where that holds
 for the paired comparison and fails for the unpaired envelopes, which overlap. A sentence said "5 of
 its 14 rows" where the family has 14 tests and the table it named shows 10. A caption called one load
-"the one place the two languages part company" where it is the one place the ordering favours *Rust*,
+"the one place the two languages part company" where it is the one place the ordering favours _Rust_,
 the languages also parting company at two deeper loads. **None is a wrong number**, so a macro
 recompute passes every one of them, and a reader checking the value finds nothing. The check that
 catches this class is to ask of every comparative claim exactly **which set it quantifies over**:
@@ -67,20 +67,20 @@ paired or unpaired, family or table, all loads or one direction.
 
 Two corollaries worth carrying:
 
-- **Check the macro's definition, not just its value.** `\SatKnee` is the *minimum* achieved
+- **Check the macro's definition, not just its value.** `\SatKnee` is the _minimum_ achieved
   throughput across variants, so it reported a shared knee where the variants differ by 14 per cent,
   and the prose then asserted the sharing. `\PNineNinePreCliff` divided by 1000 and printed `:.0f`, so
   on a quiet host it rendered as "0 ms". A macro can be correctly generated and still be the wrong
   quantity for the sentence holding it. The remediation of 27 August found two more of exactly this
   shape, and **neither was visible in the source**: `\JitterVsMedian` was a percentage that the prose
   printed as a multiple ("jitter at p99 is $2\times$ the median operation", where the macro was 2 per
-  cent of the median and was the *median* jitter, not the p99), and `\JitterRange` held `1--2` inside a
+  cent of the median and was the _median_ jitter, not the p99), and `\JitterRange` held `1--2` inside a
   sentence that wrapped it in math mode for the `\mu`, so the built PDF read "spans 1 − −2 µs".
   **Render the page.** A range macro should be a Lo/Hi pair and a percentage macro should say `Pct` in
   its name, which is how both are now emitted.
 - **A method claim can go false while the result stays true.** §4.5 and §6.4.1 say the p99.99 is
   pooled across repeats; `write_latency_table()` takes a median of the per-run values, which §4.5
-  itself calls meaningless. The pooled figures make the finding *stronger*. Verify how a headline
+  itself calls meaningless. The pooled figures make the finding _stronger_. Verify how a headline
   statistic is computed, not only what it says.
 
 ## Checks ranked by historical yield
@@ -96,7 +96,7 @@ Two corollaries worth carrying:
    has Rust drawing 1.8 times. It was **right in the section that owns the result** and wrong at
    every one of the five summary sites, across two documents. A reviewer working table by table sees
    the correct version each time and never reaches the wrong one. Read the introduction, the
-   discussion and the conclusion *against each other* on each headline claim, and check which noun a
+   discussion and the conclusion _against each other_ on each headline claim, and check which noun a
    participle attaches to when two subjects are in play.
 2. **Every figure against the claim it illustrates.** Three figures here contradicted the results
    tables after the claims moved: a defect class marked not injected while the table injected it,
@@ -127,15 +127,15 @@ Two corollaries worth carrying:
 These have each consumed part of a pass and were wrong.
 
 - **Hyphenation variants.** A mechanical pass flagged about 40 "inconsistencies" of the form
-  *memory-safety* against *memory safety* and *compile-time* against *compile time*. English
+  _memory-safety_ against _memory safety_ and _compile-time_ against _compile time_. English
   hyphenates those compounds attributively and leaves them open otherwise, and the thesis does it
   correctly. Do not report these.
-- **British spellings** where the house style is British: *signalling*, *sanitiser*,
-  *analysed*. Proper nouns keep their own spelling (AddressSanitizer, LeakSanitizer).
+- **British spellings** where the house style is British: _signalling_, _sanitiser_,
+  _analysed_. Proper nouns keep their own spelling (AddressSanitizer, LeakSanitizer).
 - **"Significant" in its ordinary sense.** Flag it only where a statistical claim is implied
   without a test.
 - **Underfull box warnings.** Cosmetic. They do not gate area 6; overfull boxes and floats too
-  large do. The converse is a false *negative*: `texaudit.py` reports `PASS no overfull boxes`
+  large do. The converse is a false _negative_: `texaudit.py` reports `PASS no overfull boxes`
   while ignoring `Overfull \hbox ... while \output is active`. Those are running headers. The
   sixteenth pass found a 23 pt overflow on body page 9 (`SOFTWARE9` jammed against the page
   number) that every earlier pass recorded as clean. Grep the log for `while \\output is active`
@@ -187,7 +187,7 @@ These have each consumed part of a pass and were wrong.
   supposed to differ: 1.64 against 1.8 for the overload ratio, 0.5--1.1 against 1.6 µs for the
   median, 2.8 against 1480 µs for the widest p99 interval. The `Bm` prefix exists so the two
   datasets cannot be confused, and a value moving between hosts is the confirmation working. The one
-  genuine finding in that family is the peak-RSS *ratio*, item 3h.
+  genuine finding in that family is the peak-RSS _ratio_, item 3h.
 - **Filtering the campaign JSONL on the `rate` field.** `offered_load(row)` in
   `bench/plot_figures.py` is `row["rate"] * row["producers"]`, and there are seven producers, so
   the representative load of 56 kops/s is `rate == 8000`. Filtering on `rate == 56000` lands in the
@@ -266,7 +266,7 @@ sites do not know it: §6.1 l. 2211 ("the same userspace and compiler pair the e
 campaign used"), §6.4.5 l. 2997 ("the same toolchain … differ in the machine alone"), §6.4.5
 l. 3131 ("share a design and differ in the machine"), and `tab:testbed`'s caption l. 4574 ("each
 adjacent pair isolates one change"), whose own Toolchain row at l. 4591 prints the contradiction.
-Separately **§6.4.7 l. 3162 hand-types 15.1.1 as *the measurement host's* g++**, which is wrong;
+Separately **§6.4.7 l. 3162 hand-types 15.1.1 as _the measurement host's_ g++**, which is wrong;
 the fault-run versions in the same sentence (`g++ 13.3`, `rustc 1.97`) are hand-typed and correct.
 
 Three things about it are the transferable part.
@@ -279,9 +279,9 @@ Three things about it are the transferable part.
   dotted version number has none. Both values sit in the safety subsection and an appendix table
   rather than in the performance prose a pass reads first. Teach the heuristic dotted versions.
 - **Repair is by disclosure, not withdrawal.** A GCC patch release confounds nothing the thesis
-  reports, so the honest fix *adds* a caveat exactly as the `\Bm` column's did, and costs no claim.
+  reports, so the honest fix _adds_ a caveat exactly as the `\Bm` column's did, and costs no claim.
 
-**Blocker 4, OPEN, five minutes.** §1.4 of *both* documents (draft l. 683, skeleton l. 488) reads
+**Blocker 4, OPEN, five minutes.** §1.4 of _both_ documents (draft l. 683, skeleton l. 488) reads
 "How it compares against the cost of the allocator choice **is not**:" with no predicate to elide.
 `a0e9122` wrote "That effect **is** the same size on all three machines measured" and `ed6debe`,
 the fourteenth pass's scope-attachment fix, folded that clause into a prepositional phrase and
@@ -296,7 +296,7 @@ research deliverable and none of the 14 `artefact` uses is, so it reads as a del
 `plot_figures.py --outdir` reproduced `gen_macros.tex` and all 12 `tab_*.tex` byte-identical. Do
 that rather than reading tables; it costs 24 seconds and settles the whole layer.
 
-*Historical, from the twentieth pass, 3 September 2026:* a hold at 5.00 on the 1 September PDF.
+_Historical, from the twentieth pass, 3 September 2026:_ a hold at 5.00 on the 1 September PDF.
 Blocker 2 remains closed. Blocker 1 is **CLOSED**, facts and declaration: the
 printed abstract matches the tables, `\abstractunaidedtrue` ships, page 96 prints that the abstract
 was written by the author unaided, and the PDF contains no Not submittable. Area 6 is 5. The §2.2
@@ -356,8 +356,8 @@ part:
 it.** Two claims it wrote in one pass and a fresh pass should check: the pooled-p99.99 statement, now
 at six sites, and the knee finding, now at eight.
 
-*Historical state below, as of the remediation pass of 26 August 2026 evening, which followed the
-eleventh grading pass the same evening and closed its whole editing tier except the abstract.*
+_Historical state below, as of the remediation pass of 26 August 2026 evening, which followed the
+eleventh grading pass the same evening and closed its whole editing tier except the abstract._
 
 **Items 3b, 3d, 3f, 3g, 3h, 3i, 3j and 3k are CLOSED.** They are kept below with the fix against
 each, because the fixes are the transferable part. **The claims-about-the-evidence class is empty as
@@ -375,7 +375,7 @@ Three shapes, in the order they were discovered:
    are the summary-of-findings table, the threats table, the hypothesis revisit, and the methodology
    section that said the metric was unavailable. Check those four first and the rest of the pass gets
    cheap.
-2. **A claim propagated rather than checked.** A remediation pass rewrites every *sentence* that says
+2. **A claim propagated rather than checked.** A remediation pass rewrites every _sentence_ that says
    X while never asking whether X is true. This is how the counter over-claim (3i) spread from one
    site to four. When a pass reports "all N sites rewritten", check whether the claim they now share
    is sound.
@@ -402,7 +402,7 @@ remediation separately, and ask specifically what it propagated and what it half
 
 **And the strongest version of that rule, from 28 August: run a second reader with no context.** The
 fourteenth pass audited its own overnight remediation and found four defects, which was worth doing.
-An independent audit of the *same* claims, run in parallel from the artefacts alone, found **five
+An independent audit of the _same_ claims, run in parallel from the artefacts alone, found **five
 more**, including a results paragraph stating the exact opposite of the figure beside it. Both
 self-audits missed it for the same reason: they were reading for the claims they knew had changed,
 and this one had not changed since the guest campaign. The independent reader also re-derived every
@@ -446,235 +446,235 @@ methodology section that said the metric was unavailable.
    and will not run without it.
 
 3a. **Closed 24 August 2026.** `figures/tab_taxonomy.tex` is generated by `write_taxonomy_table()`
-   in `bench/plot_figures.py` and `\input` like the other twelve result tables, so the safety
-   section's no-drift claim is enforced rather than asserted. It grouped on `rust_expected`, the
-   expectation recorded before the run, and it refuses to write a boundary row whose misbehaviour
-   the runner did not record. Verified at the tenth pass. **Do not re-report.** §5.6 was reworded
-   in the same period to name `bench/refresh_thesis.sh` instead of claiming one script, which
-   answers the count objection but not the scope one: see 3d.
+in `bench/plot_figures.py` and `\input` like the other twelve result tables, so the safety
+section's no-drift claim is enforced rather than asserted. It grouped on `rust_expected`, the
+expectation recorded before the run, and it refuses to write a boundary row whose misbehaviour
+the runner did not record. Verified at the tenth pass. **Do not re-report.** §5.6 was reworded
+in the same period to name `bench/refresh_thesis.sh` instead of claiming one script, which
+answers the count objection but not the scope one: see 3d.
 
 3b. **CLOSED 26 August 2026, remediation pass. Do not re-report.** All five are fixed and each fix
-   is worth carrying. `fig:borrowuaf`'s caption now says "only under a sanitiser on a path a test
-   exercises", which matches `taxonomy.csv`. Diagram 07's band shows the direct A/B the harness runs
-   (same operation native against through the seam) instead of the disowned
-   crossing-against-round-trip ratio, and the two bars are almost the same length because that is
-   the finding. Diagram 11 now reads "so a 1-in-100 per-op delay is a 1-in-25 procedure delay",
-   which is $1-0.99^4$ over the four ops its own panel draws, so the label finally argues the
-   amplification the heading claims. `fig:budget`'s caption carries "language". And **`fig:effects`
-   was not fixed by `bbox_inches="tight"`**, which was tried and failed, because a tight bbox crops
-   to the artists it can measure and the overhang was not one of them. One shared `fig.supxlabel`
-   fixed it, and it is better design since both panels plot the same normalised quantity. Two
-   method notes. Re-render and **read** any diagram edited here, since the style gate checks
-   punctuation and not sense. And count the numbers you leave in a hand-authored SVG: the first
-   rewrite of diagram 07's band typed eight measured values where two had been, before the
-   statistics moved to the caption as macros.
+is worth carrying. `fig:borrowuaf`'s caption now says "only under a sanitiser on a path a test
+exercises", which matches `taxonomy.csv`. Diagram 07's band shows the direct A/B the harness runs
+(same operation native against through the seam) instead of the disowned
+crossing-against-round-trip ratio, and the two bars are almost the same length because that is
+the finding. Diagram 11 now reads "so a 1-in-100 per-op delay is a 1-in-25 procedure delay",
+which is $1-0.99^4$ over the four ops its own panel draws, so the label finally argues the
+amplification the heading claims. `fig:budget`'s caption carries "language". And **`fig:effects`
+was not fixed by `bbox_inches="tight"`**, which was tried and failed, because a tight bbox crops
+to the artists it can measure and the overhang was not one of them. One shared `fig.supxlabel`
+fixed it, and it is better design since both panels plot the same normalised quantity. Two
+method notes. Re-render and **read** any diagram edited here, since the style gate checks
+punctuation and not sense. And count the numbers you leave in a hand-authored SVG: the first
+rewrite of diagram 07's band typed eight measured values where two had been, before the
+statistics moved to the caption as macros.
 
-   *Original text, kept for the reasoning:* `fig:borrowuaf`'s caption (l. 827) says
-   the C++ use-after-free is caught "only under AddressSanitizer" where `taxonomy.csv` and
-   Table 7.9 both record ASan *and* TSan. `diagrams/07_ffi_seam.svg`'s bottom band is headed
-   "Per-call cost" and shows the empty-crossing-against-round-trip ratio that §7.6 disowns and
-   §8.3 records as right-answer-wrong-reason. `diagrams/11_tail_latency_concept.svg` says "a p99
-   per-op delay becomes a p99 per-procedure delay", the opposite of the amplification its own panel
-   heading and caption argue. Smaller: `fig:budget`'s caption drops the word "language" that makes
-   its claim true, and `fig:effects`'s right-panel axis label is clipped because
-   `plot_figures.py:1260` omits `bbox_inches="tight"`. Opened by the ninth pass. **Re-render and
-   read any diagram edited for these**: the style gate checks punctuation, not sense.
+_Original text, kept for the reasoning:_ `fig:borrowuaf`'s caption (l. 827) says
+the C++ use-after-free is caught "only under AddressSanitizer" where `taxonomy.csv` and
+Table 7.9 both record ASan _and_ TSan. `diagrams/07_ffi_seam.svg`'s bottom band is headed
+"Per-call cost" and shows the empty-crossing-against-round-trip ratio that §7.6 disowns and
+§8.3 records as right-answer-wrong-reason. `diagrams/11_tail_latency_concept.svg` says "a p99
+per-op delay becomes a p99 per-procedure delay", the opposite of the amplification its own panel
+heading and caption argue. Smaller: `fig:budget`'s caption drops the word "language" that makes
+its claim true, and `fig:effects`'s right-panel axis label is clipped because
+`plot_figures.py:1260` omits `bbox_inches="tight"`. Opened by the ninth pass. **Re-render and
+read any diagram edited for these**: the style gate checks punctuation, not sense.
 
 3c. **Median equivalence asserted against §7.5.1. Three of four sites fixed 23 August, the abstract
-   left.** There were four, and the fourth was found by applying the sync rule and not by reading
-   the thesis: `Thesis_v2.tex` l. 531 carried it too, in the supervisor-facing skeleton. §1.4, §9
-   and the skeleton now state the practical equivalence, name the resolved difference through
-   `\PFiftyDiffAbsMax`, and add "practical and not statistical". **The abstract (l. 226, "median
-   latency matches") is still open** and waits for the unaided rewrite. The paired test resolves
-   −1.1 and −1.6 µs, both clearing Holm, and `tab_equivalence` marks both rows "significant". §8.2
-   was already correct and supplied the register. This is the mirror of the error the thesis guards
-   against, so do not read it as carelessness in the usual direction. **Area 4 was not lifted for
-   the partial fix**, because 3a and 3b are untouched.
+left.** There were four, and the fourth was found by applying the sync rule and not by reading
+the thesis: `Thesis_v2.tex` l. 531 carried it too, in the supervisor-facing skeleton. §1.4, §9
+and the skeleton now state the practical equivalence, name the resolved difference through
+`\PFiftyDiffAbsMax`, and add "practical and not statistical". **The abstract (l. 226, "median
+latency matches") is still open** and waits for the unaided rewrite. The paired test resolves
+−1.1 and −1.6 µs, both clearing Holm, and `tab_equivalence` marks both rows "significant". §8.2
+was already correct and supplied the register. This is the mirror of the error the thesis guards
+against, so do not read it as carelessness in the usual direction. **Area 4 was not lifted for
+the partial fix**, because 3a and 3b are untouched.
 
 3d. **CLOSED 26 August 2026, remediation pass. Do not re-report.** Six new generated macros retire
-   every typed measured value in Chapter 6: `\RssAgree` 18/20, `\RssLowRunOffset` 31,
-   `\PFiftyMedian` 80, `\PNineNineLightest` 245, `\PNineNinePreCliff` 6 and `\BudgetFloor`
-   0.000061, plus `\BmPFiftyMedian` 74 in `baremetal_facts.py`. All seven were recomputed from the
-   raw logs and match. Two of the generators are worth knowing about. `rss_low_run_offset()` splits
-   each variant's repeats at their largest gap rather than at a threshold, refuses a variant whose
-   runs are unimodal or whose low group is not a minority, and returns `None` when none qualifies,
-   so the macro is absent rather than zero on a campaign without the defect. `\BudgetFloor` comes
-   from the same `attainable_floor()` as `\MinAttainableP`, so changing `BudgetRepeats` moves it.
-   §5.6's scope claim was rewritten in the same pass to name its two exclusions, hand-drawn
-   schematics and the fact that a rerun on another host regenerates by procedure and not to the same
-   values. Diagram 07 now types only the two bar lengths, which a bar chart cannot avoid.
+every typed measured value in Chapter 6: `\RssAgree` 18/20, `\RssLowRunOffset` 31,
+`\PFiftyMedian` 80, `\PNineNineLightest` 245, `\PNineNinePreCliff` 6 and `\BudgetFloor`
+0.000061, plus `\BmPFiftyMedian` 74 in `baremetal_facts.py`. All seven were recomputed from the
+raw logs and match. Two of the generators are worth knowing about. `rss_low_run_offset()` splits
+each variant's repeats at their largest gap rather than at a threshold, refuses a variant whose
+runs are unimodal or whose low group is not a minority, and returns `None` when none qualifies,
+so the macro is absent rather than zero on a campaign without the defect. `\BudgetFloor` comes
+from the same `attainable_floor()` as `\MinAttainableP`, so changing `BudgetRepeats` moves it.
+§5.6's scope claim was rewritten in the same pass to name its two exclusions, hand-drawn
+schematics and the fact that a rerun on another host regenerates by procedure and not to the same
+values. Diagram 07 now types only the two bar lengths, which a bar chart cannot avoid.
 
-   *Original text, kept for the reasoning:* l. 2323 makes the claim. l. 2894–2895 quote "$18$ of the $20$ paired repeats agree"
-   and "a resident set some $30$~MiB low", which together are the whole justification for reading
-   peak RSS under `jemalloc` from its interval rather than its $p$-value. Neither has a macro, and
-   `\OverloadThrAgree` is the identical quantity for the overload family and *is* generated at
-   20/20, so `_paired_effect` already computes this shape. Two weaker instances of the same claim
-   failing: the AI declaration carries its own version, and `diagrams/07_ffi_seam.svg` has
-   `12.7 µs` and `2.54 ns` typed into the drawing. All values are correct today, so these are
-   unenforced claims and not live errors, which is what 3a was before it was generated. §5.6's
-   surviving overreach is "every figure and table in the evaluation", which covers two hand-drawn
-   diagrams, and "regenerates the artifacts verbatim", which cannot hold for a timing measurement
-   on another host. Opened by the tenth pass.
+_Original text, kept for the reasoning:_ l. 2323 makes the claim. l. 2894–2895 quote "$18$ of the $20$ paired repeats agree"
+and "a resident set some $30$~MiB low", which together are the whole justification for reading
+peak RSS under `jemalloc` from its interval rather than its $p$-value. Neither has a macro, and
+`\OverloadThrAgree` is the identical quantity for the overload family and _is_ generated at
+20/20, so `_paired_effect` already computes this shape. Two weaker instances of the same claim
+failing: the AI declaration carries its own version, and `diagrams/07_ffi_seam.svg` has
+`12.7 µs` and `2.54 ns` typed into the drawing. All values are correct today, so these are
+unenforced claims and not live errors, which is what 3a was before it was generated. §5.6's
+surviving overreach is "every figure and table in the evaluation", which covers two hand-drawn
+diagrams, and "regenerates the artifacts verbatim", which cannot hold for a timing measurement
+on another host. Opened by the tenth pass.
 
 3e. **The abstract's catalogue size, new to the grading record.** l. 228 and l. 230 say "all
-   **five** injected" classes and "**Five** further classes" where §1.4, §6.4.4, Table 6.9, Figure
-   6.9, Table 7.1, the conclusion and `Thesis_v2.tex` all say seven and seven. It understates the
-   catalogue that makes RQ2 falsifiable, which is criterion 1's own blocker, on the page an examiner
-   reads first. Together with the median claim (3c) and the unreported jitter dimension, the unaided
-   rewrite now has four items to settle. **Area 6 was held at 4.5**, because the build refuses to
-   call the document submittable and one rewrite closes all four, but say plainly in any pass that
-   submitted as it stands this abstract puts area 6 at 4.0 and area 4 follows it.
+**five** injected" classes and "**Five** further classes" where §1.4, §6.4.4, Table 6.9, Figure
+6.9, Table 7.1, the conclusion and `Thesis_v2.tex` all say seven and seven. It understates the
+catalogue that makes RQ2 falsifiable, which is criterion 1's own blocker, on the page an examiner
+reads first. Together with the median claim (3c) and the unreported jitter dimension, the unaided
+rewrite now has four items to settle. **Area 6 was held at 4.5**, because the build refuses to
+call the document submittable and one rewrite closes all four, but say plainly in any pass that
+submitted as it stands this abstract puts area 6 at 4.0 and area 4 follows it.
 
 3f. **CLOSED 26 August 2026, remediation pass. Do not re-report.** Reworded at all four sites. The
-   sweep now "tracks the ideal line up to an offered `\TrackingLoad` kops/s, where it plateaus at an
-   achieved `\SatKnee` kops/s", and the prose adds that the rate ladder brackets the knee rather
-   than pinning it, since the next rung is where the arms stop tracking. `fig:loadsweep`'s caption
-   no longer lists a knee marker panel (b) does not draw, `tab:params`'s row is relabelled "Measured
-   throughput plateau", and `Thesis_v2.tex` follows. The macro names were left alone deliberately:
-   renaming one used in six places plus the deck buys nothing that the wording does not.
-   §`sec:baremetal` had already done this correctly, bracketing its own knee between `\BmKneeLo` and
-   `\BmKneeHi`, and supplied the pattern.
+sweep now "tracks the ideal line up to an offered `\TrackingLoad` kops/s, where it plateaus at an
+achieved `\SatKnee` kops/s", and the prose adds that the rate ladder brackets the knee rather
+than pinning it, since the next rung is where the arms stop tracking. `fig:loadsweep`'s caption
+no longer lists a knee marker panel (b) does not draw, `tab:params`'s row is relabelled "Measured
+throughput plateau", and `Thesis_v2.tex` follows. The macro names were left alone deliberately:
+renaming one used in six places plus the deck buys nothing that the wording does not.
+§`sec:baremetal` had already done this correctly, bracketing its own knee between `\BmKneeLo` and
+`\BmKneeHi`, and supplied the pattern.
 
-   *Original text, kept for the reasoning:* `plot_figures.py:1652`
-   defines it as the highest achieved throughput in the sweep, minimised across variants, so it
-   belongs to the vertical axis. `\TrackingLoad` is an offered load. §6.4.1 l. 2702 prints them as
-   tracking to 336 kops/s and saturating at 335, and `fig:loadsweep`'s caption lists "the knee at
-   335 kops/s" among things a dotted line marks, where panel (b) draws no knee marker. Opened by the
-   tenth pass, still open at the eleventh. **The fix pattern is now inside the document**:
-   §`sec:baremetal` brackets its own knee between `\BmKneeLo` 448 and `\BmKneeHi` 512 because the
-   sweep steps over it, which is the honest form. Copy that.
+_Original text, kept for the reasoning:_ `plot_figures.py:1652`
+defines it as the highest achieved throughput in the sweep, minimised across variants, so it
+belongs to the vertical axis. `\TrackingLoad` is an offered load. §6.4.1 l. 2702 prints them as
+tracking to 336 kops/s and saturating at 335, and `fig:loadsweep`'s caption lists "the knee at
+335 kops/s" among things a dotted line marks, where panel (b) draws no knee marker. Opened by the
+tenth pass, still open at the eleventh. **The fix pattern is now inside the document**:
+§`sec:baremetal` brackets its own knee between `\BmKneeLo` 448 and `\BmKneeHi` 512 because the
+sweep steps over it, which is the honest form. Copy that.
 
 3g. **CLOSED 26 August 2026, remediation pass. Do not re-report.** All six rewritten, and the honest
-   half was preserved rather than dropped: the allocation profile is now described in the thesis as
-   captured and unanalysed, so the gap stays visible in the document instead of only in this file.
-   `tab:threats`'s RQ3 row reads "Counters on the confirmation host" against "Direction accounted
-   for, the split inside the resident set not". §4.4 says the main campaign reports neither metric
-   and the confirmation campaign carries both. **Note the table overflowed its page while this row
-   was being lengthened**, which cost several rebuild cycles: `tab:threats` is the densest table in
-   the thesis and sits within a few points of its page, so measure after any row edit. One number
-   the eleventh pass had wrong is corrected in the remediation record: the bare-metal CPU result
-   *confirms* the guest's below-saturation CPU finding rather than resolving a non-result, and the
-   "reverses under jemalloc" reading came from a stale `docs/TODO.md` note about an earlier campaign.
+half was preserved rather than dropped: the allocation profile is now described in the thesis as
+captured and unanalysed, so the gap stays visible in the document instead of only in this file.
+`tab:threats`'s RQ3 row reads "Counters on the confirmation host" against "Direction accounted
+for, the split inside the resident set not". §4.4 says the main campaign reports neither metric
+and the confirmation campaign carries both. **Note the table overflowed its page while this row
+was being lengthened**, which cost several rebuild cycles: `tab:threats` is the densest table in
+the thesis and sits within a few points of its page, so measure after any row edit. One number
+the eleventh pass had wrong is corrected in the remediation record: the bare-metal CPU result
+_confirms_ the guest's below-saturation CPU finding rather than resolving a non-result, and the
+"reverses under jemalloc" reading came from a stale `docs/TODO.md` note about an earlier campaign.
 
-   *Original text, kept for the reasoning, and the largest single finding on the eleventh pass:* The bare-metal visit collected `perf` counters at both
-   scopes and a jemalloc allocation profile for both languages, and §`sec:baremetal` reports the
-   counters under the heading *A mechanism, from counters the guest did not expose*. Yet §6.4.3
-   l. 2930 says the gap is unexplained "for want of hardware counters and allocation profiles",
-   §7.2 l. 3704 says the split "needs the allocation profiles and hardware counters this study did
-   not collect", §7.6 l. 4281 says "no hardware counters or allocation profiles were collected", and
-   `tab:threats`'s RQ3-origin row has a control column reading "None available on this host". The
-   first is falsified ninety lines later in its own chapter. Two more of the same shape on the other
-   metric: §5.5 l. 1597 says "Neither is reported in Chapter 6" of p99.99 and jitter where p99.99 is
-   reported, and §7.6 l. 4263 says both "postdate the reported campaign". Jitter genuinely is still
-   unreported, so that sentence needs splitting rather than deleting. **This is what took area 5 off
-   5**, because three of the six are chapter-7 text.
+_Original text, kept for the reasoning, and the largest single finding on the eleventh pass:_ The bare-metal visit collected `perf` counters at both
+scopes and a jemalloc allocation profile for both languages, and §`sec:baremetal` reports the
+counters under the heading _A mechanism, from counters the guest did not expose_. Yet §6.4.3
+l. 2930 says the gap is unexplained "for want of hardware counters and allocation profiles",
+§7.2 l. 3704 says the split "needs the allocation profiles and hardware counters this study did
+not collect", §7.6 l. 4281 says "no hardware counters or allocation profiles were collected", and
+`tab:threats`'s RQ3-origin row has a control column reading "None available on this host". The
+first is falsified ninety lines later in its own chapter. Two more of the same shape on the other
+metric: §5.5 l. 1597 says "Neither is reported in Chapter 6" of p99.99 and jitter where p99.99 is
+reported, and §7.6 l. 4263 says both "postdate the reported campaign". Jitter genuinely is still
+unreported, so that sentence needs splitting rather than deleting. **This is what took area 5 off
+5**, because three of the six are chapter-7 text.
 
 3h. **CLOSED 26 August 2026 except the abstract, which is item 1. Do not re-report the other four.**
-   `tab:findings`'s RQ1 row, §7.1, `tab:threats`'s non-determinism row and §6.3 are synced. §6.3's
-   "provisionally ... replaces these numbers" paragraph became a description of the fourth dataset,
-   which §6.3 had not described at all, and its opening count went from three campaigns to four. The
-   peak-RSS ratio carries a host at five sites, and §`sec:baremetal` now flags the collapse itself
-   with the arena count noted as pinned identically, so it cannot be read as the fairness control
-   moving. §7.2 states the general form: the ordering travels and the ratio does not. The toolchain
-   is named in §`sec:baremetal`'s list of differences, which now says four ways and not three, and
-   `tab:testbed`'s caption lists the three protocol rows the confirmation host missed instead of
-   claiming it met the column. Two caveats were added that no pass asked for: no `isolcpus` or
-   `nohz_full` on the confirmation host, and the jitter sidecar was on for that campaign and off for
-   the sweep, so the two hosts' paired differences are comparable and their absolute footprints are
-   not.
+`tab:findings`'s RQ1 row, §7.1, `tab:threats`'s non-determinism row and §6.3 are synced. §6.3's
+"provisionally ... replaces these numbers" paragraph became a description of the fourth dataset,
+which §6.3 had not described at all, and its opening count went from three campaigns to four. The
+peak-RSS ratio carries a host at five sites, and §`sec:baremetal` now flags the collapse itself
+with the arena count noted as pinned identically, so it cannot be read as the fairness control
+moving. §7.2 states the general form: the ordering travels and the ratio does not. The toolchain
+is named in §`sec:baremetal`'s list of differences, which now says four ways and not three, and
+`tab:testbed`'s caption lists the three protocol rows the confirmation host missed instead of
+claiming it met the column. Two caveats were added that no pass asked for: no `isolcpus` or
+`nohz_full` on the confirmation host, and the jitter sidecar was on for that campaign and off for
+the sweep, so the two hosts' paired differences are comparable and their absolute footprints are
+not.
 
-   *Original text, kept for the reasoning:* The integration reached §1.4, §6.4, §7.2, the conclusion,
-   `tab:threats`'s virtualised-host row, `tab:testbed`, `Thesis_v2.tex` and `Thesis_Plan_v2.tex`,
-   and missed the abstract (l. 245), `tab:findings`'s RQ1 row ("no tail ordering is resolvable"),
-   §7.1 l. 3506, `tab:threats`'s non-determinism row, and §6.3 l. 2389 (which promises the
-   bare-metal run "replaces these numbers" where §`sec:baremetal` says confirmation and not
-   replacement). Separately: the peak-RSS allocator effect fell from `\RssAllocDiff` 32.9--34.4 MiB
-   to `\BmRssAlloc` 1.9--3.2 MiB with `thp:never,narenas:16` matched on both hosts, so the "order of
-   magnitude" gap between allocator and language effects did not survive the change of host. §1.4,
-   `tab:findings`'s RQ3 row and the conclusion state it with no host attached. **The non-negotiable
-   claim is untouched**: both effects are real and the allocator's is still larger. Only the
-   phrasing needs a host. Also §`sec:baremetal` claims the campaign "changes one thing that matters,
-   the machine" while the toolchain changed too, and `tab:testbed`'s caption claims the confirmation
-   host met a protocol column it missed on four rows.
+_Original text, kept for the reasoning:_ The integration reached §1.4, §6.4, §7.2, the conclusion,
+`tab:threats`'s virtualised-host row, `tab:testbed`, `Thesis_v2.tex` and `Thesis_Plan_v2.tex`,
+and missed the abstract (l. 245), `tab:findings`'s RQ1 row ("no tail ordering is resolvable"),
+§7.1 l. 3506, `tab:threats`'s non-determinism row, and §6.3 l. 2389 (which promises the
+bare-metal run "replaces these numbers" where §`sec:baremetal` says confirmation and not
+replacement). Separately: the peak-RSS allocator effect fell from `\RssAllocDiff` 32.9--34.4 MiB
+to `\BmRssAlloc` 1.9--3.2 MiB with `thp:never,narenas:16` matched on both hosts, so the "order of
+magnitude" gap between allocator and language effects did not survive the change of host. §1.4,
+`tab:findings`'s RQ3 row and the conclusion state it with no host attached. **The non-negotiable
+claim is untouched**: both effects are real and the allocator's is still larger. Only the
+phrasing needs a host. Also §`sec:baremetal` claims the campaign "changes one thing that matters,
+the machine" while the toolchain changed too, and `tab:testbed`'s caption claims the confirmation
+host met a protocol column it missed on four rows.
 
 3i. **CLOSED 26 August 2026, third remediation. Do not re-report.** §`sec:baremetal` now calls the
-   counters "a mechanism for the operation-level result" and adds the sentence that was missing: the
-   worse locality is not evidence about the resident set, because a larger footprint is a reason to
-   miss cache more often and the two are related in the opposite direction. `tab:findings` reads
-   "located outside the allocator by its own accounting", and `tab:threats`'s residual is narrowed to
-   the honest gap, which is call-site attribution. §7.2 is rebuilt around three bounds.
-   **The transferable part:** the conclusion was right and the instrument was wrong, which is the
-   hardest version of this defect to spot, because nothing the sentence asserts is false on its face.
-   When a pass reports "all N sites rewritten", ask what instrument the shared claim rests on.
+counters "a mechanism for the operation-level result" and adds the sentence that was missing: the
+worse locality is not evidence about the resident set, because a larger footprint is a reason to
+miss cache more often and the two are related in the opposite direction. `tab:findings` reads
+"located outside the allocator by its own accounting", and `tab:threats`'s residual is narrowed to
+the honest gap, which is call-site attribution. §7.2 is rebuilt around three bounds.
+**The transferable part:** the conclusion was right and the instrument was wrong, which is the
+hardest version of this defect to spot, because nothing the sentence asserts is false on its face.
+When a pass reports "all N sites rewritten", ask what instrument the shared claim rests on.
 
-   *Original text, kept for the reasoning:* §6.4.4
-   l. 3056 ("less work and worse locality is one account of both RQ3 results at once"), §7.2 l. 3761
-   ("a plausible account of a larger resident set and a faster operation at once"),
-   `tab:findings`'s RQ3 status ("direction accounted for by counters") and `tab:threats`'s RQ3 row.
-   An operation-scope cache-miss rate cannot explain a fixed allocator and runtime footprint, and
-   §6.4.3 says in its own words that the gap is arena and runtime overhead and a fixed cost rather
-   than a per-context one. If anything the arrow runs the other way: a larger resident set is a
-   reason to miss cache more often. The **conclusion** is right, the direction *is* accounted for,
-   but by the allocator statistics of 3j and not by the counters. The first site came in with the
-   bare-metal integration (`240346a`) and the remediation propagated it to the other three, which is
-   pattern 2 above. Hedged with "one account" and "plausible", so score it as an imprecision, but the
-   pairing with 3j in one paragraph is what took area 5 off 5.
+_Original text, kept for the reasoning:_ §6.4.4
+l. 3056 ("less work and worse locality is one account of both RQ3 results at once"), §7.2 l. 3761
+("a plausible account of a larger resident set and a faster operation at once"),
+`tab:findings`'s RQ3 status ("direction accounted for by counters") and `tab:threats`'s RQ3 row.
+An operation-scope cache-miss rate cannot explain a fixed allocator and runtime footprint, and
+§6.4.3 says in its own words that the gap is arena and runtime overhead and a fixed cost rather
+than a per-context one. If anything the arrow runs the other way: a larger resident set is a
+reason to miss cache more often. The **conclusion** is right, the direction _is_ accounted for,
+but by the allocator statistics of 3j and not by the counters. The first site came in with the
+bare-metal integration (`240346a`) and the remediation propagated it to the other three, which is
+pattern 2 above. Hedged with "one account" and "plausible", so score it as an imprecision, but the
+pairing with 3j in one paragraph is what took area 5 off 5.
 
 3j. **CLOSED 26 August 2026, third remediation, and it was the highest-value two hours in the
-   project. Do not re-report.** `je_facts()` and `write_resident_table()` in
-   `bench/baremetal_facts.py` emit 26 macros and `figures/tab_resident.tex`, and
-   §`sec:baremetal` reports the decomposition in three readings. **The result relocated the finding**:
-   arena metadata is $+2.07$ MiB and drifts $0.5\%$ across the load range (so it *measures* the fixed
-   cost §6.4.3 argued by elimination), Rust holds $0.16$ MiB less live allocation, but the allocator's
-   own resident bytes are $1.92$ MiB *lower* while the peak is $1.74$ MiB higher, so the difference
-   sits outside the allocator, in the runtime a Rust process carries before it allocates. A third
-   reading is a negative result about the guest: no arm's peak RSS spans more than $1.7$ MiB on bare
-   metal, so the $31$ MiB bimodality belonged to the host. Two caveats are in the text: peak RSS is a
-   `getrusage` maximum against sampled figures, and the derived row is a median of per-run differences
-   so the table's column does not sum exactly (the caption says why, and pairing inside the run is the
-   better statistic). **Two transferable lessons.** First, before believing a stated limitation, check
-   whether the dataset already refutes it: four places said the instrument did not exist while 480
-   records carried it. Second, the obvious reading of this data is wrong, so a future pass should not
-   "correct" the write-up back to "metadata explains it".
+project. Do not re-report.** `je_facts()` and `write_resident_table()` in
+`bench/baremetal_facts.py` emit 26 macros and `figures/tab_resident.tex`, and
+§`sec:baremetal` reports the decomposition in three readings. **The result relocated the finding**:
+arena metadata is $+2.07$ MiB and drifts $0.5\%$ across the load range (so it _measures_ the fixed
+cost §6.4.3 argued by elimination), Rust holds $0.16$ MiB less live allocation, but the allocator's
+own resident bytes are $1.92$ MiB _lower_ while the peak is $1.74$ MiB higher, so the difference
+sits outside the allocator, in the runtime a Rust process carries before it allocates. A third
+reading is a negative result about the guest: no arm's peak RSS spans more than $1.7$ MiB on bare
+metal, so the $31$ MiB bimodality belonged to the host. Two caveats are in the text: peak RSS is a
+`getrusage` maximum against sampled figures, and the derived row is a median of per-run differences
+so the table's column does not sum exactly (the caption says why, and pairing inside the run is the
+better statistic). **Two transferable lessons.** First, before believing a stated limitation, check
+whether the dataset already refutes it: four places said the instrument did not exist while 480
+records carried it. Second, the obvious reading of this data is wrong, so a future pass should not
+"correct" the write-up back to "metadata explains it".
 
-   *Original text, kept for the reasoning:* Both bare-metal campaigns record jemalloc's own statistics in every run of
-   their two jemalloc arms, **480 runs**, through instrumentation built for exactly this purpose
-   (`cpp/bench/jestats.hpp` with a weak `mallctl`, `je_stats()` in `rust/examples/bench.rs`, system
-   arms emitting nulls and never zeros). The seven fields (`allocated`, `active`, `metadata`,
-   `resident`, `mapped`, `retained`, `available`) decompose the resident set into live allocation
-   against arena bookkeeping against retained-but-unmapped, **which is word for word the split §7.2
-   calls unresolved** and pins on an allocation profile the study supposedly lacks. No generator in
-   `bench/` reads them, §6.3 does not list them among the confirmation dataset's fields, and the
-   guest campaign has none of them. Medians over 90 runs per arm at steady state, MiB: `allocated`
-   0.78 against 0.62, `active` 1.43 against 0.79, `metadata` 4.19 against **6.26**, `resident` 11.02
-   against 9.10, peak RSS 15.08 against 16.82. **Read it before writing it up**: Rust holds *less*
-   live data and *less* allocator-resident memory while its process peak is higher, so the difference
-   is neither application data nor fully inside `jemalloc`, which points at the Rust runtime's own
-   fixed pages. That is a sharper finding than the placeholder and it argues the same direction as
-   the conclusion. Two caveats: peak RSS is a `getrusage` maximum against sampled `je` figures, and
-   the C++ arm links the distribution `jemalloc` while the Rust arm builds 5.3.1 from source
-   (`docs/TODO.md` Phase 11 item 3 records the confound). Cost: **two hours**, not the half day
-   assigned to the profile, which answers the different question of call-site attribution.
+_Original text, kept for the reasoning:_ Both bare-metal campaigns record jemalloc's own statistics in every run of
+their two jemalloc arms, **480 runs**, through instrumentation built for exactly this purpose
+(`cpp/bench/jestats.hpp` with a weak `mallctl`, `je_stats()` in `rust/examples/bench.rs`, system
+arms emitting nulls and never zeros). The seven fields (`allocated`, `active`, `metadata`,
+`resident`, `mapped`, `retained`, `available`) decompose the resident set into live allocation
+against arena bookkeeping against retained-but-unmapped, **which is word for word the split §7.2
+calls unresolved** and pins on an allocation profile the study supposedly lacks. No generator in
+`bench/` reads them, §6.3 does not list them among the confirmation dataset's fields, and the
+guest campaign has none of them. Medians over 90 runs per arm at steady state, MiB: `allocated`
+0.78 against 0.62, `active` 1.43 against 0.79, `metadata` 4.19 against **6.26**, `resident` 11.02
+against 9.10, peak RSS 15.08 against 16.82. **Read it before writing it up**: Rust holds _less_
+live data and _less_ allocator-resident memory while its process peak is higher, so the difference
+is neither application data nor fully inside `jemalloc`, which points at the Rust runtime's own
+fixed pages. That is a sharper finding than the placeholder and it argues the same direction as
+the conclusion. Two caveats: peak RSS is a `getrusage` maximum against sampled `je` figures, and
+the C++ arm links the distribution `jemalloc` while the Rust arm builds 5.3.1 from source
+(`docs/TODO.md` Phase 11 item 3 records the confound). Cost: **two hours**, not the half day
+assigned to the profile, which answers the different question of call-site attribution.
 
 3k. **CLOSED 26 August 2026, third remediation. Do not re-report.** The intro reads "not fully
-   satisfied either" and points at the caption's itemisation. §6.3 names three kinds of addition and
-   explains the system arms' nulls. §5.6 says "demonstrates on a campaign of its own design".
-   **The layout lesson is the transferable part and it reverses this repository's usual rule:** the
-   stranded appendix page was caused by `[H]` forbidding the following text from flowing back into the
-   gap, and the fix was to *float* the table to `[ht]`, recovering the page. Every earlier length pass
-   here moved tables *to* `[H]`. Diagnose the cause before choosing a direction. A second, smaller
-   one: the §5.6 rewrite added two lines and stranded a chapter-tail page, recovered by tightening the
-   same passage, which is the "shaving words moves nothing until a whole line comes out" trap.
+satisfied either" and points at the caption's itemisation. §6.3 names three kinds of addition and
+explains the system arms' nulls. §5.6 says "demonstrates on a campaign of its own design".
+**The layout lesson is the transferable part and it reverses this repository's usual rule:** the
+stranded appendix page was caused by `[H]` forbidding the following text from flowing back into the
+gap, and the fix was to _float_ the table to `[ht]`, recovering the page. Every earlier length pass
+here moved tables _to_ `[H]`. Diagnose the cause before choosing a direction. A second, smaller
+one: the §5.6 rewrite added two lines and stranded a chapter-tail page, recovered by tightening the
+same passage, which is the "shaving words moves nothing until a whole line comes out" trap.
 
-   *Original text, kept for the reasoning:* Its opening
-   paragraph says "Section~\ref{sec:baremetal} reports a campaign that **satisfies** it" where the
-   caption four lines below lists three protocol rows the host missed. And that page carries four
-   lines of text and is otherwise white, because `tab:testbed` at `[tp]` floats to the next page:
-   **this stranded page is what took `\appendixCount` from 6 to 7**, so the fix is a per-table float
-   change and not a prose cut. Two smaller descriptions from the same pass: §6.3 calls the
-   confirmation dataset "the same record shape as the sweep and two additions" where it adds `je`,
-   `jitter_ns`, `p25`, `p75`, `p9999` and `stdev` (this is why 3j was invisible), and §5.6 calls
-   §`sec:baremetal` "exactly that exercise" of rerunning the campaign when it is a different design.
+_Original text, kept for the reasoning:_ Its opening
+paragraph says "Section~\ref{sec:baremetal} reports a campaign that **satisfies** it" where the
+caption four lines below lists three protocol rows the host missed. And that page carries four
+lines of text and is otherwise white, because `tab:testbed` at `[tp]` floats to the next page:
+**this stranded page is what took `\appendixCount` from 6 to 7**, so the fix is a per-table float
+change and not a prose cut. Two smaller descriptions from the same pass: §6.3 calls the
+confirmation dataset "the same record shape as the sweep and two additions" where it adds `je`,
+`jitter_ns`, `p25`, `p75`, `p9999` and `stdev` (this is why 3j was invisible), and §5.6 calls
+§`sec:baremetal` "exactly that exercise" of rerunning the campaign when it is a different design.
 
 4. **Prose: actioned, and the only item on this list ever to move on prose grounds.**
    "rather than" stood at 154 instances and 44 per ten thousand words at the seventh pass. It now
@@ -707,16 +707,16 @@ methodology section that said the metric was unavailable.
 
 **Resolved 22 August 2026, with the mechanism that keeps each shut. Do not re-report.**
 
-| Item | Closed by |
-| --- | --- |
+| Item                                                                                                                                                                                                                                                                                         | Closed by                                                                                                                                                                                                                                                                                                                  |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | The eleven hand-typed values (deadlock rate in prose, footnote and figure caption, the unsupported "6 of 20" trial, both lost-update pairs, conformance size, Rust test count, untouched-class count, `tab:loc`'s C++ and delta columns, the p50 "contains" sentence, the 99.9 % complement) | Eleven new macros from `bench/artefact_facts.py` (fault catalogue plus suite size), `\BudgetCoreShareRest` from `plot_figures.py`, `\CppBoundedQueueLines` from `complexity.py`, and one reworded sentence. The deadlock rate is cross-checked between `taxonomy.csv` and the per-run logs, and a mismatch is a hard error |
-| Table 5.4 (`tab:loc`) six lines short | Generated as `figures/tab_loc.tex`. The `CONCERNS` partition in `complexity.py` must cover both file sets and each column must sum to its measured total, or the script refuses to write |
-| §7.2's "no value is hand-copied ... cannot drift apart" | Narrowed to "every measured quantity this chapter quotes reaches the page as a generated macro", which is true and was verified byte-for-byte |
-| `ai_statement.tex`'s "no figure is transcribed by hand" | Same narrowing, in the declaration |
-| §5.5's indicative pooling, jitter and p99.99 | Conditional throughout, with an explicit sentence that neither is reported in Chapter 7 and a cross-reference to §7.5.1 |
-| `figures/tab_equivalence.tex` unplaced | Placed in §7.5.2 as the fourth of five readings of the test family, with a paragraph separating tight bounds from wide ones |
-| §8.2's "states the whole result in one picture" | Now "draws the boundary itself", with the two-of-five scope in the prose |
-| Diagram labels ungated | `diagrams/check_labels.py`, run by `refresh_thesis.sh`. Scope computed from the documents, verbatim code exempt through an explicit list |
+| Table 5.4 (`tab:loc`) six lines short                                                                                                                                                                                                                                                        | Generated as `figures/tab_loc.tex`. The `CONCERNS` partition in `complexity.py` must cover both file sets and each column must sum to its measured total, or the script refuses to write                                                                                                                                   |
+| §7.2's "no value is hand-copied ... cannot drift apart"                                                                                                                                                                                                                                      | Narrowed to "every measured quantity this chapter quotes reaches the page as a generated macro", which is true and was verified byte-for-byte                                                                                                                                                                              |
+| `ai_statement.tex`'s "no figure is transcribed by hand"                                                                                                                                                                                                                                      | Same narrowing, in the declaration                                                                                                                                                                                                                                                                                         |
+| §5.5's indicative pooling, jitter and p99.99                                                                                                                                                                                                                                                 | Conditional throughout, with an explicit sentence that neither is reported in Chapter 7 and a cross-reference to §7.5.1                                                                                                                                                                                                    |
+| `figures/tab_equivalence.tex` unplaced                                                                                                                                                                                                                                                       | Placed in §7.5.2 as the fourth of five readings of the test family, with a paragraph separating tight bounds from wide ones                                                                                                                                                                                                |
+| §8.2's "states the whole result in one picture"                                                                                                                                                                                                                                              | Now "draws the boundary itself", with the two-of-five scope in the prose                                                                                                                                                                                                                                                   |
+| Diagram labels ungated                                                                                                                                                                                                                                                                       | `diagrams/check_labels.py`, run by `refresh_thesis.sh`. Scope computed from the documents, verbatim code exempt through an explicit list                                                                                                                                                                                   |
 
 **A method note from that pass.** Six labels came out of the dash and semicolon removal with a
 comma splice or a panel overrun, and the gate passed every one, because it checks punctuation and
@@ -739,15 +739,15 @@ holds the full list.
 - Two boundary defect classes came back with the **C++ tooling ahead**, and the lock-order
   deadlock is detected by ThreadSanitizer **intermittently**, in 7 of 12 runs per
   `faults/results/taxonomy.csv`. Reporting an inconvenient result is evidence for area 1 and area
-  5, not against them. The intermittency *finding* is load-bearing and must not be corrected. The
-  *rate printed in the thesis* was a separate matter and was stale until 22 August. It now reads
+  5, not against them. The intermittency _finding_ is load-bearing and must not be corrected. The
+  _rate printed in the thesis_ was a separate matter and was stale until 22 August. It now reads
   through `\DeadlockTsanHits` and `\DeadlockTsanRuns` in all three places, so a rerun moves it.
 - Peak resident set size is a real language effect that reproduces under both allocators and on all
   three hosts measured, at 1.4 to 3.5 MiB everywhere. **The claim that the allocator effect is the
   larger one is retired and must not be restored**: the 27 August canonical repeat measured
   1.5--2.4 MiB for the allocator against 1.4--2.5 MiB for the language, and the second bare-metal host
   agrees, so the guest's 32.5--34.3 MiB is the outlier of three. Neither effect may be dropped and the
-  *ratio* between them must not be quoted without naming a host. `AGENT.md` §3 item 5 is the current
+  _ratio_ between them must not be quoted without naming a host. `AGENT.md` §3 item 5 is the current
   wording. Note that `.cursor/rules/thesis-quality.mdc` still carries the retired version, so a rule
   the agent is always shown contradicts this file until the author updates it.
 - The end-to-end sweep is dominated by the cross-thread handoff, and the operation is a fraction
