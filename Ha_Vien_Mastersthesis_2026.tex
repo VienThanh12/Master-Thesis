@@ -2446,15 +2446,16 @@ which are not.
         The hypothesis also applies only to \emph{safe} Rust code. The example using
         \texttt{unsafe} code shows that the same kind of defect can still occur when
         Rust's safety guarantees are bypassed.
-  \item[H3] H3 is consistent with the data but was not tested against a
-        threshold, because, like H1, it named no margin for ``small'' in
-        advance. The paired difference is bounded at $\FfiOpBoundPct\%$ of the
-        signalling call, on the virtual machine of Appendix~\ref{appendix:config}.
-        That bound rests on the upper end of the paired interval, since a
-        non-significant difference alone would not show that the overhead is
-        small. The additional claim that the real cost is engineering work agrees
-        with the structure of the integration, but this study did not measure that
-        work.
+  \item[H3] H3 is consistent with the data, but it was not tested against a predefined
+        threshold because, like H1, it did not specify in advance what should count as
+        a ``small'' overhead. On the virtual machine described in Appendix~A, the paired
+        difference is bounded at 10.91\% of the signalling call. This bound is based on
+        the upper end of the paired interval, since a non-significant difference alone
+        does not demonstrate that the overhead is small.
+        
+        The additional claim that the main cost is engineering effort is consistent with
+        the structure of the integration. However, this study did not measure that effort,
+        so the claim remains supported only qualitatively.
 \end{description}
 
 \section{Engineering guidelines for incremental adoption}\label{sec:guidelines}
