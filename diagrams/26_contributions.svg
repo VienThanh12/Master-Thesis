@@ -25,40 +25,39 @@
   <text x="316" y="192.325" font-size="10.5" fill="#5b6b7b">API design and training time</text>
   <text x="316" y="206.325" font-size="10.5" fill="#5b6b7b">were not measured.</text>
   <rect x="587" y="76" width="278" height="218" rx="10" fill="#fdf6e9" stroke="#c8860d" stroke-width="1.8"/>
-  <text x="602" y="101.325" font-size="11.5" fill="#a5700c" font-weight="700">Performance: two different answers</text>
-  <text x="602" y="122.325" font-size="10.5" fill="#5b6b7b">The round-trip is only 0.250%</text>
-  <text x="602" y="136.325" font-size="10.5" fill="#5b6b7b">language work. The median gap is</text>
-  <text x="602" y="150.325" font-size="10.5" fill="#5b6b7b">small. On a quiet host the far</text>
-  <text x="602" y="164.325" font-size="10.5" fill="#5b6b7b">tail sits lower in Rust.</text>
-  <text x="602" y="178.325" font-size="10.5" fill="#5b6b7b"></text>
-  <text x="602" y="192.325" font-size="10.5" fill="#5b6b7b">Timed apart, the core call is</text>
-  <text x="602" y="206.325" font-size="10.5" fill="#5b6b7b">1.6× faster in Rust.</text>
-  <text x="602" y="220.325" font-size="10.5" fill="#5b6b7b">Past saturation, service time</text>
-  <text x="602" y="234.325" font-size="10.5" fill="#5b6b7b">stays unknown.</text>
+  <text x="602" y="101.325" font-size="11.5" fill="#a5700c" font-weight="700">Performance: The order splits</text>
+  <text x="602" y="122.325" font-size="10.5" fill="#5b6b7b">Below saturation Rust leads.</text>
+  <text x="602" y="136.325" font-size="10.5" fill="#5b6b7b">Median gap at most 1.5 µs.</text>
+  <text x="602" y="150.325" font-size="10.5" fill="#5b6b7b">The p99.9 gap is larger.</text>
+  <text x="602" y="164.325" font-size="10.5" fill="#5b6b7b">The far tail is larger still.</text>
+  <text x="602" y="178.325" font-size="10.5" fill="#5b6b7b">A late wake-up sits in each.</text>
+  <text x="602" y="192.325" font-size="10.5" fill="#5b6b7b"></text>
+  <text x="602" y="206.325" font-size="10.5" fill="#5b6b7b">The core, timed apart, is</text>
+  <text x="602" y="220.325" font-size="10.5" fill="#5b6b7b">1.6× faster in Rust.</text>
+  <text x="602" y="234.325" font-size="10.5" fill="#5b6b7b">Past saturation, the order</text>
+  <text x="602" y="248.325" font-size="10.5" fill="#5b6b7b">follows what the timer includes.</text>
   <rect x="15" y="308" width="850" height="74" rx="9" fill="#f1f4f7" stroke="#d7dde3" stroke-width="1.6"/>
   <text x="31" y="330" font-size="12.5" fill="#12233a" font-weight="700">What this adds to the decision is an instrument, not a verdict</text>
   <rect x="31" y="344" width="156.2" height="26" rx="5" fill="#ffffff" stroke="#d7dde3" stroke-width="1.0"/>
   <text x="109.1" y="360.78" font-size="10.5" fill="#33475b" text-anchor="middle">A frozen specification</text>
   <rect x="197.2" y="344" width="144.0" height="26" rx="5" fill="#ffffff" stroke="#d7dde3" stroke-width="1.0"/>
   <text x="269.2" y="360.78" font-size="10.5" fill="#33475b" text-anchor="middle">A parity-tested pair</text>
-  <rect x="351.2" y="344" width="168.39999999999998" height="26" rx="5" fill="#ffffff" stroke="#d7dde3" stroke-width="1.0"/>
-  <text x="435.4" y="360.78" font-size="10.5" fill="#33475b" text-anchor="middle">A reproducible framework</text>
-  <rect x="529.5999999999999" y="344" width="266.0" height="26" rx="5" fill="#ffffff" stroke="#d7dde3" stroke-width="1.0"/>
-  <text x="662.5999999999999" y="360.78" font-size="10.5" fill="#33475b" text-anchor="middle">A catalogue of what the guarantee misses</text>
+  <rect x="351.2" y="344" width="119.6" height="26" rx="5" fill="#ffffff" stroke="#d7dde3" stroke-width="1.0"/>
+  <text x="411.0" y="360.78" font-size="10.5" fill="#33475b" text-anchor="middle">A timing harness</text>
+  <rect x="480.79999999999995" y="344" width="266.0" height="26" rx="5" fill="#ffffff" stroke="#d7dde3" stroke-width="1.0"/>
+  <text x="613.8" y="360.78" font-size="10.5" fill="#33475b" text-anchor="middle">A catalogue of what the guarantee misses</text>
   <rect x="15" y="396" width="850" height="78" rx="9" fill="#eef3fa" stroke="#2f6db3" stroke-width="1.7"/>
   <text x="31" y="418" font-size="12.5" fill="#1c4e86" font-weight="700">Where it goes next</text>
-  <text x="206" y="418" font-size="10.5" fill="#33475b">a same-host repeat of in-run and deferred fill, so the recorder can be separated from the machine.</text>
-  <rect x="31" y="434" width="122.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
-  <text x="92.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Production traces</text>
-  <rect x="162.0" y="434" width="128.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
-  <text x="226.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Further subsystems</text>
-  <rect x="299.0" y="434" width="146.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
-  <text x="372.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Call-site attribution</text>
-  <rect x="454.0" y="434" width="140.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
-  <text x="524.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Extend the catalogue</text>
-  <rect x="603.0" y="434" width="104.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
-  <text x="655.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Async runtimes</text>
-  <rect x="716.0" y="434" width="122.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
-  <text x="777.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Isolate the heaps</text>
+  <text x="206" y="418" font-size="10.5" fill="#33475b">large pages, production traces, async versus threads, two allocators, and review effort.</text>
+  <rect x="31" y="434" width="86.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="74.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Large pages</text>
+  <rect x="126.0" y="434" width="122.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="187.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Production traces</text>
+  <rect x="257.0" y="434" width="140.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="327.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Async versus threads</text>
+  <rect x="406.0" y="434" width="104.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="458.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Two allocators</text>
+  <rect x="519.0" y="434" width="98.0" height="24" rx="5" fill="#ffffff" stroke="#bcd0e8" stroke-width="1.0"/>
+  <text x="568.0" y="449.6" font-size="10" fill="#1c4e86" text-anchor="middle">Review effort</text>
   <text x="440.0" y="502" font-size="11.5" fill="#8794a3" text-anchor="middle">Where the service still meets the sent rate, the choice is which defects to make impossible to write.</text>
 </svg>

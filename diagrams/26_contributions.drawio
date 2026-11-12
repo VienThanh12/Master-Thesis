@@ -14,55 +14,52 @@
     <mxCell id="n26" value="&lt;b&gt;Migration: the call tax is bounded&lt;/b&gt;&lt;br&gt;&lt;br&gt;An unmodified Rust core can be driven&lt;br&gt;from C++ across a thin seam that&lt;br&gt;holds every unsafe site. Any call&lt;br&gt;tax is bounded at 10.91%.&lt;br&gt;&lt;br&gt;API design and training time&lt;br&gt;were not measured." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=11;spacingTop=5;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
       <mxGeometry x="301" y="76" width="278" height="218" as="geometry"/>
     </mxCell>
-    <mxCell id="n38" value="&lt;b&gt;Performance: two different answers&lt;/b&gt;&lt;br&gt;&lt;br&gt;The round-trip is only 0.250%&lt;br&gt;language work. The median gap is&lt;br&gt;small. On a quiet host the far&lt;br&gt;tail sits lower in Rust.&lt;br&gt;&lt;br&gt;Timed apart, the core call is&lt;br&gt;1.6× faster in Rust.&lt;br&gt;Past saturation, service time&lt;br&gt;stays unknown." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#fdf6e9;strokeColor=#c8860d;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=11;spacingTop=5;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
+    <mxCell id="n39" value="&lt;b&gt;Performance: The order splits&lt;/b&gt;&lt;br&gt;&lt;br&gt;Below saturation Rust leads.&lt;br&gt;Median gap at most 1.5 µs.&lt;br&gt;The p99.9 gap is larger.&lt;br&gt;The far tail is larger still.&lt;br&gt;A late wake-up sits in each.&lt;br&gt;&lt;br&gt;The core, timed apart, is&lt;br&gt;1.6× faster in Rust.&lt;br&gt;Past saturation, the order&lt;br&gt;follows what the timer includes." style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=20;fillColor=#fdf6e9;strokeColor=#c8860d;strokeWidth=1.8;align=left;verticalAlign=top;spacingLeft=11;spacingTop=5;spacingRight=6;fontSize=10.5;fontColor=#5b6b7b;fontFamily=Segoe UI;" vertex="1" parent="1">
       <mxGeometry x="587" y="76" width="278" height="218" as="geometry"/>
     </mxCell>
-    <mxCell id="n39" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#f1f4f7;strokeColor=#d7dde3;strokeWidth=1.6;" vertex="1" parent="1">
+    <mxCell id="n40" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#f1f4f7;strokeColor=#d7dde3;strokeWidth=1.6;" vertex="1" parent="1">
       <mxGeometry x="15" y="308" width="850" height="74" as="geometry"/>
     </mxCell>
-    <mxCell id="n40" value="What this adds to the decision is an instrument, not a verdict" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+    <mxCell id="n41" value="What this adds to the decision is an instrument, not a verdict" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#12233a;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
       <mxGeometry x="31" y="318.12" width="422.38" height="18.75" as="geometry"/>
     </mxCell>
-    <mxCell id="n43" value="A frozen specification" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d7dde3;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+    <mxCell id="n44" value="A frozen specification" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d7dde3;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
       <mxGeometry x="31" y="344" width="156.2" height="26" as="geometry"/>
     </mxCell>
-    <mxCell id="n46" value="A parity-tested pair" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d7dde3;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+    <mxCell id="n47" value="A parity-tested pair" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d7dde3;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
       <mxGeometry x="197.2" y="344" width="144.0" height="26" as="geometry"/>
     </mxCell>
-    <mxCell id="n49" value="A reproducible framework" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d7dde3;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
-      <mxGeometry x="351.2" y="344" width="168.4" height="26" as="geometry"/>
+    <mxCell id="n50" value="A timing harness" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d7dde3;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="351.2" y="344" width="119.6" height="26" as="geometry"/>
     </mxCell>
-    <mxCell id="n52" value="A catalogue of what the guarantee misses" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d7dde3;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
-      <mxGeometry x="529.6" y="344" width="266.0" height="26" as="geometry"/>
+    <mxCell id="n53" value="A catalogue of what the guarantee misses" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d7dde3;align=center;verticalAlign=middle;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="480.8" y="344" width="266.0" height="26" as="geometry"/>
     </mxCell>
-    <mxCell id="n53" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.7;" vertex="1" parent="1">
+    <mxCell id="n54" value="" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=18;fillColor=#eef3fa;strokeColor=#2f6db3;strokeWidth=1.7;" vertex="1" parent="1">
       <mxGeometry x="15" y="396" width="850" height="78" as="geometry"/>
     </mxCell>
-    <mxCell id="n54" value="Where it goes next" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#1c4e86;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
+    <mxCell id="n55" value="Where it goes next" style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=12.5;fontColor=#1c4e86;fontFamily=Segoe UI;fontStyle=1;" vertex="1" parent="1">
       <mxGeometry x="31" y="406.12" width="122.63" height="18.75" as="geometry"/>
     </mxCell>
-    <mxCell id="n55" value="a same-host repeat of in-run and deferred fill, so the recorder can be separated from the machine." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
-      <mxGeometry x="206" y="408.02" width="560.81" height="15.75" as="geometry"/>
+    <mxCell id="n56" value="large pages, production traces, async versus threads, two allocators, and review effort." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=left;verticalAlign=middle;fontSize=10.5;fontColor=#33475b;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="206" y="408.02" width="503.58" height="15.75" as="geometry"/>
     </mxCell>
-    <mxCell id="n58" value="Production traces" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bcd0e8;align=center;verticalAlign=middle;fontSize=10;fontColor=#1c4e86;fontFamily=Segoe UI;" vertex="1" parent="1">
-      <mxGeometry x="31" y="434" width="122.0" height="24" as="geometry"/>
+    <mxCell id="n59" value="Large pages" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bcd0e8;align=center;verticalAlign=middle;fontSize=10;fontColor=#1c4e86;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="31" y="434" width="86.0" height="24" as="geometry"/>
     </mxCell>
-    <mxCell id="n61" value="Further subsystems" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bcd0e8;align=center;verticalAlign=middle;fontSize=10;fontColor=#1c4e86;fontFamily=Segoe UI;" vertex="1" parent="1">
-      <mxGeometry x="162.0" y="434" width="128.0" height="24" as="geometry"/>
+    <mxCell id="n62" value="Production traces" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bcd0e8;align=center;verticalAlign=middle;fontSize=10;fontColor=#1c4e86;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="126.0" y="434" width="122.0" height="24" as="geometry"/>
     </mxCell>
-    <mxCell id="n64" value="Call-site attribution" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bcd0e8;align=center;verticalAlign=middle;fontSize=10;fontColor=#1c4e86;fontFamily=Segoe UI;" vertex="1" parent="1">
-      <mxGeometry x="299.0" y="434" width="146.0" height="24" as="geometry"/>
+    <mxCell id="n65" value="Async versus threads" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bcd0e8;align=center;verticalAlign=middle;fontSize=10;fontColor=#1c4e86;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="257.0" y="434" width="140.0" height="24" as="geometry"/>
     </mxCell>
-    <mxCell id="n67" value="Extend the catalogue" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bcd0e8;align=center;verticalAlign=middle;fontSize=10;fontColor=#1c4e86;fontFamily=Segoe UI;" vertex="1" parent="1">
-      <mxGeometry x="454.0" y="434" width="140.0" height="24" as="geometry"/>
+    <mxCell id="n68" value="Two allocators" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bcd0e8;align=center;verticalAlign=middle;fontSize=10;fontColor=#1c4e86;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="406.0" y="434" width="104.0" height="24" as="geometry"/>
     </mxCell>
-    <mxCell id="n70" value="Async runtimes" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bcd0e8;align=center;verticalAlign=middle;fontSize=10;fontColor=#1c4e86;fontFamily=Segoe UI;" vertex="1" parent="1">
-      <mxGeometry x="603.0" y="434" width="104.0" height="24" as="geometry"/>
+    <mxCell id="n71" value="Review effort" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bcd0e8;align=center;verticalAlign=middle;fontSize=10;fontColor=#1c4e86;fontFamily=Segoe UI;" vertex="1" parent="1">
+      <mxGeometry x="519.0" y="434" width="98.0" height="24" as="geometry"/>
     </mxCell>
-    <mxCell id="n73" value="Isolate the heaps" style="rounded=1;absoluteArcSize=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bcd0e8;align=center;verticalAlign=middle;fontSize=10;fontColor=#1c4e86;fontFamily=Segoe UI;" vertex="1" parent="1">
-      <mxGeometry x="716.0" y="434" width="122.0" height="24" as="geometry"/>
-    </mxCell>
-    <mxCell id="n74" value="Where the service still meets the sent rate, the choice is which defects to make impossible to write." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
+    <mxCell id="n72" value="Where the service still meets the sent rate, the choice is which defects to make impossible to write." style="text;html=1;strokeColor=none;fillColor=none;whiteSpace=nowrap;align=center;verticalAlign=middle;fontSize=11.5;fontColor=#8794a3;fontFamily=Segoe UI;" vertex="1" parent="1">
       <mxGeometry x="123.49" y="491.07" width="633.02" height="17.25" as="geometry"/>
     </mxCell>
   </root>

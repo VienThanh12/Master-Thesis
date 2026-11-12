@@ -2183,10 +2183,9 @@ $\FfiCrossing$~ns and bounds only itself.\label{fig:ffiseam}}
 
 \section{Summary of findings}
 \begin{compactitem}
-\item \textbf{RQ1 (latency).} At $\ReprLoad$~kops/s, Rust is slightly but consistently faster.
-The largest difference is at the median, where Rust is ahead by up to $\PFiftyDiffAbsMax\,\mu$s. 
-Gaps at p99 and p99.9 are smaller. Across the slowest calls in all repeated runs, and at the maximum 
-latency, \FarTailLower{} leads by more.
+\item \textbf{RQ1 (latency).} At $\ReprLoad$~kops/s, Rust is slightly but consistently faster,
+by up to $\PFiftyDiffAbsMax\,\mu$s at the median. The p99.9 gap is larger than that median gap.
+Across the slowest calls in all repeated runs, and at the maximum latency, \FarTailLower{} leads by more.
 
 That end-to-end gap need not come from the core operation. 
 The core is only a small part of the round-trip, and the measured time 
@@ -2236,9 +2235,10 @@ measure.
 RQ1 has two answers, depending on the workload level. At $\ReprLoad$~kops/s,
 the campaign detects differences in the median, p99, and p99.9 latencies, all
 favouring Rust, and the pooled p99.99 and the maximum, which RQ1 also names,
-favour Rust by more. However, the end-to-end measurements cannot isolate a
-difference in the core operation, because that operation is a small fraction of
-a round trip.
+favour Rust by more. Those gaps also include each producer's late wake-up, so they
+compare the two sleep calls as well as the two services. The end-to-end
+measurements cannot isolate a difference in the core operation, because that
+operation is a small fraction of a round trip.
 
 After the system reaches saturation, the campaign delay mainly reflects
 schedule drift rather than service performance, so it should not be used to
@@ -2282,8 +2282,7 @@ So a lead in finished calls does not, on its own, mean that one service has a
 higher maximum rate in every condition. Earlier studies would expect Rust to be
 slower. It checks that each index stays inside an array, a bounds check, and it
 can check that a number does not grow past what its type can hold, an overflow
-check~\cite{zhang2022runtime,harris2023morello}. The results show no such
-slowdown for the bounds checks. At the chosen load, $\ReprLoad$~kops/s, the
+check~\cite{zhang2022runtime,harris2023morello}. This study did not turn the bounds checks off, so their cost stays inside the net build. At the chosen load, $\ReprLoad$~kops/s, the
 faster build is Rust, and Rust is the one that makes those checks. Rust's
 release build turns the overflow checks off. Their cost was not measured. The
 median at that load fits earlier evidence about a modern out-of-order processor,
@@ -2424,8 +2423,9 @@ which are not.
         differences should appear only among the slowest calls, but the results show
         otherwise. At $\ReprLoad$~kops/s, the paired test detects differences of up to
         $\PFiftyDiffAbsMax\,\mu$s in the median latency, as well as differences at p99
-        and p99.9. This means that the differences are not limited to the slowest
-        calls.
+        and p99.9. Those paired gaps also include each producer's late wake-up, so they
+        compare the two sleep calls as well as the two services. The differences are
+        not limited to the slowest calls.
 
         The first part of H1 claims that the two languages are performance-equivalent
         below saturation. However, this cannot be tested as stated because no
@@ -2449,7 +2449,7 @@ which are not.
   \item[H3] H3 is consistent with the data, but it was not tested against a predefined
         threshold because, like H1, it did not specify in advance what should count as
         a ``small'' overhead. On the virtual machine described in Appendix~A, the paired
-        difference is bounded at 10.91\% of the signalling call. This bound is based on
+        difference is bounded at $\FfiOpBoundPct\%$ of the signalling call. This bound is based on
         the upper end of the paired interval, since a non-significant difference alone
         does not demonstrate that the overhead is small.
         

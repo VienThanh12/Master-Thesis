@@ -82,7 +82,7 @@
   <rect x="15" y="292" width="850" height="54" rx="8" fill="#f4fbf6" stroke="#2e8b57" stroke-width="1.8"/>
   <text x="31" y="311" font-size="12.5" font-weight="700" fill="#1f6b41">What this buys</text>
   <text x="31" y="328" font-size="11.5" fill="#33475b">The migrated component stops contributing new use-after-free, double-free, iterator-invalidation, and data-race defects,</text>
-  <text x="31" y="343" font-size="11.5" fill="#33475b">at compile time, on every ordinary build, and for a run-time cost the measurement bounds at a small fraction of one operation.</text>
+  <text x="31" y="343" font-size="11.5" fill="#33475b">at compile time, on every ordinary build. The call overhead is bounded, and no threshold for small was set.</text>
 
   <!-- ================= what it does not buy ================= -->
   <rect x="15" y="358" width="850" height="112" rx="9" fill="#fdf1f0" stroke="#a5281b" stroke-width="1.8"/>
@@ -102,9 +102,9 @@
 
   <rect x="593" y="390" width="266" height="72" rx="7" fill="#ffffff" stroke="#e6b3ad"/>
   <text x="607" y="410" font-size="11.5" font-weight="700" fill="#12233a">A free first component</text>
-  <text x="607" y="427" font-size="11" fill="#5b6b7b">The dominant cost is human. Treat</text>
-  <text x="607" y="441" font-size="11" fill="#5b6b7b">the first as a training investment</text>
-  <text x="607" y="455" font-size="11" fill="#5b6b7b">and instrument it.</text>
+  <text x="607" y="427" font-size="11" fill="#5b6b7b">The unmeasured cost is human.</text>
+  <text x="607" y="441" font-size="11" fill="#5b6b7b">Treat the first as training</text>
+  <text x="607" y="455" font-size="11" fill="#5b6b7b">and track that effort.</text>
 
   <text x="440" y="496" text-anchor="middle" font-size="11.5" fill="#8794a3">Sequence the migration so that components sharing the most mutable state cross over together rather than one at a time.</text>
 </svg>

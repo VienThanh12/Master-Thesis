@@ -655,16 +655,17 @@ def contributions():
             "were not measured.",
         ]),
         (587, AMBER_EDGE, AMBER_FILL, AMBER_DEEP,
-         "Performance: two different answers", [
-            f"The round-trip is only {M['BudgetCoreShareMax']}%",
-            "language work. The median gap is",
-            "small. On a quiet host the far",
-            "tail sits lower in Rust.",
+         "Performance: The order splits", [
+            "Below saturation Rust leads.",
+            f"Median gap at most {M['PFiftyDiffAbsMax']} \u00b5s.",
+            "The p99.9 gap is larger.",
+            "The far tail is larger still.",
+            "A late wake-up sits in each.",
             "",
-            "Timed apart, the core call is",
+            "The core, timed apart, is",
             f"{M['BudgetCoreRatio']}\u00d7 faster in {M['BudgetCoreFaster']}.",
-            "Past saturation, service time",
-            "stays unknown.",
+            "Past saturation, the order",
+            "follows what the timer includes.",
         ]),
     ]
     for x, stroke, fill, deep, title, body in cards:
@@ -676,7 +677,7 @@ def contributions():
                     "verdict", 12.5, NAVY, weight=700)
     cx = 31
     for label in ["A frozen specification", "A parity-tested pair",
-                  "A reproducible framework",
+                  "A timing harness",
                   "A catalogue of what the guarantee misses"]:
         w = 6.1 * len(label) + 22
         d.chip(cx, 344, w, 26, label, WHITE, BODY, size=10.5, rx=5,
@@ -685,13 +686,13 @@ def contributions():
 
     d.rect(15, 396, 850, 78, BLUE_FILL, BLUE, rx=9, sw=1.7)
     d.text(31, 418, "Where it goes next", 12.5, BLUE_DEEP, weight=700)
-    d.text(206, 418, "a same-host repeat of in-run and deferred fill, "
-                     "so the recorder can be separated from the machine.",
+    d.text(206, 418, "large pages, production traces, async versus threads, "
+                     "two allocators, and review effort.",
            10.5, BODY)
     cx = 31
-    for label in ["Production traces", "Further subsystems",
-                  "Call-site attribution", "Extend the catalogue",
-                  "Async runtimes", "Isolate the heaps"]:
+    for label in ["Large pages", "Production traces",
+                  "Async versus threads", "Two allocators",
+                  "Review effort"]:
         w = 6.0 * len(label) + 20
         d.chip(cx, 434, w, 24, label, WHITE, BLUE_DEEP, size=10, rx=5,
                stroke=BLUE_EDGE)
