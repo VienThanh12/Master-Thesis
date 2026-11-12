@@ -18,16 +18,24 @@
 \chapter*{Statement on the Use of AI Tools}
 \markboth{Statement on the Use of AI Tools}{Statement on the Use of AI Tools}
 
-\noindent\textbf{Tool.} Anthropic's Claude Opus~5, Claude Opus~5.5, Cursor Grok~4.6, and Cursor Grok~4.7 were used through Cursor from June~2026 until this thesis was written. University of Helsinki policy forbids naming a language model as an author. They are not cited as a source, which is the author's own choice.
+\noindent\textbf{Tool.} Anthropic's Claude Opus~5, Claude Opus~5.5, Cursor Grok~4.6, and Cursor Grok~4.7 were used through Cursor from June~2026 until this thesis was written. 
+University of Helsinki policy forbids naming a language model as an author. They are not cited as a source, which is the author's own choice.
 
-\noindent\textbf{What the assistance covered.} The models drafted and revised the running prose, and proposed the order of the arguments. They wrote and refactored both versions of the UE Context Management service. They also wrote the load generator, the fault-injection catalogue, and the FFI prototype. The analysis behind the bootstrap intervals and the paired permutation tests is their work too, as are the figure, build and LaTeX sources.
+\noindent\textbf{What the assistance covered.} The models drafted and revised the running prose, and proposed the order of the arguments. 
+They wrote and refactored both versions of the UE Context Management service. They also wrote the load generator, the fault-injection catalogue, and the FFI prototype. 
+The analysis behind the bootstrap intervals and the paired permutation tests is their work too, as are the figure, build and LaTeX sources.
 \ifabstractunaided
 The abstract was written by the author unaided.
 \else
 \fi
 
-\noindent\textbf{What the models did not settle.} The research problem, the four research questions, the three hypotheses, and the study's main control are the author's. That control is one frozen language-neutral specification and one concurrency model, so language is the only planned gap. The author also chose to carry defect classes from outside Rust's compile-time guarantee, which keeps RQ2 falsifiable. The author directed every measurement and chose the machines each result names. Some runs on rented machines were started by the models over a remote login, under that direction. The quantities the thesis quotes reach the page as macros rebuilt from the raw logs. The readings are the author's.
+\noindent\textbf{What the models did not settle.} The research problem, the four research questions, the three hypotheses, and the study's main control are the author's. 
+That control is one frozen language-neutral specification and one concurrency model, so language is the only planned gap. The author also chose to carry defect classes from outside Rust's 
+compile-time guarantee, which keeps RQ2 falsifiable. The author directed every measurement and chose the machines each result names. Some runs on rented machines were started by the
+models over a remote login, under that direction. The quantities the thesis quotes reach the page as macros rebuilt from the raw logs. The readings are the author's.
 
-\noindent\textbf{How the output was checked.} The author read every model output before it entered the thesis. References were checked against Crossref, DataCite, or the publisher. A source that was never opened is listed, not used. Four passages that overstated or misplaced a source were corrected. One was a quotation that was not in the cited work. Code was checked line by line against a conformance suite and a fault catalogue. Each expected outcome was fixed before the defect was injected.
+\noindent\textbf{How the output was checked.} The author read every model output before it entered the thesis. References were checked against Crossref, DataCite, or the publisher. 
+A source that was never opened is listed, not used. Four passages that overstated or misplaced a source were corrected. One was a quotation that was not in the cited work. 
+Code was checked line by line against a conformance suite and a fault catalogue. Each expected outcome was fixed before the defect was injected.
 
 \noindent\textbf{Responsibility.} The author has reviewed the whole of this thesis and is responsible for all of it. Where it is wrong, the error is the author's.
