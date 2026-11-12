@@ -2418,18 +2418,26 @@ Section~\ref{sec:rqs} defined three hypotheses before any experiments were run.
 Revisiting them after the experiments makes clear which parts are supported and
 which are not.
 
-\begin{description}
-  \item[H1] H1 is not supported. Its second clause, that any difference
-        appears only among the slowest calls, is shown to be wrong. At $\ReprLoad$~kops/s the
-        paired test detects differences of up to $\PFiftyDiffAbsMax\,\mu$s in
-        the median and also at p99 and p99.9. Its first clause cannot be tested
-        as written, because no equivalence margin was defined, so a small
-        significant difference cannot show that the two are equivalent, and it
-        cannot show that they are not. H1
-        also had to cover the resources of RQ3, and they move apart, with peak
-        RSS favouring C\texttt{++} and CPU favouring Rust. Holding one hypothesis for
-        both was the weakness Section~\ref{sec:approach} named in advance.
-        Past saturation lies outside H1.
+\begin{description}[style=sameline, leftmargin=2.4em, labelwidth=1.6em,
+  labelsep=0.5em, font=\bfseries, listparindent=0pt, parsep=0.5ex]
+  \item[H1] H1 is not supported. The second part of the hypothesis claims that any
+        differences should appear only among the slowest calls, but the results show
+        otherwise. At $\ReprLoad$~kops/s, the paired test detects differences of up to
+        $\PFiftyDiffAbsMax\,\mu$s in the median latency, as well as differences at p99
+        and p99.9. This means that the differences are not limited to the slowest
+        calls.
+
+        The first part of H1 claims that the two languages are performance-equivalent
+        below saturation. However, this cannot be tested as stated because no
+        equivalence margin was defined. Without such a margin, a small statistically
+        significant difference cannot prove that the languages are equivalent, nor can
+        it prove that they are not equivalent.
+
+        H1 also covers the resource results discussed in RQ3, but these results move
+        in different directions: peak RSS favours C\texttt{++}, while CPU usage favours
+        Rust. Using one hypothesis to cover both performance and resource usage was
+        therefore too broad, as already noted in Section~\ref{sec:approach}. Results
+        beyond saturation are outside the scope of H1.
   \item[H2] H2 holds for the seven in-guarantee classes this study injected.
         However, it does not hold under the broader interpretation suggested by
         its wording. The hypothesis is supported for memory safety and
