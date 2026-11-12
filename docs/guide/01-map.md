@@ -83,7 +83,7 @@ Details: [06 Prose screens](06-prose.md).
 | `.bibaudit/` | Builds `source_audit.tex` (full draft) and `source_audit_v5.tex` (`--document v5`) from the bibliography, `.bbl`, and the evidence notes. `reviewed.txt` and `reviewed_v5.txt` mirror Part 1 ticks. | Tracked |
 | `.compress/` | One-shot tools for the short cut. Run from the repository root. | Tracked |
 | `.cursor/rules/thesis-quality.mdc` | Cursor rule: read `AGENT.md` before thesis edits. | Tracked |
-| `.cursor/skills/` | `thesis-grade-csm`, `create-pptx-master-thesis`, `drawio`, `code-visualizer-thesis`. | Tracked (pptx toolkit path is gitignored) |
+| `.cursor/skills/` | `thesis-grade-csm`, `create-pptx-master-thesis`, `code-visualizer-thesis`. | Tracked (pptx toolkit path is gitignored) |
 | `.latexmkrc` | Sends `.aux` and friends to `build/`, PDF to the root. | Tracked |
 | `.dockerignore` | What the campaign image leaves out. | Tracked |
 | `.gitignore` | See list below. | Tracked |

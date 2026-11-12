@@ -115,7 +115,6 @@ Nokia-internal comments.
 | `.cursor/rules/thesis-quality.mdc` | Always-applied: read `AGENT.md` before thesis edits. Grade table, prose style, non-negotiable claims. |
 | `.cursor/skills/thesis-grade-csm/` | Official CSM seven-area matrix, calibration, `scripts/texaudit.py`. Writes a canvas and a dated pass in `docs/ASSESSMENT.md`. |
 | `.cursor/skills/create-pptx-master-thesis/` | Nokia PPTX skill. Toolkit files gitignored. |
-| `.cursor/skills/drawio/` | draw.io diagrams. |
 | `.cursor/skills/code-visualizer-thesis/` | Code visualiser for this repo. |
 
 `AGENT.md` is the contract those rules point at. The skill does not replace
