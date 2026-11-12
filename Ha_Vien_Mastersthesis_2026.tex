@@ -2438,13 +2438,14 @@ which are not.
         Rust. Using one hypothesis to cover both performance and resource usage was
         therefore too broad, as already noted in Section~\ref{sec:approach}. Results
         beyond saturation are outside the scope of H1.
-  \item[H2] H2 holds for the seven in-guarantee classes this study injected.
-        However, it does not hold under the broader interpretation suggested by
-        its wording. The hypothesis is supported for memory safety and
-        data-race freedom, but not for concurrency correctness in general. It
-        also applies only to \emph{safe} Rust code. The example involving
-        \texttt{unsafe} code shows that the same class of defect can still
-        occur when those guarantees are bypassed.
+  \item[H2] H2 is supported for the seven in-guarantee bug classes injected in this study.
+        However, it is not supported under the broader interpretation implied by its
+        wording. The results support H2 for memory safety and data-race freedom, but
+        not for concurrency correctness in general.
+        
+        The hypothesis also applies only to \emph{safe} Rust code. The example using
+        \texttt{unsafe} code shows that the same kind of defect can still occur when
+        Rust's safety guarantees are bypassed.
   \item[H3] H3 is consistent with the data but was not tested against a
         threshold, because, like H1, it named no margin for ``small'' in
         advance. The paired difference is bounded at $\FfiOpBoundPct\%$ of the
