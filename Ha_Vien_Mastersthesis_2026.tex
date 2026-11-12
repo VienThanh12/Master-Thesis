@@ -2464,17 +2464,18 @@ recommendations. Each recommendation should be understood within the limits of
 the corresponding result.
 
 \begin{compactitem}
-\item Select the first component to migrate by the simplicity of its API rather
-than its size. In the prototype all \texttt{unsafe} code sits in the C-ABI
-layer, $\FfiUnsafeFns$ functions behind $\FfiEntryPoints$ entry points, so the
-width of the interface, not the size of the component behind it, sets how much
-code needs the extra review. Isolate the C ABI in a separate library and keep
-the core logic free of \texttt{unsafe} code, which also keeps \texttt{unsafe}
-code from spreading through the dependency chain~\cite{evans2020rust}.
+\item Choose the first component to migrate based on the simplicity of its API,
+rather than on the size of the component itself. In the prototype, all
+\texttt{unsafe} code is confined to the C-ABI layer: $\FfiUnsafeFns$ functions
+sit behind $\FfiEntryPoints$ entry points. As a result, the width of the
+interface determines how much code requires additional review, not the size of
+the implementation behind it. Isolate the C ABI in a separate library and keep the core logic free of
+\texttt{unsafe} code. This separation helps prevent \texttt{unsafe} code from
+spreading through the dependency chain~\cite{evans2020rust}.
 
 \item Do not reduce the budget for concurrency review. Prefer a shared-nothing
 design where possible, regardless of the language. In this study it is the
-shared-nothing design, not either compiler, that keeps shared mutable state to
+shared-nothing design that keeps shared mutable state to
 one atomic counter.
 
 \item Treat the learning curve as a real engineering cost and track it
