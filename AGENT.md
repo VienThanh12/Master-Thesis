@@ -111,17 +111,20 @@ sites plus `tab:testbed` claiming toolchain parity with the guest (`\GuestGpp` 1
 `\MainGpp` 15.2.1), §6.4.7 hand-typing 15.1.1 as the measurement host's compiler, and
 `tab:findings`' RQ3 cell saying “on bare metal”. The twentieth pass, 3 September, held 5.00.
 
+**Thirty-second pass, 12 November 2026, graded `Ha_Vien_Mastersthesis_2026.tex`
+only, mean 4.67.** Area 1 at 5 and areas 2 to 6 at 4.5. The numbers did not
+move. Coordinated omission is named again, and the abstract is back with claims
+that match the body. The findings summary says the largest latency gap is at
+the median and that p99 and p99.9 are smaller. The planned-comparison table
+has p99.9 at 4 µs and 3 µs against medians of 1.2 µs and 1.5 µs. The H1
+revisit still omits the sleep-path caveat. RQ1's clock still needs a rerun.
+The C++ profile papers are still uncited. `\abstractunaidedfalse` still warns,
+and that warning is not scored. See the thirty-second pass in `docs/ASSESSMENT.md`.
+
 **Thirty-first pass, 27 October 2026, graded `Thesis_v5.tex` only (uncommitted
 working tree, 85 pages), mean 4.67.** Area 1 at 5 and areas 2 to 6 at 4.5, graded
-as the deposit manuscript. Every cap of the thirtieth pass is closed and no measured
-value is wrong. Five new caps replace them. The background does not name coordinated
-omission (removed by the plain-words pass) and gives no C++-side safety position.
-RQ1's clock carries the sender's wake-up lateness below saturation and a 2.4% window
-error past it, which only a rerun removes. Figures 5.3 and 5.6 credit "the language"
-with what the text credits to two handoff designs. The H1 revisit drops the sleep-path
-caveat. Basic terms are re-defined in the body. The abstract box is empty, which is
-not scored because only the author may write it. See the thirty-first pass in
-`docs/ASSESSMENT.md`.
+as the deposit manuscript. Historical relative to the thirty-second pass. Do not
+re-report an empty abstract or a body that never names coordinated omission.
 
 **Thirtieth pass, 14 October 2026, graded `Thesis_v5.tex` only, mean 4.83.**
 Areas 1 to 4 are at 5, and areas 5 and 6 are 4.5. The abstract now

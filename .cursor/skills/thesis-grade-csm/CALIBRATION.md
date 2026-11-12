@@ -200,9 +200,28 @@ These have each consumed part of a pass and were wrong.
 
 ## Standing blockers on this thesis
 
+**`Ha_Vien_Mastersthesis_2026.tex` only, thirty-second pass, 12 November 2026. Mean 4.67,
+graded as the deposit manuscript.** Area 1 at 5, areas 2 to 6 at 4.5. The numbers did not
+move. Do not re-report an empty abstract or a body that never names coordinated omission.
+
+- **Area 2.** Coordinated omission is named, with Schroeder and HdrHistogram. The background
+  is still short, and `sutter2025profiles`, `vandevoorde2026profiles` and `baxter2024safecpp`
+  are still uncited.
+- **Area 3, which needs a rerun.** Unchanged. The clock carries the sender's wake-up lateness
+  below saturation, a 2.4% window error past it, and a fixed build order.
+- **Area 4.** The findings summary says the largest gap is at the median and that p99 and
+  p99.9 are smaller. `tab:significance` has p99.9 at 4 µs and 3 µs against medians of 1.2 µs
+  and 1.5 µs. `31_e2e_clock` and `32_same_handoff` still label the core or the queue as the
+  language.
+- **Area 5.** The H1 revisit still omits the sleep-path caveat. One sentence still says the
+  results show no slowdown for bounds checks. The summary ranking above is the new cause.
+- **Area 6.** The abstract is back and its claims match. `\abstractunaidedfalse` still warns,
+  and that warning is not scored. Short sentences are 52%, spread 7.0. The plain rewrite left
+  agreement errors.
+
 **`Thesis_v5.tex` only, thirty-first pass, 27 October 2026. Mean 4.67, graded as the deposit
-manuscript.** Area 1 at 5, areas 2 to 6 at 4.5. Every cap of the thirtieth pass is closed, and
-about 35 claims checked against the generated tables found no wrong value. The new caps:
+manuscript.** Historical. Area 1 at 5, areas 2 to 6 at 4.5. The caps below are the ones the
+thirty-second pass closed or replaced. Do not grade from this block.
 
 - **Area 2.** Coordinated omission is never named. The plain-words pass removed it. There is no
   C++-side safety position, although Sutter, Vandevoorde and Baxter are in the bibliography.

@@ -5723,3 +5723,168 @@ document has seven.
 
 This pass changed no thesis prose. It created the canvas, appended this record, and updated
 `AGENT.md` §2 and the standing blockers in `CALIBRATION.md`.
+
+## Thirty-second pass — 12 November 2026
+
+Graded independently against the CSM matrix of 9 April 2024 on
+**`Ha_Vien_Mastersthesis_2026.tex` / `.pdf`**, the deposit manuscript. The PDF was built at
+14:06. The 14:07 commit changes only line breaks in `ai_statement.tex`. The sentences are
+the same, and the committed PDF is the same byte size, so the build is the document an
+examiner would read. Grades were formed from the source and the generated tables before
+this file's thirty-first pass was read. **Standard applied: the submission manuscript.**
+
+**Build verified.** 84 physical pages. `texaudit.py` passes every hard gate: no LaTeX
+errors, undefined references or citations, multiply defined labels, overfull boxes (none
+`while \output is active`), or floats too large. Two float labels have no `\ref`:
+`fig:request` and `tab:jitter`. 115 bibliography entries, 64 cited here, 33 of them
+journal or conference papers, 6 master's theses. `zhang2026deadlock` is the journal
+article. `bugden2022rust` is uncited. Acronym gate: 0 misses, 5 printed waivers.
+`.aitells.py`: 0 semicolons, both colon checks at 0. The dash hits are numeric ranges
+and the two compound names. One counting stub (`Both versions follow it.`), which the
+rules keep. `.readability.py`: Flesch 60.3, grade 8.6, **52.1% short sentences against
+the 25 to 35% target**, stdev 7.0. 13 of 176 paragraphs of three or more sentences have
+no short sentence.
+
+Canvas: [`thesis-grade-csm-nov12.canvas.tsx`](/home/vienha/.cursor/projects/home-vienha-thesis-local/canvases/thesis-grade-csm-nov12.canvas.tsx).
+
+| Area | 31st pass (27 Oct) | This pass | Clause that sets it |
+| --- | --- | --- | --- |
+| 1. Objective and research questions | 5 | **5** | Hold. Named gap, four traceable questions, three prior hypotheses, 7 + 7 catalogue |
+| 2. Scholarly framework and sources | 4.5 | **4.5** | Level 5's "in-depth command" still fails: short background, no C++-side safety position. Coordinated omission is named again |
+| 3. Research data and method | 4.5 | **4.5** | Level 5's "excellent ... data selection" still fails for RQ1's clock. Unchanged, and editing cannot lift it |
+| 4. Presentation of results | 4.5 | **4.5** | Level 5's "apt" fails on a new cause: the findings summary ranks the latency gaps backwards against `tab:significance`. The handoff-figure labels remain |
+| 5. Discussion and conclusions | 4.5 | **4.5** | Level 5's "to the point" fails. The H1 revisit still drops the sleep-path caveat, the bounds-check sentence still overclaims, and the summary ranking is new |
+| 6. Academic text | 4.5 | **4.5** | Level 5's finishing polish fails: 52% short sentences, terms defined again, and agreement errors from the plain rewrite. The abstract is back and is not the cap |
+| 7. Work during the thesis process | n/a | **n/a** | Not assessable from a manuscript |
+| **Mean of the six assessable** | 4.67 | **4.67** | One area at 5, five at 4.5 |
+
+### What closed since the thirty-first pass
+
+Coordinated omission is named in the workload section, with Schroeder and HdrHistogram,
+and the harness's "histogram fill" is distinguished from that term. The abstract box is
+filled. Its claims were checked against the macros and match: seven in-guarantee defects
+rejected, median up to `\PFiftyDiffAbsMax` 1.5 µs in Rust's favour while the service keeps
+up, the planned overload comparison and the deferred-fill reversal, a
+`\HandoffSameLeadLo` 0.6% to `\HandoffSameLeadHi` 1.3% lead with the same queue on the
+system allocator, the host-D allocator split (Rust lower delay with jemalloc, C++ with
+the system allocator, 20/20 and 0/20 on both workloads), a few MiB more peak RSS on all
+three hosts, and `\FfiOpBoundPct` 10.91%. The guest compiler is disclosed as
+`\GuestGpp` 15.1.1 against `\MainGpp` 15.2.1. The hard-coded "Chapter 6" now points at
+the discussion chapter.
+
+### What is new, and what it did to the grade
+
+The numbers did not move. One comparative sentence did.
+
+The summary of findings says the largest difference at `\ReprLoad` is the median, up to
+1.5 µs, and that the gaps at p99 and p99.9 are smaller. `tab:significance` gives paired
+Rust-minus-C++ gaps of 1.2 µs and 1.5 µs at the median, 2 µs and 1 µs at p99, and 4 µs
+and 3 µs at p99.9. p99.9 is larger on both allocators. p99 is larger on the system
+allocator and smaller on jemalloc, so "smaller" is not true as a pair either. The
+results chapter already says the languages are further apart at the maximum than at any
+percentile in `tab:latency`, and the RQ1 discussion says the pooled p99.99 and the
+maximum favour Rust by more. The summary contradicts both. `\FarTailLangSep` is 22 µs
+on a different comparison, the slowest Rust variant against the fastest C++ one.
+
+About twenty further claims were read against the generated tables and agreed, including
+direction: overload ratio `\OverloadThrRatio` 1.7 with C++ ahead and the window contaminated,
+deferred fill with Rust ahead on both allocators at `\ProbeAfterOverloadLoad` 784,
+pipeline medians 53.8 ms against 121.9 ms (jemalloc) and 265.5 ms against 200.7 ms
+(system), resident split `\BmJeAllocatedDelta` -0.16 and `\BmJeResidentDelta` -1.92
+against `\BmJeRssDelta` +1.74, and the stage times on the same-handoff drawing matching
+`\Stage*` exactly. No measured value in a table was wrong. The defect is the sentence
+around them.
+
+`\abstractunaidedfalse` still ships. The log says the abstract has not been rewritten
+unaided. The printed statement omits the unaided sentence, so it does not make the false
+claim the tenth pass refused to score. Following that pass, the switch is not a grade.
+Submitted with the switch false, the author's own build still calls the file not
+submittable.
+
+### Per-area notes
+
+**1, holds 5.** *Carries it.* The gap is located in named limits of the five Ericsson
+theses. Three change the run-time with the language. Emberg and Wadsten keep the design
+and keep no state. `tab:design` maps each question to a method, an artefact and a metric.
+H1 to H3 are fixed before measurement. RQ2's 7 + 7 split can count against Rust. *Caps
+it.* Nothing.
+
+**2, holds 4.5, one cause closed.** *Carries it.* 64 cited works, 33 journal or
+conference papers. Primary 3GPP and ITU texts. A search protocol that reports the empty
+result. Contrary vendor results are stated and, for memory, reconciled by mechanism.
+Coordinated omission is named. *Caps it.* Level 5's "excellent in-depth command". The
+background is still a short chapter, and the C++ safety direction is absent.
+`sutter2025profiles`, `vandevoorde2026profiles` and `baxter2024safecpp` remain uncited.
+Sources read at 5. Depth reads at 4.
+
+**3, holds 4.5.** *Carries it.* The method analysis is unchanged and still reads at 5:
+fixed specification, matched controls, exact paired permutation, Holm family fixed in
+advance, floors quoted, own instrument failures disclosed. *Caps it.* Level 5's data
+selection, for the same clock. Up to 50 µs of wake-up lateness sits in every
+`tab:latency` value. The planned overload comparison times the sender's recording. The
+corrective run understates Rust by `\FillWindowRustGain` 2.4%. The four builds run in a
+fixed order, C++ first. Editing cannot lift this.
+
+**4, holds 4.5 for a new cause.** *Carries it.* Generated macros, and the checked values
+and direction words agree. Follow-ups are labelled outside the planned family. The
+testbed caption no longer claims one isolated change against a toolchain row that
+refutes it. *Caps it.* Level 5's apt reporting. The findings summary ranks the latency
+gaps backwards, as above. `31_e2e_clock` still labels the core "language 0.250%", and
+`32_same_handoff` still heads a panel "Each language's own standard library", while the
+prose puts the lead on two handoff designs. The caption of the first figure explains the
+label. The drawing still says the other thing. Smaller, and not what sets the grade:
+`fig:request` and `tab:jitter` have no `\ref`, and the H3 revisit types 10.91% beside a
+macro of the same value.
+
+**5, holds 4.5.** *Carries it.* Hypotheses revisited, including the ill-posed equivalence
+clause. H2 narrowed. H3 qualitative on effort. Four limitation groups, each with a
+separating test. Karlbäck reconciled. Ethics present. The jemalloc same-handoff result
+is left as cannot-tell (`p` 0.174). *Caps it.* The opening verdict ranks the gaps
+backwards. The H1 revisit still treats the 1.5 µs median gap as a language result and
+does not carry the sleep-path caveat that limitation 1 states. The RQ1 paragraph says
+the end-to-end clock cannot isolate the core, and still does not say the gaps compare
+the two sleep calls. The bounds-check sentence still says the results show no such
+slowdown, while the RQ3 paragraph says those costs were not isolated.
+
+**6, holds 4.5.** *Carries it.* Gates pass, acronyms hold, Flesch 60.3, and the
+declaration is truthful about the abstract. *Caps it.* Level 5's finishing polish.
+52.1% of sentences are under 15 words and the spread is 7.0. Offered load, saturation,
+median and tail latency are defined again at the head of the results chapter. The plain
+rewrite left "it's schedule", "the achieve rate", "the difference in the results stem",
+"one set of specification", "Each thesis groups leave out at least one aspect, that",
+a missing stop after "KPI degradation", and "seven studied defect compile".
+
+### Reconciliation with the thirty-first pass
+
+Agree on every number. **Disagree on two causes that the source has since closed.**
+Coordinated omission is named. The abstract box is not empty, and the claims in it match.
+**Agree that area 3 is unchanged.** **Agree that the handoff drawings still mis-label,
+and add a worse area-4 cause** the earlier pass could not have seen, because this
+summary sentence is from the November rewrite. **Agree that area 5's sleep-path and
+bounds-check caps are still open**, and that the new ranking belongs there too because
+it is the discussion's opening verdict. **Agree on area 6's shape**, with the rhythm
+slightly worse (52.1% against 49.6%) and with new agreement errors in place of the
+empty abstract.
+
+### What is outstanding, cheapest first
+
+1. **Editing, minutes.** Rewrite the RQ1 bullet in the summary of findings so it matches
+   `tab:significance`. The median gap is the small one. p99.9 is larger. Areas 4 and 5.
+2. **Editing, minutes.** Carry the sleep-path caveat into the H1 revisit and the RQ1
+   paragraph. Narrow the bounds-check sentence to the net build. Area 5.
+3. **Editing, an hour.** Relabel `31_e2e_clock` and `32_same_handoff` so the core and
+   the queue are not called the language. Area 4.
+4. **Editing, an hour.** One paragraph from `sutter2025profiles`,
+   `vandevoorde2026profiles` and `baxter2024safecpp`. The short background may still
+   hold area 2. Area 2.
+5. **Editing, an hour.** Fix the agreement errors and stop defining the four timing
+   terms twice. The sentence-length spread will still show. Area 6.
+6. **Author only.** Rewrite the abstract unaided, then set `\abstractunaidedtrue`. Not
+   scored. The build warns until then.
+7. **New measurement.** Rerun the campaign grid with the sender's timer slack removed
+   or minimised, the recording outside the window on both harnesses, and a rotated
+   build order. This is the only route to 5 in area 3.
+
+Items 1 to 3 are the editing that an examiner will notice. They do not lift area 3.
+This pass changed no thesis prose. It created the canvas, appended this record, and
+updated `AGENT.md` §2 and the standing blockers in `CALIBRATION.md`.
